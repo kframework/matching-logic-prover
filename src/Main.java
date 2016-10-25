@@ -1,6 +1,8 @@
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        MatchingLogicSignature ml_signature = new MatchingLogicSignature("Int", "Bool");
+        System.out.print(ml_signature.toString());
     }
+
 }
