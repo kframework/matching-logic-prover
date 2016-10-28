@@ -1,10 +1,10 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.Collections;
 
 /**
  * Created by shell on 10/27/16.
  */
-public class Configuration {
+public class Configuration{
     private String constructor = null;
     private List<Configuration> subConfigurations = new ArrayList<>();
 
@@ -21,6 +21,24 @@ public class Configuration {
     }
     public List<Configuration> getSubConfigurations() {
         return subConfigurations;
+    }
+
+    /**
+     * Compares the name of the top constructors of two configurations.
+     * If the names are the same then return 0. Otherwise, return 1 or -1.
+     */
+    public class ConstructorNameComparator implements Comparator<Configuration> {
+        @Override
+        public int compare(Configuration cfg1, Configuration cfg2) {
+            return cfg1.getConstructor().compareTo(cfg2.getConstructor());
+        }
+    }
+
+    /**
+     * Sorts all subconfigurations only by their names, not taking their contents into account.
+     */
+    public void sortSubConfigurationsByTheirNames(){
+        Collections.sort(subConfigurations, new ConstructorNameComparator());
     }
 
     /**
