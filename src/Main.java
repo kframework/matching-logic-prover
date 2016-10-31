@@ -1,14 +1,18 @@
 public class Main {
 
     public static void main(String[] args) {
-        Configuration premise = new Configuration("TOP");
-        premise.addSubConfiguration(new Configuration("Thread"));
-        premise.addSubConfiguration(new Configuration("Output"));
-        premise.addSubConfiguration(new Configuration("Input"));
+        Configuration cfg1 = new Configuration("TOP");
+        cfg1.addSubConfiguration(new Configuration("Thread"));
+        cfg1.addSubConfiguration(new Configuration("Output"));
+        cfg1.addSubConfiguration(new Configuration("Input"));
 
-        System.out.print(premise.toString() + '\n');
-        premise.sortSubConfigurationsByTheirNames();
-        System.out.print(premise.toString() + '\n');
+        Configuration cfg2 = new Configuration("TOP");
+        cfg2.addSubConfiguration(new Configuration("Thread"));
+        cfg2.addSubConfiguration(new Configuration("Output"));
+        cfg2.addSubConfiguration(new Configuration("Input"));
+        cfg1.addSubConfiguration(new Configuration("Env"));
+
+        System.out.print(cfg1.equals(cfg2));
     }
 
 }
