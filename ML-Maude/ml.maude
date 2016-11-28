@@ -1,0 +1,38 @@
+mod GENERAL-LOGIC is
+  sort Formula Sequent Sequents .
+  subsort Sequent < Sequents .
+  op {_} : Formula -> Sequent .
+  op empty : -> Sequents .
+  op _,_ : Sequents Sequents -> Sequents [assoc comm id: empty] .
+
+--- adding duplicates
+  var S : Sequent .
+
+  rl S => S, S .
+  rl S, S => S .
+endm
+
+mod PROP-L is
+  including GENERAL-LOGIC .
+
+  op _->_ : Formula Formula -> Formula .
+  op not_ : Formula -> Formula .
+  
+  var F G : Formula .
+  var P Q R : Formula .
+
+--- axioms
+  rl [ax1]: {P -> (Q -> P)} => empty .
+  rl [ax2]: {((P -> (Q -> R)) -> ((P -> Q) -> (P -> R)))} => empty .
+  rl [ax3]: {((not P -> not Q) -> (Q -> P))} => empty .
+--- modus ponens
+  rl [mp]: {G} => {F}, {F -> G} .
+endm
+
+rewrite {P -> P} .
+
+q
+
+search[1] {P -> P} =>* empty .
+
+q
