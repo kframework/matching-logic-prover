@@ -1,0 +1,33 @@
+mod FUN is
+  including INT .
+  sort State Command Result .
+
+  op {_} : Int -> State .
+  
+  op inc : -> Command .
+  op plus_ : Int -> Command .
+
+  op _;_ : Command Command -> Command [assoc id: skip] .
+  op skip : -> Command .
+
+  op _==========_ : State Command -> Result .
+
+  var N M : Int .
+  var C : Command .
+  
+  rl { N } ========== inc ; C  => { N + 1 } ========== C .
+  rl { N } ========== plus M ; C => { N + M } ========== C .
+
+endm
+
+rew 
+
+{ 10 } 
+==========
+inc ; 
+inc ; 
+plus 2 ; 
+skip ; 
+plus 232 .
+
+q

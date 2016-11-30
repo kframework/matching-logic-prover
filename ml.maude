@@ -1,0 +1,64 @@
+mod PROP is
+  including INT .
+  including QID .
+  sort LogicalVariable Formula Proofee .
+  subsort Qid < LogicalVariable < Formula .
+  sort State Command Result .
+
+--- Grammar for Logic 
+  
+  op _->_ : Formula Formula -> Formula .
+  op ~_ : Formula -> Formula .
+
+  op {_:_} : Formula Int -> Proofee .
+  op _,_ : Proofee Proofee -> Proofee [assoc comm id: done] .
+  op done : -> Proofee .
+
+--- Grammar for Command
+
+  op <_>_==========_ : Int Proofee Command -> Result .
+  op red1_ : Int -> Command .
+  op red2_ : Int -> Command .
+  op red3_ : Int -> Command .
+  op redm_with_ : Int Formula -> Command . 
+  op skip : -> Command .
+  op _;_ : Command Command -> Command [assoc id: skip] .
+
+--- Rules
+
+  var P Q R : Formula .
+  var RemP : Proofee .
+  var C : Command .
+  var N M G : Int .
+
+rl   < G > { P -> (Q -> P) : N } , RemP ========== red1 N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) : N } , RemP ========== red2 N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { ( ~ P -> ~ Q ) -> ( Q -> P ) : N } , RemP ========== red3 N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { P : N } , RemP ========== (redm N with Q) ; C
+=>
+     < G + 2 > { Q : G } , { Q -> P : G + 1 } , RemP ========== C .
+  
+endm
+
+rew
+
+< 1 >
+{ 'P -> 'P : 0 }
+==========
+(redm 0 with 'P -> ('P -> 'P)) ;
+(red1 1) ;
+(redm 2 with 'P -> (('P -> 'P) -> 'P)) ;
+(red1 3) ; 
+(red2 4) .
+
+
+q
