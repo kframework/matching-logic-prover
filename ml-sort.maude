@@ -1,0 +1,88 @@
+fmod ML-SYNTAX is
+  protecting INT .
+  protecting QID .
+
+  sort Sort .
+  sort SortList .
+  subsort Sort < SortList .
+  sort SymSort .
+  sort Var VarList .
+  sort Symbol .
+  sort Pattern .
+  subsort Qid < Sort .
+  subsort Var < Pattern .
+  subsort Var < VarList .
+
+--- Build Symbol Sort from a list of Variable Sort:
+--- sigma = {s1, ..., sn, s} means sigma is a symbol
+--- takes n arguments and results in Sort s.
+  op {_} : SortList -> SymSort .
+  op _,_ : Sort SortList -> SortList .
+
+  op _:_ : Qid Sort -> Var . --- x : Int
+  op _:_ : Qid SymSort -> Symbol . --- leq : { Int, Int, Bool }
+
+  op _,_ : Var VarList -> VarList .
+  op _(_) : Symbol VarList -> Pattern .
+  op _() : Symbol -> Pattern .
+
+  op _->_ : Pattern Pattern -> Pattern .
+  op _\/_ : Pattern Pattern -> Pattern .
+  op _/\_ : Pattern Pattern -> Pattern .
+  op ~_ : Pattern -> Pattern .
+  op E_._ : Var Pattern -> Pattern .
+  op _=_ : Pattern Pattern -> Pattern .
+
+endfm
+
+mod ML-PROOFSYSTEM is
+  protecting ML-SYNTAX .
+  sort State Command Result .
+  sort GlobalInfo .
+  sort Proofee .
+
+  op {_#_} : Pattern Int -> Proofee .
+  op _,_ : Proofee Proofee -> Proofee [assoc comm id: done format(n d n n)] .
+  op done : -> Proofee .
+
+  op <_> : Int -> GlobalInfo .
+
+  op __==========_ : GlobalInfo Proofee Command -> Result [format(d n n n n)].
+
+  op skip : -> Command .
+  op __ : Command Command -> Command [assoc id: skip format(d n n)] .
+
+  op reda_; : Int -> Command .
+  op redm_with_; : Int Pattern -> Command . 
+
+  var P Q R : Pattern .
+  var RemP : Proofee .
+  var C : Command .
+  var N M G : Int .
+
+rl   < G > { P -> (Q -> P) # N } , RemP ========== reda N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) # N } , RemP ========== reda N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { ( ~ P -> ~ Q ) -> ( Q -> P ) # N } , RemP ========== reda N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { P # N } , RemP ========== redm N with Q ; C
+=>
+     < G + 2 > { Q # G } , { Q -> P # G + 1 } , RemP ========== C .
+
+  
+endm
+
+rew < 1 >
+{ 'leq : { 'Int, 'Int, 'Bool } ( 'x : 'Int , 'y : 'Int ) -> 'leq : { 'Int, 'Int, 'Bool } ('x : 'Int , 'y : 'Int) : 'Int # 0 }
+==========
+redm 0 with 'x : 'Int -> ('x : 'Int -> 'x : 'Int) ;
+reda 1 ;
+.
+quit

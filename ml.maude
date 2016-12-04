@@ -1,36 +1,116 @@
+--- Last update on 04 Dec by Xiaohong.
+
+--- Syntax definition for Matching Logic with Equality.
+--- Many-sorted is not taken into account yet.
+--- TODO[low] Disambuguise grammar to minimize the use of parenthesis.
 fmod ML-SYNTAX is
-  protecting INT .
   protecting QID .
 
-  sort Sort .
-  sort SortList .
-  subsort Sort < SortList .
-  sort SymSort .
-  sort Var VarList .
-  sort Symbol .
-  sort Pattern .
+  sorts Var Symbol Pattern .
+  subsort Qid < Var .
+  subsort Qid < Symbol .
   subsort Var < Pattern .
-  subsort Var < VarList .
+  
+--- PatternList is needed to define patterns of the form
+--- f(p1, ..., pn).
+  sort PatternList .
+  subsort Pattern < PatternList .
 
---- Build Symbol Sort from a list of Variable Sort:
---- sigma = {s1, ..., sn, s} means sigma is a symbol
---- takes n arguments and results in Sort s.
-  op {_} : SortList -> SymSort .
-  op _,_ : Sort SortList -> SortList .
+  op _,_ : Pattern PatternList -> PatternList [ctor] .
+  op _(_) : Symbol PatternList -> Pattern [ctor] .
+  op _() : Symbol -> Pattern [ctor] .
 
-  op _:_ : Qid Sort -> Var . --- x : Int
-  op _:_ : Qid SymSort -> Symbol . --- add : { Int, Int, Int }
-
-  op _,_ : Var VarList -> VarList .
-  op _(_) : Symbol VarList -> Pattern .
-  op _() : Symbol -> Pattern .
-
-  op _->_ : Pattern Pattern -> Pattern .
-  op _/\_ : Pattern Pattern -> Pattern .
-  op _\/_ : Pattern Pattern -> Pattern .
-  op ~_ : Pattern -> Pattern .
+  op _->_ : Pattern Pattern -> Pattern [ctor] .
+  op _\/_ : Pattern Pattern -> Pattern [ctor] .
+  op _/\_ : Pattern Pattern -> Pattern [ctor] .
+  op ~_ : Pattern -> Pattern [ctor] .
+  op E_._ : Var Pattern -> Pattern [ctor] .
+  op A_._ : Var Pattern -> Pattern [ctor] .
+  op _=_ : Pattern Pattern -> Pattern [ctor] .
 
 endfm
 
-rew 1 + 2 + 3 + 4 + 5 .
+mod ML-DEDUCTIVESYSTEM is
+  protecting ML-SYNTAX .
+--- Use integers as reference to proofees.
+  protecting INT .
+  sort State Command Result .
+  sort GlobalInfo .
+  sort Proofee .
+
+  op {_#_} : Pattern Int -> Proofee .
+  op _,_ : Proofee Proofee -> Proofee [assoc comm id: done format(n d n n)] .
+  op done : -> Proofee .
+
+  op <_> : Int -> GlobalInfo .
+
+  op __==========_ : GlobalInfo Proofee Command -> Result [format(d n n n n)].
+
+  op skip : -> Command .
+  op __ : Command Command -> Command [assoc id: skip format(d n n)] .
+
+  op reda_; : Int -> Command .
+  op redm_with_; : Int Pattern -> Command . 
+  op redu_; : Int -> Command .
+
+  var P Q R : Pattern .
+  var RemP : Proofee .
+  var C : Command .
+  var N M G : Int .
+  var x y z : Var .
+
+--- Propositional Axioms of the Hilbert Deductive System
+
+rl   < G > { P -> (Q -> P) # N } , RemP ========== reda N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) # N } , RemP ========== reda N ; C
+=> 
+     < G > RemP ========== C .
+
+rl   < G > { ( ~ P -> ~ Q ) -> ( Q -> P ) # N } , RemP ========== reda N ; C
+=> 
+     < G > RemP ========== C .
+
+--- Modus Ponens
+
+rl   < G > { P # N } , RemP ========== redm N with Q ; C
+=>
+     < G + 2 > { Q # G } , { Q -> P # G + 1 } , RemP ========== C .
+
+--- FOL Axioms
+
+rl   < G > { ((A x . P) -> Q) -> (P -> A x . Q) # N } , RemP ========== reda N ; C
+=>
+     < G > RemP ========== C .
+
+--- Universal Generalization (Elimination)
+
+rl   < G > { A x . P # N } , RemP ========== redu N ; C
+=>
+     < G + 1 > { P # G } , RemP ========== C . 
+
+--- Functional Substitution
+
+--- rl   < G > { PPPP # N } , RemP ========== reda N ; C
+--- =>
+---      < G > RemP ========== C .
+
+--- Equality Introduction
+rl   < G > { P = P # N } , RemP ========== reda N ; C
+=>
+     < G > RemP ========== C .
+
+--- 
+
+  
+endm
+
+rew < 2 >
+{ A 'x . ('x -> 'x) # 0 },
+{ ((A 'x . ('y -> 'z)) -> 'y) -> (('y -> 'z) -> A 'x . 'y) # 1 }
+==========
+redu 0 ;
+.
 quit

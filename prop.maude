@@ -10,7 +10,7 @@ mod PRED-LOGIC is
   op _->_ : Formula Formula -> Formula .
   op ~_ : Formula -> Formula .
 
-  op {_:_} : Formula Int -> Proofee .
+  op {#_:_} : Int Formula -> Proofee .
   op _,_ : Proofee Proofee -> Proofee [assoc comm id: done] .
   op done : -> Proofee .
 
@@ -29,31 +29,30 @@ mod PRED-LOGIC is
   var C : Command .
   var N M G : Int .
 
-rl   < G > { P -> (Q -> P) : N } , RemP ========== reda N ; C
+rl   < G > { # N : P -> (Q -> P) } , RemP ========== reda N ; C
 => 
      < G > RemP ========== C .
 
-rl   < G > { (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) : N } , RemP ========== reda N ; C
+rl   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RemP ========== reda N ; C
 => 
      < G > RemP ========== C .
 
-rl   < G > { ( ~ P -> ~ Q ) -> ( Q -> P ) : N } , RemP ========== reda N ; C
+rl   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RemP ========== reda N ; C
 => 
      < G > RemP ========== C .
 
-rl   < G > { P : N } , RemP ========== redm N with Q ; C
+rl   < G > { # N : P } , RemP ========== redm N with Q ; C
 =>
-     < G + 2 > { Q : G } , { Q -> P : G + 1 } , RemP ========== C .
+     < G + 2 > { # G : Q } , { # G + 1 : Q -> P } , RemP ========== C .
   
 endm
 
 rew
 
 < 1 >
-{ 'P -> 'P : 0 }
+{ # 0 : 'P -> 'P }
 ==========
-redm 0 with 'P -> ('P -> 'P) ;
-reda 1 ;
+skip
 .
 
 
