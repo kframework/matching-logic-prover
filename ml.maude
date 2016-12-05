@@ -16,6 +16,10 @@ fmod ML-SYNTAX is
   sort PatternList .
   subsort Pattern < PatternList .
 
+--- Available indexes for fresh variables.
+  sort Index .
+  subsort Int < Index .
+
   op _,_ : Pattern PatternList -> PatternList [ctor] .
   op _(_) : Symbol PatternList -> Pattern [ctor] .
   op _() : Symbol -> Pattern [ctor] .
@@ -28,14 +32,44 @@ fmod ML-SYNTAX is
   op A_._ : Var Pattern -> Pattern [ctor] .
   op _=_ : Pattern Pattern -> Pattern [ctor] .
 
+  op <_> : 
+
 endfm
+
+fmod ML-SUBST is
+  protecting ML-SYNTAX .
+
+  op _[_/_] : Pattern Pattern Var -> Pattern .
+  
+  vars P Q R : Pattern .
+  var x y : Var .
+
+--- fresh variables.
+  op fresh : Int -> Var .
+
+--- beta-reduction.
+ ceq y [ R / x ] = R if y == x .
+ ceq y [ R / x ] = y if y =/= x .
+  eq (P -> Q) [ R / x ] = P [ R / x ] -> (Q [ R / x ]) .
+  eq (P \/ Q) [ R / x ] = P [ R / x ] \/ (Q [ R / x ]) .
+  eq (P /\ Q) [ R / x ] = P [ R / x ] /\ (Q [ R / x ]) .
+  eq (P = Q) [ R / x ] = (P [ R / x ] = (Q [ R / x ])) .
+  eq (~ P) [ R / x ] = ~ (P [ R / x ]) .
+ ceq (E y . P) [ R / x ] = E y . P if y == x .
+ ceq (E y . P) [ R / x ] = E y . (P [ R / x ]) if y =/= x . 
+ ceq (A y . P) [ R / x ] = A y . P if y == x .
+ ceq (A y . P) [ R / x ] = A y . (P [ R / x ]) if y =/= x . 
+
+endfm
+
+red (E 'x . ('x -> 'y)) [ (A 'y . ('y /\ 'x)) [ 'y / 'x ] / 'y ] .
+quit
 
 mod ML-DEDUCTIVESYSTEM is
   protecting ML-SYNTAX .
 --- Use integers as reference to proofees.
   protecting INT .
   sort State Command Result .
-  sort GlobalInfo .
   sort Proofee .
 
   op {_#_} : Pattern Int -> Proofee .
