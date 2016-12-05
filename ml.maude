@@ -1,26 +1,371 @@
---- Last update on 05 Dec by Xiaohong.
+--- This module contains several builtins that we will include in our languages.
+--- It is preferable to run maude with the flag -no-prelude, so that no warnings will be issued for
+---   redefining the sorts in modules BOOL and INT (which maude's prelude includes by default).
 
---- Syntax definition for Matching Logic with Equality.
---- This module provides constructors and also operators
---- that manipulate ML patterns.
---- Many-sorted is not taken into account yet.
-fmod ML-SYNTAX is
-  protecting QID .
-  protecting INT .
 
+set include BOOL off .   --- not needed if one runs maude with flag -no-prelude
+
+fmod UNDEFINED is
+--- I wish there were some automated way to add this undefined constant
+--- and propagate it through all the other constructs ...
+  sort Undefined .
+  op undefined : -> Undefined .
+endfm
+
+--- The module below includes the builtin booleans to be used as "library" for various languages
+--- The special operation attributes link those operations to builtin Maude library functions.
+fmod PL-BOOL is including UNDEFINED .
+  sort Bool .  subsort Undefined < Bool .
+  op true : -> Bool [ctor special (id-hook SystemTrue)] .
+  op false : -> Bool [ctor special (id-hook SystemFalse)] .
+  op if_then_else_fi : Bool Universal Universal -> Universal [poly (2 3 0)
+    special (
+    id-hook BranchSymbol
+    term-hook 1 (true)
+    term-hook 2 (false))] .
+  op _==Bool_ : Universal Universal -> Bool [poly (1 2) prec 51 special (
+    id-hook EqualitySymbol
+    term-hook equalTerm (true)
+    term-hook notEqualTerm (false))] .
+  op _=/=Bool_ : Universal Universal -> Bool [poly (1 2) prec 51 special (
+    id-hook EqualitySymbol
+    term-hook equalTerm (false)
+    term-hook notEqualTerm (true))] .
+
+  op _andBool_ : Bool Bool -> Bool [assoc comm prec 55] .
+  op _orBool_ : Bool Bool -> Bool [assoc comm prec 59   metadata "latex(renameTo _\\ensuremath{\\vee}_)"] .
+  op _xorBool_ : Bool Bool -> Bool [assoc comm prec 57] .
+  op notBool_ : Bool -> Bool [prec 53 metadata "latex(renameTo not\\subscript{\\small\\textit{Bool}}_)"] .
+  op _impliesBool_ : Bool Bool -> Bool [gather (e E) prec 61] .
+  vars A B C : Bool .
+  eq true andBool A = A .
+  eq false andBool A = false .
+  eq A andBool A = A .
+  eq false xorBool A = A .
+  eq A xorBool A = false .
+  eq A andBool (B xorBool C) = A andBool B xorBool A andBool C .
+  eq notBool A = A xorBool true .
+  eq A orBool B = A andBool B xorBool A xorBool B .
+  eq A impliesBool B = notBool(A xorBool A andBool B) .
+
+  eq undefined andBool A = undefined .
+  eq undefined xorBool A = undefined .
+endfm
+
+--- Like the module PL-BOOL above, the module below defines a minimal part of the Maude builtin integers.
+--- The special operation attributes links those operations to builtin library functions.
+--- Note that we appended an "Int" to each builtin integer operation, so that they will not colide with
+---   homonymous operations in the defined programming language
+mod PL-INT is including PL-BOOL .
+  sort Int .  subsort Undefined < Int .
+  op 0 : -> Int [ctor] .
+  op sInt_ : Int -> Int [iter ctor special (id-hook SuccSymbol  term-hook zeroTerm (0))] .
+  op -Int_ : Int -> Int [ctor special (
+    id-hook MinusSymbol  op-hook succSymbol (sInt_ : Int ~> Int)  op-hook minusSymbol (-Int_ : Int ~> Int))] .
+  op _+Int_ : Int Int -> Int [assoc comm prec 33 special (
+    id-hook ACU_NumberOpSymbol (+)  op-hook succSymbol (sInt_ : Int ~> Int)  op-hook minusSymbol (-Int_ : Int ~> Int))] .
+  op _*Int_ : Int Int -> Int [assoc comm prec 31 special (
+    id-hook ACU_NumberOpSymbol (*)  op-hook succSymbol (sInt_ : Int ~> Int)  op-hook minusSymbol (-Int_ : Int ~> Int))] .
+  op _-Int_ : Int Int -> Int [prec 33 gather (E e) special (
+    id-hook NumberOpSymbol (-)  op-hook succSymbol (sInt_ : Int ~> Int)  op-hook minusSymbol (-Int_ : Int ~> Int))] .
+  op _/Int_ : Int Int -> Int [prec 31 gather (E e) special (
+    id-hook NumberOpSymbol (quo)  op-hook succSymbol (sInt_ : Int ~> Int))] .
+  op _<=Int_ : Int Int -> Bool [prec 37 special (
+    id-hook NumberOpSymbol (<=)  op-hook succSymbol (sInt_ : Int ~> Int)  op-hook minusSymbol (-Int_ : Int ~> Int)
+    term-hook trueTerm (true)  term-hook falseTerm (false))] .
+  op _>Int_ : Int Int -> Bool [prec 37 special (
+    id-hook NumberOpSymbol (>)  op-hook succSymbol (sInt_ : Int ~> Int)  op-hook minusSymbol (-Int_ : Int ~> Int)
+    term-hook trueTerm (true)  term-hook falseTerm (false))] .
+  op _>=Int_ : Int Int -> Bool [prec 37 special (
+    id-hook NumberOpSymbol (>=)  op-hook succSymbol (sInt_ : Int ~> Int)  op-hook minusSymbol (-Int_ : Int ~> Int)
+    term-hook trueTerm (true)  term-hook falseTerm (false))] .
+
+--- maxInt is needed for generating fresh variables for substitution.
+--- It does not seem to be useful for other things.
+--- Annoyingly, I cannot replace the two equations with one, because of the
+--- new Maude "feature", which makes the builtin if_then_else_fi obey preregularity checks.
+  op maxInt : Int Int -> Int .
+  var I1 I2 : Int .
+ ceq maxInt(I1,I2) = I1 if I1 >Int I2 .
+  eq maxInt(I1,I2) = I2 [owise] .
+
+--- I'd like to get rid of equations like below ...
+--- How?  Maybe propagating "undefined" at the meta-level (somehow safely)?
+  var I : Int .
+  eq sInt undefined = undefined .
+  eq -Int undefined = undefined .
+  eq undefined +Int I = undefined .
+  eq undefined *Int I = undefined .
+  eq undefined -Int I = undefined .
+  eq I -Int undefined = undefined .
+  eq undefined /Int I = undefined .
+  eq I /Int undefined = undefined .
+  eq undefined <=Int I = undefined .
+  eq I <=Int undefined = undefined .
+  eq undefined >Int I = undefined .
+  eq I >Int undefined = undefined .
+endm
+
+
+--- The module below defines variable identifiers.
+--- We manually include all the one-lower-case-letter identifiers as constants.
+--- One should make sure that one does not use one-lower-case-letter identifiers
+--- as variables in definitions; otherwise one may get ambiguous parsing errors.
+--- In addition to those, we also included all the Maude builtin quoted identifiers ('a, 'b7, etc.)
+--- We also include sets of variable identifiers; they are useful for declaring blocks of variabiles
+mod PL-ID is including UNDEFINED .
+  sort Id .  subsort Undefined < Id .
+  ops a b c d e f g h i j k l m n p q r s t u v w x y z : -> Id [format (g o)] .
+  op <Qids> : -> Id [special (id-hook QuotedIdentifierSymbol)] .
+  sort List{Id} .
+  subsort Id < List{Id} .
+  op .List{Id} : -> List{Id} .
+  op _,_ : List{Id} List{Id} -> List{Id} [assoc id: .List{Id}] .
+endm
+
+
+--- The following module is used for our generic substitution.  We extract a
+--- minimal subset from Maude's META-TERM module, and use a syntax that avoids
+--- conflicts with syntax that one may want to have in one's langugae.
+mod PL-META-TERM is
+  including PL-BOOL .
+  sorts Sort Kind Qid .
+  subsorts Sort Kind < Qid .
+  op <Qids> : -> Sort [special (id-hook QuotedIdentifierSymbol (sortQid))] .
+  op <Qids> : -> Kind [special (id-hook QuotedIdentifierSymbol (kindQid))] .
+  op <Qids> : -> Qid [special (id-hook QuotedIdentifierSymbol)] .
+
+  sorts ConsVarTerm Constant Variable GroundMetaTerm MetaTerm NeGroundMetaTermList GroundMetaTermList NeMetaTermList MetaTermList .
+  subsorts Constant Variable < ConsVarTerm < Qid MetaTerm .
+  subsorts Constant < GroundMetaTerm < MetaTerm NeGroundMetaTermList < NeMetaTermList .
+  subsorts NeGroundMetaTermList < NeMetaTermList GroundMetaTermList < MetaTermList .
+  op <Qids> : -> Constant [special (id-hook QuotedIdentifierSymbol (constantQid))] .
+  op <Qids> : -> Variable [special (id-hook QuotedIdentifierSymbol (variableQid))] .
+  op emptyMetaTermList : -> GroundMetaTermList [ctor] .
+  op _:_ : NeGroundMetaTermList GroundMetaTermList -> NeGroundMetaTermList [ctor assoc id: emptyMetaTermList gather (e E) prec 121] .
+  op _:_ : GroundMetaTermList NeGroundMetaTermList -> NeGroundMetaTermList [ctor ditto] .
+  op _:_ : GroundMetaTermList GroundMetaTermList -> GroundMetaTermList [ctor ditto] .
+  op _:_ : NeMetaTermList MetaTermList -> NeMetaTermList [ctor ditto] .
+  op _:_ : MetaTermList NeMetaTermList -> NeMetaTermList [ctor ditto] .
+  op _:_ : MetaTermList MetaTermList -> MetaTermList [ctor ditto] .
+  op _[_] : Qid NeGroundMetaTermList -> GroundMetaTerm [ctor prec 7] .
+  op _[_] : Qid NeMetaTermList -> MetaTerm [ditto] .
+
+  sort Module .
+  sort ResultPair .
+  op metaReduce : Module MetaTerm ~> ResultPair
+     [special (
+        id-hook MetaLevelOpSymbol	(metaReduce)
+
+        op-hook qidSymbol          (<Qids> : ~> Qid)
+        op-hook metaTermSymbol     (_[_] : Qid NeMetaTermList ~> MetaTerm)
+        op-hook metaArgSymbol      (_:_ : NeMetaTermList NeMetaTermList ~> NeMetaTermList)
+
+        term-hook trueTerm         (true)
+        term-hook falseTerm        (false))] .
+
+  op downMetaTerm : MetaTerm Universal -> Universal
+        [poly (2 0)
+         special (
+           id-hook MetaLevelOpSymbol (metaDownTerm)
+           op-hook shareWith         (metaReduce : Module MetaTerm ~> ResultPair))] .
+
+  op upTerm : Universal -> MetaTerm
+        [poly (1) strat(0)
+         special (
+           id-hook MetaLevelOpSymbol (metaUpTerm)
+           op-hook shareWith         (metaReduce : Module MetaTerm ~> ResultPair))] .
+endm
+
+
+--- We next prepare for defining a generic substitution.
+--- We want a generic subsitution to be used for denotational semantics
+--- as well as for various lambda-caculi, (polymorphic) type systems, quantifiers, etc.
+
+--- The following module defines sets of meta-constants and common operations
+--- on them.  These meta-constants will actually be variables in the object
+--- calculi in which we will use substitution.  We need sets of object-language
+--- variables to properly define free variables, etc.
+mod PL-META-VARIABLE-SET is
+  including PL-META-TERM .
+  sort ConstantSet .
+  subsort Constant < ConstantSet .
+  op emptyConstantSet : -> ConstantSet .
+  op _,_ : ConstantSet ConstantSet -> ConstantSet [assoc comm id: emptyConstantSet] .
+
+  var QX QX' : Constant .  var QS QS' : ConstantSet .
+
+--- get rid of duplicates
+  eq QX,QX = QX .
+
+--- set subtraction
+  op _\_ : ConstantSet ConstantSet -> ConstantSet .
+  eq (QX,QS) \ (QX,QS') = QS \ QS' .
+  eq QS \ QS' = QS [owise] .
+
+--- set membership
+  op _in_ : Constant ConstantSet -> Bool .
+  eq QX in QX,QS = true .
+  eq QX in QS = false [owise] .
+endm
+
+
+--- The following module defines generic binders and free variables over them.
+--- To add a new binder, all you have to do is add an equation saying in which
+--- argument the operation is desired to be a binder.  For example, to say that
+--- /\ Id . Exp is a binder in the first argument, we have to write the equation
+---   eq bind('/\_._) = 1 .
+--- As seen shortly, the binding argument is expected to be a constant of sort Id.
+mod PL-META-FREE-VARIABLES is
+  including PL-META-VARIABLE-SET + PL-INT .
+
+  var N : Int .  var QX : Constant .  var QE : MetaTerm .  var Q : Qid .
+  var QTList : MetaTermList .  var QTNeList : NeMetaTermList .
+
+--- bind says in which argument the operation symbol (passed as argument) is a binder.
+--- By default, bind(Q) is 0, which means that the operation Q is not a binder.
+  op bind : Qid -> Int .
+  eq bind(Q) = 0 [owise] .
+
+--- QTList[N] rewrites to the N-th element in the list of meta-terms QTList 
+  op _[_] : MetaTermList Int -> ConstantSet [prec 0] .
+  eq QTList[0] = emptyConstantSet .
+  eq (QX : QTList)[sInt(N)] = if N ==Bool 0 then QX else QTList[N] fi .
+
+--- Next calculates the set of free variables that appear in a list of meta-terms.
+  op fv_ : MetaTermList -> ConstantSet [strat(0)] .
+  eq fv(emptyMetaTermList) = emptyConstantSet .
+  eq fv(QE : QTNeList) = fv(QE),fv(QTNeList) .
+  eq fv(QX) = QX .
+  eq fv(Q[QTList]) = fv(QTList) \ QTList[bind(Q)] .
+endm
+
+--- The following module generates fresh variables, which are
+--- needed in substitution to avoid variable capture.
+mod PL-META-GENERATE-VARIABLE is
+  including PL-META-VARIABLE-SET + PL-INT .
+  var N : Int .  var QX : Constant .  var QS : ConstantSet .
+
+  op genVar : ConstantSet -> [Constant] .
+  eq genVar(QS) = qid("'" +String make$(maxLength(QS) -Int 3) +String ".Id") .
+
+  op maxLength : ConstantSet -> Int .
+  eq maxLength(emptyConstantSet) = 0 .
+  eq maxLength(QX,QS) = maxInt(length(string(QX)),maxLength(QS)) .
+
+  op make$ : Int -> String .
+  eq make$(0) = "" .
+  eq make$(sInt(N)) = "$" +String make$(N) .
+
+
+--- assumes that the Id sort in PL-ID is subsorted to one's variables
+  op qid : [String] -> [Qid] [special (
+    id-hook QuotedIdentifierOpSymbol (qid)
+    op-hook quotedIdentifierSymbol (<Qids> : ~> Qid)
+    op-hook stringSymbol (<Strings> : ~> String))] .
+
+  op string : Qid -> String [special (
+    id-hook QuotedIdentifierOpSymbol (string)
+    op-hook quotedIdentifierSymbol (<Qids> : ~> Qid)
+    op-hook stringSymbol (<Strings> : ~> String))] .
+
+  op length : String -> Int [special (
+    id-hook StringOpSymbol (length)
+    op-hook stringSymbol (<Strings> : ~> String)
+    op-hook succSymbol (sInt_ : Int ~> Int))] .
+
+  op substr : String Int Int -> String [special (
+    id-hook StringOpSymbol (substr)
+    op-hook stringSymbol (<Strings> : ~> String)
+    op-hook succSymbol (sInt_ : Int ~> Int))] .
+
+  op counter : -> [Int] [special (
+       id-hook CounterSymbol
+       op-hook succSymbol (sInt_ : Int ~> Int))] .
+
+  op string : Int Int -> String [special (
+    id-hook StringOpSymbol (string)
+    op-hook stringSymbol (<Strings> : ~> String)
+    op-hook succSymbol (sInt_ : Int ~> Int)
+    op-hook minusSymbol (-Int_ : Int ~> Int)
+    op-hook divisionSymbol (_/Rat_ : Int Int ~> Rat))] .
+
+  sort Rat .
+  subsort Int < Rat .
+  op _/Rat_ : Int Int -> Rat [ctor prec 31 gather (E e) special (
+    id-hook DivisionSymbol
+    op-hook succSymbol (sInt_ : Int ~> Int)
+    op-hook minusSymbol (-Int_ : Int ~> Int))] .
+
+  sort String .
+  op <Strings> : -> String [special (id-hook StringSymbol)] .
+  op _+String_ : String String -> String [prec 33 gather (E e) special (
+    id-hook StringOpSymbol (+)
+    op-hook stringSymbol (<Strings> : ~> String))] .
+endm
+
+
+--- metaSubstitute below does the substitution at the meta-level.
+--- The big case is there because we don't want to generate fresh
+--- variables unless really needed.
+mod PL-META-SUBSTITUTION is
+  including PL-META-FREE-VARIABLES + PL-META-GENERATE-VARIABLE .
+  op metaSubstitute : MetaTermList MetaTerm Constant -> [MetaTermList] .
+  var QX QY QZ : Constant .  var QE QF : MetaTerm .  var QTList : MetaTermList .
+  var QTNeList : NeMetaTermList .  var Q : Qid .
+  eq metaSubstitute(emptyMetaTermList, QF, QY) = emptyMetaTermList .
+  eq metaSubstitute((QE : QTNeList), QF, QY) = metaSubstitute(QE, QF, QY) : metaSubstitute(QTNeList, QF, QY) .
+  eq metaSubstitute(QY, QF, QY) = QF .
+  eq metaSubstitute(QX, QF, QY) = QX [owise] .
+  eq metaSubstitute(Q[QTList], QF, QY)
+   = if bind(Q) >Int 0
+     then if QTList[bind(Q)] ==Bool QY
+          then Q[QTList]
+          else if QTList[bind(Q)] in fv(QF)
+               then
+                 Q[metaSubstitute(metaSubstitute(QTList, genVar(fv(QF),fv(QTList)), QTList[bind(Q)]), QF, QY)]
+               else Q[metaSubstitute(QTList, QF, QY)]
+               fi
+          fi
+     else Q[metaSubstitute(QTList, QF, QY)]
+     fi .
+endm
+
+
+--- To use the generic substitution, you need to:
+--- 1) Define your binders as discussed above
+--- 2) Subsort your custom expressions to GenericTerm
+--- 3) Make sure you only place Id constants on binding positions
+mod PL-GENERIC-SUBSTITUTION is
+  including PL-META-SUBSTITUTION .
+  including PL-ID .
+--- One could generalize this by adding also a GenericVariable sort with
+--- Id < GenericVariable, but this generality was unnecessary so far
+--- Instead, we allow X below to be of kind [Id]; this way one can use
+--- any constant in the kind of Id as a "variable" for substitution purposes.
+  sort GenericTerm .
+  op substitute : GenericTerm GenericTerm Id -> GenericTerm  [strat(0)] .
+  var X : [Id] .  var E F : [GenericTerm] .  var T : MetaTerm .
+  op undefinedTerm : -> [GenericTerm] .
+  eq substitute(E, F, X) = downMetaTerm(metaSubstitute(upTerm(E), upTerm(F), upTerm(X)), undefinedTerm) .
+endm
+
+mod ML is
+  including PL-GENERIC-SUBSTITUTION .
   sorts Var Symbol Pattern .
-  subsort Qid < Var .
-  subsort Qid < Symbol .
-  subsort Var < Pattern .
-  
---- PatternList is needed to define patterns of the form
---- f(p1, ..., pn).
-  sort PatternList .
-  subsort Pattern < PatternList .
 
-  op _,_ : Pattern PatternList -> PatternList [ctor] .
-  op _(_) : Symbol PatternList -> Pattern [ctor] .
-  op _() : Symbol -> Pattern [ctor] .
+  subsort Var < Pattern .
+
+--- Symbols
+  sorts Symbol{0} Symbol{1} Symbol{2} Symbol{3} .
+  op c0 : -> Symbol{0} .
+  op f1 : -> Symbol{1} .
+  op g1 : -> Symbol{2} .
+  op g2 : -> Symbol{2} .
+
+  op _() : Symbol{0} -> Pattern [ctor] .
+  op _(_) : Symbol{1} Pattern -> Pattern [ctor] .
+  op _(_,_) : Symbol{2} Pattern Pattern -> Pattern [ctor] .
 
   op E_._ : Var Pattern -> Pattern [ctor prec 31] .
   op A_._ : Var Pattern -> Pattern [ctor prec 31] .
@@ -30,64 +375,33 @@ fmod ML-SYNTAX is
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
   op _=_ : Pattern Pattern -> Pattern [ctor prec 36] .
 
-endfm
+  op _[_/_] : Pattern Pattern Var -> Pattern [prec 36].
 
---- Parsing Tests
----   result Bool: true means test passes.
-red 'x -> 'y -> 'z == 'x -> ('y -> 'z) .
-red 'x \/ 'y /\ 'z -> 'w == ('x \/ ('y /\ 'z)) -> 'w .
-red A 'x . 'x \/ 'y /\ 'z -> 'w == ((A 'x . 'x) \/ ('y /\ 'z)) -> 'w .
-red ~ 'a /\ 'b == (~ 'a) /\ 'b .
-red ~ 'a /\ 'b -> 'c == ((~ 'a) /\ 'b) -> 'c .
+  var V : Var .  vars P Q : Pattern .
 
-quit
-
-fmod ML-SUBST is
-  protecting ML-SYNTAX .
-
-  op _[_/_] : Pattern Pattern Var -> Pattern .
-  
-  vars P Q R : Pattern .
-  var x y : Var .
-
---- fresh variables.
-  op fresh : Int -> Var .
-
---- beta-reduction.
- ceq y [ R / x ] = R if y == x .
- ceq y [ R / x ] = y if y =/= x .
-  eq (P -> Q) [ R / x ] = P [ R / x ] -> (Q [ R / x ]) .
-  eq (P \/ Q) [ R / x ] = P [ R / x ] \/ (Q [ R / x ]) .
-  eq (P /\ Q) [ R / x ] = P [ R / x ] /\ (Q [ R / x ]) .
-  eq (P = Q) [ R / x ] = (P [ R / x ] = (Q [ R / x ])) .
-  eq (~ P) [ R / x ] = ~ (P [ R / x ]) .
- ceq (E y . P) [ R / x ] = E y . P if y == x .
- ceq (E y . P) [ R / x ] = E y . (P [ R / x ]) if y =/= x . 
- ceq (A y . P) [ R / x ] = A y . P if y == x .
- ceq (A y . P) [ R / x ] = A y . (P [ R / x ]) if y =/= x . 
-
-endfm
-
-red (E 'x . ('x -> 'y)) [ (A 'y . ('y /\ 'x)) [ 'y / 'x ] / 'y ] .
-quit
+  subsort Id < Var .
+  subsort Pattern < GenericTerm .
+  eq bind('E_._) = 1 .
+  eq bind('A_._) = 1 .
+  eq P [Q / V] = substitute (P, Q, V) .
+endm
 
 mod ML-DEDUCTIVESYSTEM is
-  protecting ML-SYNTAX .
---- Use integers as reference to proofees.
-  protecting INT .
+  including ML .
   sort State Command Result .
   sort Proofee .
 
-  op {_#_} : Pattern Int -> Proofee .
-  op _,_ : Proofee Proofee -> Proofee [assoc comm id: done format(n d n n)] .
+  op {#_:_} : Int Pattern -> Proofee .
+  op _,_ : Proofee Proofee -> Proofee [assoc comm id: done format(n d n d)] .
   op done : -> Proofee .
 
-  op <_> : Int -> GlobalInfo .
-
-  op __==========_ : GlobalInfo Proofee Command -> Result [format(d n n n n)].
-
+  op <_>_==========_ : Int Proofee Command -> Result [format(n d d d n n d)] .
   op skip : -> Command .
-  op __ : Command Command -> Command [assoc id: skip format(d n n)] .
+  op __ : Command Command -> Command [assoc id: skip format(n n d)] .
+
+  op reda_; : Int -> Command .
+  op redm_with_; : Int Pattern -> Command . 
+  op redu_; : Int -> Command .
 
   op reda_; : Int -> Command .
   op redm_with_; : Int Pattern -> Command . 
@@ -97,39 +411,69 @@ mod ML-DEDUCTIVESYSTEM is
   var RemP : Proofee .
   var C : Command .
   var N M G : Int .
-  var x y z : Var .
+  var X : Var .
 
 --- Propositional Axioms of the Hilbert Deductive System
 
-rl   < G > { P -> (Q -> P) # N } , RemP ========== reda N ; C
+rl   < G > { # N : P -> (Q -> P) } , RemP 
+     ========== 
+     reda N ; C
 => 
-     < G > RemP ========== C .
+     < G > RemP 
+     ========== 
+     C
+.
 
-rl   < G > { (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) # N } , RemP ========== reda N ; C
+rl   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RemP 
+     ========== 
+     reda N ; C
 => 
-     < G > RemP ========== C .
+     < G > RemP 
+     ========== 
+     C 
+.
 
-rl   < G > { ( ~ P -> ~ Q ) -> ( Q -> P ) # N } , RemP ========== reda N ; C
+rl   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RemP 
+     ========== 
+     reda N ; C
 => 
-     < G > RemP ========== C .
+     < G > RemP 
+     ========== 
+     C 
+.
 
 --- Modus Ponens
 
-rl   < G > { P # N } , RemP ========== redm N with Q ; C
+rl   < G > { # N : P } , RemP 
+     ========== 
+     redm N with Q ; C
 =>
-     < G + 2 > { Q # G } , { Q -> P # G + 1 } , RemP ========== C .
+     < G +Int 2 > { # G : Q } , { # G +Int 1 : Q -> P } , RemP 
+     ========== 
+     C 
+.
 
 --- FOL Axioms
 
-rl   < G > { ((A x . P) -> Q) -> (P -> A x . Q) # N } , RemP ========== reda N ; C
+rl   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RemP 
+     ========== 
+     reda N ; C
 =>
-     < G > RemP ========== C .
+     < G > RemP 
+     ========== 
+     C 
+.
 
 --- Universal Generalization (Elimination)
 
-rl   < G > { A x . P # N } , RemP ========== redu N ; C
+rl   < G > { # N : (A X . P) } , RemP 
+     ==========
+     redu N ; C
 =>
-     < G + 1 > { P # G } , RemP ========== C . 
+     < G +Int 1 > { # G : P } , RemP
+      ========== 
+     C 
+. 
 
 --- Functional Substitution
 
@@ -137,20 +481,24 @@ rl   < G > { A x . P # N } , RemP ========== redu N ; C
 --- =>
 ---      < G > RemP ========== C .
 
---- Equality Introduction
-rl   < G > { P = P # N } , RemP ========== reda N ; C
+---Equality Introduction
+rl   < G > { # N : P = P } , RemP 
+     ========== 
+     reda N ; C
 =>
-     < G > RemP ========== C .
+     < G > RemP 
+     ========== 
+     C 
+.
 
---- 
-
-  
 endm
 
 rew < 2 >
-{ A 'x . ('x -> 'x) # 0 },
-{ ((A 'x . ('y -> 'z)) -> 'y) -> (('y -> 'z) -> A 'x . 'y) # 1 }
+{ # 0 :  A 'x . ('x -> 'x) },
+{ # 1 : ((A 'x . ('y -> 'z)) -> 'y) -> (('y -> 'z) -> A 'x . 'y) }
 ==========
 redu 0 ;
+redm 2 with 'x /\ 'y -> 'z ;
 .
+
 quit
