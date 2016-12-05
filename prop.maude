@@ -52,7 +52,11 @@ rew
 < 1 >
 { # 0 : 'P -> 'P }
 ==========
-skip
+redm 0 with 'P -> ('P -> 'P) ;
+reda 1 ;
+redm 2 with 'P -> (('P -> 'P) -> 'P) ;
+reda 3 ;
+reda 4 ;
 .
 
 
