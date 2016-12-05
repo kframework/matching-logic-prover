@@ -1,10 +1,12 @@
---- Last update on 04 Dec by Xiaohong.
+--- Last update on 05 Dec by Xiaohong.
 
 --- Syntax definition for Matching Logic with Equality.
+--- This module provides constructors and also operators
+--- that manipulate ML patterns.
 --- Many-sorted is not taken into account yet.
---- TODO[low] Disambuguise grammar to minimize the use of parenthesis.
 fmod ML-SYNTAX is
   protecting QID .
+  protecting INT .
 
   sorts Var Symbol Pattern .
   subsort Qid < Var .
@@ -16,25 +18,29 @@ fmod ML-SYNTAX is
   sort PatternList .
   subsort Pattern < PatternList .
 
---- Available indexes for fresh variables.
-  sort Index .
-  subsort Int < Index .
-
   op _,_ : Pattern PatternList -> PatternList [ctor] .
   op _(_) : Symbol PatternList -> Pattern [ctor] .
   op _() : Symbol -> Pattern [ctor] .
 
-  op _->_ : Pattern Pattern -> Pattern [ctor] .
-  op _\/_ : Pattern Pattern -> Pattern [ctor] .
-  op _/\_ : Pattern Pattern -> Pattern [ctor] .
-  op ~_ : Pattern -> Pattern [ctor] .
-  op E_._ : Var Pattern -> Pattern [ctor] .
-  op A_._ : Var Pattern -> Pattern [ctor] .
-  op _=_ : Pattern Pattern -> Pattern [ctor] .
-
-  op <_> : 
+  op E_._ : Var Pattern -> Pattern [ctor prec 31] .
+  op A_._ : Var Pattern -> Pattern [ctor prec 31] .
+  op ~_ : Pattern -> Pattern [ctor prec 32] .
+  op _/\_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 33] .
+  op _\/_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 34] .
+  op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
+  op _=_ : Pattern Pattern -> Pattern [ctor prec 36] .
 
 endfm
+
+--- Parsing Tests
+---   result Bool: true means test passes.
+red 'x -> 'y -> 'z == 'x -> ('y -> 'z) .
+red 'x \/ 'y /\ 'z -> 'w == ('x \/ ('y /\ 'z)) -> 'w .
+red A 'x . 'x \/ 'y /\ 'z -> 'w == ((A 'x . 'x) \/ ('y /\ 'z)) -> 'w .
+red ~ 'a /\ 'b == (~ 'a) /\ 'b .
+red ~ 'a /\ 'b -> 'c == ((~ 'a) /\ 'b) -> 'c .
+
+quit
 
 fmod ML-SUBST is
   protecting ML-SYNTAX .
