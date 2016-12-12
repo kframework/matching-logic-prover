@@ -1,3 +1,8 @@
+--- This module is a (pseudo) interactive deductive system
+--- for propositional logic, which includes three axiom schemas
+--- and the modus ponens rule.
+--- Last update by Xiaohong on 11 Dec 2016.
+
 mod PRED-LOGIC is
   protecting INT .
   protecting QID .
@@ -16,9 +21,16 @@ mod PRED-LOGIC is
 
 --- Grammar for Command
 
+--- The "==========" thing is supposed to seperate
+--- Proofees apart from Commands.
   op <_>_==========_ : Int Proofee Command -> Result [format(nn d d n n n nn)].
-  op reda_; : Int -> Command .
-  op redm_with_; : Int Formula -> Command . 
+
+--- Use axioms to reduce one Proofee.
+  op ax_; : Int -> Command .
+
+--- Use modus ponens to reduce one Proofee.
+  op mp_with_; : Int Formula -> Command . 
+
   op skip : -> Command .
   op __ : Command Command -> Command [assoc id: skip] .
 
@@ -29,35 +41,72 @@ mod PRED-LOGIC is
   var C : Command .
   var N M G : Int .
 
-rl   < G > { # N : P -> (Q -> P) } , RemP ========== reda N ; C
+rl   < G >
+     { # N : P -> (Q -> P) } ,
+     RemP 
+     ==========
+     ax N ;
+     C
 => 
-     < G > RemP ========== C .
+     < G >
+     RemP
+     ========== 
+     C 
+.
 
-rl   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RemP ========== reda N ; C
+rl   < G >
+     { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } ,
+     RemP
+     ========== 
+     ax N ;
+     C
 => 
-     < G > RemP ========== C .
+     < G >
+     RemP 
+     ========== 
+     C 
+.
 
-rl   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RemP ========== reda N ; C
+rl   < G > 
+     { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , 
+     RemP 
+     ax N ; 
+     C
 => 
-     < G > RemP ========== C .
+     < G >
+     RemP
+     ========== 
+     C
+.
 
-rl   < G > { # N : P } , RemP ========== redm N with Q ; C
+rl   < G > 
+     { # N : P } , 
+     RemP
+     ========== 
+     mp N with Q ; 
+     C
 =>
-     < G + 2 > { # G : Q } , { # G + 1 : Q -> P } , RemP ========== C .
+     < G + 2 > 
+     { # G : Q } , 
+     { # G + 1 : Q -> P } , 
+     RemP 
+     ========== 
+     C 
+.
   
 endm
 
-rew
+rewrite
 
 < 1 >
 { # 0 : 'P -> 'P }
 ==========
-redm 0 with 'P -> ('P -> 'P) ;
-reda 1 ;
-redm 2 with 'P -> (('P -> 'P) -> 'P) ;
-reda 3 ;
-reda 4 ;
+mp 0 with 'P -> ('P -> 'P) ;
+ax 1 ;
+mp 2 with 'P -> (('P -> 'P) -> 'P) ;
+ax 3 ;
+ax 4 ;
 .
 
 
-q
+quit
