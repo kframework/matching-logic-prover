@@ -1,3 +1,7 @@
+--- This file is a reference deductive system for matching logic.
+--- This file uses Grigore Rosu's Generic Term Substitution.
+--- Main work starts at line xxx.
+
 --- This module contains several builtins that we will include in our languages.
 --- It is preferable to run maude with the flag -no-prelude, so that no warnings will be issued for
 ---   redefining the sorts in modules BOOL and INT (which maude's prelude includes by default).
@@ -350,22 +354,21 @@ mod PL-GENERIC-SUBSTITUTION is
   eq substitute(E, F, X) = downMetaTerm(metaSubstitute(upTerm(E), upTerm(F), upTerm(X)), undefinedTerm) .
 endm
 
+
+--- Main module for matching logic deductive system.
 mod ML is
-  including PL-GENERIC-SUBSTITUTION .
-  sorts Var Symbol Pattern .
+  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _;_ ) .
+  sorts Var Symbol Pattern PatternList .
 
   subsort Var < Pattern .
+  subsort Pattern < PatternList .
 
---- Symbols
-  sorts Symbol{0} Symbol{1} Symbol{2} Symbol{3} .
-  op c0 : -> Symbol{0} .
-  op f1 : -> Symbol{1} .
-  op g1 : -> Symbol{2} .
-  op g2 : -> Symbol{2} .
+  op .PatternList : -> PatternList .
+  op _,_ : PatternList PatternList -> PatternList [assoc id: .PatternList prec 37] .
 
-  op _() : Symbol{0} -> Pattern [ctor] .
-  op _(_) : Symbol{1} Pattern -> Pattern [ctor] .
-  op _(_,_) : Symbol{2} Pattern Pattern -> Pattern [ctor] .
+  ops ff gg hh : -> Symbol [ctor] .
+  op _() : Symbol -> Pattern [ctor prec 30] .
+  op _(_) : Symbol PatternList -> Pattern [ctor prec 30] .
 
   op E_._ : Var Pattern -> Pattern [ctor prec 31] .
   op A_._ : Var Pattern -> Pattern [ctor prec 31] .
@@ -374,6 +377,7 @@ mod ML is
   op _\/_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 34] .
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
   op _=_ : Pattern Pattern -> Pattern [ctor prec 36] .
+  op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] .
 
   op _[_/_] : Pattern Pattern Var -> Pattern [prec 36].
 
@@ -494,12 +498,7 @@ rl   < G > { # N : P = P } , RemP
 
 endm
 
-rew < 2 >
-{ # 0 :  A 'x . ('x -> 'x) },
-{ # 1 : ((A 'x . ('y -> 'z)) -> 'y) -> (('y -> 'z) -> A 'x . 'y) }
-==========
-redu 0 ;
-redm 2 with 'x /\ 'y -> 'z ;
+rew E 'y . gg ( ff ('x , 'y) => ff( 'y , 'x) , hh () ) [ ff ( 'z , 'y ) / 'x ]
 .
 
 quit
