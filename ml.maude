@@ -1,10 +1,15 @@
 load substitution .
 
---- Main module for matching logic deductive system.
-mod ML is
-  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _;_ ) .
-  sorts Var Symbol Pattern PatternList .
+--- This file aims for a matching logic deductive system.
+--- Last update by Xiaohong on 13 Dec 2016.
 
+fmod ML is
+
+--- change _,_ in PL-G-SUBSTITUTION to _;_ because _,_ is
+--- redefined in ML.
+  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _;_ ) .
+
+  sorts Var Symbol Pattern PatternList .
   subsort Var < Pattern .
   subsort Pattern < PatternList .
 
@@ -33,10 +38,10 @@ mod ML is
   eq bind('E_._) = 1 .
   eq bind('A_._) = 1 .
   eq P [Q / V] = substitute (P, Q, V) .
-endm
+endfm
 
 
-mod ML-DEDUCTIVESYSTEM is
+fmod ML-DEDUCTIVESYSTEM is
   including ML .
   sort State Command Result .
   sort Proofee .
@@ -65,28 +70,28 @@ mod ML-DEDUCTIVESYSTEM is
 
 --- Propositional Axioms of the Hilbert Deductive System
 
-rl   < G > { # N : P -> (Q -> P) } , RemP 
+eq   < G > { # N : P -> (Q -> P) } , RemP 
      ========== 
      reda N ; C
-=> 
+= 
      < G > RemP 
      ========== 
      C
 .
 
-rl   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RemP 
+eq   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RemP 
      ========== 
      reda N ; C
-=> 
+= 
      < G > RemP 
      ========== 
      C 
 .
 
-rl   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RemP 
+eq   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RemP 
      ========== 
      reda N ; C
-=> 
+= 
      < G > RemP 
      ========== 
      C 
@@ -94,10 +99,10 @@ rl   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RemP
 
 --- Modus Ponens
 
-rl   < G > { # N : P } , RemP 
+eq   < G > { # N : P } , RemP 
      ========== 
      redm N with Q ; C
-=>
+=
      < G +Int 2 > { # G : Q } , { # G +Int 1 : Q -> P } , RemP 
      ========== 
      C 
@@ -105,10 +110,10 @@ rl   < G > { # N : P } , RemP
 
 --- FOL Axioms
 
-rl   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RemP 
+eq   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RemP 
      ========== 
      reda N ; C
-=>
+=
      < G > RemP 
      ========== 
      C 
@@ -116,10 +121,10 @@ rl   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RemP
 
 --- Universal Generalization (Elimination)
 
-rl   < G > { # N : (A X . P) } , RemP 
+eq   < G > { # N : (A X . P) } , RemP 
      ==========
      redu N ; C
-=>
+=
      < G +Int 1 > { # G : P } , RemP
       ========== 
      C 
@@ -132,18 +137,18 @@ rl   < G > { # N : (A X . P) } , RemP
 ---      < G > RemP ========== C .
 
 ---Equality Introduction
-rl   < G > { # N : P = P } , RemP 
+eq   < G > { # N : P = P } , RemP 
      ========== 
      reda N ; C
-=>
+=
      < G > RemP 
      ========== 
      C 
 .
 
-endm
+endfm
 
-rew E 'y . gg ( ff ('x , 'y) => ff( 'y , 'x) , hh () ) [ ff ( 'z , 'y ) / 'x ]
+red E 'y . gg ( ff ('x , 'y) => ff( 'y , 'x) , hh () ) [ ff ( 'z , 'y ) / 'x ]
 .
 
 quit

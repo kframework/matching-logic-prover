@@ -60,7 +60,7 @@ endfm
 --- The special operation attributes links those operations to builtin library functions.
 --- Note that we appended an "Int" to each builtin integer operation, so that they will not colide with
 ---   homonymous operations in the defined programming language
-mod PL-INT is including PL-BOOL .
+fmod PL-INT is including PL-BOOL .
   sort Int .  subsort Undefined < Int .
   op 0 : -> Int [ctor] .
   op sInt_ : Int -> Int [iter ctor special (id-hook SuccSymbol  term-hook zeroTerm (0))] .
@@ -108,7 +108,7 @@ mod PL-INT is including PL-BOOL .
   eq I <=Int undefined = undefined .
   eq undefined >Int I = undefined .
   eq I >Int undefined = undefined .
-endm
+endfm
 
 
 --- The module below defines variable identifiers.
@@ -117,7 +117,7 @@ endm
 --- as variables in definitions; otherwise one may get ambiguous parsing errors.
 --- In addition to those, we also included all the Maude builtin quoted identifiers ('a, 'b7, etc.)
 --- We also include sets of variable identifiers; they are useful for declaring blocks of variabiles
-mod PL-ID is including UNDEFINED .
+fmod PL-ID is including UNDEFINED .
   sort Id .  subsort Undefined < Id .
   ops a b c d e f g h i j k l m n p q r s t u v w x y z : -> Id [format (g o)] .
   op <Qids> : -> Id [special (id-hook QuotedIdentifierSymbol)] .
@@ -125,13 +125,13 @@ mod PL-ID is including UNDEFINED .
   subsort Id < List{Id} .
   op .List{Id} : -> List{Id} .
   op _,_ : List{Id} List{Id} -> List{Id} [assoc id: .List{Id}] .
-endm
+endfm
 
 
 --- The following module is used for our generic substitution.  We extract a
 --- minimal subset from Maude's META-TERM module, and use a syntax that avoids
 --- conflicts with syntax that one may want to have in one's langugae.
-mod PL-META-TERM is
+fmod PL-META-TERM is
   including PL-BOOL .
   sorts Sort Kind Qid .
   subsorts Sort Kind < Qid .
@@ -179,7 +179,7 @@ mod PL-META-TERM is
          special (
            id-hook MetaLevelOpSymbol (metaUpTerm)
            op-hook shareWith         (metaReduce : Module MetaTerm ~> ResultPair))] .
-endm
+endfm
 
 
 --- We next prepare for defining a generic substitution.
@@ -190,7 +190,7 @@ endm
 --- on them.  These meta-constants will actually be variables in the object
 --- calculi in which we will use substitution.  We need sets of object-language
 --- variables to properly define free variables, etc.
-mod PL-META-VARIABLE-SET is
+fmod PL-META-VARIABLE-SET is
   including PL-META-TERM .
   sort ConstantSet .
   subsort Constant < ConstantSet .
@@ -211,7 +211,7 @@ mod PL-META-VARIABLE-SET is
   op _in_ : Constant ConstantSet -> Bool .
   eq QX in QX,QS = true .
   eq QX in QS = false [owise] .
-endm
+endfm
 
 
 --- The following module defines generic binders and free variables over them.
@@ -220,7 +220,7 @@ endm
 --- /\ Id . Exp is a binder in the first argument, we have to write the equation
 ---   eq bind('/\_._) = 1 .
 --- As seen shortly, the binding argument is expected to be a constant of sort Id.
-mod PL-META-FREE-VARIABLES is
+fmod PL-META-FREE-VARIABLES is
   including PL-META-VARIABLE-SET + PL-INT .
 
   var N : Int .  var QX : Constant .  var QE : MetaTerm .  var Q : Qid .
@@ -242,11 +242,11 @@ mod PL-META-FREE-VARIABLES is
   eq fv(QE : QTNeList) = fv(QE),fv(QTNeList) .
   eq fv(QX) = QX .
   eq fv(Q[QTList]) = fv(QTList) \ QTList[bind(Q)] .
-endm
+endfm
 
 --- The following module generates fresh variables, which are
 --- needed in substitution to avoid variable capture.
-mod PL-META-GENERATE-VARIABLE is
+fmod PL-META-GENERATE-VARIABLE is
   including PL-META-VARIABLE-SET + PL-INT .
   var N : Int .  var QX : Constant .  var QS : ConstantSet .
 
@@ -306,13 +306,13 @@ mod PL-META-GENERATE-VARIABLE is
   op _+String_ : String String -> String [prec 33 gather (E e) special (
     id-hook StringOpSymbol (+)
     op-hook stringSymbol (<Strings> : ~> String))] .
-endm
+endfm
 
 
 --- metaSubstitute below does the substitution at the meta-level.
 --- The big case is there because we don't want to generate fresh
 --- variables unless really needed.
-mod PL-META-SUBSTITUTION is
+fmod PL-META-SUBSTITUTION is
   including PL-META-FREE-VARIABLES + PL-META-GENERATE-VARIABLE .
   op metaSubstitute : MetaTermList MetaTerm Constant -> [MetaTermList] .
   var QX QY QZ : Constant .  var QE QF : MetaTerm .  var QTList : MetaTermList .
@@ -333,14 +333,14 @@ mod PL-META-SUBSTITUTION is
           fi
      else Q[metaSubstitute(QTList, QF, QY)]
      fi .
-endm
+endfm
 
 
 --- To use the generic substitution, you need to:
 --- 1) Define your binders as discussed above
 --- 2) Subsort your custom expressions to GenericTerm
 --- 3) Make sure you only place Id constants on binding positions
-mod PL-GENERIC-SUBSTITUTION is
+fmod PL-GENERIC-SUBSTITUTION is
   including PL-META-SUBSTITUTION .
   including PL-ID .
 --- One could generalize this by adding also a GenericVariable sort with
@@ -352,4 +352,4 @@ mod PL-GENERIC-SUBSTITUTION is
   var X : [Id] .  var E F : [GenericTerm] .  var T : MetaTerm .
   op undefinedTerm : -> [GenericTerm] .
   eq substitute(E, F, X) = downMetaTerm(metaSubstitute(upTerm(E), upTerm(F), upTerm(X)), undefinedTerm) .
-endm
+endfm
