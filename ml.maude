@@ -23,10 +23,10 @@ fmod ML is
   op E_._ : Var Pattern -> Pattern [ctor prec 31] .
   op A_._ : Var Pattern -> Pattern [ctor prec 31] .
   op ~_ : Pattern -> Pattern [ctor prec 32] .
-  op _/\_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 33] .
-  op _\/_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 34] .
+  op _/\_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 33 comm] .
+  op _\/_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 34 comm] .
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
-  op _=_ : Pattern Pattern -> Pattern [ctor prec 36] .
+  op _=_ : Pattern Pattern -> Pattern [ctor prec 36 comm] .
   op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] .
 
   op _[_/_] : Pattern Pattern Var -> Pattern [prec 36].
@@ -54,94 +54,96 @@ fmod ML-DEDUCTIVESYSTEM is
   op skip : -> Command .
   op __ : Command Command -> Command [assoc id: skip format(n n d)] .
 
-  op reda_; : Int -> Command .
-  op redm_with_; : Int Pattern -> Command . 
+  op ax_; : Int -> Command .
+  op mp_with_; : Int Pattern -> Command . 
   op redu_; : Int -> Command .
 
-  op reda_; : Int -> Command .
-  op redm_with_; : Int Pattern -> Command . 
+  op ax_; : Int -> Command .
+  op mp_with_; : Int Pattern -> Command . 
   op redu_; : Int -> Command .
 
   var P Q R : Pattern .
-  var RemP : Proofee .
+  var RestProofee : Proofee .
   var C : Command .
   var N M G : Int .
-  var X : Var .
+  var X Y : Var .
 
 --- Propositional Axioms of the Hilbert Deductive System
 
-eq   < G > { # N : P -> (Q -> P) } , RemP 
+eq   < G > { # N : P -> (Q -> P) } , RestProofee 
      ========== 
-     reda N ; C
+     ax N ; C
 = 
-     < G > RemP 
+     < G > RestProofee 
      ========== 
      C
 .
 
-eq   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RemP 
+eq   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RestProofee 
      ========== 
-     reda N ; C
+     ax N ; C
 = 
-     < G > RemP 
+     < G > RestProofee 
      ========== 
      C 
 .
 
-eq   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RemP 
+eq   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RestProofee 
      ========== 
-     reda N ; C
+     ax N ; C
 = 
-     < G > RemP 
+     < G > RestProofee 
      ========== 
      C 
 .
 
 --- Modus Ponens
 
-eq   < G > { # N : P } , RemP 
+eq   < G > { # N : P } , RestProofee 
      ========== 
-     redm N with Q ; C
+     mp N with Q ; C
 =
-     < G +Int 2 > { # G : Q } , { # G +Int 1 : Q -> P } , RemP 
+     < G +Int 2 > { # G : Q } , { # G +Int 1 : Q -> P } , RestProofee 
      ========== 
      C 
 .
 
 --- FOL Axioms
 
-eq   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RemP 
+eq   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RestProofee 
      ========== 
-     reda N ; C
+     ax N ; C
 =
-     < G > RemP 
+     < G > RestProofee 
      ========== 
      C 
 .
 
---- Universal Generalization (Elimination)
+--- Universal Generalization 
 
-eq   < G > { # N : (A X . P) } , RemP 
+eq   < G > { # N : (A X . P) } , RestProofee 
      ==========
      redu N ; C
 =
-     < G +Int 1 > { # G : P } , RemP
-      ========== 
+     < G +Int 1 > { # G : P } , RestProofee
+     ========== 
      C 
 . 
 
 --- Functional Substitution
 
---- rl   < G > { PPPP # N } , RemP ========== reda N ; C
---- =>
----      < G > RemP ========== C .
+eq   < G > { # N : (A X . P) /\ (E Y . Q = Y) -> R } , RestProofee
+     ==========
+     
+.
 
 ---Equality Introduction
-eq   < G > { # N : P = P } , RemP 
+
+eq   < G > { # N : P = P } , RestProofee 
      ========== 
-     reda N ; C
+     ax N ; C
 =
-     < G > RemP 
+     < G > RestProofee 
      ========== 
      C 
 .
