@@ -38,8 +38,21 @@ fmod ML is
   eq bind('E_._) = 1 .
   eq bind('A_._) = 1 .
   eq P [Q / V] = substitute (P, Q, V) .
+
+--- support for alpha-equivalence checking
+  op _=a=_ : Pattern Pattern -> Bool [prec 38] .
+  
+  vars X Y : Var .
+  vars P1 Q1 P2 Q2 : Pattern .
+  eq X =a= X = true .
+  eq X =a= Y = false [owise] .
+  eq (~ P =a= ~ Q) = (P =a= Q)  .
+  eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = (( (P1 =a= Q1) andBool (P2 =a= Q2) ) orBool ( (P1 =a= Q2) andBool (P2 =a= Q1) )) .
 endfm
 
+--- Tests for alpha-equivalence checking
+reduce 'x /\ 'y  =a= 'y /\ 'x .
+quit
 
 fmod ML-DEDUCTIVESYSTEM is
   including ML .
