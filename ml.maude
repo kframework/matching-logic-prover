@@ -44,15 +44,29 @@ fmod ML is
   
   vars X Y : Var .
   vars P1 Q1 P2 Q2 : Pattern .
+  vars F G : Symbol .
+  vars Ps Qs : PatternList .
+
+  eq F(.PatternList) = F() .
+
   eq X =a= X = true .
   eq X =a= Y = false [owise] .
   eq (~ P =a= ~ Q) = (P =a= Q)  .
   eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = (( (P1 =a= Q1) andBool (P2 =a= Q2) ) orBool ( (P1 =a= Q2) andBool (P2 =a= Q1) )) .
+  eq ( P1 \/ P2 =a= Q1 \/ Q2 ) = (( (P1 =a= Q1) andBool (P2 =a= Q2) ) orBool ( (P1 =a= Q2) andBool (P2 =a= Q1) )) .
+  eq ( P1 -> P2 =a= Q1 -> Q2 ) = ((P1 =a= Q1) andBool (P2 =a= Q2)) .
+  eq ( P1 = P2 =a= Q1 = Q2 ) = (( (P1 =a= Q1) andBool (P2 =a= Q2) ) orBool ( (P1 =a= Q2) andBool (P2 =a= Q1) )) .
+  eq ( F() =a= F() ) = true .
+  eq ( F() =a= G() ) = false [owise] .
+  eq ( F(P, Ps) =a= F(Q, Qs) ) = ((P =a= Q) andBool (F(Ps) =a= F(Qs))) .
+  eq (E X . P =a= E Y . Q ) = ( P =a= Q [ X / Y ] ) .
+  eq (A X . P =a= A Y . Q ) = ( P =a= Q [ X / Y ] ) .  
+  eq P =a= Q = false [owise] .
 endfm
 
 --- Tests for alpha-equivalence checking
-reduce 'x /\ 'y  =a= 'y /\ 'x .
-quit
+---reduce E 'x . ff('x, 'y) =a= E 'z . ff('z, 'y) .
+---quit
 
 fmod ML-DEDUCTIVESYSTEM is
   including ML .
@@ -144,11 +158,7 @@ eq   < G > { # N : (A X . P) } , RestProofee
 . 
 
 --- Functional Substitution
---- TODO
----   the condition P [ Q / X ] = R might break, because
----   P [ Q / X ] does not need to be *equal* to R, but
----   alpha-equivalant to R.
----   Need more support for substitution.
+
 
 ceq  < G > { # N : ((A X . P) /\ (E Y . (Q = Y))) -> R } , RestProofee
      ==========
@@ -157,7 +167,7 @@ ceq  < G > { # N : ((A X . P) /\ (E Y . (Q = Y))) -> R } , RestProofee
      < G > RestProofee
      ==========
      C
-  if P [ Q / X] = R 
+  if P [ Q / X] =a= R 
 .
 
 ---Equality Introduction
@@ -176,7 +186,7 @@ endfm
 reduce
 
 < 1 >
-{ # 0 : ((A 'x . ('x -> 'y -> 'z)) /\ (E 'y . ('term = 'y))) -> ('term -> 'y -> 'z) }
+{ # 0 : ((A 'x . E 'y . ('x -> 'y)) /\ (E 't . (ff('y, 'z) = 't))) -> (E 't . (ff('y, 'z) -> 't)) }
 ==========
 ax 0 ;
 .
