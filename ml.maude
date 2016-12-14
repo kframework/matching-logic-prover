@@ -1,22 +1,26 @@
-load substitution .
-
 --- This file aims for a matching logic deductive system.
---- Last update by Xiaohong on 13 Dec 2016.
+--- Last update by Xiaohong on 14 Dec 2016.
+
+--- load generic substitution modeul.
+load substitution .
 
 fmod ML is
 
---- change _,_ in PL-G-SUBSTITUTION to _;_ because _,_ is
---- redefined in ML.
+--- change op _,_ in module PL-GENERIC-SUBSTITUTION to _;_ 
+--- because _,_ will be redefined in this module.
   including PL-GENERIC-SUBSTITUTION * ( op _,_ to _;_ ) .
 
   sorts Var Symbol Pattern PatternList .
   subsort Var < Pattern .
   subsort Pattern < PatternList .
 
-  op .PatternList : -> PatternList .
+  op .PatternList : -> PatternList . --- empty list
   op _,_ : PatternList PatternList -> PatternList [assoc id: .PatternList prec 37] .
 
-  ops ff gg hh : -> Symbol [ctor] .
+--- TODO:
+--- find a better constructor for Symbol.
+--- we cannot use Qid because it has been used for Var.
+  ops ff gg hh map : -> Symbol [ctor] .
   op _() : Symbol -> Pattern [ctor prec 30] .
   op _(_) : Symbol PatternList -> Pattern [ctor prec 30] .
 
@@ -29,18 +33,20 @@ fmod ML is
   op _=_ : Pattern Pattern -> Pattern [ctor prec 36 comm] .
   op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] .
 
+--- grammar for substitution
   op _[_/_] : Pattern Pattern Var -> Pattern [prec 36].
 
+--- use generic substitution module
   var V : Var .  vars P Q : Pattern .
 
   subsort Id < Var .
   subsort Pattern < GenericTerm .
-  eq bind('E_._) = 1 .
-  eq bind('A_._) = 1 .
+  eq bind('E_._) = 1 . --- set up binder
+  eq bind('A_._) = 1 . --- set up binder
   eq P [Q / V] = substitute (P, Q, V) .
 
 --- support for alpha-equivalence checking
-  op _=a=_ : Pattern Pattern -> Bool [prec 38] .
+  op _=a=_ : Pattern Pattern -> Bool [prec 38] . --- Bool is redefined in generic substitution module
   
   vars X Y : Var .
   vars P1 Q1 P2 Q2 : Pattern .
@@ -52,10 +58,10 @@ fmod ML is
   eq X =a= X = true .
   eq X =a= Y = false [owise] .
   eq (~ P =a= ~ Q) = (P =a= Q)  .
-  eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = (( (P1 =a= Q1) andBool (P2 =a= Q2) ) orBool ( (P1 =a= Q2) andBool (P2 =a= Q1) )) .
-  eq ( P1 \/ P2 =a= Q1 \/ Q2 ) = (( (P1 =a= Q1) andBool (P2 =a= Q2) ) orBool ( (P1 =a= Q2) andBool (P2 =a= Q1) )) .
+  eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = ( (P1 =a= Q1) andBool (P2 =a= Q2) ) .
+  eq ( P1 \/ P2 =a= Q1 \/ Q2 ) = ( (P1 =a= Q1) andBool (P2 =a= Q2) ) .
   eq ( P1 -> P2 =a= Q1 -> Q2 ) = ((P1 =a= Q1) andBool (P2 =a= Q2)) .
-  eq ( P1 = P2 =a= Q1 = Q2 ) = (( (P1 =a= Q1) andBool (P2 =a= Q2) ) orBool ( (P1 =a= Q2) andBool (P2 =a= Q1) )) .
+  eq ( P1 = P2 =a= Q1 = Q2 ) = ( (P1 =a= Q1) andBool (P2 =a= Q2) ) .
   eq ( F() =a= F() ) = true .
   eq ( F() =a= G() ) = false [owise] .
   eq ( F(P, Ps) =a= F(Q, Qs) ) = ((P =a= Q) andBool (F(Ps) =a= F(Qs))) .
@@ -65,8 +71,8 @@ fmod ML is
 endfm
 
 --- Tests for alpha-equivalence checking
----reduce E 'x . ff('x, 'y) =a= E 'z . ff('z, 'y) .
----quit
+--- reduce E 'x . ff('x /\ 't, 'y) =a= E 'z . ff('t /\ 'z, 'y) .
+--- quit
 
 fmod ML-DEDUCTIVESYSTEM is
   including ML .
@@ -84,12 +90,9 @@ fmod ML-DEDUCTIVESYSTEM is
   op ax_; : Int -> Command .
   op mp_with_; : Int Pattern -> Command . 
   op uu_; : Int -> Command .
+  op ee_with_; : Int Pattern -> Command .
 
-  op ax_; : Int -> Command .
-  op mp_with_; : Int Pattern -> Command . 
-  op uu_; : Int -> Command .
-
-  var P Q R : Pattern .
+  var P Q R P1 P2 R1 R2 : Pattern .
   var RestProofee : Proofee .
   var C : Command .
   var N M G : Int .
@@ -180,6 +183,22 @@ eq   < G > { # N : P = P } , RestProofee
      ========== 
      C 
 .
+
+--- Equality Elimination
+--- TODO
+--- get rid of ee_with_, use ax_, by answering this:
+--- given P1, P2, R1, R2, whether there exist a pattern Q and a var X such that
+--- R1 =a= Q [ P1 / X ] and R2 =a= Q [ P2 / X ] ?
+
+ceq  < G > { # N : ( P1 = P2 /\ R1) -> R2 } , RestProofee
+     ==========
+     ee N with Q ; C
+=
+     < G > RestProofee
+     ==========
+     C
+if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
+. 
 
 endfm
 
