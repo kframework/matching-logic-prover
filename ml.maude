@@ -50,17 +50,17 @@ fmod ML-DEDUCTIVESYSTEM is
   op _,_ : Proofee Proofee -> Proofee [assoc comm id: done format(n d n d)] .
   op done : -> Proofee .
 
-  op <_>_==========_ : Int Proofee Command -> Result [format(n d d d n n d)] .
+  op <_>_==========_ : Int Proofee Command -> Result [format(n d d n n n d)] .
   op skip : -> Command .
   op __ : Command Command -> Command [assoc id: skip format(n n d)] .
 
   op ax_; : Int -> Command .
   op mp_with_; : Int Pattern -> Command . 
-  op redu_; : Int -> Command .
+  op uu_; : Int -> Command .
 
   op ax_; : Int -> Command .
   op mp_with_; : Int Pattern -> Command . 
-  op redu_; : Int -> Command .
+  op uu_; : Int -> Command .
 
   var P Q R : Pattern .
   var RestProofee : Proofee .
@@ -123,7 +123,7 @@ eq   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RestProofee
 
 eq   < G > { # N : (A X . P) } , RestProofee 
      ==========
-     redu N ; C
+     uu N ; C
 =
      < G +Int 1 > { # G : P } , RestProofee
      ========== 
@@ -131,10 +131,20 @@ eq   < G > { # N : (A X . P) } , RestProofee
 . 
 
 --- Functional Substitution
+--- TODO
+---   the condition P [ Q / X ] = R might break, because
+---   P [ Q / X ] does not need to be *equal* to R, but
+---   alpha-equivalant to R.
+---   Need more support for substitution.
 
-eq   < G > { # N : (A X . P) /\ (E Y . Q = Y) -> R } , RestProofee
+ceq  < G > { # N : ((A X . P) /\ (E Y . (Q = Y))) -> R } , RestProofee
      ==========
-     
+     ax N ; C
+=
+     < G > RestProofee
+     ==========
+     C
+  if P [ Q / X] = R 
 .
 
 ---Equality Introduction
@@ -150,7 +160,12 @@ eq   < G > { # N : P = P } , RestProofee
 
 endfm
 
-red E 'y . gg ( ff ('x , 'y) => ff( 'y , 'x) , hh () ) [ ff ( 'z , 'y ) / 'x ]
+reduce
+
+< 1 >
+{ # 0 : ((A 'x . ('x -> 'y -> 'z)) /\ (E 'y . ('term = 'y))) -> ('term -> 'y -> 'z) }
+==========
+ax 0 ;
 .
 
 quit
