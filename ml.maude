@@ -65,8 +65,8 @@ fmod ML is
   eq ( F() =a= F() ) = true .
   eq ( F() =a= G() ) = false [owise] .
   eq ( F(P, Ps) =a= F(Q, Qs) ) = ((P =a= Q) andBool (F(Ps) =a= F(Qs))) .
-  eq (E X . P =a= E Y . Q ) = ( P =a= Q [ X / Y ] ) .
-  eq (A X . P =a= A Y . Q ) = ( P =a= Q [ X / Y ] ) .  
+  eq ( E X . P =a= E Y . Q ) = ( P =a= Q [ X / Y ] ) .
+  eq ( A X . P =a= A Y . Q ) = ( P =a= Q [ X / Y ] ) .  
   eq P =a= Q = false [owise] .
 endfm
 
@@ -160,6 +160,15 @@ eq   < G > { # N : (A X . P) } , RestProofee
      C 
 . 
 
+--- eq   < G > { # N : P -> A X . P } , RestProofee
+---      ==========
+---      ax N ; C
+--- =
+---      < G > RestProofee
+---      ==========
+---      C
+--- .
+
 --- Functional Substitution
 
 
@@ -170,7 +179,7 @@ ceq  < G > { # N : ((A X . P) /\ (E Y . (Q = Y))) -> R } , RestProofee
      < G > RestProofee
      ==========
      C
-  if P [ Q / X] =a= R 
+  if P [ Q / X ] =a= R 
 .
 
 ---Equality Introduction
@@ -189,6 +198,7 @@ eq   < G > { # N : P = P } , RestProofee
 --- get rid of ee_with_, use ax_, by answering this:
 --- given P1, P2, R1, R2, whether there exist a pattern Q and a var X such that
 --- R1 =a= Q [ P1 / X ] and R2 =a= Q [ P2 / X ] ?
+--- higher-order pattern matching
 
 ceq  < G > { # N : ( P1 = P2 /\ R1) -> R2 } , RestProofee
      ==========
