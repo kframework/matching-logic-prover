@@ -1,5 +1,5 @@
 --- This file aims for a matching logic deductive system.
---- Last update by Xiaohong on 14 Dec 2016.
+--- Last update by Xiaohong on 18 Dec 2016.
 
 --- load generic substitution modeul.
 load substitution .
@@ -17,10 +17,14 @@ fmod ML is
   op .PatternList : -> PatternList . --- empty list
   op _,_ : PatternList PatternList -> PatternList [assoc id: .PatternList prec 37] .
 
---- TODO:
+--- TODO
 --- find a better constructor for Symbol.
 --- we cannot use Qid because it has been used for Var.
-  ops ff gg hh map : -> Symbol [ctor] .
+
+  ops zero succ plus : -> Symbol [ctor] .        --- Peano numbers
+  ops epsilon concat rev : -> Symbol [ctor] .    --- Sequences
+  ops mapsto emp mapmerge : -> Symbol [ctor] .   --- Maps
+  op list : -> Symbol [ctor] .                   --- Lists
   op _() : Symbol -> Pattern [ctor prec 30] .
   op _(_) : Symbol PatternList -> Pattern [ctor prec 30] .
 
@@ -32,6 +36,8 @@ fmod ML is
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
   op _=_ : Pattern Pattern -> Pattern [ctor prec 36 comm] .
   op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] .
+  op _in_ : Var Pattern -> Pattern [ctor prec 31] .
+  ops bottom top : -> Pattern [ctor] .
 
 --- grammar for substitution
   op _[_/_] : Pattern Pattern Var -> Pattern [prec 36].
@@ -67,6 +73,7 @@ fmod ML is
   eq ( F(P, Ps) =a= F(Q, Qs) ) = ((P =a= Q) andBool (F(Ps) =a= F(Qs))) .
   eq ( E X . P =a= E Y . Q ) = ( P =a= Q [ X / Y ] ) .
   eq ( A X . P =a= A Y . Q ) = ( P =a= Q [ X / Y ] ) .  
+  eq ( X in P =a= X in Q ) = ( P =a= Q ) .
   eq P =a= Q = false [owise] .
 endfm
 
@@ -87,16 +94,18 @@ fmod ML-DEDUCTIVESYSTEM is
   op skip : -> Command .
   op __ : Command Command -> Command [assoc id: skip format(n n d)] .
 
-  op ax_; : Int -> Command .
-  op mp_with_; : Int Pattern -> Command . 
-  op uu_; : Int -> Command .
-  op ee_with_; : Int Pattern -> Command .
+  op ax_; : Int -> Command .               --- use axioms to resolve patterns
+  op mp_with_; : Int Pattern -> Command .  --- use modus ponens rule
+  op uu_; : Int -> Command .               --- use universal generalization (elimination)
+  op ee_with_; : Int Pattern -> Command .  --- use equality elimination
 
   var P Q R P1 P2 R1 R2 : Pattern .
   var RestProofee : Proofee .
   var C : Command .
   var N M G : Int .
-  var X Y : Var .
+  var X Y Z : Var .
+  var F : Symbol .
+  vars LL RR : PatternList .
 
 --- Propositional Axioms of the Hilbert Deductive System
 
@@ -210,12 +219,201 @@ ceq  < G > { # N : ( P1 = P2 /\ R1) -> R2 } , RestProofee
 if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
 . 
 
+
+--- TODO
+--- Membership
+
+eq  < G > { # N : X in Y = (X = Y) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : X in ( ~ P ) = ~ (X in P) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+
+eq  < G > { # N : X in (P /\ Q) = (X in P) /\ (X in Q) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : X in (P \/ Q) = (X in P) \/ (X in Q) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : X in (E Y . P) = E Y . (X in P) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : list(zero()) = emp() } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+
+eq  < G > { # N : X in F(LL, P, RR) = E Y . (Y in P /\ X in F(LL, Y, RR)) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+--- axioms for Piano natural numbers
+--- we instead do not want to use such axioms, but pass
+--- the pattern to Z3 and let Z3 solve it for us.
+
+eq  < G > { # N : plus(zero(), X) = X } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : plus(succ(X), Y) = succ(plus(X, Y)) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+--- axioms for sequences
+
+eq  < G > { # N : concat(epsilon(), X) = X } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : concat(X, epsilon()) = X } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : concat(concat(X, Y), Z) = concat(X, concat(Y, Z)) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+--- axioms for maps
+
+var H H1 H2 H3 : Var .
+
+eq  < G > { # N : mapmerge(emp(), H) = H } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : mapmerge(H1, H2) = mapmerge(H2, H1) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : mapmerge(mapmerge(H1, H2), H3) = mapmerge(H1, mapmerge(H2, H3)) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : mapsto(zero(), X) = bottom } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : mapmerge(mapsto(X, Y), mapsto(X, Z)) = bottom } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+--- axioms for lists
+
+eq  < G > { # N : list(zero()) = emp() } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
+eq  < G > { # N : list(X) /\ ( ~ X = zero() ) = E Z . mapmerge(mapsto(X, Z), list(Z)) } , RestProofee
+    ==========
+    ax N ; C
+=
+    < G > RestProofee
+    ==========
+    C
+.
+
 endfm
 
 reduce
 
 < 1 >
-{ # 0 : ((A 'x . E 'y . ('x -> 'y)) /\ (E 't . (ff('y, 'z) = 't))) -> (E 't . (ff('y, 'z) -> 't)) }
+{ # 0 : plus(succ(zero()), succ(zero())) = succ(succ(zero())) }
 ==========
 ax 0 ;
 .
