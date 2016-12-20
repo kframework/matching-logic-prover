@@ -1,7 +1,7 @@
 --- This file aims for a matching logic deductive system.
---- Last update by Xiaohong on 18 Dec 2016.
+--- Last update by Xiaohong on 20 Dec 2016.
 
---- load generic substitution modeul.
+--- load generic substitution module.
 load substitution .
 
 fmod ML is
@@ -20,6 +20,8 @@ fmod ML is
 --- TODO
 --- find a better constructor for Symbol.
 --- we cannot use Qid because it has been used for Var.
+--- TODO
+--- define Symbol{n} and PatternList{n} ?
 
   ops zero succ plus : -> Symbol [ctor] .        --- Peano numbers
   ops epsilon concat rev : -> Symbol [ctor] .    --- Sequences
@@ -27,6 +29,10 @@ fmod ML is
   op list : -> Symbol [ctor] .                   --- Lists
   op _() : Symbol -> Pattern [ctor prec 30] .
   op _(_) : Symbol PatternList -> Pattern [ctor prec 30] .
+
+--- TODO
+--- add axioms for syntatic sugar.
+--- urgent to find a minimal proof system.
 
   op E_._ : Var Pattern -> Pattern [ctor prec 31] .
   op A_._ : Var Pattern -> Pattern [ctor prec 31] .
@@ -52,7 +58,7 @@ fmod ML is
   eq P [Q / V] = substitute (P, Q, V) .
 
 --- support for alpha-equivalence checking
-  op _=a=_ : Pattern Pattern -> Bool [prec 38] . --- Bool is redefined in generic substitution module
+  op _=a=_ : Pattern Pattern -> Bool [prec 38] . --- Bool is PL-GENERIC-SUBSTITUTION
   
   vars X Y : Var .
   vars P1 Q1 P2 Q2 : Pattern .
@@ -169,6 +175,17 @@ eq   < G > { # N : (A X . P) } , RestProofee
      C 
 . 
 
+--- Variable Axiom
+
+eq   < G > { # N : (E X . X = Y) } , RestProofee
+     ==========
+     ax N ; C
+=
+     < G > RestProofee
+     ========== 
+     C 
+.  
+
 --- eq   < G > { # N : P -> A X . P } , RestProofee
 ---      ==========
 ---      ax N ; C
@@ -219,8 +236,6 @@ ceq  < G > { # N : ( P1 = P2 /\ R1) -> R2 } , RestProofee
 if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
 . 
 
-
---- TODO
 --- Membership
 
 eq  < G > { # N : X in Y = (X = Y) } , RestProofee
