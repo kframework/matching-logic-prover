@@ -90,133 +90,171 @@ endfm
 fmod ML-DEDUCTIVESYSTEM is
   including ML .
   sort State Command Result .
-  sort Proofee .
+  sorts Entailment ProofObligation .
 
-  op {#_:_} : Int Pattern -> Proofee .
-  op _,_ : Proofee Proofee -> Proofee [assoc comm id: done format(n d n d)] .
-  op done : -> Proofee .
+  op #_{_}|-_ : Int PatternList Pattern -> Entailment [format(d d s d d s d d) prec 39] .
+  op #_{}|-_ : Int Pattern -> Entailment [prec 39] .
 
-  op <_>_==========_ : Int Proofee Command -> Result [format(n d d n n n d)] .
+  subsort Entailment < ProofObligation .
+  op __ : ProofObligation ProofObligation -> ProofObligation [assoc comm id: done format(n n d) prec 40] .
+  op done : -> ProofObligation .
+
+  op <_>_==========_ : Int ProofObligation Command -> Result [format(n d d n n n d)] .
   op skip : -> Command .
-  op __ : Command Command -> Command [assoc id: skip format(n n d)] .
+  op __ : Command Command -> Command [assoc id: skip format(n n d) prec 40] .
 
-  op ax_; : Int -> Command .               --- use axioms to resolve patterns
-  op mp_with_; : Int Pattern -> Command .  --- use modus ponens rule
-  op uu_; : Int -> Command .               --- use universal generalization (elimination)
-  op ee_with_; : Int Pattern -> Command .  --- use equality elimination
+  op ax_ : Int -> Command [prec 35] .               --- use axioms to resolve patterns
+  op mp_with_ : Int Pattern -> Command [prec 35] .  --- use modus ponens rule
+  op uu_ : Int -> Command [prec 35] .               --- use universal generalization (elimination)
+  op ee_with_ : Int Pattern -> Command [prec 35] .  --- use equality elimination
 
   var P Q R P1 P2 R1 R2 : Pattern .
-  var RestProofee : Proofee .
+  var RestProofObligation : ProofObligation .
   var C : Command .
   var N M G : Int .
   var X Y Z : Var .
   var F : Symbol .
-  vars LL RR : PatternList .
+  vars Ps LL RR : PatternList .
+
+--- {} reduces to {.PatternList}
+
+eq # N {} |- P = # N { .PatternList } |- P .
 
 --- Propositional Axioms of the Hilbert Deductive System
 
-eq   < G > { # N : P -> (Q -> P) } , RestProofee 
-     ========== 
-     ax N ; C
+eq  < G > 
+    # N { Ps } |- P -> (Q -> P)
+    RestProofObligation
+    ========== 
+    ax N 
+    C
 = 
-     < G > RestProofee 
-     ========== 
-     C
+    < G > 
+    RestProofObligation 
+    ========== 
+    C
 .
 
-eq   < G > { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } , RestProofee 
-     ========== 
-     ax N ; C
+eq  < G > 
+    # N { Ps } |- (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) 
+    RestProofObligation 
+    ========== 
+    ax N
+    C
 = 
-     < G > RestProofee 
-     ========== 
-     C 
+    < G > 
+    RestProofObligation 
+    ========== 
+    C 
 .
 
-eq   < G > { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , RestProofee 
-     ========== 
-     ax N ; C
+eq  < G > 
+    # N { Ps } |- ( ~ P -> ~ Q ) -> ( Q -> P )
+    RestProofObligation 
+    ========== 
+    ax N 
+    C
 = 
-     < G > RestProofee 
-     ========== 
-     C 
+    < G > 
+    RestProofObligation 
+    ========== 
+    C 
 .
 
 --- Modus Ponens
 
-eq   < G > { # N : P } , RestProofee 
-     ========== 
-     mp N with Q ; C
+eq  < G > 
+    # N { Ps } |- P 
+    RestProofObligation 
+    ========== 
+    mp N with Q
+    C
 =
-     < G +Int 2 > { # G : Q } , { # G +Int 1 : Q -> P } , RestProofee 
-     ========== 
-     C 
+    < G +Int 2 > 
+    # G { Ps } |- Q 
+    # G +Int 1 { Ps } |- Q -> P
+    RestProofObligation 
+    ========== 
+    C 
 .
 
 --- FOL Axioms
 
-eq   < G > { # N : ((A X . P) -> Q) -> (P -> (A X . Q)) } , RestProofee 
-     ========== 
-     ax N ; C
+eq  < G > 
+    # N { Ps } |- ((A X . P) -> Q) -> (P -> (A X . Q))
+    RestProofObligation 
+    ========== 
+    ax N 
+    C
 =
-     < G > RestProofee 
-     ========== 
-     C 
+    < G > 
+    RestProofObligation 
+    ========== 
+    C 
 .
 
 --- Universal Generalization 
 
-eq   < G > { # N : (A X . P) } , RestProofee 
-     ==========
-     uu N ; C
+eq  < G >
+    # N { Ps } |- (A X . P)
+    RestProofObligation 
+    ==========
+    uu N 
+    C
 =
-     < G +Int 1 > { # G : P } , RestProofee
-     ========== 
-     C 
+    < G +Int 1 > 
+    # G { Ps } |- P 
+    RestProofObligation
+    ========== 
+    C 
 . 
 
 --- Variable Axiom
 
-eq   < G > { # N : (E X . X = Y) } , RestProofee
-     ==========
-     ax N ; C
+eq  < G > 
+    # N { Ps } |- (E X . X = Y)
+    RestProofObligation
+    ==========
+    ax N
+    C
 =
-     < G > RestProofee
-     ========== 
-     C 
+    < G > 
+    RestProofObligation
+    ========== 
+    C 
 .  
 
---- eq   < G > { # N : P -> A X . P } , RestProofee
----      ==========
----      ax N ; C
---- =
----      < G > RestProofee
----      ==========
----      C
---- .
 
 --- Functional Substitution
 
 
-ceq  < G > { # N : ((A X . P) /\ (E Y . (Q = Y))) -> R } , RestProofee
-     ==========
-     ax N ; C
+ceq < G > 
+    # N { Ps } |- ((A X . P) /\ (E Y . (Q = Y))) -> R
+    RestProofObligation
+    ==========
+    ax N
+    C
 =
-     < G > RestProofee
-     ==========
-     C
-  if P [ Q / X ] =a= R 
+    < G > 
+    RestProofObligation
+    ==========
+    C
+if P [ Q / X ] =a= R 
 .
 
----Equality Introduction
+---Equality Introduction (Elimination)
 
-eq   < G > { # N : P = P } , RestProofee 
-     ========== 
-     ax N ; C
+eq  < G > 
+    # N { Ps } |- P = P
+    RestProofObligation 
+    ========== 
+    ax N
+    C
 =
-     < G > RestProofee 
-     ========== 
-     C 
+    < G > 
+    RestProofObligation 
+    ========== 
+    C 
 .
 
 --- Equality Elimination
@@ -226,11 +264,15 @@ eq   < G > { # N : P = P } , RestProofee
 --- R1 =a= Q [ P1 / X ] and R2 =a= Q [ P2 / X ] ?
 --- higher-order pattern matching
 
-ceq  < G > { # N : ( P1 = P2 /\ R1) -> R2 } , RestProofee
+ceq  < G > 
+     # N { Ps } |- ( P1 = P2 /\ R1) -> R2 
+     RestProofObligation
      ==========
-     ee N with Q ; C
+     ee N with Q
+     C
 =
-     < G > RestProofee
+     < G > 
+     RestProofObligation
      ==========
      C
 if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
@@ -238,67 +280,95 @@ if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
 
 --- Membership
 
-eq  < G > { # N : X in Y = (X = Y) } , RestProofee
+eq  < G > 
+    # N { Ps } |- X in Y = (X = Y) 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : X in ( ~ P ) = ~ (X in P) } , RestProofee
+eq  < G > 
+    # N { Ps } |- X in ( ~ P ) = ~ (X in P) 
+    RestProofObligation
     ==========
-    ax N ; C
-=
-    < G > RestProofee
-    ==========
+    ax N 
     C
-.
-
-
-eq  < G > { # N : X in (P /\ Q) = (X in P) /\ (X in Q) } , RestProofee
-    ==========
-    ax N ; C
 =
-    < G > RestProofee
-    ==========
-    C
-.
-
-eq  < G > { # N : X in (P \/ Q) = (X in P) \/ (X in Q) } , RestProofee
-    ==========
-    ax N ; C
-=
-    < G > RestProofee
-    ==========
-    C
-.
-
-eq  < G > { # N : X in (E Y . P) = E Y . (X in P) } , RestProofee
-    ==========
-    ax N ; C
-=
-    < G > RestProofee
-    ==========
-    C
-.
-
-eq  < G > { # N : list(zero()) = emp() } , RestProofee
-    ==========
-    ax N ; C
-=
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
 
-eq  < G > { # N : X in F(LL, P, RR) = E Y . (Y in P /\ X in F(LL, Y, RR)) } , RestProofee
+eq  < G > 
+    # N { Ps } |- X in (P /\ Q) = (X in P) /\ (X in Q) 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in (P \/ Q) = (X in P) \/ (X in Q) 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in (E Y . P) = E Y . (X in P) 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- list(zero()) = emp() 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+
+eq  < G > 
+    # N { Ps } |- X in F(LL, P, RR) = E Y . (Y in P /\ X in F(LL, Y, RR)) 
+    RestProofObligation
+    ==========
+    ax N
+    C
+=
+    < G > 
+    RestProofObligation
     ==========
     C
 .
@@ -307,49 +377,69 @@ eq  < G > { # N : X in F(LL, P, RR) = E Y . (Y in P /\ X in F(LL, Y, RR)) } , Re
 --- we instead do not want to use such axioms, but pass
 --- the pattern to Z3 and let Z3 solve it for us.
 
-eq  < G > { # N : plus(zero(), X) = X } , RestProofee
+eq  < G > 
+    # N { Ps } |- plus(zero(), X) = X
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : plus(succ(X), Y) = succ(plus(X, Y)) } , RestProofee
+eq  < G > 
+    # N { Ps } |- plus(succ(X), Y) = succ(plus(X, Y)) 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
 --- axioms for sequences
 
-eq  < G > { # N : concat(epsilon(), X) = X } , RestProofee
+eq  < G > 
+    # N { Ps } |- concat(epsilon(), X) = X 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : concat(X, epsilon()) = X } , RestProofee
+eq  < G > 
+    # N { Ps } |- concat(X, epsilon()) = X 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : concat(concat(X, Y), Z) = concat(X, concat(Y, Z)) } , RestProofee
+eq  < G > 
+    # N { Ps } |- concat(concat(X, Y), Z) = concat(X, concat(Y, Z)) 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
@@ -358,67 +448,95 @@ eq  < G > { # N : concat(concat(X, Y), Z) = concat(X, concat(Y, Z)) } , RestProo
 
 var H H1 H2 H3 : Var .
 
-eq  < G > { # N : mapmerge(emp(), H) = H } , RestProofee
+eq  < G > 
+    # N { Ps } |- mapmerge(emp(), H) = H 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : mapmerge(H1, H2) = mapmerge(H2, H1) } , RestProofee
+eq  < G > 
+    # N { Ps } |- mapmerge(H1, H2) = mapmerge(H2, H1) 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : mapmerge(mapmerge(H1, H2), H3) = mapmerge(H1, mapmerge(H2, H3)) } , RestProofee
+eq  < G > 
+    # N { Ps } |- mapmerge(mapmerge(H1, H2), H3) = mapmerge(H1, mapmerge(H2, H3))
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : mapsto(zero(), X) = bottom } , RestProofee
+eq  < G > 
+    # N { Ps } |- mapsto(zero(), X) = bottom 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : mapmerge(mapsto(X, Y), mapsto(X, Z)) = bottom } , RestProofee
+eq  < G > 
+    # N { Ps } |- mapmerge(mapsto(X, Y), mapsto(X, Z)) = bottom 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
 --- axioms for lists
 
-eq  < G > { # N : list(zero()) = emp() } , RestProofee
+eq  < G > 
+    # N { Ps } |- list(zero()) = emp() 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
 
-eq  < G > { # N : list(X) /\ ( ~ X = zero() ) = E Z . mapmerge(mapsto(X, Z), list(Z)) } , RestProofee
+eq  < G > 
+    # N { Ps } |- list(X) /\ ( ~ X = zero() ) = E Z . mapmerge(mapsto(X, Z), list(Z)) 
+    RestProofObligation
     ==========
-    ax N ; C
+    ax N 
+    C
 =
-    < G > RestProofee
+    < G > 
+    RestProofObligation
     ==========
     C
 .
@@ -428,9 +546,9 @@ endfm
 reduce
 
 < 1 >
-{ # 0 : plus(succ(zero()), succ(zero())) = succ(succ(zero())) }
+# 0 {} |- 'x
 ==========
-ax 0 ;
+ax 0
 .
 
 quit
