@@ -4,7 +4,7 @@
 --- load generic substitution module.
 load substitution .
 
-fmod ML is
+fmod ML-SYNTAX is
 
 --- change op _,_ in module PL-GENERIC-SUBSTITUTION to _;_ 
 --- because _,_ will be redefined in this module.
@@ -22,17 +22,22 @@ fmod ML is
 --- we cannot use Qid because it has been used for Var.
 --- TODO
 --- define Symbol{n} and PatternList{n} ?
+--- TODO
+--- should move these definition to the modules that define Int/Seq/Map/etc.
 
   ops zero succ plus : -> Symbol [ctor] .        --- Peano numbers
   ops epsilon concat rev : -> Symbol [ctor] .    --- Sequences
   ops mapsto emp mapmerge : -> Symbol [ctor] .   --- Maps
   op list : -> Symbol [ctor] .                   --- Lists
+
+
   op _() : Symbol -> Pattern [ctor prec 30] .
   op _(_) : Symbol PatternList -> Pattern [ctor prec 30] .
 
 --- TODO
 --- add axioms for syntatic sugar.
---- urgent to find a minimal proof system.
+--- TODO
+--- find a minimal proof system.
 
   op E_._ : Var Pattern -> Pattern [ctor prec 31] .
   op A_._ : Var Pattern -> Pattern [ctor prec 31] .
@@ -40,7 +45,7 @@ fmod ML is
   op _/\_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 33 comm] .
   op _\/_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 34 comm] .
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
-  op _=_ : Pattern Pattern -> Pattern [ctor prec 36 comm] .
+  op _=_ : Pattern Pattern -> Pattern [ctor comm prec 36] .
   op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] .
   op _in_ : Var Pattern -> Pattern [ctor prec 31] .
   ops bottom top : -> Pattern [ctor] .
@@ -81,6 +86,7 @@ fmod ML is
   eq ( A X . P =a= A Y . Q ) = ( P =a= Q [ X / Y ] ) .  
   eq ( X in P =a= X in Q ) = ( P =a= Q ) .
   eq P =a= Q = false [owise] .
+
 endfm
 
 --- Tests for alpha-equivalence checking
@@ -88,12 +94,19 @@ endfm
 --- quit
 
 fmod ML-DEDUCTIVESYSTEM is
-  including ML .
+  including ML-SYNTAX .
   sort State Command Result .
   sorts Entailment ProofObligation .
 
-  op #_{_}|-_ : Int PatternList Pattern -> Entailment [format(d d s d d s d d) prec 39] .
-  op #_{}|-_ : Int Pattern -> Entailment [prec 39] .
+--- PatternSet is not the same as PatternList.
+--- The former is communitive.
+  sort PatternSet .
+  subsort Pattern < PatternSet .
+  op .PatternSet : -> PatternSet .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 37] .
+
+  op #_{_}|-_ : Int PatternSet Pattern -> Entailment [format(d d s s s s d d) prec 39] .
+  op #_{}|-_ : Int Pattern -> Entailment [format(d d s s s d d) prec 39] .
 
   subsort Entailment < ProofObligation .
   op __ : ProofObligation ProofObligation -> ProofObligation [assoc comm id: done format(n n d) prec 40] .
@@ -107,6 +120,8 @@ fmod ML-DEDUCTIVESYSTEM is
   op mp_with_ : Int Pattern -> Command [prec 35] .  --- use modus ponens rule
   op uu_ : Int -> Command [prec 35] .               --- use universal generalization (elimination)
   op ee_with_ : Int Pattern -> Command [prec 35] .  --- use equality elimination
+  op de_ : Int -> Command [prec 35] .               --- use deductive theorem
+  op split_ : Int -> Command [prec 35] .
 
   var P Q R P1 P2 R1 R2 : Pattern .
   var RestProofObligation : ProofObligation .
@@ -114,11 +129,11 @@ fmod ML-DEDUCTIVESYSTEM is
   var N M G : Int .
   var X Y Z : Var .
   var F : Symbol .
-  vars Ps LL RR : PatternList .
+  vars Ps LL RR : PatternSet .
 
---- {} reduces to {.PatternList}
+--- {} reduces to {.PatternSet}
 
-eq # N {} |- P = # N { .PatternList } |- P .
+eq # N {} |- P = # N { .PatternSet } |- P .
 
 --- Propositional Axioms of the Hilbert Deductive System
 
@@ -181,7 +196,7 @@ eq  < G >
 --- FOL Axioms
 
 eq  < G > 
-    # N { Ps } |- ((A X . P) -> Q) -> (P -> (A X . Q))
+    # N { Ps } |- (A X . (P -> Q)) -> (P -> (A X . Q))
     RestProofObligation 
     ========== 
     ax N 
@@ -193,7 +208,7 @@ eq  < G >
     C 
 .
 
---- Universal Generalization 
+--- Universal Generalization (Elimination)
 
 eq  < G >
     # N { Ps } |- (A X . P)
@@ -325,7 +340,10 @@ eq  < G >
     RestProofObligation
     ==========
     ax N 
-    C
+    C# 2 { E 'y . ('y = zero()) A 'x . A 'y . (succ(plus('x,'y)) = plus(succ('x),
+    'y)) A 'x . ('x = plus('x,zero())) } |- E 'y . ('y = zero()) /\ A 'x . ('x
+    = plus('x,zero())) -> (zero() = plus(zero(),zero()))
+
 =
     < G > 
     RestProofObligation
@@ -373,182 +391,72 @@ eq  < G >
     C
 .
 
---- axioms for Piano natural numbers
---- we instead do not want to use such axioms, but pass
---- the pattern to Z3 and let Z3 solve it for us.
+--- Deduction Theorem
 
-eq  < G > 
-    # N { Ps } |- plus(zero(), X) = X
+eq  < G >
+    # N { Ps } |- P -> Q
     RestProofObligation
     ==========
-    ax N 
+    de N
     C
 =
-    < G > 
+    < G +Int 1 >
+    # G { Ps P } |- Q
     RestProofObligation
     ==========
     C
 .
 
+--- Adhoc
+
 eq  < G > 
-    # N { Ps } |- plus(succ(X), Y) = succ(plus(X, Y)) 
+    # N { Ps } |- P /\ Q
     RestProofObligation
     ==========
-    ax N 
+    split N 
     C
 =
-    < G > 
+    < G +Int 2 > 
+    # G { Ps } |- P 
+    # G +Int 1 { Ps } |- Q
     RestProofObligation
     ==========
     C
 .
 
---- axioms for sequences
-
-eq  < G > 
-    # N { Ps } |- concat(epsilon(), X) = X 
+ceq < G >
+    # N { P Ps } |- Q
     RestProofObligation
     ==========
-    ax N 
-    C
+    ax N
+    C 
 =
-    < G > 
+    < G >
     RestProofObligation
     ==========
     C
+if P =a= Q
 .
 
-eq  < G > 
-    # N { Ps } |- concat(X, epsilon()) = X 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
 
-eq  < G > 
-    # N { Ps } |- concat(concat(X, Y), Z) = concat(X, concat(Y, Z)) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
---- axioms for maps
-
-var H H1 H2 H3 : Var .
-
-eq  < G > 
-    # N { Ps } |- mapmerge(emp(), H) = H 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- mapmerge(H1, H2) = mapmerge(H2, H1) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- mapmerge(mapmerge(H1, H2), H3) = mapmerge(H1, mapmerge(H2, H3))
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- mapsto(zero(), X) = bottom 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- mapmerge(mapsto(X, Y), mapsto(X, Z)) = bottom 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
---- axioms for lists
-
-eq  < G > 
-    # N { Ps } |- list(zero()) = emp() 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- list(X) /\ ( ~ X = zero() ) = E Z . mapmerge(mapsto(X, Z), list(Z)) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
 
 endfm
 
 reduce
 
 < 1 >
-# 0 {} |- 'x
+# 0 {
+(E 'y . (zero() = 'y))
+(A 'x . (plus('x , zero()) = 'x))
+(A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y))))
+      
+} |- plus(zero(),zero()) = zero()
 ==========
-ax 0
+mp 0 with (E 'y . (zero() = 'y)) /\ (A 'x . (plus('x , zero()) = 'x)) 
+ax 2
+split 1
+ax 3 
+ax 4
 .
 
 quit
