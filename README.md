@@ -1,4 +1,4 @@
-# matching-logic-prover
+# Matching Logic Prove Assistant
 
 This project aims for a reference implementation of a deductive system of matching logic. 
 Rather than an automated theorem prover, we are looking forward a proof assistant that
