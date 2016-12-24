@@ -8,7 +8,7 @@ fmod ML-SYNTAX is
 
 --- change op _,_ in module PL-GENERIC-SUBSTITUTION to _;_ 
 --- because _,_ will be redefined in this module.
-  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _;_ ) .
+  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _;;_ ) .
 
   sorts Var Symbol Pattern PatternList .
   subsort Var < Pattern .
@@ -89,10 +89,6 @@ fmod ML-SYNTAX is
 
 endfm
 
---- Tests for alpha-equivalence checking
---- reduce E 'x . ff('x /\ 't, 'y) =a= E 'z . ff('t /\ 'z, 'y) .
---- quit
-
 fmod ML-DEDUCTIVESYSTEM is
   including ML-SYNTAX .
   sort State Command Result .
@@ -122,6 +118,7 @@ fmod ML-DEDUCTIVESYSTEM is
   op ee_with_ : Int Pattern -> Command [prec 35] .  --- use equality elimination
   op de_ : Int -> Command [prec 35] .               --- use deductive theorem
   op split_ : Int -> Command [prec 35] .
+  op k6_with_ : Int Var -> Command [prec 35] .
 
   var P Q R P1 P2 R1 R2 : Pattern .
   var RestProofObligation : ProofObligation .
@@ -135,10 +132,11 @@ fmod ML-DEDUCTIVESYSTEM is
 
 eq # N {} |- P = # N { .PatternSet } |- P .
 
---- Propositional Axioms of the Hilbert Deductive System
+--- Axiom Schemas
 
+--- (K1)
 eq  < G > 
-    # N { Ps } |- P -> (Q -> P)
+    # N { Ps } |- (P -> (Q -> P))
     RestProofObligation
     ========== 
     ax N 
@@ -150,6 +148,7 @@ eq  < G >
     C
 .
 
+--- (K2)
 eq  < G > 
     # N { Ps } |- (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) 
     RestProofObligation 
@@ -163,6 +162,7 @@ eq  < G >
     C 
 .
 
+--- (K3)
 eq  < G > 
     # N { Ps } |- ( ~ P -> ~ Q ) -> ( Q -> P )
     RestProofObligation 
@@ -175,6 +175,111 @@ eq  < G >
     ========== 
     C 
 .
+
+--- (K4)
+
+eq  < G > 
+    # N { Ps } |- (A X . (P -> Q)) -> (P -> (A X . Q))
+    RestProofObligation 
+    ========== 
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation 
+    ========== 
+    C 
+.
+--- if X does not occur free in P
+--- TODO
+
+--- (K5)
+
+eq  < G > 
+    # N { Ps } |- (A X . P -> P)
+    RestProofObligation 
+    ========== 
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation 
+    ========== 
+    C 
+.
+--- if X does not occur free in P
+--- TODO
+
+--- (K6)
+
+ceq < G > 
+    # N { Ps } |- (A X . P -> Q)
+    RestProofObligation 
+    ========== 
+    k6 N with Y
+    C
+=
+    < G > 
+    RestProofObligation 
+    ========== 
+    C
+if P [ Y / X ] =a= Q 
+.
+
+--- (K7)
+
+eq  < G > 
+    # N { Ps } |- P = P
+    RestProofObligation 
+    ========== 
+    ax N
+    C
+=
+    < G > 
+    RestProofObligation 
+    ========== 
+    C 
+.
+
+--- (K8)
+--- TODO
+--- get rid of ee_with_, use ax_, by answering this:
+--- given P1, P2, R1, R2, whether there exist a pattern Q and a var X such that
+--- R1 =a= Q [ P1 / X ] and R2 =a= Q [ P2 / X ] ?
+--- higher-order pattern matching
+
+ceq  < G > 
+     # N { Ps } |- (P1 = P2) -> (R1 -> R2)
+     RestProofObligation
+     ==========
+     ee N with Q
+     C
+=
+     < G > 
+     RestProofObligation
+     ==========
+     C
+if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
+. 
+
+--- (K9)
+
+ceq < G > 
+    # N { Ps } |- (E Y . (Q = Y)) -> ((A X . P) -> R)
+    RestProofObligation
+    ==========
+    ax N
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+if P [ Q / X ] =a= R 
+.
+
+--- Inference Rules
+
 
 --- Modus Ponens
 
@@ -193,22 +298,9 @@ eq  < G >
     C 
 .
 
---- FOL Axioms
 
-eq  < G > 
-    # N { Ps } |- (A X . (P -> Q)) -> (P -> (A X . Q))
-    RestProofObligation 
-    ========== 
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation 
-    ========== 
-    C 
-.
 
---- Universal Generalization (Elimination)
+--- Universal Generalization
 
 eq  < G >
     # N { Ps } |- (A X . P)
@@ -222,75 +314,6 @@ eq  < G >
     RestProofObligation
     ========== 
     C 
-. 
-
---- Variable Axiom
-
-eq  < G > 
-    # N { Ps } |- (E X . X = Y)
-    RestProofObligation
-    ==========
-    ax N
-    C
-=
-    < G > 
-    RestProofObligation
-    ========== 
-    C 
-.  
-
-
---- Functional Substitution
-
-
-ceq < G > 
-    # N { Ps } |- ((A X . P) /\ (E Y . (Q = Y))) -> R
-    RestProofObligation
-    ==========
-    ax N
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-if P [ Q / X ] =a= R 
-.
-
----Equality Introduction (Elimination)
-
-eq  < G > 
-    # N { Ps } |- P = P
-    RestProofObligation 
-    ========== 
-    ax N
-    C
-=
-    < G > 
-    RestProofObligation 
-    ========== 
-    C 
-.
-
---- Equality Elimination
---- TODO
---- get rid of ee_with_, use ax_, by answering this:
---- given P1, P2, R1, R2, whether there exist a pattern Q and a var X such that
---- R1 =a= Q [ P1 / X ] and R2 =a= Q [ P2 / X ] ?
---- higher-order pattern matching
-
-ceq  < G > 
-     # N { Ps } |- ( P1 = P2 /\ R1) -> R2 
-     RestProofObligation
-     ==========
-     ee N with Q
-     C
-=
-     < G > 
-     RestProofObligation
-     ==========
-     C
-if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
 . 
 
 --- Membership
@@ -340,9 +363,7 @@ eq  < G >
     RestProofObligation
     ==========
     ax N 
-    C# 2 { E 'y . ('y = zero()) A 'x . A 'y . (succ(plus('x,'y)) = plus(succ('x),
-    'y)) A 'x . ('x = plus('x,zero())) } |- E 'y . ('y = zero()) /\ A 'x . ('x
-    = plus('x,zero())) -> (zero() = plus(zero(),zero()))
+    C
 
 =
     < G > 
