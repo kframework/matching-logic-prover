@@ -1,14 +1,25 @@
 --- This file aims for a matching logic deductive system.
---- Last update by Xiaohong on 20 Dec 2016.
+--- Last update by Xiaohong on 24 Dec 2016.
 
 --- load generic substitution module.
 load substitution .
 
+--- module hierarchy (from lower to higher level)
+--- PL-GENERIC-SUBSTITUTION      a generic framework for term substitution
+--- ML-SYNTAX        syntax of matching logic patterns   
+--- ML-ALPHA         alpha-equivalence checking : P =a= Q
+--- ML-FREEVAR       free variables collecting and checking
+--- ML-ENTAILMENT    syntax for entailments
+--- ML-DEDUCTIVESYSTEM   the deductive system
+
+
+--- syntax definition for matching logic extended grammar
 fmod ML-SYNTAX is
 
 --- change op _,_ in module PL-GENERIC-SUBSTITUTION to _;_ 
 --- because _,_ will be redefined in this module.
-  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _;;_ ) .
+  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _PL-COMMA_ ,
+                                        op fv_ to PL-FV_ ) .
 
   sorts Var Symbol Pattern PatternList .
   subsort Var < Pattern .
@@ -17,71 +28,61 @@ fmod ML-SYNTAX is
   op .PatternList : -> PatternList . --- empty list
   op _,_ : PatternList PatternList -> PatternList [assoc id: .PatternList prec 37] .
 
---- TODO
---- find a better constructor for Symbol.
---- we cannot use Qid because it has been used for Var.
---- TODO
---- define Symbol{n} and PatternList{n} ?
---- TODO
---- should move these definition to the modules that define Int/Seq/Map/etc.
+--- extended grammar
+--- listed by precedence from higher to lower
 
-  ops zero succ plus : -> Symbol [ctor] .        --- Peano numbers
-  ops epsilon concat rev : -> Symbol [ctor] .    --- Sequences
-  ops mapsto emp mapmerge : -> Symbol [ctor] .   --- Maps
-  op list : -> Symbol [ctor] .                   --- Lists
-
-
-  op _() : Symbol -> Pattern [ctor prec 30] .
-  op _(_) : Symbol PatternList -> Pattern [ctor prec 30] .
-
---- TODO
---- add axioms for syntatic sugar.
---- TODO
---- find a minimal proof system.
-
-  op E_._ : Var Pattern -> Pattern [ctor prec 31] .
-  op A_._ : Var Pattern -> Pattern [ctor prec 31] .
-  op ~_ : Pattern -> Pattern [ctor prec 32] .
-  op _/\_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 33 comm] .
-  op _\/_ : Pattern Pattern -> Pattern [ctor gather (E e) prec 34 comm] .
+  --- subsort Var < Pattern .
+  op _() : Symbol -> Pattern [ctor prec 30] .  --- s()
+  op _(_) : Symbol PatternList -> Pattern [ctor prec 30] . --- s(P1,...,Pn)
+  op E_._ : Var Pattern -> Pattern [ctor prec 31] . --- exists x . P
+  op A_._ : Var Pattern -> Pattern [ctor prec 31] . --- forall x . P
+  op _in_ : Var Pattern -> Pattern [ctor prec 31] . --- x in P
+  op ~_ : Pattern -> Pattern [ctor prec 32] . --- negation
+  op _/\_ : Pattern Pattern -> Pattern [ctor comm gather (E e) prec 33] .
+  op _\/_ : Pattern Pattern -> Pattern [ctor comm gather (E e) prec 34] .
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
   op _=_ : Pattern Pattern -> Pattern [ctor comm prec 36] .
-  op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] .
-  op _in_ : Var Pattern -> Pattern [ctor prec 31] .
-  ops bottom top : -> Pattern [ctor] .
+  op _<_ : Pattern Pattern -> Pattern [ctor prec 36] .  --- P subseteq Q
+  op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] . --- reachability (not used)
+  ops bot top : -> Pattern [ctor] . --- bottom and top
 
---- grammar for substitution
+--- substitution
   op _[_/_] : Pattern Pattern Var -> Pattern [prec 36].
 
---- use generic substitution module
+--- fit in generic substitution framework
+  subsort Id < Var .  subsort Pattern < GenericTerm .
+  eq bind('E_._) = 1 . eq bind('A_._) = 1 . --- set up binder
   var V : Var .  vars P Q : Pattern .
+  eq P [Q / V] = substitute (P, Q, V) . --- set up substitution
 
-  subsort Id < Var .
-  subsort Pattern < GenericTerm .
-  eq bind('E_._) = 1 . --- set up binder
-  eq bind('A_._) = 1 . --- set up binder
-  eq P [Q / V] = substitute (P, Q, V) .
+--- some common symbols for testing
+  ops plus succ zero : -> Symbol .
 
---- support for alpha-equivalence checking
-  op _=a=_ : Pattern Pattern -> Bool [prec 38] . --- Bool is PL-GENERIC-SUBSTITUTION
+endfm
+
+--- support for alpha equivalence checking
+fmod ML-ALPHA is
+  including ML-SYNTAX .
+
+--- Bool is redefined in PL-GENERIC-SUBSTITUTION
+  op _=a=_ : Pattern Pattern -> Bool [comm prec 50] . 
   
   vars X Y : Var .
-  vars P1 Q1 P2 Q2 : Pattern .
-  vars F G : Symbol .
+  vars P P1 P2 Q Q1 Q2 : Pattern .
+  vars F : Symbol .
   vars Ps Qs : PatternList .
 
-  eq F(.PatternList) = F() .
-
-  eq X =a= X = true .
-  eq X =a= Y = false [owise] .
-  eq (~ P =a= ~ Q) = (P =a= Q)  .
-  eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = ( (P1 =a= Q1) andBool (P2 =a= Q2) ) .
-  eq ( P1 \/ P2 =a= Q1 \/ Q2 ) = ( (P1 =a= Q1) andBool (P2 =a= Q2) ) .
-  eq ( P1 -> P2 =a= Q1 -> Q2 ) = ((P1 =a= Q1) andBool (P2 =a= Q2)) .
-  eq ( P1 = P2 =a= Q1 = Q2 ) = ( (P1 =a= Q1) andBool (P2 =a= Q2) ) .
+  eq P =a= P = true .
+  eq (~ P =a= ~ Q) = (P =a= Q) .
+  eq ( P1 -> P2 =a= Q1 -> Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 \/ P2 =a= Q1 \/ Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 = P2 =a= Q1 = Q2 )   = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 => P2 =a= Q1 => Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
   eq ( F() =a= F() ) = true .
-  eq ( F() =a= G() ) = false [owise] .
-  eq ( F(P, Ps) =a= F(Q, Qs) ) = ((P =a= Q) andBool (F(Ps) =a= F(Qs))) .
+  eq ( F(P) =a= F(Q) ) = (P =a= Q) .
+--- Warning: this may break if we distinguish symbols with different arity
+  eq ( F(P, Ps) =a= F(Q, Qs) ) = ( P =a= Q andBool F(Ps) =a= F(Qs) ) .
   eq ( E X . P =a= E Y . Q ) = ( P =a= Q [ X / Y ] ) .
   eq ( A X . P =a= A Y . Q ) = ( P =a= Q [ X / Y ] ) .  
   eq ( X in P =a= X in Q ) = ( P =a= Q ) .
@@ -89,61 +90,107 @@ fmod ML-SYNTAX is
 
 endfm
 
-fmod ML-DEDUCTIVESYSTEM is
-  including ML-SYNTAX .
-  sort State Command Result .
-  sorts Entailment ProofObligation .
+fmod ML-FREEVAR is
+  including ML-ALPHA .
 
---- PatternSet is not the same as PatternList.
---- The former is communitive.
-  sort PatternSet .
+  sort VarSet .
+  subsort Var < VarSet .
+
+  op _occurfreein_ : Var Pattern -> Bool .
+  op _notoccurfreein_ : Var Pattern -> Bool .
+  op _isclosed : Pattern -> Bool .
+
+  vars X Y : Var .
+  vars P P1 P2 : Pattern .
+  vars F : Symbol .
+  vars Ps : PatternList .
+  
+  eq X occurfreein X = true .
+  eq (X occurfreein ~ P) = (X occurfreein P) .
+--- Warning: orBool is not short-circuit evaluation. May cause efficiency problem
+  eq (X occurfreein P1 -> P2) = ( X occurfreein P1 orBool X occurfreein P2 ) .
+  eq (X occurfreein P1 /\ P2) = ( X occurfreein P1 orBool X occurfreein P2 ) .
+  eq (X occurfreein P1 \/ P2) = ( X occurfreein P1 orBool X occurfreein P2 ) .
+  eq (X occurfreein P1 = P2)  = ( X occurfreein P1 orBool X occurfreein P2 ) .
+  eq (X occurfreein P1 => P2) = ( X occurfreein P1 orBool X occurfreein P2 ) .
+  eq (X occurfreein F(P)) = ( X occurfreein P ) .
+--- Warning: this may break if we distinguish symbols with different arity
+  eq (X occurfreein F(P, Ps)) = ( X occurfreein P orBool X occurfreein F(Ps) ) .
+--- note: when X Y : Var, X =a= Y checks whether X and Y are the same variables
+  ceq (X occurfreein E Y . P) = ( X occurfreein P ) if notBool (X =a= Y) .
+  ceq (X occurfreein A Y . P) = ( X occurfreein P ) if notBool (X =a= Y) .
+  eq X occurfreein P = false [owise] .
+
+  eq X notoccurfreein P = notBool X occurfreein P .
+
+endfm
+
+fmod ML-ENTAILMENT is
+  including ML-FREEVAR .
+
+  sorts PatternSet Premise Entailment . 
   subsort Pattern < PatternSet .
+
+--- PatternSet is different from PatternList.
+--- PatternSet is communitive.
+
   op .PatternSet : -> PatternSet .
-  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 37] .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 50] .
+  op {} : -> Premise .
+  op {_} : PatternSet -> Premise .
+--- {} is a syntatic sugar
+  eq {} = {.PatternSet} .
 
-  op #_{_}|-_ : Int PatternSet Pattern -> Entailment [format(d d s s s s d d) prec 39] .
-  op #_{}|-_ : Int Pattern -> Entailment [format(d d s s s d d) prec 39] .
+  op _|-_ : Premise Pattern -> Entailment .
 
-  subsort Entailment < ProofObligation .
-  op __ : ProofObligation ProofObligation -> ProofObligation [assoc comm id: done format(n n d) prec 40] .
-  op done : -> ProofObligation .
+endfm
 
-  op <_>_==========_ : Int ProofObligation Command -> Result [format(n d d n n n d)] .
-  op skip : -> Command .
-  op __ : Command Command -> Command [assoc id: skip format(n n d) prec 40] .
+fmod ML-DEDUCTIVESYSTEM is
+  including ML-ENTAILMENT .
 
-  op ax_ : Int -> Command [prec 35] .               --- use axioms to resolve patterns
-  op mp_with_ : Int Pattern -> Command [prec 35] .  --- use modus ponens rule
-  op uu_ : Int -> Command [prec 35] .               --- use universal generalization (elimination)
-  op ee_with_ : Int Pattern -> Command [prec 35] .  --- use equality elimination
-  op de_ : Int -> Command [prec 35] .               --- use deductive theorem
-  op split_ : Int -> Command [prec 35] .
-  op k6_with_ : Int Var -> Command [prec 35] .
 
-  var P Q R P1 P2 R1 R2 : Pattern .
-  var RestProofObligation : ProofObligation .
+  sort ProofObligations .
+  op #__ : Int Entailment -> ProofObligations .
+  op .ProofObligations : -> ProofObligations .
+  op __ : ProofObligations ProofObligations -> ProofObligations [assoc comm id: .ProofObligations prec 50] .
+
+
+  sort Command .
+  op skip : -> Command [format(n d)] .
+  op __ : Command Command -> Command [assoc id: skip format(n n d) prec 50] .
+
+  op ax_ : Int -> Command [prec 40] .               --- use axioms (K1-K5,K7,K9) to resolve patterns
+  op ax6_with_ : Int Var -> Command [prec 40] .     --- provide a variable to use axiom (K6)
+  op ax8_with_and_ : Int Pattern Var -> Command [prec 40] . --- provide a pattern and a variable to use axiom (K8)
+  op mp_with_ : Int Pattern -> Command [prec 40] .  --- provide a pattern to use modus ponens
+  op uu_ : Int -> Command [prec 40] .               --- use universal generalization
+  op deduce_ : Int -> Command [prec 40] .           --- use closed-form deductive theorem
+  op split_ : Int -> Command [prec 40] .            --- use conjunction splitting
+
+
+  sort Result .  --- for no use
+  op <_>_==========_ : Int ProofObligations Command -> Result [format(n d d n n d d) prec 60] .
+
+  var P P1 P2 Q Q1 Q2 R R1 R2 : Pattern .
+  var Rest : ProofObligations .
   var C : Command .
   var N M G : Int .
   var X Y Z : Var .
   var F : Symbol .
-  vars Ps LL RR : PatternSet .
-
---- {} reduces to {.PatternSet}
-
-eq # N {} |- P = # N { .PatternSet } |- P .
+  vars Ps Qs Rs : PatternSet .
 
 --- Axiom Schemas
 
 --- (K1)
 eq  < G > 
     # N { Ps } |- (P -> (Q -> P))
-    RestProofObligation
+    Rest
     ========== 
     ax N 
     C
 = 
     < G > 
-    RestProofObligation 
+    Rest 
     ========== 
     C
 .
@@ -151,13 +198,13 @@ eq  < G >
 --- (K2)
 eq  < G > 
     # N { Ps } |- (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) 
-    RestProofObligation 
+    Rest 
     ========== 
     ax N
     C
 = 
     < G > 
-    RestProofObligation 
+    Rest 
     ========== 
     C 
 .
@@ -165,62 +212,61 @@ eq  < G >
 --- (K3)
 eq  < G > 
     # N { Ps } |- ( ~ P -> ~ Q ) -> ( Q -> P )
-    RestProofObligation 
+    Rest 
     ========== 
     ax N 
     C
 = 
     < G > 
-    RestProofObligation 
+    Rest 
     ========== 
     C 
 .
 
 --- (K4)
 
-eq  < G > 
+ceq < G > 
     # N { Ps } |- (A X . (P -> Q)) -> (P -> (A X . Q))
-    RestProofObligation 
+    Rest 
     ========== 
     ax N 
     C
 =
     < G > 
-    RestProofObligation 
+    Rest 
     ========== 
     C 
+if X notoccurfreein P
 .
---- if X does not occur free in P
---- TODO
+
 
 --- (K5)
 
-eq  < G > 
+ceq < G > 
     # N { Ps } |- (A X . P -> P)
-    RestProofObligation 
+    Rest 
     ========== 
     ax N 
     C
 =
     < G > 
-    RestProofObligation 
+    Rest 
     ========== 
     C 
+if X notoccurfreein P
 .
---- if X does not occur free in P
---- TODO
 
 --- (K6)
 
 ceq < G > 
     # N { Ps } |- (A X . P -> Q)
-    RestProofObligation 
+    Rest 
     ========== 
-    k6 N with Y
+    ax6 N with Y
     C
 =
     < G > 
-    RestProofObligation 
+    Rest 
     ========== 
     C
 if P [ Y / X ] =a= Q 
@@ -230,49 +276,44 @@ if P [ Y / X ] =a= Q
 
 eq  < G > 
     # N { Ps } |- P = P
-    RestProofObligation 
+    Rest 
     ========== 
     ax N
     C
 =
     < G > 
-    RestProofObligation 
+    Rest 
     ========== 
     C 
 .
 
 --- (K8)
---- TODO
---- get rid of ee_with_, use ax_, by answering this:
---- given P1, P2, R1, R2, whether there exist a pattern Q and a var X such that
---- R1 =a= Q [ P1 / X ] and R2 =a= Q [ P2 / X ] ?
---- higher-order pattern matching
 
 ceq  < G > 
      # N { Ps } |- (P1 = P2) -> (R1 -> R2)
-     RestProofObligation
+     Rest
      ==========
-     ee N with Q
+     ax8 N with Q and X
      C
 =
      < G > 
-     RestProofObligation
+     Rest
      ==========
      C
-if Q [ P1 / '$ ] =a= R1 andBool Q [ P2 / '$ ] =a= R2
+if Q [ P1 / X ] =a= R1 andBool Q [ P2 / X ] =a= R2
 . 
 
 --- (K9)
 
 ceq < G > 
     # N { Ps } |- (E Y . (Q = Y)) -> ((A X . P) -> R)
-    RestProofObligation
+    Rest
     ==========
     ax N
     C
 =
     < G > 
-    RestProofObligation
+    Rest
     ==========
     C
 if P [ Q / X ] =a= R 
@@ -280,12 +321,11 @@ if P [ Q / X ] =a= R
 
 --- Inference Rules
 
-
 --- Modus Ponens
 
 eq  < G > 
     # N { Ps } |- P 
-    RestProofObligation 
+    Rest 
     ========== 
     mp N with Q
     C
@@ -293,146 +333,49 @@ eq  < G >
     < G +Int 2 > 
     # G { Ps } |- Q 
     # G +Int 1 { Ps } |- Q -> P
-    RestProofObligation 
+    Rest 
     ========== 
     C 
 .
-
-
 
 --- Universal Generalization
 
 eq  < G >
     # N { Ps } |- (A X . P)
-    RestProofObligation 
+    Rest 
     ==========
     uu N 
     C
 =
     < G +Int 1 > 
     # G { Ps } |- P 
-    RestProofObligation
+    Rest
     ========== 
     C 
 . 
 
---- Membership
-
-eq  < G > 
-    # N { Ps } |- X in Y = (X = Y) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- X in ( ~ P ) = ~ (X in P) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-
-eq  < G > 
-    # N { Ps } |- X in (P /\ Q) = (X in P) /\ (X in Q) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- X in (P \/ Q) = (X in P) \/ (X in Q) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- X in (E Y . P) = E Y . (X in P) 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- list(zero()) = emp() 
-    RestProofObligation
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
-
-eq  < G > 
-    # N { Ps } |- X in F(LL, P, RR) = E Y . (Y in P /\ X in F(LL, Y, RR)) 
-    RestProofObligation
-    ==========
-    ax N
-    C
-=
-    < G > 
-    RestProofObligation
-    ==========
-    C
-.
-
 --- Deduction Theorem
+--- TODO check P is closed in FREEVAR .
 
 eq  < G >
     # N { Ps } |- P -> Q
-    RestProofObligation
+    Rest
     ==========
-    de N
+    deduce N
     C
 =
     < G +Int 1 >
     # G { Ps P } |- Q
-    RestProofObligation
+    Rest
     ==========
     C
 .
 
---- Adhoc
+--- Conjunction Splitting
 
 eq  < G > 
     # N { Ps } |- P /\ Q
-    RestProofObligation
+    Rest
     ==========
     split N 
     C
@@ -440,43 +383,139 @@ eq  < G >
     < G +Int 2 > 
     # G { Ps } |- P 
     # G +Int 1 { Ps } |- Q
-    RestProofObligation
+    Rest
     ==========
     C
 .
 
+--- Inclusion Rule
+
 ceq < G >
     # N { P Ps } |- Q
-    RestProofObligation
+    Rest
     ==========
     ax N
     C 
 =
     < G >
-    RestProofObligation
+    Rest
     ==========
     C
 if P =a= Q
 .
 
 
+--- Membership
+
+eq  < G > 
+    # N { Ps } |- X in Y = (X = Y) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in ( ~ P ) = ~ (X in P) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+
+eq  < G > 
+    # N { Ps } |- X in (P /\ Q) = (X in P) /\ (X in Q) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in (P \/ Q) = (X in P) \/ (X in Q) 
+    Rest
+    ==========
+    ax N 
+    C
+
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in (E Y . P) = E Y . (X in P) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+
+eq  < G > 
+    # N { Ps } |- X in F(Qs, P, Rs) = E Y . (Y in P /\ X in F(Qs, Y, Rs)) 
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+
+
 endfm
+
+
+---  ops zero succ plus : -> Symbol [ctor] .        --- Peano numbers
+---  ops epsilon concat rev : -> Symbol [ctor] .    --- Sequences
+---  ops mapsto emp mapmerge : -> Symbol [ctor] .   --- Maps
+---  op list : -> Symbol [ctor] .                   --- Lists
+
+reduce E 'x . plus('x, 'y) [ 'y -> 'x / 'y ] . 
+quit
 
 reduce
 
-< 1 >
-# 0 {
-(E 'y . (zero() = 'y))
-(A 'x . (plus('x , zero()) = 'x))
-(A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y))))
+--- < 1 >
+--- # 0 {
+--- (E 'y . (zero() = 'y))
+--- (A 'x . (plus('x , zero()) = 'x))
+--- (A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y))))
       
-} |- plus(zero(),zero()) = zero()
-==========
-mp 0 with (E 'y . (zero() = 'y)) /\ (A 'x . (plus('x , zero()) = 'x)) 
-ax 2
-split 1
-ax 3 
-ax 4
-.
+--- } |- plus(zero(),zero()) = zero()
+--- ==========
+--- mp 0 with (E 'y . (zero() = 'y)) /\ (A 'x . (plus('x , zero()) = 'x)) 
+--- ax 2
+--- split 1
+--- ax 3 
+--- ax 4
+--- .
 
 quit
