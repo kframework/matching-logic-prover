@@ -1,9 +1,0 @@
-fmod NATURAL is
-  sort Natural .
-  op 0 : -> Natural [ctor] .
-  op s : Natural -> Natural [ctor] .
-  op _+_ : Natural Natural -> Natural .
-  vars N M : Natural .
-  eq N + 0 = N .
-  eq N + s(M) = s(N + M) .
-endfm
