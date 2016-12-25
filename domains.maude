@@ -1,0 +1,167 @@
+--- axioms for Piano natural numbers
+--- we instead do not want to use such axioms, but pass
+--- the pattern to Z3 and let Z3 solve it for us.
+
+eq  < G > 
+    # N { Ps } |- plus(zero(), P) = P
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- plus(succ(P), Q) = succ(plus(P, Q)) 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+--- axioms for sequences
+
+eq  < G > 
+    # N { Ps } |- concat(epsilon(), X) = X 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- concat(X, epsilon()) = X 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- concat(concat(X, Y), Z) = concat(X, concat(Y, Z)) 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+--- axioms for maps
+
+var H H1 H2 H3 : Var .
+
+eq  < G > 
+    # N { Ps } |- mapmerge(emp(), H) = H 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- mapmerge(H1, H2) = mapmerge(H2, H1) 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- mapmerge(mapmerge(H1, H2), H3) = mapmerge(H1, mapmerge(H2, H3))
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- mapsto(zero(), X) = bottom 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- mapmerge(mapsto(X, Y), mapsto(X, Z)) = bottom 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+--- axioms for lists
+
+eq  < G > 
+    # N { Ps } |- list(zero()) = emp() 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- list(X) /\ ( ~ X = zero() ) = E Z . mapmerge(mapsto(X, Z), list(Z)) 
+    RestProofObligation
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    RestProofObligation
+    ==========
+    C
+.

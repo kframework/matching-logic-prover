@@ -4,6 +4,7 @@
 --- Last update by Xiaohong on 11 Dec 2016.
 
 mod PRED-LOGIC is
+  protecting COUNTER .
   protecting INT .
   protecting QID .
   sort LogicalVariable Formula Proofee .
@@ -23,7 +24,7 @@ mod PRED-LOGIC is
 
 --- The "==========" thing is supposed to seperate
 --- Proofees apart from Commands.
-  op <_>_==========_ : Int Proofee Command -> Result [format(nn d d n n n nn)].
+  op <_>_==========_ : Int Proofee Command -> Result [format(nn d d n n n n)].
 
 --- Use axioms to reduce one Proofee.
   op ax_; : Int -> Command .
@@ -32,7 +33,7 @@ mod PRED-LOGIC is
   op mp_with_; : Int Formula -> Command . 
 
   op skip : -> Command .
-  op __ : Command Command -> Command [assoc id: skip] .
+  op __ : Command Command -> Command [assoc id: skip format(d n d)] .
 
 --- Rules
 
@@ -41,51 +42,52 @@ mod PRED-LOGIC is
   var C : Command .
   var N M G : Int .
 
-rl   < G >
+eq   < G >
      { # N : P -> (Q -> P) } ,
      RemP 
      ==========
      ax N ;
      C
-=> 
+= 
      < G >
      RemP
      ========== 
      C 
 .
 
-rl   < G >
+eq   < G >
      { # N : (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) } ,
      RemP
      ========== 
      ax N ;
      C
-=> 
+= 
      < G >
      RemP 
      ========== 
      C 
 .
 
-rl   < G > 
+eq   < G > 
      { # N : ( ~ P -> ~ Q ) -> ( Q -> P ) } , 
      RemP 
+     ==========
      ax N ; 
      C
-=> 
+= 
      < G >
      RemP
      ========== 
      C
 .
 
-rl   < G > 
+eq   < G > 
      { # N : P } , 
      RemP
      ========== 
      mp N with Q ; 
      C
-=>
+=
      < G + 2 > 
      { # G : Q } , 
      { # G + 1 : Q -> P } , 
@@ -95,6 +97,8 @@ rl   < G >
 .
   
 endm
+
+rewrite counter + counter .
 
 rewrite
 
