@@ -3,7 +3,7 @@
 
 load syntax .
 
-fmod ML-ENTAILMENT is
+fmod ML-DEDUCTIVESYSTEM is
   including ML-SYNTAX .
 
   sorts PatternSet Premise Entailment . 
@@ -14,31 +14,24 @@ fmod ML-ENTAILMENT is
 
   op .PatternSet : -> PatternSet .
   op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 50] .
-  op {} : -> Premise .
-  op {_} : PatternSet -> Premise .
+  op {} : -> Premise .  op {_} : PatternSet -> Premise .
 --- {} is a syntatic sugar
   eq {} = {.PatternSet} .
 
   op _|-_ : Premise Pattern -> Entailment .
 
-endfm
-
-fmod ML-DEDUCTIVESYSTEM is
-  including ML-ENTAILMENT .
-
-
+--- define proof obligations
   sort ProofObligations .
   op #__ : Int Entailment -> ProofObligations .
-  op .ProofObligations : -> ProofObligations .
-  op __ : ProofObligations ProofObligations -> ProofObligations [assoc comm id: .ProofObligations prec 50] .
+  op done : -> ProofObligations .
+  op __ : ProofObligations ProofObligations -> ProofObligations [assoc comm id: done prec 50] .
 
-
+--- define commands
   sort Command .
-  op skip : -> Command [format(n d)] .
+  op skip : -> Command [format(d d)] .
   op __ : Command Command -> Command [assoc id: skip format(n n d) prec 50] .
 
-  op ax_ : Int -> Command [prec 40] .               --- use axioms (K1-K5,K7,K9) to resolve patterns
-  op ax6_with_ : Int Var -> Command [prec 40] .     --- provide a variable to use axiom (K6)
+  op ax_ : Int -> Command [prec 40] .               --- use axioms (K1-K7,K9) to resolve patterns
   op ax8_with_and_ : Int Pattern Var -> Command [prec 40] . --- provide a pattern and a variable to use axiom (K8)
   op mp_with_ : Int Pattern -> Command [prec 40] .  --- provide a pattern to use modus ponens
   op uu_ : Int -> Command [prec 40] .               --- use universal generalization
@@ -47,7 +40,9 @@ fmod ML-DEDUCTIVESYSTEM is
 
 
   sort Result .  --- for no use
-  op <_>_==========_ : Int ProofObligations Command -> Result [format(n d d n n d d) prec 60] .
+  op <_>_==========_ : Int ProofObligations Command -> Result [format(n d d n n n d) prec 60] .
+
+
 
   var P P1 P2 Q Q1 Q2 R R1 R2 : Pattern .
   var Rest : ProofObligations .
@@ -135,19 +130,39 @@ if X not-occur-free-in P
 .
 
 --- (K6)
+--- resolve axiom A X . P -> P [ Y / X ], which needs a method that
+--- given X, P, and Q, determine whether there exist a Y such that
+--- Q =a= P [ Y / X ]
+--- such method is called ML-K6 : Var Pattern Pattern -> Bool.
+--- IMPORTANT : ML-K6 assumes X occurs free in P
+op ML-K6___ : Var Pattern Pattern -> Bool .
+
+--- Assumption : X in fv(P)
+--- ML-K6 X P Q
+--- step 1 : get fv(Q)
+---   ML-K6 X P Q => ML-K6-AUX X P Q (fv Q)
+--- step 2 : if fv(Q) is empty then return false
+---   ML-K6-AUX X P Q emptyset => false 
+--- step 3 : pick Y from (fv Q) and try Q =a= P [ Y / X ]
+---   ML-K6-AUX X P Q (Y::Ys) => Q =a= P [ Y / X ] orBool ML-K6-AUX X P Q Ys
+var Ys : ML-ALPHA-VarSet .
+op ML-K6-AUX____ : Var Pattern Pattern ML-ALPHA-VarSet -> Bool .
+eq ML-K6 X P Q = ML-K6-AUX X P Q (ML-ALPHA-fv Q) .
+eq ML-K6-AUX X P Q ML-ALPHA-emptyset = false .
+eq ML-K6-AUX X P Q (ML-ALPHA-union Y Ys) = (Q =a= P [ Y / X ] orBool ML-K6-AUX X P Q Ys) .
 
 ceq < G > 
     # N { Ps } |- (A X . P -> Q)
     Rest 
     ========== 
-    ax6 N with Y
+    ax N
     C
 =
     < G > 
     Rest 
     ========== 
     C
-if P [ Y / X ] =a= Q 
+if X occur-free-in P andBool ML-K6 X P Q
 .
 
 --- (K7)
@@ -282,118 +297,6 @@ ceq < G >
 if P =a= Q
 .
 
-
---- Membership
-
-eq  < G > 
-    # N { Ps } |- X in Y = (X = Y) 
-    Rest
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    Rest
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- X in ( ~ P ) = ~ (X in P) 
-    Rest
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    Rest
-    ==========
-    C
-.
-
-
-eq  < G > 
-    # N { Ps } |- X in (P /\ Q) = (X in P) /\ (X in Q) 
-    Rest
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    Rest
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- X in (P \/ Q) = (X in P) \/ (X in Q) 
-    Rest
-    ==========
-    ax N 
-    C
-
-=
-    < G > 
-    Rest
-    ==========
-    C
-.
-
-eq  < G > 
-    # N { Ps } |- X in (E Y . P) = E Y . (X in P) 
-    Rest
-    ==========
-    ax N 
-    C
-=
-    < G > 
-    Rest
-    ==========
-    C
-.
-
-
-eq  < G > 
-    # N { Ps } |- X in F(Qs, P, Rs) = E Y . (Y in P /\ X in F(Qs, Y, Rs)) 
-    Rest
-    ==========
-    ax N
-    C
-=
-    < G > 
-    Rest
-    ==========
-    C
-.
-
-
-
 endfm
 
 
----  ops zero succ plus : -> Symbol [ctor] .        --- Peano numbers
----  ops epsilon concat rev : -> Symbol [ctor] .    --- Sequences
----  ops mapsto emp mapmerge : -> Symbol [ctor] .   --- Maps
----  op list : -> Symbol [ctor] .                   --- Lists
-
-reduce E 'x . plus('x, 'y) [ 'y -> 'x / 'y ] . 
-quit
-
-reduce
-
---- < 1 >
---- # 0 {
---- (E 'y . (zero() = 'y))
---- (A 'x . (plus('x , zero()) = 'x))
---- (A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y))))
-      
---- } |- plus(zero(),zero()) = zero()
---- ==========
---- mp 0 with (E 'y . (zero() = 'y)) /\ (A 'x . (plus('x , zero()) = 'x)) 
---- ax 2
---- split 1
---- ax 3 
---- ax 4
---- .
-
-quit

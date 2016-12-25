@@ -98,6 +98,8 @@ eq   < G >
   
 endm
 
+
+
 rewrite counter + counter .
 
 rewrite
@@ -111,6 +113,8 @@ mp 2 with 'P -> (('P -> 'P) -> 'P) ;
 ax 3 ;
 ax 4 ;
 .
+
+unify (X : Var) =? (X : Var) .
 
 
 quit
