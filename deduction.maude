@@ -1,0 +1,396 @@
+load syntax .
+
+fmod ML-ENTAILMENT is
+  including ML-SYNTAX .
+
+  sorts PatternSet Premise Entailment . 
+  subsort Pattern < PatternSet .
+
+--- PatternSet is different from PatternList.
+--- PatternSet is communitive.
+
+  op .PatternSet : -> PatternSet .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 50] .
+  op {} : -> Premise .
+  op {_} : PatternSet -> Premise .
+--- {} is a syntatic sugar
+  eq {} = {.PatternSet} .
+
+  op _|-_ : Premise Pattern -> Entailment .
+
+endfm
+
+fmod ML-DEDUCTIVESYSTEM is
+  including ML-ENTAILMENT .
+
+
+  sort ProofObligations .
+  op #__ : Int Entailment -> ProofObligations .
+  op .ProofObligations : -> ProofObligations .
+  op __ : ProofObligations ProofObligations -> ProofObligations [assoc comm id: .ProofObligations prec 50] .
+
+
+  sort Command .
+  op skip : -> Command [format(n d)] .
+  op __ : Command Command -> Command [assoc id: skip format(n n d) prec 50] .
+
+  op ax_ : Int -> Command [prec 40] .               --- use axioms (K1-K5,K7,K9) to resolve patterns
+  op ax6_with_ : Int Var -> Command [prec 40] .     --- provide a variable to use axiom (K6)
+  op ax8_with_and_ : Int Pattern Var -> Command [prec 40] . --- provide a pattern and a variable to use axiom (K8)
+  op mp_with_ : Int Pattern -> Command [prec 40] .  --- provide a pattern to use modus ponens
+  op uu_ : Int -> Command [prec 40] .               --- use universal generalization
+  op deduce_ : Int -> Command [prec 40] .           --- use closed-form deductive theorem
+  op split_ : Int -> Command [prec 40] .            --- use conjunction splitting
+
+
+  sort Result .  --- for no use
+  op <_>_==========_ : Int ProofObligations Command -> Result [format(n d d n n d d) prec 60] .
+
+  var P P1 P2 Q Q1 Q2 R R1 R2 : Pattern .
+  var Rest : ProofObligations .
+  var C : Command .
+  var N M G : Int .
+  var X Y Z : Var .
+  var F : Symbol .
+  vars Ps Qs Rs : PatternSet .
+
+--- Axiom Schemas
+
+--- (K1)
+eq  < G > 
+    # N { Ps } |- (P -> (Q -> P))
+    Rest
+    ========== 
+    ax N 
+    C
+= 
+    < G > 
+    Rest 
+    ========== 
+    C
+.
+
+--- (K2)
+eq  < G > 
+    # N { Ps } |- (P -> (Q -> R)) -> (( P -> Q ) -> ( P -> R )) 
+    Rest 
+    ========== 
+    ax N
+    C
+= 
+    < G > 
+    Rest 
+    ========== 
+    C 
+.
+
+--- (K3)
+eq  < G > 
+    # N { Ps } |- ( ~ P -> ~ Q ) -> ( Q -> P )
+    Rest 
+    ========== 
+    ax N 
+    C
+= 
+    < G > 
+    Rest 
+    ========== 
+    C 
+.
+
+--- (K4)
+
+ceq < G > 
+    # N { Ps } |- (A X . (P -> Q)) -> (P -> (A X . Q))
+    Rest 
+    ========== 
+    ax N 
+    C
+=
+    < G > 
+    Rest 
+    ========== 
+    C 
+if X not-occur-free-in P
+.
+
+
+--- (K5)
+
+ceq < G > 
+    # N { Ps } |- (A X . P -> P)
+    Rest 
+    ========== 
+    ax N 
+    C
+=
+    < G > 
+    Rest 
+    ========== 
+    C 
+if X not-occur-free-in P
+.
+
+--- (K6)
+
+ceq < G > 
+    # N { Ps } |- (A X . P -> Q)
+    Rest 
+    ========== 
+    ax6 N with Y
+    C
+=
+    < G > 
+    Rest 
+    ========== 
+    C
+if P [ Y / X ] =a= Q 
+.
+
+--- (K7)
+
+eq  < G > 
+    # N { Ps } |- P = P
+    Rest 
+    ========== 
+    ax N
+    C
+=
+    < G > 
+    Rest 
+    ========== 
+    C 
+.
+
+--- (K8)
+
+ceq  < G > 
+     # N { Ps } |- (P1 = P2) -> (R1 -> R2)
+     Rest
+     ==========
+     ax8 N with Q and X
+     C
+=
+     < G > 
+     Rest
+     ==========
+     C
+if Q [ P1 / X ] =a= R1 andBool Q [ P2 / X ] =a= R2
+. 
+
+--- (K9)
+
+ceq < G > 
+    # N { Ps } |- (E Y . (Q = Y)) -> ((A X . P) -> R)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+if P [ Q / X ] =a= R 
+.
+
+--- Inference Rules
+
+--- Modus Ponens
+
+eq  < G > 
+    # N { Ps } |- P 
+    Rest 
+    ========== 
+    mp N with Q
+    C
+=
+    < G +Int 2 > 
+    # G { Ps } |- Q 
+    # G +Int 1 { Ps } |- Q -> P
+    Rest 
+    ========== 
+    C 
+.
+
+--- Universal Generalization
+
+eq  < G >
+    # N { Ps } |- (A X . P)
+    Rest 
+    ==========
+    uu N 
+    C
+=
+    < G +Int 1 > 
+    # G { Ps } |- P 
+    Rest
+    ========== 
+    C 
+. 
+
+--- Deduction Theorem
+
+ceq < G >
+    # N { Ps } |- P -> Q
+    Rest
+    ==========
+    deduce N
+    C
+=
+    < G +Int 1 >
+    # G { Ps P } |- Q
+    Rest
+    ==========
+    C
+if P is-closed-pattern
+.
+
+--- Conjunction Splitting
+
+eq  < G > 
+    # N { Ps } |- P /\ Q
+    Rest
+    ==========
+    split N 
+    C
+=
+    < G +Int 2 > 
+    # G { Ps } |- P 
+    # G +Int 1 { Ps } |- Q
+    Rest
+    ==========
+    C
+.
+
+--- Inclusion Rule
+
+ceq < G >
+    # N { P Ps } |- Q
+    Rest
+    ==========
+    ax N
+    C 
+=
+    < G >
+    Rest
+    ==========
+    C
+if P =a= Q
+.
+
+
+--- Membership
+
+eq  < G > 
+    # N { Ps } |- X in Y = (X = Y) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in ( ~ P ) = ~ (X in P) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+
+eq  < G > 
+    # N { Ps } |- X in (P /\ Q) = (X in P) /\ (X in Q) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in (P \/ Q) = (X in P) \/ (X in Q) 
+    Rest
+    ==========
+    ax N 
+    C
+
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+eq  < G > 
+    # N { Ps } |- X in (E Y . P) = E Y . (X in P) 
+    Rest
+    ==========
+    ax N 
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+
+eq  < G > 
+    # N { Ps } |- X in F(Qs, P, Rs) = E Y . (Y in P /\ X in F(Qs, Y, Rs)) 
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+.
+
+
+
+endfm
+
+
+---  ops zero succ plus : -> Symbol [ctor] .        --- Peano numbers
+---  ops epsilon concat rev : -> Symbol [ctor] .    --- Sequences
+---  ops mapsto emp mapmerge : -> Symbol [ctor] .   --- Maps
+---  op list : -> Symbol [ctor] .                   --- Lists
+
+reduce E 'x . plus('x, 'y) [ 'y -> 'x / 'y ] . 
+quit
+
+reduce
+
+--- < 1 >
+--- # 0 {
+--- (E 'y . (zero() = 'y))
+--- (A 'x . (plus('x , zero()) = 'x))
+--- (A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y))))
+      
+--- } |- plus(zero(),zero()) = zero()
+--- ==========
+--- mp 0 with (E 'y . (zero() = 'y)) /\ (A 'x . (plus('x , zero()) = 'x)) 
+--- ax 2
+--- split 1
+--- ax 3 
+--- ax 4
+--- .
+
+quit
