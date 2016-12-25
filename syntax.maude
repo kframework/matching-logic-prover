@@ -1,15 +1,6 @@
 --- This module provides a full grammar for the formal language of matching logic.
 --- Last update by Xiaohong on 24 Dec 2016.
 
---- Module Hierarchy (from lower to higher level)
---- PL-GENERIC-SUBSTITUTION (external)   a generic framework for term substitution
---- ML-SYNTAX        syntax of matching logic patterns
----                  alpha-equivalence checking : P =a= Q
----                  closed-form checking : P is-closed-form
----                  free-occur checking : X occur-free-in P
---- ML-ENTAILMENT    syntax for entailments
---- ML-DEDUCTIVESYSTEM   the deductive system
-
 --- load generic substitution module.
 load substitution .
 
@@ -133,6 +124,5 @@ fmod ML-SYNTAX is
 
   eq X occur-free-in P = (X ML-ALPHA-in (ML-ALPHA-fv P)) .
   eq X not-occur-free-in P = notBool (X occur-free-in P) .
-
 
 endfm
