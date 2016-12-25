@@ -57,8 +57,8 @@ fmod ML-SYNTAX is
 --- internal sort and ops are carefully named to prevent unintentional conflict
   sort ML-ALPHA-VarSet .
   subsort Var < ML-ALPHA-VarSet .
-  op .ML-ALPHA-emptyset : -> ML-ALPHA-VarSet .
-  op ML-ALPHA-union__ : ML-ALPHA-VarSet ML-ALPHA-VarSet -> ML-ALPHA-VarSet [comm assoc id: .ML-ALPHA-emptyset] .
+  op ML-ALPHA-emptyset : -> ML-ALPHA-VarSet .
+  op ML-ALPHA-union__ : ML-ALPHA-VarSet ML-ALPHA-VarSet -> ML-ALPHA-VarSet [comm assoc id: ML-ALPHA-emptyset] .
   op ML-ALPHA-delete__ : ML-ALPHA-VarSet Var -> ML-ALPHA-VarSet . --- delete Var from VarSet
   op _ML-ALPHA-in_ : Var ML-ALPHA-VarSet -> Bool .
   op _ML-ALPHA-is-empty : ML-ALPHA-VarSet -> Bool .
@@ -87,7 +87,7 @@ fmod ML-SYNTAX is
   eq X ML-ALPHA-in (ML-ALPHA-union X S) = true .
   eq X ML-ALPHA-in S = false [owise] .
 --- S is empty iff S is the empty set
-  eq .ML-ALPHA-emptyset ML-ALPHA-is-empty = true .
+  eq ML-ALPHA-emptyset ML-ALPHA-is-empty = true .
   eq S ML-ALPHA-is-empty = false [owise] .
 
   eq ML-ALPHA-fv X = X .
@@ -97,7 +97,7 @@ fmod ML-SYNTAX is
   eq ML-ALPHA-fv (P1 \/ P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
   eq ML-ALPHA-fv (P1 = P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
   eq ML-ALPHA-fv (P1 => P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
-  eq ML-ALPHA-fv (F()) = .ML-ALPHA-emptyset .
+  eq ML-ALPHA-fv (F()) = ML-ALPHA-emptyset .
   eq ML-ALPHA-fv (F(P)) = ML-ALPHA-fv P .
   eq ML-ALPHA-fv (F(P, Ps)) = ML-ALPHA-union (ML-ALPHA-fv P) (ML-ALPHA-fv (F(Ps))) .
   eq ML-ALPHA-fv (A X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
