@@ -50,9 +50,6 @@ fmod ML-SYNTAX is
   var V : Var .  vars P Q : Pattern .
   eq P [Q / V] = substitute (P, Q, V) . --- set up substitution
 
---- some common symbols for testing
-  ops plus succ zero : -> Symbol .
-
 --- support for free variable collecting
 --- internal sort and ops are carefully named to prevent unintentional conflict
   sort ML-ALPHA-VarSet .

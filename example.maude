@@ -1,0 +1,25 @@
+load deduction .
+
+fmod DOMAIN is
+  including ML-DEDUCTIVESYSTEM .
+  ops plus succ zero : -> Symbol .
+endfm
+
+reduce 
+< 1 >
+# 0 {
+--- Axioms for PNat
+---  zero(), succ(x), plus(x, y) are functional
+E 't . (zero() = t)
+A 'x . E 't . (succ('x) = t)
+A 'x . A 'y . E 't . (plus('x, 'y) = t)
+---  plus(0, x) = x
+A 'x . (plus(zero(), 'x) = 'x)
+---  plus(succ(x), y) = succ(plus(x, y))
+A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y)))
+} |- plus(succ(zero()),succ(zero())) = succ(succ(zero()))
+==========
+skip
+.
+
+quit
