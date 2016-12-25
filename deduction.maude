@@ -1,3 +1,6 @@
+--- This file provides a Hilbert style deductive system for matching logic
+--- Last Update on 25 Dec 2016 by Xiaohong
+
 load syntax .
 
 fmod ML-ENTAILMENT is

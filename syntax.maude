@@ -121,7 +121,6 @@ fmod ML-SYNTAX is
   eq P =a= Q = false [owise] .
 
   eq P is-closed-pattern = ((ML-ALPHA-fv P) ML-ALPHA-is-empty) .
-
   eq X occur-free-in P = (X ML-ALPHA-in (ML-ALPHA-fv P)) .
   eq X not-occur-free-in P = notBool (X occur-free-in P) .
 
