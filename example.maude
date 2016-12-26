@@ -1,3 +1,5 @@
+--- Last Update on 25 Dec 2016 by Xiaohong
+
 load deduction .
 
 fmod DOMAIN is
@@ -5,21 +7,56 @@ fmod DOMAIN is
   ops plus succ zero : -> Symbol .
 endfm
 
+--- Example of proving "1 + 1 = 2"
 reduce 
 < 1 >
 # 0 {
 --- Axioms for PNat
 ---  zero(), succ(x), plus(x, y) are functional
-E 't . (zero() = t)
-A 'x . E 't . (succ('x) = t)
-A 'x . A 'y . E 't . (plus('x, 'y) = t)
+E 't . (zero() = 't)
+A 'x . E 't . (succ('x) = 't)
+A 'x . A 'y . E 't . (plus('x, 'y) = 't)
 ---  plus(0, x) = x
 A 'x . (plus(zero(), 'x) = 'x)
 ---  plus(succ(x), y) = succ(plus(x, y))
 A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y)))
 } |- plus(succ(zero()),succ(zero())) = succ(succ(zero()))
 ==========
-skip
+mp 0 with plus(succ(zero()),succ(zero())) = succ(plus(zero(),succ(zero())))
+deduce 2
+mp 3 with succ(plus(zero(),succ(zero()))) = succ(succ(zero()))
+mp 5 with plus(succ(zero()),succ(zero())) = succ(plus(zero(),succ(zero())))
+ax8 7 with 't = succ(succ(zero())) and 't
+ax 6
+mp 4 with plus(zero(),succ(zero())) = succ(zero())
+deduce 9
+mp 10 with succ(succ(zero())) = succ(succ(zero()))
+mp 12 with plus(zero(),succ(zero())) = succ(zero())
+ax8 14 with succ('t) = succ(succ(zero())) and 't
+ax 13
+ax 11
+mp 8 with A 'x . ('x = plus(zero(),'x))
+mp 16 with E 't . ('t = succ(zero()))
+ax 18
+mp 17 with A 'x . E 't . ('t = succ('x)) 
+mp 20 with E 't . ('t = zero())
+ax 22
+ax 21
+ax 19
+ax 15
+mp 1 with A 'y . (plus(succ(zero()),'y) = succ(plus(zero(),'y)))
+mp 24 with E 't . (succ(zero()) = 't)
+ax 26
+mp 25 with A 'x . E 't . ('t = succ('x))
+mp 28 with E 't . ('t = zero())
+ax 30
+ax 29
+ax 27
+mp 23 with A 'x . A 'y . (plus(succ('x),'y) = succ(plus('x,'y)))
+mp 32 with E 't . ('t = zero())
+ax 34
+ax 33
+ax 31
 .
 
 quit

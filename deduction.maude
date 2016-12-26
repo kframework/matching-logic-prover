@@ -13,23 +13,23 @@ fmod ML-DEDUCTIVESYSTEM is
 --- PatternSet is communitive.
 
   op .PatternSet : -> PatternSet .
-  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 50] .
-  op {} : -> Premise .  op {_} : PatternSet -> Premise .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 50 format(d n d)] .
+  op {} : -> Premise .  op {_} : PatternSet -> Premise [format(d n d d)] .
 --- {} is a syntatic sugar
   eq {} = {.PatternSet} .
 
-  op _|-_ : Premise Pattern -> Entailment .
+  op _|-_ : Premise Pattern -> Entailment [format(d n d n)].
 
 --- define proof obligations
   sort ProofObligations .
-  op #__ : Int Entailment -> ProofObligations .
-  op done : -> ProofObligations .
-  op __ : ProofObligations ProofObligations -> ProofObligations [assoc comm id: done prec 50] .
+  op #__ : Int Entailment -> ProofObligations [format(d d d d)] .
+  op done : -> ProofObligations [format(d n)] .
+  op __ : ProofObligations ProofObligations -> ProofObligations [assoc comm id: done format(n n d) prec 50] .
 
 --- define commands
   sort Command .
   op skip : -> Command [format(d d)] .
-  op __ : Command Command -> Command [assoc id: skip format(n n d) prec 50] .
+  op __ : Command Command -> Command [assoc id: skip format(d n d) prec 50] .
 
   op ax_ : Int -> Command [prec 40] .               --- use axioms (K1-K7,K9) to resolve patterns
   op ax8_with_and_ : Int Pattern Var -> Command [prec 40] . --- provide a pattern and a variable to use axiom (K8)
@@ -40,7 +40,7 @@ fmod ML-DEDUCTIVESYSTEM is
 
 
   sort Result .  --- for no use
-  op <_>_==========_ : Int ProofObligations Command -> Result [format(n d d n n n d) prec 60] .
+  op <_>_==========_ : Int ProofObligations Command -> Result [format(n d d n d n d) prec 60] .
 
 
 
