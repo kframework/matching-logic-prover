@@ -1,5 +1,7 @@
 --- This module provides a full grammar for the formal language of matching logic.
---- Last update by Xiaohong on 24 Dec 2016.
+--- This version of matching logic is single-sorted, and the future plan is to 
+--- extend it to many-sorted.
+--- Last update by Xiaohong on 31 Dec 2016.
 
 --- load generic substitution module.
 load substitution .
@@ -16,19 +18,19 @@ fmod ML-SYNTAX is
 
 --- Var for matching logic variables
 --- Symbol for matching logic symbols. Not taking arity into account
---- Pattern for patterns, and PatternList for comma-separated patterns
+--- Pattern for patterns, and PatternList for comma-separated pattern lists
   sorts Var Symbol Pattern PatternList .
   subsort Var < Pattern .
   subsort Pattern < PatternList .
 
   op .PatternList : -> PatternList . --- the empty list
-  op _,_ : PatternList PatternList -> PatternList [assoc id: .PatternList prec 37] .
+  op _,_ : PatternList PatternList -> PatternList [assoc id: .PatternList format(d d s d) prec 37] .
 
 --- full grammar of the formal language for matching logic
 --- listed by precedence from higher to lower
   --- subsort Var < Pattern .  --- x
-  op _() : Symbol -> Pattern [ctor prec 30] .  --- s()
-  op _(_) : Symbol PatternList -> Pattern [ctor prec 30] . --- s(P1,...,Pn)
+  op _() : Symbol -> Pattern [ctor prec 25] .  --- s()
+  op _(_) : Symbol PatternList -> Pattern [ctor prec 25] . --- s(P1,...,Pn)
   op E_._ : Var Pattern -> Pattern [ctor prec 31] . --- exists x . P
   op A_._ : Var Pattern -> Pattern [ctor prec 31] . --- forall x . P
   op _in_ : Var Pattern -> Pattern [ctor prec 31] . --- x in P (membership)
@@ -37,7 +39,6 @@ fmod ML-SYNTAX is
   op _\/_ : Pattern Pattern -> Pattern [ctor comm gather (E e) prec 34] .
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 35] .
   op _=_ : Pattern Pattern -> Pattern [ctor comm prec 36] .
-  op _<_ : Pattern Pattern -> Pattern [ctor prec 36] .  --- P subseteq Q
   op _=>_ : Pattern Pattern -> Pattern [ctor prec 36] . --- reachability (not used)
   ops bot top : -> Pattern [ctor] . --- bottom and top
 
@@ -100,6 +101,7 @@ fmod ML-SYNTAX is
   eq ML-ALPHA-fv (A X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
   eq ML-ALPHA-fv (E X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
   eq ML-ALPHA-fv (X in P) = ML-ALPHA-union X (ML-ALPHA-fv P) .
+  eq ML-ALPHA-fv P = ML-ALPHA-emptyset [owise] . --- if P contains some use-defined things then P is closed by assumption. This is dangerous and should be solved in meta level.
 
   eq P =a= P = true .
   eq (~ P =a= ~ Q) = (P =a= Q) .

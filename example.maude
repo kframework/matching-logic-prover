@@ -1,14 +1,82 @@
---- Last Update on 25 Dec 2016 by Xiaohong
+--- Last Update on 25 Dec 2016 by Xiaohong;
 
 load deduction .
 
-fmod DOMAIN is
+--- EXAMPLE OF MAP ---
+--- Nat are assumed as built-in domain and all reasoning about Nat shall be
+--- pushed to Z3. 
+
+fmod MAP-DOMAIN is
+  including ML-DEDUCTIVESYSTEM .
+--- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
+  ops zero one two three four five six seven eight nine ten : -> Pattern .
+  op _+_ : Pattern Pattern -> Pattern .
+
+--- Seq
+  op ep : -> Pattern .
+  op _^_ : Pattern Pattern -> Pattern [prec 28] .
+
+--- Map
+  op _|->_ : Pattern Pattern -> Pattern [prec 27] .
+  op _|->[_] : Pattern Pattern -> Pattern [format(d d s d d d) prec 27] .
+  op emp : -> Pattern .
+  op _*_ : Pattern Pattern -> Pattern [prec 29] .
+  
+  ops list : -> Symbol .
+endfm
+
+reduce in MAP-DOMAIN :
+< 1 >
+# 0 {
+--- Axioms for Nat
+E 't . 't = zero
+E 't . 't = one
+E 't . 't = two
+E 't . 't = three
+E 't . 't = four
+E 't . 't = five
+E 't . 't = six
+E 't . 't = seven
+E 't . 't = eight
+E 't . 't = nine
+--- Axioms for Seq domain
+E 't . 't = ep
+A 'S . A 'T . E 't . 't = 'S ^ 'T
+A 'x . (ep ^ 'x) = 'x 
+A 'x . ('x ^ ep) = 'x 
+A 'x . A 'y . A 'z . (('x ^ 'y) ^ 'z = 'x ^ ('y ^ 'z))
+ep \/ (E 'x . E 'S . ('x ^ 'S))
+A 'x . A 'S . A 'y . A 'T . (('x ^ 'S = 'y ^ 'T) = ('x = 'y /\ 'S = 'T))
+--- Axioms for Map demain
+A 'H . (emp * 'H = 'H)
+A 'H1 . A 'H2 . ('H1 * 'H2 = 'H2 * 'H1)
+A 'H1 . A 'H2 . A 'H3 . (('H1 * 'H2) * 'H3 = 'H1 * ('H2 * 'H3))
+A 'a . (zero |-> 'a = bot) 
+A 'x . A 'a . A 'b . ('x |-> 'a * 'x |-> 'b = bot)
+A 'x . ('x |-> [ep] = emp)
+A 'x . A 'a . A 'S . ('x |-> ['a ^ 'S] = 'x |-> 'a * ('x + one) |-> ['S])
+--- Axioms for Lists
+list(zero, ep) = emp
+A 'x . A 'n . A 'S . (list('x, 'n ^ 'S) = E 'x . (('x |-> ['n ^ 'z]) * list('z, 'S)))}
+|- (one |-> five * (two |-> zero * seven |-> nine * eight |-> one)) -> list(seven, nine ^ five)
+==========
+deduce 0
+mp 1 with E 'z . (seven |-> [nine ^ 'z] * list('z, five))
+mp 3 with E 't . (five = 't)
+ax 5
+.
+quit 
+
+--- EXAMPLE OF PEANO NAT ---
+--- with module definition and a reduction example.
+
+fmod NAT-DOMAIN is
   including ML-DEDUCTIVESYSTEM .
   ops plus succ zero : -> Symbol .
 endfm
 
 --- Example of proving "1 + 1 = 2"
-reduce 
+reduce in NAT-DOMAIN :
 < 1 >
 # 0 {
 --- Axioms for PNat

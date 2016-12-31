@@ -1,5 +1,5 @@
---- This file provides a Hilbert style deductive system for matching logic
---- Last Update on 25 Dec 2016 by Xiaohong
+--- This file provides a Hilbert style deductive system for matching logic.
+--- Last Update on 31 Dec 2016 by Xiaohong
 
 load syntax .
 
@@ -18,7 +18,7 @@ fmod ML-DEDUCTIVESYSTEM is
 --- {} is a syntatic sugar
   eq {} = {.PatternSet} .
 
-  op _|-_ : Premise Pattern -> Entailment [format(d n d n)].
+  op _|-_ : Premise Pattern -> Entailment [format(d n y no)].
 
 --- define proof obligations
   sort ProofObligations .
@@ -200,6 +200,20 @@ if Q [ P1 / X ] =a= R1 andBool Q [ P2 / X ] =a= R2
 
 ceq < G > 
     # N { Ps } |- (E Y . (Q = Y)) -> ((A X . P) -> R)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G > 
+    Rest
+    ==========
+    C
+if P [ Q / X ] =a= R 
+.
+
+ceq < G > 
+    # N { Ps } |- (E Y . (Q = Y)) -> (R -> E X . P)
     Rest
     ==========
     ax N
