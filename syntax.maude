@@ -1,7 +1,5 @@
 --- This module provides a full grammar for the formal language of matching logic.
---- This version of matching logic is single-sorted, and the future plan is to 
---- extend it to many-sorted.
---- Last update by Xiaohong on 31 Dec 2016.
+--- Last update by Xiaohong on 05 Jan 2016.
 
 --- load generic substitution module.
 load substitution .
@@ -15,6 +13,8 @@ fmod ML-SYNTAX is
 --- resolve naming conflicts
   including PL-GENERIC-SUBSTITUTION * ( op _,_ to _PL-COMMA_ ,
                                         op fv_ to PL-FV_ ) .
+
+--- s
 
 --- Var for matching logic variables
 --- Symbol for matching logic symbols. Not taking arity into account
@@ -124,3 +124,4 @@ fmod ML-SYNTAX is
   eq X not-occur-free-in P = notBool (X occur-free-in P) .
 
 endfm
+

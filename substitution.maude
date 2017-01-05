@@ -1,8 +1,3 @@
---- This file is a reference deductive system for matching logic.
---- This file uses Grigore Rosu's Generic Term Substitution.
---- Main work starts at line xxx.
-
---- This module contains several builtins that we will include in our languages.
 --- It is preferable to run maude with the flag -no-prelude, so that no warnings will be issued for
 ---   redefining the sorts in modules BOOL and INT (which maude's prelude includes by default).
 
@@ -22,16 +17,19 @@ fmod PL-BOOL is including UNDEFINED .
   sort Bool .  subsort Undefined < Bool .
   op true : -> Bool [ctor special (id-hook SystemTrue)] .
   op false : -> Bool [ctor special (id-hook SystemFalse)] .
-  op if_then_else_fi : Bool Universal Universal -> Universal [poly (2 3 0)
+  op if_then_else_fi : Bool Universal Universal -> Universal [
+    polymorphic (2 3 0) --- polymorphic on second and third arguments
     special (
     id-hook BranchSymbol
     term-hook 1 (true)
     term-hook 2 (false))] .
-  op _==Bool_ : Universal Universal -> Bool [poly (1 2) prec 51 special (
+  op _==Bool_ : Universal Universal -> Bool [polymorphic (1 2) prec 51 
+    special (
     id-hook EqualitySymbol
     term-hook equalTerm (true)
     term-hook notEqualTerm (false))] .
-  op _=/=Bool_ : Universal Universal -> Bool [poly (1 2) prec 51 special (
+  op _=/=Bool_ : Universal Universal -> Bool [polymorphic (1 2) prec 51 
+    special (
     id-hook EqualitySymbol
     term-hook equalTerm (false)
     term-hook notEqualTerm (true))] .
@@ -169,13 +167,13 @@ fmod PL-META-TERM is
         term-hook falseTerm        (false))] .
 
   op downMetaTerm : MetaTerm Universal -> Universal
-        [poly (2 0)
+        [polymorphic (2 0)
          special (
            id-hook MetaLevelOpSymbol (metaDownTerm)
            op-hook shareWith         (metaReduce : Module MetaTerm ~> ResultPair))] .
 
   op upTerm : Universal -> MetaTerm
-        [poly (1) strat(0)
+        [polymorphic (1) strat(0)
          special (
            id-hook MetaLevelOpSymbol (metaUpTerm)
            op-hook shareWith         (metaReduce : Module MetaTerm ~> ResultPair))] .
@@ -353,3 +351,5 @@ fmod PL-GENERIC-SUBSTITUTION is
   op undefinedTerm : -> [GenericTerm] .
   eq substitute(E, F, X) = downMetaTerm(metaSubstitute(upTerm(E), upTerm(F), upTerm(X)), undefinedTerm) .
 endfm
+
+quit
