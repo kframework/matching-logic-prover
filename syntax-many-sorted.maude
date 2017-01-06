@@ -1,0 +1,258 @@
+--- This module provides a full grammar for the formal language of matching logic.
+--- Last update by Xiaohong on 06 Jan 2016.
+
+--- load generic substitution module.
+load substitution .
+
+--- ML-SYNTAX        syntax of matching logic pattern with
+   ---                  alpha-equivalence checking : P =a= Q
+   ---                  closed-form checking : P is-closed-form
+   ---                  free-occur checking : X occur-free-in P
+fmod ML-SYNTAX is
+
+--- resolve naming conflicts.
+  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _PL-COMMA_ ,
+                                        op fv_ to PL-FV_ ) .
+
+--- define matching logic patterns of different sorts.
+--- "Pattern" is the "union" of all "Pattern{...}".
+  sorts Pattern{Bool} Pattern{Nat} Pattern{Seq} Pattern{Map} .
+  sort Pattern . subsorts Pattern{Bool} Pattern{Nat} Pattern{Seq} Pattern{Map} < Pattern .
+
+--- define full grammar of the formal language of matching logic.
+--- operators are listed by precedence from higher to lower.
+
+  --- define variables for all matching logic sorts
+  --- WARNING: it is crucial that one always use different names for things that
+  --- belong to different sorts. In other words, assuming 'x : ML-Bool and 'x : ML-Nat
+  --- are two identities IS DANGEROUS. This is because the generic substitution 
+  --- framework that we use only support single-sorted logic, and basically it substitutes
+  --- for Ids, and it cannot distinguish 'x : ML-Bool and 'x : ML-Nat.
+  --- This issue will be solved in the future, by changing in the metalevel the
+  --- generic substitution framework.
+  --- Note: for now, due to the fact that the generic substitution framework we use only
+  --- supports single-sorted logic, one has to make sure that the id that
+  --- is going to be substituted has a unique name and of the same sort with
+  --- the substitute pattern. 
+  sorts ML-Bool ML-Nat ML-Seq ML-Map .
+  op ML-Bool : -> ML-Bool .
+  op ML-Nat : -> ML-Nat .
+  op ML-Seq : -> ML-Seq .
+  op ML-Map : -> ML-Map .
+  op _:_ : Id ML-Bool -> Pattern{Bool} [ctor prec 30] .
+  op _:_ : Id ML-Nat -> Pattern{Nat} [ctor prec 30] .
+  op _:_ : Id ML-Seq -> Pattern{Seq} [ctor prec 30] .
+  op _:_ : Id ML-Map -> Pattern{Map} [ctor prec 30] .
+
+  --- define other logic connectivities.
+  ------ exists
+  ------ the binding variable does not need to be in the same sort with
+  ------ the bounded pattern.
+  op exists_:_._ : Id ML-Bool Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op exists_:_._ : Id ML-Nat Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op exists_:_._ : Id ML-Seq Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op exists_:_._ : Id ML-Map Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op exists_:_._ : Id ML-Bool Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op exists_:_._ : Id ML-Nat Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op exists_:_._ : Id ML-Seq Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op exists_:_._ : Id ML-Map Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op exists_:_._ : Id ML-Bool Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op exists_:_._ : Id ML-Nat Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op exists_:_._ : Id ML-Seq Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op exists_:_._ : Id ML-Map Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op exists_:_._ : Id ML-Bool Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  op exists_:_._ : Id ML-Nat Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  op exists_:_._ : Id ML-Seq Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  op exists_:_._ : Id ML-Map Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  
+  ------ forall
+  op forall_:_._ : Id ML-Bool Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op forall_:_._ : Id ML-Nat Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op forall_:_._ : Id ML-Seq Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op forall_:_._ : Id ML-Map Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op forall_:_._ : Id ML-Bool Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op forall_:_._ : Id ML-Nat Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op forall_:_._ : Id ML-Seq Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op forall_:_._ : Id ML-Map Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op forall_:_._ : Id ML-Bool Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op forall_:_._ : Id ML-Nat Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op forall_:_._ : Id ML-Seq Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op forall_:_._ : Id ML-Map Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op forall_:_._ : Id ML-Bool Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  op forall_:_._ : Id ML-Nat Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  op forall_:_._ : Id ML-Seq Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  op forall_:_._ : Id ML-Map Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  
+  ------ membership
+  op _:_in_ : Id ML-Bool Pattern{Bool} -> Pattern{Bool} [ctor prec 31] .
+  op _:_in_ : Id ML-Bool Pattern{Nat} -> Pattern{Nat} [ctor prec 31] .
+  op _:_in_ : Id ML-Bool Pattern{Seq} -> Pattern{Seq} [ctor prec 31] .
+  op _:_in_ : Id ML-Bool Pattern{Map} -> Pattern{Map} [ctor prec 31] .
+  
+  ------ negation conjunction disjunction implication
+  op ~_ : Pattern{Bool} -> Pattern{Bool} [ctor prec 32] . 
+  op ~_ : Pattern{Nat} -> Pattern{Nat} [ctor prec 32] . 
+  op ~_ : Pattern{Seq} -> Pattern{Seq} [ctor prec 32] . 
+  op ~_ : Pattern{Map} -> Pattern{Map} [ctor prec 32] . 
+  op _/\_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [ctor comm gather (E e) prec 33] . 
+  op _/\_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [ctor comm gather (E e) prec 33] . 
+  op _/\_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [ctor comm gather (E e) prec 33] . 
+  op _/\_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [ctor comm gather (E e) prec 33] . 
+  op _\/_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [ctor comm gather (E e) prec 34] . 
+  op _\/_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [ctor comm gather (E e) prec 34] . 
+  op _\/_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [ctor comm gather (E e) prec 34] . 
+  op _\/_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [ctor comm gather (E e) prec 34] . 
+  op _->_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [ctor gather (e E) prec 35] . 
+  op _->_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [ctor gather (e E) prec 35] . 
+  op _->_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [ctor gather (e E) prec 35] . 
+  op _->_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [ctor gather (e E) prec 35] . 
+
+  ------ equality
+  op _=Bool2Bool_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [ctor comm prec 36] .
+  op _=Bool2Nat_ : Pattern{Bool} Pattern{Bool} -> Pattern{Nat} [ctor comm prec 36] .
+  op _=Bool2Seq_ : Pattern{Bool} Pattern{Bool} -> Pattern{Seq} [ctor comm prec 36] .
+  op _=Bool2Map_ : Pattern{Bool} Pattern{Bool} -> Pattern{Map} [ctor comm prec 36] .
+  op _=Nat2Bool_ : Pattern{Nat} Pattern{Nat} -> Pattern{Bool} [ctor comm prec 36] .
+  op _=Nat2Nat_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [ctor comm prec 36] .
+  op _=Nat2Seq_ : Pattern{Nat} Pattern{Nat} -> Pattern{Seq} [ctor comm prec 36] .
+  op _=Nat2Map_ : Pattern{Nat} Pattern{Nat} -> Pattern{Map} [ctor comm prec 36] .
+  op _=Seq2Bool_ : Pattern{Seq} Pattern{Seq} -> Pattern{Bool} [ctor comm prec 36] .
+  op _=Seq2Nat_ : Pattern{Seq} Pattern{Seq} -> Pattern{Nat} [ctor comm prec 36] .
+  op _=Seq2Seq_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [ctor comm prec 36] .
+  op _=Seq2Map_ : Pattern{Seq} Pattern{Seq} -> Pattern{Map} [ctor comm prec 36] .
+  op _=Map2Bool_ : Pattern{Map} Pattern{Map} -> Pattern{Bool} [ctor comm prec 36] .
+  op _=Map2Nat_ : Pattern{Map} Pattern{Map} -> Pattern{Nat} [ctor comm prec 36] .
+  op _=Map2Seq_ : Pattern{Map} Pattern{Map} -> Pattern{Seq} [ctor comm prec 36] .
+  op _=Map2Map_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [ctor comm prec 36] .
+  
+  ------ top and bottom
+  ops botBool topBool : -> Pattern{Bool} [ctor] .
+  ops botNat topNat : -> Pattern{Nat} [ctor] .
+  ops botSeq topSeq : -> Pattern{Seq} [ctor] .
+  ops botMap topMap : -> Pattern{Map} [ctor] .
+  
+  --- define domain specific symbols and values
+  ------ ML-Bool
+  ------ ML-Nat
+  ops zero one two three four five six seven eight nine : -> Pattern{Nat} .
+  ------ ML-Map
+  op emp : -> Pattern{Map} .
+  op _*_ : Pattern{Map} Pattern{Map} -> Pattern{Map} .
+  
+  
+  
+   --- substitution : P [ Q / X ] 
+   --- due to the fact that the generic substitution framework we use only
+   --- supports single-sorted logic, one has to make sure that the id that
+   --- is going to be substituted has a unique name and of the same sort with
+   --- the substitute pattern. 
+  op _[_/_] : Pattern{Bool} Pattern{Bool} Id -> Pattern{Bool} [prec 36] .
+  op _[_/_] : Pattern{Nat} Pattern{Nat} Id -> Pattern{Nat} [prec 36] .
+  op _[_/_] : Pattern{Seq} Pattern{Seq} Id -> Pattern{Seq} [prec 36] .
+  op _[_/_] : Pattern{Map} Pattern{Map} Id -> Pattern{Map} [prec 36] .
+
+--- fit in generic substitution framework
+  subsort Pattern < GenericTerm .
+  eq bind('exists_:_._) = 1 . eq bind('forall_:_._) = 1 . --- set up binder
+  vars P Q : Pattern . var ID : Id . 
+  eq P [Q / ID] = substitute (P, Q, ID) . --- set up substitution
+  
+  --- reduce P : ML-Bool etc. to P.
+  --- suppose one substitue 'x for a pattern P in 'x : ML-Bool,
+  --- the generic substitution framework will substitute only for the Id 'x,
+  --- and result in P : ML-Bool, which has to be further reduced to P.
+  --- This IS ugly, and it will be improved by changing the generic substitution 
+  --- framework to natively support many-sorted logics.
+  op _:_ : Pattern{Bool} ML-Bool -> Pattern{Bool} .
+  op _:_ : Pattern{Nat} ML-Nat -> Pattern{Nat} .
+  op _:_ : Pattern{Seq} ML-Seq -> Pattern{Seq} .
+  op _:_ : Pattern{Map} ML-Map -> Pattern{Map} .
+  var P-Bool : Pattern{Bool} .
+  var P-Nat : Pattern{Nat} .
+  var P-Seq : Pattern{Seq} .
+  var P-Map : Pattern{Map} .
+  eq P-Bool : ML-Bool = P-Bool .   
+  eq P-Nat : ML-Nat = P-Nat .   
+  eq P-Seq : ML-Seq = P-Seq .   
+  eq P-Map : ML-Map = P-Map .
+
+endfm
+
+red exists 'x : ML-Bool . 'y : ML-Nat ['x : ML-Bool / 'y] .
+
+quit
+
+--- support for free variable collecting
+--- internal sort and ops are carefully named to prevent unintentional conflict
+  sort ML-ALPHA-VarSet .
+  subsort Var < ML-ALPHA-VarSet .
+  op ML-ALPHA-emptyset : -> ML-ALPHA-VarSet .
+  op ML-ALPHA-union__ : ML-ALPHA-VarSet ML-ALPHA-VarSet -> ML-ALPHA-VarSet [comm assoc id: ML-ALPHA-emptyset] .
+  op ML-ALPHA-delete__ : ML-ALPHA-VarSet Var -> ML-ALPHA-VarSet . --- delete Var from VarSet
+  op _ML-ALPHA-in_ : Var ML-ALPHA-VarSet -> Bool .
+  op _ML-ALPHA-is-empty : ML-ALPHA-VarSet -> Bool .
+  op ML-ALPHA-fv_ : Pattern -> ML-ALPHA-VarSet .
+
+--- alpha-equivalent checking
+  op _=a=_ : Pattern Pattern -> Bool [comm prec 50] . 
+--- closed-form checking
+  op _is-closed-pattern : Pattern -> Bool [prec 50] .
+--- free-occur checking
+  op _occur-free-in_ : Var Pattern -> Bool [prec 50] .
+  op _not-occur-free-in_ : Var Pattern -> Bool [prec 50] .
+
+  vars X Y : Var .
+  vars P1 P2 Q1 Q2 : Pattern .
+  vars F : Symbol .
+  vars Ps Qs : PatternList .
+  vars S S1 S2 : ML-ALPHA-VarSet .
+
+--- VarSet does not have duplicated variables
+--- {X , ...} U {X , ...} = {X} U {...} U {...}
+  eq ML-ALPHA-union (ML-ALPHA-union X S1) (ML-ALPHA-union X S2) = (ML-ALPHA-union X (ML-ALPHA-union S1 S2)) .
+--- {X , ...} \ {X} = {...} .
+  eq ML-ALPHA-delete (ML-ALPHA-union X S) X = S .
+  eq ML-ALPHA-delete S X = S [owise] .
+  eq X ML-ALPHA-in (ML-ALPHA-union X S) = true .
+  eq X ML-ALPHA-in S = false [owise] .
+--- S is empty iff S is the empty set
+  eq ML-ALPHA-emptyset ML-ALPHA-is-empty = true .
+  eq S ML-ALPHA-is-empty = false [owise] .
+
+  eq ML-ALPHA-fv X = X .
+  eq ML-ALPHA-fv (~ P) = ML-ALPHA-fv P .
+  eq ML-ALPHA-fv (P1 -> P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
+  eq ML-ALPHA-fv (P1 /\ P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
+  eq ML-ALPHA-fv (P1 \/ P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
+  eq ML-ALPHA-fv (P1 = P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
+  eq ML-ALPHA-fv (P1 => P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
+  eq ML-ALPHA-fv (F()) = ML-ALPHA-emptyset .
+  eq ML-ALPHA-fv (F(P)) = ML-ALPHA-fv P .
+  eq ML-ALPHA-fv (F(P, Ps)) = ML-ALPHA-union (ML-ALPHA-fv P) (ML-ALPHA-fv (F(Ps))) .
+  eq ML-ALPHA-fv (A X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
+  eq ML-ALPHA-fv (E X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
+  eq ML-ALPHA-fv (X in P) = ML-ALPHA-union X (ML-ALPHA-fv P) .
+  eq ML-ALPHA-fv P = ML-ALPHA-emptyset [owise] . --- if P contains some use-defined things then P is closed by assumption. This is dangerous and should be solved in meta level.
+
+  eq P =a= P = true .
+  eq (~ P =a= ~ Q) = (P =a= Q) .
+  eq ( P1 -> P2 =a= Q1 -> Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 \/ P2 =a= Q1 \/ Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 = P2 =a= Q1 = Q2 )   = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( P1 => P2 =a= Q1 => Q2 ) = ( P1 =a= Q1 andBool P2 =a= Q2 ) .
+  eq ( F() =a= F() ) = true .
+  eq ( F(P) =a= F(Q) ) = (P =a= Q) .
+--- Warning: this may break if we distinguish symbols with different arity
+  eq ( F(P, Ps) =a= F(Q, Qs) ) = ( P =a= Q andBool F(Ps) =a= F(Qs) ) .
+  eq ( E X . P =a= E Y . Q ) = ( P =a= Q [ X / Y ] ) .
+  eq ( A X . P =a= A Y . Q ) = ( P =a= Q [ X / Y ] ) .  
+  eq ( X in P =a= X in Q ) = ( P =a= Q ) .
+  eq P =a= Q = false [owise] .
+
+  eq P is-closed-pattern = ((ML-ALPHA-fv P) ML-ALPHA-is-empty) .
+  eq X occur-free-in P = (X ML-ALPHA-in (ML-ALPHA-fv P)) .
+  eq X not-occur-free-in P = notBool (X occur-free-in P) .
+
+endfm
+
