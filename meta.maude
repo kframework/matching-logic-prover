@@ -1,0 +1,17 @@
+fmod TEST is
+  including META-LEVEL .
+
+  sorts Int Bol .
+  ops tt ff : -> Bol .
+  op 0 : -> Int .
+  op s : Int -> Int .
+  op plus : Int Int -> Int .
+
+  vars M N : Int .
+  eq plus(0,N) = N .
+  eq plus(s(M),N) = s(plus(M,N)) .
+endfm
+
+reduce upTerm(s(s(0))) .
+reduce getName('x) .
+quit
