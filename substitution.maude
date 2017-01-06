@@ -110,14 +110,14 @@ endfm
 
 
 --- The module below defines variable identifiers.
---- We manually include all the one-lower-case-letter identifiers as constants.
+--- [crossed out] We manually include all the one-lower-case-letter identifiers as constants.
 --- One should make sure that one does not use one-lower-case-letter identifiers
 --- as variables in definitions; otherwise one may get ambiguous parsing errors.
 --- In addition to those, we also included all the Maude builtin quoted identifiers ('a, 'b7, etc.)
 --- We also include sets of variable identifiers; they are useful for declaring blocks of variabiles
 fmod PL-ID is including UNDEFINED .
   sort Id .  subsort Undefined < Id .
-  ops a b c d e f g h i j k l m n p q r s t u v w x y z : -> Id [format (g o)] .
+---  ops a b c d e f g h i j k l m n p q r s t u v w x y z : -> Id [format (g o)] .
   op <Qids> : -> Id [special (id-hook QuotedIdentifierSymbol)] .
   sort List{Id} .
   subsort Id < List{Id} .
@@ -345,11 +345,10 @@ fmod PL-GENERIC-SUBSTITUTION is
 --- Id < GenericVariable, but this generality was unnecessary so far
 --- Instead, we allow X below to be of kind [Id]; this way one can use
 --- any constant in the kind of Id as a "variable" for substitution purposes.
-  sort GenericTerm .
+  sort GenericVariable GenericTerm .
+  subsort Id < GenericVariable .
   op substitute : GenericTerm GenericTerm Id -> GenericTerm  [strat(0)] .
-  var X : [Id] .  var E F : [GenericTerm] .  var T : MetaTerm .
+  var X : [GenericVariable] .  var E F : [GenericTerm] .  var T : MetaTerm .
   op undefinedTerm : -> [GenericTerm] .
   eq substitute(E, F, X) = downMetaTerm(metaSubstitute(upTerm(E), upTerm(F), upTerm(X)), undefinedTerm) .
 endfm
-
-quit
