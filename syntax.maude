@@ -1,5 +1,5 @@
 --- This module provides a full grammar for the formal language of matching logic.
---- Last update by Xiaohong on 24 Dec 2016.
+--- Last update by Xiaohong on 07 Jan 2016.
 
 --- load generic substitution module.
 load substitution .
@@ -11,7 +11,7 @@ load substitution .
 fmod ML-SYNTAX is
 
 --- resolve naming conflicts
-  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _PL-COMMA_ ) .
+  including PL-GENERIC-SUBSTITUTION * ( op fv_ to PL-FV_ , op _,_ to _PL-COMMA_ ) .
 
 --- Var for matching logic variables
 --- Symbol for matching logic symbols. Not taking arity into account
@@ -86,12 +86,14 @@ fmod ML-SYNTAX is
   eq ML-ALPHA-emptyset ML-ALPHA-is-empty = true .
   eq S ML-ALPHA-is-empty = false [owise] .
   
+---(
+  --- this shows an example of how to use metalevel.
   op myfv_ : Pattern -> ConstantSet .
   var QE : MetaTerm .
   ceq myfv P = fv QE 
   if QE := upTerm(P) .
+)---
 
----(
   eq ML-ALPHA-fv X = X .
   eq ML-ALPHA-fv (~ P) = ML-ALPHA-fv P .
   eq ML-ALPHA-fv (P1 -> P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
@@ -106,7 +108,6 @@ fmod ML-SYNTAX is
   eq ML-ALPHA-fv (E X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
   eq ML-ALPHA-fv (X in P) = ML-ALPHA-union X (ML-ALPHA-fv P) .
   eq ML-ALPHA-fv P = ML-ALPHA-emptyset [owise] .
-)---
 
   eq P =a= P = true .
   eq (~ P =a= ~ Q) = (P =a= Q) .
@@ -129,23 +130,14 @@ fmod ML-SYNTAX is
   eq X not-occur-free-in P = notBool (X occur-free-in P) .
   
 --- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
-  ops zero one two three four five six seven eight nine ten : -> Pattern .
-  op _+_ : Pattern Pattern -> Pattern .
+  ops zero one two three four five six seven eight nine ten : -> Symbol .
+  ops plus : -> Symbol .
 
 --- Seq
-  op ep : -> Pattern .
-  op _^_ : Pattern Pattern -> Pattern [prec 28] .
+  ops epsilon concat : -> Symbol .
 
 --- Map
-  op _|->_ : Pattern Pattern -> Pattern [prec 27] .
-  op _|->[_] : Pattern Pattern -> Pattern [format(d d s d d d) prec 27] .
-  op emp : -> Pattern .
-  op _*_ : Pattern Pattern -> Pattern [prec 29] .
-  
-  op list : -> Symbol .
+  ops mapsto mapstoseq emp separatingconjunction list : -> Symbol .
 
 endfm
 
-reduce myfv (A 'x . 'x /\ 'y) .
-
-quit

@@ -1,5 +1,5 @@
 --- This file provides a Hilbert style deductive system for matching logic.
---- Last Update on 31 Dec 2016 by Xiaohong
+--- Last Update on 07 Jan 2016 by Xiaohong
 
 load syntax .
 
@@ -11,12 +11,11 @@ fmod ML-DEDUCTIVESYSTEM is
 
 --- PatternSet is different from PatternList.
 --- PatternSet is communitive.
-
   op .PatternSet : -> PatternSet .
   op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 50 format(d n d)] .
-  op {} : -> Premise .  op {_} : PatternSet -> Premise [format(d n d d)] .
+  op {_} : PatternSet -> Premise [format(d n d d)] .
 --- {} is a syntatic sugar
-  eq {} = {.PatternSet} .
+  op {} : -> Premise .  eq {} = {.PatternSet} .
 
   op _|-_ : Premise Pattern -> Entailment [format(d n y no)].
 
@@ -311,4 +310,371 @@ ceq < G >
 if P =a= Q
 .
 
+--- Domain Specific Rules
+
+--- Nat
+
+eq < G >
+    # N { Ps } |- E 't . ('t = zero())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+
+eq < G >
+    # N { Ps } |- E 't . ('t = one())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = two())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = three())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = four())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = five())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = six())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = seven())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = eight())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- E 't . ('t = nine())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- A 'x . A 'y . E 't . ('t = plus('x, 'y))
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+--- Seq
+
+eq < G >
+    # N { Ps } |- E 't . ('t = epsilon()) 
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- A 'S1 . A 'S2 . E 't . (concat('S1, 'S2) = 't)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- A 'x . (concat(epsilon(), 'x) = 'x)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- A 'x . (concat('x, epsilon()) = 'x)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- A 'x . A 'y . A 'z . (concat(concat('x, 'y), 'z) = concat('x, concat('y, 'z)))
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+   --- any sequence is either empty or head^rest
+eq < G >
+    # N { Ps } |- epsilon() \/ (E 'head . E 'rest . concat('head, 'rest))
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- A 'x . A 'S . A 'y . A 'T . 
+                 ((concat('x, 'S) = concat('y, 'T)) = ('x = 'y) /\ ('S = 'T))
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+--- Map
+vars H H1 H2 H3 : Pattern .
+eq < G >
+    # N { Ps } |- separatingconjunction(emp(), H) = H
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- separatingconjunction(H1, H2) = separatingconjunction(H2, H1)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- separatingconjunction(separatingconjunction(H1, H2), H3) =
+                  separatingconjunction(H1, separatingconjunction(H2, H3)) 
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+   # N { Ps } |- A 'a . (mapsto(zero(), 'a) = bot)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+   # N { Ps } |- A 'x . A 'a . A 'b . (separatingconjunction(mapsto('x, 'a), mapsto('x, 'b)) = bot)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+   # N { Ps } |- A 'x . (mapstoseq('x, epsilon()) = emp())
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+   # N { Ps } |- A 'x . A 'head . A 'rest . 
+                (mapstoseq('x, concat('head, 'rest)) =
+                 separatingconjunction(mapsto('x, 'head), mapstoseq(plus('x, one()), 'rest)))
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+   # N { Ps } |- list(zero(), epsilon()) = emp()
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+   # N { Ps } |- A 'x . A 'head . A 'rest . ((list('x, concat('head, 'rest))) = E 'z . separatingconjunction(mapstoseq('x, concat('head, 'z)), list('z, 'rest)))
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
 endfm
+
+quit
