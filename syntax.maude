@@ -131,7 +131,7 @@ fmod ML-SYNTAX is
   
 --- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
   ops zero one two three four five six seven eight nine ten : -> Symbol .
-  ops plus : -> Symbol .
+  ops succ plus : -> Symbol .
 
 --- Seq
   ops epsilon concat : -> Symbol .

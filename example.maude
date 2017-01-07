@@ -6,126 +6,53 @@ load deduction .
 --- Nat are assumed as built-in domain and all reasoning about Nat shall be
 --- pushed to Z3. 
 
-set trace on .
-
 reduce
 < 1 >
-# 0 {
---- Axioms for Nat
-E 't . ('t = zero)
-E 't . ('t = one)
-E 't . ('t = two)
-E 't . ('t = three)
-E 't . ('t = four)
-E 't . ('t = five)
-E 't . ('t = six)
-E 't . ('t = seven)
-E 't . ('t = eight)
-E 't . ('t = nine)
---- Axioms for Seq domain
-E 't . ('t = ep)
-A 'S . A 'T . E 't . ('t = 'S ^ 'T)
-A 'x . ((ep ^ 'x) = 'x)
-A 'x . (('x ^ ep) = 'x)
-A 'x . A 'y . A 'z . (('x ^ 'y) ^ 'z = 'x ^ ('y ^ 'z))
-ep \/ (E 'x . E 'S . ('x ^ 'S))
-A 'x . A 'S . A 'y . A 'T . (('x ^ 'S = 'y ^ 'T) = (('x = 'y) /\ ('S = 'T)))
---- Axioms for Map demain
-A 'H . (emp * 'H = 'H)
-A 'H1 . A 'H2 . ('H1 * 'H2 = 'H2 * 'H1)
-A 'H1 . A 'H2 . A 'H3 . (('H1 * 'H2) * 'H3 = 'H1 * ('H2 * 'H3))
-A 'a . (zero |-> 'a = bot) 
-A 'x . A 'a . A 'b . ('x |-> 'a * 'x |-> 'b = bot)
-A 'x . ('x |-> [ep] = emp)
-A 'x . A 'a . A 'S . ('x |-> ['a ^ 'S] = 'x |-> 'a * ('x + one) |-> ['S])
---- Axioms for Lists
-list(zero, ep) = emp
-A 'x . A 'n . A 'S . ((list('x, 'n ^ 'S)) = E 'z . (('x |-> ['n ^ 'z]) * list('z, 'S)))}  
-|- ((((one |-> five) * two |-> zero) * seven |-> nine) * eight |-> one) -> (list(seven, nine ^ five))
+# 0 {}
+|- separatingconjunction(separatingconjunction(separatingconjunction(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> list(seven(), concat(nine(), five()))
 ==========
 deduce 0
----(
-mp 1 with E 'z . (seven |-> [nine ^ 'z] * list('z, five))
-mp 3 with list(seven, nine ^ five) = E 'z . seven |-> [nine ^ 'z] * list('z, five)
-ax8 5 with 'S and 'S
-mp 4 with A 'S . (list(seven, nine ^ 'S) = E 'z . seven |-> [nine ^ 'z] * list('z, 'S))
-mp 7 with E 't . (five = 't)
+mp 1 with E 'z0 . separatingconjunction(mapstoseq(seven(), concat(nine(), 'z0)), list('z0, five()))
+mp 3 with E 'z0 . separatingconjunction(mapstoseq(seven(),concat(nine(),'z0)),list('z0,five())) = list(seven(),concat(nine(),five()))
+ax8 5 with 'P and 'P
+mp 4 with A 'rest . ((list(seven(), concat(nine(), 'rest))) = E 'z . separatingconjunction(mapstoseq(seven(), concat(nine(), 'z)), list('z, 'rest)))
+mp 7 with E 't . (five() = 't) 
 ax 9
 ax 8
-mp 6 with A 'n . A 'S . (list(seven, 'n ^ 'S) = E 'z . seven |-> ['n ^ 'z] * list('z, 'S))
-mp 11 with E 't . (nine = 't)
+mp 6 with A 'head . A 'rest . (list(seven(),concat('head,'rest)) = E 'z . separatingconjunction(mapstoseq(seven(),concat('head,'z)),list('z,'rest)))
+mp 11 with E 't . (nine() = 't) 
 ax 13
 ax 12
-mp 10 with A 'x . A 'n . A 'S . (list('x, 'n ^ 'S) = E 'z . 'x |-> ['n ^ 'z] * list('z, 'S))
-mp 15 with E 't . (seven = 't)
+mp 10 with A 'x . A 'head . A 'rest . (list('x ,concat('head,'rest)) = E 'z . separatingconjunction(mapstoseq('x ,concat('head,'z)),list('z,'rest)))
+mp 15 with E 't . (seven() = 't)
 ax 17
 ax 16
 ax 14
-mp 2 with seven |-> [nine ^ one] * list(one, five)
-mp 19 with E 't . (one = 't)
+mp 2 with separatingconjunction(mapstoseq(seven(),concat(nine(),one())),list(one(),five()))
+mp 19 with E 't . (one() = 't)
 ax 21
 ax 20
-mp 18 with seven |-> [nine ^ one] * list(one, five ^ ep)
-mp 23 with five ^ ep = five
-ax8 25 with seven |-> [nine ^ one] * list(one, 't) and 't
-mp 24 with A 'x . ('x = 'x ^ ep)
-mp 27 with E 't . (five = 't)
-ax 29
-ax 28
-ax 26
-mp 22 with seven |-> [nine ^ one] * (E 'z . one |-> [five ^ 'z] * list('z, ep))
-mp 31 with (E 'z . one |-> [five ^ 'z] * list('z, ep)) = list(one, five ^ ep)
-ax8 33 with seven |-> [nine ^ one] * 't and 't
-mp 32 with A 'S . (list(one, five ^ 'S) = E 'z . one |-> [five ^ 'z] * list('z, 'S))
-mp 35 with E 't . (ep = 't)
-ax 37
-ax 36
-mp 34 with A 'n . A 'S . (list(one, 'n ^ 'S) = E 'z . one |-> ['n ^ 'z] * list('z, 'S))
-mp 39 with E 't . (five = 't)
-ax 41
-ax 40
-mp 38 with A 'x . A 'n . A 'S . (list('x, 'n ^ 'S) = E 'z . 'x |-> ['n ^ 'z] * list('z, 'S))
-mp 43 with E 't . (one = 't)
-ax 45
-ax 44
-ax 42
-mp 30 with (seven |-> nine * (seven + one) |-> [one]) * (E 'z . one |-> [five ^ 'z] * list('z, ep))
-mp 47 with (seven |-> nine * (seven + one) |-> [one]) = (seven |-> [nine ^ one])
-ax8 49 with 't * (E 'z . one |-> [five ^ 'z] * list('z, ep)) and 't
-mp 48 with A 'S . (seven |-> [nine ^ 'S] = (seven |-> nine * (seven + one) |-> ['S]))
-mp 51 with E 't . (one = 't)
-ax 53
-ax 52
-mp 50 with A 'a . A 'S . (seven |-> ['a ^ 'S] = seven |-> 'a * (seven + one) |-> ['S])
-mp 55 with E 't . (nine = 't)
-ax 57
-ax 56
-mp 54 with A 'x . A 'a . A 'S . ('x |-> ['a ^ 'S] = 'x |-> 'a * ('x + one) |-> ['S])
-mp 59 with E 't . (seven = 't)
-ax 61
-ax 60
-ax 58
-mp 46 with (E 'z . one |-> [five ^ 'z] * list('z, ep)) * (seven |-> nine * (seven + one) |-> [one])
-mp 63 with (E 'z . one |-> [five ^ 'z] * list('z, ep)) * (seven |-> nine * (seven + one) |-> [one]) = (seven |-> nine * (seven + one) |-> [one]) * (E 'z . one |-> [five ^ 'z] * list('z, ep))
-ax8 65 with 't and 't
-mp 64 with A 'H2 . ((E 'z . one |-> [five ^ 'z] * list('z, ep)) * 'H2 = 'H2 * (E 'z . one |-> [five ^ 'z] * list('z, ep)))
-mp 67 with E 't . ((seven |-> nine * (seven + one) |-> [one]) = 't)
-ax 69
-)---
+mp 18 with separatingconjunction(mapstoseq(seven(),concat(nine(),one())), mapstoseq(one(), concat(five(), epsilon())))
+mp 23 with mapstoseq(one(), concat(five(), epsilon())) -> list(one(), five())
+ax 25
+deduce 24
+mp 26 with list(one(), concat(five(), epsilon()))
+mp 28 with five() = concat(five(), epsilon())
+ax8 30 with list(one(), 't) and 't
+mp 29 with A 'x . ('x = concat('x, epsilon()))
+mp 32 with E 't . (five() = 't)
+ax 34
+ax 33
+ax 31
+mp 27 with E 'z1 . separatingconjunction(mapstoseq(one(), concat(five(), 'z1)), list('z1, epsilon()))
+mp 36 with E 'z1 . separatingconjunction(mapstoseq(one(), concat(five(), 'z1)), list('z1, epsilon())) = list(one(),concat(five(),epsilon()))
+ax8 38 with 'P and 'P
 .
 
-quit 
-
---- EXAMPLE OF PEANO NAT ---
---- with module definition and a reduction example.
-
-fmod NAT-DOMAIN is
-  including ML-DEDUCTIVESYSTEM .
-  ops plus succ zero : -> Symbol .
-endfm
+quit
 
 --- Example of proving "1 + 1 = 2"
-reduce in NAT-DOMAIN :
+reduce
 < 1 >
 # 0 {
 --- Axioms for PNat

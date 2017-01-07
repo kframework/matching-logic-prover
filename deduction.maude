@@ -225,6 +225,24 @@ ceq < G >
 if P [ Q / X ] =a= R 
 .
 
+--- monotonic of symbols
+--- |- (Q -> R) -> (s(P1,...,Q,...,Pn) -> s(P1,...,R,...,Pn))
+var Sigma : Symbol . vars LeftPatternList RightPatternList : PatternList .
+
+eq < G >
+    # N { Ps } |- (Q -> R) -> (Sigma(LeftPatternList, Q, RightPatternList)
+                               -> Sigma(LeftPatternList, R, RightPatternList))
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
 --- Inference Rules
 
 --- Modus Ponens
@@ -677,4 +695,3 @@ eq < G >
 
 endfm
 
-quit
