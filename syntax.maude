@@ -11,8 +11,7 @@ load substitution .
 fmod ML-SYNTAX is
 
 --- resolve naming conflicts
-  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _PL-COMMA_ ,
-                                        op fv_ to PL-FV_ ) .
+  including PL-GENERIC-SUBSTITUTION * ( op _,_ to _PL-COMMA_ ) .
 
 --- Var for matching logic variables
 --- Symbol for matching logic symbols. Not taking arity into account
@@ -27,8 +26,8 @@ fmod ML-SYNTAX is
 --- full grammar of the formal language for matching logic
 --- listed by precedence from higher to lower
   --- subsort Var < Pattern .  --- x
-  op _() : Symbol -> Pattern [ctor prec 30] .  --- s()
-  op _(_) : Symbol PatternList -> Pattern [ctor prec 30] . --- s(P1,...,Pn)
+  op _() : Symbol -> Pattern [ctor prec 25] .  --- s()
+  op _(_) : Symbol PatternList -> Pattern [ctor prec 25] . --- s(P1,...,Pn)
   op E_._ : Var Pattern -> Pattern [ctor prec 31] . --- exists x . P
   op A_._ : Var Pattern -> Pattern [ctor prec 31] . --- forall x . P
   op _in_ : Var Pattern -> Pattern [ctor prec 31] . --- x in P (membership)
@@ -86,7 +85,13 @@ fmod ML-SYNTAX is
 --- S is empty iff S is the empty set
   eq ML-ALPHA-emptyset ML-ALPHA-is-empty = true .
   eq S ML-ALPHA-is-empty = false [owise] .
+  
+  op myfv_ : Pattern -> ConstantSet .
+  var QE : MetaTerm .
+  ceq myfv P = fv QE 
+  if QE := upTerm(P) .
 
+---(
   eq ML-ALPHA-fv X = X .
   eq ML-ALPHA-fv (~ P) = ML-ALPHA-fv P .
   eq ML-ALPHA-fv (P1 -> P2) = ML-ALPHA-union (ML-ALPHA-fv P1) (ML-ALPHA-fv P2) .
@@ -100,6 +105,8 @@ fmod ML-SYNTAX is
   eq ML-ALPHA-fv (A X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
   eq ML-ALPHA-fv (E X . P) = ML-ALPHA-delete (ML-ALPHA-fv P) X .
   eq ML-ALPHA-fv (X in P) = ML-ALPHA-union X (ML-ALPHA-fv P) .
+  eq ML-ALPHA-fv P = ML-ALPHA-emptyset [owise] .
+)---
 
   eq P =a= P = true .
   eq (~ P =a= ~ Q) = (P =a= Q) .
@@ -120,5 +127,25 @@ fmod ML-SYNTAX is
   eq P is-closed-pattern = ((ML-ALPHA-fv P) ML-ALPHA-is-empty) .
   eq X occur-free-in P = (X ML-ALPHA-in (ML-ALPHA-fv P)) .
   eq X not-occur-free-in P = notBool (X occur-free-in P) .
+  
+--- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
+  ops zero one two three four five six seven eight nine ten : -> Pattern .
+  op _+_ : Pattern Pattern -> Pattern .
+
+--- Seq
+  op ep : -> Pattern .
+  op _^_ : Pattern Pattern -> Pattern [prec 28] .
+
+--- Map
+  op _|->_ : Pattern Pattern -> Pattern [prec 27] .
+  op _|->[_] : Pattern Pattern -> Pattern [format(d d s d d d) prec 27] .
+  op emp : -> Pattern .
+  op _*_ : Pattern Pattern -> Pattern [prec 29] .
+  
+  op list : -> Symbol .
 
 endfm
+
+reduce myfv (A 'x . 'x /\ 'y) .
+
+quit

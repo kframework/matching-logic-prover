@@ -6,26 +6,9 @@ load deduction .
 --- Nat are assumed as built-in domain and all reasoning about Nat shall be
 --- pushed to Z3. 
 
-fmod MAP-DOMAIN is
-  including ML-DEDUCTIVESYSTEM .
---- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
-  ops zero one two three four five six seven eight nine ten : -> Pattern .
-  op _+_ : Pattern Pattern -> Pattern .
+set trace on .
 
---- Seq
-  op ep : -> Pattern .
-  op _^_ : Pattern Pattern -> Pattern [prec 28] .
-
---- Map
-  op _|->_ : Pattern Pattern -> Pattern [prec 27] .
-  op _|->[_] : Pattern Pattern -> Pattern [format(d d s d d d) prec 27] .
-  op emp : -> Pattern .
-  op _*_ : Pattern Pattern -> Pattern [prec 29] .
-  
-  op list : -> Symbol .
-endfm
-
-reduce in MAP-DOMAIN :
+reduce
 < 1 >
 # 0 {
 --- Axioms for Nat
@@ -57,10 +40,11 @@ A 'x . ('x |-> [ep] = emp)
 A 'x . A 'a . A 'S . ('x |-> ['a ^ 'S] = 'x |-> 'a * ('x + one) |-> ['S])
 --- Axioms for Lists
 list(zero, ep) = emp
-A 'x . A 'n . A 'S . (list('x, 'n ^ 'S) = E 'z . (('x |-> ['n ^ 'z]) * list('z, 'S)))}
-|- ((((one |-> five) * two |-> zero) * seven |-> nine) * eight |-> one) -> list(seven, nine ^ five)
+A 'x . A 'n . A 'S . ((list('x, 'n ^ 'S)) = E 'z . (('x |-> ['n ^ 'z]) * list('z, 'S)))}  
+|- ((((one |-> five) * two |-> zero) * seven |-> nine) * eight |-> one) -> (list(seven, nine ^ five))
 ==========
 deduce 0
+---(
 mp 1 with E 'z . (seven |-> [nine ^ 'z] * list('z, five))
 mp 3 with list(seven, nine ^ five) = E 'z . seven |-> [nine ^ 'z] * list('z, five)
 ax8 5 with 'S and 'S
@@ -127,7 +111,9 @@ ax8 65 with 't and 't
 mp 64 with A 'H2 . ((E 'z . one |-> [five ^ 'z] * list('z, ep)) * 'H2 = 'H2 * (E 'z . one |-> [five ^ 'z] * list('z, ep)))
 mp 67 with E 't . ((seven |-> nine * (seven + one) |-> [one]) = 't)
 ax 69
+)---
 .
+
 quit 
 
 --- EXAMPLE OF PEANO NAT ---
