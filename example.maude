@@ -28,25 +28,8 @@ mp 15 with E 't . (seven() = 't)
 ax 17
 ax 16
 ax 14
-mp 2 with separatingconjunction(mapstoseq(seven(),concat(nine(),one())),list(one(),five()))
-mp 19 with E 't . (one() = 't)
-ax 21
-ax 20
-mp 18 with separatingconjunction(mapstoseq(seven(),concat(nine(),one())), mapstoseq(one(), concat(five(), epsilon())))
-mp 23 with mapstoseq(one(), concat(five(), epsilon())) -> list(one(), five())
-ax 25
-deduce 24
-mp 26 with list(one(), concat(five(), epsilon()))
-mp 28 with five() = concat(five(), epsilon())
-ax8 30 with list(one(), 't) and 't
-mp 29 with A 'x . ('x = concat('x, epsilon()))
-mp 32 with E 't . (five() = 't)
-ax 34
-ax 33
-ax 31
-mp 27 with E 'z1 . separatingconjunction(mapstoseq(one(), concat(five(), 'z1)), list('z1, epsilon()))
-mp 36 with E 'z1 . separatingconjunction(mapstoseq(one(), concat(five(), 'z1)), list('z1, epsilon())) = list(one(),concat(five(),epsilon()))
-ax8 38 with 'P and 'P
+
+
 .
 
 quit
@@ -101,6 +84,7 @@ mp 32 with E 't . ('t = zero())
 ax 34
 ax 33
 ax 31
+
 .
 
 quit

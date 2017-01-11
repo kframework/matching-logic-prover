@@ -332,8 +332,10 @@ if P =a= Q
 
 --- Nat
 
+
+
 eq < G >
-    # N { Ps } |- E 't . ('t = zero())
+    # N { Ps } |- E X . (X = zero())
     Rest
     ==========
     ax N
@@ -347,7 +349,7 @@ eq < G >
 
 
 eq < G >
-    # N { Ps } |- E 't . ('t = one())
+    # N { Ps } |- E X . (X = one())
     Rest
     ==========
     ax N
@@ -360,7 +362,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = two())
+    # N { Ps } |- E X . (X = two())
     Rest
     ==========
     ax N
@@ -373,7 +375,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = three())
+    # N { Ps } |- E X . (X = three())
     Rest
     ==========
     ax N
@@ -386,7 +388,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = four())
+    # N { Ps } |- E X . (X = four())
     Rest
     ==========
     ax N
@@ -399,7 +401,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = five())
+    # N { Ps } |- E X . (X = five())
     Rest
     ==========
     ax N
@@ -412,7 +414,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = six())
+    # N { Ps } |- E X . (X = six())
     Rest
     ==========
     ax N
@@ -425,7 +427,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = seven())
+    # N { Ps } |- E X . (X = seven())
     Rest
     ==========
     ax N
@@ -438,7 +440,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = eight())
+    # N { Ps } |- E X . (X = eight())
     Rest
     ==========
     ax N
@@ -451,7 +453,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E 't . ('t = nine())
+    # N { Ps } |- E X . (X = nine())
     Rest
     ==========
     ax N
@@ -463,8 +465,10 @@ eq < G >
     C
 .
 
+var Term : Var .
+
 eq < G >
-    # N { Ps } |- A 'x . A 'y . E 't . ('t = plus('x, 'y))
+    # N { Ps } |- A X . A Y . E Term . (Term = plus(X, Y))
     Rest
     ==========
     ax N
@@ -479,7 +483,22 @@ eq < G >
 --- Seq
 
 eq < G >
-    # N { Ps } |- E 't . ('t = epsilon()) 
+    # N { Ps } |- E X . (X = epsilon()) 
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+vars S1 S2 : Var .
+
+eq < G >
+    # N { Ps } |- A S1 . A S2 . E X . (concat(S1, S2) = X)
     Rest
     ==========
     ax N
@@ -492,7 +511,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- A 'S1 . A 'S2 . E 't . (concat('S1, 'S2) = 't)
+    # N { Ps } |- A X . (concat(epsilon(), X) = X)
     Rest
     ==========
     ax N
@@ -505,7 +524,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- A 'x . (concat(epsilon(), 'x) = 'x)
+    # N { Ps } |- A X . (concat(X, epsilon()) = X)
     Rest
     ==========
     ax N
@@ -518,7 +537,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- A 'x . (concat('x, epsilon()) = 'x)
+    # N { Ps } |- A X . A Y . A Z . (concat(concat(X, Y), Z) = concat(X, concat(Y, Z)))
     Rest
     ==========
     ax N
@@ -530,22 +549,10 @@ eq < G >
     C
 .
 
-eq < G >
-    # N { Ps } |- A 'x . A 'y . A 'z . (concat(concat('x, 'y), 'z) = concat('x, concat('y, 'z)))
-    Rest
-    ==========
-    ax N
-    C
-=
-    < G >
-    Rest
-    ==========
-    C
-.
-
+vars HEAD REST : Var .
    --- any sequence is either empty or head^rest
 eq < G >
-    # N { Ps } |- epsilon() \/ (E 'head . E 'rest . concat('head, 'rest))
+    # N { Ps } |- epsilon() \/ (E HEAD . E REST . concat(HEAD, REST))
     Rest
     ==========
     ax N
@@ -555,11 +562,11 @@ eq < G >
     Rest
     ==========
     C
-.
+
 
 eq < G >
-    # N { Ps } |- A 'x . A 'S . A 'y . A 'T . 
-                 ((concat('x, 'S) = concat('y, 'T)) = ('x = 'y) /\ ('S = 'T))
+    # N { Ps } |- A X . A S . A Y . A T . 
+                 ((concat(X, S) = concat(Y, T)) = (X = Y) /\ (S = T))
     Rest
     ==========
     ax N
@@ -614,7 +621,21 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- A 'a . (mapsto(zero(), 'a) = bot)
+   # N { Ps } |- mapsto(zero(), P) = bot)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+vars C1 C2 : Var .
+eq < G >
+   # N { Ps } |- A X . A C1 . A C2 . separatingconjunction(mapsto(X, C1), mapsto(X, C2)) = bot
     Rest
     ==========
     ax N
@@ -627,7 +648,7 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- A 'x . A 'a . A 'b . (separatingconjunction(mapsto('x, 'a), mapsto('x, 'b)) = bot)
+   # N { Ps } |- A X . (mapstoseq(X, epsilon()) = emp())
     Rest
     ==========
     ax N
@@ -640,22 +661,9 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- A 'x . (mapstoseq('x, epsilon()) = emp())
-    Rest
-    ==========
-    ax N
-    C
-=
-    < G >
-    Rest
-    ==========
-    C
-.
-
-eq < G >
-   # N { Ps } |- A 'x . A 'head . A 'rest . 
-                (mapstoseq('x, concat('head, 'rest)) =
-                 separatingconjunction(mapsto('x, 'head), mapstoseq(plus('x, one()), 'rest)))
+   # N { Ps } |- A X . A HEAD . A REST . 
+                (mapstoseq(X, concat(HEAD, REST)) =
+                 separatingconjunction(mapsto(X, HEAD), mapstoseq(plus(X, one()), REST)))
     Rest
     ==========
     ax N
@@ -681,7 +689,7 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- A 'x . A 'head . A 'rest . ((list('x, concat('head, 'rest))) = E 'z . separatingconjunction(mapstoseq('x, concat('head, 'z)), list('z, 'rest)))
+   # N { Ps } |- A X . A HEAD . A REST . ((list(X, concat(HEAD, REST))) = E Z . separatingconjunction(mapstoseq(X, concat(HEAD, Z)), list(Z, REST)))
     Rest
     ==========
     ax N
