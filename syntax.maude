@@ -50,8 +50,8 @@ fmod ML-SYNTAX is
   op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 65] .
   op _=_ : Pattern Pattern -> Pattern [ctor comm prec 66] .
   op _=>_ : Pattern Pattern -> Pattern [ctor prec 66] . --- reachability (not used)
-  op exists_._ : Var Pattern -> Pattern [ctor prec 67] . --- exists x . P
-  op forall_._ : Var Pattern -> Pattern [ctor prec 67] . --- forall x . P
+  op exists_._ : Var Pattern -> Pattern [ctor prec 60] . --- exists x . P
+  op forall_._ : Var Pattern -> Pattern [ctor prec 60] . --- forall x . P
   ops bot top : -> Pattern [ctor] . --- bottom and top
   ops floor ceil : -> Symbol [ctor] . --- defineness and totality symbols
 
@@ -165,4 +165,3 @@ fmod ML-SYNTAX is
 
 endfm
 
-quit

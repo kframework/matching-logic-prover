@@ -1,10 +1,19 @@
---- This file provides a Hilbert style deductive system for matching logic.
---- Last Update on 07 Jan 2016 by Xiaohong
+--- This module is based on syntax.maude.
+--- This module provides a Hilbert style deductive system for matching logic.
+--- This module provides all axioms and inference rules in the deductive system.
+--- Also, this module provides inference rules that come as metatheorems of
+--- the deductive system, aiming to ease the proving process.
+--- Axioms and axiom schemas of domains are also included in this deductive
+--- system, including those for natural numbers, sequences of numbers, heaps,
+--- and linked lists.
+--- Last Update on 13 Jan 2016 by Xiaohong
 
 load syntax .
 
 fmod ML-DEDUCTIVESYSTEM is
-  including ML-SYNTAX .
+  including ML-SYNTAX * (op __ to _union-VarSet_) .
+  --- op __ is the union operator that merge two variable sets to one set.
+  --- we redefine __ to be the union operator for sets of patterns.
 
   sorts PatternSet Premise Entailment . 
   subsort Pattern < PatternSet .
@@ -12,42 +21,45 @@ fmod ML-DEDUCTIVESYSTEM is
 --- PatternSet is different from PatternList.
 --- PatternSet is communitive.
   op .PatternSet : -> PatternSet .
-  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet prec 50 format(d n d)] .
+  op __ : PatternSet PatternSet -> PatternSet 
+    [assoc comm id: .PatternSet format(d n d) prec 85] .
   op {_} : PatternSet -> Premise [format(d n d d)] .
 --- {} is a syntatic sugar
   op {} : -> Premise .  eq {} = {.PatternSet} .
 
-  op _|-_ : Premise Pattern -> Entailment [format(d n y no)].
+--- define entailment
+  op _|-_ : Premise Pattern -> Entailment [format(d n y no) prec 81].
 
 --- define proof obligations
-  sort ProofObligations .
-  op #__ : Int Entailment -> ProofObligations [format(d d d d)] .
-  op done : -> ProofObligations [format(d n)] .
-  op __ : ProofObligations ProofObligations -> ProofObligations [assoc comm id: done format(n n d) prec 50] .
+  sort ProofObligation .
+  op #__ : Int Entailment -> ProofObligation [format(d d d d) prec 83] .
+  op .ProofObligation : -> ProofObligation [format(d n)] .
+  op __ : ProofObligation ProofObligation -> ProofObligation 
+    [assoc comm id: .ProofObligation format(n n d) prec 85] .
 
 --- define commands
   sort Command .
   op skip : -> Command [format(d d)] .
-  op __ : Command Command -> Command [assoc id: skip format(d n d) prec 50] .
+  op __ : Command Command -> Command [assoc id: skip format(d n d) prec 85] .
 
-  op ax_ : Int -> Command [prec 40] .               --- use axioms (K1-K7,K9) to resolve patterns
-  op ax8_with_and_ : Int Pattern Var -> Command [prec 40] . --- provide a pattern and a variable to use axiom (K8)
-  op mp_with_ : Int Pattern -> Command [prec 40] .  --- provide a pattern to use modus ponens
-  op uu_ : Int -> Command [prec 40] .               --- use universal generalization
-  op deduce_ : Int -> Command [prec 40] .           --- use closed-form deductive theorem
-  op split_ : Int -> Command [prec 40] .            --- use conjunction splitting
+  op ax_ : Int -> Command [prec 81] .               --- use axioms (K1-K7,K9) to resolve patterns
+  op ax8_with_and_ : Int Pattern Var -> Command [prec 81] . --- provide a pattern and a variable to use axiom (K8)
+  op mp_with_ : Int Pattern -> Command [prec 81] .  --- provide a pattern to use modus ponens
+  op uu_ : Int -> Command [prec 81] .               --- use universal generalization
+  op deduce_ : Int -> Command [prec 81] .           --- use closed-form deductive theorem
+  op split_ : Int -> Command [prec 81] .            --- use conjunction splitting
 
 
   sort Result .  --- for no use
-  op <_>_==========_ : Int ProofObligations Command -> Result [format(n d d n d n d) prec 60] .
+  op <_>_==========_ : Int ProofObligation Command -> Result [format(n d d n d n d) prec 89] .
 
 
 
   var P P1 P2 Q Q1 Q2 R R1 R2 : Pattern .
-  var Rest : ProofObligations .
+  var Rest : ProofObligation .
   var C : Command .
   var N M G : Int .
-  var X Y Z : Var .
+  var X Y Z S T : Var .
   var F : Symbol .
   vars Ps Qs Rs : PatternSet .
 
@@ -98,7 +110,7 @@ eq  < G >
 --- (K4)
 
 ceq < G > 
-    # N { Ps } |- (A X . (P -> Q)) -> (P -> (A X . Q))
+    # N { Ps } |- (forall X . (P -> Q)) -> (P -> (forall X . Q))
     Rest 
     ========== 
     ax N 
@@ -115,7 +127,7 @@ if X not-occur-free-in P
 --- (K5)
 
 ceq < G > 
-    # N { Ps } |- (A X . P -> P)
+    # N { Ps } |- (forall X . P -> P)
     Rest 
     ========== 
     ax N 
@@ -129,7 +141,7 @@ if X not-occur-free-in P
 .
 
 --- (K6)
---- resolve axiom A X . P -> P [ Y / X ], which needs a method that
+--- resolve axiom forall X . P -> P [ Y / X ], which needs a method that
 --- given X, P, and Q, determine whether there exist a Y such that
 --- Q =a= P [ Y / X ]
 --- such method is called ML-K6 : Var Pattern Pattern -> Bool.
@@ -144,14 +156,14 @@ op ML-K6___ : Var Pattern Pattern -> Bool .
 ---   ML-K6-AUX X P Q emptyset => false 
 --- step 3 : pick Y from (fv Q) and try Q =a= P [ Y / X ]
 ---   ML-K6-AUX X P Q (Y::Ys) => Q =a= P [ Y / X ] orBool ML-K6-AUX X P Q Ys
-var Ys : ML-ALPHA-VarSet .
-op ML-K6-AUX____ : Var Pattern Pattern ML-ALPHA-VarSet -> Bool .
-eq ML-K6 X P Q = ML-K6-AUX X P Q (ML-ALPHA-fv Q) .
-eq ML-K6-AUX X P Q ML-ALPHA-emptyset = false .
-eq ML-K6-AUX X P Q (ML-ALPHA-union Y Ys) = (Q =a= P [ Y / X ] orBool ML-K6-AUX X P Q Ys) .
+var Ys : VarSet .
+op ML-K6-AUX____ : Var Pattern Pattern VarSet -> Bool .
+eq ML-K6 X P Q = ML-K6-AUX X P Q fv(Q) .
+eq ML-K6-AUX X P Q .VarSet = false .
+eq ML-K6-AUX X P Q (Y union-VarSet Ys) = (Q =a= P [ Y / X ]) orBool (ML-K6-AUX X P Q Ys) .
 
 ceq < G > 
-    # N { Ps } |- (A X . P -> Q)
+    # N { Ps } |- (forall X . P -> Q)
     Rest 
     ========== 
     ax N
@@ -192,13 +204,13 @@ ceq  < G >
      Rest
      ==========
      C
-if Q [ P1 / X ] =a= R1 andBool Q [ P2 / X ] =a= R2
+if (Q [ P1 / X ] =a= R1) andBool (Q [ P2 / X ] =a= R2)
 . 
 
 --- (K9)
 
 ceq < G > 
-    # N { Ps } |- (E Y . (Q = Y)) -> ((A X . P) -> R)
+    # N { Ps } |- (exists Y . (Q = Y)) -> ((forall X . P) -> R)
     Rest
     ==========
     ax N
@@ -212,7 +224,7 @@ if P [ Q / X ] =a= R
 .
 
 ceq < G > 
-    # N { Ps } |- (E Y . (Q = Y)) -> (R -> E X . P)
+    # N { Ps } |- (exists Y . (Q = Y)) -> (R -> exists X . P)
     Rest
     ==========
     ax N
@@ -265,7 +277,7 @@ eq  < G >
 --- Universal Generalization
 
 eq  < G >
-    # N { Ps } |- (A X . P)
+    # N { Ps } |- (forall X . P)
     Rest 
     ==========
     uu N 
@@ -335,7 +347,7 @@ if P =a= Q
 
 
 eq < G >
-    # N { Ps } |- E X . (X = zero())
+    # N { Ps } |- exists X . (X = zero())
     Rest
     ==========
     ax N
@@ -349,7 +361,7 @@ eq < G >
 
 
 eq < G >
-    # N { Ps } |- E X . (X = one())
+    # N { Ps } |- exists X . (X = one())
     Rest
     ==========
     ax N
@@ -362,7 +374,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = two())
+    # N { Ps } |- exists X . (X = two())
     Rest
     ==========
     ax N
@@ -375,7 +387,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = three())
+    # N { Ps } |- exists X . (X = three())
     Rest
     ==========
     ax N
@@ -388,7 +400,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = four())
+    # N { Ps } |- exists X . (X = four())
     Rest
     ==========
     ax N
@@ -401,7 +413,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = five())
+    # N { Ps } |- exists X . (X = five())
     Rest
     ==========
     ax N
@@ -414,7 +426,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = six())
+    # N { Ps } |- exists X . (X = six())
     Rest
     ==========
     ax N
@@ -427,7 +439,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = seven())
+    # N { Ps } |- exists X . (X = seven())
     Rest
     ==========
     ax N
@@ -440,7 +452,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = eight())
+    # N { Ps } |- exists X . (X = eight())
     Rest
     ==========
     ax N
@@ -453,7 +465,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- E X . (X = nine())
+    # N { Ps } |- exists X . (X = nine())
     Rest
     ==========
     ax N
@@ -468,7 +480,7 @@ eq < G >
 var Term : Var .
 
 eq < G >
-    # N { Ps } |- A X . A Y . E Term . (Term = plus(X, Y))
+    # N { Ps } |- forall X . forall Y . exists Term . (Term = plus(X, Y))
     Rest
     ==========
     ax N
@@ -483,7 +495,7 @@ eq < G >
 --- Seq
 
 eq < G >
-    # N { Ps } |- E X . (X = epsilon()) 
+    # N { Ps } |- exists X . (X = epsilon()) 
     Rest
     ==========
     ax N
@@ -498,7 +510,7 @@ eq < G >
 vars S1 S2 : Var .
 
 eq < G >
-    # N { Ps } |- A S1 . A S2 . E X . (concat(S1, S2) = X)
+    # N { Ps } |- forall S1 . forall S2 . exists X . (concat(S1, S2) = X)
     Rest
     ==========
     ax N
@@ -511,7 +523,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- A X . (concat(epsilon(), X) = X)
+    # N { Ps } |- forall X . (concat(epsilon(), X) = X)
     Rest
     ==========
     ax N
@@ -524,7 +536,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- A X . (concat(X, epsilon()) = X)
+    # N { Ps } |- forall X . (concat(X, epsilon()) = X)
     Rest
     ==========
     ax N
@@ -537,7 +549,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- A X . A Y . A Z . (concat(concat(X, Y), Z) = concat(X, concat(Y, Z)))
+    # N { Ps } |- forall X . forall Y . forall Z . (concat(concat(X, Y), Z) = concat(X, concat(Y, Z)))
     Rest
     ==========
     ax N
@@ -552,7 +564,7 @@ eq < G >
 vars HEAD REST : Var .
    --- any sequence is either empty or head^rest
 eq < G >
-    # N { Ps } |- epsilon() \/ (E HEAD . E REST . concat(HEAD, REST))
+    # N { Ps } |- epsilon() \/ (exists HEAD . exists REST . concat(HEAD, REST))
     Rest
     ==========
     ax N
@@ -563,9 +575,10 @@ eq < G >
     ==========
     C
 
+.
 
 eq < G >
-    # N { Ps } |- A X . A S . A Y . A T . 
+    # N { Ps } |- forall X . forall S . forall Y . forall T . 
                  ((concat(X, S) = concat(Y, T)) = (X = Y) /\ (S = T))
     Rest
     ==========
@@ -581,7 +594,7 @@ eq < G >
 --- Map
 vars H H1 H2 H3 : Pattern .
 eq < G >
-    # N { Ps } |- separatingconjunction(emp(), H) = H
+    # N { Ps } |- merge(emp(), H) = H
     Rest
     ==========
     ax N
@@ -594,7 +607,7 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- separatingconjunction(H1, H2) = separatingconjunction(H2, H1)
+    # N { Ps } |- merge(H1, H2) = merge(H2, H1)
     Rest
     ==========
     ax N
@@ -607,8 +620,8 @@ eq < G >
 .
 
 eq < G >
-    # N { Ps } |- separatingconjunction(separatingconjunction(H1, H2), H3) =
-                  separatingconjunction(H1, separatingconjunction(H2, H3)) 
+    # N { Ps } |- merge(merge(H1, H2), H3) =
+                  merge(H1, merge(H2, H3)) 
     Rest
     ==========
     ax N
@@ -621,7 +634,7 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- mapsto(zero(), P) = bot)
+   # N { Ps } |- mapsto(zero(), P) = bot
     Rest
     ==========
     ax N
@@ -635,7 +648,7 @@ eq < G >
 
 vars C1 C2 : Var .
 eq < G >
-   # N { Ps } |- A X . A C1 . A C2 . separatingconjunction(mapsto(X, C1), mapsto(X, C2)) = bot
+   # N { Ps } |- forall X . forall C1 . forall C2 . merge(mapsto(X, C1), mapsto(X, C2)) = bot
     Rest
     ==========
     ax N
@@ -648,7 +661,7 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- A X . (mapstoseq(X, epsilon()) = emp())
+   # N { Ps } |- forall X . (mapstoseq(X, epsilon()) = emp())
     Rest
     ==========
     ax N
@@ -661,9 +674,9 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- A X . A HEAD . A REST . 
+   # N { Ps } |- forall X . forall HEAD . forall REST . 
                 (mapstoseq(X, concat(HEAD, REST)) =
-                 separatingconjunction(mapsto(X, HEAD), mapstoseq(plus(X, one()), REST)))
+                 merge(mapsto(X, HEAD), mapstoseq(plus(X, one()), REST)))
     Rest
     ==========
     ax N
@@ -689,7 +702,7 @@ eq < G >
 .
 
 eq < G >
-   # N { Ps } |- A X . A HEAD . A REST . ((list(X, concat(HEAD, REST))) = E Z . separatingconjunction(mapstoseq(X, concat(HEAD, Z)), list(Z, REST)))
+   # N { Ps } |- forall X . forall HEAD . forall REST . ((list(X, concat(HEAD, REST))) = exists Z . merge(mapstoseq(X, concat(HEAD, Z)), list(Z, REST)))
     Rest
     ==========
     ax N

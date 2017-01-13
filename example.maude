@@ -9,22 +9,22 @@ load deduction .
 reduce
 < 1 >
 # 0 {}
-|- separatingconjunction(separatingconjunction(separatingconjunction(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> list(seven(), concat(nine(), five()))
+|- merge(merge(merge(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> list(seven(), concat(nine(), five()))
 ==========
 deduce 0
-mp 1 with E 'z0 . separatingconjunction(mapstoseq(seven(), concat(nine(), 'z0)), list('z0, five()))
-mp 3 with E 'z0 . separatingconjunction(mapstoseq(seven(),concat(nine(),'z0)),list('z0,five())) = list(seven(),concat(nine(),five()))
+mp 1 with exists 'z0 . merge(mapstoseq(seven(), concat(nine(), 'z0)), list('z0, five()))
+mp 3 with exists 'z0 . merge(mapstoseq(seven(),concat(nine(),'z0)),list('z0,five())) = list(seven(),concat(nine(),five()))
 ax8 5 with 'P and 'P
-mp 4 with A 'rest . ((list(seven(), concat(nine(), 'rest))) = E 'z . separatingconjunction(mapstoseq(seven(), concat(nine(), 'z)), list('z, 'rest)))
-mp 7 with E 't . (five() = 't) 
+mp 4 with forall 'rest . ((list(seven(), concat(nine(), 'rest))) = exists 'z . merge(mapstoseq(seven(), concat(nine(), 'z)), list('z, 'rest)))
+mp 7 with exists 't . (five() = 't) 
 ax 9
 ax 8
-mp 6 with A 'head . A 'rest . (list(seven(),concat('head,'rest)) = E 'z . separatingconjunction(mapstoseq(seven(),concat('head,'z)),list('z,'rest)))
-mp 11 with E 't . (nine() = 't) 
+mp 6 with forall 'head . forall 'rest . (list(seven(),concat('head,'rest)) = exists 'z . merge(mapstoseq(seven(),concat('head,'z)),list('z,'rest)))
+mp 11 with exists 't . (nine() = 't) 
 ax 13
 ax 12
-mp 10 with A 'x . A 'head . A 'rest . (list('x ,concat('head,'rest)) = E 'z . separatingconjunction(mapstoseq('x ,concat('head,'z)),list('z,'rest)))
-mp 15 with E 't . (seven() = 't)
+mp 10 with forall 'x . forall 'head . forall 'rest . (list('x ,concat('head,'rest)) = exists 'z . merge(mapstoseq('x ,concat('head,'z)),list('z,'rest)))
+mp 15 with exists 't . (seven() = 't)
 ax 17
 ax 16
 ax 14
@@ -40,13 +40,13 @@ reduce
 # 0 {
 --- Axioms for PNat
 ---  zero(), succ(x), plus(x, y) are functional
-E 't . (zero() = 't)
-A 'x . E 't . (succ('x) = 't)
-A 'x . A 'y . E 't . (plus('x, 'y) = 't)
+exists 't . (zero() = 't)
+forall 'x . exists 't . (succ('x) = 't)
+forall 'x . forall 'y . exists 't . (plus('x, 'y) = 't)
 ---  plus(0, x) = x
-A 'x . (plus(zero(), 'x) = 'x)
+forall 'x . (plus(zero(), 'x) = 'x)
 ---  plus(succ(x), y) = succ(plus(x, y))
-A 'x . A 'y . (plus(succ('x), 'y) = succ(plus('x, 'y)))
+forall 'x . forall 'y . (plus(succ('x), 'y) = succ(plus('x, 'y)))
 } |- plus(succ(zero()),succ(zero())) = succ(succ(zero()))
 ==========
 mp 0 with plus(succ(zero()),succ(zero())) = succ(plus(zero(),succ(zero())))
@@ -62,25 +62,25 @@ mp 12 with plus(zero(),succ(zero())) = succ(zero())
 ax8 14 with succ('t) = succ(succ(zero())) and 't
 ax 13
 ax 11
-mp 8 with A 'x . ('x = plus(zero(),'x))
-mp 16 with E 't . ('t = succ(zero()))
+mp 8 with forall 'x . ('x = plus(zero(),'x))
+mp 16 with exists 't . ('t = succ(zero()))
 ax 18
-mp 17 with A 'x . E 't . ('t = succ('x)) 
-mp 20 with E 't . ('t = zero())
+mp 17 with forall 'x . exists 't . ('t = succ('x)) 
+mp 20 with exists 't . ('t = zero())
 ax 22
 ax 21
 ax 19
 ax 15
-mp 1 with A 'y . (plus(succ(zero()),'y) = succ(plus(zero(),'y)))
-mp 24 with E 't . (succ(zero()) = 't)
+mp 1 with forall 'y . (plus(succ(zero()),'y) = succ(plus(zero(),'y)))
+mp 24 with exists 't . (succ(zero()) = 't)
 ax 26
-mp 25 with A 'x . E 't . ('t = succ('x))
-mp 28 with E 't . ('t = zero())
+mp 25 with forall 'x . exists 't . ('t = succ('x))
+mp 28 with exists 't . ('t = zero())
 ax 30
 ax 29
 ax 27
-mp 23 with A 'x . A 'y . (plus(succ('x),'y) = succ(plus('x,'y)))
-mp 32 with E 't . ('t = zero())
+mp 23 with forall 'x . forall 'y . (plus(succ('x),'y) = succ(plus('x,'y)))
+mp 32 with exists 't . ('t = zero())
 ax 34
 ax 33
 ax 31
