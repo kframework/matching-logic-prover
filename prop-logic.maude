@@ -1,14 +1,14 @@
---- This module is a (pseudo) interactive deductive system
+--- This module is a (pseudo) interactive Hilbert-style deductive system
 --- for propositional logic, which includes three axiom schemas
---- and the modus ponens rule.
---- Last update by Xiaohong on 11 Dec 2016.
+--- and the modus ponens inference rule.
+--- Last update by Xiaohong on 13 Jan 2016.
 
-mod PRED-LOGIC is
-  protecting COUNTER .
+mod PROP-LOGIC is
   protecting INT .
   protecting QID .
-  sort LogicalVariable Formula Proofee .
-  subsort Qid < LogicalVariable < Formula .
+  
+  sort LogicalVariable Formula ProofObligation .
+  subsorts Qid < LogicalVariable < Formula .
   sort State Command Result .
 
 --- Grammar for Logic 
@@ -16,20 +16,23 @@ mod PRED-LOGIC is
   op _->_ : Formula Formula -> Formula .
   op ~_ : Formula -> Formula .
 
-  op {#_:_} : Int Formula -> Proofee .
-  op _,_ : Proofee Proofee -> Proofee [assoc comm id: done] .
-  op done : -> Proofee .
+
+  op {#_:_} : Int Formula -> ProofObligation .
+  op _,_ : ProofObligation ProofObligation -> ProofObligation
+    [assoc comm id: done] .
+  op done : -> ProofObligation .
 
 --- Grammar for Command
 
 --- The "==========" thing is supposed to seperate
---- Proofees apart from Commands.
-  op <_>_==========_ : Int Proofee Command -> Result [format(nn d d n n n n)].
+--- ProofObligations apart from Commands.
+  op <_>_==========_ : Int ProofObligation Command -> Result 
+    [format(nn d d n n n n)].
 
---- Use axioms to reduce one Proofee.
+--- Use axioms to reduce one ProofObligation.
   op ax_; : Int -> Command .
 
---- Use modus ponens to reduce one Proofee.
+--- Use modus ponens to reduce one ProofObligation.
   op mp_with_; : Int Formula -> Command . 
 
   op skip : -> Command .
@@ -38,7 +41,7 @@ mod PRED-LOGIC is
 --- Rules
 
   var P Q R : Formula .
-  var RemP : Proofee .
+  var RemP : ProofObligation .
   var C : Command .
   var N M G : Int .
 
@@ -99,10 +102,8 @@ eq   < G >
 endm
 
 
-
-rewrite counter + counter .
-
-rewrite
+--- Example: |- 'P -> 'P
+reduce
 
 < 1 >
 { # 0 : 'P -> 'P }
@@ -113,8 +114,6 @@ mp 2 with 'P -> (('P -> 'P) -> 'P) ;
 ax 3 ;
 ax 4 ;
 .
-
-unify (X : Var) =? (X : Var) .
 
 
 quit
