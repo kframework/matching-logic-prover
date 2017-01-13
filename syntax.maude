@@ -1,22 +1,37 @@
 --- This module provides a full grammar for the formal language of matching logic.
---- Last update by Xiaohong on 07 Jan 2016.
+--- Last update by Xiaohong on 13 Jan 2016.
 
---- load generic substitution module.
-load substitution .
+load substitution . --- load the generic substitution module.
 
---- ML-SYNTAX        syntax of matching logic pattern with
-------                  alpha-equivalence checking : P =a= Q
-------                  closed-form checking : P is-closed-form
-------                  free-occur checking : X occur-free-in P
+--- Q : What does this module provide?
+--- A : The full grammar of the formal language of matching logic, including
+   ---  alpha-equivalence checking : P =a= Q
+   ---- closed-form checking : P is-closed-form
+   ---- free-occur checking : X occur-free-in P
+
+--- Q : What does this module not provide?
+--- A : 1) Support for many-sorted grammar. Therefore all variables and patterns
+---        are of the same sort.
+---     2) Arity of a symbol. Therefore for any symbol s, all the following
+---        patterns are well-formed: s(), s(P), s(P, Q), ..., for any P, Q, ...
+---        are patterns.          
+
 fmod ML-SYNTAX is
 
 --- resolve naming conflicts
-  including PL-GENERIC-SUBSTITUTION * ( op fv_ to PL-FV_ , op _,_ to _PL-COMMA_ ) .
+  including PL-GENERIC-SUBSTITUTION * 
+    ( op fv_ to PL-FV_ , 
+      op _,_ to _PL-COMMA_ ) .
 
---- Var for matching logic variables
---- Symbol for matching logic symbols. Not taking arity into account
+--- The sort Var stands for matching logic variables, and it takes Qid as its
+--- subsorts, so all quoted variables are available to use when one writes
+--- matching logic patterns.
+  sort Var . subsort Id < Var .
+  
+
+--- Symbol for matching logic symbols. 
 --- Pattern for patterns, and PatternList for comma-separated patterns
-  sorts Var Symbol Pattern PatternList .
+  sorts Symbol Pattern PatternList .
   subsort Var < Pattern .
   subsort Pattern < PatternList .
 
@@ -44,7 +59,7 @@ fmod ML-SYNTAX is
   op _[_/_] : Pattern Pattern Var -> Pattern [prec 36].
 
 --- fit in generic substitution framework
-  subsort Id < Var .  subsort Pattern < GenericTerm .
+    subsort Pattern < GenericTerm .
   eq bind('E_._) = 1 . eq bind('A_._) = 1 . --- set up binder
   var V : Var .  vars P Q : Pattern .
   eq P [Q / V] = substitute (P, Q, V) . --- set up substitution
@@ -141,3 +156,4 @@ fmod ML-SYNTAX is
 
 endfm
 
+quit
