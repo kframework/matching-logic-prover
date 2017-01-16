@@ -242,7 +242,7 @@ if P [ Q / X ] =a= R
 .
 
 --- monotonic of symbols
---- |- (Q -> R) -> (s(P1,...,Q,...,Pn) -> s(P1,...,R,...,Pn))
+--- |- floor(Q -> R) -> (s(P1,...,Q,...,Pn) -> s(P1,...,R,...,Pn))
 var Sigma : Symbol . vars LeftPatternList RightPatternList : PatternList .
 
 eq < G >
@@ -258,6 +258,11 @@ eq < G >
     ==========
     C
 .
+
+--- Frame rule:  Q -> R |- s( ... Q ... ) -> s( ... R ...)
+
+--- P |- Q , then |- floor(P) -> Q
+
 
 --- Inference Rules
 
