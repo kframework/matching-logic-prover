@@ -1,41 +1,9 @@
---- Last Update on 25 Dec 2016 by Xiaohong;
+--- Example of proving "1 + 1 = 2"
 
 load deduction .
 
---- EXAMPLE OF MAP ---
---- Nat are assumed as built-in domain and all reasoning about Nat shall be
---- pushed to Z3. 
+reduce in ML-DEDUCTIVESYSTEM :
 
-reduce
-< 1 >
-# 0 {}
-|- merge(merge(merge(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> list(seven(), concat(nine(), five()))
-==========
-deduce 0
-mp 1 with exists 'z0 . merge(mapstoseq(seven(), concat(nine(), 'z0)), list('z0, five()))
-mp 3 with exists 'z0 . merge(mapstoseq(seven(),concat(nine(),'z0)),list('z0,five())) = list(seven(),concat(nine(),five()))
-ax8 5 with 'P and 'P
-mp 4 with forall 'rest . ((list(seven(), concat(nine(), 'rest))) = exists 'z . merge(mapstoseq(seven(), concat(nine(), 'z)), list('z, 'rest)))
-mp 7 with exists 't . (five() = 't) 
-ax 9
-ax 8
-mp 6 with forall 'head . forall 'rest . (list(seven(),concat('head,'rest)) = exists 'z . merge(mapstoseq(seven(),concat('head,'z)),list('z,'rest)))
-mp 11 with exists 't . (nine() = 't) 
-ax 13
-ax 12
-mp 10 with forall 'x . forall 'head . forall 'rest . (list('x ,concat('head,'rest)) = exists 'z . merge(mapstoseq('x ,concat('head,'z)),list('z,'rest)))
-mp 15 with exists 't . (seven() = 't)
-ax 17
-ax 16
-ax 14
-
-
-.
-
-quit
-
---- Example of proving "1 + 1 = 2"
-reduce
 < 1 >
 # 0 {
 --- Axioms for PNat

@@ -47,13 +47,13 @@ fmod ML-DEDUCTIVESYSTEM is
   op mp_with_ : Int Pattern -> Command [prec 81] .  --- provide a pattern to use modus ponens
   op uu_ : Int -> Command [prec 81] .               --- use universal generalization
   op deduce_ : Int -> Command [prec 81] .           --- use closed-form deductive theorem
+  op floor_ : Int -> Command [prec 81] .            --- use Floor Elimination rule
   op split_ : Int -> Command [prec 81] .            --- use conjunction splitting
 
 
-  sort Result .  --- for no use
+  sort Result .  op QED : -> Result .
   op <_>_==========_ : Int ProofObligation Command -> Result [format(n d d n d n d) prec 89] .
-
-
+  
 
   var P P1 P2 Q Q1 Q2 R R1 R2 : Pattern .
   var Rest : ProofObligation .
@@ -62,6 +62,12 @@ fmod ML-DEDUCTIVESYSTEM is
   var X Y Z S T : Var .
   var F : Symbol .
   vars Ps Qs Rs : PatternSet .
+
+--- We reach QED when there is no more proof obligation.
+eq  < G > .ProofObligation
+    ==========
+    skip
+= QED .
 
 --- Axiom Schemas
 
@@ -107,6 +113,21 @@ eq  < G >
     C 
 .
 
+--- (TAUTOLOGY)
+eq  < G > 
+    # N { Ps } |- P = P
+    Rest
+    ========== 
+    ax N 
+    C
+= 
+    < G > 
+    Rest 
+    ========== 
+    C
+.
+
+
 --- (K4)
 
 ceq < G > 
@@ -126,8 +147,8 @@ if X not-occur-free-in P
 
 --- (K5)
 
-ceq < G > 
-    # N { Ps } |- (forall X . P -> P)
+eq < G > 
+    # N { Ps } |- exists Y . (X = Y)
     Rest 
     ========== 
     ax N 
@@ -137,7 +158,6 @@ ceq < G >
     Rest 
     ========== 
     C 
-if X not-occur-free-in P
 .
 
 --- (K6)
@@ -175,22 +195,6 @@ ceq < G >
     C
 if X occur-free-in P andBool ML-K6 X P Q
 .
-
---- (K7)
-
-eq  < G > 
-    # N { Ps } |- P = P
-    Rest 
-    ========== 
-    ax N
-    C
-=
-    < G > 
-    Rest 
-    ========== 
-    C 
-.
-
 --- (K8)
 
 ceq  < G > 
@@ -242,7 +246,7 @@ if P [ Q / X ] =a= R
 var Sigma : Symbol . vars LeftPatternList RightPatternList : PatternList .
 
 eq < G >
-    # N { Ps } |- (Q -> R) -> (Sigma(LeftPatternList, Q, RightPatternList)
+    # N { Ps } |- floor(Q -> R) -> (Sigma(LeftPatternList, Q, RightPatternList)
                                -> Sigma(LeftPatternList, R, RightPatternList))
     Rest
     ==========
@@ -290,10 +294,26 @@ eq  < G >
     C 
 . 
 
+--- Floor Elimination
+
+eq  < G >
+    # N { Ps } |- floor(P)
+    Rest 
+    ==========
+    floor N 
+    C
+=
+    < G +Int 1 > 
+    # G { Ps } |- P 
+    Rest
+    ========== 
+    C 
+. 
+
 --- Deduction Theorem
 
 ceq < G >
-    # N { Ps } |- P -> Q
+    # N { Ps } |- floor(P) -> Q
     Rest
     ==========
     deduce N
@@ -523,6 +543,19 @@ eq < G >
 .
 
 eq < G >
+    # N { Ps } |-  forall S2 . forall S1 . exists X . (concat(S1, S2) = X)
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
     # N { Ps } |- forall X . (concat(epsilon(), X) = X)
     Rest
     ==========
@@ -595,6 +628,19 @@ eq < G >
 vars H H1 H2 H3 : Pattern .
 eq < G >
     # N { Ps } |- merge(emp(), H) = H
+    Rest
+    ==========
+    ax N
+    C
+=
+    < G >
+    Rest
+    ==========
+    C
+.
+
+eq < G >
+    # N { Ps } |- merge(H, emp()) = H
     Rest
     ==========
     ax N

@@ -1,0 +1,243 @@
+--- Last Update on 25 Dec 2016 by Xiaohong;
+
+load deduction .
+
+--- EXAMPLE OF MAP ---
+--- Nat are assumed as built-in domain and all reasoning about Nat shall be
+--- pushed to Z3. 
+
+--- a review of the recursive definition of list()
+--- list(zero(), epsilon()) = emp()
+--- forall X . forall HEAD . forall REST . ((list(X, concat(HEAD, REST))) = exists Z . merge(mapstoseq(X, concat(HEAD, Z)), list(Z, REST)))
+
+reduce
+< 1 >
+# 0 {}
+|- merge(merge(merge(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> list(seven(), concat(nine(), concat(five(), epsilon())))
+==========
+--- an intuition of how the proof should go.
+
+--- 1 |-> 5 * 2 |-> 0 * 7 |-> 9 * 8 |-> 1 -> list(7, 9 ^ 5 ^ ep)
+--- H0 -> exists z1 . (7 |-> [9 ^ z1] * list(z1, 5 ^ ep)
+--- H0 -> (7 |-> [9 ^ 1] * list(1, 5 ^ ep))
+--- H0 -> ( 7 |-> 9 * 8 |-> 1 * list(1, 5 ^ ep) )
+--- H1 * (1 |-> 5 * 2 |-> 0)
+--- -> H1 * list(1, 5 ^ ep)
+--- H2 -> list(1, 5 ^ ep)
+--- H2 -> exists z0 . (1 |-> [5 ^ z0] * list(z0, ep))
+--- H2 -> (1 |-> [5 ^ 0] * list(0, ep))
+--- H2 -> 1 |-> [5 ^ 0]
+
+mp 0 with merge(merge(merge(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> exists 'z1 . merge(mapstoseq(seven(), concat(nine(), 'z1)), list('z1, concat(five(), epsilon())))
+mp 2 with list(seven(), concat(nine(), concat(five(), epsilon()))) = exists 'z1 . merge(mapstoseq(seven(), concat(nine(), 'z1)), list('z1, concat(five(), epsilon())))
+ax8 4 with merge(merge(merge(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> 'P and 'P
+mp 3 with forall 'rest . (list(seven(),concat(nine(),'rest)) = exists 'z1 . merge(mapstoseq(seven(),concat(nine(),'z1)),list('z1,'rest)))
+mp 6 with exists 't . (concat(five(),epsilon()) = 't)
+ax 8
+mp 7 with forall 'x . exists 't . ('t = concat('x, epsilon()))
+mp 10 with exists 't . (five() = 't)
+ax 12
+ax 11
+mp 9 with forall 'y . forall 'x . exists 't . ('t = concat('x, 'y))
+mp 14 with exists 't . (epsilon() = 't)
+ax 16 
+ax 15
+ax 13
+mp 5 with forall 'head . forall 'rest . (list(seven(),concat('head,'rest)) = exists 'z1 . merge(mapstoseq(seven(),concat('head,'z1)),list('z1,'rest)))
+mp 18 with exists 't . (nine() = 't)
+ax 20
+ax 19
+mp 17 with forall 'x . forall 'head . forall 'rest . (list('x, concat('head,'rest)) = exists 'z1 . merge(mapstoseq('x, concat('head,'z1)),list('z1,'rest)))
+mp 22 with exists 't . (seven() = 't)
+ax 24
+ax 23
+ax 21
+mp 1 with merge(merge(merge(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> merge(mapstoseq(seven(),concat(nine(), one())),list(one(), concat(five(),epsilon())))
+mp 26 with merge(merge(merge(mapsto(one(), five()), mapsto(two(), zero())), mapsto(seven(), nine())), mapsto(eight(), one())) -> merge(mapstoseq(seven(),concat(nine(), one())),list(one(), concat(five(),epsilon()))) -> exists 'z1 . merge(mapstoseq(seven(),concat(nine(),'z1)),list('z1,concat(five(),epsilon())))
+ax 28
+mp 27 with merge(mapstoseq(seven(),concat(nine(),one())),list(one(),concat(five(),epsilon()))) -> exists 'z1 . merge(mapstoseq(seven(),concat(nine(),'z1)),list('z1,concat(five(),epsilon())))
+ax 30
+mp 29 with exists 't . (one() = 't)
+ax 32 ax 31
+mp 25 with merge(merge(merge(mapsto(one(),five()),mapsto(two(),zero())),mapsto(seven(),nine())),mapsto(eight(),one())) -> merge(merge(mapsto(seven(), nine()), mapsto(plus(seven(), one()), one())),list(one(),concat(five(),epsilon())))
+mp 34 with merge(mapsto(seven(), nine()), mapsto(plus(seven(), one()), one())) = mapstoseq(seven(),concat(nine(),one()))
+ax8 36 with merge(merge(merge(mapsto(one(),five()),mapsto(two(),zero())),mapsto(seven(),nine())),mapsto(eight(),one())) -> merge('P,list(one(),concat(five(),epsilon()))) and 'P
+mp 35 with mapstoseq(seven(),concat(nine(),concat(one(), epsilon()))) = merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one()))
+mp 38 with concat(one(), epsilon()) = one()
+ax8 40 with mapstoseq(seven(),concat(nine(),'P)) = merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())) and 'P
+mp 39 with forall 'x . (concat('x, epsilon()) = 'x)
+mp 42 with exists 't . (one() = 't)
+ax 44 ax 43 ax 41
+mp 37 with merge(mapsto(seven(), nine()), mapstoseq(plus(seven(), one()), concat(one(),epsilon()))) = merge(mapsto(seven(), nine()),mapsto(plus(seven(),one()),one()))
+mp 46 with merge(mapsto(seven(), nine()), mapstoseq(plus(seven(), one()), concat(one(),epsilon()))) = mapstoseq(seven(),concat(nine(),concat(one(),epsilon())))
+ax8 48 with 'P = merge(mapsto(seven(), nine()),mapsto(plus(seven(),one()),one())) and 'P
+mp 47 with forall 'rest . (mapstoseq(seven(),concat(nine(),'rest)) = merge(mapsto(seven(), nine()),mapstoseq(plus(seven(),one()),'rest)))
+mp 50 with exists 't . (concat(one(),epsilon()) = 't)
+ax 52
+mp 51 with forall 'x . exists 't . ('t = concat(one(),'x))
+mp 54 with exists 't . (epsilon() = 't)
+ax 56 ax 55
+mp 53 with forall 'y . forall 'x . exists 't . ('t = concat('y,'x))
+mp 58 with exists 't . (one() = 't)
+ax 60 ax 59 ax 57
+mp 49 with forall 'head . forall 'rest . (mapstoseq(seven(),concat('head,'rest)) = merge(mapsto(seven(), 'head),mapstoseq(plus(seven(),one()),'rest)))
+mp 62 with exists 't . (nine() = 't)
+ax 64 ax 63
+mp 61 with forall 'x . forall 'head . forall 'rest . (mapstoseq('x,concat('head,'rest)) = merge(mapsto('x, 'head),mapstoseq(plus('x,one()),'rest)))
+mp 66 with exists 't . (seven() = 't)
+ax 68 ax 67 ax 65
+mp 45 with merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())) = merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())) 
+mp 70 with mapsto(plus(seven(),one()),one()) = mapstoseq(plus(seven(),one()),concat(one(),epsilon()))
+ax8 72 with (merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())) = merge(mapsto(seven(),nine()),'P)) and 'P
+mp 71 with mapsto(plus(seven(),one()),one()) = merge(mapsto(plus(seven(),one()), one()), mapstoseq(plus(plus(seven(),one()), one()), epsilon()))
+mp 74 with mapstoseq(plus(seven(),one()),concat(one(),epsilon())) = merge(mapsto(plus(seven(),one()),one()), mapstoseq(plus(plus(seven(),one()),one()),epsilon()))
+ax8 76 with (mapsto(plus(seven(),one()),one()) = 'P) and 'P
+mp 75 with forall 'rest . (mapstoseq(plus(seven(),one()),concat(one(),'rest)) = merge(mapsto(plus(seven(), one()),one()),mapstoseq(plus(plus(seven(),one()),one()),'rest)))
+mp 78 with exists 't . (epsilon() = 't)
+ax 80 ax 79
+mp 77 with forall 'head . forall 'rest . (mapstoseq(plus(seven(),one()),concat('head,'rest)) = merge(mapsto(plus(seven(), one()),'head),mapstoseq(plus(plus(seven(),one()),one()),'rest)))
+mp 82 with exists 't . (one() = 't)
+ax 84 ax 83
+mp 81 with forall 'x . forall 'head . forall 'rest . (mapstoseq('x ,concat('head,'rest)) = merge(mapsto('x,'head),mapstoseq(plus('x,one()),'rest)))
+mp 86 with exists 't . (plus(seven(), one()) = 't)
+ax 88 
+mp 87 with forall 'y . exists 't . ('t = plus(seven(),'y))
+mp 90 with exists 't . (one() = 't)
+ax 92 ax 91
+mp 89 with forall 'x . forall 'y . exists 't . ('t = plus('x,'y))
+mp 94 with exists 't . (seven() = 't)
+ax 96 ax 95 ax 93 ax 85
+mp 73 with mapsto(plus(seven(),one()),one()) = merge(mapsto(plus(seven(),one()),one()), emp())
+mp 98 with emp() = mapstoseq(plus(plus(seven(),one()),one()),epsilon())
+ax8 100 with mapsto(plus(seven(),one()),one()) = merge(mapsto(plus(seven(),one()),one()), 'P) and 'P
+mp 99 with forall 'x . (emp() = mapstoseq('x,epsilon()))
+mp 102 with exists 't . (plus(plus(seven(),one()),one()) = 't)
+ax 104
+mp 103 with forall 'y . exists 't . (plus(plus(seven(),one()),'y) = 't)
+mp 106 with exists 't . (one() = 't)
+ax 108 ax 107
+mp 105 with forall 'x . forall 'y . exists 't . (plus('x,'y) = 't)
+mp 110 with exists 't . (plus(seven(), one()) = 't)
+ax 112
+mp 111 with forall 'y . exists 't . (plus(seven(), 'y) = 't)
+mp 114 with exists 't . (one() = 't)
+ax 116 ax 115
+mp 113 with forall 'x . forall 'y . exists 't . (plus('x, 'y) = 't)
+mp 118 with exists 't . (seven() = 't)
+ax 120 ax 119 ax 117 ax 109 ax 101
+ax 97 ax 69
+mp 33 with merge(merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())), merge(mapsto(one(), five()), mapsto(two(), zero()))) -> merge(merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())),list(one(),concat(five(),epsilon())))
+mp 122 with  merge(merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())), merge(mapsto(one(), five()), mapsto(two(), zero()))) = merge(merge(merge(mapsto(one(),five()),mapsto(two(),zero())),mapsto(seven(),nine())),mapsto(eight(),one()))
+ax8 124 with 'P -> merge(merge(mapsto(seven(),nine()),mapsto(plus(seven(),one()),one())),list(one(),concat(five(),epsilon()))) and 'P
+mp 123 with merge(merge(mapsto(seven(),nine()),mapsto(eight(),one())),merge(mapsto(one(),five()),mapsto(two(),zero()))) = merge(merge(merge(mapsto(one(),five()), mapsto(two(),zero())),mapsto(seven(),nine())),mapsto(eight(),one()))
+mp 126 with eight() = plus(seven(), one())
+ax8 128 with merge(merge(mapsto(seven(),nine()),mapsto('P,one())),merge(mapsto(one(),five()),mapsto(two(),zero()))) = merge(merge(merge(mapsto(one(),five()), mapsto(two(),zero())),mapsto(seven(),nine())),mapsto(eight(),one())) and 'P
+mp 125 with merge(merge(mapsto(seven(),nine()),mapsto(eight(),one())),merge(mapsto(one(),five()),mapsto(two(),zero()))) = merge(merge(mapsto(one(),five()),mapsto(two(),zero())),merge(mapsto(seven(),nine()),mapsto(eight(),one())))
+mp 130 with merge(merge(mapsto(one(),five()),mapsto(two(),zero())),merge(mapsto(seven(),nine()),mapsto(eight(),one()))) = merge(merge(merge(mapsto(one(),five()),mapsto(two(),zero())),mapsto(seven(),nine())),mapsto(eight(),one()))
+ax8 132 with merge(merge(mapsto(seven(),nine()),mapsto(eight(),one())),merge(mapsto(one(),five()),mapsto(two(),zero()))) = 'P and 'P
+ax 131
+ax 129
+mp 121 with floor(merge(mapsto(one(),five()),mapsto(two(),zero())) -> list(one(),concat(five(),epsilon())))
+ax 134
+floor 133
+mp 135 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> (exists 'z0 . merge(mapstoseq(one(), concat(five(), 'z0)), list('z0, epsilon())))
+mp 137 with (exists 'z0 . merge(mapstoseq(one(), concat(five(), 'z0)), list('z0, epsilon()))) = list(one(),concat(five(),epsilon())) 
+ax8 139 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> 'P and 'P
+mp 138 with forall 'rest . (list(one(),concat(five(),'rest)) = exists 'z0 . merge(mapstoseq(one(),concat(five(),'z0)),list('z0,'rest)))
+mp 141 with exists 't . (epsilon() = 't)
+ax 143 ax 142
+mp 140 with forall 'head . forall 'rest . (list(one(),concat('head,'rest)) = exists 'z0 . merge(mapstoseq(one(),concat('head,'z0)),list('z0,'rest)))
+mp 145 with exists 't . (five() = 't)
+ax 147 ax 146
+mp 144 with forall 'x . forall 'head . forall 'rest . (list('x,concat('head,'rest)) = exists 'z0 . merge(mapstoseq('x,concat('head,'z0)),list('z0,'rest)))
+mp 149 with exists 't . (one() = 't)
+ax 151 ax 150 ax 148
+mp 136 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> merge(mapstoseq(one(),concat(five(),zero())),list(zero(),epsilon()))
+mp 153 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> merge(mapstoseq(one(),concat(five(),zero())),list(zero(),epsilon())) -> exists 'z0 . merge(mapstoseq(one(),concat(five(),'z0)),list('z0,epsilon()))
+ax 155
+mp 154 with merge(mapstoseq(one(),concat(five(),zero())),list(zero(),epsilon())) -> exists 'z0 . merge(mapstoseq(one(),concat(five(),'z0)),list('z0,epsilon()))
+ax 157
+mp 156 with exists 't . (zero() = 't)
+ax 159 ax 158
+mp 152 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> merge(mapstoseq(one(),concat(five(),zero())),emp())
+mp 161 with emp() = list(zero(),epsilon())
+ax8 163 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> merge(mapstoseq(one(),concat(five(),zero())),'P) and 'P
+ax 162
+mp 160 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> mapstoseq(one(),concat(five(),zero()))
+mp 165 with mapstoseq(one(),concat(five(),zero())) = merge(mapstoseq(one(),concat(five(),zero())), emp())
+ax8 167 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> 'P and 'P
+ax 166
+mp 164 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> merge(mapsto(one(), five()), mapstoseq(plus(one(), one()), zero()))
+mp 169 with merge(mapsto(one(), five()), mapstoseq(plus(one(), one()), zero())) = mapstoseq(one(),concat(five(),zero()))
+ax8 171 with merge(mapsto(one(),five()),mapsto(two(),zero())) -> 'P and 'P
+mp 170 with forall 'rest . (mapstoseq(one(),concat(five(),'rest)) = merge(mapsto(one(),five()),mapstoseq(plus(one(),one()),'rest)))
+mp 173 with exists 't . (zero() = 't)
+ax 175 ax 174
+mp 172 with forall 'head . forall 'rest . (mapstoseq(one(),concat('head,'rest)) = merge(mapsto(one(),'head),mapstoseq(plus(one(),one()),'rest)))
+mp 177 with exists 't . (five() = 't)
+ax 179 ax 178
+mp 176 with forall 'x . forall 'head . forall 'rest . (mapstoseq('x,concat('head,'rest)) = merge(mapsto('x,'head),mapstoseq(plus('x,one()),'rest)))
+mp 181 with exists 't . (one() = 't)
+ax 183 ax 182 ax 180
+mp 168 with floor(mapsto(two(),zero()) -> mapstoseq(plus(one(),one()),zero()))
+ax 185
+floor 184
+mp 186 with mapsto(two(),zero()) -> mapstoseq(plus(one(),one()),concat(zero(),epsilon()))
+mp 188 with concat(zero(),epsilon()) = zero()
+ax8 190 with mapsto(two(),zero()) -> mapstoseq(plus(one(),one()),'P) and 'P
+mp 189 with forall 'x . ('x = concat('x, epsilon()))
+mp 192 with exists 't . ('t = zero())
+ax 194 ax 193 ax 191
+mp 187 with mapsto(two(),zero()) -> merge(mapsto(plus(one(),one()), zero()), mapstoseq(plus(plus(one(),one()), one()), epsilon()))
+mp 196 with merge(mapsto(plus(one(),one()), zero()), mapstoseq(plus(plus(one(),one()), one()), epsilon())) = mapstoseq(plus(one(),one()),concat(zero(),epsilon()))
+ax8 198 with mapsto(two(),zero()) -> 'P and 'P
+mp 197 with forall 'rest . (mapstoseq(plus(one(),one()),concat(zero(),'rest)) = merge(mapsto(plus(one(),one()),zero()),mapstoseq(plus(plus(one(),one()),one()),'rest)))
+mp 200 with exists 't . (epsilon() = 't)
+ax 202 ax 201
+mp 199 with forall 'head . forall 'rest . (mapstoseq(plus(one(),one()),concat('head,'rest)) = merge(mapsto(plus(one(),one()),'head),mapstoseq(plus(plus(one(),one()),one()),'rest)))
+mp 204 with exists 't . (zero() = 't)
+ax 206 ax 205
+mp 203 with forall 'x . forall 'head . forall 'rest . (mapstoseq('x ,concat('head,'rest)) = merge(mapsto('x ,'head),mapstoseq(plus('x ,one()),'rest)))
+mp 208 with exists 't . (plus(one(), one()) = 't)
+ax 210
+mp 209 with forall 'y . exists 't . ('t = plus(one(),'y))
+mp 212 with exists 't . (one() = 't)
+ax 214 ax 213
+mp 211 with forall 'x . forall 'y . exists 't . ('t = plus('x,'y))
+mp 216 with exists 't . (one() = 't)
+ax 218 ax 217 ax 215
+ax 207
+mp 195 with mapsto(two(),zero()) -> merge(mapsto(plus(one(),one()),zero()),emp())
+mp 220 with emp() = mapstoseq(plus(plus(one(), one()),one()),epsilon())
+ax8 222 with mapsto(two(),zero()) -> merge(mapsto(plus(one(),one()),zero()),'P) and 'P
+mp 221 with forall 'x . (emp() = mapstoseq('x, epsilon()))
+mp 224 with exists 't . (plus(plus(one(),one()), one()) = 't)
+ax 226
+mp 225 with forall 'y . exists 't . ('t = plus(plus(one(),one()),'y))
+mp 228 with exists 't . (one() = 't)
+ax 230 ax 229
+mp 227 with forall 'x . forall 'y . exists 't . ('t = plus('x,'y))
+mp 232 with exists 't . (plus(one(), one()) = 't)
+ax 234 
+mp 233 with forall 'y . exists 't . ('t = plus(one(),'y))
+mp 236 with exists 't . (one() = 't)
+ax 238 ax 237
+mp 235 with forall 'x . forall 'y . exists 't . ('t = plus('x,'y))
+mp 240 with exists 't . (one() = 't)
+ax 242 ax 241 ax 239 ax 231 ax 223
+mp 219 with mapsto(two(),zero()) -> mapsto(plus(one(),one()),zero())
+mp 244 with merge(mapsto(plus(one(),one()),zero()),emp()) = mapsto(plus(one(),one()),zero())
+ax8 246 with mapsto(two(),zero()) -> 'P and 'P
+ax 245
+--- Z3?
+mp 243 with floor(two() -> plus(one(), one()))
+ax 248
+floor 247
+mp 249 with two() = plus(one(), one())
+ax8 251 with 'P and 'P
+skip
+.
+
+quit
+
+
