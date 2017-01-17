@@ -1,6 +1,15 @@
+--- This file provides an generic substitution framework that is used in the
+--- deductive system. Readers who are interested in the mlprover can safely
+--- skip this file.
+
+--- This file was developed by Grigore Rosu.
+
+--- Last Update on Jan 17, 2017 by Xiaohong.
+
+
+
 --- It is preferable to run maude with the flag -no-prelude, so that no warnings will be issued for
 ---   redefining the sorts in modules BOOL and INT (which maude's prelude includes by default).
-
 
 set include BOOL off .   --- not needed if one runs maude with flag -no-prelude
 
