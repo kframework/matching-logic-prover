@@ -1,7 +1,10 @@
-# Matching Logic Prove Assistant
+# Matching Logic Prover
 
-This project aims for a reference implementation of a deductive system of matching logic. 
-Rather than an automated theorem prover, we are looking forward a proof assistant that
-helps users prove matching logic theorems in a Hilbert-style deductive system.
+## Overview
 
-Automation comes later.
+
+## Reference
+
+[1] Grigore Rosu, Matching Logic -- Extended Abstract, Proceedings of the 26th International Conference on Rewriting Techniques and Applications (RTA'15), 2015
+[2] The Maude System, http://maude.cs.illinois.edu/
+
