@@ -1,0 +1,8 @@
+fmod META is
+  including META-LEVEL .
+  sorts S1 S2 .
+endfm
+reduce 
+  upModule(META)
+.
+quit
