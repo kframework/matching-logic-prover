@@ -168,6 +168,12 @@ fmod ML-SYNTAX is
 
   sort ML-Sort .
   ops Bol Nat Seq Map NoSort AnySort : -> ML-Sort .
+  op _andSort_ : ML-Sort ML-Sort -> ML-Sort [comm] .
+  vars S1 S2 : ML-Sort .
+  eq S1 andSort AnySort = S1 .
+  eq S1 andSort NoSort = NoSort .
+  eq S1 andSort S1 = S1 .
+  eq S1 andSort S2 = NoSort [owise] .
 
   op getSort : Pattern -> ML-Sort .
 
@@ -176,6 +182,8 @@ fmod ML-SYNTAX is
 
 
 endfm
+
+reduce getSort('x) .
 
 quit 
 
