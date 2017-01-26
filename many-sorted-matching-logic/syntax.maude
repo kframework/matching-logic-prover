@@ -1,0 +1,181 @@
+--- This module provides a full grammar for the formal language of matching logic.
+--- Last update by Xiaohong on 13 Jan 2016.
+
+load substitution . --- load the generic substitution module.
+
+--- Q : What does this module provide?
+--- A : The full grammar of the formal language of matching logic, including
+   ---  alpha-equivalence checking : P =a= Q
+   ---- closed-form checking : P is-closed-form
+   ---- free-occur checking : X occur-free-in P
+
+--- Q : What does this module not provide?
+--- A : 1) Support for many-sorted grammar. Therefore all variables and patterns
+---        are of the same sort.
+---     2) Arity of a symbol. Therefore for any symbol s, all the following
+---        patterns are well-formed: s(), s(P), s(P, Q), ..., for any P, Q, ...
+---        are patterns.          
+
+fmod ML-SYNTAX is
+
+--- resolve naming conflicts
+  including PL-GENERIC-SUBSTITUTION * 
+    ( op fv_ to PL-FV_ , 
+      op _,_ to _PL-COMMA_ ) .
+
+--- The sort Var stands for matching logic variables, and it takes Qid as its
+--- subsorts, so all quoted variables are available to use when one writes
+--- matching logic patterns.
+  sort Var . subsort Id < Var .
+
+--- The sort Symbol stands for matching logic symbols. 
+--- The sort Pattern stands for matching logic patterns,
+--- and the sort PatternList stands for comma-separated pattern lists.
+  sorts Symbol Pattern PatternList .
+  subsort Pattern < PatternList .
+  op .PatternList : -> PatternList . --- the empty list of patterns
+  op _,_ : PatternList PatternList -> PatternList
+    [assoc id: .PatternList prec 77] . --- the list constructor has a higher
+                                       --- precedence than logical connectives
+
+--- full grammar of the formal language for matching logic
+--- listed by precedence from tighter-binding to looser-binding. 
+  subsort Var < Pattern .  --- x
+  op _() : Symbol -> Pattern [ctor prec 55] .  --- s()
+  op _(_) : Symbol PatternList -> Pattern [ctor prec 55] . --- s(P1,...,Pn)
+  op _in_ : Var Pattern -> Pattern [ctor prec 61] . --- x in P (membership)
+  op ~_ : Pattern -> Pattern [ctor prec 62] . --- negation of P
+  op _/\_ : Pattern Pattern -> Pattern [ctor comm gather (E e) prec 63] .
+  op _\/_ : Pattern Pattern -> Pattern [ctor comm gather (E e) prec 64] .
+  op _->_ : Pattern Pattern -> Pattern [ctor gather (e E) prec 65] .
+  op _=_ : Pattern Pattern -> Pattern [ctor comm prec 66] .
+  op _=>_ : Pattern Pattern -> Pattern [ctor prec 66] . --- reachability (not used)
+  op exists_._ : Var Pattern -> Pattern [ctor prec 60] . --- exists x . P
+  op forall_._ : Var Pattern -> Pattern [ctor prec 60] . --- forall x . P
+  ops bot top : -> Pattern [ctor] . --- bottom and top
+  ops floor ceil : -> Symbol [ctor] . --- defineness and totality symbols
+
+--- substitution : P [ Q / X ] 
+  op _[_/_] : Pattern Pattern Var -> Pattern [prec 75].
+
+--- fit in generic substitution framework
+  subsort Pattern < GenericTerm .
+  --- exists and forall bind at the first position.
+  eq bind('exists_._) = 1 . eq bind('forall_._) = 1 .
+  var V : Var .  vars P Q : Pattern .
+  eq P [Q / V] = substitute (P, Q, V) . --- set up substitution
+
+--- support for free variable collecting
+--- we use wierd names to prevent unintentious naming conflicts.
+  sort VarSet . subsort Var < VarSet .
+  op .VarSet : -> VarSet . --- empty set of variables
+  op __ : VarSet VarSet -> VarSet [comm assoc id: .VarSet] .
+  op delete_from_ : Var VarSet -> VarSet . --- delete Var from VarSet
+  op _is-in_ : Var VarSet -> Bool .
+  op _is-empty : VarSet -> Bool .
+
+
+
+--- VarSet does not allow duplicated elements
+--- {X , ...} U {X , ...} = {X} U {...} U {...}
+  var X : Var . vars S S1 S2 : VarSet .
+  eq (X S1) (X S2) = (X S1 S2) .
+--- delete X from {X ...} = {...} .
+  eq delete X from (X S) = delete X from S .
+  eq delete X from S = S [owise] .
+--- X is-in {X ...} = true .
+  eq X is-in (X S) = true .
+  eq X in S = false [owise] .
+--- S is empty iff S is the empty set
+  eq .VarSet is-empty = true .
+  eq S is-empty = false [owise] .
+
+--- alpha-equivalent checking
+  op _=a=_ : Pattern Pattern -> Bool [comm prec 80] . 
+--- closed-form checking
+  op _is-closed-pattern : Pattern -> Bool [prec 80] .
+--- free-occur checking
+  op fv : Pattern -> VarSet .
+  op _occur-free-in_ : Var Pattern -> Bool [prec 80] .
+  op _not-occur-free-in_ : Var Pattern -> Bool [prec 80] .
+  
+---(
+  --- this shows an example of how to use metalevel.
+  op myfv_ : Pattern -> ConstantSet .
+  var QE : MetaTerm .
+  ceq myfv P = fv QE 
+  if QE := upTerm(P) .
+)---
+
+  var Y : Var .
+  vars P1 P2 Q1 Q2 : Pattern .
+  vars F : Symbol .
+  vars Ps Qs : PatternList .
+
+--- free variables collecting
+  eq fv(X) = X .
+  eq fv(~ P) = fv(P) .
+  eq fv(P1 -> P2) = fv(P1) fv(P2) .
+  eq fv(P1 /\ P2) = fv(P1) fv(P2) .
+  eq fv(P1 \/ P2) = fv(P1) fv(P2) .
+  eq fv(P1 = P2) = fv(P1) fv(P2) .
+  eq fv(P1 => P2) = fv(P1) fv(P2) .
+  eq fv(F()) = .VarSet .
+  eq fv(F(P)) = fv(P) .
+  eq fv(F(P, Ps)) = fv(P) fv(F(Ps)) .
+  eq fv(forall X . P) = delete X from fv(P) .
+  eq fv(exists X . P) = delete X from fv(P) .
+  eq fv(X in P) = X fv(P) .
+  eq fv(bot) = .VarSet .
+  eq fv(top) = .VarSet .
+--- for any user-defined patterns (which we do not recommended adding new
+--- new patterns to the grammar), fv(P) is the empty set. 
+--- eq fv(P) = .VarSet [owise] .
+
+--- alpha equivalent checking
+  eq P =a= P = true .
+  eq ( ~ P =a= ~ Q ) = ( P =a= Q ) .
+  eq ( P1 -> P2 =a= Q1 -> Q2 ) = ( P1 =a= Q1 ) andBool ( P2 =a= Q2 ) .
+  eq ( P1 /\ P2 =a= Q1 /\ Q2 ) = ( P1 =a= Q1 ) andBool ( P2 =a= Q2 ) .
+  eq ( P1 \/ P2 =a= Q1 \/ Q2 ) = ( P1 =a= Q1 ) andBool ( P2 =a= Q2 ) .
+  eq ( P1 = P2 =a= Q1 = Q2 )   = ( P1 =a= Q1 ) andBool ( P2 =a= Q2 ) .
+  eq ( P1 => P2 =a= Q1 => Q2 ) = ( P1 =a= Q1 ) andBool ( P2 =a= Q2 ) .
+  eq ( F() =a= F() ) = true .
+  eq ( F(P) =a= F(Q) ) = ( P =a= Q ) .
+  eq ( F(P, Ps) =a= F(Q, Qs) ) = ( P =a= Q ) andBool ( F(Ps) =a= F(Qs) ) .
+  eq ( exists X . P =a= exists Y . Q ) = ( P =a= Q [ X / Y ] ) .
+  eq ( forall X . P =a= forall Y . Q ) = ( P =a= Q [ X / Y ] ) .  
+  eq ( X in P =a= X in Q ) = ( P =a= Q ) .
+  eq P =a= Q = false [owise] .
+
+--- closed-form checking
+  eq P is-closed-pattern = fv(P) is-empty .
+  eq X occur-free-in P = X is-in fv(P) .
+  eq X not-occur-free-in P = notBool (X occur-free-in P) .
+  
+--- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
+  ops zero one two three four five six seven eight nine ten : -> Symbol .
+  ops succ plus : -> Symbol .
+
+--- Seq
+  ops epsilon concat : -> Symbol .
+
+--- Map
+  ops mapsto mapstoseq emp merge list : -> Symbol .
+
+
+--- The Sorting Information
+
+  sort ML-Sort .
+  ops Bol Nat Seq Map NoSort AnySort : -> ML-Sort .
+
+  op getSort : Pattern -> ML-Sort .
+
+  eq getSort(X) = AnySort .
+  eq getSort(~ P) = getSort(P) .
+
+
+endfm
+
+quit 
+

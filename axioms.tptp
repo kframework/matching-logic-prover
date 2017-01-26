@@ -1,3 +1,0 @@
-fof(nat,conjecture,(
-  (?[X,Y] : f(X) & g(X,Y) & h(Y)) <=> (?[X] : (f(X) & ?[Y] : g(X, Y) & h(Y)))
-)) .
