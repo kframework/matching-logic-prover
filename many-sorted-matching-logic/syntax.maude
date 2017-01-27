@@ -37,6 +37,9 @@ fmod ML-SYNTAX is
   op _,_ : PatternList PatternList -> PatternList
     [assoc id: .PatternList prec 77] . --- the list constructor has a higher
                                        --- precedence than logical connectives
+  op length : PatternList -> Int .
+  eq length(.PatternList) = 0 .
+  eq length(P, Ps) = 1 +Int length(Ps) .
 
 --- full grammar of the formal language for matching logic
 --- listed by precedence from tighter-binding to looser-binding. 
@@ -153,6 +156,63 @@ fmod ML-SYNTAX is
   eq X occur-free-in P = X is-in fv(P) .
   eq X not-occur-free-in P = notBool (X occur-free-in P) .
   
+--- The Sorting Information
+  sort ML-Sort .
+  ops Bol Nat Seq Map NoSort AnySort : -> ML-Sort .
+  op _andSort_ : ML-Sort ML-Sort -> ML-Sort [comm] .
+  op _isValidSort : ML-Sort -> Bool .
+  vars Sort1 Sort2 : ML-Sort .
+  eq Sort1 andSort AnySort = Sort1 .
+  eq Sort1 andSort NoSort = NoSort .
+  eq Sort1 andSort Sort1 = Sort1 .
+  eq Sort1 andSort Sort2 = NoSort [owise] .
+  eq NoSort isValidSort = false .
+  eq Sort1 isValidSort = true [owise] .
+  
+
+  op getSort : Pattern -> ML-Sort .
+  eq getSort(~ P) = getSort(P) .
+  eq getSort(P1 -> P2) = getSort(P1) andSort getSort(P2) .
+  eq getSort(P1 /\ P2) = getSort(P1) andSort getSort(P2) .
+  eq getSort(P1 \/ P2) = getSort(P1) andSort getSort(P2) .
+  ceq getSort(P1 = P2) = AnySort if (getSort(P1) andSort getSort(P2)) isValidSort .
+  eq getSort(forall X . P) = getSort(P) .
+  eq getSort(exists X . P) = getSort(P) .
+  ceq getSort(X in P) = AnySort if (getSort(X) andSort getSort(P)) isValidSort .
+  eq getSort(bot) = AnySort .
+  eq getSort(top) = AnySort .
+
+  sort ML-SortList .
+  subsort ML-Sort < ML-SortList .
+  op .ML-SortList : -> ML-SortList .
+  op _,_ : ML-SortList ML-SortList -> ML-SortList [assoc comm id: .ML-SortList] .
+  op getSymbolType : Symbol -> ML-SortList .
+  op length : ML-SortList -> Int .
+  eq length(.ML-SortList) = 0 .
+  var RestSorts RestSorts1 RestSorts2 : ML-SortList .
+  eq length(Sort1, RestSorts) = 1 +Int length(RestSorts) .
+  op getImageSort : Symbol -> ML-Sort .
+  eq getImageSort(F) = last(getSymbolType(F)) .
+  op last : ML-SortList -> ML-Sort .
+  eq last(RestSorts, Sort1) = Sort1 .
+  op getSortList : PatternList -> ML-SortList .
+  eq getSortList(.PatternList) = .ML-SortList .
+  eq getSortList(P, Ps) = getSort(P), getSortList(Ps) .
+  op _matchSortList_ : ML-SortList ML-SortList -> ML-SortList .
+  op _matchSort_ : ML-Sort ML-Sort -> ML-Sort .
+  eq NoSort matchSort Sort1 = false . --- NoSort matches nothing
+  eq 
+  eq .ML-SortList matchSortList .ML-SortList = true .
+  eq (Sort1, RestSorts1) matchSortList (Sort2, RestSorts2)
+
+  ceq getSort(F()) = getImageSort(F) if (length(getSymbolType(F)) = 1) .
+  eq getSort(F()) = NoSort [owise] .
+  ceq getSort(F(Ps)) = getImageSort(F) 
+  if (length(Ps) +Int 1 = length(getSymbolType(F))) .
+
+
+  
+
 --- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
   ops zero one two three four five six seven eight nine ten : -> Symbol .
   ops succ plus : -> Symbol .
@@ -162,24 +222,6 @@ fmod ML-SYNTAX is
 
 --- Map
   ops mapsto mapstoseq emp merge list : -> Symbol .
-
-
---- The Sorting Information
-
-  sort ML-Sort .
-  ops Bol Nat Seq Map NoSort AnySort : -> ML-Sort .
-  op _andSort_ : ML-Sort ML-Sort -> ML-Sort [comm] .
-  vars S1 S2 : ML-Sort .
-  eq S1 andSort AnySort = S1 .
-  eq S1 andSort NoSort = NoSort .
-  eq S1 andSort S1 = S1 .
-  eq S1 andSort S2 = NoSort [owise] .
-
-  op getSort : Pattern -> ML-Sort .
-
-  eq getSort(X) = AnySort .
-  eq getSort(~ P) = getSort(P) .
-
 
 endfm
 
