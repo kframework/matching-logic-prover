@@ -21,7 +21,8 @@ fmod ML-SYNTAX is
 --- resolve naming conflicts
   including PL-GENERIC-SUBSTITUTION * 
     ( op fv_ to PL-FV_ , 
-      op _,_ to _PL-COMMA_ ) .
+      op _,_ to _PL-COMMA_,
+      sort Sort to PL-Sort ) .
 
 --- The sort Var stands for matching logic variables, and it takes Qid as its
 --- subsorts, so all quoted variables are available to use when one writes
@@ -57,6 +58,8 @@ fmod ML-SYNTAX is
   op forall_._ : Var Pattern -> Pattern [ctor prec 60] . --- forall x . P
   ops bot top : -> Pattern [ctor] . --- bottom and top
   ops floor ceil : -> Symbol [ctor] . --- defineness and totality symbols
+
+  eq F(.PatternList) = F() .
 
 --- substitution : P [ Q / X ] 
   op _[_/_] : Pattern Pattern Var -> Pattern [prec 75].
@@ -157,75 +160,139 @@ fmod ML-SYNTAX is
   eq X not-occur-free-in P = notBool (X occur-free-in P) .
   
 --- The Sorting Information
-  sort ML-Sort .
-  ops Bol Nat Seq Map NoSort AnySort : -> ML-Sort .
-  op _andSort_ : ML-Sort ML-Sort -> ML-Sort [comm] .
-  op _isValidSort : ML-Sort -> Bool .
-  vars Sort1 Sort2 : ML-Sort .
-  eq Sort1 andSort AnySort = Sort1 .
-  eq Sort1 andSort NoSort = NoSort .
-  eq Sort1 andSort Sort1 = Sort1 .
-  eq Sort1 andSort Sort2 = NoSort [owise] .
-  eq NoSort isValidSort = false .
-  eq Sort1 isValidSort = true [owise] .
-  
+--- ML-Sort is a lattice with one topsort and one botsort,
+--- and all user-defined sorts lying in between:
+--- Example:
+---           topsort
+---   Bool   Nat   Seq   Map   ...
+---           botsort
 
-  op getSort : Pattern -> ML-Sort .
+--- NeSortList stands for "nonempty sort lists"
+  sort Sort SortList NeSortList .   ops topsort botsort : -> Sort [ctor] .
+  subsorts Sort < NeSortList < SortList .
+  op .SortList : -> SortList [ctor] .
+--- Use operator overloading to "describe" NeSortList .
+--- This is a common trick in maude: see Maude Manual if one
+--- feels unconfortable with it.
+  op _,_ : SortList SortList -> SortList [ctor assoc id: .SortList] .
+  op _,_ : NeSortList SortList -> NeSortList [ctor ditto] .
+  op _,_ : SortList NeSortList -> NeSortList [ctor ditto] .
+  op length : SortList -> Int .
+  eq length(.SortList) = 0 .
+  eq length(S:Sort, Ss:SortList) = 1 +Int length(Ss:SortList) .
+  
+  op minsort : NeSortList -> Sort .
+  eq minsort(S:Sort) = S:Sort .
+  eq minsort(botsort, S:Sort) = botsort .
+  eq minsort(S:Sort, botsort) = botsort .
+  eq minsort(topsort, S:Sort) = S:Sort .
+  eq minsort(S:Sort, topsort) = S:Sort .
+  eq minsort(S:Sort, S:Sort) = S:Sort .
+  eq minsort(S1:Sort, S2:Sort) = botsort [owise] .
+  eq minsort(S1:Sort, S2:Sort, Ss:NeSortList) =
+       minsort(minsort(S1:Sort, S2:Sort), Ss:NeSortList) .
+
+  op getSort : Pattern -> Sort .
+  op ceil : Sort -> Sort .
+  eq ceil(botsort) = botsort .
+  eq ceil(S:Sort) = topsort [owise] .
+
+--- A variable is of sort "topsort" by default, 
+--- unless users declares them to be of a specific sort,
+--- by writing "eq getSort('myNatVar) = Nat .".
+--- NOTE: this may cause problems. For example, let f : Map -> Nat
+--- and g : Seq -> Nat be two symbols in matching logic. Then
+--- plus(f('x), g('x)) will be of sort Nat, which it shouldn't be.
+  eq getSort(X:Var) = topsort [owise] . 
   eq getSort(~ P) = getSort(P) .
-  eq getSort(P1 -> P2) = getSort(P1) andSort getSort(P2) .
-  eq getSort(P1 /\ P2) = getSort(P1) andSort getSort(P2) .
-  eq getSort(P1 \/ P2) = getSort(P1) andSort getSort(P2) .
-  ceq getSort(P1 = P2) = AnySort if (getSort(P1) andSort getSort(P2)) isValidSort .
+  eq getSort(P1 /\ P2) = minsort(getSort(P1), getSort(P2)) .
+  eq getSort(P1 \/ P2) = minsort(getSort(P1), getSort(P2)) .
+  eq getSort(P1 -> P2) = minsort(getSort(P1), getSort(P2)) .
+  eq getSort(P1 = P2) = ceil(minsort(getSort(P1), getSort(P2))) .
   eq getSort(forall X . P) = getSort(P) .
   eq getSort(exists X . P) = getSort(P) .
-  ceq getSort(X in P) = AnySort if (getSort(X) andSort getSort(P)) isValidSort .
-  eq getSort(bot) = AnySort .
-  eq getSort(top) = AnySort .
+  eq getSort(X in P) = ceil(minsort(getSort(X), getSort(P))) .
+  eq getSort(floor(P)) = ceil(getSort(P)) .
+  eq getSort(ceil(P)) = ceil(getSort(P)) .
+  eq getSort(bot) = topsort .
+  eq getSort(top) = topsort .
 
-  sort ML-SortList .
-  subsort ML-Sort < ML-SortList .
-  op .ML-SortList : -> ML-SortList .
-  op _,_ : ML-SortList ML-SortList -> ML-SortList [assoc comm id: .ML-SortList] .
-  op getSymbolType : Symbol -> ML-SortList .
-  op length : ML-SortList -> Int .
-  eq length(.ML-SortList) = 0 .
-  var RestSorts RestSorts1 RestSorts2 : ML-SortList .
-  eq length(Sort1, RestSorts) = 1 +Int length(RestSorts) .
-  op getImageSort : Symbol -> ML-Sort .
-  eq getImageSort(F) = last(getSymbolType(F)) .
-  op last : ML-SortList -> ML-Sort .
-  eq last(RestSorts, Sort1) = Sort1 .
-  op getSortList : PatternList -> ML-SortList .
-  eq getSortList(.PatternList) = .ML-SortList .
-  eq getSortList(P, Ps) = getSort(P), getSortList(Ps) .
-  op _matchSortList_ : ML-SortList ML-SortList -> ML-SortList .
-  op _matchSort_ : ML-Sort ML-Sort -> ML-Sort .
-  eq NoSort matchSort Sort1 = false . --- NoSort matches nothing
-  eq 
-  eq .ML-SortList matchSortList .ML-SortList = true .
-  eq (Sort1, RestSorts1) matchSortList (Sort2, RestSorts2)
+--- type information for symbols
+  op getDomainSort : Symbol -> SortList .
+  op getCodomainSort : Symbol -> Sort .
 
-  ceq getSort(F()) = getImageSort(F) if (length(getSymbolType(F)) = 1) .
-  eq getSort(F()) = NoSort [owise] .
-  ceq getSort(F(Ps)) = getImageSort(F) 
-  if (length(Ps) +Int 1 = length(getSymbolType(F))) .
+--- What is the sort of F(P1, ... ,Pn)?
+---         P1 , ... , Pn
+--- goes to S1 , ... , Sn where Si = getSort(Pi)
+--- goes to ... minsort(Si, getDomainSort(F)_i) ... 
+--- goes to botsort if there is a botsort in the list
+--- owise getCodomainSort(F)
+  op map-getSort : PatternList -> SortList . --- map(getSort, ...)
+  op dmap-minsort : SortList SortList -> SortList . --- doublemap(minsort, ...)
+  op has-a-botsort : SortList -> Bool .
+  op well-sorted-symbol-application : Pattern -> Bool .
+  eq well-sorted-symbol-application(F(Ps)) = 
+  length(getDomainSort(F)) ==Bool length(Ps)
+  andBool notBool has-a-botsort(dmap-minsort(map-getSort(Ps), getDomainSort(F))) .
 
+  ceq getSort(F(Ps)) = getCodomainSort(F) if well-sorted-symbol-application(F(Ps)) .
+  eq getSort(F(Ps)) = botsort [owise] .
 
-  
+  eq map-getSort(.PatternList) = .SortList .
+  eq map-getSort(P, Ps) = getSort(P), map-getSort(Ps) .
+  eq dmap-minsort(.SortList, .SortList) = .SortList .
+  eq dmap-minsort((S1:Sort, Ss1:SortList),
+                  (S2:Sort, Ss2:SortList)) =
+     minsort(S1:Sort, S2:Sort), dmap-minsort(Ss1:SortList, Ss2:SortList) .
+  eq has-a-botsort(.SortList) = false .
+  eq has-a-botsort(botsort, Ss:SortList) = true .
+  eq has-a-botsort(S:Sort, Ss:SortList) = has-a-botsort(Ss:SortList) [owise] .
+
+--- User defined part: should be moved out of this file!
+  ops Bol Nat Seq Map : -> Sort [ctor] .
 
 --- Nat is a built-in domain, and reasoning for Nat is supported by Z3.
   ops zero one two three four five six seven eight nine ten : -> Symbol .
+  eq getDomainSort(zero) = .SortList . eq getCodomainSort(zero) = Nat .
+  eq getDomainSort(two) = .SortList . eq getCodomainSort(two) = Nat .
+  eq getDomainSort(three) = .SortList . eq getCodomainSort(three) = Nat .
+  eq getDomainSort(four) = .SortList . eq getCodomainSort(four) = Nat .
+  eq getDomainSort(five) = .SortList . eq getCodomainSort(five) = Nat .
+  eq getDomainSort(six) = .SortList . eq getCodomainSort(six) = Nat .
+  eq getDomainSort(seven) = .SortList . eq getCodomainSort(seven) = Nat .
+  eq getDomainSort(eight) = .SortList . eq getCodomainSort(eight) = Nat .
+  eq getDomainSort(nine) = .SortList . eq getCodomainSort(nine) = Nat .
+  eq getDomainSort(ten) = .SortList . eq getCodomainSort(ten) = Nat .
+
   ops succ plus : -> Symbol .
+  eq getDomainSort(succ) = Nat . eq getCodomainSort(succ) = Nat . 
+  eq getDomainSort(plus) = Nat, Nat .
+  eq getCodomainSort(plus) = Nat .
 
 --- Seq
-  ops epsilon concat : -> Symbol .
+  ops epsilon concat Nat2Seq : -> Symbol .
+  eq getDomainSort(epsilon) = .SortList . eq getCodomainSort(epsilon) = Seq .
+  eq getDomainSort(concat) = Seq, Seq . eq getCodomainSort(concat) = Seq .
+  eq getDomainSort(Nat2Seq) = Nat . eq getCodomainSort(Nat2Seq) = Seq .
 
 --- Map
   ops mapsto mapstoseq emp merge list : -> Symbol .
+  eq getDomainSort(mapsto) = Nat, Nat . eq getCodomainSort(mapsto) = Map .
+  eq getDomainSort(mapstoseq) = Nat, Seq . eq getCodomainSort(mapstoseq) = Map .
+  eq getDomainSort(emp) = .SortList . eq getCodomainSort(emp) = Map .
+  eq getDomainSort(merge) = Map, Map . eq getCodomainSort(merge) = Map .
+  eq getDomainSort(list) = Nat, Seq . eq getCodomainSort(list) = Map .
+
+--- Variable-in-sort
+--- --- Nat
+  eq getSort('x) = Nat .  eq getSort('y) = Nat .  eq getSort('z) = Nat .
+  eq getSort('x1) = Nat .  eq getSort('y1) = Nat .  eq getSort('z1) = Nat .
+  eq getSort('x2) = Nat .  eq getSort('y2) = Nat .  eq getSort('z2) = Nat .
+--- --- Seq
+  eq getSort('S) = Seq . eq getSort('S1) = Seq . eq getSort('S2) = Seq .
+  eq getSort('T) = Seq . eq getSort('T1) = Seq . eq getSort('T2) = Seq .
+--- --- Map
+  eq getSort('H) = Map . eq getSort('H1) = Map . eq getSort('H2) = Map . 
 
 endfm
-
-reduce getSort('x) .
-
-quit 
 
