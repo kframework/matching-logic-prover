@@ -1,5 +1,5 @@
 --- This module provides a full grammar for the formal language of matching logic.
---- Last update by Xiaohong on 13 Jan 2016.
+--- Last update by Xiaohong on 30 Jan 2016.
 
 load substitution . --- load the generic substitution module.
 
@@ -7,14 +7,7 @@ load substitution . --- load the generic substitution module.
 --- A : The full grammar of the formal language of matching logic, including
    ---  alpha-equivalence checking : P =a= Q
    ---- closed-form checking : P is-closed-form
-   ---- free-occur checking : X occur-free-in P
-
---- Q : What does this module not provide?
---- A : 1) Support for many-sorted grammar. Therefore all variables and patterns
----        are of the same sort.
----     2) Arity of a symbol. Therefore for any symbol s, all the following
----        patterns are well-formed: s(), s(P), s(P, Q), ..., for any P, Q, ...
----        are patterns.          
+   ---- free-occur checking : X occur-free-in P        
 
 fmod ML-SYNTAX is
 
@@ -212,8 +205,6 @@ fmod ML-SYNTAX is
   eq getSort(forall X . P) = getSort(P) .
   eq getSort(exists X . P) = getSort(P) .
   eq getSort(X in P) = ceil(minsort(getSort(X), getSort(P))) .
-  eq getSort(floor(P)) = ceil(getSort(P)) .
-  eq getSort(ceil(P)) = ceil(getSort(P)) .
   eq getSort(bot) = topsort .
   eq getSort(top) = topsort .
 
@@ -296,3 +287,4 @@ fmod ML-SYNTAX is
 
 endfm
 
+quit
