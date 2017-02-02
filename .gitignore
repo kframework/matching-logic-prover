@@ -209,3 +209,7 @@ TSWLatexianTemp*
 
 # expex forward references with \gathertags
 *-tags.tex
+
+# IntelliJ
+ml2pl/.idea/*
+*.class
