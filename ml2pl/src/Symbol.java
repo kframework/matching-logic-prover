@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by xiaohong on 2/2/17.
+ * Created by Xiaohong on 2/2/17.
  */
 public class Symbol {
     private String name;
