@@ -5,7 +5,7 @@ import java.util.Optional;
  */
 public abstract class PatternMaker {
     private Optional<Integer> expectedNumberOfArity;
-    private boolean
+    private boolean isBinder;
 
     public abstract boolean hasFixedNumberOfArity();
     public abstract boolean isBinder();

@@ -1,23 +1,15 @@
+import java.util.List;
+
 /**
+ * Patterns are always obtained by apply a pattern maker upon a list of subpatterns.
  * Created by Xiaohong on 2/3/17.
  */
 public class Pattern {
     private Sort sort;
-    private
+    private PatternMaker patternMaker;
+    private List<Pattern> subPatternList;
 
-    /**
-     * Resolve polymorphic sorting information for pattern and its subpatterns.
-     * The sort of a (polymorphic) pattern depends on the context where it is.
-     */
-    void resolveSorting();
-
-    /**
-     * Get the sort of a pattern. The method calls {@link #resolveSorting()} before
-     * it returns.
-     * @return the sort of the pattern.
-     */
-    public Sort getSort() {
-        resolveSorting();
-        return sort;
+    public Pattern(PatternMaker patternMaker, List<Pattern> subPatternList) {
+        return;
     }
 }
