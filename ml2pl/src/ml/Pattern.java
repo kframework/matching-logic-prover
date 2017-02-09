@@ -25,5 +25,15 @@ public abstract class Pattern {
      * Transforms the pattern to a first-order formula, who has the same validity with the pattern.
      * @return a first-order formula who has the same validity with the pattern.
      */
-    public abstract Formula ML2PL();
+    public abstract Formula toFirstOrderFormula();
+
+    /**
+     * Creates a first-order formula with the pattern and a given first-order variable, such that the first-order
+     * formula is true iff the given first-order variable (regarded as a matching logic variable), matches the
+     * pattern.
+     * @param folVariable a fresh first-order variable
+     * @return a first-order formula which is true iff the first-order variable, when regarded as a matching
+     * logic variable, matches the pattern.
+     */
+    public abstract Formula toFirstOrderFormula(fol.Variable folVariable);
 }

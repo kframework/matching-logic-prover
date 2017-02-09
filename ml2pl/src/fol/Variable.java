@@ -10,7 +10,14 @@ public class Variable {
         this.name = name;
     }
 
+    private static int freshVariableCounter = 0;
     public static Variable generateFreshVariable(){
-        int i = 0;
+        freshVariableCounter++;
+        return new Variable('$'+ String.valueOf(freshVariableCounter));
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

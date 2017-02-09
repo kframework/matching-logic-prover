@@ -24,7 +24,12 @@ public class VarPattern extends Pattern {
     }
 
     @Override
-    public Formula ML2PL() {
+    public Formula toFirstOrderFormula() {
+        return null;
+    }
+
+    @Override
+    public Formula toFirstOrderFormula(fol.Variable folVariable) {
         return null;
     }
 }
