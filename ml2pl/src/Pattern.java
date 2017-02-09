@@ -5,11 +5,14 @@ import java.util.List;
  * Created by Xiaohong on 2/3/17.
  */
 public class Pattern {
-    private Sort sort;
-    private PatternMaker patternMaker;
-    private List<Pattern> subPatternList;
+    public Sort getSort() {
+        return null;
+    }
 
-    public Pattern(PatternMaker patternMaker, List<Pattern> subPatternList) {
+    /**
+     * Resolves polymorphic sorting in a pattern.
+     */
+    public void resolveSorting() {
         return;
     }
 }
