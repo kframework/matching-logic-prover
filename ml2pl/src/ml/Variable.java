@@ -1,3 +1,5 @@
+package ml;
+
 /**
  * Created by xiaohong on 2/8/17.
  */
@@ -16,5 +18,21 @@ public final class Variable {
         assert !sort.isTopSort() && !sort.isBottomSort();
         this.name = name;
         this.sort = sort;
+    }
+
+    /**
+     * Gets the sort of the variable.
+     * @return the sort of the variable.
+     */
+    public Sort getSort() {
+        return sort;
+    }
+
+    /**
+     * Gets the name of the variable.
+     * @return the name of the variable.
+     */
+    public String getName() {
+        return name;
     }
 }
