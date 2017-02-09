@@ -1,0 +1,22 @@
+(declare-sort Bol)
+(declare-sort Nat)
+(declare-sort Seq)
+(declare-sort Map)
+
+(declare-func zero () Nat)
+(declare-func succ (Nat) Nat)
+(declare-func plus (Nat Nat) Nat)
+
+(declare-func ge (Nat Nat) Bol)
+
+(declare-func Nat2Seq (Nat) Seq)
+(declare-func epsilon () Seq)
+(declare-func concat (Seq Seq) Seq)
+
+(declare-func emp () Map)
+(declare-func mapsto (Nat Nat) Map)
+(declare-symb mapstoseq (Nat Seq) Map)
+(declare-symb merge (Map Map) Map)
+
+(assert (plus x 
+
