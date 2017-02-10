@@ -4,25 +4,158 @@
 fmod ML is
   including QID .
 
-  sorts Var Pat Sym Sot SotList .
-
-  --- A quoted identifier is a sort.
-  subsort Qid < Sot .
+  sorts Var Pat PatLst Sym Sot SotLst .
 
   --- A quoted identifier and a sort is a variable.
-  op _:_ : Qid Sort -> Var .
+  op _:_ : Qid Sot -> Var .
 
-  --- A semicolon-separated list of sorts, with .SotList as the empty list.
-  subsort Sot < SotList . op _;_ : SotList SotList -> SotList .
+  --- A comma-separated list of sorts, with .SotLst as the empty list.
+  subsort Sot < SotLst . op .SotLst : -> SotLst .
+  op _,_ : SotLst SotLst -> SotLst [assoc id: .SotLst] .
 
+  --- A comma-separated list of patterns, with .PatLst as the empty list.
+  subsort Pat < PatLst . op .PatLst : -> PatLst .
+  op _,_ : PatLst PatLst -> PatLst [assoc id: .PatLst] .
+
+  --- A symbol has domain sorts and range sort.
+  op domSorts : Sym -> SotLst .
+  op ranSort : Sym -> Sot .
+
+  --- A pattern has a sort.
+  --- Ill-formed patterns have the kind [Sot] .
+  op getSort : Pat -> [Sot] . op getSort : PatLst -> SotLst .
+  eq getSort(.PatLst) = .SotLst .
+  eq getSort(P:Pat, Ps:PatLst) = getSort(P:Pat), getSort(Ps:PatLst) [owise] .
+
+  --- The grammar for patterns.
+  subsort Var < Pat .
+     eq getSort(ID:Qid : S:Sot) = S:Sot .
+
+  op _/\_ : Pat Pat -> Pat [assoc comm] .
+     ceq getSort(P:Pat /\ Q:Pat) = getSort(P:Pat) 
+     if getSort(P:Pat) == getSort(Q:Pat) .
+  
+  op _\/_ : Pat Pat -> Pat [assoc comm] .
+     ceq getSort(P:Pat /\ Q:Pat) = getSort(P:Pat) 
+     if getSort(P:Pat) == getSort(Q:Pat) .
+
+  op ~_ : Pat -> Pat .
+     eq getSort(~ P:Pat) = getSort(P:Pat) .
+
+  op _->_ : Pat Pat -> Pat .
+     ceq getSort(P:Pat /\ Q:Pat) = getSort(P:Pat) 
+     if getSort(P:Pat) == getSort(Q:Pat) .
+
+  op exists_._ : Var Pat -> Pat .
+     eq getSort(exists X:Var . P:Pat) = getSort(P:Pat) .
+
+  op forall_._ : Var Pat -> Pat .
+     eq getSort(forall X:Var . P:Pat) = getSort(P:Pat) .
+
+  op _={_}_ : Pat Sot Pat -> Pat . 
+     ceq getSort(P:Pat ={S:Sot} Q:Pat) = S:Sot
+     if getSort(P:Pat) == getSort(Q:Pat) .
+
+  op _(_) : Sym PatLst -> Pat .
+     ceq getSort(F:Sym(Ps:PatLst)) = ranSort(F:Sym)
+     if getSort(Ps:PatLst) == domSorts(F:Sym) .
+  
+  op _() : Sym -> Pat . eq F:Sym() = F:Sym(.PatLst) .
+  
 endfm
 
 fmod PL is
-  sorts Variable Formula Predicate0 Predicate1 Predicate2 .
+  including ML .
+
+  sorts Variable Formula FormulaList Predicate .
+  
+  --- A quoted identifier is a variable.
+  subsort Qid < Variable .
+
+  --- A comma-separated list of formulas,
+  subsort Formula < FormulaList .
+  op _,_ : FormulaList FormulaList -> FormulaList [assoc prec 100] .
+
+  --- The grammar for formulas
+  subsort Variable < Formula .
+  op ~_ : Formula -> Formula .
+  op _/\_ : Formula Formula -> Formula [assoc comm] .
+  op _\/_ : Formula Formula -> Formula [assoc comm] .
+  op _->_ : Formula Formula -> Formula .
+  op _<->_ : Formula Formula -> Formula .
+  op _=_ : Formula Formula -> Formula .
+  op exists_._ : Variable Formula -> Formula .
+  op forall_._ : Variable Formula -> Formula .
+  --- Sort predicates.
+  op _[_] : Sot FormulaList -> Formula .
+  --- Symbol predicates.
+  op _[_] : Sym FormulaList -> Formula .
+
 endfm
 
-fmod ML2PL is
+mod ML2PL is
+  including PL + ML .
+  including CONVERSION .
+  including COUNTER .
+
+  --- generate new variables.
+  op fresh : -> Variable .
+  eq fresh = qid("$" + string(counter, 10)) .
+
+  --- convert matching variables to variables.
+  op Var2Variable : Var -> Variable .
+  eq Var2Variable(ID:Qid : S:Sot) = ID:Qid .
+
+  --- ml2pl transformation.
+  op ml2pl : Pat Variable -> Formula .
+
+  vars R R1 R2 : Variable . vars P Q : Pat . var X : Var . var F : Sym .
+
+  eq ml2pl(X, R) = (R = Var2Variable(X)) .
+  eq ml2pl(P /\ Q, R) = ml2pl(P, R) /\ ml2pl(Q, R) .
+  eq ml2pl(P \/ Q, R) = ml2pl(P, R) \/ ml2pl(Q, R) .
+  eq ml2pl(~ P, R) = (getSort(P)[R]) /\ (~ ml2pl(P, R)) .
+  eq ml2pl(P -> Q, R) = (getSort(P)[R]) /\ ((~ ml2pl(P, R)) -> ml2pl(Q, R)) .
+  eq ml2pl(exists X . P, R) = 
+     exists Var2Variable(X) . ((getSort(X)[Var2Variable(X)]) /\ ml2pl(P, R)) .
+  eq ml2pl(forall X . P, R) =
+     forall Var2Variable(X) . ((getSort(X)[Var2Variable(X)]) -> ml2pl(P, R)) .
+
+  eq ml2pl(F(), R) = (ranSort(F)[R]) /\ (F[R]) .
   
-endfm
+  --- auxiliary functions that "hold" fresh variables.
+  op ml2pl : Pat Variable Variable -> Formula .
+  op ml2pl : Pat Variable Variable Variable -> Formula .
+
+  eq ml2pl(F(P), R, R1) =
+    (ranSort(F)[R]) /\ (exists R1 . (ml2pl(P, R1) /\ F[R1, R])) .
+
+  eq ml2pl(F(P), R) = ml2pl(F(P), R, fresh) .
+
+  eq ml2pl(F(P, Q), R, R1, R2) =
+    (ranSort(F)[R]) /\ 
+     exists R1 . exists R2 . 
+       (ml2pl(P, R1) /\ ml2pl(Q, R2) /\ F[R1, R2, R]) .
+  eq ml2pl(F(P, Q), R) = ml2pl(F(P, Q), R, fresh, fresh) .
+
+  eq ml2pl(P ={S:Sot} Q, R) = (S:Sot[R]) /\ 
+--- TODO  forall fresh . s(fresh) -> ml2pl(P, fresh) <-> ml2pl(Q, fresh) .
+
+  --- Wrapping up
+  op ml2pl : Pat -> Formula .
+  --- s($) /\ s1(x1) /\ ... /\ sn(xn) -> ml2pl(P, $) .
+ 
+endm
+
+mod MYMOD is
+  including ML2PL .
+  ops Bol Nat Seq Map : -> Sot .
+  ops zero succ plus : -> Sym .
+  eq domSorts(zero) = .SotLst . eq ranSort(zero) = Nat .
+  eq domSorts(succ) = Nat . eq ranSort(succ) = Nat .
+  eq domSorts(plus) = Nat, Nat . eq ranSort(plus) = Nat .
+endm
+
+rewrite ml2pl(forall ('m : Nat) . forall ('n : Nat) . plus(('m : Nat) , ('n : Nat)), '$) .
 
 quit
