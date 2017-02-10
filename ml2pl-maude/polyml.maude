@@ -1,7 +1,0 @@
-fmod POLYML is
-  sorts Variable Pattern Symbol Sort .
-
-
-  
-endfm
-quit

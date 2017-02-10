@@ -1,0 +1,28 @@
+--- ml2pl-Transformation
+--- from many-sorted matching logic to unsorted first-order logic.
+
+fmod ML is
+  including QID .
+
+  sorts Var Pat Sym Sot SotList .
+
+  --- A quoted identifier is a sort.
+  subsort Qid < Sot .
+
+  --- A quoted identifier and a sort is a variable.
+  op _:_ : Qid Sort -> Var .
+
+  --- A semicolon-separated list of sorts, with .SotList as the empty list.
+  subsort Sot < SotList . op _;_ : SotList SotList -> SotList .
+
+endfm
+
+fmod PL is
+  sorts Variable Formula Predicate0 Predicate1 Predicate2 .
+endfm
+
+fmod ML2PL is
+  
+endfm
+
+quit
