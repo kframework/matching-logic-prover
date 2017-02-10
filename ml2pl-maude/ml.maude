@@ -98,7 +98,7 @@ mod ML2PL is
   including CONVERSION .
   including COUNTER .
 
-  --- generate new variables.
+  --- generate new variables: '$1, '$2, '$3, ...
   op fresh : -> Variable .
   eq fresh = qid("$" + string(counter, 10)) .
 
@@ -111,40 +111,64 @@ mod ML2PL is
 
   vars R R1 R2 : Variable . vars P Q : Pat . var X : Var . var F : Sym .
 
-  eq ml2pl(X, R) = (R = Var2Variable(X)) .
+  --- Think of ml2pl transformation as follows.
+  --- pattern (R in P) in matching logic  --ml2pl-->  ml2pl(P, R),
+  --- such that any matching logic model of (R in P) induces a
+  --- FOL model of ml2pl(P, R), and vice versa.
+  --- Therefore, if a model M satisfies (R in P), then it is a
+  --- model of (R in P) in matching logic, then there must exists
+  --- a FOL model M' that satisfies ml2pl(P, R). This shows that
+ ---- (R in P) sat => ml2pl(P, R) sat .
+  --- On the other hand, if a model M' satisfies ml2pl(P, R), then
+  --- there must exists a matching logic model M'' that satisfies
+ ---- (R in P). This shows that ml2pl(P, R) sat => (R in P) sat.
+  --- To conclude, we prove that ml2pl(P, R) sat iff (R in P) sat.
+
+  eq ml2pl(X, R) = 
+    (getSort(X)[R]) /\
+    (getSort(X)[Var2Variable(X)]) /\ 
+    (R = Var2Variable(X)) .
+
   eq ml2pl(P /\ Q, R) = ml2pl(P, R) /\ ml2pl(Q, R) .
   eq ml2pl(P \/ Q, R) = ml2pl(P, R) \/ ml2pl(Q, R) .
   eq ml2pl(~ P, R) = (getSort(P)[R]) /\ (~ ml2pl(P, R)) .
-  eq ml2pl(P -> Q, R) = (getSort(P)[R]) /\ ((~ ml2pl(P, R)) -> ml2pl(Q, R)) .
+  eq ml2pl(P -> Q, R) = (getSort(P)[R]) /\ (ml2pl(P, R) -> ml2pl(Q, R)) .
   eq ml2pl(exists X . P, R) = 
-     exists Var2Variable(X) . ((getSort(X)[Var2Variable(X)]) /\ ml2pl(P, R)) .
+     (getSort(X)[Var2Variable(X)]) /\
+     exists Var2Variable(X) . ml2pl(P, R) .
   eq ml2pl(forall X . P, R) =
-     forall Var2Variable(X) . ((getSort(X)[Var2Variable(X)]) -> ml2pl(P, R)) .
+     (getSort(X)[Var2Variable(X)]) /\
+     forall Var2Variable(X) . ml2pl(P, R) .
 
   eq ml2pl(F(), R) = (ranSort(F)[R]) /\ (F[R]) .
   
   --- auxiliary functions that "hold" fresh variables.
-  op ml2pl : Pat Variable Variable -> Formula .
-  op ml2pl : Pat Variable Variable Variable -> Formula .
+  op ml2pl1 : Pat Variable Variable -> Formula .
+  op ml2pl1 : Pat Variable Variable Variable -> Formula .
 
-  eq ml2pl(F(P), R, R1) =
-    (ranSort(F)[R]) /\ (exists R1 . (ml2pl(P, R1) /\ F[R1, R])) .
-
-  eq ml2pl(F(P), R) = ml2pl(F(P), R, fresh) .
-
-  eq ml2pl(F(P, Q), R, R1, R2) =
+  ceq ml2pl1(F(P), R, R1) =
     (ranSort(F)[R]) /\ 
-     exists R1 . exists R2 . 
-       (ml2pl(P, R1) /\ ml2pl(Q, R2) /\ F[R1, R2, R]) .
-  eq ml2pl(F(P, Q), R) = ml2pl(F(P, Q), R, fresh, fresh) .
+    exists R1 . ((S1:Sot[R1]) /\ ml2pl(P, R1) /\ F[R1, R])
+  if S1:Sot := domSorts(F) .
 
-  eq ml2pl(P ={S:Sot} Q, R) = (S:Sot[R]) /\ 
+  eq ml2pl(F(P), R) = ml2pl1(F(P), R, fresh) .
+
+ ceq ml2pl1(F(P, Q), R, R1, R2) =
+    (ranSort(F)[R]) /\ 
+    (S1:Sot[R1]) /\
+    (S2:Sot[R2]) /\
+    exists R1 . exists R2 . 
+       (ml2pl(P, R1) /\ ml2pl(Q, R2) /\ F[R1, R2, R])
+  if S1:Sot, S2:Sot := domSorts(F) .
+
+  eq ml2pl(F(P, Q), R) = ml2pl1(F(P, Q), R, fresh, fresh) .
+
+  op ml2pl2 : Pat Variable Variable -> Formula .
+  eq ml2pl(P ={S:Sot} Q, R) = ml2pl2(P ={S:Sot} Q, R, fresh) .
+
+    
 --- TODO  forall fresh . s(fresh) -> ml2pl(P, fresh) <-> ml2pl(Q, fresh) .
 
-  --- Wrapping up
-  op ml2pl : Pat -> Formula .
-  --- s($) /\ s1(x1) /\ ... /\ sn(xn) -> ml2pl(P, $) .
- 
 endm
 
 mod MYMOD is
