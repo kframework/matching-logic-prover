@@ -102,9 +102,28 @@ mod ML2PL is
   op fresh : -> Variable .
   eq fresh = qid("$" + string(counter, 10)) .
 
-  --- convert matching variables to variables.
+  --- convert matching logic variables to variables.
   op Var2Variable : Var -> Variable .
   eq Var2Variable(ID:Qid : S:Sot) = ID:Qid .
+
+  --- FOL model constraint
+  --- collect all matching logic variables in a pattern, no matter
+  --- free or bound.
+  op getVars : Pat -> VarSet . op getVars : PatLst -> VarSet .
+  sort VarSet . subsort Var < VarSet . op .VarSet : -> VarSet .
+  op _._ : VarSet VarSet -> VarSet [comm assoc id: .VarSet] .
+  eq X:Var . X:Var = X:Var .
+  eq getVars(X:Var) = X:Var .
+  eq getVars(~ P:Pat) = getVars(P:Pat) .
+  eq getVars(P:Pat /\ Q:Pat) = getVars(P:Pat) . getVars(Q:Pat) .
+  eq getVars(P:Pat \/ Q:Pat) = getVars(P:Pat) . getVars(Q:Pat) .
+  eq getVars(P:Pat -> Q:Pat) = getVars(P:Pat) . getVars(Q:Pat) .
+  eq getVars(P:Pat ={S:Sot} Q:Pat) = getVars(P:Pat) . getVars(Q:Pat) .
+  eq getVars(F:Sym(Ps:PatLst)) = getVars(Ps:PatLst) .
+  eq getVars(exists X:Var . P:Pat) = X:Var . getVars(P:Pat) .
+  eq getVars(forall X:Var . P:Pat) = X:Var . getVars(P:Pat) .
+  eq getVars(.PatLst) = .VarSet .
+  eq getVars(P:Pat, Ps:PatLst) = getVars(P:Pat) . getVars(Ps:PatLst) [owise] .
 
   --- ml2pl transformation.
   op ml2pl : Pat Variable -> Formula .
@@ -179,7 +198,7 @@ mod MYMOD is
   eq domSorts(succ) = Nat . eq ranSort(succ) = Nat .
   eq domSorts(plus) = Nat, Nat . eq ranSort(plus) = Nat .
 endm
-
+rewrite getVars(forall ('m : Nat) . forall ('n : Nat) . plus(('m : Nat) , ('n : Nat))) .
 rewrite ml2pl(forall ('m : Nat) . forall ('n : Nat) . plus(('m : Nat) , ('n : Nat)), '$) .
 
 quit
