@@ -23,7 +23,7 @@ fmod ML is
 
   --- A pattern has a sort.
   --- Ill-formed patterns have the kind [Sot] .
-  op getSort : Pat -> [Sot] . op getSort : PatLst -> SotLst .
+  op getSort : PatLst -> SotLst .
   eq getSort(.PatLst) = .SotLst .
   eq getSort(P:Pat, Ps:PatLst) = getSort(P:Pat), getSort(Ps:PatLst) [owise] .
 
@@ -90,6 +90,20 @@ fmod PL is
   op _[_] : Sot FormulaList -> Formula .
   --- Symbol predicates.
   op _[_] : Sym FormulaList -> Formula .
+  ops tt ff : -> Formula .
+  eq tt /\ F:Formula = F:Formula . eq tt \/ F:Formula = tt .
+  eq ff /\ F:Formula = ff . eq ff \/ F:Formula = F:Formula .
+  eq tt -> F:Formula = F:Formula . eq F:Formula -> tt = tt .
+  eq ff -> F:Formula = tt . eq F:Formula -> ff = ~ F:Formula .
+  eq ~ ~ F:Formula = F:Formula .
+  eq ~ tt = ff . eq ~ ff = tt .
+  eq (F:Formula \/ F:Formula) = F:Formula .
+  eq (F:Formula /\ F:Formula) = F:Formula .
+  eq (F:Formula = F:Formula) = tt .
+  eq forall X:Variable . tt = tt .
+  eq forall X:Variable . ff = ff .
+  eq exists X:Variable . tt = tt .
+  eq exists X:Variable . ff = ff .
 
 endfm
 
@@ -109,7 +123,7 @@ mod ML2PL is
   --- FOL model constraint
   --- collect all matching logic variables in a pattern, no matter
   --- free or bound.
-  op getVars : Pat -> VarSet . op getVars : PatLst -> VarSet .
+  op getVars : PatLst -> VarSet .
   sort VarSet . subsort Var < VarSet . op .VarSet : -> VarSet .
   op _._ : VarSet VarSet -> VarSet [comm assoc id: .VarSet] .
   eq X:Var . X:Var = X:Var .
@@ -123,7 +137,17 @@ mod ML2PL is
   eq getVars(exists X:Var . P:Pat) = X:Var . getVars(P:Pat) .
   eq getVars(forall X:Var . P:Pat) = X:Var . getVars(P:Pat) .
   eq getVars(.PatLst) = .VarSet .
-  eq getVars(P:Pat, Ps:PatLst) = getVars(P:Pat) . getVars(Ps:PatLst) [owise] .
+  eq getVars(P:Pat, Ps:PatLst) = getVars(P:Pat) . getVars(Ps:PatLst) .
+
+  --- from matching logic variables x1, ..., xn, build a FOL formula
+  --- s1(x1) /\ ... /\ sn(xn), where si = getSort(xi).
+  --- Such a formula is called a FOL model constraint, because it
+  --- contrains FOL models to interpret matching logic variables
+  --- only in their sorted universe.
+  op FOLModelConstraint : VarSet -> Formula .
+  eq FOLModelConstraint(.VarSet) = tt .
+  eq FOLModelConstraint(X:Var . Xs:VarSet) =
+     (getSort(X:Var)[Var2Variable(X:Var)]) /\ FOLModelConstraint(Xs:VarSet) .
 
   --- ml2pl transformation.
   op ml2pl : Pat Variable -> Formula .
@@ -143,23 +167,17 @@ mod ML2PL is
  ---- (R in P). This shows that ml2pl(P, R) sat => (R in P) sat.
   --- To conclude, we prove that ml2pl(P, R) sat iff (R in P) sat.
 
-  eq ml2pl(X, R) = 
-    (getSort(X)[R]) /\
-    (getSort(X)[Var2Variable(X)]) /\ 
-    (R = Var2Variable(X)) .
-
+  eq ml2pl(X, R) = (R = Var2Variable(X)) .
   eq ml2pl(P /\ Q, R) = ml2pl(P, R) /\ ml2pl(Q, R) .
   eq ml2pl(P \/ Q, R) = ml2pl(P, R) \/ ml2pl(Q, R) .
   eq ml2pl(~ P, R) = (getSort(P)[R]) /\ (~ ml2pl(P, R)) .
   eq ml2pl(P -> Q, R) = (getSort(P)[R]) /\ (ml2pl(P, R) -> ml2pl(Q, R)) .
   eq ml2pl(exists X . P, R) = 
-     (getSort(X)[Var2Variable(X)]) /\
      exists Var2Variable(X) . ml2pl(P, R) .
   eq ml2pl(forall X . P, R) =
-     (getSort(X)[Var2Variable(X)]) /\
      forall Var2Variable(X) . ml2pl(P, R) .
 
-  eq ml2pl(F(), R) = (ranSort(F)[R]) /\ (F[R]) .
+  eq ml2pl(F(.PatLst), R) = (ranSort(F)[R]) /\ (F[R]) .
   
   --- auxiliary functions that "hold" fresh variables.
   op ml2pl1 : Pat Variable Variable -> Formula .
@@ -182,13 +200,37 @@ mod ML2PL is
 
   eq ml2pl(F(P, Q), R) = ml2pl1(F(P, Q), R, fresh, fresh) .
 
-  op ml2pl2 : Pat Variable Variable -> Formula .
-  eq ml2pl(P ={S:Sot} Q, R) = ml2pl2(P ={S:Sot} Q, R, fresh) .
+  --- Auxilirary function that "hold" fresh variables for
+  --- P = Q.
+  op ml2pl2 : Pat Pat Sot Variable Variable -> Formula .
+  eq ml2pl(P ={S:Sot} Q, R) = ml2pl2(P, Q, S:Sot, R, fresh) .
+  eq ml2pl2(P, Q, S:Sot, R, R1) =
+    (S:Sot[R]) /\
+    forall R1 . ((getSort(P)[R]) -> (ml2pl(P, R) <-> ml2pl(Q, R))) .
 
-    
---- TODO  forall fresh . s(fresh) -> ml2pl(P, fresh) <-> ml2pl(Q, fresh) .
+  op pl : Pat -> Formula .
+  eq pl(P) = 
+    (FOLModelConstraint(getVars(P)) /\ (getSort(P)['$]))
+       -> ml2pl(P, '$) .
 
 endm
+
+fmod PL2TPTP is 
+  including PL .
+  op printf : Formula -> String .
+
+  --- transfrom Qid to Upper-word.
+  --- '$xxx -> "Rxxx"
+  op qid2Word : Qid -> String .
+  op qid2Word1 : Qid Bool -> String . op hasDollar : Qid -> Bool .
+  eq qid2Word(ID:Qid) = qid2Word1(ID:Qid, hasDollar(ID:Qid)) .
+  eq qid2Word1(ID:Qid, false) = string(ID:Qid) .
+  eq qid2Word1(ID:Qid, true) = "R" + substr(string(ID:Qid), 1, length(string(ID:Qid))) .
+  eq hasDollar(ID:Qid) = not (find(string(ID:Qid), "$", 0) == notFound) .
+  eq printf(X:Variable) = qid2Word(X:Variable) .
+    
+
+endfm
 
 mod MYMOD is
   including ML2PL .
@@ -198,7 +240,9 @@ mod MYMOD is
   eq domSorts(succ) = Nat . eq ranSort(succ) = Nat .
   eq domSorts(plus) = Nat, Nat . eq ranSort(plus) = Nat .
 endm
-rewrite getVars(forall ('m : Nat) . forall ('n : Nat) . plus(('m : Nat) , ('n : Nat))) .
-rewrite ml2pl(forall ('m : Nat) . forall ('n : Nat) . plus(('m : Nat) , ('n : Nat)), '$) .
+
+reduce in PL2TPTP : printf('$0) .
+
+rewrite in MYMOD : pl(forall ('n : Nat) . ~ (plus(zero(), ('n : Nat)) ={Map} ('n : Nat))) . 
 
 quit
