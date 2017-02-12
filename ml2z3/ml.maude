@@ -66,7 +66,8 @@ endfm
 fmod PL is
   including ML .
 
-  sorts VarLst Formula . subsort VarLst < PatLst .
+  sorts VarLst Formula . subsort Var < VarLst .
+  op _;_ : VarLst VarLst -> VarLst [assoc] .
 
   --- The grammar for formulas
   op _=_ : Var Var -> Formula .
@@ -115,11 +116,11 @@ mod ML2PL is
   op ml2pl2 : Pat Var Var Var -> Formula .
 
   eq ml2pl1(F(P), R, R1) =
-    exists R1 . (ml2pl(P, R1) /\ F[R1, R]) .
+    exists R1 . (ml2pl(P, R1) /\ F[R1 ; R]) .
 
   eq ml2pl2(F(P, Q), R, R1, R2) =
     exists R1 . exists R2 . 
-       (ml2pl(P, R1) /\ ml2pl(Q, R2) /\ F[R1, R2, R]) .
+       (ml2pl(P, R1) /\ ml2pl(Q, R2) /\ F[R1 ; R2 ; R]) .
 
   --- ml2pl3 is an auxiliary function that "holds" fresh variables for
   --- transforming equations.
@@ -139,10 +140,11 @@ mod PL2Z3 is
 
   op wrap : String -> String .  eq wrap(S:String) = "(" + S:String + ")" .
 
-  op pp : Var -> String . op pp : Sot -> String .
+  op pp : PatLst -> String . op pp : Sot -> String .
   op pp : Sym -> String . op pp : Formula -> String .
 
   eq pp(Id:Qid : S:Sot) = string(Id:Qid) .
+  eq pp(X:Var ; Xs:VarLst) = pp(X:Var) + " " + pp(Xs:VarLst) .
   eq pp(X:Var = Y:Var) = wrap("= " + pp(X:Var) + " " + pp(Y:Var)) .
   eq pp(~ F) = wrap("~ " + pp(F)) .
   eq pp(F1 /\ F2) = wrap("and " + pp(F1) + " " + pp(F2)) .
@@ -150,10 +152,10 @@ mod PL2Z3 is
   eq pp(F1 -> F2) = wrap("=> " + pp(F1) + " " + pp(F2)) .
   eq pp(F1 <-> F2) = wrap("= " + pp(F1) + " " + pp(F2)) .
   eq pp(forall (Id:Qid : S:Sot) . F) =
-     wrap("forall ((" + string(Id:Qid) + " " + pp(S:Sot) + "))" + pp(F)) .
+     wrap("forall ((" + string(Id:Qid) + " " + pp(S:Sot) + ")) " + pp(F)) .
   eq pp(exists (Id:Qid : S:Sot) . F) =
-     wrap("exists ((" + string(Id:Qid) + " " + pp(S:Sot) + "))" + pp(F)) .
-  eq pp(F:Sym[X:Var]) = wrap(pp(F:Sym) + " " + pp(X:Var)) .
+     wrap("exists ((" + string(Id:Qid) + " " + pp(S:Sot) + ")) " + pp(F)) .
+  eq pp(F:Sym[Xs:VarLst]) = wrap(pp(F:Sym) + " " + pp(Xs:VarLst)) .
 
   
 endm
@@ -170,9 +172,10 @@ mod MYMOD is
 
   --- provide pp information.
   eq pp(Bol) = "Bol" . eq pp(Nat) = "Nat" .
+  eq pp(zero) = "zero" . eq pp(succ) = "succ" . eq pp(plus) = "plus" .
 
 endm
-
+rewrite pp('M : Nat,'N : Nat) .
 
 rewrite 
 pp(ml2pl((forall ('M : Nat) . forall ('N : Nat) . (plus((succ('M : Nat)), ('N : Nat)) ={Nat} succ(plus(('M : Nat), ('N : Nat))))), '$ : Nat)) .
