@@ -132,7 +132,6 @@ endm
 
 mod PL2Z3 is
   including PL .
-  including META-LEVEL .
 
   vars F F1 F2 : Formula .
 
@@ -140,13 +139,13 @@ mod PL2Z3 is
 
   op wrap : String -> String .  eq wrap(S:String) = "(" + S:String + ")" .
 
-  op pp : PatLst -> String . op pp : Sot -> String .
+  op pp : PatLst -> String . op pp : SotLst -> String .
   op pp : Sym -> String . op pp : Formula -> String .
 
   eq pp(Id:Qid : S:Sot) = string(Id:Qid) .
   eq pp(X:Var ; Xs:VarLst) = pp(X:Var) + " " + pp(Xs:VarLst) .
   eq pp(X:Var = Y:Var) = wrap("= " + pp(X:Var) + " " + pp(Y:Var)) .
-  eq pp(~ F) = wrap("~ " + pp(F)) .
+  eq pp(~ F) = wrap("not " + pp(F)) .
   eq pp(F1 /\ F2) = wrap("and " + pp(F1) + " " + pp(F2)) .
   eq pp(F1 \/ F2) = wrap("or " + pp(F1) + " " + pp(F2)) .
   eq pp(F1 -> F2) = wrap("=> " + pp(F1) + " " + pp(F2)) .
@@ -156,12 +155,58 @@ mod PL2Z3 is
   eq pp(exists (Id:Qid : S:Sot) . F) =
      wrap("exists ((" + string(Id:Qid) + " " + pp(S:Sot) + ")) " + pp(F)) .
   eq pp(F:Sym[Xs:VarLst]) = wrap(pp(F:Sym) + " " + pp(Xs:VarLst)) .
+  eq pp(.SotLst) = "" .
+  eq pp(S1:Sot, Ss:SotLst) = pp(S1:Sot) + " " + pp(Ss:SotLst) .
 
   
 endm
 
-mod MYMOD is
+mod ML2Z3 is
   including ML2PL + PL2Z3 .
+
+  op axioms : -> PatLst .
+  op conjecture : -> Pat .
+  op sorts : -> SotLst .
+  op symbols : -> SymLst .
+  op convert : -> String .
+  eq convert = sot2dcl(sorts) + " " 
+             + sym2dcl(symbols) + " " 
+             + ax2asrt(axioms) + " " 
+             + cj2asrt(conjecture) + " "
+             + "(check-sat)" .
+
+  --- axioms to assertions
+  op ax2asrt : PatLst -> String .
+  eq ax2asrt(P:Pat) = 
+     fof2asrt(forall '$ : getSort(P:Pat) . ml2pl(P:Pat, '$ : getSort(P:Pat))) .
+  eq ax2asrt(P:Pat, Ps:PatLst) =
+     ax2asrt(P:Pat) + " " + ax2asrt(Ps:PatLst) .
+
+  --- conjecture to assertion
+  op cj2asrt : Pat -> String .
+  eq cj2asrt(P:Pat) = 
+     fof2asrt(~ (forall '$ : getSort(P:Pat) . ml2pl(P:Pat, '$ : getSort(P:Pat)))) .
+
+  --- function declaration
+  sort SymLst . subsort Sym < SymLst . 
+  op _,_ : SymLst SymLst -> SymLst [assoc comm] .
+  op sym2dcl : SymLst -> String .
+  eq sym2dcl(S:Sym) = 
+     "(declare-fun " 
+   + pp(S:Sym) 
+   + " (" + pp(domSorts(S:Sym)) + " " + pp(ranSort(S:Sym)) + ") "
+   + "Bool" + ")" .
+  eq sym2dcl(S:Sym, Ss:SymLst) = sym2dcl(S:Sym) + " " + sym2dcl(Ss:SymLst) .
+ 
+  --- sorts declaration
+  op sot2dcl : SotLst -> String .
+  eq sot2dcl(S:Sot) =
+     "(declare-sort " + pp(S:Sot) + ") " .
+  eq sot2dcl(S:Sot, Ss:SotLst) = sot2dcl(S:Sot) + " " + sot2dcl(Ss:SotLst) .
+endm
+
+mod MYMOD is
+  including ML2Z3 .
   ops Bol Nat Seq Map : -> Sot .
   ops zero succ plus : -> Sym .
 
@@ -171,85 +216,13 @@ mod MYMOD is
   eq domSorts(plus) = Nat, Nat . eq ranSort(plus) = Nat .
 
   --- provide pp information.
-  eq pp(Bol) = "Bol" . eq pp(Nat) = "Nat" .
+  eq pp(Bol) = "MLBol" . eq pp(Nat) = "MLNat" . eq pp(Seq) = "MLSeq" . 
+  eq pp(Map) = "MLMap" .
   eq pp(zero) = "zero" . eq pp(succ) = "succ" . eq pp(plus) = "plus" .
 
-endm
-rewrite pp('M : Nat,'N : Nat) .
-
-rewrite 
-pp(ml2pl((forall ('M : Nat) . forall ('N : Nat) . (plus((succ('M : Nat)), ('N : Nat)) ={Nat} succ(plus(('M : Nat), ('N : Nat))))), '$ : Nat)) .
-
-quit
-
-fmod PL2TPTP is 
-  including PL .
-  op printf : PLVarList -> String .
-  op printf : Sym -> String .
-  op printf : Sot -> String .
-  op printf : Formula -> String .
-  --- wrap with "(" and ")".
-  op wrap : String -> String . eq wrap(S:String) = "(" + S:String + ")" .
-  vars F F1 F2 : Formula .
-
-  eq printf(X:PLVar) = string(X:PLVar) .
-  eq printf((X:PLVar, Xs:PLVarList)) = 
-    string(X:PLVar) + ", " + printf(Xs:PLVarList) .
-  eq printf(X:PLVar = Y:PLVar) = wrap(printf(X:PLVar) + "=" + printf(Y:PLVar)) .
-  eq printf(F1 /\ F2) = wrap(printf(F1) + " & " + printf(F2)) .
-  eq printf(F1 \/ F2) = wrap(printf(F1) + " | " + printf(F2)) .
-  eq printf(F1 <-> F2) = wrap(printf(F1) + " <=> " + printf(F2)) .
-  eq printf(F1 -> F2) = wrap(printf(F1) + " => " + printf(F2)) .
-  eq printf(~ F) = wrap("~ " + printf(F)) .
-  eq printf(F:Sym[Xs:PLVarList]) =
-    printf(F:Sym) + wrap(printf(Xs:PLVarList)) .
-  eq printf(F:Sot[X:PLVar]) =
-    printf(F:Sot) + wrap(printf(X:PLVar)) .
-  eq printf(forall X:PLVar . F) =
-    wrap("! [" + printf(X:PLVar) + "]" + " : " + wrap(printf(F))) .
-  eq printf(exists X:PLVar . F) =
-    wrap("? [" + printf(X:PLVar) + "]" + " : " + wrap(printf(F))) .
-endfm
-
-mod ML2TPTP is
-  including ML2PL + PL2TPTP .
-
-  --- ml2tptp(axioms, conjecture)
-  op ml2tptp : PatLst -> String .
-  
-  op pat2fof : Pat -> String .
-  eq pat2fof(P:Pat) = printf(pl(P:Pat)) .
-
-  op pat2ax : Pat -> String .
-  op pat2cj : Pat -> String .
-  eq pat2ax(P:Pat) = 
-     "fof(ax_" + string(counter, 10) + ", axiom, " +
-     pat2fof(P:Pat) + "). " .
-  eq pat2cj(P:Pat) = 
-     "fof(cj, conjecture, " +
-     pat2fof(P:Pat) + "). " .
-
-  eq ml2tptp(P:Pat, Q:Pat) = pat2ax(P:Pat) + pat2cj(Q:Pat) .
-  eq ml2tptp(P:Pat, Ps:PatLst, Q:Pat) = pat2ax(P:Pat) + ml2tptp(Ps:PatLst, Q:Pat) .
-
-endm
-
-mod MYMOD is
-  including ML2TPTP .
-  ops Bol Nat Seq Map : -> Sot .
-  ops zero succ plus : -> Sym .
-
-  --- provide sorting information.
-  eq domSorts(zero) = .SotLst . eq ranSort(zero) = Nat .
-  eq domSorts(succ) = Nat . eq ranSort(succ) = Nat .
-  eq domSorts(plus) = Nat, Nat . eq ranSort(plus) = Nat .
-  --- provide for sorts and symbols their TPTP output strings.
-  eq printf(Bol) = "bol" . eq printf(Nat) = "nat" .
-  eq printf(Seq) = "seq" . eq printf(Map) = "map" .
-  eq printf(zero) = "zero" . eq printf(succ) = "succ" .
-  eq printf(plus) = "plus" .
-
-  op axioms : -> PatLst . op conj : -> Pat .
+  --- setup z3-conversion
+  eq sorts = Bol, Nat, Seq, Map .
+  eq symbols = zero, succ, plus .
   eq axioms = 
     (exists ('T : Nat) . (zero() ={Nat} ('T : Nat))) , 
     (forall ('M : Nat) . exists ('T : Nat) . (succ('M : Nat) ={Nat} ('T : Nat))) ,
@@ -261,11 +234,12 @@ mod MYMOD is
     (forall ('M : Nat) . forall ('N : Nat) .
         (plus((succ('M : Nat)), ('N : Nat)) ={Nat} succ(plus(('M : Nat), ('N : Nat)))))
     .
-  eq conj = 
+  eq conjecture = 
     plus((succ(zero())), (succ(zero()))) ={Nat} succ(succ(zero())) .
+ 
 
 endm
-
-rewrite in MYMOD : ml2tptp(axioms, conj) . 
+rew convert .
 
 quit
+
