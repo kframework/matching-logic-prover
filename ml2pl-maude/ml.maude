@@ -67,43 +67,41 @@ endfm
 fmod PL is
   including ML .
 
-  sorts Variable Formula FormulaList Predicate .
+  sorts PLVar PLVarList Formula .
   
   --- A quoted identifier is a variable.
-  subsort Qid < Variable .
+  subsort Qid < PLVar .
 
-  --- A comma-separated list of formulas,
-  subsort Formula < FormulaList .
-  op _,_ : FormulaList FormulaList -> FormulaList [assoc prec 100] .
+  --- A comma-separated list of variables,
+  subsort PLVar < PLVarList .
+  op _,_ : PLVarList PLVarList -> PLVarList [assoc prec 100] .
 
   --- The grammar for formulas
-  subsort Variable < Formula .
+  op _=_ : PLVar PLVar -> Formula .
   op ~_ : Formula -> Formula .
   op _/\_ : Formula Formula -> Formula [assoc comm] .
   op _\/_ : Formula Formula -> Formula [assoc comm] .
   op _->_ : Formula Formula -> Formula .
   op _<->_ : Formula Formula -> Formula .
-  op _=_ : Formula Formula -> Formula .
-  op exists_._ : Variable Formula -> Formula .
-  op forall_._ : Variable Formula -> Formula .
+  op exists_._ : PLVar Formula -> Formula .
+  op forall_._ : PLVar Formula -> Formula .
   --- Sort predicates.
-  op _[_] : Sot FormulaList -> Formula .
+  op _[_] : Sot PLVar -> Formula .
   --- Symbol predicates.
-  op _[_] : Sym FormulaList -> Formula .
+  op _[_] : Sym PLVarList -> Formula .
   ops tt ff : -> Formula .
   eq tt /\ F:Formula = F:Formula . eq tt \/ F:Formula = tt .
   eq ff /\ F:Formula = ff . eq ff \/ F:Formula = F:Formula .
   eq tt -> F:Formula = F:Formula . eq F:Formula -> tt = tt .
   eq ff -> F:Formula = tt . eq F:Formula -> ff = ~ F:Formula .
   eq ~ ~ F:Formula = F:Formula .
-  eq ~ tt = ff . eq ~ ff = tt .
   eq (F:Formula \/ F:Formula) = F:Formula .
   eq (F:Formula /\ F:Formula) = F:Formula .
-  eq (F:Formula = F:Formula) = tt .
-  eq forall X:Variable . tt = tt .
-  eq forall X:Variable . ff = ff .
-  eq exists X:Variable . tt = tt .
-  eq exists X:Variable . ff = ff .
+  eq (X:PLVar = X:PLVar) = tt .
+  eq forall X:PLVar . tt = tt .
+  eq forall X:PLVar . ff = ff .
+  eq exists X:PLVar . tt = tt .
+  eq exists X:PLVar . ff = ff .
 
 endfm
 
@@ -112,13 +110,13 @@ mod ML2PL is
   including CONVERSION .
   including COUNTER .
 
-  --- generate new variables: '$1, '$2, '$3, ...
-  op fresh : -> Variable .
-  eq fresh = qid("$" + string(counter, 10)) .
+  --- generate new variables: 'R0, 'R1, 'R2, 'R3, ...
+  op fresh : -> PLVar .
+  eq fresh = qid("R" + string(counter, 10)) .
 
   --- convert matching logic variables to variables.
-  op Var2Variable : Var -> Variable .
-  eq Var2Variable(ID:Qid : S:Sot) = ID:Qid .
+  op ml2pl : Var -> PLVar .
+  eq ml2pl(ID:Qid : S:Sot) = ID:Qid .
 
   --- FOL model constraint
   --- collect all matching logic variables in a pattern, no matter
@@ -147,12 +145,12 @@ mod ML2PL is
   op FOLModelConstraint : VarSet -> Formula .
   eq FOLModelConstraint(.VarSet) = tt .
   eq FOLModelConstraint(X:Var . Xs:VarSet) =
-     (getSort(X:Var)[Var2Variable(X:Var)]) /\ FOLModelConstraint(Xs:VarSet) .
+     (getSort(X:Var)[ml2pl(X:Var)]) /\ FOLModelConstraint(Xs:VarSet) .
 
   --- ml2pl transformation.
-  op ml2pl : Pat Variable -> Formula .
+  op ml2pl : Pat PLVar -> Formula .
 
-  vars R R1 R2 : Variable . vars P Q : Pat . var X : Var . var F : Sym .
+  vars R R1 R2 : PLVar . vars P Q : Pat . var X : Var . var F : Sym .
 
   --- Think of ml2pl transformation as follows.
   --- pattern (R in P) in matching logic  --ml2pl-->  ml2pl(P, R),
@@ -167,21 +165,21 @@ mod ML2PL is
  ---- (R in P). This shows that ml2pl(P, R) sat => (R in P) sat.
   --- To conclude, we prove that ml2pl(P, R) sat iff (R in P) sat.
 
-  eq ml2pl(X, R) = (R = Var2Variable(X)) .
+  eq ml2pl(X, R) = (R = ml2pl(X)) .
   eq ml2pl(P /\ Q, R) = ml2pl(P, R) /\ ml2pl(Q, R) .
   eq ml2pl(P \/ Q, R) = ml2pl(P, R) \/ ml2pl(Q, R) .
   eq ml2pl(~ P, R) = (getSort(P)[R]) /\ (~ ml2pl(P, R)) .
   eq ml2pl(P -> Q, R) = (getSort(P)[R]) /\ (ml2pl(P, R) -> ml2pl(Q, R)) .
   eq ml2pl(exists X . P, R) = 
-     exists Var2Variable(X) . ml2pl(P, R) .
+     exists ml2pl(X) . ml2pl(P, R) .
   eq ml2pl(forall X . P, R) =
-     forall Var2Variable(X) . ml2pl(P, R) .
+     forall ml2pl(X) . ml2pl(P, R) .
 
   eq ml2pl(F(.PatLst), R) = (ranSort(F)[R]) /\ (F[R]) .
   
   --- auxiliary functions that "hold" fresh variables.
-  op ml2pl1 : Pat Variable Variable -> Formula .
-  op ml2pl1 : Pat Variable Variable Variable -> Formula .
+  op ml2pl1 : Pat PLVar PLVar -> Formula .
+  op ml2pl1 : Pat PLVar PLVar PLVar -> Formula .
 
   ceq ml2pl1(F(P), R, R1) =
     (ranSort(F)[R]) /\ 
@@ -202,7 +200,7 @@ mod ML2PL is
 
   --- Auxilirary function that "hold" fresh variables for
   --- P = Q.
-  op ml2pl2 : Pat Pat Sot Variable Variable -> Formula .
+  op ml2pl2 : Pat Pat Sot PLVar PLVar -> Formula .
   eq ml2pl(P ={S:Sot} Q, R) = ml2pl2(P, Q, S:Sot, R, fresh) .
   eq ml2pl2(P, Q, S:Sot, R, R1) =
     (S:Sot[R]) /\
@@ -210,39 +208,95 @@ mod ML2PL is
 
   op pl : Pat -> Formula .
   eq pl(P) = 
-    (FOLModelConstraint(getVars(P)) /\ (getSort(P)['$]))
-       -> ml2pl(P, '$) .
+    (FOLModelConstraint(getVars(P)) /\ (getSort(P)['R]))
+       -> ml2pl(P, 'R) .
 
 endm
 
 fmod PL2TPTP is 
   including PL .
+  op printf : PLVarList -> String .
+  op printf : Sym -> String .
+  op printf : Sot -> String .
   op printf : Formula -> String .
+  --- wrap with "(" and ")".
+  op wrap : String -> String . eq wrap(S:String) = "(" + S:String + ")" .
+  vars F F1 F2 : Formula .
 
-  --- transfrom Qid to Upper-word.
-  --- '$xxx -> "Rxxx"
-  op qid2Word : Qid -> String .
-  op qid2Word1 : Qid Bool -> String . op hasDollar : Qid -> Bool .
-  eq qid2Word(ID:Qid) = qid2Word1(ID:Qid, hasDollar(ID:Qid)) .
-  eq qid2Word1(ID:Qid, false) = string(ID:Qid) .
-  eq qid2Word1(ID:Qid, true) = "R" + substr(string(ID:Qid), 1, length(string(ID:Qid))) .
-  eq hasDollar(ID:Qid) = not (find(string(ID:Qid), "$", 0) == notFound) .
-  eq printf(X:Variable) = qid2Word(X:Variable) .
-    
-
+  eq printf(X:PLVar) = string(X:PLVar) .
+  eq printf((X:PLVar, Xs:PLVarList)) = 
+    string(X:PLVar) + ", " + printf(Xs:PLVarList) .
+  eq printf(X:PLVar = Y:PLVar) = wrap(printf(X:PLVar) + "=" + printf(Y:PLVar)) .
+  eq printf(F1 /\ F2) = wrap(printf(F1) + " & " + printf(F2)) .
+  eq printf(F1 \/ F2) = wrap(printf(F1) + " | " + printf(F2)) .
+  eq printf(F1 <-> F2) = wrap(printf(F1) + " <=> " + printf(F2)) .
+  eq printf(F1 -> F2) = wrap(printf(F1) + " => " + printf(F2)) .
+  eq printf(~ F) = wrap("~ " + printf(F)) .
+  eq printf(F:Sym[Xs:PLVarList]) =
+    printf(F:Sym) + wrap(printf(Xs:PLVarList)) .
+  eq printf(F:Sot[X:PLVar]) =
+    printf(F:Sot) + wrap(printf(X:PLVar)) .
+  eq printf(forall X:PLVar . F) =
+    wrap("! [" + printf(X:PLVar) + "]" + " : " + wrap(printf(F))) .
+  eq printf(exists X:PLVar . F) =
+    wrap("? [" + printf(X:PLVar) + "]" + " : " + wrap(printf(F))) .
 endfm
 
+mod ML2TPTP is
+  including ML2PL + PL2TPTP .
+
+  --- ml2tptp(axioms, conjecture)
+  op ml2tptp : PatLst -> String .
+  
+  op pat2fof : Pat -> String .
+  eq pat2fof(P:Pat) = printf(pl(P:Pat)) .
+
+  op pat2ax : Pat -> String .
+  op pat2cj : Pat -> String .
+  eq pat2ax(P:Pat) = 
+     "fof(ax_" + string(counter, 10) + ", axiom, " +
+     pat2fof(P:Pat) + "). " .
+  eq pat2cj(P:Pat) = 
+     "fof(cj, conjecture, " +
+     pat2fof(P:Pat) + "). " .
+
+  eq ml2tptp(P:Pat, Q:Pat) = pat2ax(P:Pat) + pat2cj(Q:Pat) .
+  eq ml2tptp(P:Pat, Ps:PatLst, Q:Pat) = pat2ax(P:Pat) + ml2tptp(Ps:PatLst, Q:Pat) .
+
+endm
+
 mod MYMOD is
-  including ML2PL .
+  including ML2TPTP .
   ops Bol Nat Seq Map : -> Sot .
   ops zero succ plus : -> Sym .
+
+  --- provide sorting information.
   eq domSorts(zero) = .SotLst . eq ranSort(zero) = Nat .
   eq domSorts(succ) = Nat . eq ranSort(succ) = Nat .
   eq domSorts(plus) = Nat, Nat . eq ranSort(plus) = Nat .
+  --- provide for sorts and symbols their TPTP output strings.
+  eq printf(Bol) = "bol" . eq printf(Nat) = "nat" .
+  eq printf(Seq) = "seq" . eq printf(Map) = "map" .
+  eq printf(zero) = "zero" . eq printf(succ) = "succ" .
+  eq printf(plus) = "plus" .
+
+  op axioms : -> PatLst . op conj : -> Pat .
+  eq axioms = 
+    (exists ('T : Nat) . (zero() ={Nat} ('T : Nat))) , 
+    (forall ('M : Nat) . exists ('T : Nat) . (succ('M : Nat) ={Nat} ('T : Nat))) ,
+    (forall ('M : Nat) . forall ('N : Nat) . exists ('T : Nat) .
+        (plus(('M : Nat), ('N : Nat)) ={Nat} ('T : Nat))) ,
+    (forall ('M : Nat) . forall ('N : Nat) . 
+        (plus(('M : Nat), ('N : Nat)) ={Nat} plus(('N : Nat), ('M : Nat)))) ,
+    (forall ('M : Nat) . (plus(zero(), ('M : Nat)) ={Nat} ('M : Nat))) ,
+    (forall ('M : Nat) . forall ('N : Nat) .
+        (plus((succ('M : Nat)), ('N : Nat)) ={Nat} succ(plus(('M : Nat), ('N : Nat)))))
+    .
+  eq conj = 
+    plus((succ(zero())), (succ(zero()))) ={Nat} succ(succ(zero())) .
+
 endm
 
-reduce in PL2TPTP : printf('$0) .
-
-rewrite in MYMOD : pl(forall ('n : Nat) . ~ (plus(zero(), ('n : Nat)) ={Map} ('n : Nat))) . 
+rewrite in MYMOD : ml2tptp(axioms, conj) . 
 
 quit
