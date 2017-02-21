@@ -1,19 +1,5 @@
-fmod REAL is
-  including INT .
-  sort Real . subsort Int < Real .
-  sort RealList . subsort Real < RealList .
-  op _,_ : RealList RealList -> RealList [assoc comm] .
-  
-  vars X Y : Real . vars Xs Ys : RealList .
-  op mapadd : RealList RealList -> Real .
-  eq mapadd(X, Y) = X + Y .
-  eq mapadd((X,Xs) , (Y,Ys)) = (X + Y) + mapadd(Xs,Ys) .
+load ml .
 
-  ops l1 l2 : -> RealList .
-  eq l1 = 1,2,3,4 .
-  eq l2 = 5,6,7,8 .
-endfm
-
-reduce mapadd(l1, l2) .
+reduce 'x : S:Sot 'y : S:Sot 'z : S:Sot \ 'x : S:Sot \ 'y : S:Sot .
 
 quit
