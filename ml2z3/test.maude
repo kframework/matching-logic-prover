@@ -1,5 +1,12 @@
 load ml .
 
-reduce 'x : S:Sot 'y : S:Sot 'z : S:Sot \ 'x : S:Sot \ 'y : S:Sot .
+mod TEST is
+  protecting ML .
+  ops Bol Nat Seq Map : -> Sot .
+endm
+
+reduce in TEST :
+('x : Seq) ; ('y : Map)
+.
 
 quit

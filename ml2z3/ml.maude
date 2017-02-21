@@ -7,10 +7,11 @@ fmod ML is
 --- VarSet | set of variables
 --- Pat    | pattern
 --- PatLst | list of patterns
+--- PatSet | set of patterns
 --- Sym    | matching logic symbol
 --- Sot    | matching logic sort
 --- SotLst | list of sorts
-  sorts Var VarSet Pat PatLst Sot SotLst Sym .
+  sorts Var VarSet Pat PatSet PatLst Sot SotLst Sym .
 
 --- a quoted identifier with its sort forms a variable.
   op _:_ : Qid Sot -> Var [ctor prec 50] .
@@ -21,11 +22,14 @@ fmod ML is
   eq X:Var Xs:VarSet \ X:Var = Xs:VarSet .
   eq Xs:VarSet \ X:Var = Xs:VarSet [owise] .
 
---- a comma-separated list of sorts and patterns.
+--- comma-separated lists of sorts and patterns.
   subsort Sot < SotLst . op .SotLst : -> SotLst .
   op _,_ : SotLst SotLst -> SotLst [assoc id: .SotLst prec 80] .
   subsort Pat < PatLst . op .PatLst : -> PatLst .
   op _,_ : PatLst PatLst -> PatLst [assoc id: .PatLst prec 80] .
+--- set of patterns
+  subsort Pat < PatSet . op .PatSet : -> PatSet .
+  op _;_ : PatSet PatSet -> PatSet [assoc comm id: .PatSet prec 80] .
 
 --- sorting infrastructure
 --- a symbol has its domain sorts and a range sort.
@@ -33,45 +37,18 @@ fmod ML is
 
 --- a pattern has a sort.
 --- a list of patterns has, of course, a list of sorts.
-  op getSot : PatLst -> SotLst .
+--- a set of (same-sorted) patterns has, though, just one sort. 
+  op getSot : Pat -> Sot .
+  op getSot : PatLst -> SotLst . 
+  op getSot : PatSet -> Sot .
   eq getSot(.PatLst) = .SotLst .
-  eq getSot(P:Pat, Ps:PatLst) = 
-     getSot(P:Pat), getSot(Ps:PatLst) .
+  eq getSot(P:Pat, Ps:PatLst) = getSot(P:Pat), getSot(Ps:PatLst) .
+  eq getSot(P:Pat ; Ps:PatSet) = getSot(P:Pat) .
 
---- grammar of patterns.
---- patterns are assumed to be well-sorted, always.
-  subsort Var < Pat . eq getSot(ID:Qid : S:Sot) = S:Sot .
+--- all kinds of patterns.
+--- 1) variable
+  subsort Var < Pat .
+  eq getSot(ID:Qid : S:Sot) = S:Sot .
 
---- TODO: What is the sort for top?
-  op /\ : PatLst -> Pat .
-
-     eq getSot(P:Pat /\ Q:Pat) = getSot(P:Pat) .
-  
-  op _\/_ : Pat Pat -> Pat [assoc comm prec 65] .
-     ceq getSot(P:Pat /\ Q:Pat) = getSot(P:Pat) 
-     if getSot(P:Pat) == getSot(Q:Pat) .
-
-  op ~_ : Pat -> Pat [prec 55].
-     eq getSot(~ P:Pat) = getSot(P:Pat) .
-
-  op _->_ : Pat Pat -> Pat [prec 70] .
-     ceq getSot(P:Pat /\ Q:Pat) = getSot(P:Pat) 
-     if getSot(P:Pat) == getSot(Q:Pat) .
-
-  op exists_._ : Var Pat -> Pat [prec 50] .
-     eq getSot(exists X:Var . P:Pat) = getSot(P:Pat) .
-
-  op forall_._ : Var Pat -> Pat [prec 50] .
-     eq getSot(forall X:Var . P:Pat) = getSot(P:Pat) .
-
-  op _={_}_ : Pat Sot Pat -> Pat [prec 57] . 
-     ceq getSot(P:Pat ={S:Sot} Q:Pat) = S:Sot
-     if getSot(P:Pat) == getSot(Q:Pat) .
-
-  op _(_) : Sym PatLst -> Pat [prec 50] .
-     ceq getSot(F:Sym(Ps:PatLst)) = ranSort(F:Sym)
-     if getSot(Ps:PatLst) == domSorts(F:Sym) .
-  --- syntactic sugar for constant symbols.
-  op _() : Sym -> Pat . eq F:Sym() = F:Sym(.PatLst) .
-  
 endfm
+
