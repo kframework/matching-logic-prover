@@ -1,19 +1,33 @@
---- The ml2pl-transformation:
---- from many-sorted matching logic to z3.
+--- many-sorted matching logic.
 
 fmod ML is
   including QID .
 
-  sorts Var Pat PatLst Sym Sot SotLst .
+--- list of abbrev.
+--- Var    | matching logic variable
+--- VarSet | set of variables
+--- Pat    | pattern
+--- PatLst | list of patterns
+--- Sym    | matching logic symbol
+--- Sot    | matching logic sort
+--- SotLst | list of sorts
+  sorts Var VarSet VarLst Pat PatLst Sym Sot SotLst .
 
-  --- A quoted identifier and a sort is a variable.
-  op _:_ : Qid Sot -> Var [prec 50] .
+--- A quoted identifier with its sort forms a variable.
+  op _:_ : Qid Sot -> Var [ctor prec 50] .
+  subsort Var < VarSet . op .VarSet : -> VarSet .
+  op __ : VarSet VarSet -> VarSet [assoc comm id: .VarSet prec 80] . --- set union
+  eq X:Var X:Var = X:Var .
+  op _\_ : VarSet Var -> VarSet [prec 85] . --- set minus an element
+  eq X:Var Xs:VarSet \ X:Var = Xs:VarSet .
+  eq Xs:VarSet \ X:Var = Xs:VarSet [owise] .
 
-  --- A comma-separated list of sorts, with .SotLst as the empty list.
+
+--- A comma-separated list of sorts, with .SotLst as the empty list.
   subsort Sot < SotLst . op .SotLst : -> SotLst .
-  op _,_ : SotLst SotLst -> SotLst [assoc id: .SotLst] .
+  op _,_ : SotLst SotLst -> SotLst [assoc id: .SotLst prec 80] .
 
-  --- A comma-separated list of patterns, with .PatLst as the empty list.
+--- A comma-separated list of patterns, with .PatLst as the empty list.
   subsort Pat < PatLst . op .PatLst : -> PatLst .
   op _,_ : PatLst PatLst -> PatLst [assoc id: .PatLst prec 80] .
 
@@ -63,265 +77,6 @@ fmod ML is
   
 endfm
 
-fmod PL is
-  including ML .
-
-  sorts VarLst Formula . subsort Var < VarLst .
-  op _;_ : VarLst VarLst -> VarLst [assoc] .
-
-  --- The grammar for formulas
-  op _=_ : Var Var -> Formula .
-  op ~_ : Formula -> Formula .
-  op _/\_ : Formula Formula -> Formula [assoc comm] .
-  op _\/_ : Formula Formula -> Formula [assoc comm] .
-  op _->_ : Formula Formula -> Formula .
-  op _<->_ : Formula Formula -> Formula .
-  op exists_._ : Var Formula -> Formula .
-  op forall_._ : Var Formula -> Formula .
-  op forall1_._ : VarLst Formula -> Formula . --- syntactic sugar
-  --- Symbol predicates.
-  op _[_] : Sym VarLst -> Formula .
-
-  --- desugar forall1 x1 ... xn to forall x1 forall x2 ...
-  eq forall1 X:Var . F:Formula = forall X:Var . F:Formula .
-  eq forall1 (X:Var) ; (Xs:VarLst) . F:Formula =
-     forall (X:Var) . forall1 (Xs:VarLst) . F:Formula [owise] .
-
-
-endfm
-
-mod ML2PL is
-  including PL + ML .
-  including CONVERSION .
-  including COUNTER .
-  vars X R R1 R2 : Var . vars P Q : Pat . var F : Sym .
-
-  --- generate new variables: '$0:Nat , '$1:Map , '$2:Seq , ...
-  op fresh : Sot -> Var . op fresh : SotLst -> VarLst .
-
-  eq fresh(S:Sot) = qid("$" + string(counter, 10)) : S:Sot .
-  eq fresh(S:Sot, Ss:SotLst) = fresh(S:Sot) ; fresh(Ss:SotLst) .
-
-  --- ml2pl transformation.
-  op ml2pl : Pat Var -> Formula .
-
-  eq ml2pl(X, R) = (R = X) .
-  eq ml2pl(P /\ Q, R) = ml2pl(P, R) /\ ml2pl(Q, R) .
-  eq ml2pl(P \/ Q, R) = ml2pl(P, R) \/ ml2pl(Q, R) .
-  eq ml2pl(~ P, R) = ~ ml2pl(P, R) .
-  eq ml2pl(P -> Q, R) = ml2pl(P, R) -> ml2pl(Q, R) .
-  eq ml2pl(exists X . P, R) = exists X . ml2pl(P, R) .
-  eq ml2pl(forall X . P, R) = forall X . ml2pl(P, R) .
-  eq ml2pl(F(.PatLst), R) = F[R] .
-  eq ml2pl(F(P), R) = 
-     ml2pl1(F(P), R, fresh(getSort(P))) .
-  eq ml2pl((F(P, Q)), R) = 
-     ml2pl2((F((P, Q))), R, (fresh(getSort(P))), (fresh(getSort(Q)))) .
-  eq ml2pl(P ={S:Sot} Q, R) = ml2pl3(P, Q, R, fresh(getSort(P))) .
-
-  --- ml2pl1, ml2pl2 are auxiliary functions that "hold" fresh variables for
-  --- transforming symbol applications.
-  op ml2pl1 : Pat Var Var -> Formula .
-  op ml2pl2 : Pat Var Var Var -> Formula .
-
-  eq ml2pl1(F(P), R, R1) =
-    exists R1 . (ml2pl(P, R1) /\ F[R1 ; R]) .
-
-  eq ml2pl2(F(P, Q), R, R1, R2) =
-    exists R1 . exists R2 . 
-       (ml2pl(P, R1) /\ ml2pl(Q, R2) /\ F[R1 ; R2 ; R]) .
-
-  --- ml2pl3 is an auxiliary function that "holds" fresh variables for
-  --- transforming equations.
-  op ml2pl3 : Pat Pat Var Var -> Formula .
-
-  eq ml2pl3(P, Q, R, R1) =
-    forall R1 . (ml2pl(P, R1) <-> ml2pl(Q, R1)) .
-endm
-
-mod PL2Z3 is
-  including PL .
-
-  vars F F1 F2 : Formula .
-
-  op fof2asrt : Formula -> String .  eq fof2asrt(F) = wrap("assert " + pp(F)) .
-
-  op wrap : String -> String .  eq wrap(S:String) = "(" + S:String + ")" .
-
-  op pp : PatLst -> String . op pp : SotLst -> String .
-  op pp : Sym -> String . op pp : Formula -> String .
-
-  eq pp(Id:Qid : S:Sot) = string(Id:Qid) .
-  eq pp(X:Var ; Xs:VarLst) = pp(X:Var) + " " + pp(Xs:VarLst) .
-  eq pp(X:Var = Y:Var) = wrap("= " + pp(X:Var) + " " + pp(Y:Var)) .
-  eq pp(~ F) = wrap("not " + pp(F)) .
-  eq pp(F1 /\ F2) = wrap("and " + pp(F1) + " " + pp(F2)) .
-  eq pp(F1 \/ F2) = wrap("or " + pp(F1) + " " + pp(F2)) .
-  eq pp(F1 -> F2) = wrap("=> " + pp(F1) + " " + pp(F2)) .
-  eq pp(F1 <-> F2) = wrap("= " + pp(F1) + " " + pp(F2)) .
-  eq pp(forall (Id:Qid : S:Sot) . F) =
-     wrap("forall ((" + string(Id:Qid) + " " + pp(S:Sot) + ")) " + pp(F)) .
-  eq pp(exists (Id:Qid : S:Sot) . F) =
-     wrap("exists ((" + string(Id:Qid) + " " + pp(S:Sot) + ")) " + pp(F)) .
-  eq pp(F:Sym[Xs:VarLst]) = wrap(pp(F:Sym) + " " + pp(Xs:VarLst)) .
-  eq pp(.SotLst) = "" .
-  eq pp(S1:Sot, Ss:SotLst) = pp(S1:Sot) + " " + pp(Ss:SotLst) .
-endm
-
-
-mod ML2Z3 is
-  including ML2PL + PL2Z3 .
-
-  --- To use ML2Z3, the user only defines the following values, and then
-  --- call "rewrite convert .".
-
-  --- A list of patterns as axioms.
-  op axioms : -> PatLst .
-  --- A pattern as a conjecture.
-  op conjecture : -> Pat .
-  --- A list of sorts.
-  op sorts : -> SotLst .
-  --- A list of symbols.
-  op symbols : -> SymLst .
-  --- A list of functional symbols.
-  --- This helps generate more succinct assertions.
-  op funcSymbols : -> SymLst .
-  --- A list of communitive symbols.
-  op commSymbols : -> SymLst .
-
-  op convert : -> String .
-  eq convert = sot2dcl(sorts) + " "		--- declare-sort 
-             + sym2dcl(symbols) + " "           --- declare-func (ML symbols)
-             + ax2asrt(axioms) + " "            --- assert-axioms
-             + fc2asrt(funcSymbols) + " "       --- assert-functional-symbols
-             + cm2asrt(commSymbols) + " "       --- assert-comm-symbols
-             + cj2asrt(conjecture) + " "        --- assert-conjecture
-             + "(check-sat)" .                  --- unsat means "proof found"!
-
-  --- sorts declaration
-  op sot2dcl : SotLst -> String .
-  eq sot2dcl(S:Sot) =
-     "(declare-sort " + pp(S:Sot) + ") " .
-  eq sot2dcl(S:Sot, Ss:SotLst) = sot2dcl(S:Sot) + " " + sot2dcl(Ss:SotLst) .
-
-  --- symbol declaration
-  sort SymLst . subsort Sym < SymLst . op .SymLst : -> SymLst .
-  op _,_ : SymLst SymLst -> SymLst [assoc comm id: .SymLst] .
-  op sym2dcl : SymLst -> String .
-  eq sym2dcl(.SymLst) = "" .
-  eq sym2dcl(S:Sym) = 
-     "(declare-fun " 
-   + pp(S:Sym) 
-   + " (" + pp(domSorts(S:Sym)) + " " + pp(ranSort(S:Sym)) + ") "
-   + "Bool" + ")" .
-  eq sym2dcl(S:Sym, Ss:SymLst) = sym2dcl(S:Sym) + " " + sym2dcl(Ss:SymLst) .
- 
-  --- axioms to assertions
-  op ax2asrt : PatLst -> String .
-  eq ax2asrt(P:Pat) = 
-     fof2asrt(forall '$ : getSort(P:Pat) . ml2pl(P:Pat, '$ : getSort(P:Pat))) .
-  eq ax2asrt(P:Pat, Ps:PatLst) =
-     ax2asrt(P:Pat) + " " + ax2asrt(Ps:PatLst) .
-
-  --- assertions for functional symbols.
-  --- s(x1,...,xn) is functional iff
-  --- forall x1 ... xn . exists unique y . s(x1,...,xn,y).
-  op fc2asrt : SymLst -> String .
-  eq fc2asrt(.SymLst) = "" .
-  eq fc2asrt(S:Sym) = fc2asrt1(S:Sym, domSorts(S:Sym)) . --- check zero-arity
-  eq fc2asrt(S:Sym, Ss:SymLst) =
-     fc2asrt(S:Sym) + " " + fc2asrt(Ss:SymLst) .
-
-  --- auxilliary function that hold domSorts and fresh variables.
-  op fc2asrt1 : Sym SotLst -> String .       --- check zero-arity
-  op fc2asrt2 : Sym Var Var -> String .         --- for zero-arity symbols.
-  op fc2asrt3 : Sym VarLst Var Var -> String .  --- for other symbols.
-
-  eq fc2asrt1(S:Sym, .SotLst) =
-     fc2asrt2(S:Sym, fresh(ranSort(S:Sym)), 
-                     fresh(ranSort(S:Sym))) .
-  eq fc2asrt1(S:Sym, domsorts:SotLst) = 
-     fc2asrt3(S:Sym, fresh(domsorts:SotLst), 
-                     fresh(ranSort(S:Sym)), 
-                     fresh(ranSort(S:Sym))) [owise] .
-
-  eq fc2asrt2(S:Sym, Y1:Var, Y2:Var) =
-     fof2asrt(exists Y1:Var . S:Sym[Y1:Var]) +
-     " " +
-     fof2asrt(forall Y1:Var . forall Y2:Var .
-              (((S:Sym[Y1:Var]) /\ (S:Sym[Y2:Var]))
-               -> (Y1:Var = Y2:Var))) .
-  eq fc2asrt3(S:Sym, Xs:VarLst, Y1:Var, Y2:Var) =
-     fof2asrt(forall1  Xs:VarLst . exists Y1:Var . S:Sym[Xs:VarLst ; Y1:Var]) +
-     " " +
-     fof2asrt(forall1 Xs:VarLst . forall Y1:Var . forall Y2:Var .
-              (((S:Sym[Xs:VarLst ; Y1:Var]) /\ (S:Sym[Xs:VarLst ; Y2:Var]))
-               -> (Y1:Var = Y2:Var))) .
-
-  --- assertions for communitive (binary) symbols.
-  --- s(x1,x2) is comm iff
-  --- forall x1 x2 y . s(x1,x2,y) = s(x2,x1,y) .
-  op cm2asrt : SymLst -> String .
-  eq cm2asrt(.SymLst) = "" .
-  eq cm2asrt(S:Sym) = 
-     cm2asrt1(S:Sym, fresh(domSorts(S:Sym)), 
-                     fresh(ranSort(S:Sym))) .
-  eq cm2asrt(S:Sym, Ss:SymLst) =
-     cm2asrt(S:Sym) + " " + cm2asrt(Ss:SymLst) .
-  --- auxiliary function that holds fresh variables.
-  op cm2asrt1 : Sym VarLst Var -> String .
-  eq cm2asrt1(S:Sym, (X1:Var ; X2:Var), Y:Var) =
-     fof2asrt(forall1 (X1:Var ; X2:Var) . forall Y:Var . 
-              ((S:Sym[X1:Var ; X2:Var ; Y:Var]) <-> 
-               (S:Sym[X2:Var ; X1:Var ; Y:Var]))) .
-  
-  --- conjecture to assertion
-  op cj2asrt : Pat -> String .
-  eq cj2asrt(P:Pat) = 
-     fof2asrt(~ (forall '$ : getSort(P:Pat) . ml2pl(P:Pat, '$ : getSort(P:Pat)))) .
-endm
-
-mod MYMOD is
-  including ML2Z3 .
-  ops Bol Nat Seq Map : -> Sot .
-  ops zero succ plus : -> Sym .
-
-  --- provide sorting information.
-  eq domSorts(zero) = .SotLst . eq ranSort(zero) = Nat .
-  eq domSorts(succ) = Nat . eq ranSort(succ) = Nat .
-  eq domSorts(plus) = Nat, Nat . eq ranSort(plus) = Nat .
-
-  --- provide pretty-printing information.
-  eq pp(Bol) = "MLBol" . eq pp(Nat) = "MLNat" . eq pp(Seq) = "MLSeq" . 
-  eq pp(Map) = "MLMap" .
-  eq pp(zero) = "zero" . eq pp(succ) = "succ" . eq pp(plus) = "plus" .
-
-  --- setup z3-conversion
-  --- declare sorts.
-  eq sorts = Bol, Nat, Seq, Map .
-
-  --- declare symbols.
-  eq symbols = zero, succ, plus .
-
-  --- assert axioms.
-  eq axioms = 
-    (forall ('M : Nat) . (plus(zero(), ('M : Nat)) ={Nat} ('M : Nat))) ,
-    (forall ('M : Nat) . forall ('N : Nat) .
-        (plus((succ('M : Nat)), ('N : Nat)) ={Nat} succ(plus(('M : Nat), ('N : Nat)))))
-    .
-
-  --- assert function symbols.
-  eq funcSymbols = zero, succ, plus .
-
-  --- assert comm symbols.
-  eq commSymbols = plus .
-
-  --- setup conjecture.
-  eq conjecture = 
-    plus((succ(zero())), (succ(zero()))) ={Nat} succ(succ(zero())) .
-endm
-
-rew convert .
+reduce 'x : S:Sot 'y : T:Sot \ 'y : T:Sot .
 
 quit
-
