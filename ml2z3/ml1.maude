@@ -7,11 +7,10 @@ fmod ML is
 --- VarSet | set of variables
 --- Pat    | pattern
 --- PatLst | list of patterns
---- PatSet | set of patterns
 --- Sym    | matching logic symbol
 --- Sot    | matching logic sort
 --- SotLst | list of sorts
-  sorts Var VarSet Pat PatSet PatLst Sot SotLst Sym .
+  sorts Var VarSet Pat PatLst Sot SotLst Sym .
 
 --- a quoted identifier with its sort forms a variable.
   op _:_ : Qid Sot -> Var [ctor prec 50] .
@@ -27,9 +26,6 @@ fmod ML is
   op _,_ : SotLst SotLst -> SotLst [assoc id: .SotLst prec 80] .
   subsort Pat < PatLst . op .PatLst : -> PatLst .
   op _,_ : PatLst PatLst -> PatLst [assoc id: .PatLst prec 80] .
---- set of patterns
-  subsort Pat < PatSet . op .PatSet : -> PatSet .
-  op _;_ : PatSet PatSet -> PatSet [assoc comm id: .PatSet prec 80] .
 
 --- sorting infrastructure
 --- a symbol has its domain sorts and a range sort.
@@ -40,15 +36,26 @@ fmod ML is
 --- a set of (same-sorted) patterns has, though, just one sort. 
   op getSot : Pat -> Sot .
   op getSot : PatLst -> SotLst . 
-  op getSot : PatSet -> Sot .
   eq getSot(.PatLst) = .SotLst .
   eq getSot(P:Pat, Ps:PatLst) = getSot(P:Pat), getSot(Ps:PatLst) .
-  eq getSot(P:Pat ; Ps:PatSet) = getSot(P:Pat) .
 
---- all kinds of patterns.
+--- all kinds of patterns, with their sorts and simplification equations.
 --- 1) variable
   subsort Var < Pat .
   eq getSot(ID:Qid : S:Sot) = S:Sot .
-
+--- 2) top and bottom
+  op top{_} : Sot -> Pat [ctor] . op bot{_} : Sot -> Pat [ctor] .
+  eq getSot(top{S:Sot}) = S:Sot . eq getSot(bot{S:Sot}) = S:Sot .
+--- 3) conjunction
+  op /\ : PatLst -> Pat .
+  eq getSot(/\(P:Pat, Ps:PatLst)) = getSot(P:Pat) .
+  eq /\(P:Pat) = P:Pat .
+  eq /\(Ps:PatLst, bot{S:Sot}, Qs:PatLst) = bot{S:Sot} .
+  eq /\(Ps1:PatLst, P:Pat, Ps2:PatLst, P:Pat, Ps3:PatLst) =
+     /\(Ps1:PatLst, P:Pat, Ps2:PatLst, Ps3:PatLst) .
+  eq /\(Ps1:PatLst, top{S:Sot}, Ps2:PatLst, P:Pat, Ps3:PatLst) =
+     /\(Ps1:PatLst, Ps2:PatLst, P:Pat, Ps3:PatLst) .
+  eq /\(Ps1:PatLst, P:Pat, Ps2:PatLst, top{S:Sot}, Ps3:PatLst) =
+     /\(Ps1:PatLst, Ps2:PatLst, P:Pat, Ps3:PatLst) .
 endfm
 
