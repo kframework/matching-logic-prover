@@ -1,4 +1,4 @@
-fmod Pat0 is
+fmod PAT0 is
   protecting INT .
   sort Pat PatList Sot SotList Sym .
   
@@ -43,6 +43,11 @@ fmod Pat0 is
   op bot{_} : Sot -> Pat [ctor] .
   eq getSot(bot{S}) = S .
 
+endfm
+
+fmod PAT1 is
+  protecting PAT0 .
+  op subst : Pat Int Pat -> Pat .
 endfm
 
 quit
