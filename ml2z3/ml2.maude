@@ -1,4 +1,47 @@
-fmod PAT is
+fmod Pat0 is
+  protecting INT .
+  sort Pat PatList Sot SotList Sym .
+  
+  subsort Pat < PatList .
+  op .PatList : -> PatList [ctor] .
+  op _,_ : PatList PatList -> PatList [ctor assoc id: .PatList] .
+  
+  subsort Sot < SotList .
+  op .SotList : -> SotList [ctor] .
+  op _,_ : SotList SotList -> SotList [ctor assoc id: .SotList] .
+  
+  vars P Q : Pat . var Ps : PatList . var F : Sym . var S : Sot .
+  
+  op getSot : PatList -> SotList .
+  op getDomSotList : Sym -> SotList .
+  op getRanSot : Sym -> Sot .
+  eq getSot(.PatList) = .SotList .
+  eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] .
+  
+  op {_,_} : Int Sot -> Pat [ctor] . --- de Brujin index for variables
+  eq getSot({N:Int,S}) = S .
+  op _/\_ : Pat Pat -> Pat [ctor assoc comm] .
+  eq getSot(P /\ Q) = getSot(P) .
+  op _\/_ : Pat Pat -> Pat [ctor assoc comm] .
+  eq getSot(P \/ Q) = getSot(P) .
+  op _->_ : Pat Pat -> Pat [ctor] .
+  eq getSot(P -> Q) = getSot(P) .
+  op _<->_ : Pat Pat -> Pat [ctor] .
+  eq getSot(P <-> Q) = getSot(P) .
+  op ~_ : Pat -> Pat [ctor] .
+  eq getSot(~ P) = getSot(P) .
+  ops forall_ exists_ : Pat -> Pat [ctor] .
+  eq getSot(forall P) = getSot(P) .
+  eq getSot(exists P) = getSot(P) .
+  op _() : Sym -> Pat . eq F() = F(.PatList) .
+  op _(_) : Sym PatList -> Pat [ctor] .
+  eq getSot(F(Ps)) = getRanSot(F) .
+  op _={_}_ : Pat Sot Pat -> Pat [ctor] .
+  eq getSot(P ={S} Q) = S .
+  op top{_} : Sot -> Pat [ctor] .
+  eq getSot(top{S}) = S .
+  op bot{_} : Sot -> Pat [ctor] .
+  eq getSot(bot{S}) = S .
 
 endfm
 
