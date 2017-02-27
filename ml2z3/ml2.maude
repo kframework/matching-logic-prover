@@ -1,3 +1,4 @@
+---- Grammar of sorted patterns.
 fmod PAT0 is
   protecting INT .
   sort Pat PatList Sot SotList Sym .
@@ -18,8 +19,8 @@ fmod PAT0 is
   eq getSot(.PatList) = .SotList .
   eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] .
   
-  op {_,_} : Int Sot -> Pat [ctor] . --- de Brujin index for variables
-  eq getSot({N:Int,S}) = S .
+  op {_,_} : Int Sot -> Pat [ctor] . ---- de Brujin indices starting off from 0
+  eq getSot({K:Int,S}) = S .
   op _/\_ : Pat Pat -> Pat [ctor assoc comm] .
   eq getSot(P /\ Q) = getSot(P) .
   op _\/_ : Pat Pat -> Pat [ctor assoc comm] .
@@ -36,18 +37,193 @@ fmod PAT0 is
   op _() : Sym -> Pat . eq F() = F(.PatList) .
   op _(_) : Sym PatList -> Pat [ctor] .
   eq getSot(F(Ps)) = getRanSot(F) .
-  op _={_}_ : Pat Sot Pat -> Pat [ctor] .
+  op _={_}_ : Pat Sot Pat -> Pat [ctor format(d d d d d s d)] .
   eq getSot(P ={S} Q) = S .
+  op _subset{_}_ : Pat Sot Pat -> Pat [ctor format(d d d d d s d)] .
+  eq getSot(P subset{S} Q) = S .
   op top{_} : Sot -> Pat [ctor] .
   eq getSot(top{S}) = S .
   op bot{_} : Sot -> Pat [ctor] .
   eq getSot(bot{S}) = S .
-
 endfm
 
+---- Substitution with de Brujin indices.
 fmod PAT1 is
   protecting PAT0 .
-  op subst : Pat Int Pat -> Pat .
+  
+  vars P Q R : Pat . var Ps : PatList . var F : Sym . var S : Sot .
+  vars K J C D : Int . 
+  
+  op subst : PatList Int Pat -> PatList . ---- subst(P, J, Q) is P[J := Q]
+  op shift : PatList Int Int -> PatList . ---- shift(P, d-place, cutoff)
+  
+  eq subst(.PatList, K, Q) = .PatList .
+  eq shift(.PatList, D, C) = .PatList .
+  eq subst((P, Ps), K, Q) = subst(P, K, Q), subst(Ps, K, Q) [owise] .
+  eq shift((P, Ps), D, C) = shift(P, D, C), shift(Ps, D, C) [owise] .
+
+  eq shift({K,S}, D, C) = if K < C then {K,S} else {K + D,S} fi .
+  eq shift(P /\ Q, D, C) = shift(P, D, C) /\ shift(Q, D, C) .
+  eq shift(P \/ Q, D, C) = shift(P, D, C) \/ shift(Q, D, C) .
+  eq shift(P -> Q, D, C) = shift(P, D, C) -> shift(Q, D, C) .
+  eq shift(P <-> Q, D, C) = shift(P, D, C) <-> shift(Q, D, C) .
+  eq shift(~ P, D, C) = ~ shift(P, D, C) .
+  eq shift(forall P, D, C) = forall shift(P, D, C + 1) .
+  eq shift(exists P, D, C) = exists shift(P, D, C + 1) .
+  eq shift(F(Ps), D, C) = F(shift(Ps, D, C)) .
+  eq shift(P ={S} Q, D, C) = shift(P, D, C) ={S} shift(Q, D, C) .
+  eq shift(P subset{S} Q, D, C) = shift(P, D, C) subset{S} shift(Q, D, C) .
+  eq shift(top{S}, D, C) = top{S} .
+  eq shift(bot{S}, D, C) = bot{S} .
+  
+  eq subst({K,S}, J, R) = if K == J then R else {K,S} fi .
+  eq subst(P /\ Q, J, R) = subst(P, J, R) /\ subst(Q, J, R) .
+  eq subst(P \/ Q, J, R) = subst(P, J, R) \/ subst(Q, J, R) .
+  eq subst(P -> Q, J, R) = subst(P, J, R) -> subst(Q, J, R) .
+  eq subst(P <-> Q, J, R) = subst(P, J, R) <-> subst(Q, J, R) .
+  eq subst(~ P, J, R) = ~ subst(P, J, R) .
+  eq subst(forall P, J, R) = forall subst(P, J + 1, shift(R, 1, 0)) .
+  eq subst(exists P, J, R) = exists subst(P, J + 1, shift(R, 1, 0)) .
+  eq subst(F(Ps), J, R) = F(subst(Ps, J, R)) .
+  eq subst(P ={S} Q, J, R) = subst(P, J, R) ={S} subst(Q, J, R) .
+  eq subst(P subset{S} Q, J, R) = subst(P, J, R) subset{S} subst(Q, J, R) .
+  eq subst(top{S}, J, R) = top{S} .
+  eq subst(bot{S}, J, R) = bot{S} .
 endfm
 
+---- User-defined sorts and symbols.
+fmod PAT2 is
+  including PAT1 .
+  ops BBool NNat SSeq MMap : -> Sot [ctor] .
+  
+  ops tt ff : -> Sym [ctor] .
+  eq getDomSotList(tt) = .SotList . eq getRanSot(tt) = BBool .
+  eq getDomSotList(ff) = .SotList . eq getRanSot(ff) = BBool .
+  
+  ops && || ! : -> Sym [ctor] .
+  eq getDomSotList(&&) = BBool, BBool . eq getRanSot(&&) = BBool .
+  eq getDomSotList(||) = BBool, BBool . eq getRanSot(||) = BBool .
+  eq getDomSotList(!) = BBool . eq getRanSot(!) = BBool .
+  
+  ops zero succ plus : -> Sym [ctor] .
+  eq getDomSotList(zero) = .SotList . eq getRanSot(zero) = NNat .
+  eq getDomSotList(succ) = NNat . eq getRanSot(succ) = NNat .
+  eq getDomSotList(plus) = NNat, NNat . eq getRanSot(plus) = NNat .
+  
+endfm
+
+---- Provee, ProofTask, and ProvingTactic.
+fmod PAT3 is
+  protecting PAT2 .
+  
+  sort Provee ProveeList .
+  subsort Provee < ProveeList .
+  op .ProveeList : -> ProveeList .
+  op {_,_} : Int Pat -> Provee . ---- indexed pattern to prove.
+  op __ : ProveeList ProveeList -> ProveeList [assoc comm id: .ProveeList] .
+  
+  sort ProofTask . op task : Nat ProveeList -> ProofTask [ctor] .
+  sort ProvingTactic .
+  op prove : ProofTask ProvingTactic -> ProofTask .
+  eq prove(T:ProofTask, A:ProvingTactic) = T:ProofTask [owise] .
+  
+  op taut_ : Nat -> ProvingTactic [ctor] . ---- Propositional Tautology Checking.
+  
+endfm
+
+---- Interactive Interface Setup
+fmod PAT4 is
+  protecting PAT3 .
+  
+  sorts Action .
+endfm
+
+
 quit
+  
+  
+  
+  
+---- Proof environment
+fmod PAT3 is
+  protecting PAT2 .
+  
+  sort ProofObligation ProofObligationList .
+  subsort ProofObligation < ProofObligationList .
+  op .ProofObligationList : -> ProofObligationList .
+  op {_,_} : Int Pat -> ProofObligation . ---- indexed obligation
+  op __ : ProofObligationList ProofObligationList -> ProofObligationList 
+  [assoc comm id: .ProofObligationList] .
+  
+  sorts ProofState ProofAction .
+  op makeProofState : Int ProofObligationList -> ProofState [ctor] .
+  op showTotalNumber : -> ProofAction .
+  op showProofObligationList : -> ProofAction .
+  op idle : -> ProofAction [ctor] .
+  op auto_ : Int -> ProofAction [ctor] .
+  op apply : ProofAction ProofState -> ProofState .
+  eq apply(auto N:Int, S:ProofState) = makeProofState(N:Int, .ProofObligationList) .
+
+endfm
+
+mod PAT4 is
+  protecting PAT3 .
+  protecting META-LEVEL .
+  including LOOP-MODE .
+
+  op <_;_;_> : ProofAction ProofState QidList -> State .
+  op init : -> System .
+  eq init = [nil, < idle ; makeProofState(1, {0, {1,Nat} -> {1,Nat}}) ; nil >, nil] .
+  
+  var A : ProofAction . var PState : ProofState . vars QIL QIL' QIL'' : QidList .
+  
+  crl [in] :
+     [QIL, < idle ; PState ; nil >, QIL']
+  => if T:ResultPair? :: ResultPair
+     then [nil, < downTerm(getTerm(T:ResultPair?), idle) ; PState ; nil >, QIL']
+	 else [nil, < idle ; PState ; nil >, 'ERROR QIL]
+	 fi
+  if QIL =/= nil 
+  /\ T:ResultPair? := metaParse(upModule('PAT2, false), QIL, 'ProofAction) .
+  
+  crl [out] :
+     [QIL, < A ; PState ; QIL' >, QIL'']
+  => [QIL, < A ; PState ; nil  >, QIL'' QIL']
+  if QIL' =/= nil .
+
+  op showTotalNumber : ProofState -> QidList .
+  eq showTotalNumber(makeProofState(N:Int, Ps:ProofObligationList))
+   = metaPrettyPrint(upModule('PAT2, false), upTerm(N:Int)) .
+  
+  op showProofObligationList : ProofState -> QidList .
+  eq showProofObligationList(makeProofState(N:Int, Ps:ProofObligationList))
+   = metaPrettyPrint(upModule('PAT2, false), upTerm(Ps:ProofObligationList)) .
+   
+  rl [showTotalNumber] :
+     < showTotalNumber ; PState ; nil >
+  => < idle ; PState ; ('\u 'totalnumber: '\o showTotalNumber(PState) '\n) > .
+  
+  rl [showProofObligationList] :
+     < showProofObligationList ; PState ; nil >
+  => < idle ; PState ; ('\u 'obligationlist: '\o showProofObligationList(PState) '\n) > . 
+  
+  rl [auto] :
+     < auto N:Int ; PState ; nil >
+  => < idle ; apply(auto N:Int, PState) ; nil > .
+  
+endm
+
+----
+---- Example of how to use metalevel to write axiom schemas.
+reduce 
+noMatch ==
+metaMatch(upModule('PAT0, false),
+          upTerm(P:Pat -> P:Pat),
+		  upTerm({1,Nat:Sot} -> {1,Nat:Sot}),
+          nil,
+          0) .
+		  
+---- quit 
+
+
+
