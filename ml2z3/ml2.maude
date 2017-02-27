@@ -1,6 +1,6 @@
 ---- Grammar of sorted patterns.
 fmod PAT0 is
-  protecting INT .
+  protecting NAT .
   sort Pat PatList Sot SotList Sym .
   
   subsort Pat < PatList .
@@ -20,7 +20,7 @@ fmod PAT0 is
   eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] .
   
   op {_,_} : Nat Sot -> Pat [ctor] . ---- de Brujin indices starting off from 0
-  eq getSot({K:Int,S}) = S .
+  eq getSot({K:Nat,S}) = S .
   op _/\_ : Pat Pat -> Pat [ctor assoc comm] .
   eq getSot(P /\ Q) = getSot(P) .
   op _\/_ : Pat Pat -> Pat [ctor assoc comm] .
@@ -52,10 +52,10 @@ fmod PAT1 is
   protecting PAT0 .
   
   vars P Q R : Pat . var Ps : PatList . var F : Sym . var S : Sot .
-  vars K J C D : Int . 
+  vars K J C D : Nat . 
   
-  op subst : PatList Int Pat -> PatList . ---- subst(P, J, Q) is P[J := Q]
-  op shift : PatList Int Int -> PatList . ---- shift(P, d-place, cutoff)
+  op subst : PatList Nat Pat -> PatList . ---- subst(P, J, Q) is P[J := Q]
+  op shift : PatList Nat Nat -> PatList . ---- shift(P, d-place, cutoff)
   
   eq subst(.PatList, K, Q) = .PatList .
   eq shift(.PatList, D, C) = .PatList .
@@ -127,8 +127,21 @@ fmod PAT3 is
 endfm
 
 ---- ProvingTactic: taut.
+load prop .
 fmod PAT3-TAUT is
   including PAT3 .
+  protecting PROP .
+  
+  ---- from a pattern P, recognize a proposition A(x1,...,xn) such that
+  ---- A(x1,...,xn)[x1:=P1,...,xn:=Pn] is P.
+  ---- Then if A is valid, P is valid.
+  op recognizeProp : Pat -> Prop . eq recognizeProp(P:Pat) = recognizeProp(P:Pat, 0) .
+  ---- fresh names for propVars start from the 2nd argument.
+  op recognizeProp : Pat Nat -> Prop  . 
+  
+  vars P Q : Pat . vars K C : Nat . var S : Sot .
+
+  
   
   
 endfm
