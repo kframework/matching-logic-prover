@@ -19,7 +19,7 @@ fmod PAT0 is
   eq getSot(.PatList) = .SotList .
   eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] .
   
-  op {_,_} : Int Sot -> Pat [ctor] . ---- de Brujin indices starting off from 0
+  op {_,_} : Nat Sot -> Pat [ctor] . ---- de Brujin indices starting off from 0
   eq getSot({K:Int,S}) = S .
   op _/\_ : Pat Pat -> Pat [ctor assoc comm] .
   eq getSot(P /\ Q) = getSot(P) .
@@ -112,28 +112,55 @@ fmod PAT2 is
   
 endfm
 
----- Provee, ProofTask, and ProvingTactic.
+---- ProvingTactic: how to prove a pattern?
 fmod PAT3 is
   protecting PAT2 .
   
-  sort Provee ProveeList .
-  subsort Provee < ProveeList .
-  op .ProveeList : -> ProveeList .
-  op {_,_} : Int Pat -> Provee . ---- indexed pattern to prove.
-  op __ : ProveeList ProveeList -> ProveeList [assoc comm id: .ProveeList] .
-  
-  sort ProofTask . op task : Nat ProveeList -> ProofTask [ctor] .
   sort ProvingTactic .
-  op prove : ProofTask ProvingTactic -> ProofTask .
-  eq prove(T:ProofTask, A:ProvingTactic) = T:ProofTask [owise] .
+
+  op prove : Pat ProvingTactic -> Pat .
+  eq prove(P:Pat, T:ProvingTactic) = P:Pat [owise] .
   
-  op taut_ : Nat -> ProvingTactic [ctor] . ---- Propositional Tautology Checking.
+  op taut : -> ProvingTactic [ctor] . ---- Propositional Tautology Checking.
+  op ml2fol : -> ProvingTactic [ctor] . ---- First-Order Logic Translation.
+  op axiom : -> ProvingTactic [ctor] . ---- Axiom Checking .
+endfm
+
+---- ProvingTactic: taut.
+fmod PAT3-TAUT is
+  including PAT3 .
+  
   
 endfm
+
+---- ProvingTactic: ml2fol.
+fmod PAT3-ML2FOL is
+  including PAT3 .
+endfm
+
+---- ProvingTactic: axiom.
+fmod PAT3-AXIOM is
+  including PAT3 .
+endfm
+
+---- ProvingTactic Integration.
+fmod PAT4 is
+  protecting PAT3-TAUT + PAT3-ML2FOL + PAT3-TAUT .
+endfm
+
+quit
 
 ---- Interactive Interface Setup
 fmod PAT4 is
   protecting PAT3 .
+  sort Provee ProveeList .
+  op {_,_} : Int Pat -> Provee . ---- indexed pattern to prove.
+
+  subsort Provee < ProveeList .
+  op .ProveeList : -> ProveeList .
+  op __ : ProveeList ProveeList -> ProveeList [assoc comm id: .ProveeList] .
+  sort ProofTask . op task : Nat ProveeList -> ProofTask [ctor] .
+
   
   sorts Action .
 endfm

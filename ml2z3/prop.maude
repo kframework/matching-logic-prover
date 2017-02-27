@@ -1,0 +1,29 @@
+---- Propositional Logic
+
+fmod PROP is
+  protecting INT .
+  sort Prop .
+  
+  op propVar : Int -> Prop [ctor] .
+  ops _propAnd_ _propOr_ _propIff_ : Prop Prop -> Prop [ctor assoc comm] .
+  op _propImplies_ : Prop Prop -> Prop [ctor] .
+  op propNot_ : Prop -> Prop [ctor] .
+  
+  vars P Q : Prop . vars M N : Int .
+  
+  ---- Validity checking
+  op validQ : Prop -> Bool .
+  
+  op freshVar : Prop -> Prop . ---- Produce fresh propositional variable.
+  op maxIndex : Prop -> Int . ---- Give the largest variable index.
+  eq maxIndex(propVar(N)) = N .
+  eq maxIndex(P propAnd Q) = max(maxIndex(P), maxIndex(Q)) .
+  eq maxIndex(P propOr Q) = max(maxIndex(P), maxIndex(Q)) .
+  eq maxIndex(P propIff Q) = max(maxIndex(P), maxIndex(Q)) .
+  eq maxIndex(P propImplies Q) = max(maxIndex(P), maxIndex(Q)) .
+  eq maxIndex(propNot P) = maxIndex(P) .
+endfm
+
+reduce max(1,2,3) .
+
+quit
