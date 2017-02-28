@@ -126,6 +126,40 @@ fmod PAT3 is
   op axiom : -> ProvingTactic [ctor] . ---- Axiom Checking .
 endfm
 
+  ---- TODO: not really. We can have a more systematic way to do this.
+  ---- in short, we always keep a pattern to proceed, a substitution that
+  ---- tells which metaPatVar is assigned to which pattern, a proposition 
+  ---- constraint tells us relation between metaPatVars, and a number
+  ---- indicating fresh variables.
+  ---- a nonpropositional pattern (exists P, for example), is only assigned 
+  ---- a metaPatVar iff it has not been assigned one in the substitution.
+  ---- the constraint helps us go one step further in patterns. For example, 
+  ---- if we see P1 subset P2, then instead of assign it just a P:Pat, we can
+  ---- do better by also assigning P1:Pat to P1 and P2:Pat to P2 while requiring
+  ---- that P:Pat -> (P1:Pat -> P2:Pat) .
+  ---- Intuitively, P:Pat means that r in (P1 subset P2) is true, which means
+  ---- P1 subset P2 is valid (no matter which r), which implies that for any r,
+  ---- r in P1 -> r in P2, which means P1:Pat -> P2:Pat. (think of metaPatVar as
+  ---- propositions. And that is why we need the constrain.
+  ---- But the vice versa is not true. Even if P1:Pat -> P2:Pat is true (again,
+  ---- think of it as saying that for some r, r in P1 implies r in P2), this does
+  ---- not mean for (the same, but does not matter here) r, r in P1 subset P2.
+  ---- Example. P1 subset P2 -> (P1 -> P2) becomes
+  ----          P -> (P1 -> P2) constrained by P <-> (P1 -> P2),
+  ----          which is valid (as a propositional formula).
+  
+---- ProvingTactic: taut
+load prop .
+fmod PAT3-TAUT is
+  including PAT3 .
+  protecting PROP .
+  protecting META-LEVEL + CONVERSION .
+endfm
+
+quit
+
+
+
 ---- ProvingTactic: taut.
 load prop .
 fmod PAT3-TAUT is
