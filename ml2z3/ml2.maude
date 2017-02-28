@@ -149,11 +149,32 @@ endfm
   ----          which is valid (as a propositional formula).
   
 ---- ProvingTactic: taut
+---- Q: How does it work?
+---- A: Recognize from a pattern P a proposition P = A(P1,...,Pn).
+----    Then if A is valid, P is valid.
 load prop .
 fmod PAT3-TAUT is
   including PAT3 .
   protecting PROP .
-  protecting META-LEVEL + CONVERSION .
+  protecting META-LEVEL + CONVERSION .  
+  
+  vars P Q P' : Pat . vars K C C' M N : Nat . var S : Sot .
+  
+  ---- make Pat variables 'P1:Pat 'P2:Pat etc.
+  op makePatVar : Nat -> Pat .
+  op makeMetaPatVar : Nat -> Variable . op errorPat : -> [Pat] .
+  eq makeMetaPatVar(N) = qid("P" + string(N, 10) + ":" + "Pat") .
+  eq makePatVar(N) = downTerm(makeMetaPatVar(N), errorPat) .
+  
+  ---- Substitute Pat variable for patterns.
+  ---- Because we neven go under quantifiers, so all {K,C}s means conceptually
+  ---- the same matching logic variables.
+  ---- Example of a Substitution:
+  ----   P1:Pat <- forall exists ... ;
+  ----   P2:Pat <- exists {4,NNat} /\ ...
+  sort Subst . op idSubst : -> Subst . ---- the identity substitution
+  op _<-_ : Pat Pat -> Subst [ctor] .
+  op _;_ : Subst Subst -> Subst [assoc comm id: idSubst] .
 endfm
 
 quit
