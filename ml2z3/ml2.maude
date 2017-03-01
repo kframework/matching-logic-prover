@@ -37,10 +37,16 @@ fmod PAT0 is
   op _() : Sym -> Pat . eq F() = F(.PatList) .
   op _(_) : Sym PatList -> Pat [ctor] .
   eq getSot(F(Ps)) = getRanSot(F) .
+  op floor{_}(_) : Sot Pat -> Pat [ctor] .
+  eq getSot(floor{S}(P)) = S .  
+  op ceil{_}(_) : Sot Pat -> Pat [ctor] .
+  eq getSot(ceil{S}(P)) = S .
   op _={_}_ : Pat Sot Pat -> Pat [ctor format(d d d d d s d)] .
   eq getSot(P ={S} Q) = S .
   op _subset{_}_ : Pat Sot Pat -> Pat [ctor format(d d d d d s d)] .
   eq getSot(P subset{S} Q) = S .
+  op _in{_}_ : Pat Sot Pat -> Pat [format(d d d d d s d)] .
+  eq P in{S} Q = P subset{S} Q .
   op top{_} : Sot -> Pat [ctor] .
   eq getSot(top{S}) = S .
   op bot{_} : Sot -> Pat [ctor] .
@@ -51,15 +57,19 @@ endfm
 fmod PAT1 is
   protecting PAT0 .
   
-  vars P Q R : Pat . var Ps : PatList . var F : Sym . var S : Sot .
-  vars K J C D : Nat . 
+  vars P Q R : Pat . var Ps : PatList . var F : Sym . var S S' : Sot .
+  vars K K' J C D : Nat . 
   
-  op subst : PatList Nat Pat -> PatList . ---- subst(P, J, Q) is P[J := Q]
+  op subst : PatList Nat Pat -> PatList . ---- subst(P, J, R) is P[J := R]
+  op subst : PatList Pat Pat -> PatList . ---- subst(P, Q, R) is P[replace Q for R]
   op shift : PatList Nat Nat -> PatList . ---- shift(P, d-place, cutoff)
+                                          ---- everything that is under the @cutoff is bound and shoudn't be shifted.
   
-  eq subst(.PatList, K, Q) = .PatList .
+  eq subst(.PatList, J, R) = .PatList .
+  eq subst(.PatList, Q, R) = .PatList .
   eq shift(.PatList, D, C) = .PatList .
-  eq subst((P, Ps), K, Q) = subst(P, K, Q), subst(Ps, K, Q) [owise] .
+  eq subst((P, Ps), K, R) = subst(P, K, R), subst(Ps, K, R) [owise] .
+  eq subst((P, Ps), Q, R) = subst(P, Q, R), subst(Ps, Q, R) [owise] .
   eq shift((P, Ps), D, C) = shift(P, D, C), shift(Ps, D, C) [owise] .
 
   eq shift({K,S}, D, C) = if K < C then {K,S} else {K + D,S} fi .
@@ -71,11 +81,14 @@ fmod PAT1 is
   eq shift(forall P, D, C) = forall shift(P, D, C + 1) .
   eq shift(exists P, D, C) = exists shift(P, D, C + 1) .
   eq shift(F(Ps), D, C) = F(shift(Ps, D, C)) .
+  eq shift(floor{S}(P), D, C) = floor{S}(shift(P, D, C)) .
+  eq shift(ceil{S}(P), D, C) = ceil{S}(shift(P, D, C)) .
   eq shift(P ={S} Q, D, C) = shift(P, D, C) ={S} shift(Q, D, C) .
   eq shift(P subset{S} Q, D, C) = shift(P, D, C) subset{S} shift(Q, D, C) .
   eq shift(top{S}, D, C) = top{S} .
   eq shift(bot{S}, D, C) = bot{S} .
   
+  ---- substitute a variable
   eq subst({K,S}, J, R) = if K == J then R else {K,S} fi .
   eq subst(P /\ Q, J, R) = subst(P, J, R) /\ subst(Q, J, R) .
   eq subst(P \/ Q, J, R) = subst(P, J, R) \/ subst(Q, J, R) .
@@ -84,11 +97,16 @@ fmod PAT1 is
   eq subst(~ P, J, R) = ~ subst(P, J, R) .
   eq subst(forall P, J, R) = forall subst(P, J + 1, shift(R, 1, 0)) .
   eq subst(exists P, J, R) = exists subst(P, J + 1, shift(R, 1, 0)) .
+  eq subst(floor{S}(P), J, R) = floor{S}(subst(P, J, R)) .
+  eq subst(ceil{S}(P), J, R) = ceil{S}(subst(P, J, R)) .
   eq subst(F(Ps), J, R) = F(subst(Ps, J, R)) .
   eq subst(P ={S} Q, J, R) = subst(P, J, R) ={S} subst(Q, J, R) .
   eq subst(P subset{S} Q, J, R) = subst(P, J, R) subset{S} subst(Q, J, R) .
   eq subst(top{S}, J, R) = top{S} .
   eq subst(bot{S}, J, R) = bot{S} .
+  
+  ---- substitute a pattern
+  eq subst({K,S}, {K',S'}, R) = if K == K' then R else {K,S} fi .
 endfm
 
 ---- User-defined sorts and symbols.
