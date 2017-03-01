@@ -27,7 +27,7 @@ fmod PAT0 is
   eq getSot(P \/ Q) = getSot(P) .
   op _->_ : Pat Pat -> Pat [ctor] .
   eq getSot(P -> Q) = getSot(P) .
-  op _<->_ : Pat Pat -> Pat [ctor] .
+  op _<->_ : Pat Pat -> Pat [ctor comm] .
   eq getSot(P <-> Q) = getSot(P) .
   op ~_ : Pat -> Pat [ctor] .
   eq getSot(~ P) = getSot(P) .
@@ -57,7 +57,7 @@ endfm
 fmod PAT1 is
   protecting PAT0 .
   
-  vars P Q R : Pat . var Ps : PatList . var F : Sym . var S S' : Sot .
+  vars P P' Q R : Pat . var Ps : PatList . var F : Sym . var S S' : Sot .
   vars K K' J C D : Nat . 
   
   op subst : PatList Nat Pat -> PatList . ---- subst(P, J, R) is P[J := R]
@@ -106,8 +106,30 @@ fmod PAT1 is
   eq subst(bot{S}, J, R) = bot{S} .
   
   ---- substitute a pattern
-  eq subst({K,S}, {K',S'}, R) = if K == K' then R else {K,S} fi .
+  ---- the following is taking advantage of the fact that
+  ---- Maude tries to apply rules in order (top to bottom).
+  eq subst(Q, Q, R) = R .
+  eq subst(P /\ P', Q, R) = subst(P, Q, R) /\ subst(P', Q, R) .
+  eq subst(P \/ P', Q, R) = subst(P, Q, R) \/ subst(P', Q, R) .
+  eq subst(P -> P', Q, R) = subst(P, Q, R) -> subst(P', Q, R) .
+  eq subst(P <-> P', Q, R) = subst(P, Q, R) <-> subst(P', Q, R) .
+  eq subst(~ P, Q, R) = ~ subst(P, Q, R) .
+  eq subst(forall P, Q, R) = forall subst(P, shift(Q, 1, 0), shift(R, 1, 0)) .
+  eq subst(exists P, Q, R) = exists subst(P, shift(Q, 1, 0), shift(R, 1, 0)) .
+  eq subst(floor{S}(P), Q, R) = floor{S}(subst(P, Q, R)) .
+  eq subst(ceil{S}(P), Q, R) = ceil{S}(subst(P, Q, R)) .
+  eq subst(F(Ps), Q, R) = F(subst(Ps, Q, R)) .
+  eq subst(P ={S} P', Q, R) = subst(P, Q, R) ={S} subst(P', Q, R) .
+  eq subst(P subset{S} P', Q, R) = subst(P, Q, R) subset{S} subst(P', Q, R) .
+  eq subst(top{S}, Q, R) = top{S} .
+  eq subst(bot{S}, Q, R) = bot{S} .
+  eq subst(P, Q, R) = P .
+
+  
 endfm
+set trace on .
+reduce subst(forall ({0,S:Sot} /\ {1,S:Sot}), forall {0,S:Sot}, {3,S:Sot}) .
+
 
 ---- User-defined sorts and symbols.
 fmod PAT2 is
