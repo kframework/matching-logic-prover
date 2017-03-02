@@ -166,11 +166,6 @@ fmod PAT3 is
   
   
   ---- a list of inference rules to resolve a pattern, defined in separate modules.
-  op taut : -> InferenceRule [ctor] . ---- Propositional Tautology Checking.
-  op mp : -> InferenceRule [ctor] . ---- Modus Ponens.
-  op framing : -> InferenceRule [ctor] . ---- Framing Rule
-  op ml2fol : -> InferenceRule [ctor] . ---- First-Order Logic Translation.
-  op axiom : -> InferenceRule [ctor] . ---- Axiom Checking .
 endfm
 
 
@@ -209,7 +204,10 @@ load prop .
 fmod PAT3-TAUT is
   including PAT3 .
   protecting PROP .
-  protecting META-LEVEL + CONVERSION .  
+  protecting META-LEVEL + CONVERSION .
+  
+  op taut : -> InferenceRule [ctor] . ---- Propositional Tautology Checking.
+
   
   vars P Q P' R : Pat . vars K C C' M N : Nat . var S : Sot .
   
@@ -240,200 +238,67 @@ fmod PAT3-TAUT is
   eq subst(P, (PredVar <- R); Sb) = subst(subst(P, PredVar, R), Sb) .
 endfm
 
-reduce subst({0,NNat}, {0,BBool}, {1,BBool}) .
 
-quit
-
-
-
----- ProvingTactic: taut.
-load prop .
-fmod PAT3-TAUT is
-  including PAT3 .
-  protecting PROP .
-  protecting META-LEVEL + CONVERSION .
-  
-  ---- from a pattern P, recognize a proposition A(x1,...,xn) such that
-  ---- A(x1,...,xn)[x1:=P1,...,xn:=Pn] is P.
-  ---- Then if A is valid, P is valid.
-  op recognizeProp : Pat -> Prop . 
-  
-  ---- the following is the boring implementation.
-  ---- you might assume I did it right and not reading it.
-  
-  ---- main auxiliary functions  
-  ---- replacing non-propositional patterns with propositional variables
-  op propReplace : Pat -> Prop .
-  ---- collapse propositional variables that substitue to the same (sub)pattern.
-  op collapse : Prop Substitution -> Prop .
-  
-  vars P Q P' : Pat . vars K C C' M N : Nat . var S : Sot .
-  
-  ---- make metarepresentation of Pat variables.
-  ---- 'P1:Pat 'P2:Pat etc.
-  op makeMetaPatVar : Nat -> Variable .
-  eq makeMetaPatVar(N) = qid("P" + string(N, 10) + ":" + "Pat") .
-  op errorPat : -> [Pat] .
-  
-  ---- replace non-propositional patterns with metaPatVars.
-  ---- as a result, you get another pattern, which itself is propositional.
-  op propMetaReplace : Pat -> Pat .
-  
-  ---- a wrapper for Pat and Nat, 
-  ---- the Nat argument indicates the next fresh index to use.
-  sort Pat+Nat .
-  op pat+nat : Pat Nat -> Pat+Nat [ctor] .
-  op getPat : Pat+Nat -> Pat . eq getPat(pat+nat(P, N)) = P .
-  op getNat : Pat+Nat -> Nat . eq getNat(pat+nat(P, N)) = N .
-
-  ---- propMetaReplace that works with wrapped patterns.
-  op propMetaReplace : Pat+Nat -> Pat+Nat .
-  
-  ---- propositional connectives that "walk through" the wrapper.
-  ---- this makes less use of auxiliary functions to store
-  ---- intermediate computation result.
-  ops _/\_ _\/_ _->_ _<->_ : Pat+Nat Pat+Nat -> Pat+Nat .
-  op ~_ : Pat+Nat -> Pat+Nat .
-  
-  eq pat+nat(P, N) /\ pat+nat(Q, M) = pat+nat(P /\ Q, max(N, M)) .
-  eq pat+nat(P, N) \/ pat+nat(Q, M) = pat+nat(P \/ Q, max(N, M)) .
-  eq pat+nat(P, N) -> pat+nat(Q, M) = pat+nat(P -> Q, max(N, M)) .
-  eq pat+nat(P, N) <-> pat+nat(Q, M) = pat+nat(P <-> Q, max(N, M)) .
-  eq ~ pat+nat(P, N) = pat+nat(~ P, N) .
-  
-  eq propMetaReplace(pat+nat({K,S}, C)) = 
-     pat+nat(downTerm(makeMetaPatVar(C), errorPat), C + 1) .
-	 
-  ---- for binary connectives, first replace P and then replace Q.
-  ceq propMetaReplace(pat+nat(P /\ Q, C)) =
-      pat+nat(P', C') /\ propMetaReplace(pat+nat(Q, C'))
-  if pat+nat(P', C') := propMetaReplace(pat+nat(P, C)) . 
-  ceq propMetaReplace(pat+nat(P \/ Q, C)) =
-      pat+nat(P', C') \/ propMetaReplace(pat+nat(Q, C'))
-  if pat+nat(P', C') := propMetaReplace(pat+nat(P, C)) .
-  ceq propMetaReplace(pat+nat(P -> Q, C)) =
-      pat+nat(P', C') -> propMetaReplace(pat+nat(Q, C'))
-  if pat+nat(P', C') := propMetaReplace(pat+nat(P, C)) .
-  ceq propMetaReplace(pat+nat(P <-> Q, C)) =
-      pat+nat(P', C') <-> propMetaReplace(pat+nat(Q, C'))
-  if pat+nat(P', C') := propMetaReplace(pat+nat(P, C)) .
-  
-  eq propMetaReplace(pat+nat(~ P, C)) = ~ propMetaReplace(pat+nat(P, C)) .
-  eq propMetaReplace(pat+nat(top{S}, C)) = pat+nat(top{S}, C) .
-  eq propMetaReplace(pat+nat(bot{S}, C)) = pat+nat(bot{S}, C) .
-  
-  ---- any other patterns are not propositionally dividable, and thus
-  ---- are replaced by metaPatVars.
-  ---- TODO: not really. We can have a more systematic way to do this.
-  ---- in short, we always keep a pattern to proceed, a substitution that
-  ---- tells which metaPatVar is assigned to which pattern, a proposition 
-  ---- constraint tells us relation between metaPatVars, and a number
-  ---- indicating fresh variables.
-  ---- a nonpropositional pattern (exists P, for example), is only assigned 
-  ---- a metaPatVar iff it has not been assigned one in the substitution.
-  ---- the constraint helps us go one step further in patterns. For example, 
-  ---- if we see P1 subset P2, then instead of assign it just a P:Pat, we can
-  ---- do better by also assigning P1:Pat to P1 and P2:Pat to P2 while requiring
-  ---- that P:Pat -> (P1:Pat -> P2:Pat) .
-  ---- Intuitively, P:Pat means that r in (P1 subset P2) is true, which means
-  ---- P1 subset P2 is valid (no matter which r), which implies that for any r,
-  ---- r in P1 -> r in P2, which means P1:Pat -> P2:Pat. (think of metaPatVar as
-  ---- propositions. And that is why we need the constrain.
-  ---- But the vice versa is not true. Even if P1:Pat -> P2:Pat is true (again,
-  ---- think of it as saying that for some r, r in P1 implies r in P2), this does
-  ---- not mean for (the same, but does not matter here) r, r in P1 subset P2.
-  ---- Example. P1 subset P2 -> (P1 -> P2) becomes
-  ----          P -> (P1 -> P2) constrained by P <-> (P1 -> P2),
-  ----          which is valid (as a propositional formula).
-
-endfm
-
-reduce propMetaReplace(pat+nat({1,NNat} /\ ({2,NNat} -> ~ {3,NNat}) ,4)) .
-
-
----- ProvingTactic: ml2fol.
+---- InferenceRule: ml2fol.
 fmod PAT3-ML2FOL is
   including PAT3 .
+  op ml2fol : -> InferenceRule [ctor] . ---- First-Order Logic Translation.
 endfm
 
----- ProvingTactic: axiom.
+---- InferenceRule: axiom.
 fmod PAT3-AXIOM is
   including PAT3 .
+  op axiom : -> InferenceRule [ctor] . ---- Axiom Checking .
 endfm
 
----- ProvingTactic Integration.
+---- InferenceRule: mp
+fmod PAT3-MP is
+  including PAT3 .
+  op mp : Pat -> InferenceRule [ctor] . ---- Modus Ponens.
+endfm
+
+---- InferenceRule: framing
+fmod PAT3-FRAME is
+  including PAT3 .
+  op framing : -> InferenceRule [ctor] . ---- Framing Rule
+endfm
+
+---- InferenceRule Integration.
 fmod PAT4 is
-  protecting PAT3-TAUT + PAT3-ML2FOL + PAT3-TAUT .
+  protecting PAT3-TAUT + PAT3-ML2FOL + PAT3-AXIOM + PAT3-MP + PAT3-FRAME .
 endfm
 
-reduce in PAT4 :
-string(upTerm(P1:Pat)) .
-
-reduce in PAT4 :
-	'P:Pat <- '_/\_['`{_`,_`}['s_['0.Zero],'NNat.Sot],'`{_`,_`}['s_^2[
-    '0.Zero],'NNat.Sot]] ; 
-	'Q:Pat <- '`{_`,_`}['s_['0.Zero],'NNat.Sot] .
-
-reduce in PAT4 :
-metaMatch(upModule('PAT3, false),
-          upTerm(P:Pat /\ Q:Pat),
-		  upTerm({1,NNat} /\ {2,NNat} /\ {1,NNat}),
-		  nil,
-		  0) .
-
-quit
-
----- Interactive Interface Setup
-fmod PAT4 is
-  protecting PAT3 .
-  sort Provee ProveeList .
-  op {_,_} : Int Pat -> Provee . ---- indexed pattern to prove.
-
-  subsort Provee < ProveeList .
-  op .ProveeList : -> ProveeList .
-  op __ : ProveeList ProveeList -> ProveeList [assoc comm id: .ProveeList] .
-  sort ProofTask . op task : Nat ProveeList -> ProofTask [ctor] .
-
-  
-  sorts Action .
-endfm
-
-
-quit
-  
-  
-  
-  
+ 
 ---- Proof environment
-fmod PAT3 is
+fmod PAT5 is
   protecting PAT2 .
   
   sort ProofObligation ProofObligationList .
   subsort ProofObligation < ProofObligationList .
   op .ProofObligationList : -> ProofObligationList .
-  op {_,_} : Int Pat -> ProofObligation . ---- indexed obligation
+  op {_,_} : Nat Pat -> ProofObligation . ---- indexed obligation
   op __ : ProofObligationList ProofObligationList -> ProofObligationList 
   [assoc comm id: .ProofObligationList] .
   
   sorts ProofState ProofAction .
-  op makeProofState : Int ProofObligationList -> ProofState [ctor] .
+  op makeProofState : Nat ProofObligationList -> ProofState [ctor] .
   op showTotalNumber : -> ProofAction .
   op showProofObligationList : -> ProofAction .
   op idle : -> ProofAction [ctor] .
-  op auto_ : Int -> ProofAction [ctor] .
+  op auto_ : Nat -> ProofAction [ctor] .
   op apply : ProofAction ProofState -> ProofState .
-  eq apply(auto N:Int, S:ProofState) = makeProofState(N:Int, .ProofObligationList) .
+  eq apply(auto N:Nat, S:ProofState) = makeProofState(N:Nat, .ProofObligationList) .
 
 endfm
 
-mod PAT4 is
-  protecting PAT3 .
+mod PAT6 is
+  protecting PAT5 .
   protecting META-LEVEL .
   including LOOP-MODE .
 
   op <_;_;_> : ProofAction ProofState QidList -> State .
   op init : -> System .
-  eq init = [nil, < idle ; makeProofState(1, {0, {1,Nat} -> {1,Nat}}) ; nil >, nil] .
+  eq init = [nil, < idle ; makeProofState(1, {0, {1,NNat} -> {1,NNat}}) ; nil >, nil] .
   
   var A : ProofAction . var PState : ProofState . vars QIL QIL' QIL'' : QidList .
   
@@ -444,7 +309,7 @@ mod PAT4 is
 	 else [nil, < idle ; PState ; nil >, 'ERROR QIL]
 	 fi
   if QIL =/= nil 
-  /\ T:ResultPair? := metaParse(upModule('PAT2, false), QIL, 'ProofAction) .
+  /\ T:ResultPair? := metaParse(upModule('PAT5, false), QIL, 'ProofAction) .
   
   crl [out] :
      [QIL, < A ; PState ; QIL' >, QIL'']
@@ -452,12 +317,12 @@ mod PAT4 is
   if QIL' =/= nil .
 
   op showTotalNumber : ProofState -> QidList .
-  eq showTotalNumber(makeProofState(N:Int, Ps:ProofObligationList))
-   = metaPrettyPrint(upModule('PAT2, false), upTerm(N:Int)) .
+  eq showTotalNumber(makeProofState(N:Nat, Ps:ProofObligationList))
+   = metaPrettyPrint(upModule('PAT5, false), upTerm(N:Nat)) .
   
   op showProofObligationList : ProofState -> QidList .
-  eq showProofObligationList(makeProofState(N:Int, Ps:ProofObligationList))
-   = metaPrettyPrint(upModule('PAT2, false), upTerm(Ps:ProofObligationList)) .
+  eq showProofObligationList(makeProofState(N:Nat, Ps:ProofObligationList))
+   = metaPrettyPrint(upModule('PAT5, false), upTerm(Ps:ProofObligationList)) .
    
   rl [showTotalNumber] :
      < showTotalNumber ; PState ; nil >
@@ -468,20 +333,20 @@ mod PAT4 is
   => < idle ; PState ; ('\u 'obligationlist: '\o showProofObligationList(PState) '\n) > . 
   
   rl [auto] :
-     < auto N:Int ; PState ; nil >
-  => < idle ; apply(auto N:Int, PState) ; nil > .
+     < auto N:Nat ; PState ; nil >
+  => < idle ; apply(auto N:Nat, PState) ; nil > .
   
 endm
 
 ----
 ---- Example of how to use metalevel to write axiom schemas.
-reduce 
-noMatch ==
-metaMatch(upModule('PAT0, false),
-          upTerm(P:Pat -> P:Pat),
-		  upTerm({1,Nat:Sot} -> {1,Nat:Sot}),
-          nil,
-          0) .
+---- reduce 
+---- noMatch ==
+---- metaMatch(upModule('PAT0, false),
+----           upTerm(P:Pat -> P:Pat),
+---- 		  upTerm({1,Nat:Sot} -> {1,Nat:Sot}),
+----           nil,
+----           0) .
 		  
 ---- quit 
 
