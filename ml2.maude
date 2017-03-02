@@ -163,9 +163,6 @@ fmod PAT3 is
   op resolve : Pat InferenceRule -> PatList .
   eq resolve(P:Pat, R:InferenceRule) = P:Pat [owise] . ---- keep the P:Pat as
                                        ---- it is if no inference rule is applicable.
-  
-  
-  ---- a list of inference rules to resolve a pattern, defined in separate modules.
 endfm
 
 
@@ -273,21 +270,97 @@ endfm
 fmod PAT5 is
   protecting PAT4 .
   
+  ---- for now, think of a proof obligation as an indexed pattern.
+  ---- a list of proof obligation is, of course, a list of indexed patterns.
   sort ProofObligation ProofObligationList .
   subsort ProofObligation < ProofObligationList .
   op .ProofObligationList : -> ProofObligationList .
   op {_,_} : Nat Pat -> ProofObligation . ---- indexed obligation
+  eq {N:Nat, top{S:Sot}} = .ProofObligationList .
   op __ : ProofObligationList ProofObligationList -> ProofObligationList 
   [assoc comm id: .ProofObligationList format(d s d)] .
+  op makeProofObligationList : PatList -> ProofObligationList .
+  op makeProofObligationList : PatList Nat -> ProofObligationList .
   
-  sorts ProofState ProofAction .
-  op makeProofState : Nat ProofObligationList -> ProofState [ctor] .
-  op showTotalNumber : -> ProofAction .
-  op showProofObligationList : -> ProofAction .
-  op idle : -> ProofAction [ctor] .
-  op auto_ : Nat -> ProofAction [ctor] .
+  var P : Pat . var Ps : PatList . var N M M' : Nat .
+  
+  eq makeProofObligationList(Ps) = makeProofObligationList(Ps, 0) .
+  eq makeProofObligationList(.PatList, N) = .ProofObligationList .
+  eq makeProofObligationList((P, Ps), N) = {N,P} makeProofObligationList(Ps, N + 1) .
+  
+  sorts ProofAdditionalInformation ProofState ProofAction . 
+  var Act : ProofAction . var Stt : ProofState .
+  vars Obs Obs' : ProofObligationList .
+
+  ---- think of a proof state as a list of obligations associated with 
+  ---- a ProofAdditionalInformation that contains, for example, the fresh index
+  ---- for new obligations. For another example, if we want to 
+  ---- support backtracking, a proof state may also contains the "previous"
+  ---- proof state.
+  
+  ---- ProofAction is a superset of those action that you will type in in the prover.
+  ---- It contains some elementrary actions and from those builds complexer ones.
+  ---- The simplest action, for instance, is called "idle" where it does nothing
+  ---- to the current proof state.
+  
+  ---- {@1,@2} gives you a ProofAdditionalInformation, where
+  ---- @1: the next fresh index for new obligation.
+  ---- @2: the index for the active obligation (the one you are proving now ... 
+  ----                                          you cannot do two things at the
+  ----                                          same time right ... or can you?)
+  op {_,_} : Nat Nat -> ProofAdditionalInformation .
+  op makeProofState : ProofAdditionalInformation ProofObligationList -> ProofState [ctor] .
+  
+  ---- A comprehensive list of all proof actions (divided in groups).
+  ---- Notice that proof action is applied on a proof state, which contains a list of
+  ---- proof obligations and additional information.
   op apply : ProofAction ProofState -> ProofState .
-  eq apply(auto N:Nat, S:ProofState) = makeProofState(N:Nat, .ProofObligationList) .
+  
+  ---- Group 1: Inference Rules.
+  ----   An inference rule (r) tells you how to prove a pattern P.
+  ----   Applying (r) upon a proof state where the active pattern is of the form P
+  ----   results in a (potentially empty) list of patterns, and P is resolved, and
+  ----   the proof state get updated.
+  subsort InferenceRule < ProofAction .
+
+  ---- Group 2: show*, set*, etc.
+  ----   Use show* actions to see where you are in the proof.
+  op show : -> ProofAction . ---- show the active obligation
+  op show-all : -> ProofAction . ---- show all obligations
+  op show_ : Nat -> ProofAction . ---- show the obligation with the given index.
+  op show-total : -> ProofAction . ---- show the total number of obligations yet to prove.
+  op set-active_ : Nat -> ProofAction . ---- set active obligation.
+  
+  ---- Group 3: others.
+  op idle : Nat -> ProofAction [ctor] . ---- do nothing.
+  op auto_ : Nat -> ProofAction [ctor] . ---- do magic things.
+  
+  ---- Auxiliary functions with ProofObligationList and ProofState.
+  op getMaxIndex : ProofObligationList -> Nat .
+  eq getMaxIndex(.ProofObligationList) = 0 .
+  eq getMaxIndex({N,P} Obs) = max(N, getMaxIndex(Obs)) .
+  
+  op removeActiveObligation : ProofState -> ProofState .
+  eq removeActiveObligation(makeProofState({M,N}, ({N,P} Obs))) =
+     makeProofState({M,getMaxIndex(Obs)}, Obs) .
+  eq removeActiveObligation(Stt) = Stt [owise] .
+
+  op addPatList : ProofState PatList -> ProofState .
+  ceq addPatList(makeProofState({M,N}, Obs), Ps) =
+     makeProofState({1 + getMaxIndex(Obs Obs'),N}, (Obs Obs'))
+  if Obs' := makeProofObligationList(Ps, M) .
+     
+  
+  ---- Applying ProofAction upon ProofState.
+  
+  ---- Group 0: If you cannot apply an action, then forget it and move on. 
+  ---- Don't get stuck!
+  eq apply(Act, Stt) = Stt [owise] .  
+  
+  ---- Group 1: Inference Rules
+  eq apply(R:InferenceRule, makeProofState({M,N}, ({N,P} Obs))) =
+     addPatList(removeActiveObligation(makeProofState({M,N}, ({N,P} Obs))),
+	            resolve(P, R:InferenceRule)) .
 
 endfm
 
@@ -297,44 +370,36 @@ mod PAT6 is
   including LOOP-MODE .
 
   op <_;_;_> : ProofAction ProofState QidList -> State .
-  op init : -> System .
-  eq init = [nil, < idle ; makeProofState(1, {0, {1,NNat} -> {1,NNat}}) ; nil >, nil] .
+  op init : -> System . op idle : -> ProofAction .
+  eq init = [nil, < idle ; makeProofState({2,1}, {1,{1,NNat} -> {1,NNat}}) ; nil >, nil] .
   
-  var A : ProofAction . var PState : ProofState . vars QIL QIL' QIL'' : QidList .
+  var A : ProofAction . var Stt : ProofState . vars QIL QIL' QIL'' : QidList .
+  vars M N : Nat . var Obs : ProofObligationList . var P : Pat .
   
   crl [in] :
-     [QIL, < idle ; PState ; nil >, QIL']
+     [QIL, < idle ; Stt ; nil >, QIL']
   => if T:ResultPair? :: ResultPair
-     then [nil, < downTerm(getTerm(T:ResultPair?), idle) ; PState ; nil >, QIL']
-	 else [nil, < idle ; PState ; nil >, 'ERROR QIL]
+     then [nil, < downTerm(getTerm(T:ResultPair?), idle) ; Stt ; nil >, QIL']
+	 else [nil, < idle ; Stt ; nil >, 'ERROR QIL]
 	 fi
   if QIL =/= nil 
   /\ T:ResultPair? := metaParse(upModule('PAT5, false), QIL, 'ProofAction) .
   
   crl [out] :
-     [QIL, < A ; PState ; QIL' >, QIL'']
-  => [QIL, < A ; PState ; nil  >, QIL'' QIL']
+     [QIL, < A ; Stt ; QIL' >, QIL'']
+  => [QIL, < A ; Stt ; nil  >, QIL'' QIL']
   if QIL' =/= nil .
-
-  op showTotalNumber : ProofState -> QidList .
-  eq showTotalNumber(makeProofState(N:Nat, Ps:ProofObligationList))
-   = metaPrettyPrint(upModule('PAT5, false), upTerm(N:Nat)) .
   
-  op showProofObligationList : ProofState -> QidList .
-  eq showProofObligationList(makeProofState(N:Nat, Ps:ProofObligationList))
-   = metaPrettyPrint(upModule('PAT5, false), upTerm(Ps:ProofObligationList)) .
-   
-  rl [showTotalNumber] :
-     < showTotalNumber ; PState ; nil >
-  => < idle ; PState ; ('\u 'totalnumber: '\o showTotalNumber(PState) '\n) > .
+  rl [infer] :
+     < R:InferenceRule ; Stt ; nil >
+  => < idle ; apply(R:InferenceRule, Stt) ; nil > .
   
-  rl [showProofObligationList] :
-     < showProofObligationList ; PState ; nil >
-  => < idle ; PState ; ('\u 'obligationlist: '\o showProofObligationList(PState) '\n) > . 
-  
-  rl [auto] :
-     < auto N:Nat ; PState ; nil >
-  => < idle ; apply(auto N:Nat, PState) ; nil > .
+  op show : ProofState -> QidList .
+  eq show(makeProofState({M,N}, {N,P} Obs)) =
+     metaPrettyPrint(upModule('PAT5, false), upTerm(P)) .
+  rl [show] :
+     < show ; Stt ; nil >
+  => < idle ; Stt ; ('\u 'activeObligation: '\o show(Stt) '\n) > .
   
 endm
 

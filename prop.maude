@@ -1,4 +1,4 @@
----- Propositional Logic
+---- Propositional Logic: its grammar and check-sat.
 
 fmod PROP is
   protecting NAT .
