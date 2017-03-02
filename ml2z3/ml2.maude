@@ -88,7 +88,7 @@ fmod PAT1 is
   eq shift(top{S}, D, C) = top{S} .
   eq shift(bot{S}, D, C) = bot{S} .
   
-  ---- substitute a variable
+  ---- substitute a variable (by its name)
   eq subst({K,S}, J, R) = if K == J then R else {K,S} fi .
   eq subst(P /\ Q, J, R) = subst(P, J, R) /\ subst(Q, J, R) .
   eq subst(P \/ Q, J, R) = subst(P, J, R) \/ subst(Q, J, R) .
@@ -125,10 +125,7 @@ fmod PAT1 is
   eq subst(bot{S}, Q, R) = bot{S} .
   eq subst(P, Q, R) = P .
 
-  
 endfm
-set trace on .
-reduce subst(forall ({0,S:Sot} /\ {1,S:Sot}), forall {0,S:Sot}, {3,S:Sot}) .
 
 
 ---- User-defined sorts and symbols.
@@ -152,21 +149,32 @@ fmod PAT2 is
   
 endfm
 
----- ProvingTactic: how to prove a pattern?
+---- Inference Rules: how to prove a pattern?
+---- resolve(P, modusPonens) = Q1 ... Qn means there is an inference rule
+----  Q1 ... Qn
+----  --------- (rule R)
+----      P
+---- so that to resolve P with the rule R, one needs to resolve Q1 ... Qn.
 fmod PAT3 is
   protecting PAT2 .
   
-  sort ProvingTactic .
+  sort InferenceRule .
 
-  op prove : Pat ProvingTactic -> Pat .
-  eq prove(P:Pat, T:ProvingTactic) = P:Pat [owise] .
+  op resolve : Pat InferenceRule -> PatList .
+  eq resolve(P:Pat, R:InferenceRule) = P:Pat [owise] . ---- keep the P:Pat as
+                                       ---- it is if no inference rule is applicable.
   
-  op taut : -> ProvingTactic [ctor] . ---- Propositional Tautology Checking.
-  op ml2fol : -> ProvingTactic [ctor] . ---- First-Order Logic Translation.
-  op axiom : -> ProvingTactic [ctor] . ---- Axiom Checking .
+  
+  ---- a list of inference rules to resolve a pattern, defined in separate modules.
+  op taut : -> InferenceRule [ctor] . ---- Propositional Tautology Checking.
+  op mp : -> InferenceRule [ctor] . ---- Modus Ponens.
+  op framing : -> InferenceRule [ctor] . ---- Framing Rule
+  op ml2fol : -> InferenceRule [ctor] . ---- First-Order Logic Translation.
+  op axiom : -> InferenceRule [ctor] . ---- Axiom Checking .
 endfm
 
-  ---- TODO: not really. We can have a more systematic way to do this.
+
+  ---- TODO: We have a systematic way to do this.
   ---- in short, we always keep a pattern to proceed, a substitution that
   ---- tells which metaPatVar is assigned to which pattern, a proposition 
   ---- constraint tells us relation between metaPatVars, and a number
@@ -188,34 +196,51 @@ endfm
   ----          P -> (P1 -> P2) constrained by P <-> (P1 -> P2),
   ----          which is valid (as a propositional formula).
   
----- ProvingTactic: taut
+---- InferenceRule: taut
 ---- Q: How does it work?
 ---- A: Recognize from a pattern P a proposition P = A(P1,...,Pn).
-----    Then if A is valid, P is valid.
+----    Then if A is valid, P is valid. Furthermore, we can encode 
+----    some semantics of P in A while still preserving  that A's validity
+----    implies P's validity.
+----    This process of getting a propositional formula from a pattern 
+----    while preserving validity (in the sense that A valid implies P
+----    valid) is called "Propositionally Encoding".
 load prop .
 fmod PAT3-TAUT is
   including PAT3 .
   protecting PROP .
   protecting META-LEVEL + CONVERSION .  
   
-  vars P Q P' : Pat . vars K C C' M N : Nat . var S : Sot .
+  vars P Q P' R : Pat . vars K C C' M N : Nat . var S : Sot .
   
-  ---- make Pat variables 'P1:Pat 'P2:Pat etc.
+  eq resolve(P, taut) = P [owise] .
+  
+  ---- (of no use!) make Pat variables 'P1:Pat 'P2:Pat etc.
   op makePatVar : Nat -> Pat .
   op makeMetaPatVar : Nat -> Variable . op errorPat : -> [Pat] .
-  eq makeMetaPatVar(N) = qid("P" + string(N, 10) + ":" + "Pat") .
+  eq makeMetaPatVar(N) = qid("$" + string(N, 10) + ":" + "Pat") .
   eq makePatVar(N) = downTerm(makeMetaPatVar(N), errorPat) .
   
-  ---- Substitute Pat variable for patterns.
-  ---- Because we neven go under quantifiers, so all {K,C}s means conceptually
-  ---- the same matching logic variables.
-  ---- Example of a Substitution:
-  ----   P1:Pat <- forall exists ... ;
-  ----   P2:Pat <- exists {4,NNat} /\ ...
-  sort Subst . op idSubst : -> Subst . ---- the identity substitution
-  op _<-_ : Pat Pat -> Subst [ctor] .
-  op _;_ : Subst Subst -> Subst [assoc comm id: idSubst] .
+  ---- make variable patterns {K,Pred}
+  op $Pred : -> Sot [ctor] .
+  op makePredVar : Nat -> Pat . eq makePredVar(N) = {N,$Pred} .
+  
+  ---- Substitution
+  ---- First of all, do not confuse this with Substitution provided in META-LEVEL.
+  ---- Second, I am not sure whether to put it here or in PAT1.
+  sort Subst . op idSubst : -> Subst [ctor] .
+  op _<-_ : Pat Pat -> Subst [ctor prec 81] . ---- lhs should be a $Pred variable.
+  op _;_ : Subst Subst -> Subst [ctor assoc comm id: idSubst prec 82] .
+  op subst : Pat Subst -> Pat . ---- subst(P[P1], P1 <- Q1) = P[Q1]
+
+  var PredVar : Pat . ---- Think of it as {N,$Pred}.
+  var Sb : Subst .
+  
+  eq subst(P, idSubst) = P .
+  eq subst(P, (PredVar <- R); Sb) = subst(subst(P, PredVar, R), Sb) .
 endfm
+
+reduce subst({0,NNat}, {0,BBool}, {1,BBool}) .
 
 quit
 
