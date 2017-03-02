@@ -271,14 +271,14 @@ endfm
  
 ---- Proof environment
 fmod PAT5 is
-  protecting PAT2 .
+  protecting PAT4 .
   
   sort ProofObligation ProofObligationList .
   subsort ProofObligation < ProofObligationList .
   op .ProofObligationList : -> ProofObligationList .
   op {_,_} : Nat Pat -> ProofObligation . ---- indexed obligation
   op __ : ProofObligationList ProofObligationList -> ProofObligationList 
-  [assoc comm id: .ProofObligationList] .
+  [assoc comm id: .ProofObligationList format(d s d)] .
   
   sorts ProofState ProofAction .
   op makeProofState : Nat ProofObligationList -> ProofState [ctor] .
