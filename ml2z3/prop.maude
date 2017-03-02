@@ -21,13 +21,13 @@ fmod PROP is
   eq propNot propNot P = P . 
   eq propNot propTrue = propFalse . eq propNot propFalse = propTrue .
 
-  ---- Satisfiability & Validity checking
+  ---- Satisfiability checking
   op satQ : Prop -> Bool .  
   eq satQ(propTrue) = true .
   eq satQ(propFalse) = false .
   eq satQ(P) = satQ(P[pickVar(P) |-> true]) 
             or satQ(P[pickVar(P) |-> false]) [owise] .
-
+  ---- Validity checking
   op validQ : Prop -> Bool .
   eq validQ(P) = not satQ(propNot P) .
   
