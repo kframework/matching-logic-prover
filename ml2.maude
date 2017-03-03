@@ -275,9 +275,8 @@ fmod PAT5 is
   sort ProofObligation ProofObligationList .
   subsort ProofObligation < ProofObligationList .
   op .ProofObligationList : -> ProofObligationList .
-  op {_,_} : Nat Pat -> ProofObligation . ---- indexed obligation
-  eq {N:Nat, top{S:Sot}} = .ProofObligationList .
-  op __ : ProofObligationList ProofObligationList -> ProofObligationList 
+  op {id:_,_} : Nat Pat -> ProofObligation . ---- indexed obligation
+  op _,_ : ProofObligationList ProofObligationList -> ProofObligationList 
   [assoc comm id: .ProofObligationList format(d s d)] .
   op makeProofObligationList : PatList -> ProofObligationList .
   op makeProofObligationList : PatList Nat -> ProofObligationList .
