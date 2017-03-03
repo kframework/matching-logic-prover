@@ -264,7 +264,6 @@ endfm
 fmod PAT4 is
   protecting PAT3-TAUT + PAT3-ML2FOL + PAT3-AXIOM + PAT3-MP + PAT3-FRAME .
 endfm
-
  
 ---- Proof environment
 fmod PAT5 is
@@ -363,42 +362,124 @@ fmod PAT5 is
 
 endfm
 
-mod PAT6 is
-  protecting PAT5 .
+---- Interactive Interface.
+fmod PAT6 is
   protecting META-LEVEL .
   including LOOP-MODE .
+  protecting PAT5 .
+  
+  sort Command . ---- the commands that user will use to talk to the prover
 
-  op <_;_;_> : ProofAction ProofState QidList -> State .
-  op init : -> System . op idle : -> ProofAction .
-  eq init = [nil, < idle ; makeProofState({2,1}, {1,{1,NNat} -> {1,NNat}}) ; nil >, nil] .
+  op < command:_,        ---- the latest command given to the prover from users
+       current:_, ---- the current proof state of the prover.
+	   response:_ >  ---- the latest response that the prover gave, i.e., 
+	                 ---- the ones that yet to be sent to the terminal
+    : Command ProofState QidList -> State [ctor] .
+	
+  ---- A comprehensive list of commands
+  op idle : -> Command [ctor] . ---- do nothing
+  ---- show*, set*, add* commands
+  op show : -> Command [ctor] . ---- show current obligation
+  op show-total : -> Command [ctor] . ---- show total number of obligations
+  op show-all: -> Command [ctor] . ---- show all obligations in order
+  op set-active_ : Nat -> Command [ctor] . ---- set active obligation
+  op add_ : Pat -> Command [ctor] . ---- add an obligation
+  op 
+  ---- proving tactics
+  op auto : -> Command [ctor] . ---- automatically resolve the active obligation
+  op assume_: -> Pat Command [ctor] . ---- resolve the obligation by 
+                                      ---- providing assumption (Modus Ponens)
+  op convert2fol : -> Command [ctor] . ---- Convert obligation to a smt2-style FOL conjecture.
+  op axiom : -> Command [ctor] . ---- try resolving the obligation as an axiom.
+  op taut : -> Command [ctor] . ---- try resolving the obligation as a propositional tautology.
   
-  var A : ProofAction . var Stt : ProofState . vars QIL QIL' QIL'' : QidList .
-  vars M N : Nat . var Obs : ProofObligationList . var P : Pat .
+  vars M N M' N' : Nat .
+  vars PStt PStt' PStt'' : ProofState .
+  vars Res Res' Res'' : QidList .
+  var Cmd : Command .
   
+  ---- Convert everything to QidList for outputing.
+  ---- converting Command
+  op toQL : Command -> QidList .
+  eq toQL(idle) = 'idle .
+  eq toQL(show) = 'show .
+  eq toQL(show-total) = 'show-total .
+  eq toQL(show-all) = 'show-all .
+  eq toQL(set-active N) = 'set-active .
+  eq toQL(add P:Pat) = 'add .
+  eq toQL(auto) = 'auto .
+  eq toQL(assume P:Pat) = 'assume .
+  eq toQL(convert2fol) = 'convert2fol .
+  eq toQL(axiom) = 'axiom .
+  eq toQL(taut) = 'taut .
+  ---- converting ProofObligation
+  
+  
+  ---- Match the next command,
+  ---- Change the prover's state,
+  ---- Prepare the output.
+  
+  eq < command: show,
+       current: PStt,
+       response: Res >
+  =  < command: idle,
+       current: PStt,
+	   response: Res toQL(getActiveProofObligation(PStt)) > .
+	   
+  ceq < command: Cmd,
+        current: PStt,
+        response: Res >
+  =   < command: idle,
+        current: PStt,
+	    response: Res toQL(Cmd) 'is 'not 'implemented 'yet. > 
+  if Cmd =/= idle .		
+
+  
+endfm 
+
+---- Interface between LOOP-MODE and the prover.
+mod PAT7 is
+  including PAT6 .
+
+  op init : -> System . 
+  eq init = [nil, < command: idle,
+                    current: initialProofState,
+					response: nil >, nil] .
+					
+  vars M N M' N' : Nat .
+  vars PStt PStt' PStt'' : ProofState .
+  vars Res Res' Input : QidList .
+  var Cmd : Command .
+  
+  ---- Gather users' input and pass them to the prover, when 
+  ----   (1) the prover is idling
+  ----   (2) the prover has nothing to say (an empty response buffer)
+  ---- If (1) is false, let the prover does its job first!
+  ---- If (2) is false, gather the response first! (by crl [out])
   crl [in] :
-     [QIL, < idle ; Stt ; nil >, QIL']
+     [Input, < command: idle,
+	           current: PStt,
+			   response: nil >, Res]
   => if T:ResultPair? :: ResultPair
-     then [nil, < downTerm(getTerm(T:ResultPair?), idle) ; Stt ; nil >, QIL']
-	 else [nil, < idle ; Stt ; nil >, 'ERROR QIL]
+     then [nil, < command: downTerm(getTerm(T:ResultPair?), idle),
+	              current: PStt,
+			      response: nil >, Res]
+	 else [nil, < command: idle,
+	              current: PStt,
+			      response: nil >, 'ERROR Input]
 	 fi
-  if QIL =/= nil 
-  /\ T:ResultPair? := metaParse(upModule('PAT5, false), QIL, 'ProofAction) .
+  if Input =/= nil
+  /\ T:ResultPair? := metaParse(upModule('PAT6, false), Input, 'Command) .
   
+  ---- Gather the prover's output and pass them to System (waiting for printing)
   crl [out] :
-     [QIL, < A ; Stt ; QIL' >, QIL'']
-  => [QIL, < A ; Stt ; nil  >, QIL'' QIL']
-  if QIL' =/= nil .
-  
-  rl [infer] :
-     < R:InferenceRule ; Stt ; nil >
-  => < idle ; apply(R:InferenceRule, Stt) ; nil > .
-  
-  op show : ProofState -> QidList .
-  eq show(makeProofState({M,N}, {N,P} Obs)) =
-     metaPrettyPrint(upModule('PAT5, false), upTerm(P)) .
-  rl [show] :
-     < show ; Stt ; nil >
-  => < idle ; Stt ; ('\u 'activeObligation: '\o show(Stt) '\n) > .
+     [Input, < command: Cmd,
+	           current: PStt,
+			   response: Res >, Res']
+  => [Input, < command: Cmd,
+	           current: PStt,
+			   response: nil >, Res' Res]
+  if Res =/= nil .
   
 endm
 

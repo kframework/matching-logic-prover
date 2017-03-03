@@ -1,0 +1,92 @@
+---- A testing module for me to try good practice of using LOOP-MODE.
+
+mod ACT is
+  protecting NAT + META-LEVEL .
+  including LOOP-MODE .
+
+  sorts Action .
+  op  < action:_,
+        total:_,
+		active:_,
+		response:_ > : Action Nat Nat QidList -> State [ctor] .
+  op idle : -> Action .
+  op show : -> Action .
+  op show_ : Nat -> Action .
+  op set-active_ : Nat -> Action .
+  
+  vars R R' R'' : QidList . var Act : Action . vars M N K : Nat .
+  
+  op toQidList : Nat -> QidList .
+  eq toQidList(M) = metaPrettyPrint(upModule('NAT, false), upTerm(M)) .
+  
+  eq < action: show,
+       total: M,
+	   active: N,
+	   response: R >
+  =  < action: idle,
+       total: M,
+	   active: N,
+	   response: R toQidList(M) > .
+	   
+  eq < action: show K,
+       total: M,
+	   active: N,
+	   response: R >
+  =  < action: idle,
+       total: M,
+	   active: N,
+	   response: R toQidList(K) > .
+
+  eq < action: set-active K,
+       total: M,
+	   active: N,
+	   response: R >
+  =  < action: idle,
+       total: M,
+	   active: K,
+	   response: R 'set 'active 'to toQidList(K) > .
+	   
+endm
+
+mod INTERFACE is
+  including ACT .
+  op init : -> System . 
+  eq init = [nil, < action: idle,
+                    total: 34, 
+					active: 3,
+                    response: nil >, nil] .
+  
+  vars QIL QIL' QIL'' : QidList . vars M N K : Nat . var Act : Action .
+  
+  crl [in] :
+    [QIL, < action: idle,
+	        total: M,
+			active: N,
+			response: nil >, QIL']
+  => if T:ResultPair? :: ResultPair
+     then [nil, < action: downTerm(getTerm(T:ResultPair?), idle),
+	              total: M,
+				  active: N,
+				  response: nil >, QIL']
+	 else [nil, < action: idle,
+	              total: M,
+				  active: N,
+				  response: nil >, 'ERROR QIL]
+	 fi
+  if QIL =/= nil
+  /\ T:ResultPair? := metaParse(upModule('ACT, false), QIL, 'Action) .
+  
+  crl [out] :
+    [QIL, < action: Act,
+	        total: M,
+			active: N,
+			response: QIL' >, QIL'']
+  =>
+    [QIL, < action: Act,
+	        total: M,
+			active: N,
+			response: nil >, QIL'' QIL']
+  if QIL' =/= nil .
+  
+endm
+
