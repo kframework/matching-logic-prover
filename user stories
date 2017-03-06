@@ -1,3 +1,14 @@
+Finished Features
+  de Brujin indices
+  many-sorted
+  user-defined (matching logic) sorts and symbols
+  convertion to first-order logic (haven't work with de Brujin indices, yet)
+  interactive interface that supports
+    add new proof obligations
+    recognize propositional axioms and resolve them
+    apply modus ponens rule
+    undo
+
 User Stories and their points
   pretty print de brujin patterns --- 1
   "easy input" patterns --- 7
