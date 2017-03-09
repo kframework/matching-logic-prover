@@ -1,0 +1,1 @@
+{"mainSyntaxModuleName":"MTC","configVarDefaultSort":{"$PGM":"K@SORT-K"},"programStartSymbol":"K@SORT-K"}

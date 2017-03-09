@@ -1,0 +1,8 @@
+(declare-sort Nat)
+
+(declare-symb upTo (Nat) Nat)
+(declare-func zero () Nat)
+(declare-func succ (Nat) Nat)
+(declare-func plus (Nat Nat) Nat)
+
+(assert (
