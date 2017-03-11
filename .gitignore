@@ -213,3 +213,6 @@ TSWLatexianTemp*
 # IntelliJ
 ml2pl/.idea/*
 *.class
+
+# Kframework
+convert2fol/mtc-kompiled/*
