@@ -13,19 +13,45 @@
 (declare-func epsilon () Seq)
 (declare-func concat (Seq Seq) Seq)
 
+// Nat axioms
 (assert (forall ((N Nat)) (= (plus N zero) N)))
 (assert (forall ((N Nat) (M Nat)) (= (plus N (succ M))
                                      (succ (plus N M)))))
 (assert (forall ((N Nat) (M Nat)) (= (plus N M) (plus M N))))
 
+// Seq axioms
 (assert (forall ((S Seq)) (= (concat epsilon S) S)))
 (assert (forall ((S Seq)) (= (concat S epsilon) S)))
 (assert (forall ((N1 Nat) (N2 Nat) (S1 Seq) (S2 Seq))
-                (-> (= (concat (Nat2Seq N1) S1)
-                       (concat (Nat2Seq N2) S2))
-                    (and (= N1 N2) (= S1 S2)))))
+                (=> (= (concat (Nat2Seq N1) S1)
+                       (concat (Nat2Seq N2) S2)
 
 
 (assert (not (= (plus (succ zero) (succ zero))
                 (succ (succ zero)))))
+
+(check-sat)
+
+-----------------convert2fol
+
+(declare-sort MLBool)
+(declare-sort MLNat)
+(declare-sort MLSeq)
+
+(declare-fun tt () MLBool)
+(declare-fun ff () MLBool)
+
+(declare-fun upToQ (MLNat MLNat) Bool)
+(declare-fun zero () MLNat)
+(declare-fun succ (MLNat) MLNat)
+(declare-fun plus (MLNat MLNat) MLNat)
+
+(assert (forall ((N MLNat)) (= (plus N zero) N)))
+(assert (forall ((N MLNat) (M MLNat)) (= (plus N (succ M))
+                                         (succ (plus N M)))))
+
+(assert (not (= (plus (succ zero) (succ zero))
+                (succ (succ zero)))))
+
+(check-sat)
 
