@@ -3,11 +3,11 @@
 module MTC-SYNTAX
   import PATTERN-SYNTAX
 
-  syntax Sorts      ::= List{Sort, ""}
-  syntax SortDecl   ::= "(" "declare-sort" Sort ")"
-  syntax SymbolDecl ::= "(" "declare-symb" Symbol "(" Sorts ")" Sort ")"
-  syntax FuncDecl   ::= "(" "declare-func" Symbol "(" Sorts ")" Sort ")"
-  syntax Decl       ::= SortDecl | SymbolDecl | FuncDecl
+  syntax MLSorts    ::= List{MLSort, ""}
+  syntax MLSortDecl ::= "(" "declare-sort" MLSort ")"
+  syntax SymbolDecl ::= "(" "declare-symb" Symbol "(" MLSorts ")" MLSort ")"
+  syntax FuncDecl   ::= "(" "declare-func" Symbol "(" MLSorts ")" MLSort ")"
+  syntax Decl       ::= MLSortDecl | SymbolDecl | FuncDecl
 
   syntax Assertion  ::= "(" "assert" Pattern ")"
  
@@ -19,11 +19,11 @@ module MTC-SYNTAX
 endmodule
 
 module PATTERN-SYNTAX
-  syntax Sort        ::= Id 
+  syntax MLSort      ::= Id 
   syntax Symbol      ::= Id
   syntax Application ::= Symbol 
                        | "(" Symbol Patterns ")"
-  syntax Binder      ::= "(" Id Sort ")"
+  syntax Binder      ::= "(" Id MLSort ")"
   syntax Binders     ::= List{Binder, ""}       [klabel(BinderList)]
 
   syntax Pattern     ::= "top"
@@ -47,12 +47,9 @@ module MTC
 
   configuration <T>
                   <k> $PGM:Statements </k>
-                  <out> .K </out>
+                  <out> .Statements:Statements </out>
                 </T>
 
-  rule .Statements => .
-  rule S:Statement Ss:Statements => S ~> Ss  [structural]
-
-  rule <k> (S:Statement => .) ... </k>
-       <out> Ss:Bag => Ss S </out> 
+  rule <k> (S:Statement Ss:Statements => Ss) </k>
+       <out> (Ss1:Statements => (S Ss1)) </out> 
 endmodule
