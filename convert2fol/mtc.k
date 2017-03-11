@@ -46,7 +46,6 @@ module MTC
   import MTC-SYNTAX
 
   configuration <T>
-<<<<<<< HEAD
                   <k> $PGM:Statement </k>
                   <out> .Statement:Statement </out>
                 </T>
@@ -54,15 +53,7 @@ module MTC
   rule .Statement => .
   rule S:Statement Ss:Statement => S ~> Ss  [structural]
 
-  rule <k> (S:Statement => .) ... </k>
-
-
-=======
-                  <k> $PGM:Statements </k>
-                  <out> .Statements:Statements </out>
-                </T>
-
   rule <k> (S:Statement Ss:Statements => Ss) </k>
        <out> (Ss1:Statements => (S Ss1)) </out> 
->>>>>>> 5461c00ebf60cf9fac7c97d756cb12ee3d1c857a
+
 endmodule
