@@ -1,1 +1,1 @@
-{"mainSyntaxModuleName":"MTC-SYNTAX","configVarDefaultSort":{"$PGM":"Statements@MTC-SYNTAX"},"programStartSymbol":"Statements@MTC-SYNTAX"}
+{"mainSyntaxModuleName":"MTC-SYNTAX","configVarDefaultSort":{"$PGM":"Statement@MTC-SYNTAX"},"programStartSymbol":"Statement@MTC-SYNTAX"}

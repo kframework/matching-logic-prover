@@ -13,8 +13,8 @@ module MTC-SYNTAX
  
   syntax Statement  ::= Decl
                       | Assertion
+                      | Statement Statement [left, assoc]
   
-  syntax Statements ::= List{Statement, ""}
 
 endmodule
 
@@ -46,13 +46,14 @@ module MTC
   import MTC-SYNTAX
 
   configuration <T>
-                  <k> $PGM:Statements </k>
-                  <out> .K </out>
+                  <k> $PGM:Statement </k>
+                  <out> .Statement:Statement </out>
                 </T>
 
-  rule .Statements => .
-  rule S:Statement Ss:Statements => S ~> Ss  [structural]
+  rule .Statement => .
+  rule S:Statement Ss:Statement => S ~> Ss  [structural]
 
   rule <k> (S:Statement => .) ... </k>
-       <out> Ss:Bag => Ss S </out> 
+
+
 endmodule
