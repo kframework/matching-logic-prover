@@ -140,7 +140,7 @@ type statement =
 
 (* matching logic convert to fol *)
 
-let convert_sort sort = "ML" ^ sort;;
+let convert_sort sort = sort;;
 let rec convert_sorts sorts =
   match sorts with
   | [] -> []
@@ -291,10 +291,17 @@ and have pats rs sys = (* pats.length = rs.length *)
   | (p::ps, r::rs) -> (has p r sys) :: (have ps rs sys)
 ;;
 
-let convert_axioms axioms rs sys = [];;
-  (* TODO *)
+let rec convert_axioms axioms rs sys = 
+  match (axioms, rs) with
+  | ([],[]) -> []
+  | (ax::axs, r::rs) ->
+    let s = get_sort ax sys in
+	  if s = "anysort"
+	  then (has ax r sys) :: (convert_axioms axs rs sys)
+	  else ForallFormula([(r,s)], (has ax r sys)) :: (convert_axioms axs rs sys)
+;;
 
-let convert_system (sys : system) : theory =
+let convert_system sys =
   let (sorts, nonfunc_signatures, func_signatures, axioms) = sys in
   let rs = freshvars (length axioms) in
   ((convert_sorts sorts),
@@ -355,45 +362,52 @@ and formulas2string phis =
   | [phi] -> formula2string(phi)
   | phi::phis -> formula2string(phi) ^ " " ^ formulas2string(phis)
 ;;
-    
-let rec statement2string stmt =
-  match stmt with
-  | SortDeclStatement(s) -> "(declare-sort " ^ s ^ ")"
-  | FuncDeclStatement(s, argument_sorts, result_sort) ->
-    "(declare-fun " 
-	  ^ s ^ " "
-	  ^ "(" ^ strings2string(argument_sorts) ^ ") "
-	  ^ result_sort ^ ")"
-  | FormulaAssertionStatement(phi) -> "(assert " ^ formula2string(phi) ^ ")"
-  | CheckSatStatement -> "(check-sat)"
-  | _ -> "unknown statement"
+
+let rec sorts2decls sorts =
+  match sorts with
+  | [] -> ""
+  | s::ss -> "(declare-sort " ^ s ^ ")\n" ^ (sorts2decls ss)
+;;
+
+let rec funcsigs2decls sigs =
+  match sigs with
+  | [] -> ""
+  | (f, argument_sorts, result_sort) :: ss -> 
+    "(declare-fun " ^ f ^ " (" ^ (strings2string argument_sorts) ^ ") " ^ result_sort ^ ")\n"
+	^ (funcsigs2decls ss)
+;;
+
+let rec axioms2asrts axioms = 
+  match axioms with
+  | [] -> ""
+  | ax::axs -> "(assert " ^ (formula2string ax) ^ ")\n"
+               ^ (axioms2asrts axs)
+;;
+let rec theory2string th =
+  let (sorts, func_signatures, axioms) = th in
+  (sorts2decls sorts)
+  ^ (funcsigs2decls func_signatures)
+  ^ (axioms2asrts axioms)
+  ^ "(check-sat)\n(get-model)\n"
 ;;
 
 (* testing *)
-let termpat = AppPattern("plus", [AppPattern("succ", [AppPattern("zero", [])]);
-                                  AppPattern("succ", [AppPattern("zero", [])])]);;
+
 let ax_plus_comm = ForallPattern([("M","Nat");("N","Nat")],
                      EqualPattern(AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")]),
 					              AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")])));;
-let term1 = CompoundTerm("plus", [CompoundTerm("succ", [CompoundTerm("zero", [])]);
-                                   CompoundTerm("plus", [CompoundTerm("succ", [CompoundTerm("zero", [])]);
-                                   CompoundTerm("succ", [CompoundTerm("zero", [])])])]) ;;
-let phi1 = ForallFormula([("M", "Nat"); ("N", "Nat")], EqualFormula(term1, term1)) ;;
-let funcdecl = FuncDeclStatement("plus", ["Nat";"Nat"],"Nat");;
+let ax_plus_zero = ForallPattern([("M","Nat")], 
+                     EqualPattern(AppPattern("plus", [VarPattern("M","Nat"); AppPattern("zero", [])]),
+					              VarPattern("M","Nat")));;
+let ax_plus_succ = ForallPattern([("M","Nat");("N","Nat")],
+                    EqualPattern(AppPattern("plus", [VarPattern("M","Nat");  AppPattern("succ", [VarPattern("N","Nat")])]),
+					             AppPattern("succ", [AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")])])));;
+								 
 let sys = (["Bool";"Nat";"Seq";"Map"],
            [("upTo", ["Nat"], "Nat")],
 		   [("zero", [], "Nat");
 		    ("succ", ["Nat"], "Nat");
 			("plus", ["Nat";"Nat"], "Nat")],
-		   [ax_plus_comm]) ;;
-
-strings2string(["one";"two";"three"]);;
-term2string(term1) ;;
-formula2string(phi1) ;;
-statement2string(funcdecl);;
-func_symb_Q "plus" sys;;
-term_pattern_Q termpat sys;;
-term2string (convert_term termpat);;
-fv_in_pattern termpat;;
-convert_system sys;;
-formula2string (has termpat "r" sys);;
+		   [ax_plus_comm; ax_plus_zero; ax_plus_succ]) ;;
+		   
+print_string (theory2string (convert_system sys));;
