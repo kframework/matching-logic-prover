@@ -76,23 +76,26 @@ let rec get_sort pat sys =
   let (_, nonfunc_signatures, func_signatures, _) = sys in
   let signatures = nonfunc_signatures @ func_signatures in
     match pat with
-	| TopPattern -> "unknown"
-    | BottomPattern -> "unknown"
+	| TopPattern -> "anysort"
+    | BottomPattern -> "anysort"
     | VarPattern(x,s) -> s
     | AppPattern(f, _) -> get_result_sort f signatures
-    | AndPattern([]) -> "unknown"
-	| AndPattern(p::ps) -> get_sort p sys
-    | OrPattern([]) -> "unknown"
-	| OrPattern(p::ps) -> get_sort p sys
+    | AndPattern([]) -> "anysort"
+	| AndPattern(p::ps) -> let p' = AndPattern(ps) in
+	                         if (get_sort p sys) = "anysort"
+	                         then get_sort p' sys
+						     else get_sort p sys
+    | OrPattern(pats) -> let p' = AndPattern(pats) in 
+	                       get_sort p' sys
     | NotPattern(p) -> get_sort p sys
-    | ImpliesPattern(p1,p2) -> get_sort p1 sys
-    | IffPattern(p1,p2) -> get_sort p1 sys
+    | ImpliesPattern(p1,p2) -> (get_sort (AndPattern([p1;p2]))) sys
+    | IffPattern(p1,p2) -> (get_sort (ImpliesPattern(p1,p2))) sys
     | ForallPattern(binders, p) -> get_sort p sys
     | ExistsPattern(binders, p) -> get_sort p sys
-    | EqualPattern(p1,p2) -> "unknown"
-    | CeilPattern(p) -> "unknown"
-    | FloorPattern(p) -> "unknown"
-    | ContainsPattern(p1,p2) -> "unknown"
+    | EqualPattern(p1,p2) -> "anysort"
+    | CeilPattern(p) -> "anysort"
+    | FloorPattern(p) -> "anysort"
+    | ContainsPattern(p1,p2) -> "anysort"
     | _ -> "bad_sort"
 and get_sorts pats sys =
   match pats with
@@ -175,7 +178,8 @@ let fresh () =
 let reset () = _count := 0;;
 let rec freshvars n = 
   if n = 0 then []
-  else fresh () :: freshvars (n - 1)
+  else let r = fresh () in 
+         r :: freshvars (n - 1)
 ;;
 
 (* collect fresh variables in a matching logic system *)
@@ -245,6 +249,31 @@ let rec has pat (r: string) sys =
   | NotPattern(p) -> NotFormula(has p r sys)
   | ImpliesPattern(p1,p2) -> ImpliesFormula((has p1 r sys), (has p2 r sys))
   | IffPattern(p1, p2) -> IffFormula((has p1 r sys), (has p2 r sys))
+  | ForallPattern(binders, p) -> ForallFormula(binders, (has p r sys))
+  | ExistsPattern(binders, p) -> ExistsFormula(binders, (has p r sys))
+  | EqualPattern(p1,p2) -> 
+    if (term_pattern_Q p1 sys) && (term_pattern_Q p2 sys)
+	then EqualFormula(convert_term p1, convert_term p2)
+	else
+      let r' = fresh() in
+      let s = if (get_sort p1 sys) = "anysort"
+	          then get_sort p2 sys
+	  		else get_sort p1 sys in
+        if s = "anysort" (* p1 and p2 are poly sorted *)
+	    then IffFormula((has p1 r' sys), (has p2 r' sys))
+	    else ForallFormula([r',s], IffFormula((has p1 r' sys), (has p2 r' sys)))
+  | CeilPattern(p) -> let r' = fresh() in
+                      let s = (get_sort p sys) in
+                        if  s = "anysort"
+					    then (has p r' sys)
+					    else if (term_pattern_Q p sys)
+					         then TrueFormula
+						     else ExistsFormula([r',s], has p r' sys)
+  | FloorPattern(p) -> let r' = fresh() in
+                       let s = (get_sort p sys) in
+                         if s = "anysort"
+					     then (has p r' sys)
+					     else ForallFormula([r',s], has p r' sys)  
   | _ -> if (term_pattern_Q pat sys)
          then EqualFormula((convert_term pat), 
 		                    AtomicVarTerm(r)) 
@@ -262,12 +291,16 @@ and have pats rs sys = (* pats.length = rs.length *)
   | (p::ps, r::rs) -> (has p r sys) :: (have ps rs sys)
 ;;
 
-let convert_system sys =
+let convert_axioms axioms rs sys = [];;
+  (* TODO *)
+
+let convert_system (sys : system) : theory =
   let (sorts, nonfunc_signatures, func_signatures, axioms) = sys in
+  let rs = freshvars (length axioms) in
   ((convert_sorts sorts),
-   (map convert_nonfunc_signature nonfunc_signatures),
+   (map convert_nonfunc_signature nonfunc_signatures) @
    (map convert_func_signature func_signatures),
-   (convert_patterns axioms sys))
+   (convert_axioms axioms rs sys)) 
 ;;
 
 (* fol convert to string *)
@@ -339,6 +372,9 @@ let rec statement2string stmt =
 (* testing *)
 let termpat = AppPattern("plus", [AppPattern("succ", [AppPattern("zero", [])]);
                                   AppPattern("succ", [AppPattern("zero", [])])]);;
+let ax_plus_comm = ForallPattern([("M","Nat");("N","Nat")],
+                     EqualPattern(AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")]),
+					              AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")])));;
 let term1 = CompoundTerm("plus", [CompoundTerm("succ", [CompoundTerm("zero", [])]);
                                    CompoundTerm("plus", [CompoundTerm("succ", [CompoundTerm("zero", [])]);
                                    CompoundTerm("succ", [CompoundTerm("zero", [])])])]) ;;
@@ -349,7 +385,7 @@ let sys = (["Bool";"Nat";"Seq";"Map"],
 		   [("zero", [], "Nat");
 		    ("succ", ["Nat"], "Nat");
 			("plus", ["Nat";"Nat"], "Nat")],
-		   []) ;;
+		   [ax_plus_comm]) ;;
 
 strings2string(["one";"two";"three"]);;
 term2string(term1) ;;
