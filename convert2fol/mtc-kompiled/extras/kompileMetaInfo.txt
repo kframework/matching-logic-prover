@@ -1,1 +1,0 @@
-{"mainSyntaxModuleName":"MTC-SYNTAX","configVarDefaultSort":{"$PGM":"Statement@MTC-SYNTAX"},"programStartSymbol":"Statement@MTC-SYNTAX"}

@@ -1,0 +1,1 @@
+{"mainSyntaxModuleName":"TEST-SYNTAX","configVarDefaultSort":{"$PGM":"Sorts@TEST-SYNTAX"},"programStartSymbol":"Sorts@TEST-SYNTAX"}

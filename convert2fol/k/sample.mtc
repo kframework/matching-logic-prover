@@ -2,15 +2,15 @@
 (declare-sort Nat)
 (declare-sort Seq)
 
-(declare-func tt () Bool)
-(declare-func ff () Bool)
+(declare-func tt (.MLSorts) Bool)
+(declare-func ff (.MLSorts) Bool)
 
-(declare-func zero () Nat)
+(declare-func zero (.MLSorts) Nat)
 (declare-func succ (Nat) Nat)
 (declare-func plus (Nat Nat) Nat)
 
 (declare-func Nat2Seq (Nat) Seq)
-(declare-func epsilon () Seq)
+(declare-func epsilon (.MLSorts) Seq)
 (declare-func concat (Seq Seq) Seq)
 
 (assert (forall ((N Nat)) (= (plus N zero) N)))

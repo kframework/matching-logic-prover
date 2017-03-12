@@ -3,7 +3,10 @@
 module MTC-SYNTAX
   import PATTERN-SYNTAX
 
-  syntax MLSorts    ::= List{MLSort, ""}
+  syntax MLSorts    ::= ".MLSorts"
+                      | MLSort
+					  > MLSorts MLSorts [assoc, unit(.MLSort)]
+					  
   syntax MLSortDecl ::= "(" "declare-sort" MLSort ")"
   syntax SymbolDecl ::= "(" "declare-symb" Symbol "(" MLSorts ")" MLSort ")"
   syntax FuncDecl   ::= "(" "declare-func" Symbol "(" MLSorts ")" MLSort ")"
@@ -13,8 +16,9 @@ module MTC-SYNTAX
  
   syntax Statement  ::= Decl
                       | Assertion
-                      | Statement Statement [left, assoc]
   
+  syntax Statements ::= Statement 
+                      > Statements Statements [assoc]
 
 endmodule
 
@@ -44,16 +48,16 @@ endmodule
 
 module MTC
   import MTC-SYNTAX
-
+  
   configuration <T>
-                  <k> $PGM:Statement </k>
-                  <out> .Statement:Statement </out>
+                  <k> $PGM:Statements </k>
+                  <out> .List </out>
                 </T>
 
-  rule .Statement => .
-  rule S:Statement Ss:Statement => S ~> Ss  [structural]
+//  rule <k> (S:Statement Ss:Statements => Ss) </k>
+//       <out> (Ss1:Statements => (convert(S) Ss1)) </out> 
 
-  rule <k> (S:Statement Ss:Statements => Ss) </k>
-       <out> (Ss1:Statements => (S Ss1)) </out> 
-
+  rule <k> ((declare-sort S:MLSort) Ss:Statements) => Ss </k>
+       <out> ... (.List => ListItem((declare-sort S))) </out>
+	   
 endmodule
