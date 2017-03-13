@@ -18,6 +18,8 @@ type pattern =
   | FloorPattern of pattern
   | ContainsPattern of pattern * pattern
 ;;
+
+
   
 type system = (string list)                            (* sorts *)
             * ((string * (string list) * string) list) (* nonfunctional symbols signatures *)
@@ -56,22 +58,6 @@ let rec get_result_sort f signatures =
     if (f = g) then result_sort else get_result_sort f sigs
 ;;
 
-(*
-  | VarPattern of string * string
-  | AppPattern of string * pattern list
-  | AndPattern of pattern list
-  | OrPattern of pattern list
-  | NotPattern of pattern
-  | ImpliesPattern of pattern * pattern
-  | IffPattern of pattern * pattern
-  | ForallPattern of (string * string) list * pattern
-  | ExistsPattern of (string * string) list * pattern
-  | EqualPattern of pattern * pattern
-  | CeilPattern of pattern
-  | FloorPattern of pattern
-  | ContainsPattern of pattern * pattern
-*)
-(* TODO *)
 let rec get_sort pat sys =
   let (_, nonfunc_signatures, func_signatures, _) = sys in
   let signatures = nonfunc_signatures @ func_signatures in
@@ -96,7 +82,6 @@ let rec get_sort pat sys =
     | CeilPattern(p) -> "anysort"
     | FloorPattern(p) -> "anysort"
     | ContainsPattern(p1,p2) -> "anysort"
-    | _ -> "bad_sort"
 and get_sorts pats sys =
   match pats with
   | [] -> []
@@ -331,7 +316,7 @@ and terms2string ts =
   | [t] -> term2string(t)
   | t1::ts -> term2string(t1) ^ " " ^ terms2string(ts)
 ;;
-  
+
 let binder2string binder =
   let (var, sort) = binder in "(" ^ var ^ " " ^ sort ^ ")";;
 let rec binders2string binders =
@@ -340,6 +325,35 @@ let rec binders2string binders =
   | [b] -> binder2string(b)
   | b::bs -> binder2string(b) ^ " " ^ binders2string(bs)
 ;;
+
+let rec pattern2string pat =
+  match pat with
+  | TopPattern -> "top"
+  | BottomPattern -> "bottom"
+  | VarPattern(x,s) -> x
+  | AppPattern(c,[]) -> c
+  | AppPattern(c,[p]) -> "(" ^ c ^ " " ^ (pattern2string p) ^ ")"
+  | AppPattern(c, ps) -> "(" ^ c ^ " " ^ "(" ^ (patterns2string ps) ^ "))"
+  | AndPattern(pats) -> "(and " ^ (patterns2string pats) ^ ")"
+  | OrPattern(pats) -> "(or " ^ (patterns2string pats) ^ ")"
+  | NotPattern(p) -> "(not " ^ (pattern2string p) ^ ")"
+  | ImpliesPattern(p1,p2) -> "(-> " ^ (patterns2string [p1;p2]) ^ ")"
+  | IffPattern(p1,p2) -> "(<-> " ^ (patterns2string [p1;p2]) ^ ")"
+  | ForallPattern(binders, p) -> 
+      "(forall (" ^ binders2string(binders) ^ ") " ^ pattern2string(p) ^ ")"
+  | ExistsPattern(binders, p) -> 
+      "(exists (" ^ binders2string(binders) ^ ") " ^ pattern2string(p) ^ ")"
+  | EqualPattern(p1,p2) -> "(= " ^ (patterns2string [p1;p2]) ^ ")"
+  | CeilPattern(p) -> "(ceil " ^ (pattern2string p) ^ ")"
+  | FloorPattern(p) -> "(floor " ^ (pattern2string p) ^ ")"
+  | ContainsPattern(p1,p2) -> "(contains " ^ (patterns2string [p1;p2]) ^ ")"
+and patterns2string pats =
+  match pats with
+  | [] -> ""
+  | [p] -> pattern2string p
+  | p::ps -> (pattern2string p) ^ " " ^ (patterns2string ps)
+;;
+ 
 
 let rec formula2string phi = 
   match phi with
@@ -393,6 +407,8 @@ let rec theory2string th =
 
 (* testing *)
 
+(*
+
 let ax_plus_comm = ForallPattern([("M","Nat");("N","Nat")],
                      EqualPattern(AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")]),
 					              AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")])));;
@@ -410,4 +426,6 @@ let sys = (["Bool";"Nat";"Seq";"Map"],
 			("plus", ["Nat";"Nat"], "Nat")],
 		   [ax_plus_comm; ax_plus_zero; ax_plus_succ]) ;;
 		   
-print_string (theory2string (convert_system sys));;
+print_string (pattern2string ax_plus_succ);;
+
+*)
