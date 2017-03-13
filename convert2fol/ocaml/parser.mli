@@ -23,5 +23,5 @@ type token =
   | CONTAINS
   | EOF
 
-val pattern :
-  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Convert.pattern
+val main :
+  (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Convert.system

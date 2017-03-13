@@ -1,1 +1,3 @@
-top
+(declare-sort Nat)
+(declare-func plus (Nat Nat) Nat)
+(assert (forall ((M Nat) (N Nat)) (= (plus M N) (plus N M))))

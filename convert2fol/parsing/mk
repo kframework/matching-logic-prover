@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 ocamllex lexer.mll
-ocamlyacc -v parser.mly
+ocamlyacc parser.mly
 ocamlc -c parser.mli
 ocamlc -c lexer.ml
 ocamlc -c parser.ml
