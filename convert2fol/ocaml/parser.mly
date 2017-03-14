@@ -7,77 +7,61 @@
 
 %start main
 %type <Convert.system> main
+%type <Convert.system> system
+%type <Convert.pattern> pattern
+%type <string list> sorts
 %%
 
 main:
-  | system EOF { $1 }
+  | EOF { initial_system } /* the empty system */
+  | system { $1 }
 ;
 
 system:
-  | sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN LPAREN GETMODEL RPAREN
-      { let (nonfuncsigs, funcsigs) = $2 in ($1, nonfuncsigs, funcsigs, $3) }
-  | sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN
-      { let (nonfuncsigs, funcsigs) = $2 in ($1, nonfuncsigs, funcsigs, $3) }
-  | sortdecls symboldecls assertions  
-      { let (nonfuncsigs, funcsigs) = $2 in ($1, nonfuncsigs, funcsigs, $3) }
+  | EOF { initial_system }
+  | LPAREN stmt_begin { $1 }
 ;
-sortdecls:
-  | sortdecl { [$1] }
-  | sortdecl sortdecls { $1::$2 }
+
+stmt_begin: /* a statement begins with declare-sort, declare-func, declare-symb, or assert */
+  | DECLSORT ID RPAREN stmt_end { add_sort $2 $3 }
+  | DECLFUNC ID LPAREN sorts ID RPAREN stmt_end /* binders end with RPAREN */
+      { add_func $2 $4 $5 $7 }
+  | DECLSYMB ID LPAREN sorts ID RPAREN stmt_end
+      { add_symb $2 $4 $5 $7 }
+  | ASSERT pattern RPAREN stmt_end
+      { add_axiom $2 $4 }
 ;
-sortdecl:
-  | LPAREN DECLSORT ID RPAREN { $3 }
+
+stmt_end:
+  | EOF { initial_system }
+  | system { $1 }
 ;
-symboldecls:
-  | nonfuncdecl { ([$1], []) }
-  | funcdecl { ([], [$1]) }
-  | nonfuncdecl symboldecls
-      { let (nonfuncsigs, funcsigs) = $2 in 
-          ($1::nonfuncsigs, funcsigs) }
-  | funcdecl symboldecls
-      { let (nonfuncsigs, funcsigs) = $2 in 
-          (nonfuncsigs, $1::funcsigs) }
-;
-nonfuncdecl:
-  | LPAREN DECLSYMB ID LPAREN RPAREN ID RPAREN
-      { ($3, [], $6) }
-  | LPAREN DECLSYMB ID LPAREN sorts RPAREN ID RPAREN
-      { ($3, $5, $7) }
-;
-funcdecl:
-  | LPAREN DECLFUNC ID LPAREN RPAREN ID RPAREN
-      { ($3, [], $6) }
-  | LPAREN DECLFUNC ID LPAREN sorts RPAREN ID RPAREN
-      { ($3, $5, $7) }
-;
+
 sorts:
-  | ID { [$1] }
-  | ID sorts { $1::$2 }
+  | RPAREN { [] }
+  | ID sorts { $1 :: $2 }
 ;
-assertions:
-  | assertion { [$1] }
-  | assertion assertions { $1::$2 }
-;
-assertion:
-  | LPAREN ASSERT pattern RPAREN { $3 }
-;
+
 pattern:
   | TOP { TopPattern }
   | BOTTOM { BottomPattern }
   | ID { AppPattern($1, []) }
-  | LPAREN AND patterns RPAREN { AndPattern($3) }
-  | LPAREN OR patterns RPAREN { OrPattern($3) }
-  | LPAREN NOT pattern RPAREN { NotPattern($3) }
-  | LPAREN IMPLIES pattern pattern RPAREN { ImpliesPattern($3, $4) }
-  | LPAREN IFF pattern pattern RPAREN { IffPattern($3, $4) }
-  | LPAREN FORALL LPAREN binders RPAREN pattern RPAREN
-      { ForallPattern($4, $6) }
-  | LPAREN EXISTS LPAREN binders RPAREN pattern RPAREN
-      { ExistsPattern($4, $6) }
-  | LPAREN EQUAL pattern pattern RPAREN { EqualPattern($3, $4) }
-  | LPAREN FLOOR pattern RPAREN { FloorPattern($3) }
-  | LPAREN CEIL pattern RPAREN { CeilPattern($3) }
-  | LPAREN ID patterns RPAREN { AppPattern($2, $3) }
+  | LPAREN pattern_begin { $1 } /* pattern_begin ends with a RPAREN */
+;
+pattern_begin:
+  | AND patterns RPAREN { AndPattern($2) }
+  | OR patterns RPAREN { OrPattern($2) }
+  | NOT pattern RPAREN { NotPattern($2) }
+  | IMPLIES pattern pattern RPAREN { ImpliesPattern($2, $3) }
+  | IFF pattern pattern RPAREN { IffPattern($2, $3) }
+  | FORALL LPAREN binders pattern RPAREN /* binders end with RPAREN */
+      { ForallPattern($3, $4) }
+  | EXISTS LPAREN binders pattern RPAREN /* binders end with RPAREN */
+      { ExistsPattern($3, $4) }
+  | EQUAL pattern pattern RPAREN { EqualPattern($2, $3) }
+  | FLOOR pattern RPAREN { FloorPattern($2) }
+  | CEIL pattern RPAREN { CeilPattern($2) }
+  | ID patterns RPAREN { AppPattern($1, $2) }
 ;
 patterns:
   | pattern { [$1] }

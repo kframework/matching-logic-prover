@@ -27,6 +27,31 @@ type system = (string list)                            (* sorts *)
 			* (pattern list)                           (* axioms *)
 ;;
 
+(* add thing to a system *)
+let initial_system = ([], [], [], []);;
+let add_sort sort sys =
+  let (sorts, nonfunc_signatures, func_signatures, axioms) = sys in
+  (sort::sorts, nonfunc_signatures, func_signatures, axioms)
+;;
+let add_nonfunc f argument_sorts result_sort sys =
+  let (sorts, nonfunc_signatures, func_signatures, axioms) = sys in
+  (sorts, 
+   (f, argument_sorts, result_sort) :: nonfunc_signatures,
+   func_signatures,
+   axioms)
+;;
+let add_func f argument_sorts result_sort sys =
+  let (sorts, nonfunc_signatures, func_signatures, axioms) = sys in
+  (sorts, 
+   nonfunc_signatures,
+   (f, argument_sorts, result_sort) :: func_signatures,
+   axioms)
+;;
+let add_axiom ax sys =
+  let (sorts, nonfunc_signatures, func_signatures, axioms) = sys in
+  (sorts, nonfunc_signatures, func_signatures, ax :: axioms)
+;;
+
 (* check whether a symbol is functional in a given system *)
 let func_symb_Q f sys =
   let (_, _, func_symb_sigs, _) = sys in
