@@ -285,7 +285,17 @@ let rec has pat (r: string) sys =
                        let s = (get_sort p sys) in
                          if s = "anysort"
 					     then (has p r' sys)
-					     else ForallFormula([r',s], has p r' sys)  
+					     else ForallFormula([r',s], has p r' sys) 
+  | ContainsPattern(p1, p2) ->
+    if (term_pattern_Q p1 sys) && (term_pattern_Q p2 sys)
+    then EqualFormula(convert_term p1, convert_term p2)
+    else let r' = fresh() in
+         let s = if (get_sort p1 sys) = "anysort"
+	             then get_sort p2 sys
+                 else get_sort p1 sys in
+         if s = "anysort" (* p1 and p2 are poly sorted *)
+         then ImpliesFormula((has p1 r' sys), (has p2 r' sys))
+         else ForallFormula([r',s], ImpliesFormula((has p1 r' sys), (has p2 r' sys)))
   | _ -> if (term_pattern_Q pat sys)
          then EqualFormula((convert_term pat), 
 		                    AtomicVarTerm(r)) 
