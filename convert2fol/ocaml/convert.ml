@@ -52,6 +52,8 @@ let add_axiom ax sys =
   (sorts, nonfunc_signatures, func_signatures, ax :: axioms)
 ;;
 
+
+
 (* check whether a symbol is functional in a given system *)
 let func_symb_Q f sys =
   let (_, _, func_symb_sigs, _) = sys in
@@ -355,10 +357,9 @@ let rec pattern2string pat =
   match pat with
   | TopPattern -> "top"
   | BottomPattern -> "bottom"
-  | VarPattern(x,s) -> x
+  | VarPattern(x,s) -> x ^ ":" ^ s
   | AppPattern(c,[]) -> c
-  | AppPattern(c,[p]) -> "(" ^ c ^ " " ^ (pattern2string p) ^ ")"
-  | AppPattern(c, ps) -> "(" ^ c ^ " " ^ "(" ^ (patterns2string ps) ^ "))"
+  | AppPattern(c, ps) -> "(" ^ c ^ " " ^ (patterns2string ps) ^ ")"
   | AndPattern(pats) -> "(and " ^ (patterns2string pats) ^ ")"
   | OrPattern(pats) -> "(or " ^ (patterns2string pats) ^ ")"
   | NotPattern(p) -> "(not " ^ (pattern2string p) ^ ")"
@@ -422,13 +423,60 @@ let rec axioms2asrts axioms =
   | ax::axs -> "(assert " ^ (formula2string ax) ^ ")\n"
                ^ (axioms2asrts axs)
 ;;
-let rec theory2string th =
+let theory2string th =
   let (sorts, func_signatures, axioms) = th in
   (sorts2decls sorts)
   ^ (funcsigs2decls func_signatures)
   ^ (axioms2asrts axioms)
   ^ "(check-sat)\n(get-model)\n"
 ;;
+
+let system2string sys =
+  let (sorts, nonfuncsigs, funcsigs, pats) = sys in
+  (sorts2decls sorts)
+  ^ (funcsigs2decls (nonfuncsigs @ funcsigs))
+  ^ (patterns2string pats)
+  ^ "\n"
+;;
+
+(* This function only used for normalizing parsing result *)
+(* It replaces constants in a pattern if they are in fact
+   binding variables *)
+let rec replace_constants_if_binders pat binders =
+  match pat with
+  | TopPattern -> TopPattern
+  | BottomPattern -> BottomPattern
+  | VarPattern(x,s) -> VarPattern(x,s)
+  | AppPattern(f, pats) -> 
+      if (mem_assoc f binders) && (pats = []) (* constant f is a binder *)
+      then VarPattern(f, (assoc f binders))
+      else AppPattern(f, map (fun p -> (replace_constants_if_binders p binders)) pats)
+  | AndPattern(ps) ->
+    AndPattern(map (fun p -> (replace_constants_if_binders p binders)) ps)
+  | OrPattern(ps) ->
+    OrPattern(map (fun p -> (replace_constants_if_binders p binders)) ps)
+  | NotPattern(p) -> NotPattern(replace_constants_if_binders p binders)
+  | ImpliesPattern(p1,p2) ->
+    ImpliesPattern((replace_constants_if_binders p1 binders),
+                   (replace_constants_if_binders p2 binders))
+  | IffPattern(p1,p2) ->
+    IffPattern((replace_constants_if_binders p1 binders),
+               (replace_constants_if_binders p2 binders))
+  | ForallPattern(binders', pat') ->
+    ForallPattern(binders', (replace_constants_if_binders pat' (binders @ binders')))
+  | ExistsPattern(binders', pat') ->
+    ExistsPattern(binders', (replace_constants_if_binders pat' (binders @ binders')))
+  | EqualPattern(p1, p2) ->
+    EqualPattern((replace_constants_if_binders p1 binders),
+                 (replace_constants_if_binders p2 binders))
+  | CeilPattern(p) ->
+    CeilPattern(replace_constants_if_binders p binders)
+  | FloorPattern(p) ->
+    FloorPattern(replace_constants_if_binders p binders)
+  | ContainsPattern(p1, p2) ->
+    ContainsPattern((replace_constants_if_binders p1 binders),
+                    (replace_constants_if_binders p2 binders))
+;;  
 
 (* testing *)
 

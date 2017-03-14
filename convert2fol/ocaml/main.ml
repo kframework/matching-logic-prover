@@ -8,11 +8,12 @@ let file_out = "example.smt";;
 let output_channel = open_out file_out;;
 
 let lexbuf = Lexing.from_channel input_channel in
-  let sys = Parser.main Lexer.token lexbuf in
+  let sys = Parser.system Lexer.token lexbuf in
+  let patoutput = system2string sys in
   let smtoutput = theory2string (convert_system sys) in
   fprintf output_channel "%s\n" smtoutput; 
   flush output_channel;
-  fprintf stdout "%s\n" smtoutput; 
+  fprintf stdout "%s\n" (patoutput ^ "\n" ^ smtoutput); 
   flush stdout
 ;;
 

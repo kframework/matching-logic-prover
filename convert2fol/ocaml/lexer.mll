@@ -1,6 +1,6 @@
-(* File lexer.mll *)
-
-{ open Parser }
+{
+open Parser
+}
 
 let digit   = ['0'-'9']
 let nondigit    = ['a'-'z''A'-'Z''_''$']

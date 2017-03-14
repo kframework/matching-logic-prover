@@ -1,57 +1,40 @@
    0  $accept : %entry% $end
 
-   1  main : system EOF
+   1  system : EOF
+   2         | LPAREN system_cont
 
-   2  system : sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN LPAREN GETMODEL RPAREN
-   3         | sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN
-   4         | sortdecls symboldecls assertions
+   3  system_cont : DECLSORT ID RPAREN system
+   4              | DECLFUNC ID LPAREN sorts ID RPAREN system
+   5              | DECLSYMB ID LPAREN sorts ID RPAREN system
+   6              | ASSERT pattern RPAREN system
 
-   5  sortdecls : sortdecl
-   6            | sortdecl sortdecls
+   7  sorts : RPAREN
+   8        | ID sorts
 
-   7  sortdecl : LPAREN DECLSORT ID RPAREN
+   9  pattern : TOP
+  10          | BOTTOM
+  11          | ID
+  12          | LPAREN pattern_cont
 
-   8  symboldecls : nonfuncdecl
-   9              | funcdecl
-  10              | nonfuncdecl symboldecls
-  11              | funcdecl symboldecls
+  13  pattern_cont : AND patterns RPAREN
+  14               | OR patterns RPAREN
+  15               | NOT pattern RPAREN
+  16               | IMPLIES pattern pattern RPAREN
+  17               | IFF pattern pattern RPAREN
+  18               | FORALL LPAREN binders pattern RPAREN
+  19               | EXISTS LPAREN binders pattern RPAREN
+  20               | EQUAL pattern pattern RPAREN
+  21               | FLOOR pattern RPAREN
+  22               | CEIL pattern RPAREN
+  23               | ID patterns RPAREN
 
-  12  nonfuncdecl : LPAREN DECLSYMB ID LPAREN RPAREN ID RPAREN
-  13              | LPAREN DECLSYMB ID LPAREN sorts RPAREN ID RPAREN
+  24  patterns : pattern
+  25           | pattern patterns
 
-  14  funcdecl : LPAREN DECLFUNC ID LPAREN RPAREN ID RPAREN
-  15           | LPAREN DECLFUNC ID LPAREN sorts RPAREN ID RPAREN
+  26  binders : RPAREN
+  27          | LPAREN ID ID RPAREN binders
 
-  16  sorts : ID
-  17        | ID sorts
-
-  18  assertions : assertion
-  19             | assertion assertions
-
-  20  assertion : LPAREN ASSERT pattern RPAREN
-
-  21  pattern : TOP
-  22          | BOTTOM
-  23          | ID
-  24          | LPAREN AND patterns RPAREN
-  25          | LPAREN OR patterns RPAREN
-  26          | LPAREN NOT pattern RPAREN
-  27          | LPAREN IMPLIES pattern pattern RPAREN
-  28          | LPAREN IFF pattern pattern RPAREN
-  29          | LPAREN FORALL LPAREN binders RPAREN pattern RPAREN
-  30          | LPAREN EXISTS LPAREN binders RPAREN pattern RPAREN
-  31          | LPAREN EQUAL pattern pattern RPAREN
-  32          | LPAREN FLOOR pattern RPAREN
-  33          | LPAREN CEIL pattern RPAREN
-  34          | LPAREN ID patterns RPAREN
-
-  35  patterns : pattern
-  36           | pattern patterns
-
-  37  binders : LPAREN ID ID RPAREN
-  38          | LPAREN ID ID RPAREN binders
-
-  39  %entry% : '\001' main
+  28  %entry% : '\001' system
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -63,15 +46,13 @@ state 0
 
 
 state 1
-	%entry% : '\001' . main  (39)
+	%entry% : '\001' . system  (28)
 
 	LPAREN  shift 3
+	EOF  shift 4
 	.  error
 
-	main  goto 4
 	system  goto 5
-	sortdecls  goto 6
-	sortdecl  goto 7
 
 
 state 2
@@ -81,883 +62,683 @@ state 2
 
 
 state 3
-	sortdecl : LPAREN . DECLSORT ID RPAREN  (7)
+	system : LPAREN . system_cont  (2)
 
-	DECLSORT  shift 8
+	DECLSORT  shift 6
+	DECLSYMB  shift 7
+	DECLFUNC  shift 8
+	ASSERT  shift 9
 	.  error
+
+	system_cont  goto 10
 
 
 state 4
-	%entry% : '\001' main .  (39)
-
-	.  reduce 39
-
-
-state 5
-	main : system . EOF  (1)
-
-	EOF  shift 9
-	.  error
-
-
-state 6
-	system : sortdecls . symboldecls assertions LPAREN CHECKSAT RPAREN LPAREN GETMODEL RPAREN  (2)
-	system : sortdecls . symboldecls assertions LPAREN CHECKSAT RPAREN  (3)
-	system : sortdecls . symboldecls assertions  (4)
-
-	LPAREN  shift 10
-	.  error
-
-	symboldecls  goto 11
-	nonfuncdecl  goto 12
-	funcdecl  goto 13
-
-
-7: shift/reduce conflict (shift 3, reduce 5) on LPAREN
-state 7
-	sortdecls : sortdecl .  (5)
-	sortdecls : sortdecl . sortdecls  (6)
-
-	LPAREN  shift 3
-
-	sortdecls  goto 14
-	sortdecl  goto 7
-
-
-state 8
-	sortdecl : LPAREN DECLSORT . ID RPAREN  (7)
-
-	ID  shift 15
-	.  error
-
-
-state 9
-	main : system EOF .  (1)
+	system : EOF .  (1)
 
 	.  reduce 1
 
 
-state 10
-	nonfuncdecl : LPAREN . DECLSYMB ID LPAREN RPAREN ID RPAREN  (12)
-	nonfuncdecl : LPAREN . DECLSYMB ID LPAREN sorts RPAREN ID RPAREN  (13)
-	funcdecl : LPAREN . DECLFUNC ID LPAREN RPAREN ID RPAREN  (14)
-	funcdecl : LPAREN . DECLFUNC ID LPAREN sorts RPAREN ID RPAREN  (15)
+state 5
+	%entry% : '\001' system .  (28)
 
-	DECLSYMB  shift 16
-	DECLFUNC  shift 17
+	.  reduce 28
+
+
+state 6
+	system_cont : DECLSORT . ID RPAREN system  (3)
+
+	ID  shift 11
 	.  error
+
+
+state 7
+	system_cont : DECLSYMB . ID LPAREN sorts ID RPAREN system  (5)
+
+	ID  shift 12
+	.  error
+
+
+state 8
+	system_cont : DECLFUNC . ID LPAREN sorts ID RPAREN system  (4)
+
+	ID  shift 13
+	.  error
+
+
+state 9
+	system_cont : ASSERT . pattern RPAREN system  (6)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 18
+
+
+state 10
+	system : LPAREN system_cont .  (2)
+
+	.  reduce 2
 
 
 state 11
-	system : sortdecls symboldecls . assertions LPAREN CHECKSAT RPAREN LPAREN GETMODEL RPAREN  (2)
-	system : sortdecls symboldecls . assertions LPAREN CHECKSAT RPAREN  (3)
-	system : sortdecls symboldecls . assertions  (4)
+	system_cont : DECLSORT ID . RPAREN system  (3)
 
-	LPAREN  shift 18
+	RPAREN  shift 19
 	.  error
 
-	assertions  goto 19
-	assertion  goto 20
 
-
-12: shift/reduce conflict (shift 10, reduce 8) on LPAREN
 state 12
-	symboldecls : nonfuncdecl .  (8)
-	symboldecls : nonfuncdecl . symboldecls  (10)
+	system_cont : DECLSYMB ID . LPAREN sorts ID RPAREN system  (5)
 
-	LPAREN  shift 10
-
-	symboldecls  goto 21
-	nonfuncdecl  goto 12
-	funcdecl  goto 13
+	LPAREN  shift 20
+	.  error
 
 
-13: shift/reduce conflict (shift 10, reduce 9) on LPAREN
 state 13
-	symboldecls : funcdecl .  (9)
-	symboldecls : funcdecl . symboldecls  (11)
+	system_cont : DECLFUNC ID . LPAREN sorts ID RPAREN system  (4)
 
-	LPAREN  shift 10
-
-	symboldecls  goto 22
-	nonfuncdecl  goto 12
-	funcdecl  goto 13
+	LPAREN  shift 21
+	.  error
 
 
 state 14
-	sortdecls : sortdecl sortdecls .  (6)
-
-	.  reduce 6
-
-
-state 15
-	sortdecl : LPAREN DECLSORT ID . RPAREN  (7)
-
-	RPAREN  shift 23
-	.  error
-
-
-state 16
-	nonfuncdecl : LPAREN DECLSYMB . ID LPAREN RPAREN ID RPAREN  (12)
-	nonfuncdecl : LPAREN DECLSYMB . ID LPAREN sorts RPAREN ID RPAREN  (13)
-
-	ID  shift 24
-	.  error
-
-
-state 17
-	funcdecl : LPAREN DECLFUNC . ID LPAREN RPAREN ID RPAREN  (14)
-	funcdecl : LPAREN DECLFUNC . ID LPAREN sorts RPAREN ID RPAREN  (15)
-
-	ID  shift 25
-	.  error
-
-
-state 18
-	assertion : LPAREN . ASSERT pattern RPAREN  (20)
-
-	ASSERT  shift 26
-	.  error
-
-
-state 19
-	system : sortdecls symboldecls assertions . LPAREN CHECKSAT RPAREN LPAREN GETMODEL RPAREN  (2)
-	system : sortdecls symboldecls assertions . LPAREN CHECKSAT RPAREN  (3)
-	system : sortdecls symboldecls assertions .  (4)
-
-	LPAREN  shift 27
-	EOF  reduce 4
-
-
-20: shift/reduce conflict (shift 18, reduce 18) on LPAREN
-state 20
-	assertions : assertion .  (18)
-	assertions : assertion . assertions  (19)
-
-	LPAREN  shift 18
-	EOF  reduce 18
-
-	assertions  goto 28
-	assertion  goto 20
-
-
-state 21
-	symboldecls : nonfuncdecl symboldecls .  (10)
-
-	.  reduce 10
-
-
-state 22
-	symboldecls : funcdecl symboldecls .  (11)
+	pattern : ID .  (11)
 
 	.  reduce 11
 
 
-state 23
-	sortdecl : LPAREN DECLSORT ID RPAREN .  (7)
+state 15
+	pattern : LPAREN . pattern_cont  (12)
 
-	.  reduce 7
+	ID  shift 22
+	AND  shift 23
+	OR  shift 24
+	NOT  shift 25
+	IMPLIES  shift 26
+	IFF  shift 27
+	FORALL  shift 28
+	EXISTS  shift 29
+	EQUAL  shift 30
+	FLOOR  shift 31
+	CEIL  shift 32
+	.  error
+
+	pattern_cont  goto 33
 
 
-state 24
-	nonfuncdecl : LPAREN DECLSYMB ID . LPAREN RPAREN ID RPAREN  (12)
-	nonfuncdecl : LPAREN DECLSYMB ID . LPAREN sorts RPAREN ID RPAREN  (13)
+state 16
+	pattern : TOP .  (9)
 
-	LPAREN  shift 29
+	.  reduce 9
+
+
+state 17
+	pattern : BOTTOM .  (10)
+
+	.  reduce 10
+
+
+state 18
+	system_cont : ASSERT pattern . RPAREN system  (6)
+
+	RPAREN  shift 34
 	.  error
 
 
-state 25
-	funcdecl : LPAREN DECLFUNC ID . LPAREN RPAREN ID RPAREN  (14)
-	funcdecl : LPAREN DECLFUNC ID . LPAREN sorts RPAREN ID RPAREN  (15)
+state 19
+	system_cont : DECLSORT ID RPAREN . system  (3)
 
-	LPAREN  shift 30
+	LPAREN  shift 3
+	EOF  shift 4
 	.  error
 
+	system  goto 35
 
-state 26
-	assertion : LPAREN ASSERT . pattern RPAREN  (20)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
+state 20
+	system_cont : DECLSYMB ID LPAREN . sorts ID RPAREN system  (5)
+
+	ID  shift 36
+	RPAREN  shift 37
 	.  error
 
-	pattern  goto 35
+	sorts  goto 38
 
 
-state 27
-	system : sortdecls symboldecls assertions LPAREN . CHECKSAT RPAREN LPAREN GETMODEL RPAREN  (2)
-	system : sortdecls symboldecls assertions LPAREN . CHECKSAT RPAREN  (3)
+state 21
+	system_cont : DECLFUNC ID LPAREN . sorts ID RPAREN system  (4)
 
-	CHECKSAT  shift 36
-	.  error
-
-
-state 28
-	assertions : assertion assertions .  (19)
-
-	.  reduce 19
-
-
-state 29
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN . RPAREN ID RPAREN  (12)
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN . sorts RPAREN ID RPAREN  (13)
-
-	ID  shift 37
-	RPAREN  shift 38
+	ID  shift 36
+	RPAREN  shift 37
 	.  error
 
 	sorts  goto 39
 
 
-state 30
-	funcdecl : LPAREN DECLFUNC ID LPAREN . RPAREN ID RPAREN  (14)
-	funcdecl : LPAREN DECLFUNC ID LPAREN . sorts RPAREN ID RPAREN  (15)
+state 22
+	pattern_cont : ID . patterns RPAREN  (23)
 
-	ID  shift 37
-	RPAREN  shift 40
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
 	.  error
 
-	sorts  goto 41
+	pattern  goto 40
+	patterns  goto 41
+
+
+state 23
+	pattern_cont : AND . patterns RPAREN  (13)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 40
+	patterns  goto 42
+
+
+state 24
+	pattern_cont : OR . patterns RPAREN  (14)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 40
+	patterns  goto 43
+
+
+state 25
+	pattern_cont : NOT . pattern RPAREN  (15)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 44
+
+
+state 26
+	pattern_cont : IMPLIES . pattern pattern RPAREN  (16)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 45
+
+
+state 27
+	pattern_cont : IFF . pattern pattern RPAREN  (17)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 46
+
+
+state 28
+	pattern_cont : FORALL . LPAREN binders pattern RPAREN  (18)
+
+	LPAREN  shift 47
+	.  error
+
+
+state 29
+	pattern_cont : EXISTS . LPAREN binders pattern RPAREN  (19)
+
+	LPAREN  shift 48
+	.  error
+
+
+state 30
+	pattern_cont : EQUAL . pattern pattern RPAREN  (20)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 49
 
 
 state 31
-	pattern : ID .  (23)
+	pattern_cont : FLOOR . pattern RPAREN  (21)
 
-	.  reduce 23
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 50
 
 
 state 32
-	pattern : LPAREN . AND patterns RPAREN  (24)
-	pattern : LPAREN . OR patterns RPAREN  (25)
-	pattern : LPAREN . NOT pattern RPAREN  (26)
-	pattern : LPAREN . IMPLIES pattern pattern RPAREN  (27)
-	pattern : LPAREN . IFF pattern pattern RPAREN  (28)
-	pattern : LPAREN . FORALL LPAREN binders RPAREN pattern RPAREN  (29)
-	pattern : LPAREN . EXISTS LPAREN binders RPAREN pattern RPAREN  (30)
-	pattern : LPAREN . EQUAL pattern pattern RPAREN  (31)
-	pattern : LPAREN . FLOOR pattern RPAREN  (32)
-	pattern : LPAREN . CEIL pattern RPAREN  (33)
-	pattern : LPAREN . ID patterns RPAREN  (34)
+	pattern_cont : CEIL . pattern RPAREN  (22)
 
-	ID  shift 42
-	AND  shift 43
-	OR  shift 44
-	NOT  shift 45
-	IMPLIES  shift 46
-	IFF  shift 47
-	FORALL  shift 48
-	EXISTS  shift 49
-	EQUAL  shift 50
-	FLOOR  shift 51
-	CEIL  shift 52
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
 	.  error
+
+	pattern  goto 51
 
 
 state 33
-	pattern : TOP .  (21)
+	pattern : LPAREN pattern_cont .  (12)
 
-	.  reduce 21
+	.  reduce 12
 
 
 state 34
-	pattern : BOTTOM .  (22)
+	system_cont : ASSERT pattern RPAREN . system  (6)
 
-	.  reduce 22
+	LPAREN  shift 3
+	EOF  shift 4
+	.  error
+
+	system  goto 52
 
 
 state 35
-	assertion : LPAREN ASSERT pattern . RPAREN  (20)
+	system_cont : DECLSORT ID RPAREN system .  (3)
 
-	RPAREN  shift 53
-	.  error
+	.  reduce 3
 
 
 state 36
-	system : sortdecls symboldecls assertions LPAREN CHECKSAT . RPAREN LPAREN GETMODEL RPAREN  (2)
-	system : sortdecls symboldecls assertions LPAREN CHECKSAT . RPAREN  (3)
+	sorts : ID . sorts  (8)
 
-	RPAREN  shift 54
+	ID  shift 36
+	RPAREN  shift 37
 	.  error
+
+	sorts  goto 53
 
 
 state 37
-	sorts : ID .  (16)
-	sorts : ID . sorts  (17)
+	sorts : RPAREN .  (7)
 
-	ID  shift 37
-	RPAREN  reduce 16
-
-	sorts  goto 55
+	.  reduce 7
 
 
 state 38
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN RPAREN . ID RPAREN  (12)
+	system_cont : DECLSYMB ID LPAREN sorts . ID RPAREN system  (5)
 
-	ID  shift 56
+	ID  shift 54
 	.  error
 
 
 state 39
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN sorts . RPAREN ID RPAREN  (13)
+	system_cont : DECLFUNC ID LPAREN sorts . ID RPAREN system  (4)
+
+	ID  shift 55
+	.  error
+
+
+state 40
+	patterns : pattern .  (24)
+	patterns : pattern . patterns  (25)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	RPAREN  reduce 24
+
+	pattern  goto 40
+	patterns  goto 56
+
+
+state 41
+	pattern_cont : ID patterns . RPAREN  (23)
 
 	RPAREN  shift 57
 	.  error
 
 
-state 40
-	funcdecl : LPAREN DECLFUNC ID LPAREN RPAREN . ID RPAREN  (14)
+state 42
+	pattern_cont : AND patterns . RPAREN  (13)
 
-	ID  shift 58
+	RPAREN  shift 58
 	.  error
 
 
-state 41
-	funcdecl : LPAREN DECLFUNC ID LPAREN sorts . RPAREN ID RPAREN  (15)
+state 43
+	pattern_cont : OR patterns . RPAREN  (14)
 
 	RPAREN  shift 59
 	.  error
 
 
-state 42
-	pattern : LPAREN ID . patterns RPAREN  (34)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 60
-	patterns  goto 61
-
-
-state 43
-	pattern : LPAREN AND . patterns RPAREN  (24)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 60
-	patterns  goto 62
-
-
 state 44
-	pattern : LPAREN OR . patterns RPAREN  (25)
+	pattern_cont : NOT pattern . RPAREN  (15)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
+	RPAREN  shift 60
 	.  error
-
-	pattern  goto 60
-	patterns  goto 63
 
 
 state 45
-	pattern : LPAREN NOT . pattern RPAREN  (26)
+	pattern_cont : IMPLIES pattern . pattern RPAREN  (16)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
 	.  error
 
-	pattern  goto 64
+	pattern  goto 61
 
 
 state 46
-	pattern : LPAREN IMPLIES . pattern pattern RPAREN  (27)
+	pattern_cont : IFF pattern . pattern RPAREN  (17)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
 	.  error
 
-	pattern  goto 65
+	pattern  goto 62
 
 
 state 47
-	pattern : LPAREN IFF . pattern pattern RPAREN  (28)
+	pattern_cont : FORALL LPAREN . binders pattern RPAREN  (18)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
+	LPAREN  shift 63
+	RPAREN  shift 64
 	.  error
 
-	pattern  goto 66
+	binders  goto 65
 
 
 state 48
-	pattern : LPAREN FORALL . LPAREN binders RPAREN pattern RPAREN  (29)
+	pattern_cont : EXISTS LPAREN . binders pattern RPAREN  (19)
 
-	LPAREN  shift 67
+	LPAREN  shift 63
+	RPAREN  shift 64
 	.  error
+
+	binders  goto 66
 
 
 state 49
-	pattern : LPAREN EXISTS . LPAREN binders RPAREN pattern RPAREN  (30)
+	pattern_cont : EQUAL pattern . pattern RPAREN  (20)
 
-	LPAREN  shift 68
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
 	.  error
+
+	pattern  goto 67
 
 
 state 50
-	pattern : LPAREN EQUAL . pattern pattern RPAREN  (31)
+	pattern_cont : FLOOR pattern . RPAREN  (21)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
+	RPAREN  shift 68
 	.  error
-
-	pattern  goto 69
 
 
 state 51
-	pattern : LPAREN FLOOR . pattern RPAREN  (32)
+	pattern_cont : CEIL pattern . RPAREN  (22)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
+	RPAREN  shift 69
 	.  error
-
-	pattern  goto 70
 
 
 state 52
-	pattern : LPAREN CEIL . pattern RPAREN  (33)
+	system_cont : ASSERT pattern RPAREN system .  (6)
 
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 71
+	.  reduce 6
 
 
 state 53
-	assertion : LPAREN ASSERT pattern RPAREN .  (20)
+	sorts : ID sorts .  (8)
 
-	.  reduce 20
+	.  reduce 8
 
 
 state 54
-	system : sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN . LPAREN GETMODEL RPAREN  (2)
-	system : sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN .  (3)
+	system_cont : DECLSYMB ID LPAREN sorts ID . RPAREN system  (5)
 
-	LPAREN  shift 72
-	EOF  reduce 3
+	RPAREN  shift 70
+	.  error
 
 
 state 55
-	sorts : ID sorts .  (17)
+	system_cont : DECLFUNC ID LPAREN sorts ID . RPAREN system  (4)
 
-	.  reduce 17
+	RPAREN  shift 71
+	.  error
 
 
 state 56
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN RPAREN ID . RPAREN  (12)
+	patterns : pattern patterns .  (25)
+
+	.  reduce 25
+
+
+state 57
+	pattern_cont : ID patterns RPAREN .  (23)
+
+	.  reduce 23
+
+
+state 58
+	pattern_cont : AND patterns RPAREN .  (13)
+
+	.  reduce 13
+
+
+state 59
+	pattern_cont : OR patterns RPAREN .  (14)
+
+	.  reduce 14
+
+
+state 60
+	pattern_cont : NOT pattern RPAREN .  (15)
+
+	.  reduce 15
+
+
+state 61
+	pattern_cont : IMPLIES pattern pattern . RPAREN  (16)
+
+	RPAREN  shift 72
+	.  error
+
+
+state 62
+	pattern_cont : IFF pattern pattern . RPAREN  (17)
 
 	RPAREN  shift 73
 	.  error
 
 
-state 57
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN sorts RPAREN . ID RPAREN  (13)
+state 63
+	binders : LPAREN . ID ID RPAREN binders  (27)
 
 	ID  shift 74
 	.  error
 
 
-state 58
-	funcdecl : LPAREN DECLFUNC ID LPAREN RPAREN ID . RPAREN  (14)
-
-	RPAREN  shift 75
-	.  error
-
-
-state 59
-	funcdecl : LPAREN DECLFUNC ID LPAREN sorts RPAREN . ID RPAREN  (15)
-
-	ID  shift 76
-	.  error
-
-
-state 60
-	patterns : pattern .  (35)
-	patterns : pattern . patterns  (36)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	RPAREN  reduce 35
-
-	pattern  goto 60
-	patterns  goto 77
-
-
-state 61
-	pattern : LPAREN ID patterns . RPAREN  (34)
-
-	RPAREN  shift 78
-	.  error
-
-
-state 62
-	pattern : LPAREN AND patterns . RPAREN  (24)
-
-	RPAREN  shift 79
-	.  error
-
-
-state 63
-	pattern : LPAREN OR patterns . RPAREN  (25)
-
-	RPAREN  shift 80
-	.  error
-
-
 state 64
-	pattern : LPAREN NOT pattern . RPAREN  (26)
+	binders : RPAREN .  (26)
+
+	.  reduce 26
+
+
+state 65
+	pattern_cont : FORALL LPAREN binders . pattern RPAREN  (18)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 75
+
+
+state 66
+	pattern_cont : EXISTS LPAREN binders . pattern RPAREN  (19)
+
+	ID  shift 14
+	LPAREN  shift 15
+	TOP  shift 16
+	BOTTOM  shift 17
+	.  error
+
+	pattern  goto 76
+
+
+state 67
+	pattern_cont : EQUAL pattern pattern . RPAREN  (20)
+
+	RPAREN  shift 77
+	.  error
+
+
+state 68
+	pattern_cont : FLOOR pattern RPAREN .  (21)
+
+	.  reduce 21
+
+
+state 69
+	pattern_cont : CEIL pattern RPAREN .  (22)
+
+	.  reduce 22
+
+
+state 70
+	system_cont : DECLSYMB ID LPAREN sorts ID RPAREN . system  (5)
+
+	LPAREN  shift 3
+	EOF  shift 4
+	.  error
+
+	system  goto 78
+
+
+state 71
+	system_cont : DECLFUNC ID LPAREN sorts ID RPAREN . system  (4)
+
+	LPAREN  shift 3
+	EOF  shift 4
+	.  error
+
+	system  goto 79
+
+
+state 72
+	pattern_cont : IMPLIES pattern pattern RPAREN .  (16)
+
+	.  reduce 16
+
+
+state 73
+	pattern_cont : IFF pattern pattern RPAREN .  (17)
+
+	.  reduce 17
+
+
+state 74
+	binders : LPAREN ID . ID RPAREN binders  (27)
+
+	ID  shift 80
+	.  error
+
+
+state 75
+	pattern_cont : FORALL LPAREN binders pattern . RPAREN  (18)
 
 	RPAREN  shift 81
 	.  error
 
 
-state 65
-	pattern : LPAREN IMPLIES pattern . pattern RPAREN  (27)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 82
-
-
-state 66
-	pattern : LPAREN IFF pattern . pattern RPAREN  (28)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 83
-
-
-state 67
-	pattern : LPAREN FORALL LPAREN . binders RPAREN pattern RPAREN  (29)
-
-	LPAREN  shift 84
-	.  error
-
-	binders  goto 85
-
-
-state 68
-	pattern : LPAREN EXISTS LPAREN . binders RPAREN pattern RPAREN  (30)
-
-	LPAREN  shift 84
-	.  error
-
-	binders  goto 86
-
-
-state 69
-	pattern : LPAREN EQUAL pattern . pattern RPAREN  (31)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 87
-
-
-state 70
-	pattern : LPAREN FLOOR pattern . RPAREN  (32)
-
-	RPAREN  shift 88
-	.  error
-
-
-state 71
-	pattern : LPAREN CEIL pattern . RPAREN  (33)
-
-	RPAREN  shift 89
-	.  error
-
-
-state 72
-	system : sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN LPAREN . GETMODEL RPAREN  (2)
-
-	GETMODEL  shift 90
-	.  error
-
-
-state 73
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN RPAREN ID RPAREN .  (12)
-
-	.  reduce 12
-
-
-state 74
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN sorts RPAREN ID . RPAREN  (13)
-
-	RPAREN  shift 91
-	.  error
-
-
-state 75
-	funcdecl : LPAREN DECLFUNC ID LPAREN RPAREN ID RPAREN .  (14)
-
-	.  reduce 14
-
-
 state 76
-	funcdecl : LPAREN DECLFUNC ID LPAREN sorts RPAREN ID . RPAREN  (15)
+	pattern_cont : EXISTS LPAREN binders pattern . RPAREN  (19)
 
-	RPAREN  shift 92
+	RPAREN  shift 82
 	.  error
 
 
 state 77
-	patterns : pattern patterns .  (36)
+	pattern_cont : EQUAL pattern pattern RPAREN .  (20)
 
-	.  reduce 36
+	.  reduce 20
 
 
 state 78
-	pattern : LPAREN ID patterns RPAREN .  (34)
+	system_cont : DECLSYMB ID LPAREN sorts ID RPAREN system .  (5)
 
-	.  reduce 34
+	.  reduce 5
 
 
 state 79
-	pattern : LPAREN AND patterns RPAREN .  (24)
+	system_cont : DECLFUNC ID LPAREN sorts ID RPAREN system .  (4)
 
-	.  reduce 24
+	.  reduce 4
 
 
 state 80
-	pattern : LPAREN OR patterns RPAREN .  (25)
+	binders : LPAREN ID ID . RPAREN binders  (27)
 
-	.  reduce 25
+	RPAREN  shift 83
+	.  error
 
 
 state 81
-	pattern : LPAREN NOT pattern RPAREN .  (26)
+	pattern_cont : FORALL LPAREN binders pattern RPAREN .  (18)
 
-	.  reduce 26
+	.  reduce 18
 
 
 state 82
-	pattern : LPAREN IMPLIES pattern pattern . RPAREN  (27)
+	pattern_cont : EXISTS LPAREN binders pattern RPAREN .  (19)
 
-	RPAREN  shift 93
-	.  error
+	.  reduce 19
 
 
 state 83
-	pattern : LPAREN IFF pattern pattern . RPAREN  (28)
+	binders : LPAREN ID ID RPAREN . binders  (27)
 
-	RPAREN  shift 94
+	LPAREN  shift 63
+	RPAREN  shift 64
 	.  error
+
+	binders  goto 84
 
 
 state 84
-	binders : LPAREN . ID ID RPAREN  (37)
-	binders : LPAREN . ID ID RPAREN binders  (38)
-
-	ID  shift 95
-	.  error
-
-
-state 85
-	pattern : LPAREN FORALL LPAREN binders . RPAREN pattern RPAREN  (29)
-
-	RPAREN  shift 96
-	.  error
-
-
-state 86
-	pattern : LPAREN EXISTS LPAREN binders . RPAREN pattern RPAREN  (30)
-
-	RPAREN  shift 97
-	.  error
-
-
-state 87
-	pattern : LPAREN EQUAL pattern pattern . RPAREN  (31)
-
-	RPAREN  shift 98
-	.  error
-
-
-state 88
-	pattern : LPAREN FLOOR pattern RPAREN .  (32)
-
-	.  reduce 32
-
-
-state 89
-	pattern : LPAREN CEIL pattern RPAREN .  (33)
-
-	.  reduce 33
-
-
-state 90
-	system : sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN LPAREN GETMODEL . RPAREN  (2)
-
-	RPAREN  shift 99
-	.  error
-
-
-state 91
-	nonfuncdecl : LPAREN DECLSYMB ID LPAREN sorts RPAREN ID RPAREN .  (13)
-
-	.  reduce 13
-
-
-state 92
-	funcdecl : LPAREN DECLFUNC ID LPAREN sorts RPAREN ID RPAREN .  (15)
-
-	.  reduce 15
-
-
-state 93
-	pattern : LPAREN IMPLIES pattern pattern RPAREN .  (27)
+	binders : LPAREN ID ID RPAREN binders .  (27)
 
 	.  reduce 27
 
 
-state 94
-	pattern : LPAREN IFF pattern pattern RPAREN .  (28)
-
-	.  reduce 28
-
-
-state 95
-	binders : LPAREN ID . ID RPAREN  (37)
-	binders : LPAREN ID . ID RPAREN binders  (38)
-
-	ID  shift 100
-	.  error
-
-
-state 96
-	pattern : LPAREN FORALL LPAREN binders RPAREN . pattern RPAREN  (29)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 101
-
-
-state 97
-	pattern : LPAREN EXISTS LPAREN binders RPAREN . pattern RPAREN  (30)
-
-	ID  shift 31
-	LPAREN  shift 32
-	TOP  shift 33
-	BOTTOM  shift 34
-	.  error
-
-	pattern  goto 102
-
-
-state 98
-	pattern : LPAREN EQUAL pattern pattern RPAREN .  (31)
-
-	.  reduce 31
-
-
-state 99
-	system : sortdecls symboldecls assertions LPAREN CHECKSAT RPAREN LPAREN GETMODEL RPAREN .  (2)
-
-	.  reduce 2
-
-
-state 100
-	binders : LPAREN ID ID . RPAREN  (37)
-	binders : LPAREN ID ID . RPAREN binders  (38)
-
-	RPAREN  shift 103
-	.  error
-
-
-state 101
-	pattern : LPAREN FORALL LPAREN binders RPAREN pattern . RPAREN  (29)
-
-	RPAREN  shift 104
-	.  error
-
-
-state 102
-	pattern : LPAREN EXISTS LPAREN binders RPAREN pattern . RPAREN  (30)
-
-	RPAREN  shift 105
-	.  error
-
-
-state 103
-	binders : LPAREN ID ID RPAREN .  (37)
-	binders : LPAREN ID ID RPAREN . binders  (38)
-
-	LPAREN  shift 84
-	RPAREN  reduce 37
-
-	binders  goto 106
-
-
-state 104
-	pattern : LPAREN FORALL LPAREN binders RPAREN pattern RPAREN .  (29)
-
-	.  reduce 29
-
-
-state 105
-	pattern : LPAREN EXISTS LPAREN binders RPAREN pattern RPAREN .  (30)
-
-	.  reduce 30
-
-
-state 106
-	binders : LPAREN ID ID RPAREN binders .  (38)
-
-	.  reduce 38
-
-
-Rules never reduced:
-	sortdecls : sortdecl  (5)
-	symboldecls : nonfuncdecl  (8)
-	symboldecls : funcdecl  (9)
-
-
-State 7 contains 1 shift/reduce conflict.
-State 12 contains 1 shift/reduce conflict.
-State 13 contains 1 shift/reduce conflict.
-State 20 contains 1 shift/reduce conflict.
-
-
-26 terminals, 15 nonterminals
-40 grammar rules, 107 states
+26 terminals, 9 nonterminals
+29 grammar rules, 85 states
