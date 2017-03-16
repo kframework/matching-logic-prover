@@ -7,9 +7,10 @@
 (assert (forall ((M MLNat) (N MLNat)) (= (plus M N) (plus N M))))
 (assert (forall ((M MLNat)) (= (plus M zero) M)))
 (assert (forall ((M MLNat) (N MLNat)) (= (plus M (succ N)) (succ (plus M N)))))
-(assert (forall ((M MLNat)) (forall (($15 MLNat)) (= (exists (($16 MLNat) ($17 MLNat)) (and (PIrange $16 $17) (= M $16) (= M $17))) (= M $15)))))
-(assert (forall ((M MLNat)) (forall (($12 MLNat)) (= (exists (($13 MLNat) ($14 MLNat)) (and (PIrange $13 $14) (= (succ M) $13) (= M $14))) (exists () (and PIbot))))))
-(assert (forall ((M MLNat) (N MLNat)) (forall (($7 MLNat)) (= (exists (($10 MLNat) ($11 MLNat)) (and (PIrange $10 $11) (= M $10) (= (succ N) $11))) or (exists (($8 MLNat) ($9 MLNat)) (and (PIrange $8 $9) (= M $8) (= N $9))) (= (succ N) $7))))))
+(assert (forall ((M MLNat)) (forall (($16 MLNat)) (= (exists (($17 MLNat) ($18 MLNat)) (and (PIrange $17 $18 $16) (= M $17) (= M $18))) (= M $16)))))
+(assert (forall ((M MLNat)) (forall (($13 MLNat)) (= (exists (($14 MLNat) ($15 MLNat)) (and (PIrange $14 $15 $13) (= (succ M) $14) (= M $15))) (exists () (and (PIbot $13)))))))
+(assert (forall ((M MLNat) (N MLNat)) (forall (($8 MLNat)) (= (exists (($11 MLNat) ($12 MLNat)) (and (PIrange $11 $12 $8) (= M $11) (= (succ N) $12))) (or (exists (($9 MLNat) ($10 MLNat)) (and (PIrange $9 $10 $8) (= M $9) (= N $10))) (= (succ N) $8))))))
+(assert (not (= (plus (succ zero) (succ zero)) (succ (succ zero))) ))
 (check-sat)
 (get-model)
 

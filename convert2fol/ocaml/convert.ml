@@ -306,7 +306,7 @@ let rec has pat (r: string) sys =
 			  let rs = (map fst binders) in
 		        ExistsFormula(binders, 
 				  AndFormula(AppFormula(convert_nonfunc f, 
-				                        makeAtomicVarFormulas(rs))  :: (have pats rs sys)))
+				                        makeAtomicVarFormulas(rs @ [r]) )  :: (have pats rs sys)))
 and have pats rs sys = (* pats.length = rs.length *)
   match (pats,rs) with
   | ([],[]) -> []
@@ -399,7 +399,8 @@ let rec formula2string phi =
   | AppFormula(predicate, ts) -> "(" ^ predicate ^ " " ^ terms2string(ts) ^ ")"
   | EqualFormula(t1,t2) -> "(= " ^ terms2string([t1;t2]) ^ ")"
   | AndFormula(phis) -> "(and " ^ formulas2string(phis) ^ ")"
-  | OrFormula(phis) -> "or " ^ formulas2string(phis) ^ ")"
+  | NotFormula(phi) -> "(not " ^ formula2string(phi) ^ " )"
+  | OrFormula(phis) -> "(or " ^ formulas2string(phis) ^ ")"
   | ImpliesFormula(phi1,phi2) -> "(=> " ^ formulas2string([phi1;phi2]) ^ ")"
   | IffFormula(phi1,phi2) -> "(= " ^ formulas2string([phi1;phi2]) ^ ")"
   | ForallFormula(binders, phi) ->
