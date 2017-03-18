@@ -1,0 +1,18 @@
+(declare-sort MLNat)
+(declare-sort Map)
+
+(declare-func zero () MLNat)
+(declare-func succ (MLNat) MLNat)
+(declare-func plus (MLNat MLNat) MLNat)
+
+(declare-symb range (MLNat MLNat) MLNat)
+
+(assert (forall ((M MLNat) (N MLNat)) (= (plus M N) (plus N M))))
+(assert (forall ((M MLNat)) (= (plus M zero) M)))
+(assert (forall ((M MLNat) (N MLNat)) (= (plus M (succ N)) (succ (plus M N)))))
+
+(assert (forall ((M MLNat)) (= (range M M) M)))
+(assert (forall ((M MLNat)) (= (range (succ M) M) bot)))
+(assert (forall ((M MLNat) (N MLNat)) (= (range M (succ N)) (or (range M N) (succ N)))))
+
+(assert (not (= (plus (succ zero) (succ zero)) (succ (succ zero)))))
