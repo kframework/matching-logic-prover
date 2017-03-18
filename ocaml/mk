@@ -1,0 +1,19 @@
+#!/bin/bash
+echo "lexing"
+ocamllex lexer.mll
+echo "yaccing"
+ocamlyacc parser.mly
+echo "compiling convert.ml"
+ocamlc -c convert.ml
+echo "compiling parser.mli"
+ocamlc -c parser.mli
+echo "compiling lexer.ml"
+ocamlc -c lexer.ml
+echo "compiling parser.ml"
+ocamlc -c parser.ml
+echo "compiling main.ml"
+ocamlc -c main.ml
+echo "making final binaries"
+ocamlc -o main lexer.cmo convert.cmo parser.cmo main.cmo
+echo "cleaning"
+rm *.cmo *.cmi parser.mli lexer.ml parser.ml
