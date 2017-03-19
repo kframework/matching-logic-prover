@@ -47,6 +47,7 @@ type pattern =
   | CeilPattern of pattern
   | FloorPattern of pattern
   | ContainsPattern of pattern * pattern
+  | IntValuePattern of int
 ;;
   
 type system = (string list)                            (* sorts *)
@@ -58,10 +59,11 @@ type system = (string list)                            (* sorts *)
 
 (* Build a matching logic system *)
 
-let initial_system = ([],        (* no sort *)
-                      [],        (* no nonfunc symbols *)
-                      [],        (* no func symbols *)
-                      [])        (* no axioms *)
+let initial_system = (["Bool"; "Nat"],             (* built-in sorts *)
+                      [],                          (* no nonfunc symbols *)
+                      ["+"; "-"; "*"; ">"; "<"],   (* func symbols *)
+                      [])                          (* no axioms *)
+;;
 
 let add_sort s sys =
   let (sorts, nonfunc_sigs, func_sigs, axioms) = sys in

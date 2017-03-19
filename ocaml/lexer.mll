@@ -2,11 +2,12 @@
 open Parser
 }
 
-let digit   = ['0'-'9']
+let digit       = ['0'-'9']
+let int         = ['-'] ['1'-'9'] digit* | ['1'-'9'] digit*
 let nondigit    = ['a'-'z''A'-'Z''_''$']
 let alphabet    = digit | nondigit
-let word    = nondigit alphabet*
-let space   = [' ' '\t' '\n']
+let word        = nondigit alphabet*
+let space       = [' ' '\t' '\n']
 
 rule token = parse
   | space               { token lexbuf }
@@ -32,6 +33,7 @@ rule token = parse
   | "floor"             { FLOOR }
   | "ceil"              { CEIL }
   | word as w           { ID(w) }
+  | int as n            { INT(n) }
   | eof                 { EOF }
 
   

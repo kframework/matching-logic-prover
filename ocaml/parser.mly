@@ -3,6 +3,7 @@ open Convert
 %}
 
 %token <string> ID
+%token <int> INT
 %token LPAREN RPAREN DECLSORT DECLSYMB DECLFUNC ASSERT CHECKSAT GETMODEL 
 %token TOP BOTTOM AND OR NOT IMPLIES IFF FORALL EXISTS EQUAL FLOOR CEIL CONTAINS 
 %token EOF
@@ -39,6 +40,7 @@ pattern:
   | TOP { TopPattern }
   | BOTTOM { BottomPattern }
   | ID { AppPattern($1, []) }
+  | INT { IntValuePattern(n) }
   | LPAREN pattern_cont { $2 } /* pattern_cont ends with a RPAREN */
 ;
 pattern_cont:
