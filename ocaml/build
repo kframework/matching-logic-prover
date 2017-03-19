@@ -1,23 +1,34 @@
 #!/bin/bash
-echo "lexing"
+
+printf "lexing \"lexer.mll\" ...\n"
 ocamllex lexer.mll
-echo "yaccing"
+
+printf "\nyaccing \"parser.mly\"...\n"
 ocamlyacc parser.mly
-echo "compiling convert.ml"
+
+printf "\ncompiling \"convert.ml\" ...\n"
 ocamlc -c convert.ml
-echo "compiling parser.mli"
+
+printf "\ncompiling \"parser.mli\" ...\n"
 ocamlc -c parser.mli
-echo "compiling lexer.ml"
+
+printf "\ncompiling \"lexer.ml\" ...\n"
 ocamlc -c lexer.ml
-echo "compiling parser.ml"
+
+printf "\ncompiling \"parser.ml\" ...\n"
 ocamlc -c parser.ml
-echo "compiling main.ml"
+
+printf "\ncompiling \"main.ml\" ...\n"
 ocamlc -c main.ml
-echo "making final binaries"
+
+printf "\nmaking final binaries ...\n"
 ocamlc -o ml2fol lexer.cmo convert.cmo parser.cmo main.cmo
-echo "creating tests"
+
+printf "\ncreating tests ...\n"
 ocamlfind ocamlc -o test -package oUnit -linkpkg -g convert.ml test.ml
-echo "running test suites"
+
+printf "\nrunning test suites ...\n"
 ./test
-echo "cleaning"
-rm *.cmo *.cmi parser.mli lexer.ml parser.ml *.cache *.log
+
+printf "\ncleaning ...\n"
+rm *.cmo *.cmi parser.mli lexer.ml parser.ml *.cache *.log test

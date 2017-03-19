@@ -22,7 +22,7 @@ print_string (pattern2string ax_plus_succ);;
 
 let test1 test_ctxt = 
   assert_equal true
-  (func_symb_Q "zero" system1);;
+  (funcQ "zero" system1);;
 
 let suite =
   "suite">:::
