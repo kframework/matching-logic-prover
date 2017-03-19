@@ -1,3 +1,8 @@
+(*
+  Xiaohong Chen
+  ml2fol: Convert matching logic systems to first-order logic theories.
+*)
+
 open List;;
 
 (* matching logic data structure definitions *)
@@ -489,27 +494,4 @@ let rec replace_constants_if_binders pat binders =
                     (replace_constants_if_binders p2 binders))
 ;;  
 
-(* testing *)
 
-(*
-
-let ax_plus_comm = ForallPattern([("M","Nat");("N","Nat")],
-                     EqualPattern(AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")]),
-					              AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")])));;
-let ax_plus_zero = ForallPattern([("M","Nat")], 
-                     EqualPattern(AppPattern("plus", [VarPattern("M","Nat"); AppPattern("zero", [])]),
-					              VarPattern("M","Nat")));;
-let ax_plus_succ = ForallPattern([("M","Nat");("N","Nat")],
-                    EqualPattern(AppPattern("plus", [VarPattern("M","Nat");  AppPattern("succ", [VarPattern("N","Nat")])]),
-					             AppPattern("succ", [AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")])])));;
-								 
-let sys = (["Bool";"Nat";"Seq";"Map"],
-           [("upTo", ["Nat"], "Nat")],
-		   [("zero", [], "Nat");
-		    ("succ", ["Nat"], "Nat");
-			("plus", ["Nat";"Nat"], "Nat")],
-		   [ax_plus_comm; ax_plus_zero; ax_plus_succ]) ;;
-		   
-print_string (pattern2string ax_plus_succ);;
-
-*)
