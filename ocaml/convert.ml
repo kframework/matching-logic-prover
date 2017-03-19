@@ -9,7 +9,70 @@ open List;;
 
 (* Return ...f(f(f(x)))... *)
 
-let fix_point f x = x
+let fix_point f x =
+  let max_iter_times = 50 in
+  f(f(f(x))) 
+;;
+
+(* 
+  Join two sets of fvs.
+  Precondition: @vars1 and @vars2 are sets.
+*)
+
+let rec set_union vars1 vars2 =
+  match vars1 with
+  | [] -> vars2
+  | v::vs -> if (mem v vars2) then (set_union vs vars2) else v :: (set_union vs vars2)
+;;
+
+(*
+  Substract one set from the other.
+  Precondition: @vars1 and @vars2 are sets.
+*)
+
+let rec set_minus vars1 vars2 =
+  match vars1 with
+  | [] -> []
+  | v::vs -> if (mem v vars2) then (set_minus vs vars2) else v :: (set_minus vs vars2)
+;;
+
+(* 
+  Intersect two sets.
+  Precondition: @l1 and @l2 are sets.
+*)
+
+let rec set_intersection l1 l2 =
+  match l1 with
+  | [] -> []
+  | x::xs -> if (mem x l2) then x :: (set_intersection xs l2)
+                           else set_intersection xs l2
+;;
+
+(* Generate fresh variables names $1, $2, ... *)
+
+let _count = ref 0
+;;
+
+let fresh () = 
+   _count := !_count + 1; 
+   "$" ^ (string_of_int !_count)
+;;
+
+let reset () = _count := 0
+;;
+
+(* 
+  freshvars returns a list of fresh names while
+  freshvar returns one fresh name.
+*)
+
+let rec freshvars n = 
+  if n = 0 then []
+  else let r = fresh () in 
+         r :: freshvars (n - 1)
+;;
+
+let freshvar () = fresh ()
 ;;
 
 (* Part 1: Matching Logic *)
@@ -136,6 +199,7 @@ let rec termQ pat sys =
   match pat with
   | VarPattern(_,_) -> true
   | AppPattern(f,pats) -> (funcQ f sys) && (termsQ pats sys)
+  | IntValuePattern(n) -> true
   | _ -> false
 and termsQ pats sys =
   match pats with
@@ -175,32 +239,11 @@ let rec get_sort pat sys =
     | CeilPattern(p) -> "anysort"
     | FloorPattern(p) -> "anysort"
     | ContainsPattern(p1,p2) -> "anysort"
+    | IntValuePattern(n) -> "Nat"
 and get_sorts pats sys =
   match pats with
   | [] -> []
   | p::ps -> (get_sort p sys) :: (get_sorts ps sys)
-;;
-
-(* 
-  Join two sets of fvs.
-  Precondition: @vars1 and @vars2 are sets.
-*)
-
-let rec set_union vars1 vars2 =
-  match vars1 with
-  | [] -> vars2
-  | v::vs -> if (mem v vars2) then (set_union vs vars2) else v :: (set_union vs vars2)
-;;
-
-(*
-  Substract one set from the other.
-  Precondition: @vars1 and @vars2 are sets.
-*)
-
-let rec set_minus vars1 vars2 =
-  match vars1 with
-  | [] -> []
-  | v::vs -> if (mem v vars2) then (set_minus vs vars2) else v :: (set_minus vs vars2)
 ;;
 
 (* Collect free variables in a pattern. *)
@@ -222,6 +265,7 @@ let rec collect_fv_in_pattern pat =
   | CeilPattern(p) -> collect_fv_in_pattern p
   | FloorPattern(p) -> collect_fv_in_pattern p
   | ContainsPattern(p1,p2) -> set_union (collect_fv_in_pattern p1) (collect_fv_in_pattern p2)
+  | IntValuePattern(n) -> []
 and collect_fv_in_patterns pats =
   match pats with
   | [] -> []
@@ -274,6 +318,7 @@ let rec pattern2string pat =
   | CeilPattern(p) -> "(ceil " ^ (pattern2string p) ^ ")"
   | FloorPattern(p) -> "(floor " ^ (pattern2string p) ^ ")"
   | ContainsPattern(p1,p2) -> "(contains " ^ (patterns2string [p1;p2]) ^ ")"
+  | IntValuePattern(n) -> string_of_int n
 and patterns2string pats =
   match pats with
   | [] -> ""
@@ -290,7 +335,7 @@ and patterns2string pats =
 
 type term =
   | AtomicVarTerm of string
-  | AtomicIntTerm of int
+  | IntValueTerm of int
 (*| more to go here *)
   | CompoundTerm of string * term list
 ;;
@@ -314,6 +359,86 @@ type theory = (string list)                            (* sorts *)
             * (formula list)                           (* assertions *)
 ;;
 
+(* Collecting free variables in terms and formulas *)
+
+let rec collect_fv_in_term t =
+  match t with
+  | AtomicVarTerm(x) -> [x]
+  | IntValueTerm(n) -> []
+  | CompoundTerm(f, ts) -> collect_fv_in_terms ts
+and collect_fv_in_terms ts =
+  match ts with
+  | [] -> []
+  | t::ts -> set_union (collect_fv_in_term t)
+                       (collect_fv_in_terms ts)
+;;
+
+let rec collect_fv_in_formula phi =
+  match phi with
+  | TrueFormula -> []
+  | FalseFormula -> []
+  | AppFormula(f, ts) -> collect_fv_in_terms ts
+  | EqualFormula(t1,t2) -> collect_fv_in_terms [t1;t2]
+  | AndFormula(phis) -> collect_fv_in_formulas phis
+  | OrFormula(phis) -> collect_fv_in_formulas phis
+  | NotFormula(phi) -> collect_fv_in_formula phi
+  | ImpliesFormula(phi1,phi2) -> collect_fv_in_formulas [phi1;phi2]
+  | IffFormula(phi1,phi2) -> collect_fv_in_formulas [phi1;phi2]
+  | ForallFormula(binders, phi) ->
+      let binding_variables = fst (split binders) in
+      set_minus (collect_fv_in_formula phi) binding_variables
+  | ExistsFormula(binders, phi) ->
+      let binding_variables = fst (split binders) in
+      set_minus (collect_fv_in_formula phi) binding_variables
+and collect_fv_in_formulas phis =
+  match phis with
+  | [] -> []
+  | phi::phis -> set_union (collect_fv_in_formula phi) 
+                           (collect_fv_in_formulas phis)
+;;
+
+(* Substitution *)
+
+type substitution = (string * term) list
+;;
+
+(* Precondition: @subst is a substitution *)
+
+let rec subst_term subst trm =
+  match trm with
+  | AtomicVarTerm(x) -> if mem_assoc x subst
+                        then assoc x subst
+                        else trm
+  | IntValueTerm(n) -> trm
+  | CompoundTerm(f, ts) ->
+      CompoundTerm(f, map (fun t -> subst_term subst t) 
+                          ts)
+and subst_formula subst phi = 
+  match phi with
+  | TrueFormula -> phi
+  | FalseFormula -> phi
+  | AppFormula(f, ts) ->
+      AppFormula(f, map (fun t -> subst_term subst t) ts)
+  | EqualFormula(t1,t2) ->
+      EqualFormula(subst_term subst t1, subst_term subst t2)
+  | AndFormula(phis) -> 
+      AndFormula(map (fun phi -> subst_formula subst phi) phis)
+  | OrFormula(phis) ->
+      OrFormula(map (fun phi -> subst_formula subst phi) phis)
+  | NotFormula(phi) ->
+      NotFormula(subst_formula subst phi)
+  | ImpliesFormula(phi1,phi2) ->
+      ImpliesFormula(subst_formula subst phi1, subst_formula subst phi2)
+  | IffFormula(phi1,phi2) ->
+      IffFormula(subst_formula subst phi1, subst_formula subst phi2)
+  | ForallFormula(binders, phi) ->
+      phi
+  | ExistsFormula(binders, phi) ->
+      phi
+;;
+
+
+
 (* Simplify a formula *)
 
 let rec simplify_formula phi = 
@@ -336,7 +461,7 @@ let rec simplify_formula phi =
 let rec term2string t =
   match t with
   | AtomicVarTerm(v) -> v
-  | AtomicIntTerm(n) -> string_of_int n
+  | IntValueTerm(n) -> string_of_int n
   | CompoundTerm(f, []) -> f
   | CompoundTerm(f, ts) -> "(" ^ f ^ " " ^ terms2string(ts) ^ ")"
 and terms2string ts = (* Space-separated terms *)
@@ -422,6 +547,7 @@ let rec convert_term pat =
   match pat with
   | VarPattern(x,s) -> AtomicVarTerm(x)
   | AppPattern(f,pats) -> CompoundTerm(f, convert_terms pats)
+  | IntValuePattern(n) -> IntValueTerm(n)
   | _ -> raise (Failure("convert_term received a pattern that is not a term.\n")) 
 and convert_terms pats =
   match pats with
@@ -429,32 +555,7 @@ and convert_terms pats =
   | p::ps -> (convert_term p) :: (convert_terms ps)
 ;;
 
-(* Generate fresh variables names $1, $2, ... *)
 
-let _count = ref 0
-;;
-
-let fresh () = 
-   _count := !_count + 1; 
-   "$" ^ (string_of_int !_count)
-;;
-
-let reset () = _count := 0
-;;
-
-(* 
-  freshvars returns a list of fresh names while
-  freshvar returns one fresh name.
-*)
-
-let rec freshvars n = 
-  if n = 0 then []
-  else let r = fresh () in 
-         r :: freshvars (n - 1)
-;;
-
-let freshvar () = fresh ()
-;;
 
 (* 
   Generate a list of first-order variable terms from a given set of names.
@@ -553,6 +654,7 @@ and have pats rs sys = (* pats.length = rs.length *)
   match (pats,rs) with
   | ([],[]) -> []
   | (p::ps, r::rs) -> (has p r sys) :: (have ps rs sys)
+  | _ -> raise (Failure("function \"have\" received two arguments of different lengths."))
 ;;
 
 (* 
@@ -569,6 +671,7 @@ let rec convert_axioms axioms rs sys =
       if s = "anysort"
       then (has ax r sys) :: (convert_axioms axs rs sys)
       else ForallFormula([(r,s)], (has ax r sys)) :: (convert_axioms axs rs sys)
+  | _ -> raise (Failure("convert_axioms received two arguments of different lengths."))
 ;;
 
 (* Convert a matching logic system @sys to a first-order logic theory. *)
@@ -630,6 +733,7 @@ let rec replace_constants_if_binders pat binders =
   | ContainsPattern(p1, p2) ->
     ContainsPattern((replace_constants_if_binders p1 binders),
                     (replace_constants_if_binders p2 binders))
+  | IntValuePattern(n) -> IntValuePattern(n)
 ;;  
 
 

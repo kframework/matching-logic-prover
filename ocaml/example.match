@@ -23,3 +23,5 @@
 (assert (forall ((M MLNat) (N MLNat)) (= (range M (succ N)) (or (range M N) (succ N)))))
 
 (assert (not (= (plus (succ zero) (succ zero)) (succ (succ zero)))))
+
+(assert (= (+ 1 2) 3))
