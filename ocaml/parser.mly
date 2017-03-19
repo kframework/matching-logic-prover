@@ -40,7 +40,7 @@ pattern:
   | TOP { TopPattern }
   | BOTTOM { BottomPattern }
   | ID { AppPattern($1, []) }
-  | INT { IntValuePattern(n) }
+  | INT { IntValuePattern($1) }
   | LPAREN pattern_cont { $2 } /* pattern_cont ends with a RPAREN */
 ;
 pattern_cont:

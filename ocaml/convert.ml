@@ -61,7 +61,11 @@ type system = (string list)                            (* sorts *)
 
 let initial_system = (["Bool"; "Nat"],             (* built-in sorts *)
                       [],                          (* no nonfunc symbols *)
-                      ["+"; "-"; "*"; ">"; "<"],   (* func symbols *)
+                      [("+", ["Nat"; "Nat"], "Nat"); 
+					   ("-", ["Nat"; "Nat"], "Nat"); 
+					   ("*", ["Nat"; "Nat"], "Nat"); 
+					   (">", ["Nat"; "Nat"], "Bool"); 
+					   ("<", ["Nat"; "Nat"], "Bool")],   (* func symbols *)
                       [])                          (* no axioms *)
 ;;
 

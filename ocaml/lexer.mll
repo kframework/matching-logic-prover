@@ -33,7 +33,7 @@ rule token = parse
   | "floor"             { FLOOR }
   | "ceil"              { CEIL }
   | word as w           { ID(w) }
-  | int as n            { INT(n) }
+  | int as n            { INT(int_of_string n) }
   | eof                 { EOF }
 
   
