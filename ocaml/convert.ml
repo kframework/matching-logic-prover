@@ -402,6 +402,15 @@ and collect_fv_in_formulas phis =
 type substitution = (string * term) list
 ;;
 
+(*
+  Constrain @subst on a given set of variables @vars
+  Precondition: @subst is a substitution and @vars is a set of variables.
+*)
+
+let constrain_subst subst vars =
+  filter (fun (x, t) -> mem x vars) subst
+;;
+
 (* Precondition: @subst is a substitution *)
 
 let rec subst_term subst trm =
@@ -432,6 +441,13 @@ and subst_formula subst phi =
   | IffFormula(phi1,phi2) ->
       IffFormula(subst_formula subst phi1, subst_formula subst phi2)
   | ForallFormula(binders, phi) ->
+      let binding_variables = fst (split binders) in (* binding variables in @binders *)
+      let substituting_variables = fst (split binders) in (* variables about to be substituted *)
+      let free_substituting_variables = 
+        set_minus substituting_variables binding_variables in
+      let subst_on_phi = constrain_subst subst free_substituting_variables in
+      let fvs_in_subst = collect_fv_in_terms (snd (split subst)) in
+      let captured_fvs = set_minus fvs_in_subst binding_variables in
       phi
   | ExistsFormula(binders, phi) ->
       phi
@@ -492,6 +508,16 @@ and formulas2string phis = (* Space-separated formulas *)
   | [] -> ""
   | [phi] -> formula2string(phi)
   | phi::phis -> formula2string(phi) ^ " " ^ formulas2string(phis)
+;;
+
+let rec substitution2string subst =
+  let rec substitution2string_aux subst =
+    match subst with
+    | [] -> ""
+    | [(x,t)] -> x ^ " := " ^ (term2string t)
+    | (x,t)::subst_rem ->
+        x ^ " := " ^ (term2string t) ^ " " ^ substitution2string_aux subst_rem
+  in "[" ^ substitution2string_aux subst ^ "]"
 ;;
 
 (* ToString functions that help generate smt2 files. *)

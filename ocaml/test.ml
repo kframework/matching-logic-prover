@@ -36,6 +36,20 @@ let term1 =
                      CompoundTerm("f", [])])
 ;;
 
+let term2 =
+  CompoundTerm("g", [term1; term1])
+;;
+
+let term3 =
+  IntValueTerm(-42)
+;;
+
+let subst1 =
+  [("x1", term1);
+   ("x2", term2);
+   ("x3", term3)]
+;;
+
 let test_collect_fv_in_term_1 test_ctxt =
   assert_equal ["f";"g"]
   (collect_fv_in_term term1)
@@ -51,12 +65,20 @@ let test_subst_term_1 test_ctxt =
   (subst_term [("f", term1)] term1)
 ;;
 
+let test_constrain_subst_1 test_ctxt =
+  assert_equal
+  [("x1", term1)]
+  (constrain_subst subst1 ["x1"; "x4"])
+;;
 
 let suite_part2 =
   "suite_part2">:::
   ["test_collect_fv_in_term_1">:: test_collect_fv_in_term_1;
-   "test_subst_term_1">:: test_subst_term_1]
+   "test_subst_term_1">:: test_subst_term_1;
+   "test_constrain_subst_1">:: test_constrain_subst_1]
 ;;
+
+(* Part 3: Conversion *)
 
 let ax_plus_comm = ForallPattern([("M","Nat");("N","Nat")],
                      EqualPattern(AppPattern("plus", [VarPattern("M","Nat"); VarPattern("N","Nat")]),
