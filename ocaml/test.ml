@@ -45,8 +45,8 @@ let term3 = (* -42 *)
 ;;
 
 let phi1 = (* (forall ((f TestSort)) (exists ((g TestSort)) (= term1 term2))) *)
-  ForallFormula([("f", "TestSort")], 
-  ExistsFormula([("g", "TestSort")], EqualFormula(term1, term2)))
+  ForallFormula([("g", "TestSort")], 
+  ExistsFormula([("h", "TestSort")], EqualFormula(term1, term2)))
 ;;
 
 print_string (formula2string (subst_formula [("f", AtomicVarTerm("g"))] phi1))
