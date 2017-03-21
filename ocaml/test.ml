@@ -30,18 +30,26 @@ let suite_part0 =
 
 (* Part 2: First-order Logic *)
 
-let term1 = 
+let term1 = (* (f (f f g) 42 f) *)
   CompoundTerm("f", [CompoundTerm("f", [AtomicVarTerm("f"); AtomicVarTerm("g")]);
                      IntValueTerm(42);
                      CompoundTerm("f", [])])
 ;;
 
-let term2 =
+let term2 = (* (g (f (f f g) 42 f) (f (f f g) 42 f)) *)
   CompoundTerm("g", [term1; term1])
 ;;
 
-let term3 =
+let term3 = (* -42 *)
   IntValueTerm(-42)
+;;
+
+let phi1 = (* (forall ((f TestSort)) (exists ((g TestSort)) (= term1 term2))) *)
+  ForallFormula([("f", "TestSort")], 
+  ExistsFormula([("g", "TestSort")], EqualFormula(term1, term2)))
+;;
+
+print_string (formula2string (subst_formula [("f", AtomicVarTerm("g"))] phi1))
 ;;
 
 let subst1 =

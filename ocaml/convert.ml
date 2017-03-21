@@ -440,19 +440,69 @@ and subst_formula subst phi =
       ImpliesFormula(subst_formula subst phi1, subst_formula subst phi2)
   | IffFormula(phi1,phi2) ->
       IffFormula(subst_formula subst phi1, subst_formula subst phi2)
-  | ForallFormula(binders, phi) ->
+  | ForallFormula(binders, psai) ->
       let binding_variables = fst (split binders) in (* binding variables in @binders *)
-      let substituting_variables = fst (split binders) in (* variables about to be substituted *)
+      let substituting_variables = fst (split subst) in (* variables about to be substituted *)
       let free_substituting_variables = 
         set_minus substituting_variables binding_variables in
-      let subst_on_phi = constrain_subst subst free_substituting_variables in
-      let fvs_in_subst = collect_fv_in_terms (snd (split subst)) in
-      let captured_fvs = set_minus fvs_in_subst binding_variables in
-      phi
-  | ExistsFormula(binders, phi) ->
-      phi
+      let subst_on_psai = constrain_subst subst free_substituting_variables in
+      let fvs_in_subst = collect_fv_in_terms (snd (split subst_on_psai)) in
+      let captured_fvs = set_intersection binding_variables fvs_in_subst in
+      (* alpha-rename @subst's free variables that are captured by @binders *)
+      let fresh_fvs = freshvars (length captured_fvs) in
+      let renamed_phi = alpha_rename phi captured_fvs fresh_fvs in
+      (match renamed_phi with
+      | ForallFormula(renamed_binders, renamed_psai) ->
+          ForallFormula(renamed_binders, subst_formula subst_on_psai renamed_psai)
+      | _ -> raise (Failure("Unexpected pattern matched in subst_formula")))
+  | ExistsFormula(binders, psai) ->
+      (match (subst_formula subst (ForallFormula(binders, psai))) with
+      | ForallFormula(binders, psai) -> ExistsFormula(binders, psai)
+      | _ -> raise (Failure("Unexpected pattern matched in subst_formula")))
+(*
+  Alpha-rename the formula @phi, by replacing all bound and binding variables in @vars
+  to @vars'. Alpharenaming does not change the meaning of @phi.
+  Precondition: @vars is as long as @vars'.
+*)
+and alpha_rename phi vars vars' =
+  match phi with
+  | TrueFormula -> TrueFormula
+  | FalseFormula -> FalseFormula
+  | AppFormula(f, ts) -> AppFormula(f, ts)
+  | EqualFormula(t1,t2) -> EqualFormula(t1,t2)
+  | AndFormula(phis) -> 
+      AndFormula(map (fun phi -> alpha_rename phi vars vars') phis)
+  | OrFormula(phis) -> 
+      OrFormula(map (fun phi -> alpha_rename phi vars vars') phis)
+  | NotFormula(phi) ->
+      NotFormula(alpha_rename phi vars vars')
+  | ImpliesFormula(phi1,phi2) ->
+      ImpliesFormula(alpha_rename phi1 vars vars',
+                     alpha_rename phi2 vars vars')
+  | IffFormula(phi1,phi2) ->
+      IffFormula(alpha_rename phi1 vars vars',
+                 alpha_rename phi2 vars vars')
+  | ForallFormula(binders, psai) ->
+      let alpha_renaming_subst = 
+        combine vars (map (fun v -> AtomicVarTerm(v)) vars') in 
+      let renamed_psai = subst_formula alpha_renaming_subst psai in
+      let renamed_binders = alpha_rename_binders binders vars vars' in
+      ForallFormula(renamed_binders, renamed_psai)
+  | ExistsFormula(binders, psai) ->
+      let alpha_renaming_subst = 
+        combine vars (map (fun v -> AtomicVarTerm(v)) vars') in 
+      let renamed_psai = subst_formula alpha_renaming_subst psai in
+      let renamed_binders = alpha_rename_binders binders vars vars' in
+      ExistsFormula(renamed_binders, renamed_psai)
+and alpha_rename_binders binders vars vars' =
+  match binders with
+  | [] -> []
+  | (v,s)::rem_binders ->
+    if mem v vars
+    then let v' = assoc v (combine vars vars') in (* [v := v'] *)
+           (v',s)::(alpha_rename_binders rem_binders vars vars')
+    else (v,s)::(alpha_rename_binders rem_binders vars vars')
 ;;
-
 
 
 (* Simplify a formula *)
