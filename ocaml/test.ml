@@ -30,13 +30,15 @@ let suite_part0 =
 
 (* Part 2: First-order Logic *)
 
-let term1 = (* (f (f f g) 42 f) *)
-  CompoundTerm("f", [CompoundTerm("f", [AtomicVarTerm("f"); AtomicVarTerm("g")]);
+let term1 = (* (f (f f g h) 42 f) *)
+  CompoundTerm("f", [CompoundTerm("f", [AtomicVarTerm("f"); 
+                                        AtomicVarTerm("g");
+                                        AtomicVarTerm("h")]);
                      IntValueTerm(42);
                      CompoundTerm("f", [])])
 ;;
 
-let term2 = (* (g (f (f f g) 42 f) (f (f f g) 42 f)) *)
+let term2 = (* (g (f (f f g h) 42 f) (f (f f g h) 42 f)) *)
   CompoundTerm("g", [term1; term1])
 ;;
 
@@ -44,12 +46,16 @@ let term3 = (* -42 *)
   IntValueTerm(-42)
 ;;
 
-let phi1 = (* (forall ((f TestSort)) (exists ((g TestSort)) (= term1 term2))) *)
-  ForallFormula([("g", "TestSort")], 
-  ExistsFormula([("h", "TestSort")], EqualFormula(term1, term2)))
+let term4 = (* (g f f) *)
+  CompoundTerm("g", [AtomicVarTerm("f"); AtomicVarTerm("f")])
 ;;
 
-print_string (formula2string (subst_formula [("f", AtomicVarTerm("g"))] phi1))
+let phi1 = (* (forall ((g TestSort) (h TestSort)) (= term1 term2))) *)
+  ForallFormula([("g", "TestSort"); ("h", "TestSort")], 
+    EqualFormula(term1, term2))
+;;
+
+print_string (formula2string (subst_formula [("f", term2)] phi1))
 ;;
 
 let subst1 =
@@ -59,18 +65,14 @@ let subst1 =
 ;;
 
 let test_collect_fv_in_term_1 test_ctxt =
-  assert_equal ["f";"g"]
+  assert_equal ["f"; "g"; "h"]
   (collect_fv_in_term term1)
 ;;
 
 let test_subst_term_1 test_ctxt =
   assert_equal 
-  (CompoundTerm("f", [CompoundTerm("f", [CompoundTerm("f", [CompoundTerm("f", [AtomicVarTerm("f"); AtomicVarTerm("g")]);
-                     IntValueTerm(42);
-                     CompoundTerm("f", [])]); AtomicVarTerm("g")]);
-                     IntValueTerm(42);
-                     CompoundTerm("f", [])]))
-  (subst_term [("f", term1)] term1)
+  term2 
+  (subst_term [("f", term1)] term4)
 ;;
 
 let test_constrain_subst_1 test_ctxt =

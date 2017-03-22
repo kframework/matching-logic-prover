@@ -1,27 +1,74 @@
-(declare-sort MLNat)
+(declare-sort MLSeq)
 (declare-sort Map)
 
-(declare-func zero () MLNat)
-(declare-func succ (MLNat) MLNat)
-(declare-func plus (MLNat MLNat) MLNat)
+(declare-func Int2MLSeq (Int) MLSeq)
+(declare-func epsilon () MLSeq)
+(declare-func cncat (MLSeq MLSeq) MLSeq)
 
-(declare-symb range (MLNat MLNat) MLNat)
-(declare-symb bot () MLNat)
+(declare-func emp () Map)
+(declare-symb mapsto (Int Int) Map)
+(declare-symb merge (Map Map) Map)
+(declare-func mapstoseq (Int MLSeq) Map)
+(declare-symb list (Int MLSeq) Map)
 
-(assert (forall ((M MLNat) (N MLNat)) (= (plus M N) (plus N M))))
-(assert (forall ((M MLNat)) (= (plus M zero) M)))
-(assert (forall ((M MLNat) (N MLNat)) (= (plus M (succ N)) (succ (plus M N)))))
+(assert (forall ((M Int) (N Int))
+  (-> (= (Int2MLSeq M) (Int2MLSeq N))
+      (= M N))))
 
-(assert (forall ((M MLNat)) (= (range M M) zero)))
+(assert (forall ((S MLSeq)) (= (cncat epsilon S) S)))
+(assert (forall ((S MLSeq)) (= (cncat S epsilon) S)))
 
-(assert (forall ((M MLNat)) (= (range (succ M) M) bot)))
+(assert (forall ((X MLSeq) (Y MLSeq) (Z MLSeq))
+  (= (cncat (cncat X Y) Z)
+     (cncat X (cncat Y Z)))))
+(assert (or epsilon
+  (exists ((M Int) (S MLSeq)) (cncat (Int2MLSeq M) S))))
 
-(assert (= zero bot))
+(assert (forall ((X Int) (Y Int) (S MLSeq) (T MLSeq)) 
+  (= (= (cncat (Int2MLSeq X) S) (cncat (Int2MLSeq Y) T))
+     (and (= X Y) (= S T)))))
 
-(assert (= zero bottom))
+(assert (forall ((H1 Map) (H2 Map))
+  (= (merge H1 H2) (merge H2 H1))))
 
-(assert (forall ((M MLNat) (N MLNat)) (= (range M (succ N)) (or (range M N) (succ N)))))
+(assert (forall ((H1 Map) (H2 Map) (H3 Map))
+  (= (merge H1 (merge H2 H3))
+     (merge (merge H1 H2) H3))))
 
-(assert (not (= (plus (succ zero) (succ zero)) (succ (succ zero)))))
+(assert (forall ((H Map)) (= H (merge emp H))))
 
-(assert (= (+ 1 2) 3))
+(assert (forall ((X Int))
+  (= bottom (mapsto 0 X))))
+
+(assert (forall ((X Int) (A Int) (B Int))
+  (= bottom (merge (mapsto X A) (mapsto X B)))))
+
+(assert (forall ((X Int))
+  (= emp (mapstoseq X epsilon))))
+
+(assert (forall ((X Int) (A Int) (S MLSeq))
+  (= (mapstoseq X (cncat (Int2MLSeq A) S))
+     (merge (mapsto X A) (mapstoseq (+ X 1) S)))))
+
+(assert (forall ((X Int))
+  (= (list X epsilon)
+     (and (= X 0) emp))))
+
+(assert (forall ((X Int) (N Int) (S MLSeq))
+  (= (list X (cncat (Int2MLSeq N) S))
+     (exists ((Z Int)) (merge (mapstoseq X (cncat (Int2MLSeq N) (Int2MLSeq Z))) (list Z S))))))
+
+(assert (not (->
+  (merge (merge (merge (mapsto 1 5) (mapsto 2 0)) (mapsto 7 9)) (mapsto 8 1))
+  (list 7 (cncat (Int2MLSeq 9) (Int2MLSeq 5))))))
+
+
+
+
+
+
+
+
+
+
+

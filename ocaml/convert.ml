@@ -9,9 +9,13 @@ open List;;
 
 (* Return ...f(f(f(x)))... *)
 
-let fix_point f x =
+let fixed_point f x =
   let max_iter_times = 50 in
-  f(f(f(x))) 
+  let rec fixed_point_aux pre_x x count =
+    if pre_x = x || count >= max_iter_times
+    then x
+    else fixed_point_aux x (f x) (count + 1) in
+  fixed_point_aux x (f x) 1
 ;;
 
 (* 
@@ -122,13 +126,34 @@ type system = (string list)                            (* sorts *)
 
 (* Build a matching logic system *)
 
-let initial_system = (["Bool"; "Nat"],             (* built-in sorts *)
+let builtin_sorts = ["Bool"; "Int"]
+;;
+
+let builtin_sort_Q s = mem s builtin_sorts
+;;
+
+let builtin_func_sigs =
+  [("+", ["Int"; "Int"], "Int"); 
+   ("-", ["Int"; "Int"], "Int"); 
+   ("*", ["Int"; "Int"], "Int"); 
+   (">", ["Int"; "Int"], "Bool"); 
+   (">=", ["Int"; "Int"], "Bool"); 
+   ("<", ["Int"; "Int"], "Bool");
+   ("<=", ["Int"; "Int"], "Bool")]
+;;
+
+let builtin_func_Q f =
+  let rec aux sigs =
+    match sigs with
+    | [] -> false
+    | (g,_,_)::rem_sigs -> 
+        if f = g then true else aux rem_sigs
+  in aux builtin_func_sigs      
+;;
+
+let initial_system = (builtin_sorts,               (* built-in sorts *)
                       [],                          (* no nonfunc symbols *)
-                      [("+", ["Nat"; "Nat"], "Nat"); 
-					   ("-", ["Nat"; "Nat"], "Nat"); 
-					   ("*", ["Nat"; "Nat"], "Nat"); 
-					   (">", ["Nat"; "Nat"], "Bool"); 
-					   ("<", ["Nat"; "Nat"], "Bool")],   (* func symbols *)
+                      builtin_func_sigs,           (* func symbols *)
                       [])                          (* no axioms *)
 ;;
 
@@ -239,7 +264,7 @@ let rec get_sort pat sys =
     | CeilPattern(p) -> "anysort"
     | FloorPattern(p) -> "anysort"
     | ContainsPattern(p1,p2) -> "anysort"
-    | IntValuePattern(n) -> "Nat"
+    | IntValuePattern(n) -> "Int"
 and get_sorts pats sys =
   match pats with
   | [] -> []
@@ -508,16 +533,40 @@ and alpha_rename_binders binders vars vars' =
 (* Simplify a formula *)
 
 let rec simplify_formula phi = 
-  match phi with
-  | AndFormula([]) -> TrueFormula
-  | AndFormula([p]) -> simplify_formula p
-  | ForallFormula([], p) -> simplify_formula p
-  | ExistsFormula([], p) -> simplify_formula p
-  | ForallFormula(binders, ForallFormula(binders', p)) ->
-      ForallFormula(set_union binders binders', simplify_formula p)
-  | ExistsFormula(binders, ExistsFormula(binders', p)) ->
-      ExistsFormula(set_union binders binders', simplify_formula p)
-  | _ -> phi
+  (* One-step simplification *)
+  let simp phi = 
+    match phi with
+    | AndFormula([]) ->
+        TrueFormula
+    | AndFormula([phi]) ->
+        phi
+    | OrFormula([]) ->
+        FalseFormula
+    | OrFormula([phi]) ->
+        phi
+    | ForallFormula(binders, ForallFormula(binders', psai)) ->
+        ForallFormula(set_union binders binders', psai)
+    | ExistsFormula(binders, ExistsFormula(binders', psai)) ->
+        ExistsFormula(set_union binders binders', psai)
+    (* Simplify subformulas *)
+    | AndFormula(phis) ->
+        AndFormula(map simplify_formula phis)
+    | OrFormula(phis) ->
+        OrFormula(map simplify_formula phis)
+    | NotFormula(phi) ->
+        NotFormula(simplify_formula phi)
+    | ImpliesFormula(phi1, phi2) ->
+        ImpliesFormula(simplify_formula phi1, simplify_formula phi2)
+    | IffFormula(phi1, phi2) ->
+        IffFormula(simplify_formula phi1, simplify_formula phi2)
+    | ForallFormula(binders, phi) ->
+        ForallFormula(binders, simplify_formula phi)
+    | ExistsFormula(binders, phi) ->
+        ExistsFormula(binders, simplify_formula phi)
+    (* No simplification made *)
+    | _ -> phi
+  (* Use @simp to simplify @phi until the result does not change *)
+  in fixed_point simp phi
 ;;
 
 (* ToString functions for first-order logic terms and formulas *)
@@ -575,15 +624,22 @@ let rec substitution2string subst =
 let rec sorts2decls sorts =
   match sorts with
   | [] -> ""
-  | s::ss -> "(declare-sort " ^ s ^ ")\n" ^ (sorts2decls ss)
+  | s::ss -> 
+      if builtin_sort_Q s
+      then sorts2decls ss
+      else "(declare-sort " ^ s ^ ")\n" ^ (sorts2decls ss)
 ;;
 
 let rec funcsigs2decls sigs =
   match sigs with
   | [] -> ""
   | (f, argument_sorts, result_sort) :: ss -> 
-    "(declare-fun " ^ f ^ " (" ^ (strings2string argument_sorts) ^ ") " ^ result_sort ^ ")\n"
-    ^ (funcsigs2decls ss)
+      if builtin_func_Q f
+      then funcsigs2decls ss
+      else "(declare-fun " ^ f 
+         ^ " (" ^ (strings2string argument_sorts) ^ ") " 
+         ^ result_sort ^ ")\n"
+         ^ (funcsigs2decls ss)
 ;;
 
 let rec axioms2asrts axioms = 
@@ -758,7 +814,7 @@ let convert_system sys =
   (sorts,
    (map convert_nonfunc_sig nonfunc_signatures) @
    func_signatures,
-   (convert_axioms axioms rs sys)) 
+   (map simplify_formula (convert_axioms axioms rs sys))) 
 ;;
 
 (* Convert a matching logic system @sys to a smt2 file. *)
