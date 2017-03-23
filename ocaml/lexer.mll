@@ -11,6 +11,7 @@ let space       = [' ' '\t' '\n']
 
 rule token = parse
   | space               { token lexbuf }
+  | ';'                 { comment lexbuf }        (* inline comments start with ';' *)
   | '('                 { LPAREN }
   | ')'                 { RPAREN }
   | "declare-sort"      { DECLSORT }
@@ -35,5 +36,8 @@ rule token = parse
   | int as n            { INT(int_of_string n) }
   | word as w           { ID(w) }
   | eof                 { EOF }
+and comment = parse
+  | [^'\n']             { comment lexbuf }        (* ignore anything until seeing a '\n' *)
+  | '\n'                { token lexbuf }
 
   

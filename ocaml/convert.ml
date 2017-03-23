@@ -554,6 +554,14 @@ let rec simplify_formula phi =
         FalseFormula
     | OrFormula([phi]) ->
         phi
+    | IffFormula(TrueFormula, phi) -> 
+        phi
+    | IffFormula(phi, TrueFormula) ->
+        phi
+    | IffFormula(FalseFormula, phi) ->
+        NotFormula(phi)
+    | IffFormula(phi, FalseFormula) -> 
+        NotFormula(phi)
     | ForallFormula([], psai) ->
         psai
     | ExistsFormula([], psai) ->
@@ -647,6 +655,32 @@ let rec simplify_formula phi =
           eliminate_binder phis [] binders 
        | ExistsFormula(binders, EqualFormula(t1, t2)) -> 
           eliminate_binder [EqualFormula(t1, t2)] [] binders 
+       | _ -> phi
+  (* Deep simplification: Eliminate Boolean Quantified Variables *)
+  and deepsimp_eliminate_quantified_booleans phi =
+    (*
+      Try to eliminate boolean quantifiers in @rem_binders,
+      and simplify @psai if possible.
+      Return a pair of (non-eliminatable) binders and (simplified) psai.
+    *)
+    let rec eliminate_binder psai processed_binders rem_binders =
+      match rem_binders with
+      | [] -> (processed_binders, psai)
+      | (x,s)::rem_binders ->
+          if s = "Bool"
+          then eliminate_binder psai
+                                (processed_binders @ [(x,s)])
+                                rem_binders
+          else eliminate_binder psai
+                                (processed_binders @ [(x,s)])
+                                rem_binders
+    in match phi with
+       | ForallFormula(binders, psai) ->
+           let (binders, psai) = eliminate_binder psai [] binders in
+           ForallFormula(binders, psai) 
+       | ExistsFormula(binders, psai) -> 
+           let (binders, psai) = eliminate_binder psai [] binders in
+           ExistsFormula(binders, psai) 
        | _ -> phi
   (* Use @simp to simplify @phi until the result does not change *)
   in fixed_point simp phi

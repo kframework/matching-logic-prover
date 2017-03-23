@@ -1,0 +1,19 @@
+"<>" means "not equal".
+"^" is the concat of two sequences (its midfix form)
+
+Example: ((((((1^2)^3)^4)^5)^6)^7) = (1^(2^(3^(4^(5^(6^7)))))).
+Proof found!
+
+Example: ((((((1^2)^3)^4)^5)^6)^7) <> (1^(2^(3^(4^(5^(5^7)))))).
+Proof found!
+
+Example: ((1^2)^3) = (1^(3^2)).
+Timeout!
+
+Example: ((1^2)^3) <> (1^(3^2)).
+Proof found!
+
+Example: 5 is in ((((((1^2)^3)^4)^5)^6)^7)
+Proof found!
+
+
