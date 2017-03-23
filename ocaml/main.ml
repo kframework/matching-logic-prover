@@ -4,7 +4,7 @@ open Printf
 let file_in = "example.match";;
 let input_channel = open_in file_in;;
 
-let file_out = "example.smt";;
+let file_out = "example.smt2";;
 let output_channel = open_out file_out;;
 
 let lexbuf = Lexing.from_channel input_channel in

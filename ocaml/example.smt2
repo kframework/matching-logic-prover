@@ -7,12 +7,14 @@
 (declare-fun Int2MLSeq (Int) MLSeq)
 (declare-fun epsilon () MLSeq)
 (declare-fun cncat (MLSeq MLSeq) MLSeq)
+(declare-fun rev (MLSeq) MLSeq)
+(declare-fun fib (Int) MLSeq)
+(declare-fun aux (Int MLSeq) MLSeq)
+(declare-fun mem (Int MLSeq) Bool)
 (declare-fun emp () Map)
 (declare-fun mapstoseq (Int MLSeq) Map)
 
-(assert (forall ((M Int) (N Int)) 
-  (! (=> (= (Int2MLSeq M) (Int2MLSeq N)) (= M N))
-     :pattern ((Int2MLSeq M) (Int2MLSeq N)))))
+(assert (forall ((M Int) (N Int)) (=> (= (Int2MLSeq M) (Int2MLSeq N)) (= M N))))
 
 (assert (forall ((S MLSeq)) (= (cncat epsilon S) S)))
 
@@ -24,32 +26,41 @@
 
 (assert (forall ((X Int) (Y Int) (S MLSeq) (T MLSeq)) (= (= (cncat (Int2MLSeq X) S) (cncat (Int2MLSeq Y) T)) (and (= X Y) (= S T)))))
 
-(assert (forall ((H1 Map) (H2 Map) ($70 Map)) (= (pi_merge H1 H2 $70) (pi_merge H2 H1 $70))))
+(assert (= (rev epsilon) epsilon))
 
-(assert (forall ((H1 Map) (H2 Map) (H3 Map) ($61 Map)) (= 
-(exists (($67 Map)) (and (pi_merge H1 $67 $61) (pi_merge H2 H3 $67)))
-(exists (($62 Map)) (and (pi_merge $62 H3 $61) (pi_merge H1 H2 $62))))))
+(assert (forall ((X Int) (S MLSeq)) (= (rev (cncat (Int2MLSeq X) S)) (cncat (rev S) (Int2MLSeq X)))))
 
-(assert (forall ((H Map) ($58 Map)) (= (= H $58) (pi_merge emp H $58))))
+(assert (forall ((X Int)) (not (= true (mem X epsilon)) )))
 
-(assert (forall ((X Int) ($55 Map)) (= false (exists (($56 Int) ($57 Int)) (and (pi_mapsto $56 $57 $55) (= 0 $56) (= X $57))))))
+(assert (forall ((X Int) (S MLSeq)) (= true (mem X (cncat (Int2MLSeq X) S)))))
 
-(assert (forall ((X Int) (A Int) (B Int) ($48 Map)) (not (exists (($49 Map) ($50 Map)) (and (pi_merge $49 $50 $48) (pi_mapsto X A $49) (pi_mapsto X B $50))))))
+(assert (forall ((X Int) (Y Int) (S MLSeq)) (= (= true (mem X S)) (and (= true (mem X (cncat (Int2MLSeq Y) S))) (not (= X Y) )))))
+
+(assert (forall ((H1 Map) (H2 Map) ($64 Map)) (= (pi_merge H1 H2 $64) (pi_merge H2 H1 $64))))
+
+(assert (forall ((H1 Map) (H2 Map) (H3 Map) ($55 Map)) (= (exists (($61 Map)) (and (pi_merge H1 $61 $55) (pi_merge H2 H3 $61))) (exists (($56 Map)) (and (pi_merge $56 H3 $55) (pi_merge H1 H2 $56))))))
+
+(assert (forall ((H Map) ($52 Map)) (= (= H $52) (pi_merge emp H $52))))
+
+(assert (forall ((X Int) ($49 Map)) (= false (pi_mapsto 0 X $49))))
+
+(assert (forall ((X Int) (A Int) (B Int) ($42 Map)) (= false (exists (($43 Map) ($44 Map)) (and (pi_merge $43 $44 $42) (pi_mapsto X A $43) (pi_mapsto X B $44))))))
 
 (assert (forall ((X Int)) (= emp (mapstoseq X epsilon))))
 
-(assert (forall ((X Int) (A Int) (S MLSeq) ($43 Map)) (= (= (mapstoseq X (cncat (Int2MLSeq A) S)) $43) (exists (($44 Map)) (and (pi_merge $44 (mapstoseq (+ X 1) S) $43) (pi_mapsto X A $44))))))
+(assert (forall ((X Int) (A Int) (S MLSeq) ($37 Map)) (= (= (mapstoseq X (cncat (Int2MLSeq A) S)) $37) (exists (($38 Map)) (and (pi_merge $38 (mapstoseq (+ X 1) S) $37) (pi_mapsto X A $38))))))
 
-(assert (forall ((X Int) ($40 Map)) (= 
-(pi_list X epsilon $40)
-(and (= X 0) (= emp $40)))))
+(assert (forall ((X Int) ($34 Map)) (= (pi_list X epsilon $34) (and (= X 0) (= emp $34)))))
 
-(assert (forall ((X Int) (N Int) (S MLSeq) ($33 Map)) (= 
-(pi_list X (cncat (Int2MLSeq N) S) $33)
-(exists ((Z Int) ($35 Map)) (and (pi_merge (mapstoseq X (cncat (Int2MLSeq N) (Int2MLSeq Z))) $35 $33) (pi_list Z S $35))))))
+(assert (forall ((X Int) (N Int) (S MLSeq) ($27 Map)) (= (pi_list X (cncat (Int2MLSeq N) S) $27) (exists ((Z Int) ($29 Map)) (and (pi_merge (mapstoseq X (cncat (Int2MLSeq N) (Int2MLSeq Z))) $29 $27) (pi_list Z S $29))))))
 
-(assert (forall (($16 Map)) (not (=> 
-(exists (($19 Map) ($20 Map)) (and (pi_merge $19 $20 $16) (exists (($23 Map) ($24 Map)) (and (pi_merge $23 $24 $19) (exists (($27 Map) ($28 Map)) (and (pi_merge $27 $28 $23) (pi_mapsto 1 5 $27) (pi_mapsto 2 0 $28))) (pi_mapsto 7 9 $24))) (pi_mapsto 8 1 $20))) (pi_list 7 (cncat (Int2MLSeq 9) (Int2MLSeq 5)) $16)))))
+(assert (forall ((N Int) ($26 MLSeq)) (= (and (= (fib N) $26) (= true (> N 0))) (= (aux N (cncat (Int2MLSeq 0) (Int2MLSeq 1))) $26))))
+
+(assert (forall ((S MLSeq)) (= S (aux 1 S))))
+
+(assert (forall ((N Int) (S MLSeq) (X Int) (Y Int) ($25 MLSeq)) (= (and (= (aux N (cncat (cncat S (Int2MLSeq X)) (Int2MLSeq Y))) $25) (= true (>= N 2))) (= (aux (- N 1) (cncat (cncat (cncat S (Int2MLSeq X)) (Int2MLSeq Y)) (Int2MLSeq (+ X Y)))) $25))))
+
+(assert (not (= true (mem 4 (cncat (cncat (Int2MLSeq 8) (Int2MLSeq 6)) (cncat (Int2MLSeq 5) (Int2MLSeq 2))))) ))
 
 (check-sat)
 (get-model)

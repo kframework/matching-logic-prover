@@ -52,6 +52,14 @@ let rec set_intersection l1 l2 =
                            else set_intersection xs l2
 ;;
 
+(*
+  Remove an element from a list.
+*)
+
+let remove x lst =
+  filter (fun y -> x <> y) lst
+;;
+
 (* Generate fresh variables names $1, $2, ... *)
 
 let _count = ref 0
@@ -133,7 +141,9 @@ let builtin_sort_Q s = mem s builtin_sorts
 ;;
 
 let builtin_func_sigs =
-  [("+", ["Int"; "Int"], "Int"); 
+  [("true", [], "Bool");
+   ("false", [], "Bool");
+   ("+", ["Int"; "Int"], "Int"); 
    ("-", ["Int"; "Int"], "Int"); 
    ("*", ["Int"; "Int"], "Int"); 
    (">", ["Int"; "Int"], "Bool"); 
@@ -533,8 +543,8 @@ and alpha_rename_binders binders vars vars' =
 (* Simplify a formula *)
 
 let rec simplify_formula phi = 
-  (* One-step simplification *)
-  let simp phi = 
+  let rec simp phi = 
+    (* Simple simplification *)
     match phi with
     | AndFormula([]) ->
         TrueFormula
@@ -544,27 +554,100 @@ let rec simplify_formula phi =
         FalseFormula
     | OrFormula([phi]) ->
         phi
+    | ForallFormula([], psai) ->
+        psai
+    | ExistsFormula([], psai) ->
+        psai
     | ForallFormula(binders, ForallFormula(binders', psai)) ->
         ForallFormula(set_union binders binders', psai)
     | ExistsFormula(binders, ExistsFormula(binders', psai)) ->
         ExistsFormula(set_union binders binders', psai)
-    (* Simplify subformulas *)
+    (* Deep simplification *)
+    | _ -> let phi = deepsimp phi in
+      (* Simplify subformulas *)
+      (match phi with
+      | AndFormula(phis) ->
+          AndFormula(map simplify_formula phis)
+      | OrFormula(phis) ->
+          OrFormula(map simplify_formula phis)
+      | NotFormula(phi) ->
+          NotFormula(simplify_formula phi)
+      | ImpliesFormula(phi1, phi2) ->
+          ImpliesFormula(simplify_formula phi1, simplify_formula phi2)
+      | IffFormula(phi1, phi2) ->
+          IffFormula(simplify_formula phi1, simplify_formula phi2)
+      | ForallFormula(binders, phi) ->
+          ForallFormula(binders, simplify_formula phi)
+      | ExistsFormula(binders, phi) ->
+          ExistsFormula(binders, simplify_formula phi)
+      | _ -> phi)
+  (* Deep simplification *)
+  and deepsimp phi =
+    let phi = deepsimp_and phi in
+    let phi = deepsimp_equal_elimination phi in
+    let phi = deepsimp_exists_elimination phi in
+    phi
+  (* Deep simplification: AndFormula simplification *)
+  and deepsimp_and phi =
+    match phi with
     | AndFormula(phis) ->
-        AndFormula(map simplify_formula phis)
-    | OrFormula(phis) ->
-        OrFormula(map simplify_formula phis)
-    | NotFormula(phi) ->
-        NotFormula(simplify_formula phi)
-    | ImpliesFormula(phi1, phi2) ->
-        ImpliesFormula(simplify_formula phi1, simplify_formula phi2)
-    | IffFormula(phi1, phi2) ->
-        IffFormula(simplify_formula phi1, simplify_formula phi2)
-    | ForallFormula(binders, phi) ->
-        ForallFormula(binders, simplify_formula phi)
-    | ExistsFormula(binders, phi) ->
-        ExistsFormula(binders, simplify_formula phi)
-    (* No simplification made *)
+        if mem FalseFormula phis
+        then FalseFormula
+        else AndFormula(remove TrueFormula phis)
     | _ -> phi
+  (* Deep simplification: Equal Formula Elimination *)
+  and deepsimp_equal_elimination phi =
+    match phi with
+    | EqualFormula(t1, t2) ->
+        if t1 = t2
+        then TrueFormula
+        else phi
+    | _ -> phi
+  (* Deep simplification: Existential Quantifiers Elimination *)
+  and deepsimp_exists_elimination phi =
+    (* 
+      Try to eliminate one bidner in @rem_binders at a time.
+      @processed_binders are ones that cannot be eliminated.
+      @phis are formulas whose conjunction is in the range of
+      @binders.
+    *)
+    let rec eliminate_binder phis processed_binders rem_binders =
+      (match rem_binders with
+       | [] -> ExistsFormula(processed_binders, AndFormula(phis))
+       | (x,s)::rem_binders ->
+           (* 
+             Try to find in @phis "x = trm".
+             If find one, then return Some(trm).
+             Otherwise, return None. 
+           *)
+           let rec get_trm processed_phis rem_phis =
+             (match rem_phis with
+              | [] -> None
+              | phi::rem_phis ->
+                  (match phi with
+                   | EqualFormula(t1, t2) ->
+                       if t1 = AtomicVarTerm(x) 
+                       then Some(t2)
+                       else if t2 = AtomicVarTerm(x)
+                       then Some(t1)
+                       else get_trm (processed_phis @ [phi]) rem_phis
+                   | _ -> get_trm (processed_phis @ [phi]) rem_phis)) 
+           in (match get_trm [] phis with
+               | None -> eliminate_binder phis 
+                                          (processed_binders @ [(x,s)])
+                                          rem_binders
+               | Some(trm) -> (* substitute @x for @trm in @phis *)
+                  let phis' =
+                    map (fun phi -> subst_formula [(x, trm)] phi) phis
+                  in eliminate_binder phis'
+                                   processed_binders
+                                   rem_binders))                                        
+    in match phi with
+       | ExistsFormula(binders, AndFormula(phis)) -> 
+          eliminate_binder phis [] binders 
+       | ExistsFormula(binders, EqualFormula(t1, t2)) -> 
+          eliminate_binder [EqualFormula(t1, t2)] [] binders 
+       | _ -> phi
   (* Use @simp to simplify @phi until the result does not change *)
   in fixed_point simp phi
 ;;
