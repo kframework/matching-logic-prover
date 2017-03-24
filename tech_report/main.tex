@@ -118,30 +118,10 @@ Poly-sorted symbols are symbols whose signatures have sort $s_\top$. A regular s
 	Poly-sorted patterns are built from many-sorted variables, logical connectives and quantifiers, and symbol applications, the same as many-sorted patterns, with the only exception that symbols can be polymorphic. A poly-sorted pattern $P$ is a set of many-sorted patterns by instantiating all poly-sorted symbols in $P$ in all possible ways such that the instances are well-sorted.
 \end{defn}
 
-\subsection{\textsf{ml2pl}-Translation}
+\subsection{\textsf{ml2fol}-Translation}
 
-Let us assume a polymorphic matching logic signature $(S,\Sigma)$ with some symbols in $\Sigma$ having polymorphic types, such as the definedness symbol $\ceil*{\_} \colon s_\top \leadsto s_\top$ that we have seen. We define the first-order logic theory $T = \mathsf{ml2pl}(S,\Sigma)$ as follows.
+Let us assume a matching logic signature $(S,\Sigma)$ with some symbols in $\Sigma$ having polymorphic types, such as the definedness symbol $\ceil*{\_} \colon s_\top \leadsto s_\top$ that we have seen. We define the first-order logic theory $T = \mathsf{ml2pl}(S,\Sigma)$ as follows.
 
-\textbf{Step 1 (Add sorts.)} For each $s \in S$, add one-arity predicate symbol $s$. For each $s, s' \in S$ are distinct sorts, add the axiom
-\begin{equation}
-\forall x . \neg (s(x) \wedge s'(x)). \tag{Distinct sorts}
-\end{equation}
-Finally, add the axiom
-\begin{equation}
-\forall x . \left(s_1(x) \vee s_2(x) \vee \dots \vee s_n(x)\right), \tag{Complete sorts}
-\end{equation}
-where $s_1,\dots,s_n$ are all sorts in $S$. Let $s_\top(x) = s_1(x) \vee s_2(x) \vee \dots \vee s_n(x)$.
-
-\textbf{Step 2 (Add symbols.)} For any $n$-arity symbol $\sigma \in \Sigma$, add $(n+1)$-arity predicate symbol $\pi_\sigma$.
-
-\textbf{Step 3 (Recursive translation.)}
-
-Intuition: $\ml2pl(P,r)$ means $r$ matches $P$, where $r$ range over the $s$-universe, given $P$ has sort $s$. 
-
-\begin{align*}
-&PL(x : s, r) \equiv s(x) \to x = r \\
-&PL(\neg P , r) \equiv  \neg PL(P, r) \\
-\end{align*}
 
 
 \section{Deductive system}
