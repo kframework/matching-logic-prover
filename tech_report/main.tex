@@ -6,7 +6,9 @@
 \usepackage{proof}
 \usepackage{txfonts}
 \usepackage{mathtools}
+\usepackage{authblk}
 
+% Import packages for syntax highlight code.
 \usepackage{listings}
 \usepackage{xcolor}
 \lstdefinelanguage{maude}
@@ -35,103 +37,71 @@
 \def\land{\mathbin\&}
 \def\ml2pl{\textsf{ml2pl}}
 
+% Title and authors
 
-
-\title{Automated Deduction in Matching Logic}
-\author{FSL group}
-
+\title{Technical Report\\ 
+	   The Deduction System of Matching Logic}
+\author[1]{Formal Systems Laboratory}
+\affil[1]{University of Illinois, Urbana-Champaign, USA}
 
 
 \begin{document}
+
 \maketitle
 
-Recent success in building very fast automated theorem provers (especially for first-order theories) makes us look forward to an highly efficient automated deductive system for matching logic. This project aims at that.
+\begin{abstract}
 
-\section{Grammar}
+Abstract goes here.
 
-As in most logic, formulas of matching logic, called \emph{patterns}, are written in a formal language, denoted as $\mathcal{L}$, who has a very similar grammar as first order logic. 
+\end{abstract}
 
-The language $\mathcal{L}$ in general is a many-sorted language. A signature of $\mathcal{L}$ contains not only a finite set $\Sigma$ of symbols, but also a finite nonempyty set $S$ of sorts. Each symbol $\sigma \in \Sigma$ is, of course, sorted, with a fixed nonempty arity. We write $\sigma \in \Sigma_{s_1,\dots,s_n,s}$ when we want to emphasize that $\sigma$ takes $n$ arguments (with suggested sorts) and returns a pattern in sort $s$, but we hope in most cases sorting is clear from context.
+\section{Syntax}
 
-The basic grammar for $\mathcal{L}$, as defined below, is almost identical to first-order logic, except that in $\mathcal{L}$ there is no difference between relational (predicate) and functional symbols, and we accept first-order terms as patterns in matching logic. 
-\begin{align*}
+Formulas of matching logic, called \emph{patterns}, are written in a formal language, denoted as $\mathcal{L}$, whose grammar is listed in~\eqref{ml_grammar}. The language $\mathcal{L}$ is many-sorted. A signature of $\mathcal{L}$ contains not only a finite set $\Sigma$ of \emph{symbols}, but also a finite nonempyty set $S$ of \emph{sorts}. Each symbol $\sigma \in \Sigma$ is, of course, sorted, with a fixed nonempty arity. We write $\sigma \in \Sigma_{s_1,\dots,s_n,s}$ to emphasize that $\sigma$ takes $n$ arguments (with argument sorts $s1,\dots,s_n$) and returns a pattern in sort $s$, but we hope in most cases sorting is clear from context.
+
+The grammar for $\mathcal{L}$, as defined below, is almost identical to first-order logic, except that in $\mathcal{L}$ there is no difference between relational (predicate) and functional symbols, and we accept first-order terms as patterns in matching logic. 
+\begin{align}
+\label{ml_grammar}
 P \Coloneqq\  & x \\
-       \mid\  & P_1 \to P_2 \\
-       \mid\  & \neg P \\
-       \mid\  & \forall x . P \\
-       \mid\  & \sigma(P_1,\dots,P_n).
-\end{align*}
-For simplicity, we did not mention sorting in the grammar definition, and assume it should be clear to all readers. For example, in $P_1 \to P_2$, both patterns $P_1$ and $P_2$ should have the same sort, and that sort is the sort of $P_1 \to P_2$. The sort of $\forall x . P$ is the sort of $P$, where the sort of variable $x$ does not matter. To see why it is the case, consider the pattern $\exists x . list(x, 1 \cdot 3 \cdot 5)$, which is the set of all memory configurations that has a list $(1,3,5)$ in it.
+       \mid\  & P_1 \wedge P_2 \nonumber \\
+       \mid\  & \neg P \nonumber \\
+       \mid\  & \forall x . P \nonumber \\
+       \mid\  & \sigma(P_1,\dots,P_n), \nonumber
+\end{align}
+where the universal quantifier ($\forall x$) behaves the same as in first-order logic, with alpha-renaming always assumed.
 
-Propositional connectives are always assumed, including conjunction ($\wedge$), disjunction ($\vee$), and equivalence ($\leftrightarrow$). Existential quantifier ($\exists x$) is defined by universal quantifier ($\forall x$) in the normal way. Bottom ($\bot_s$) and top ($\top_s$) in sort $s$ are given by $x \wedge \neg x$ and $\neg \bot_s$, respectively, where $x$ is a variable in sort $s$. It does not matter which variable we pick.
+For simplicity, we did not mention sorting in the grammar definition, and assume it should be clear to all readers. For example, in $P_1 \wedge P_2$, both patterns $P_1$ and $P_2$ should have the same sort, and that sort is the sort of $P_1 \wedge P_2$. The sort of $\forall x . P$ is the sort of $P$, while the sort of variable $x$ does not matter. To see why it is the case, consider the pattern $\exists x . list(x, 1 \cdot 3 \cdot 5)$, which is the set of all memory configurations that has a list $(1,3,5)$ in it.
 
-\subsection{Extension}
-The formal language is often extended with definedness symbols. A definedness symbol $\ceil*{\_}_{s_1}^{s_2} \in \Sigma_{s_1,s_2}$ is a \emph{predicate} symbol, i.e., $\ceil*{P}_{s_1}^{s_2}$ is either $\top$ or $\bot$ for any pattern $P$. We often write $\ceil*{P}$ when sorting information can be derived from the context.
+Propositional connectives are always assumed, including disjunction ($\vee$), implication ($\to$), and equivalence ($\leftrightarrow$). Existential quantifier ($\exists x$) is defined by universal quantifier ($\forall x$) in the normal way. The bottom pattern ($\bot_s$) and the top pattern ($\top_s$) in sort $s$ are given by $x \wedge \neg x$ and $\neg \bot_s$, respectively, where $x$ is a variable in sort $s$. It does not matter which variable we pick.
 
-Definedness extends the formal language:
+
+\subsection{Extended Syntax}
+The formal language $\mathcal{L}$ is often extended with \emph{definedness} symbols. For $s_1, s_2$ are two sorts, the definedness symbol $\ceil*{\_}_{s_1}^{s_2} \in \Sigma_{s_1,s_2}$ is a unary symbol with one argument sort $s_1$ and the result sort $s_2$. For a pattern $P$ who has sort $s_1$, the pattern $\ceil*{\_}_{s_1}^{s_2} \left(P\right)$ is often written as $\ceil*{P}_{s_1}^{s_2}$, or simply $\ceil*{P}$.
+
+Definedness symbols carry specific intended semantics. For each definedness symbol $\ceil*{\_}_{s_1}^{s_2}$, we add the pattern $\ceil*{x}_{s_1}^{s_2}$ as an axiom to the deductive system, where $x$ is a variable who has sort $s_1$. It does not matter which variable we pick.
+
+With definedness symbols, we extends the formal language $\mathcal{L}$ with 
 \begin{align*}
-&\floor*{P} \coloneqq {\neg} \ceil*{\neg P} \\
-&P_1 = P_2 \coloneqq \floor*{P_1 \leftrightarrow P_2} \\
-&P_1 \neq P_2 \coloneqq \neg (P_1 = P_2) \\
-&P_1 \subseteq P_2 \coloneqq \floor*{P_1 \to P_2} \\
-&x \in P \coloneqq x \subseteq P
+&\floor*{P}_{s_1}^{s_2} \coloneqq {\neg} \ceil*{\neg P}_{s_1}^{s_2} \\
+&P_1 =_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \leftrightarrow P_2}_{s_1}^{s_2} \\
+&P_1 \neq_{s_1}^{s_2} P_2 \coloneqq \neg (P_1 =_{s_1}^{s_2} P_2) \\
+&P_1 \subseteq_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \to P_2}_{s_1}^{s_2} \\
+&x \in_{s_1}^{s_2} P \coloneqq x \subseteq_{s_1}^{s_2} P.
 \end{align*}
-and provides convenient ways to write \emph{predicate patterns}, patterns that is either $\top$ or~$\bot$. The sort of a predicate patterns is often of no importance. It is its ``truth value'' that is important. For example, $\ceil*{P}$ is ``true'' if $P$ is not empty, and this fact can be used in any context. This leads us to polymorphic sorting in matching logic.
 
-\subsection{Polymorphism}
-Predicate symbols are often polymorphic sorting. As a result, many predicate connectives are of polymorphic types, too. Predicate pattern $P_1 = P_2$ only requires $P_1$ and $P_2$ have the same sort, and its result can be of any sort. If $P_1$ and $P_2$ have different sorts, $P_1 = P_2$ is \emph{ill-sorted}.
-
-Polymorphism means in mathematics a mapping $\tau$ from pattern set $\mathcal{P}$ to a sort algebra $\mathcal{S}$ built from $S$. The algebra $\mathcal{S}$ is obtained by adding two special elements, called the top-sort $s_\top$ and bottom-sort $s_\bot$, to the set $S$, and define a partial order relation by which $s_\top$ is the largest element in $\mathcal{S}$, $s_\bot$ is the smallest, and every other elements in $S$ is in between, incomparable to each other. $\mathcal{S}$ is a lattice.
-
-Let $P$ be a pattern. Intuitively, if $\tau(P) = s_\bot$ then $P$ is ill-sorted. Most patterns have their normal sorts in $S$. Predicate patterns have sort $s_\top$, which makes them fit in any context. However, nothing prevents one having a non-predicate pattern of sort $s_\top$. All that matters is the \emph{sorting signature} of a symbol $\sigma \in \Sigma$.
-
-Normal symbols have regular sorting signatures. A symbol $\sigma \in \Sigma_{s_1,\dots,s_n, s}$ expects $n$ arguments of the sorts $s_1, \dots, s_n$ respectively, and results in a pattern of sort $s$. 
-
-The same notation can be used to polymorphic symbols, most of which are predicates. For example, $\mathtt{primeQ} \colon \mathtt{Nat} \Rightarrow s_\top$ checks whether its argument is a prime number or not, and returns either $\top$ (if the argument is a prime number) or $\bot$ (otherwise). A two-arity example is $\mathtt{ge}(x,y)$ that checks whether $x > y$, where $\mathtt{ge} \colon \mathtt{Nat} \times \mathtt{Nat} \Rightarrow s_\top$. Predicates can appear in any context, for instance, $\forall x . \exists y . (\mathtt{ge}(y, x) \wedge \mathtt{primeQ}(y))$.
-
-Symbols can take arguments of the top sort $s_\top$, too. One example is the definedness symbol $\ceil*{\_} \colon s_\top \Rightarrow s_\top$, a predicate over \emph{all sorts} of patterns. It sounds more ``polymorphic'' than $\mathtt{ge}$ and $\mathtt{primeQ}$, in the sense that not only it can be plugged in any context, but also any patterns can be plugged in it. The above discussion leads us to the following definition of polymorphism.
-
-\begin{defn}[Polymorphic sorting]
-	Polymorphic sorts of patterns is a mapping $\tau \colon \mathcal{P} \to \mathcal{S}$, defined recursively by
-\begin{align*}
-  &\tau(x) = s \quad \text{if $x$ is a variable of sort $s$} \\
-  &\tau(\neg P) = \tau(P) \\
-  &\tau(P_1 \to P_2) = \min(\tau(P_1), \tau(P_2)) \\
-  &\tau(\exists x . P) = \tau(P).
-\end{align*}
-Let $\sigma \in \Sigma_{s_1,\dots,s_n,s}$ be a polymorphic symbol, then
-\begin{equation*}
-\tau(\sigma(P_1,\dots,P_n)) =
-\begin{cases}
-s \quad &\text{if \ $\min(\tau(P_i), s_i) \neq s_\bot$ \ for all $i$} \\
-s_\bot \quad &\text{otherwise}
-\end{cases}
-\end{equation*}
-\end{defn}
-
-The above definition, though, does not provide a connection between poly-sorted matching logic with many-sorted matching logic. On one hand, we often write patterns such as $(x \mapsto 1 * y \mapsto 2) \wedge x + 1 = y$, which are in fact poly-sorted (in the equality symbol ``$=$''). On the other hand, such polymorphism is regarded as nothing more than just syntactic sugar. The semantics and the inference system of matching logic are all for many-sorted matching logic. And we do not want to define a duplicate just for the poly-sorted case.
-
-Therefore, we provide here a viewpoint to regard poly-sorted patterns \emph{as} many-sorted patterns. By doing so, we treat poly-sorted patterns \emph{as} nothing but just syntactic sugar for many-sorted patterns. This viewpoint is much useful in practice than Definition~1, and may eventually replace it.
-
-\begin{defn} (Poly-sorted symbols and patterns)
-Poly-sorted symbols are symbols whose signatures have sort $s_\top$. A regular symbol is said to \emph{instantiates} a poly-sorted symbol if it instantiates all $s_\top$ to some regular sorts.
-	Poly-sorted patterns are built from many-sorted variables, logical connectives and quantifiers, and symbol applications, the same as many-sorted patterns, with the only exception that symbols can be polymorphic. A poly-sorted pattern $P$ is a set of many-sorted patterns by instantiating all poly-sorted symbols in $P$ in all possible ways such that the instances are well-sorted.
-\end{defn}
-
-\subsection{\textsf{ml2fol}-Translation}
-
-Let us assume a matching logic signature $(S,\Sigma)$ with some symbols in $\Sigma$ having polymorphic types, such as the definedness symbol $\ceil*{\_} \colon s_\top \leadsto s_\top$ that we have seen. We define the first-order logic theory $T = \mathsf{ml2pl}(S,\Sigma)$ as follows.
-
-
+\begin{rmk}
+	To prevent writing tangled subscripts and superscripts that indicate sorts of variables and patterns all the time, we omit them as much as possible, unless there is a chance of confusing things. A statement with sorting subscripts and superscripts omitted is treated as (possibly many) statements with the omitting sorting subscripts and superscripts completed in all possible well-formed ways.
+\end{rmk}
 
 \section{Deductive system}
-Axioms in $\mathcal{L}$ are given by the following axiom schemata where $P, Q, R$ are arbitrary patterns and $x, y$ are variables.
+A deductive system is a recursive set of patterns as \emph{axioms} and a finite set of \emph{inference rules}. The deductive system of matching logic that we introduce in this section has been proved \emph{sound} and \emph{complete}.
+
+Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary patterns and $x, y$ are logic variables.
 \begin{itemize}
 \item (K1) $P \to (Q \to P)$
 \item (K2) $(P \to (Q \to R)) \to ((P \to Q) \to (P \to R))$
 \item (K3) $(\neg P \to \neg Q) \to (Q \to P)$
 \item (K4) $\forall x . (P \to Q) \to (P \to \forall x . Q)$ if $x$ does not occur free in $P$
-\item (K5) $\exists y . x = y$
 \item (K6) $\exists y . Q = y \to (\forall x . P(x) \to P[Q/x])$ if $Q$ is free for $x$ in $P$
 \item (K7) $P_1 = P_2 \to (Q[P_1/x] \to Q[P_2/x])$
 \item (M1) $x \in y = (x = y)$
