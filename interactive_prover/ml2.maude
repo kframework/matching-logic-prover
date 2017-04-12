@@ -1,8 +1,19 @@
----- Grammar of sorted patterns.
+---- An Interactive Theorem Prover for Matching Logic ----
+---- Xiaohong Chen <xc3@illinois.edu> ----
+---- Last Update on April 5 ----
+
+---- Module PAT0: Grammar of matching logic patterns.
 fmod PAT0 is
+
   protecting NAT .
-  sort Pat PatList Sot SotList Sym .
-  
+
+  ---- Pat: matching logic patterns.
+  ---- PatList: comma-separated list of patterns.
+  ---- Sot: matching logic sorts. Notice that matching logic is a many-sorted, not order-sorted
+  ----      logic, so there is no relation among sorts.
+  ---- SotList: comma-separated list of sorts.
+  sort Pat PatList Sot SotList .
+
   subsort Pat < PatList .
   op .PatList : -> PatList [ctor] .
   op _,_ : PatList PatList -> PatList [ctor assoc id: .PatList] .
@@ -10,48 +21,100 @@ fmod PAT0 is
   subsort Sot < SotList .
   op .SotList : -> SotList [ctor] .
   op _,_ : SotList SotList -> SotList [ctor assoc id: .SotList] .
-  
+
+  ---- Sym: matching logic symbols (as uninterpreted functions)
+  ---- ASym: associative symbols. Take a list of arguments. 
+  ---- CSym: communitive binary symbols.
+  ---- ACSym: AC-symbols. Take a multiset of arguments.
+  ---- UcSym: unconstrained symbols (constructors or labels)
+  sort Sym ASym CSym ACSym UcSym .
+
   vars P Q : Pat . var Ps : PatList . var F : Sym . var S : Sot .
   
   op getSot : PatList -> SotList .
-  op getDomSotList : Sym -> SotList .
-  op getRanSot : Sym -> Sot .
   eq getSot(.PatList) = .SotList .
   eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] .
   
-  op {_,_} : Nat Sot -> Pat [ctor] . ---- de Brujin indices starting off from 0
+  ---- get domain sorts of a symbol
+  op getDomSotList : Sym -> SotList . 
+  op getDomSotList : ASym -> 
+
+  ---- get range sort of a symbol
+  op getRanSot : Sym -> Sot .         
+
+  
+  ---- Matching logic variables are natural numbers (starting off from zero).
+  ---- Variables have their sorts.
+  ---- The namespace for (free) variables are increased within a binding context.
+  ---- This technique is called "de Brujin indices" and is often used to avoid
+  ---- the alpha-renaming of bound variables.
+  ---- Warning. Writing for example {3, S1} and {3, S2} where S1 and S2 are two
+  ---- different sorts makes no sense, because "variable 3" can only have
+  ---- one sort.
+  op {_,_} : Nat Sot -> Pat [ctor] . 
   eq getSot({K:Nat,S}) = S .
+
+  ---- Matching logic "and".
+  ---- All its operands should have the same sort. This is always assumed.
+  ---- Many other logic connectives enjoy the same property.
   op _/\_ : Pat Pat -> Pat [ctor assoc comm] .
   eq getSot(P /\ Q) = getSot(P) .
+
+  ---- Matching logic "or"
   op _\/_ : Pat Pat -> Pat [ctor assoc comm] .
   eq getSot(P \/ Q) = getSot(P) .
+
+  ---- Matching logic "implies"
+  ---- P -> Q is the same as (~ P) \/ Q
   op _->_ : Pat Pat -> Pat [ctor] .
   eq getSot(P -> Q) = getSot(P) .
+
+  ---- Matching logic "iff"
+  ---- P <-> Q is the same as P -> Q /\ Q -> P
   op _<->_ : Pat Pat -> Pat [ctor comm] .
   eq getSot(P <-> Q) = getSot(P) .
+
+  ---- Matching logic "not"
+  ---- ~ P means the "complement" of P
   op ~_ : Pat -> Pat [ctor] .
   eq getSot(~ P) = getSot(P) .
+
+  ---- Matching logic quantifiers
+  ---- No binding variables because we are using de Brujin indices.
   ops forall_ exists_ : Pat -> Pat [ctor] .
   eq getSot(forall P) = getSot(P) .
   eq getSot(exists P) = getSot(P) .
-  op _() : Sym -> Pat . eq F() = F(.PatList) .
+
+  ---- Matching logic application: uninterpreted symbols applied to patterns.
+  op _() : Sym -> Pat . eq F() = F(.PatList) . ---- syntactic sugar for constant symbols
+  ---- We assume symbols are applied to the correct number of patterns with correct sorts.
   op _(_) : Sym PatList -> Pat [ctor] .
   eq getSot(F(Ps)) = getRanSot(F) .
+
   op floor{_}(_) : Sot Pat -> Pat [ctor] .
   eq getSot(floor{S}(P)) = S .  
+
   op ceil{_}(_) : Sot Pat -> Pat [ctor] .
   eq getSot(ceil{S}(P)) = S .
+
   op _={_}_ : Pat Sot Pat -> Pat [ctor format(d d d d d s d)] .
   eq getSot(P ={S} Q) = S .
+
   op _subset{_}_ : Pat Sot Pat -> Pat [ctor format(d d d d d s d)] .
   eq getSot(P subset{S} Q) = S .
+
   op _in{_}_ : Pat Sot Pat -> Pat [format(d d d d d s d)] .
   eq P in{S} Q = P subset{S} Q .
+
   op top{_} : Sot -> Pat [ctor] .
   eq getSot(top{S}) = S .
+
   op bot{_} : Sot -> Pat [ctor] .
   eq getSot(bot{S}) = S .
+
 endfm
+
+quit
 
 ---- Substitution with de Brujin indices.
 fmod PAT1 is
