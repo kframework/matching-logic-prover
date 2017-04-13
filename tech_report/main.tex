@@ -39,7 +39,7 @@
 \def\ml2pl{\textsf{ml2pl}}
 
 % Label inference rules.
-\newcommand{\inferrule}[1]{\text{\scriptsize{(#1)}}}
+\newcommand{\rl}[1]{\text{\scriptsize{(#1)}}}
 
 % Title and authors
 
@@ -110,6 +110,7 @@ Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary p
 \item (K4) $\forall x . P \to P[y/x]$
 \item (K5) $\forall x . (P \to Q) \to (P \to \forall x . Q)$ if $x$ does not occur free in $P$
 \item (K6) $P_1 = P_2 \to (Q[P_1/x] \to Q[P_2/x])$
+\item (Df)  $\ceil{x}$
 \item (M1) $x \in y = (x = y)$
 \item (M2) $x \in P \wedge Q = (x \in P) \wedge (x \in Q)$
 \item (M3) $x \in \neg P = \neg (x \in P)$
@@ -161,10 +162,10 @@ Equalities plays an important role in matching logic. Axiom (K6) is very powerfu
 
 \begin{proof}
 $$
-\infer[\inferrule{MP}]{\vdash Q[P_2 / x]}
-{\infer[\inferrule{MP}]{\vdash Q[P_1 / x] \to Q[P_2 / x]}
+\infer[\rl{MP}]{\vdash Q[P_2 / x]}
+{\infer[\rl{MP}]{\vdash Q[P_1 / x] \to Q[P_2 / x]}
 	   {\infer{P_1 = P_2}{\cdot}
-	   &\infer[\inferrule{K6}]{P_1 = P_2 \to \left(Q[P_1 / x] \to Q[P_2 / x]\right)}{\cdot}}
+	   &\infer[\rl{K6}]{P_1 = P_2 \to \left(Q[P_1 / x] \to Q[P_2 / x]\right)}{\cdot}}
 	&\infer{\vdash Q[P_1 / x]}{\cdot}}
 $$
 \end{proof}
@@ -177,7 +178,18 @@ The next proposition is useful when one wants to establish an equality pattern.
 \end{prop}
 
 \begin{proof}
-That the right hand side implies the left is easy, so we only prove that the left implies the right. By definition, $\left(P = Q\right) = \neg \ceil{\neg \left(P \leftrightarrow Q\right)}$
+That the right hand side implies the left is easy, so we left the proof as an exercise to the readers. In the following, we only prove that the left implies the right. By definition, $P = Q$ is the syntactic sugar of $\neg \ceil{\neg \left(P \leftrightarrow Q\right)}$, so we have the following derivation.
+
+$$
+\infer[\rl{$\in$-Intro}]{\neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
+{\infer[\rl{$\forall x$-Gen}]{\forall x . \left(x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)} \right)}
+{\infer[\rl{K6, M3}]{x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
+{\infer[\rl{K6, M5}]{\neg \left( x \in  \ceil{\neg \left(P \leftrightarrow Q\right)} \right) }
+{\infer[\rl{Sugar, K3, M3}]{\neg \exists y . \left(x \in \ceil{y} \wedge y \in \neg \left(P \leftrightarrow Q\right)\right)}
+{\forall y .(\neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}}}}}.
+$$
+
+
 \end{proof}
 
 \begin{prop}[$\vee$-Introduction] \label{prop:vee-introduction}
