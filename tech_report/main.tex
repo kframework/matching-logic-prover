@@ -29,6 +29,7 @@
 \newtheorem{defn}[thm]{Definition}
 \newtheorem{eg}[thm]{Example}
 \newtheorem{rmk}[thm]{Remark}
+\newtheorem{lemma}[thm]{Lemma}
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
@@ -36,6 +37,9 @@
 \def\imp{\to}
 \def\land{\mathbin\&}
 \def\ml2pl{\textsf{ml2pl}}
+
+% Label inference rules.
+\newcommand{\inferrule}[1]{\text{\scriptsize{(#1)}}}
 
 % Title and authors
 
@@ -148,6 +152,34 @@ The proof system is sound and complete.
 By definition, $\top = \neg \bot = \neg (x \wedge \neg x)$, where $x$ is a matching logic variable who has the same sort with $\top$. Let proposition $\mathcal{A} = \neg (p \wedge \neg p)$ with $p$ is a propositional variable. Then $\mathcal{A}$ is a propositional tautology. By Proposition~\ref{prop:taut}, $\top = \mathcal{A}[x/p]$ is derivable in the proof system, i.e., $\vdash \top$.
 \end{proof}
 
+Equalities plays an important role in matching logic. Axiom (K6) is very powerful even though it looks quite simple. It basically says that whenever one establishes that $P = Q$, then the two patterns are interchangeable everywhere in any patterns, as concluded in the next lemma.
+
+\begin{lemma}
+	\label{prop:ereplacement}
+	If $\vdash P_1 = P_2$ and $\vdash Q[P_1 / x]$, then $\vdash Q[P_2 / x]$.
+\end{lemma}
+
+\begin{proof}
+$$
+\infer[\inferrule{MP}]{\vdash Q[P_2 / x]}
+{\infer[\inferrule{MP}]{\vdash Q[P_1 / x] \to Q[P_2 / x]}
+	   {\infer{P_1 = P_2}{\cdot}
+	   &\infer[\inferrule{K6}]{P_1 = P_2 \to \left(Q[P_1 / x] \to Q[P_2 / x]\right)}{\cdot}}
+	&\infer{\vdash Q[P_1 / x]}{\cdot}}
+$$
+\end{proof}
+
+The next proposition is useful when one wants to establish an equality pattern.
+
+\begin{prop}
+	\label{prop:eestablish}
+	$\vdash P \leftrightarrow Q$ iff $\vdash P = Q$.
+\end{prop}
+
+\begin{proof}
+That the right hand side implies the left is easy, so we only prove that the left implies the right. By definition, $\left(P = Q\right) = \neg \ceil{\neg \left(P \leftrightarrow Q\right)}$
+\end{proof}
+
 \begin{prop}[$\vee$-Introduction] \label{prop:vee-introduction}
 	$\vdash P$ implies $\vdash P \vee Q$.
 \end{prop}
@@ -176,21 +208,8 @@ Use Proposition~\ref{prop:taut} and Modus Ponens.
 	Use Membership Introduction and Proposition~\ref{prop:taut}.
 \end{proof}
 
-\begin{prop}[Equality Replacement]
-\label{prop:ereplacement}
-$\vdash P_1 = P_2$ and $\vdash Q[P_1 / x]$ implies $\vdash Q[P_2 / x]$.
-\end{prop}
-\begin{proof}
-	Use Axiom~(K7) and Modus Ponens.
-\end{proof}
 
-\begin{prop}[Equality Establishment]
-\label{prop:eestablish}
-$\vdash P \leftrightarrow Q$ implies $\vdash P = Q$.
-\end{prop}
-\begin{proof}
-	Use Membership Axoims and $\vee$-Introduction.
-\end{proof}
+
 \begin{cor} \label{cor:top}
 $\vdash P$ implies $\vdash P = \top$ .
 \end{cor}
@@ -533,3 +552,4 @@ $$
 $$
 
 \end{document}
+\grid
