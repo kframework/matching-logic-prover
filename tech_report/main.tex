@@ -139,6 +139,8 @@ The proof system is sound and complete.
 
 \subsection{Metatheorems of the deductive system}
 
+Writing formal proofs is never easy. Derivations are prone to be lengthy and boring. To ease such difficulty, we here in this section introduce a dozen of lemmas (i.e., metatheorems) of the deductive system. Metatheorems discover all kinds of properties of the deductive system, from the simplest ``$\vdash P=P$'' to the complexest deduction theorem and the framing rule. 
+
 \begin{prop}[Tautology] \label{prop:taut}
 	For any propositional tautology $\mathcal{A}(p_1,\dots,p_n)$ where $p_1,\dots,p_n$ are all propositional variables in $\mathcal{A}$, and for any patterns $P_1,\dots,P_n$, $$ \vdash \mathcal{A}(P_1,\dots,P_n).$$
 \end{prop}
@@ -168,6 +170,29 @@ $$
 	   &\infer[\rl{K6}]{P_1 = P_2 \to \left(Q[P_1 / x] \to Q[P_2 / x]\right)}{\cdot}}
 	&\infer{\vdash Q[P_1 / x]}{\cdot}}
 $$
+\end{proof}
+
+Before we introduce how to establish an equality in matching logic, we first prove some simplification rules about the top and bottom patterns. 
+
+\begin{lemma}
+The following propositions hold for any pattern $P$.
+\begin{enumerate}
+	\item $\vdash P$ iff $\vdash P = \top$.
+	\item $\vdash \neg P$ iff $\vdash P = \bot$.
+	\item $\vdash \left(P \wedge \top\right) = P$.
+	\item $\vdash (P \wedge \bot) = \bot$.
+	\item $\vdash (P \vee \top) = \top$.
+	\item $\vdash (P \vee \bot) = P$.
+	\item $\vdash \forall x . \top = \top$.
+	\item $\vdash \forall x . \bot = \bot$.
+	\item $\vdash \exists x . \top = \top$.
+	\item $\vdash \exists x . \bot = \bot$.
+	\item $\vdash (x \in \top) = \top$.
+	\item $\vdash (x \in \bot) = \bot$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+	There is little intelligence in the proof. We will show how to prove (1) and (3), and the rest should be similar.
 \end{proof}
 
 The next proposition is useful when one wants to establish an equality pattern.
