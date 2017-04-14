@@ -155,10 +155,50 @@ Writing formal proofs is never easy. Derivations are prone to be lengthy and bor
 By definition, $\top = \neg \bot = \neg (x \wedge \neg x)$, where $x$ is a matching logic variable who has the same sort with $\top$. Let proposition $\mathcal{A} = \neg (p \wedge \neg p)$ with $p$ is a propositional variable. Then $\mathcal{A}$ is a propositional tautology. By Proposition~\ref{prop:taut}, $\top = \mathcal{A}[x/p]$ is derivable in the proof system, i.e., $\vdash \top$.
 \end{proof}
 
+\begin{prop}[$\vee$-Introduction] \label{prop:vee-introduction}
+	$\vdash P$ implies $\vdash P \vee Q$.
+\end{prop}
+\begin{proof}
+    $$
+    \infer[\rl{Sugar}]{\vdash P \vee Q}
+    {\infer[\rl{MP}]{\vdash \neg Q \to P}
+    {\infer{\vdash P}{\cdot} &
+     \infer[\rl{K1}]{\vdash P \to (\neg Q \to P)}{\cdot}}}
+    $$
+\end{proof}
+
+\begin{cor}[$\to$-Introduction]
+$\vdash P$ implies $\vdash Q \to P$ and $\vdash \neg P \to Q$.
+\end{cor}
+
+\begin{rmk}
+	In general, $\vdash P \vee Q$ does not implies $\vdash P$ or $\vdash Q$. For example, we have shown that $\vdash \top$, and $\top$ is, by definition, just sugar of $\neg \bot = \neg (x \wedge \neg x) = \neg x \vee x$. It is clearly wrong if we conclude $\vdash \neg x$ or $\vdash x$. From a semantic point of view, it is easy to understand: the union of two sets is the total set does not imply that one of them is the total set.
+\end{rmk}
+
+\begin{prop}[$\wedge$-Introduction and Elimination]
+	\label{prop:wedge}
+	$\vdash P$ and $\vdash Q$ iff $\vdash P \wedge Q$.
+\end{prop}
+\begin{proof}
+($\Rightarrow$).
+$$
+\infer[\rl{MP}]{\vdash P \wedge Q}
+{\infer{\vdash P}
+{\cdot}
+&\infer[\rl{MP}]{\vdash P \to P \wedge Q}
+{\infer{\vdash Q}
+{\cdot}
+&\infer[\rl{Taut}]{\vdash Q \to P \to P \wedge Q}
+{\cdot}}}
+$$
+($\Leftarrow$). Left as an exercise.
+\end{proof}
+
+
 Equalities plays an important role in matching logic. Axiom (K6) is very powerful even though it looks quite simple. It basically says that whenever one establishes that $P = Q$, then the two patterns are interchangeable everywhere in any patterns, as concluded in the next lemma.
 
 \begin{lemma}
-	\label{prop:ereplacement}
+	\label{lemma:ereplacement}
 	If $\vdash P_1 = P_2$ and $\vdash Q[P_1 / x]$, then $\vdash Q[P_2 / x]$.
 \end{lemma}
 
@@ -166,8 +206,8 @@ Equalities plays an important role in matching logic. Axiom (K6) is very powerfu
 $$
 \infer[\rl{MP}]{\vdash Q[P_2 / x]}
 {\infer[\rl{MP}]{\vdash Q[P_1 / x] \to Q[P_2 / x]}
-	   {\infer{P_1 = P_2}{\cdot}
-	   &\infer[\rl{K6}]{P_1 = P_2 \to \left(Q[P_1 / x] \to Q[P_2 / x]\right)}{\cdot}}
+	   {\infer{\vdash P_1 = P_2}{\cdot}
+	   &\infer[\rl{K6}]{\vdash P_1 = P_2 \to \left(Q[P_1 / x] \to Q[P_2 / x]\right)}{\cdot}}
 	&\infer{\vdash Q[P_1 / x]}{\cdot}}
 $$
 \end{proof}
@@ -192,7 +232,41 @@ The following propositions hold for any pattern $P$.
 \end{enumerate}
 \end{lemma}
 \begin{proof}
-	There is little intelligence in the proof. We will show how to prove (1) and (3), and the rest should be similar.
+	There is little intelligence in the proof. We will show how to prove (1) as an example, and the rest are left as exercises. 
+	The derivation tree
+	$$
+	\infer[\rl{Lemma~\ref{lemma:ereplacement}}]{\vdash P}
+	{ \infer{\vdash P=\top}{\cdot}
+		& \infer{\vdash \top}{\cdot}}
+	$$
+	shows that the right implies the left. The show the other direction, we have the following derivation tree
+	$$
+	\infer{\vdash P = \top}
+	{\infer{\vdash \neg \ceil{\neg (P \leftrightarrow \top)}}
+	{\infer{\vdash \forall x . (x \in \neg \ceil{\neg (P \leftrightarrow \top)})}
+	{\infer{\vdash x \in \neg \ceil{\neg (P \leftrightarrow \top)}}
+	{\infer{\vdash \neg (x \in \ceil{\neg (P \leftrightarrow \top)})}
+	{\infer{\vdash \neg \exists y . (x \in \ceil{y} \wedge y \in (\neg (P \leftrightarrow \top)))}
+	{\infer{\vdash \forall y . \neg (x \in \ceil{y} \wedge y \in (\neg (P \leftrightarrow \top)))}
+	{\infer{\vdash \neg (x \in \ceil{y} \wedge y \in (\neg (P \leftrightarrow \top)))}
+	{\infer{\vdash (\neg (x \in \ceil{y})) \vee (\neg (y \in (\neg (P \leftrightarrow \top))))}
+	{\infer{\vdash (\neg (x \in \ceil{y})) \vee (\neg \neg (y \in (P \leftrightarrow \top)))}
+	{\infer{\vdash (\neg (x \in \ceil{y})) \vee (y \in (P \leftrightarrow \top))}
+	{\infer{\vdash y \in (P \leftrightarrow \top)}
+	{\infer{\vdash y \in P \leftrightarrow y \in \top}
+	{\infer{\vdash y \in P \to y \in \top}
+	{\vdash y \in \top}
+	&\infer{\vdash y \in \top \to y \in P}
+	{\vdash y \in P}}}}}}}}}}}}}}.
+	$$
+	What is left is to prove if $\vdash P$, then $\vdash y \in P$, as shown in the next derivation tree.
+	$$
+	\infer{\vdash y \in P}
+	{\infer{\vdash \forall x . (x \in P)}
+		{\infer{\vdash P}{\cdot}}
+	&\infer{\vdash \forall x . (x \in P) \to y \in P}{\cdot}
+	}.
+	$$
 \end{proof}
 
 The next proposition is useful when one wants to establish an equality pattern.
@@ -206,37 +280,27 @@ The next proposition is useful when one wants to establish an equality pattern.
 That the right hand side implies the left is easy, so we left the proof as an exercise to the readers. In the following, we only prove that the left implies the right. By definition, $P = Q$ is the syntactic sugar of $\neg \ceil{\neg \left(P \leftrightarrow Q\right)}$, so we have the following derivation.
 
 $$
-\infer[\rl{$\in$-Intro}]{\neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
-{\infer[\rl{$\forall x$-Gen}]{\forall x . \left(x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)} \right)}
-{\infer[\rl{K6, M3}]{x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
-{\infer[\rl{K6, M5}]{\neg \left( x \in  \ceil{\neg \left(P \leftrightarrow Q\right)} \right) }
-{\infer[\rl{Sugar, K3, M3}]{\neg \exists y . \left(x \in \ceil{y} \wedge y \in \neg \left(P \leftrightarrow Q\right)\right)}
-{\forall y .(\neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}}}}}.
+\infer[\rl{$\in$-Intro}]{\vdash \neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
+{\infer[\rl{$\forall x$-Gen}]{\vdash \forall x . \left(x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)} \right)}
+{\infer[\rl{K6, M3}]{\vdash x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
+{\infer[\rl{K6, M5}]{\vdash \neg \left( x \in  \ceil{\neg \left(P \leftrightarrow Q\right)} \right) }
+{\infer[\rl{Sugar, K3, M3}]{\vdash \neg \exists y . \left(x \in \ceil{y} \wedge y \in \neg \left(P \leftrightarrow Q\right)\right)}
+{\infer{\vdash \forall y .(\neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
+{\infer{\vdash \neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
+{\infer{\vdash y \in P \leftrightarrow Q}
+{}}}}}}}}.
 $$
 
 
 \end{proof}
 
-\begin{prop}[$\vee$-Introduction] \label{prop:vee-introduction}
-	$\vdash P$ implies $\vdash P \vee Q$.
-\end{prop}
-\begin{proof}
-	Use Proposition~\ref{prop:taut} and Modus Ponens.
-	Note that in general, $\vdash P \vee Q$ does not imply $\vdash P$ or $\vdash Q$.
-\end{proof}
+
 
 \begin{prop}[Functional Substitution]
 	$\vdash \exists y . (Q = y) \to (P[Q / x] \to \exists x . P(x))$.
 \end{prop}
 
 
-\begin{prop}[$\wedge$-Introduction and Elimination]
-\label{prop:wedge}
-$\vdash P$ and $\vdash Q$ iff $\vdash P \wedge Q$.
-\end{prop}
-\begin{proof}
-Use Proposition~\ref{prop:taut} and Modus Ponens.
-\end{proof}
 
 \begin{prop}[Equality Introduction]
 	$\vdash P = P$.
