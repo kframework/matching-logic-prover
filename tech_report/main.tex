@@ -79,7 +79,7 @@ For simplicity, we did not mention sorting in the grammar definition, and assume
 Propositional connectives are always assumed, including disjunction ($\vee$), implication ($\to$), and equivalence ($\leftrightarrow$). Existential quantifier ($\exists x$) is defined by universal quantifier ($\forall x$) in the normal way. The bottom pattern ($\bot_s$) and the top pattern ($\top_s$) in sort $s$ are given by $x \wedge \neg x$ and $\neg \bot_s$, respectively, where $x$ is a variable in sort $s$. It does not matter which variable we pick.
 
 
-\subsection{Extended Syntax}
+\subsection{Extended syntax}
 The formal language $\mathcal{L}$ is often extended with \emph{definedness} symbols. For $s_1, s_2$ are two sorts, the definedness symbol $\ceil*{\_}_{s_1}^{s_2} \in \Sigma_{s_1,s_2}$ is a unary symbol with one argument sort $s_1$ and the result sort $s_2$. For a pattern $P$ who has sort $s_1$, the pattern $\ceil*{\_}_{s_1}^{s_2} \left(P\right)$ is often written as $\ceil*{P}_{s_1}^{s_2}$, or simply $\ceil*{P}$.
 
 Definedness symbols carry specific intended semantics. For each definedness symbol $\ceil*{\_}_{s_1}^{s_2}$, we add the pattern $\ceil*{x}_{s_1}^{s_2}$ as an axiom to the deductive system, where $x$ is a variable who has sort $s_1$. It does not matter which variable we pick.
@@ -97,10 +97,10 @@ With definedness symbols, we extends the formal language $\mathcal{L}$ with
 	To prevent writing tangled subscripts and superscripts that indicate sorts of variables and patterns all the time, we omit them as much as possible, unless there is a chance of confusing things. A statement with sorting subscripts and superscripts omitted is treated as (possibly many) statements with the omitting sorting subscripts and superscripts completed in all possible well-formed ways.
 \end{rmk}
 
-\section{Deductive system}
+\section{Deductive System}
 A deductive system is a recursive set of patterns as \emph{axioms} and a finite set of \emph{inference rules}. The deductive system of matching logic that we introduce in this section has been proved \emph{sound} and \emph{complete}.
 
-\subsection{The Deductive System}
+\subsection{The deductive system}
 
 Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary patterns and $x, y$ are logic variables.
 \begin{itemize}
@@ -212,64 +212,8 @@ $$
 $$
 \end{proof}
 
-Before we introduce how to establish an equality in matching logic, we first prove some simplification rules about the top and bottom patterns. 
 
-\begin{lemma}
-The following propositions hold for any pattern $P$.
-\begin{enumerate}
-	\item $\vdash P$ iff $\vdash P = \top$.
-	\item $\vdash \neg P$ iff $\vdash P = \bot$.
-	\item $\vdash \left(P \wedge \top\right) = P$.
-	\item $\vdash (P \wedge \bot) = \bot$.
-	\item $\vdash (P \vee \top) = \top$.
-	\item $\vdash (P \vee \bot) = P$.
-	\item $\vdash \forall x . \top = \top$.
-	\item $\vdash \forall x . \bot = \bot$.
-	\item $\vdash \exists x . \top = \top$.
-	\item $\vdash \exists x . \bot = \bot$.
-	\item $\vdash (x \in \top) = \top$.
-	\item $\vdash (x \in \bot) = \bot$.
-\end{enumerate}
-\end{lemma}
-\begin{proof}
-	There is little intelligence in the proof. We will show how to prove (1) as an example, and the rest are left as exercises. 
-	The derivation tree
-	$$
-	\infer[\rl{Lemma~\ref{lemma:ereplacement}}]{\vdash P}
-	{ \infer{\vdash P=\top}{\cdot}
-		& \infer{\vdash \top}{\cdot}}
-	$$
-	shows that the right implies the left. The show the other direction, we have the following derivation tree
-	$$
-	\infer{\vdash P = \top}
-	{\infer{\vdash \neg \ceil{\neg (P \leftrightarrow \top)}}
-	{\infer{\vdash \forall x . (x \in \neg \ceil{\neg (P \leftrightarrow \top)})}
-	{\infer{\vdash x \in \neg \ceil{\neg (P \leftrightarrow \top)}}
-	{\infer{\vdash \neg (x \in \ceil{\neg (P \leftrightarrow \top)})}
-	{\infer{\vdash \neg \exists y . (x \in \ceil{y} \wedge y \in (\neg (P \leftrightarrow \top)))}
-	{\infer{\vdash \forall y . \neg (x \in \ceil{y} \wedge y \in (\neg (P \leftrightarrow \top)))}
-	{\infer{\vdash \neg (x \in \ceil{y} \wedge y \in (\neg (P \leftrightarrow \top)))}
-	{\infer{\vdash (\neg (x \in \ceil{y})) \vee (\neg (y \in (\neg (P \leftrightarrow \top))))}
-	{\infer{\vdash (\neg (x \in \ceil{y})) \vee (\neg \neg (y \in (P \leftrightarrow \top)))}
-	{\infer{\vdash (\neg (x \in \ceil{y})) \vee (y \in (P \leftrightarrow \top))}
-	{\infer{\vdash y \in (P \leftrightarrow \top)}
-	{\infer{\vdash y \in P \leftrightarrow y \in \top}
-	{\infer{\vdash y \in P \to y \in \top}
-	{\vdash y \in \top}
-	&\infer{\vdash y \in \top \to y \in P}
-	{\vdash y \in P}}}}}}}}}}}}}}.
-	$$
-	What is left is to prove if $\vdash P$, then $\vdash y \in P$, as shown in the next derivation tree.
-	$$
-	\infer{\vdash y \in P}
-	{\infer{\vdash \forall x . (x \in P)}
-		{\infer{\vdash P}{\cdot}}
-	&\infer{\vdash \forall x . (x \in P) \to y \in P}{\cdot}
-	}.
-	$$
-\end{proof}
-
-The next proposition is useful when one wants to establish an equality pattern.
+Remind that the equality ``$=$'' is not a built-in logic connective in matching logic. It is the syntactic sugar of $\neg \ceil{\neg (P \leftrightarrow Q)}$, where $\ceil{\_}$ is the definedness symbol that we introduced before. One may wonder how to establish such equalities in the deduction system. Indeed, the proof system says little about how to derive an equality. Most of its axioms (except (K6)) and rules are not even about equalities. That is why the next proposition is quite useful in practice. It helps one to establish an equality pattern.
 
 \begin{prop}
 	\label{prop:eestablish}
@@ -285,35 +229,45 @@ $$
 {\infer[\rl{K6, M3}]{\vdash x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
 {\infer[\rl{K6, M5}]{\vdash \neg \left( x \in  \ceil{\neg \left(P \leftrightarrow Q\right)} \right) }
 {\infer[\rl{Sugar, K3, M3}]{\vdash \neg \exists y . \left(x \in \ceil{y} \wedge y \in \neg \left(P \leftrightarrow Q\right)\right)}
-{\infer{\vdash \forall y .(\neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
-{\infer{\vdash \neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
-{\infer{\vdash y \in P \leftrightarrow Q}
-{}}}}}}}}.
+{\infer[\rl{$\forall y$-Gen}]{\vdash \forall y .(\neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
+{\infer[\rl{$\vee$-Intro}]{\vdash \neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
+{\infer[\rl{K4, MP}]{\vdash y \in P \leftrightarrow Q}
+{\infer[\rl{$\in$-Intro}]{\vdash \forall y . (y \in P \leftrightarrow Q)}
+{\infer{\vdash P \leftrightarrow Q}
+{\cdot}}}}}}}}}}.
 $$
-
-
 \end{proof}
+
+\begin{rmk}
+We never say $P=Q$ and $P \leftrightarrow Q$ are logically equivalent. One will never derive $\vdash (P = Q) = (P \leftrightarrow Q)$ for any patterns $P$ and $Q$ in the deductive system from a consistent set of axioms.
+\end{rmk}
+
+\begin{cor}
+\label{cor:topbot_simp}
+	The following propositions hold for any pattern $P$.
+	\begin{enumerate}
+		\item $\vdash P$ iff $\vdash P = \top$.
+		\item $\vdash \neg P$ iff $\vdash P = \bot$.
+		\item $\vdash \left(P \wedge \top\right) = P$.
+		\item $\vdash (P \wedge \bot) = \bot$.
+		\item $\vdash (P \vee \top) = \top$.
+		\item $\vdash (P \vee \bot) = P$.
+		\item $\vdash \forall x . \top = \top$.
+		\item $\vdash \forall x . \bot = \bot$.
+		\item $\vdash \exists x . \top = \top$.
+		\item $\vdash \exists x . \bot = \bot$.
+		\item $\vdash (x \in \top) = \top$.
+		\item $\vdash (x \in \bot) = \bot$.
+		\item $\vdash P = P$.
+	\end{enumerate}
+\end{cor}
 
 
 
 \begin{prop}[Functional Substitution]
-	$\vdash \exists y . (Q = y) \to (P[Q / x] \to \exists x . P(x))$.
+$\vdash \exists y . (Q = y) \to (\forall x . P \to P[Q/x]))$, if $y$ occurs free in $Q$.
 \end{prop}
 
-
-
-\begin{prop}[Equality Introduction]
-	$\vdash P = P$.
-\end{prop}
-\begin{proof}
-	Use Membership Introduction and Proposition~\ref{prop:taut}.
-\end{proof}
-
-
-
-\begin{cor} \label{cor:top}
-$\vdash P$ implies $\vdash P = \top$ .
-\end{cor}
 
 \begin{prop} \label{prop:var1}
 $\vdash x \in \ceil*{y}$.
@@ -611,46 +565,7 @@ If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P}
 	$\vdash \floor*{P \to Q} \to (\sigma(P) \to \sigma(Q))$
 \end{cor}
 
-\section{Inference rules}
 
-\paragraph{Axioms}
-$$
-\infer{\Gamma \vdash A}{\cdot}
-$$
-where $A$ is an axiom. 
-
-\paragraph{Inclusion}
-$$
-\infer{\Gamma \vdash P}{\cdot}
-$$
-where $P \in \Gamma$.
-
-\paragraph{Modus Ponens}
-$$
-\infer{\Gamma \vdash P}
-      {\Gamma \vdash Q \to P
-      &\Gamma \vdash Q}
-$$
-
-\paragraph{Closed-Form Deduction Theorem}
-$$
-\infer{\Gamma \vdash P \to Q}
-{\Gamma \cup \{P\} \vdash Q}
-$$
-where $P$ is closed.
-
-\paragraph{Universal Generalization}
-$$
-\infer[(\forall x)]{\Gamma \vdash \forall x . P}
-      {\Gamma \vdash P}
-$$
-
-\paragraph{Conjunction Splitting}
-$$
-\infer{\Gamma \vdash P \wedge Q}
-      {\Gamma \vdash P
-      &\Gamma \vdash Q}
-$$
 
 \end{document}
 \grid
