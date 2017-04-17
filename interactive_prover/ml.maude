@@ -1,56 +1,73 @@
 ---- An Interactive Theorem Prover for Matching Logic ----
 ---- Xiaohong Chen <xc3@illinois.edu> ----
----- Last Update on April 16 ----
+---- Last Update on April 17 ----
 
----- Module PAT0: Grammar of matching logic patterns.
+---- This file contains modules that incrementally build an interactive
+---- prover for matching logic [1]. 
+---- [1] Grigore Rosu, Matching Logic - Extended Abstract, 
+----     26th International Conference on Rewriting Techniques
+----     and Applications (RTA 2015).
+
+---- Module PAT0: The grammar of matching logic patterns.
 fmod PAT0 is
 
   protecting NAT .
-
-  ---- Pat: matching logic patterns.
-  ---- PatList: comma-separated list of patterns.
-  ---- Sot: matching logic sorts. Notice that matching logic is a many-sorted, not order-sorted
-  ----      logic, so there is no relation among sorts.
-  ---- SotList: comma-separated list of sorts.
-  sort Pat PatList Sot SotList .
+  
+  sort Pat .      ---- Matching logic patterns.
+  sort PatList .  ---- ","-separated lists of patterns.
+  sort PatMSet .  ---- "+"-separated multiset of patterns.
+  sort Sot .      ---- Matching logic sorts. 
+  sort SotList .  ---- Comma-separated list of sorts.
 
   subsort Pat < PatList .
-  op .PatList : -> PatList [ctor] .
+  op .PatList : -> PatList [ctor] . ---- The empty list.
   op _,_ : PatList PatList -> PatList [ctor assoc id: .PatList] .
-  
+
+  subsort Pat < PatMSet .
+  op .PatMSet : -> PatMSet [ctor] . ---- The empty multiset.
+  op _+_ : PatMSet PatMSet -> PatMSet [ctor assoc comm id: .PatMSet] .
+
   subsort Sot < SotList .
-  op .SotList : -> SotList [ctor] .
+  op .SotList : -> SotList [ctor] . ---- The empty list.
   op _,_ : SotList SotList -> SotList [ctor assoc id: .SotList] .
 
-  ---- Sym: matching logic symbols (as uninterpreted functions)
-  ---- ASym: associative symbols. Take a list of arguments. 
-  ---- CSym: communitive binary symbols.
-  ---- ACSym: AC-symbols. Take a multiset of arguments.
-  ---- UcSym: unconstrained symbols (constructors or labels)
-  sort Sym ASym CSym ACSym UcSym .
+  vars P Q : Pat . var Ps : PatList .
 
-  vars P Q : Pat . var Ps : PatList . var F : Sym . var S : Sot .
-  
-  op getSot : PatList -> SotList .
+  op getSot : PatList -> SotList . 
   eq getSot(.PatList) = .SotList .
-  eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] .
-  
-  ---- get domain sorts of a symbol
-  op getDomSotList : Sym -> SotList . 
-  op getDomSotList : ASym -> 
+  eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] . 
 
-  ---- get range sort of a symbol
-  op getRanSot : Sym -> Sot .         
+  sort UISym . ---- Uninterpreted matching logic symbols.
+  op getArgSotList : UISym -> SotList . ---- Get argument sorts of the symbol.
+  op getResultSot : UISym -> Sot . ---- Get result sort of the symbol.
 
-  
+  sort ASym .  ---- Associative symbols
+               ---- that take a list of arguments.  
+  op getArgSot : ASym -> Sot . ---- Get the argument sort.
+  op getResultSot : ASym -> Sot .
+
+  sort ACSym . ---- Associative-commutative-symbols 
+               ---- that take a multiset of arguments.
+  op getArgSot : ACSym -> Sot .
+  op getResultSot : ACSym -> Sot .
+ 
+  sort UCSym . ---- Unconstrained symbols (constructors or labels).
+  op getArgSotList : UCSym -> SotList .
+  op getResultSot : UCSym -> Sot .         
+
+  ---------------------------------
+  ---- Matching logic grammar. ----
+  ---------------------------------
+
+  --------------------
+  ---- Variables. ----
+  --------------------
+
   ---- Matching logic variables are natural numbers (starting off from zero).
   ---- Variables have their sorts.
-  ---- The namespace for (free) variables are increased within a binding context.
-  ---- This technique is called "de Brujin indices" and is often used to avoid
-  ---- the alpha-renaming of bound variables.
-  ---- Warning. Writing for example {3, S1} and {3, S2} where S1 and S2 are two
-  ---- different sorts makes no sense, because "variable 3" can only have
-  ---- one sort.
+  ---- The namespace for (free) variables are increased within binding contexts.
+  ---- This is called "de Brujin indices" and is often used to avoid
+  ---- alpha-renaming bound variables.
   op {_,_} : Nat Sot -> Pat [ctor] . 
   eq getSot({K:Nat,S}) = S .
 
@@ -61,11 +78,7 @@ fmod PAT0 is
   eq getSot(P /\ Q) = getSot(P) .
 
   ---- Matching logic "or"
-  op _\/_ : Pat Pat -> Pat [ctor assoc comm] .
-  eq getSot(P \/ Q) = getSot(P) .
-
-  ---- Matching logic "implies"
-  ---- P -> Q is the same as (~ P) \/ Q
+  op _\/_ : Pat Pat -> Pat [ctor assoc comm] .  eq getSot(P \/ Q) = getSot(P) .  ---- Matching logic "implies" ---- P -> Q is the same as (~ P) \/ Q
   op _->_ : Pat Pat -> Pat [ctor] .
   eq getSot(P -> Q) = getSot(P) .
 
@@ -126,7 +139,7 @@ fmod PAT1 is
   op subst : PatList Nat Pat -> PatList . ---- subst(P, J, R) is P[J := R]
   op subst : PatList Pat Pat -> PatList . ---- subst(P, Q, R) is P[replace Q for R]
   op shift : PatList Nat Nat -> PatList . ---- shift(P, d-place, cutoff)
-                                          ---- everything that is under the @cutoff is bound and shoudn't be shifted.
+  ---- Sot: matching logic sorts. Notice that matching logic is a many-sorted, not order-sorted
   
   eq subst(.PatList, J, R) = .PatList .
   eq subst(.PatList, Q, R) = .PatList .
