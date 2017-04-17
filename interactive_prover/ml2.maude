@@ -1,6 +1,6 @@
 ---- An Interactive Theorem Prover for Matching Logic ----
 ---- Xiaohong Chen <xc3@illinois.edu> ----
----- Last Update on April 5 ----
+---- Last Update on April 16 ----
 
 ---- Module PAT0: Grammar of matching logic patterns.
 fmod PAT0 is
