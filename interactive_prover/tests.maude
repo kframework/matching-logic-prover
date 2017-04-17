@@ -1,0 +1,144 @@
+-----------------------------------------------------------------
+---- Test cases for the interactive prover of matching logic ----
+-----------------------------------------------------------------
+
+load ml .
+
+--------------------------- FAQ ---------------------------------
+---- Q1: What are those modules TEST-PAT[X], for X = 0, 1, ... ?
+---- A1: They are test modules for module PAT[X]. They declare
+----     some infrastructure for testing.
+---- Q2: Where are tests?
+---- A2: After each TEST-PAT[X] module, written as
+----     " reduce [oracle] == [test] . "
+----     If returns true, the test passes. Otherwise, it fails.
+---- Q3: My test does not parse.
+---- A3: Put parenthesis "()" around the [oracle] and [test].
+---- Q4: How to run tests?
+---- A4: In this directory ("interactive_prover/"), run
+----        maude tests | grep -E -1024 "(true|false)"
+----     This will highlight test results in red.
+-----------------------------------------------------------------
+
+------------------------------------
+---- Test cases for Module PAT0 ----
+------------------------------------
+
+fmod TEST-PAT0 is
+
+  protecting PAT0 .
+  
+  ops MLNat MLSeq MLMap MLPgm MLCfg : -> Sot [ctor] .
+  
+  ops epsilon emp zero succ mapsto : -> UISym [ctor] .
+  
+  eq getArgSotList(epsilon) = .SotList .
+  eq getResultSot(epsilon) = MLSeq .
+
+  eq getArgSotList(emp) = .SotList .
+  eq getResultSot(emp) = MLMap .
+  
+  eq getArgSotList(zero) = .SotList .
+  eq getResultSot(zero) = MLNat .
+  
+  eq getArgSotList(epsilon) = .SotList .
+  eq getResultSot(epsilon) = MLSeq .
+  
+  eq getArgSotList(succ) = MLNat .
+  eq getResultSot(succ) = MLNat .
+
+  eq getArgSotList(mapsto) = MLNat, MLNat .
+  eq getResultSot(mapsto) = MLMap .
+  
+  op concat : -> ASym [ctor] .
+  
+  eq getSot(concat) = MLSeq .
+  
+  ops plus merge : -> ACSym [ctor] .
+
+  eq getSot(plus) = MLNat .
+  
+  eq getSot(merge) = MLMap .
+  
+  ops #cfg #assign #sequential : -> UCSym [ctor] .
+  
+  eq getArgSotList(#cfg) = MLPgm, MLMap .
+  eq getResultSot(#cfg) = MLCfg .
+  
+  eq getArgSotList(#assign) = MLNat, MLNat .
+  eq getResultSot(#assign) = MLPgm .
+  
+  eq getArgSotList(#sequential) = MLPgm, MLPgm .
+  eq getResultSot(#sequential) = MLPgm .
+  
+endfm
+
+---- Parsing tests ----
+
+reduce in TEST-PAT0 :
+  (({1,MLNat} /\ {2,MLNat}) \/ ({3,MLNat} /\ {4,MLNat})) ==
+  ({1,MLNat} /\ {2,MLNat} \/ {3,MLNat} /\ {4,MLNat}) .
+
+reduce in TEST-PAT0 :
+  ({1,MLNat} -> ({2,MLNat} -> {3,MLNat})) ==
+  ({1,MLNat} -> {2,MLNat} -> {3,MLNat}) .
+  
+reduce in TEST-PAT0 :
+  (forall ({1,MLNat} /\ {2,MLNat})) ==
+  (forall {1,MLNat} /\ {2,MLNat}) .
+  
+---- getSot tests ----
+
+reduce in TEST-PAT0 :
+  MLCfg ==
+  getSot(#cfg(#sequential(#assign(succ(zero()),(succ(succ(succ(zero()))))),
+              #sequential(#assign(succ(succ(zero())),
+                                  zero()), 
+              #assign(succ(zero()),zero()))),
+              merge(mapsto(succ(zero()),succ(succ(zero()))) .
+                    mapsto(succ(succ(zero())),succ(succ(succ(zero()))))))) .
+
+------------------------------------
+---- Test cases for Module PAT1 ----
+------------------------------------
+
+fmod TEST-PAT1 is
+  protecting TEST-PAT0 .
+  protecting PAT1 .
+endfm
+
+---- Substitution tests ----
+
+reduce in TEST-PAT1 :
+  (subst(forall {1,MLNat}, 0, {1,MLNat})) ==
+  (forall {2,MLNat}) .
+
+reduce in TEST-PAT1 :
+  (subst(forall {1,MLNat} /\ (exists {2,MLNat}), 0, {1,MLNat})) ==
+  (forall {2, MLNat} /\ (exists {3,MLNat})) .
+  
+reduce in TEST-PAT1 :
+  (subst(mapsto({0,MLNat}, {1,MLNat}), 0, {1,MLNat})) ==
+  (mapsto({1,MLNat}, {1,MLNat})) .
+
+reduce in TEST-PAT1 :
+  (subst(merge({0,MLMap} . {1,MLMap}), 0, {1,MLMap})) ==
+  (merge({1,MLMap} . {1,MLMap})) .
+  
+reduce in TEST-PAT1 :
+  (subst(#assign({0,MLNat}, succ(zero())), 0, succ(zero()))) ==
+  (#assign(succ(zero()), succ(zero()))) .
+
+quit
+
+
+
+
+
+
+
+
+
+
+
+

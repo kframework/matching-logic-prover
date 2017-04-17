@@ -1,6 +1,8 @@
+----------------------------------------------------------
 ---- An Interactive Theorem Prover for Matching Logic ----
----- Xiaohong Chen <xc3@illinois.edu> ----
----- Last Update on April 17 ----
+------------ Xiaohong Chen <xc3@illinois.edu> ------------
+---------------- Last Update on April 17 -----------------
+----------------------------------------------------------
 
 ---- This file contains modules that incrementally build an interactive
 ---- prover for matching logic [1]. 
@@ -8,52 +10,38 @@
 ----     26th International Conference on Rewriting Techniques
 ----     and Applications (RTA 2015).
 
----- Module PAT0: The grammar of matching logic patterns.
+--------------------------------------------------------------
+---- Module PAT0: The grammar of matching logic patterns. ----
+--------------------------------------------------------------
+
 fmod PAT0 is
 
-  protecting NAT .
+  protecting INT .
   
   sort Pat .      ---- Matching logic patterns.
   sort PatList .  ---- ","-separated lists of patterns.
-  sort PatMSet .  ---- "+"-separated multiset of patterns.
+  sort PatMSet .  ---- "."-separated multiset of patterns.
   sort Sot .      ---- Matching logic sorts. 
-  sort SotList .  ---- Comma-separated list of sorts.
+  sort SotList .  ---- ","-separated list of sorts.
 
   subsort Pat < PatList .
   op .PatList : -> PatList [ctor] . ---- The empty list.
-  op _,_ : PatList PatList -> PatList [ctor assoc id: .PatList] .
+  op _,_ : PatList PatList -> PatList [ctor assoc id: .PatList prec 60] .
 
   subsort Pat < PatMSet .
   op .PatMSet : -> PatMSet [ctor] . ---- The empty multiset.
-  op _+_ : PatMSet PatMSet -> PatMSet [ctor assoc comm id: .PatMSet] .
+  op _._ : PatMSet PatMSet -> PatMSet [ctor assoc comm id: .PatMSet prec 60] .
 
   subsort Sot < SotList .
   op .SotList : -> SotList [ctor] . ---- The empty list.
-  op _,_ : SotList SotList -> SotList [ctor assoc id: .SotList] .
+  op _,_ : SotList SotList -> SotList [ctor assoc id: .SotList prec 60] .
 
-  vars P Q : Pat . var Ps : PatList .
+  vars P Q : Pat . vars Ps Qs : PatList . vars PSet QSet : PatMSet .
+  var S : Sot .
 
   op getSot : PatList -> SotList . 
   eq getSot(.PatList) = .SotList .
   eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] . 
-
-  sort UISym . ---- Uninterpreted matching logic symbols.
-  op getArgSotList : UISym -> SotList . ---- Get argument sorts of the symbol.
-  op getResultSot : UISym -> Sot . ---- Get result sort of the symbol.
-
-  sort ASym .  ---- Associative symbols
-               ---- that take a list of arguments.  
-  op getArgSot : ASym -> Sot . ---- Get the argument sort.
-  op getResultSot : ASym -> Sot .
-
-  sort ACSym . ---- Associative-commutative-symbols 
-               ---- that take a multiset of arguments.
-  op getArgSot : ACSym -> Sot .
-  op getResultSot : ACSym -> Sot .
- 
-  sort UCSym . ---- Unconstrained symbols (constructors or labels).
-  op getArgSotList : UCSym -> SotList .
-  op getResultSot : UCSym -> Sot .         
 
   ---------------------------------
   ---- Matching logic grammar. ----
@@ -62,7 +50,7 @@ fmod PAT0 is
   --------------------
   ---- Variables. ----
   --------------------
-
+  
   ---- Matching logic variables are natural numbers (starting off from zero).
   ---- Variables have their sorts.
   ---- The namespace for (free) variables are increased within binding contexts.
@@ -71,41 +59,108 @@ fmod PAT0 is
   op {_,_} : Nat Sot -> Pat [ctor] . 
   eq getSot({K:Nat,S}) = S .
 
-  ---- Matching logic "and".
-  ---- All its operands should have the same sort. This is always assumed.
-  ---- Many other logic connectives enjoy the same property.
-  op _/\_ : Pat Pat -> Pat [ctor assoc comm] .
+  -----------------------------------------
+  ---- Propositional Logic Connectives ----
+  -----------------------------------------
+  
+  ---- Logic connectives requires all its operands have the same sort. 
+  ---- This is always assumed and will not be checked.
+
+  op ~_ : Pat -> Pat [ctor prec 51] . ---- Matching logic "not"
+  eq getSot(~ P) = getSot(P) .
+  
+  op _/\_ : Pat Pat -> Pat [ctor assoc comm prec 52] . ---- "and"
   eq getSot(P /\ Q) = getSot(P) .
 
-  ---- Matching logic "or"
-  op _\/_ : Pat Pat -> Pat [ctor assoc comm] .  eq getSot(P \/ Q) = getSot(P) .  ---- Matching logic "implies" ---- P -> Q is the same as (~ P) \/ Q
-  op _->_ : Pat Pat -> Pat [ctor] .
+  op _\/_ : Pat Pat -> Pat [ctor assoc comm prec 53] . ---- "or"
+  eq getSot(P \/ Q) = getSot(P) .  
+  
+  op _->_ : Pat Pat -> Pat [ctor gather (e E) prec 54] . ---- "implies"
   eq getSot(P -> Q) = getSot(P) .
 
-  ---- Matching logic "iff"
-  ---- P <-> Q is the same as P -> Q /\ Q -> P
-  op _<->_ : Pat Pat -> Pat [ctor comm] .
+  op _<->_ : Pat Pat -> Pat [ctor comm prec 55] .   ---- "iff"
   eq getSot(P <-> Q) = getSot(P) .
-
-  ---- Matching logic "not"
-  ---- ~ P means the "complement" of P
-  op ~_ : Pat -> Pat [ctor] .
-  eq getSot(~ P) = getSot(P) .
-
-  ---- Matching logic quantifiers
-  ---- No binding variables because we are using de Brujin indices.
-  ops forall_ exists_ : Pat -> Pat [ctor] .
+  
+  ------------------------
+  ---- Quantification ----
+  ------------------------
+  
+  ---- No binding variables needed because we are using de Brujin indices.
+  
+  ops forall_ exists_ : Pat -> Pat [ctor prec 56] .
   eq getSot(forall P) = getSot(P) .
   eq getSot(exists P) = getSot(P) .
 
-  ---- Matching logic application: uninterpreted symbols applied to patterns.
-  op _() : Sym -> Pat . eq F() = F(.PatList) . ---- syntactic sugar for constant symbols
-  ---- We assume symbols are applied to the correct number of patterns with correct sorts.
-  op _(_) : Sym PatList -> Pat [ctor] .
-  eq getSot(F(Ps)) = getRanSot(F) .
+  ----------------------------
+  ---- Symbol Application ----
+  ----------------------------
+  
+  sort UISym . ---- Uninterpreted matching logic symbols.
+  op getArgSotList : UISym -> SotList . ---- Get argument sorts of the symbol.
+  op getResultSot : UISym -> Sot . ---- Get result sort of the symbol.
 
+  sort ASym .  ---- Associative symbols
+               ---- that take a list of arguments.
+  op getSot : ASym -> Sot . 
+
+  sort ACSym . ---- Associative-commutative-symbols 
+               ---- that take a multiset of arguments.
+  op getSot : ACSym -> Sot .
+ 
+  sort UCSym . ---- Unconstrained symbols (constructors or labels).
+  op getArgSotList : UCSym -> SotList .
+  op getResultSot : UCSym -> Sot . 
+  
+  var F : UISym . var F_a : ASym . var F_ac : ACSym . var F_uc : UCSym .
+  
+  ---- Uninterpreted symbols require the correct number of arguments with
+  ---- correct sorts.
+  ---- This is always assumed and will not be checked.
+  
+  op _(_) : UISym PatList -> Pat [ctor] .
+  eq getSot(F(Ps)) = getResultSot(F) .
+  op _() : UISym -> Pat . ---- Syntactic sugar for constant symbols.
+  eq F() = F(.PatList) . 
+  
+  ---- Associative symbols require a list of arguments with the same sort,
+  ---- and returns a pattern with the same sort.
+  ---- This is always assumed and will not be checked.
+  
+  op _(_) : ASym PatList -> Pat [ctor] .
+  eq getSot(F_a(Ps)) = getSot(F_a) .
+  
+  ---- Associative-Commutative symbols require a multiset of arguements with
+  ---- the same sort, and returns a pattern with the same sort.
+  ---- This is always assumed and will not be checked.
+  
+  op _(_) : ACSym PatMSet -> Pat [ctor] .
+  eq getSot(F_ac(PSet)) = getSot(F_ac) .
+  
+  ---- Unconstrained symbols require the correct number of arguments with
+  ---- correct sorts.
+  ---- This is always assumed and will not be checked.
+  
+  op _(_) : UCSym PatList -> Pat [ctor] .
+  eq getSot(F_uc(Ps)) = getResultSot(F_uc) .
+  op _() : UCSym -> Pat . ---- Syntactic sugar for constant symbols.
+  eq F_uc() = F_uc(.PatList) . 
+  
+  ----------------------------
+  ---- Definedness Symbol ----
+  ----------------------------
+  
+  op definedness{_} : Sot -> UISym .
+  eq getResultSot(definedness{S}) = S .
+  
+  ---- TODO: Shall we really make a distinction between
+  ---- definesness (see line 153) and floor (see line 163) ?
+  
+  --------------------
+  ---- Predicates ----
+  --------------------
+  
   op floor{_}(_) : Sot Pat -> Pat [ctor] .
-  eq getSot(floor{S}(P)) = S .  
+  eq getSot(floor{S}(P)) = S .
 
   op ceil{_}(_) : Sot Pat -> Pat [ctor] .
   eq getSot(ceil{S}(P)) = S .
@@ -124,29 +179,59 @@ fmod PAT0 is
 
   op bot{_} : Sot -> Pat [ctor] .
   eq getSot(bot{S}) = S .
-
+  
+  ---- TODO: How shall we add built-ins ?
+  
 endfm
 
-quit
+-----------------------------------------------------------
+---- Module PAT1: Substitution with de Brujin indices. ----
+-----------------------------------------------------------
 
----- Substitution with de Brujin indices.
 fmod PAT1 is
+
   protecting PAT0 .
   
-  vars P P' Q R : Pat . var Ps : PatList . var F : Sym . var S S' : Sot .
+  vars P P' Q R : Pat . var Ps : PatList . var PSet : PatMSet . 
+  vars S S' : Sot .
+  var F : UISym . var F_a : ASym . var F_ac : ACSym . var F_uc : UCSym .
   vars K K' J C D : Nat . 
+   
+  ------------------------------
+  ---- Main delivery: subst ----
+  ------------------------------
   
-  op subst : PatList Nat Pat -> PatList . ---- subst(P, J, R) is P[J := R]
-  op subst : PatList Pat Pat -> PatList . ---- subst(P, Q, R) is P[replace Q for R]
-  op shift : PatList Nat Nat -> PatList . ---- shift(P, d-place, cutoff)
-  ---- Sot: matching logic sorts. Notice that matching logic is a many-sorted, not order-sorted
+  ---- Substitute a pattern for a variable: subst(P, J, R) is P[J := R].
+  op subst : Pat Nat Pat -> Pat . 
   
+  ---- Substitute a pattern for a pattern: subst(P, Q, R) is P[replace Q for R].
+  op subst : Pat Pat Pat -> PatList . 
+  
+  op subst : PatList Nat Pat -> PatList . ---- substitute a list of patterns.
+  op subst : PatList Pat Pat -> PatList . ---- substitute a list of patterns.
+  op subst : PatMSet Nat Pat -> PatList . ---- substitute a mset of patterns.
+  op subst : PatMSet Pat Pat -> PatList . ---- substitute a mset of patterns.
+  
+  ---- Helper function: shift(P, delta-place, cutoff).
+  op shift : Pat Nat Nat -> Pat .
+  op shift : PatList Nat Nat -> PatList .
+  op shift : PatMSet Nat Nat -> PatMSet .
+  
+  ---- On a list of patterns.
   eq subst(.PatList, J, R) = .PatList .
   eq subst(.PatList, Q, R) = .PatList .
   eq shift(.PatList, D, C) = .PatList .
-  eq subst((P, Ps), K, R) = subst(P, K, R), subst(Ps, K, R) [owise] .
+  eq subst((P, Ps), J, R) = subst(P, J, R), subst(Ps, J, R) [owise] .
   eq subst((P, Ps), Q, R) = subst(P, Q, R), subst(Ps, Q, R) [owise] .
   eq shift((P, Ps), D, C) = shift(P, D, C), shift(Ps, D, C) [owise] .
+  
+  ---- On a mset of patterns.
+  eq subst(.PatMSet, J, R) = .PatMSet .
+  eq subst(.PatMSet, Q, R) = .PatMSet .
+  eq shift(.PatMSet, D, C) = .PatMSet .
+  eq subst((P . PSet), J, R) = subst(P, J, R) . subst(PSet, J, R) [owise] .
+  eq subst((P . PSet), Q, R) = subst(P, Q, R) . subst(PSet, Q, R) [owise] .
+  eq shift((P . PSet), D, C) = shift(P, D, C) . shift(PSet, D, C) [owise] .
 
   eq shift({K,S}, D, C) = if K < C then {K,S} else {K + D,S} fi .
   eq shift(P /\ Q, D, C) = shift(P, D, C) /\ shift(Q, D, C) .
@@ -157,6 +242,9 @@ fmod PAT1 is
   eq shift(forall P, D, C) = forall shift(P, D, C + 1) .
   eq shift(exists P, D, C) = exists shift(P, D, C + 1) .
   eq shift(F(Ps), D, C) = F(shift(Ps, D, C)) .
+  eq shift(F_a(Ps), D, C) = F_a(shift(Ps, D, C)) .
+  eq shift(F_ac(PSet), D, C) = F_ac(shift(PSet, D, C)) .
+  eq shift(F_uc(Ps), D, C) = F_uc(shift(Ps, D, C)) .
   eq shift(floor{S}(P), D, C) = floor{S}(shift(P, D, C)) .
   eq shift(ceil{S}(P), D, C) = ceil{S}(shift(P, D, C)) .
   eq shift(P ={S} Q, D, C) = shift(P, D, C) ={S} shift(Q, D, C) .
@@ -164,7 +252,7 @@ fmod PAT1 is
   eq shift(top{S}, D, C) = top{S} .
   eq shift(bot{S}, D, C) = bot{S} .
   
-  ---- substitute a variable (by its name)
+  ---- Substitute for a variable.
   eq subst({K,S}, J, R) = if K == J then R else {K,S} fi .
   eq subst(P /\ Q, J, R) = subst(P, J, R) /\ subst(Q, J, R) .
   eq subst(P \/ Q, J, R) = subst(P, J, R) \/ subst(Q, J, R) .
@@ -173,16 +261,19 @@ fmod PAT1 is
   eq subst(~ P, J, R) = ~ subst(P, J, R) .
   eq subst(forall P, J, R) = forall subst(P, J + 1, shift(R, 1, 0)) .
   eq subst(exists P, J, R) = exists subst(P, J + 1, shift(R, 1, 0)) .
+  eq subst(F(Ps), J, R) = F(subst(Ps, J, R)) .
+  eq subst(F_a(Ps), J, R) = F_a(subst(Ps, J, R)) .
+  eq subst(F_ac(PSet), J, R) = F_ac(subst(PSet, J, R)) .
+  eq subst(F_uc(Ps), J, R) = F_uc(subst(Ps, J, R)) .
   eq subst(floor{S}(P), J, R) = floor{S}(subst(P, J, R)) .
   eq subst(ceil{S}(P), J, R) = ceil{S}(subst(P, J, R)) .
-  eq subst(F(Ps), J, R) = F(subst(Ps, J, R)) .
   eq subst(P ={S} Q, J, R) = subst(P, J, R) ={S} subst(Q, J, R) .
   eq subst(P subset{S} Q, J, R) = subst(P, J, R) subset{S} subst(Q, J, R) .
   eq subst(top{S}, J, R) = top{S} .
   eq subst(bot{S}, J, R) = bot{S} .
   
-  ---- substitute a pattern
-  ---- the following is taking advantage of the fact that
+  ---- Substitute for a pattern.
+  ---- The following code is taking advantage of the fact that
   ---- Maude tries to apply rules in order (top to bottom).
   eq subst(Q, Q, R) = R .
   eq subst(P /\ P', Q, R) = subst(P, Q, R) /\ subst(P', Q, R) .
@@ -192,9 +283,12 @@ fmod PAT1 is
   eq subst(~ P, Q, R) = ~ subst(P, Q, R) .
   eq subst(forall P, Q, R) = forall subst(P, shift(Q, 1, 0), shift(R, 1, 0)) .
   eq subst(exists P, Q, R) = exists subst(P, shift(Q, 1, 0), shift(R, 1, 0)) .
+  eq subst(F(Ps), Q, R) = F(subst(Ps, Q, R)) .
+  eq subst(F_a(Ps), Q, R) = F_a(subst(Ps, Q, R)) .
+  eq subst(F_ac(PSet), Q, R) = F_ac(subst(PSet, Q, R)) .
+  eq subst(F_uc(Ps), Q, R) = F_uc(subst(Ps, Q, R)) .
   eq subst(floor{S}(P), Q, R) = floor{S}(subst(P, Q, R)) .
   eq subst(ceil{S}(P), Q, R) = ceil{S}(subst(P, Q, R)) .
-  eq subst(F(Ps), Q, R) = F(subst(Ps, Q, R)) .
   eq subst(P ={S} P', Q, R) = subst(P, Q, R) ={S} subst(P', Q, R) .
   eq subst(P subset{S} P', Q, R) = subst(P, Q, R) subset{S} subst(P', Q, R) .
   eq subst(top{S}, Q, R) = top{S} .
@@ -202,578 +296,3 @@ fmod PAT1 is
   eq subst(P, Q, R) = P .
 
 endfm
-
-
----- User-defined sorts and symbols.
-fmod PAT2 is
-  including PAT1 .
-  ops BBool NNat SSeq MMap : -> Sot [ctor] .
-  
-  ops tt ff : -> Sym [ctor] .
-  eq getDomSotList(tt) = .SotList . eq getRanSot(tt) = BBool .
-  eq getDomSotList(ff) = .SotList . eq getRanSot(ff) = BBool .
-  
-  ops && || ! : -> Sym [ctor] .
-  eq getDomSotList(&&) = BBool, BBool . eq getRanSot(&&) = BBool .
-  eq getDomSotList(||) = BBool, BBool . eq getRanSot(||) = BBool .
-  eq getDomSotList(!) = BBool . eq getRanSot(!) = BBool .
-  
-  ops zero succ plus : -> Sym [ctor] .
-  eq getDomSotList(zero) = .SotList . eq getRanSot(zero) = NNat .
-  eq getDomSotList(succ) = NNat . eq getRanSot(succ) = NNat .
-  eq getDomSotList(plus) = NNat, NNat . eq getRanSot(plus) = NNat .
-  
-endfm
-
----- Inference Rules: how to prove a pattern?
----- resolve(P, modusPonens) = Q1 ... Qn means there is an inference rule
-----  Q1 ... Qn
-----  --------- (rule R)
-----      P
----- so that to resolve P with the rule R, one needs to resolve Q1 ... Qn.
-fmod PAT3 is
-  protecting PAT2 .
-  
-  sort InferenceRule .
-
-  op resolve : Pat InferenceRule -> PatList .
-  eq resolve(P:Pat, R:InferenceRule) = P:Pat [owise] . ---- keep the P:Pat as
-                                       ---- it is if no inference rule is applicable.
-endfm
-
-
-  ---- TODO: We have a systematic way to do this.
-  ---- in short, we always keep a pattern to proceed, a substitution that
-  ---- tells which metaPatVar is assigned to which pattern, a proposition 
-  ---- constraint tells us relation between metaPatVars, and a number
-  ---- indicating fresh variables.
-  ---- a nonpropositional pattern (exists P, for example), is only assigned 
-  ---- a metaPatVar iff it has not been assigned one in the substitution.
-  ---- the constraint helps us go one step further in patterns. For example, 
-  ---- if we see P1 subset P2, then instead of assign it just a P:Pat, we can
-  ---- do better by also assigning P1:Pat to P1 and P2:Pat to P2 while requiring
-  ---- that P:Pat -> (P1:Pat -> P2:Pat) .
-  ---- Intuitively, P:Pat means that r in (P1 subset P2) is true, which means
-  ---- P1 subset P2 is valid (no matter which r), which implies that for any r,
-  ---- r in P1 -> r in P2, which means P1:Pat -> P2:Pat. (think of metaPatVar as
-  ---- propositions. And that is why we need the constrain.
-  ---- But the vice versa is not true. Even if P1:Pat -> P2:Pat is true (again,
-  ---- think of it as saying that for some r, r in P1 implies r in P2), this does
-  ---- not mean for (the same, but does not matter here) r, r in P1 subset P2.
-  ---- Example. P1 subset P2 -> (P1 -> P2) becomes
-  ----          P -> (P1 -> P2) constrained by P <-> (P1 -> P2),
-  ----          which is valid (as a propositional formula).
-  
----- InferenceRule: taut
----- Q: How does it work?
----- A: Recognize from a pattern P a proposition P = A(P1,...,Pn).
-----    Then if A is valid, P is valid. Furthermore, we can encode 
-----    some semantics of P in A while still preserving  that A's validity
-----    implies P's validity.
-----    This process of getting a propositional formula from a pattern 
-----    while preserving validity (in the sense that A valid implies P
-----    valid) is called "Propositionally Encoding".
-load prop .
-fmod PAT3-TAUT is
-  including PAT3 .
-  protecting PROP .
-  protecting META-LEVEL + CONVERSION .
-  
-  op taut : -> InferenceRule [ctor] . ---- Propositional Tautology Checking.
-
-  
-  vars P Q P' R : Pat . vars K C C' M N : Nat . var S : Sot .
-    
-  ---- (of no use!) make Pat variables 'P1:Pat 'P2:Pat etc.
-  op makePatVar : Nat -> Pat .
-  op makeMetaPatVar : Nat -> Variable . op errorPat : -> [Pat] .
-  eq makeMetaPatVar(N) = qid("$" + string(N, 10) + ":" + "Pat") .
-  eq makePatVar(N) = downTerm(makeMetaPatVar(N), errorPat) .
-  
-  ---- make variable patterns {K,Pred}
-  op $Pred : -> Sot [ctor] .
-  op makePredVar : Nat -> Pat . eq makePredVar(N) = {N,$Pred} .
-  
-  ---- Substitution
-  ---- First of all, do not confuse this with Substitution provided in META-LEVEL.
-  ---- Second, I am not sure whether to put it here or in PAT1.
-  sort Subst . op idSubst : -> Subst [ctor] .
-  op _<-_ : Pat Pat -> Subst [ctor prec 81] . ---- lhs should be a $Pred variable.
-  op _;_ : Subst Subst -> Subst [ctor assoc comm id: idSubst prec 82] .
-  op subst : Pat Subst -> Pat . ---- subst(P[P1], P1 <- Q1) = P[Q1]
-
-  var PredVar : Pat . ---- Think of it as {N,$Pred}.
-  var Sb : Subst .
-  
-  eq subst(P, idSubst) = P .
-  eq subst(P, (PredVar <- R); Sb) = subst(subst(P, PredVar, R), Sb) .
-endfm
-
-
----- InferenceRule: ml2fol.
-fmod PAT3-ML2FOL is
-  including PAT3 .
-  op ml2fol : -> InferenceRule [ctor] . ---- First-Order Logic Translation.
-endfm
-
----- InferenceRule: axiom.
-fmod PAT3-AXIOM is
-  including PAT3 .
-  op axiom : -> InferenceRule [ctor] . ---- Axiom Checking .
-  
-  vars P Q R : Pat .
-  
-  eq resolve(P -> (Q -> P), axiom) = .PatList .
-  eq resolve((P -> (Q -> R)) -> ((P -> Q) -> (P -> R)), axiom) = .PatList .
-  eq resolve(((~ Q) -> (~ P)) -> (P -> Q), axiom) = .PatList .
-endfm
-
----- InferenceRule: mp
-fmod PAT3-MP is
-  including PAT3 .
-  op mp_ : Pat -> InferenceRule [ctor] . ---- Modus Ponens.
-  
-  vars P Q : Pat .
-
-  eq resolve(P, mp Q) = Q, (Q -> P) .
-endfm
-
----- InferenceRule: framing
-fmod PAT3-FRAME is
-  including PAT3 .
-  op framing : -> InferenceRule [ctor] . ---- Framing Rule
-endfm
-
----- InferenceRule Integration.
-fmod PAT4 is
-  protecting PAT3-TAUT + PAT3-ML2FOL + PAT3-AXIOM + PAT3-MP + PAT3-FRAME .
-endfm
- 
----- Proof environment: ProofObligation + ProofState .
-fmod PAT5 is
-  protecting PAT4 .
-  
-  ---- Part1 Proof Obligation
-  ---- Think of a proof obligation as an indexed pattern.
-  ---- a list of proof obligation is, of course, a list of indexed patterns.
-  ---- those patterns are indexed by 1, 2, ... 
-  sort ProofObligation ProofObligationList .
-  subsort ProofObligation < ProofObligationList .
-  op .ProofObligationList : -> ProofObligationList .
-  op {_,_} : Nat Pat -> ProofObligation . ---- indexed obligation
-  op _,_ : ProofObligationList ProofObligationList -> ProofObligationList 
-  [assoc id: .ProofObligationList format(d d n d)] .
-  
-  vars P P' Q : Pat . var Ps : PatList . vars N M N' M' : Nat .
-  var Ob : ProofObligation . vars Obs Obs' : ProofObligationList .
-
-  ---- some rules that automatically makes proof obligations ordered.
-  eq {N,P}, {N,Q} = {N,P} .
-  ceq {N,P}, {M,Q} = {M,Q}, {N,P} if N > M .
-  
-  ---- make a new ProofObligationList from a list of patterns
-  ---- basically you just index them with 1, 2, ..., unless a second
-  ---- argument is provided. In that case, you index them with N, N+1, ...
-  op makeProofObligationList : PatList -> ProofObligationList .
-  op makeProofObligationList : PatList Nat -> ProofObligationList .
-  
-  
-  eq makeProofObligationList(Ps) = makeProofObligationList(Ps, 1) .
-  eq makeProofObligationList(.PatList, N) = .ProofObligationList .
-  eq makeProofObligationList((P, Ps), N) = {N,P}, makeProofObligationList(Ps, N + 1) .
-  
-  ---- Part2 Proof State
-  ---- Think of a proof state as simply a some proof obligations together with
-  ---- some additional information. A proof state also has a "previous" field that
-  ---- points to the last proof state, so that when you make a mistake in the proof,
-  ---- you can restore previous proof states and restart from there.
-  
-  sort ProofState .  var PStt PrePStt : ProofState .
-  
-  op < freshId:_,      ---- the fresh index for new obligations.
-       activeId:_,     ---- the total number of obligations
-       obligations:_,  ---- the obligations (might be empty)
-	   previous:_ >    ---- previous ProofState (think of it as a linked list)
-  : Nat Nat ProofObligationList ProofState -> ProofState [ctor] .
-  op nilProofState : -> ProofState [ctor] . ---- the "end" of the linked list.
-  op initialProofState : -> ProofState . ---- the proof state with no obligations and
-                                         ---- no previous states.
-  eq initialProofState = 
-     < freshId: 1,
-       activeId: 0,
-	   obligations: .ProofObligationList,
-	   previous: nilProofState > .
-  
-  ---- Rules that automatically set invalid freshId and activeId.
-  ---- You can take use of these rules. They are helpful.
-  
-  ceq < freshId: M,                        ---- if M is not 1
-        activeId: N,                       ---- or N is not 0
-	    obligations: .ProofObligationList, ---- when you have no obligations
-        previous: PrePStt >
-  =   < freshId: 1,                        ---- set M to 1
-        activeId: 0,                       ---- and set N to 0
-	    obligations: .ProofObligationList,
-        previous: PrePStt > 
-  if M =/= 1 or N =/= 0 .
-	   
-  ceq < freshId: M,                        ---- if M is not M' + 1
-        activeId: N,                       ---- when M' is the largest index
-	    obligations: Obs, {M',P},
-        previous: PrePStt >
-  =   < freshId: M' + 1,                   ---- set M to M'
-        activeId: N,                       ---- notice that obligations are 
-	    obligations: Obs, {M',P},          ---- automatically ordered
-        previous: PrePStt >
-  if M =/= M' + 1 .
-
-  ceq < freshId: M,                        
-        activeId: N,                      ---- if N is not in [1,M']
-	    obligations: Obs, {M',P},
-		previous: PrePStt > 
-  =   < freshId: M,
-        activeId: M',                     ---- set N to M'
-	    obligations: Obs, {M',P},
-		previous: PrePStt > 
-  if N == 0 or N > M' .
-
-  ---- Operations that play with ProofState.
-  
-  ---- Getters and setters
-  op getFreshId : ProofState -> Nat .
-  op getTotal : ProofState -> Nat .
-  op getActiveId : ProofState -> Nat .
-  op getActiveOb : ProofState -> ProofObligation .
-  op getActivePat : ProofState -> Pat .
-  op getAllObs : ProofState -> ProofObligationList .
-  op setActiveId : ProofState Nat -> ProofState .
-  op deleteActive : ProofState -> ProofState .
-  op addPatList : ProofState PatList -> ProofState .
-  op replaceActiveWithPatList : ProofState PatList -> ProofState .
-  op restore : ProofState -> ProofState .
-  op clearHistory : ProofState -> ProofState .
-  
-  eq getFreshId(< freshId: M,
-                  activeId: N,
-				  obligations: Obs,
-                  previous: PrePStt >) = M .
-  eq getTotal(PStt) = getFreshId(PStt) + (-1) . ---- don't write 3 - 2, because
-                                                ---- that can be parsed as
-												---- 3 (-2) : NatList 
-  eq getActiveId(< freshId: M,
-                   activeId: N,
-				   obligations: Obs,
-				   previous: PrePStt >) = N .
-  eq getActiveOb(< freshId: M,
-                   activeId: N,
-				   obligations: Obs, {N,P}, Obs',
-				   previous: PrePStt >) = {N,P} .
-  eq getActivePat(< freshId: M,
-                    activeId: N,
-				    obligations: Obs, {N,P}, Obs',
-					previous: PrePStt >) = P .
-  eq getAllObs(< freshId: M,
-                 activeId: N,
-				 obligations: Obs,
-				 previous: PrePStt >) = Obs .
-  eq setActiveId(< freshId: M,
-                   activeId: N,
-				   obligations: Obs,
-                   previous: PrePStt >, N') 
-  =              < freshId: M,
-                   activeId: N',
-				   obligations: Obs,
-                   previous: PrePStt > .
-  eq deleteActive(< freshId: M,
-                    activeId: N,
-					obligations: Obs, {N,P}, Obs',
-					previous: PrePStt >)
-  =               < freshId: M + (-1),         
-                    activeId: 0,               ---- set activeId to zero so
-					obligations: Obs, Obs',    ---- it will be automatically reset.
-					previous: < freshId: M,    ---- Also, backup the state
-					            activeId: N,
-								obligations: Obs, {N,P}, Obs',
-								previous: PrePStt > > .
-  eq deleteActive(< freshId: M,
-                    activeId: N,
-					obligations: .ProofObligationList,
-                    previous: PrePStt >)
-  =               < freshId: M,
-                    activeId: N,
-					obligations: .ProofObligationList,
-                    previous: PrePStt > .
-  eq addPatList(< freshId: M,
-                  activeId: N,
-				  obligations: Obs,
-				  previous: PrePStt >, Ps)
-  =             < freshId: M,    ---- will be automatically set to the largest index
-                  activeId: N,
-				  obligations: Obs, makeProofObligationList(Ps, M),
-				  previous: < freshId: M,
-				              activeId: N,
-							  obligations: Obs,
-							  previous: PrePStt > > .
-							  
-  eq replaceActiveWithPatList(PStt, .PatList) ---- replace with the empty list.
-  = deleteActive(PStt) .
-  eq replaceActiveWithPatList(< freshId: M,
-                                activeId: N,
-								obligations: Obs, {N,P}, Obs',
-								previous: PrePStt >, P') ---- replace with a pattern P'
-  =                           < freshId: M,
-                                activeId: N,
-								obligations: Obs, {N,P'}, Obs',
-								previous: < freshId: M,
-								            activeId: N,
-											obligations: Obs, {N,P}, Obs',
-											previous: PrePStt > > .
-  eq replaceActiveWithPatList(< freshId: M,
-                                activeId: N,
-								obligations: Obs, {N,P}, Obs',
-								previous: PrePStt >, Ps)
-  =                           < freshId: M,
-                                activeId: 0,
-								obligations: Obs, Obs', makeProofObligationList(Ps, M),
-								previous: < freshId: M,
-								            activeId: N,
-											obligations: Obs, {N,P}, Obs',
-											previous: PrePStt > > .
-  eq restore(< freshId: M,
-               activeId: N,
-               obligations: Obs,
-               previous: PrePStt >)
-  = if PrePStt == nilProofState
-    then < freshId: M,
-           activeId: N,
-           obligations: Obs,
-           previous: nilProofState >
-	else PrePStt
-    fi .
-  eq clearHistory(< freshId: M,
-                    activeId: N,
-					obligations: Obs,
-					previous: PrePStt >)
-  =               < freshId: M,
-                    activeId: N,
-					obligations: Obs,
-					previous: nilProofState > .
-	
-  ---- apply inference rules upon the active obligation.
-  var R : InferenceRule .
-  op resolve : ProofState InferenceRule -> ProofState .
-  eq resolve(PStt, R) = 
-     replaceActiveWithPatList(PStt, resolve(getActivePat(PStt), R)) .
-                  
-endfm
-
----- Interactive Interface.
-mod PAT6 is
-  protecting META-LEVEL .
-  including LOOP-MODE .
-  protecting PAT5 .
-  
-  sort Command . ---- the commands that user will use to talk to the prover
-
-  ---- TODO: change current to a new name
-  op < command:_,        ---- the latest command given to the prover from users
-       current:_, ---- the current proof state of the prover.
-	   response:_ >  ---- the latest response that the prover gave, i.e., 
-	                 ---- the ones that yet to be sent to the terminal
-    : Command ProofState QidList -> State [ctor] .
-	
-  ---- A comprehensive list of commands
-  op idle : -> Command [ctor] . ---- do nothing
-  ---- show*, set*, add* commands
-  op show : -> Command [ctor] . ---- show current obligation
-  op show-total : -> Command [ctor] . ---- show total number of obligations
-  op show-all : -> Command [ctor] . ---- show all obligations in order
-  op set-active_ : Nat -> Command [ctor] . ---- set active obligation
-  op add_end : Pat -> Command [ctor] . ---- add an obligation
-  op clear : -> Command [ctor] . ---- clear all previous states
-  op undo : -> Command [ctor] . ---- return to the previous state
-  ---- proving tactics
-  op auto : -> Command [ctor] . ---- automatically resolve the active obligation
-  op assume_end : Pat -> Command [ctor] . ---- resolve the obligation by 
-                                      ---- providing assumption (Modus Ponens)
-  op convert2fol : -> Command [ctor] . ---- Convert obligation to a smt2-style FOL conjecture.
-  op axiom : -> Command [ctor] . ---- try resolving the obligation as an axiom.
-  op taut : -> Command [ctor] . ---- try resolving the obligation as a propositional tautology.
-  
-  vars M N M' N' : Nat .
-  vars P P' : Pat .
-  vars PStt PStt' PStt'' : ProofState .
-  vars Res Res' Res'' : QidList .
-  var Cmd : Command .
-  var Ob : ProofObligation . vars Obs Obs' : ProofObligationList .
-  
-  ---- Convert everything to QidList for outputing.
-  ---- converting Nat
-  op toQL : Nat -> QidList .
-  eq toQL(N) = metaPrettyPrint(upModule('NAT, false), upTerm(N)) .
-  ---- converting Command
-  op toQL : Command -> QidList .
-  eq toQL(idle) = 'idle .
-  eq toQL(show) = 'show .
-  eq toQL(show-total) = 'show-total .
-  eq toQL(show-all) = 'show-all .
-  eq toQL(set-active N) = 'set-active .
-  eq toQL(add P:Pat end) = 'add .
-  eq toQL(clear) = 'clear .
-  eq toQL(auto) = 'auto .
-  eq toQL(assume P:Pat end) = 'assume .
-  eq toQL(convert2fol) = 'convert2fol .
-  eq toQL(axiom) = 'axiom .
-  eq toQL(taut) = 'taut .
-  ---- converting ProofObligation
-  op toQL : ProofObligation -> QidList .
-  eq toQL(Ob) = metaPrettyPrint(upModule('PAT5, false), upTerm(Ob)) .
-  op toQL : ProofObligationList -> QidList .
-  eq toQL(Obs) = metaPrettyPrint(upModule('PAT5, false), upTerm(Obs)) .
-  ---- converting Pattern
-  op toQL : Pat -> QidList .
-  eq toQL(P) = metaPrettyPrint(upModule('PAT5, false), upTerm(P)) .  
-  
-  ---- Match the next command,
-  ---- Change the prover's state,
-  ---- Prepare the output.
-  
-  eq < command: show,
-       current: PStt,
-       response: Res >
-  =  if getTotal(PStt) > 0
-     then
-     < command: idle,
-       current: PStt,
-	   response: Res toQL(getActivePat(PStt)) >
-	 else
-     < command: idle,
-       current: PStt,
-	   response: Res 'No 'proof 'obligations. >
-	 fi .
-	   
-  eq < command: show-total,
-       current: PStt,
-	   response: Res >
-  =  < command: idle,
-       current: PStt,
-	   response: Res toQL(getTotal(PStt)) > .
-
-  eq < command: show-all,
-       current: PStt,
-       response: Res >
-  =  if getTotal(PStt) > 0
-     then
-     < command: idle,
-       current: PStt,
-	   response: Res toQL(getAllObs(PStt)) >
-	 else
-     < command: idle,
-       current: PStt,
-	   response: Res 'No 'proof 'obligations. >
-	 fi .
-	 
-  eq < command: set-active N,
-       current: PStt,
-	   response: Res >
-  =  < command: idle,
-       current: setActiveId(PStt, N),
-	   response: Res 'Set 'active 'obligation 'to toQL(N) '. > .
-	   
-  eq < command: add P:Pat end,
-       current: PStt,
-	   response: Res >
-  =  < command: idle,
-       current: addPatList(PStt, P:Pat),
-	   response: Res 'New 'proof 'obligation 'added. > .
-
-  eq < command: undo,
-       current: PStt,
-	   response: Res > 
-  =  < command: idle,
-       current: restore(PStt),
-	   response: Res 'Restored 'to 'previous 'state. > .
-	   
-  eq < command: auto,
-       current: PStt,
-	   response: Res >
-  =  < command: idle,
-       current: deleteActive(PStt),
-	   response: Res 'Current 'obligation 'resolved 'automatically. > .
-	   
-  eq < command: axiom,
-       current: PStt,
-	   response: Res >
-  =  < command: idle,
-       current: resolve(PStt, axiom),
-	   response: Res 'Tried 'using 'inference 'rules. > .
-
-  eq < command: assume P:Pat end,
-       current: PStt,
-	   response: Res >
-  =  < command: idle,
-       current: resolve(PStt, mp P:Pat),
-	   response: Res 'Tried 'using 'inference 'rules. > .	   
-	   
-  ceq < command: Cmd,
-        current: PStt,
-        response: Res >
-  =   < command: idle,
-        current: PStt,
-	    response: Res toQL(Cmd) 'is 'not 'implemented 'yet. > 
-  if Cmd =/= idle .		
-
-  
-endm 
-
-
----- Interface between LOOP-MODE and the prover.
-mod PAT7 is
-  including PAT6 .
-
-  op init : -> System . 
-  eq init = [nil, < command: idle,
-                    current: initialProofState,
-					response: nil >, welcomeMsg] .
-  op welcomeMsg : -> QidList .
-  eq welcomeMsg = 'Welcome 'to 'mlprover '0.1.0. .
-					
-  vars M N M' N' : Nat .
-  vars PStt PStt' PStt'' : ProofState .
-  vars Res Res' Input : QidList .
-  var Cmd : Command .
-  
-  ---- Gather users' input and pass them to the prover, when 
-  ----   (1) the prover is idling
-  ----   (2) the prover has nothing to say (an empty response buffer)
-  ---- If (1) is false, let the prover does its job first!
-  ---- If (2) is false, gather the response first! (by crl [out])
-  crl [in] :
-     [Input, < command: idle,
-	           current: PStt,
-			   response: nil >, Res]
-  => if T:ResultPair? :: ResultPair
-     then [nil, < command: downTerm(getTerm(T:ResultPair?), idle),
-	              current: PStt,
-			      response: nil >, Res]
-	 else [nil, < command: idle,
-	              current: PStt,
-			      response: nil >, 'ERROR Input]
-	 fi
-	 
-	 
-  if Input =/= nil
-  /\ T:ResultPair? := metaParse(upModule('PAT6, false), Input, 'Command) .
-  
-  ---- Gather the prover's output and pass them to System (waiting for printing)
-  crl [out] :
-     [Input, < command: Cmd,
-	           current: PStt,
-			   response: Res >, Res']
-  => [Input, < command: Cmd,
-	           current: PStt,
-			   response: nil >, Res' Res]
-  if Res =/= nil .
-  
-endm
-
