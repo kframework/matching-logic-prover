@@ -282,7 +282,7 @@ fmod PAT1 is
   eq subst((P, Ps), Q, R) = subst(P, Q, R), subst(Ps, Q, R) [owise] .
   eq shift((P, Ps), D, C) = shift(P, D, C), shift(Ps, D, C) [owise] .
   
-  ---- On a mset of patterns.
+  ---- On a multiset of patterns.
   eq subst(.PatMSet, J, R) = .PatMSet .
   eq subst(.PatMSet, Q, R) = .PatMSet .
   eq shift(.PatMSet, D, C) = .PatMSet .
@@ -306,8 +306,7 @@ fmod PAT1 is
   eq shift(ceil{S}(P), D, C) = ceil{S}(shift(P, D, C)) .
   eq shift(P ={S} Q, D, C) = shift(P, D, C) ={S} shift(Q, D, C) .
   eq shift(P subset{S} Q, D, C) = shift(P, D, C) subset{S} shift(Q, D, C) .
-  eq shift(top{S}, D, C) = top{S} .
-  eq shift(bot{S}, D, C) = bot{S} .
+  eq shift(P, D, C) = P . ---- P is either top, bot, or domain-value.
   
   ---- Substitute for a variable.
   eq subst({K,S}, J, R) = if K == J then R else {K,S} fi .
@@ -326,8 +325,7 @@ fmod PAT1 is
   eq subst(ceil{S}(P), J, R) = ceil{S}(subst(P, J, R)) .
   eq subst(P ={S} Q, J, R) = subst(P, J, R) ={S} subst(Q, J, R) .
   eq subst(P subset{S} Q, J, R) = subst(P, J, R) subset{S} subst(Q, J, R) .
-  eq subst(top{S}, J, R) = top{S} .
-  eq subst(bot{S}, J, R) = bot{S} .
+  eq subst(P, J, R) = P . ---- P is either top, bot, or domain-value.
   
   ---- Substitute for a pattern.
   ---- The following code is taking advantage of the fact that
@@ -348,11 +346,10 @@ fmod PAT1 is
   eq subst(ceil{S}(P), Q, R) = ceil{S}(subst(P, Q, R)) .
   eq subst(P ={S} P', Q, R) = subst(P, Q, R) ={S} subst(P', Q, R) .
   eq subst(P subset{S} P', Q, R) = subst(P, Q, R) subset{S} subst(P', Q, R) .
-  eq subst(top{S}, Q, R) = top{S} .
-  eq subst(bot{S}, Q, R) = bot{S} .
-  eq subst(P, Q, R) = P .
+  eq subst(P, Q, R) = P . ---- P is either top, bot, or domain-value.
 
 endfm
+
 
 
 
