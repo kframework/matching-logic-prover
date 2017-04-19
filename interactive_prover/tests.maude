@@ -28,9 +28,9 @@ fmod TEST-PAT0 is
 
   protecting PAT0 .
   
-  ops MLNat MLSeq MLMap MLPgm MLCfg : -> Sot [ctor] .
+  ops MLSeq MLMap MLPgm MLCfg : -> Sot [ctor] .
   
-  ops epsilon emp zero succ mapsto : -> UISym [ctor] .
+  ops epsilon emp mapsto : -> UISym [ctor] .
   
   eq getArgSotList(epsilon) = .SotList .
   eq getResultSot(epsilon) = MLSeq .
@@ -128,6 +128,35 @@ reduce in TEST-PAT1 :
 reduce in TEST-PAT1 :
   (subst(#assign({0,MLNat}, succ(zero())), 0, succ(zero()))) ==
   (#assign(succ(zero()), succ(zero()))) .
+  
+fmod TRY is
+  protecting TEST-PAT1 .
+  protecting META-LEVEL + CONVERSION .
+  
+  var M N : Nat .
+  
+  op makePatVar : Nat -> Pat .
+  op makeMetaPatVar : Nat -> Variable . op errorPat : -> [Pat] .
+  eq makeMetaPatVar(N) = qid("$" + string(N, 10) + ":" + "Pat") .
+  eq makePatVar(N) = downTerm(makeMetaPatVar(N), errorPat) .
+  
+  op k1 : -> Pat .
+  eq k1 = (makePatVar(0) -> (makePatVar(1) -> makePatVar(0))) .
+  
+  op phi : -> Pat .
+  eq phi = {1,MLNat} -> {2,MLNat} -> {1,MLNat} .
+  
+  eq plus(domain-value(M, MLNat), domain-value(N, MLNat))
+   = domain-value(M + N, MLNat) .
+  
+endfm
+
+reduce metaMatch(upModule('TEST-PAT1, false),
+                 upTerm(k1),
+                 upTerm(phi),
+                 nil, 0) .
+                 
+reduce plus(domain-value(3, MLNat), domain-value(3, MLNat)) .
 
 quit
 
