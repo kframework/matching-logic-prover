@@ -566,9 +566,13 @@ If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P}
 	$\vdash \floor*{P \to Q} \to (\sigma(P) \to \sigma(Q))$
 \end{cor}
 
-\section{Context}
+\section{Applications}
 
-\subsection{Extended the grammar}
+\subsection{Axiomatizing transition systems}
+
+\subsection{Symbolic execution}
+
+\subsection{Context}
 
 Fix a signature $(S, \Sigma)$. For each sort $s \in S$, introduce an infinite number of \emph{hole} variables, written as $\square_1, \square_2, \cdots$. Think of hole variables as normal matching logic variables, but lie in a disjoint namespace. Extend the grammar by adding the following.
 
@@ -580,20 +584,24 @@ P \Coloneqq\  & \cdots \nonumber \\
 \mid\  & P[P'] . \nonumber
 \end{align}
 
-The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the sort of $P$, too. Think of $\gamma \square$ as a binder. Alpha-renaming is always assumed. Patterns of the form $\gamma \square . P$ are often called \emph{contexts}, denoted by $C, C_0, C_1, \dots$.
+The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the sort of $P$, too. Think of $\gamma \square$ as a binder. Alpha-renaming is always assumed. Patterns of the form $\gamma \square . P$ are often called \emph{contexts}, denoted by $C, C_0, C_1, \dots$. The pattern $P[P']$ is often called an \emph{application}. The $\_[\_]$ operator is left associative.
 
 \begin{defn}
-	The context $\gamma \square . \square$ is called the identity context, denoted as $\I$. Identity context has axioms $\I[P]=P$, for any pattern $P$.
+	The context $\gamma \square . \square$ is called the identity context, denoted as $\I$. Identity context has the axiom schema $\I[P]=P$ where $P$ is any pattern.
 \end{defn}
 
 \begin{eg}
-	Consider a signature $(S,\Sigma)$ if a programming language, with $S = \{\mathsf{BExp},\mathsf{Pgm}\}$, and $\Sigma = \{\mathsf{ite}, \mathsf{seq}\}$. Add axiom schemata $$\mathsf{ite}(C_1[B], P, Q) = (\gamma \square . \mathsf{ite}(C_1[\square], P, Q))[B]$$ and $$\mathsf{seq}(C_2[P],Q) = (\gamma \square . \mathsf{seq}(C_2[\square], Q))[P]$$, where $P, Q$ are $\mathsf{Pgm}$ patterns, $B$ is a $\mathsf{BExp}$ pattern and $C_1$ is a $\mathsf{BExp}$ context, and $C_2$ is a $\mathsf{Pgm}$ context.
+	$\I[\I] = \I$.
+\end{eg}
+
+\begin{eg}
+	Consider a signature $(S,\Sigma)$ of a simple imperative programming language, with $S = \{{BExp},{Pgm}\}$, and $\Sigma = \{skip, {ite}, {seq}, true, false\}$. Add axiom schemata $${ite}(C_1[B], P, Q) = (\gamma \square . {ite}(C_1[\square], P, Q))[B]$$ and $${seq}(C_2[P],Q) = (\gamma \square . {seq}(C_2[\square], Q))[P],$$ where $P, Q$ are ${Pgm}$ patterns, $B$ is a ${BExp}$ pattern, $C_1$ is a ${BExp}$ context, and $C_2$ is a ${Pgm}$ context.
 	
 	Suppose we have the rewrite rules (schemata):
 	\begin{itemize}
-		\item $C[\mathsf{ite}(\mathsf{true}, P, Q)] \Rightarrow C[P]$,
-		\item $C[\mathsf{ite}(\mathsf{false}, P, Q)] \Rightarrow C[Q]$,
-		\item $C[\mathsf{seq}(\mathsf{skip},Q)] \Rightarrow C[Q]$.
+		\item $C[{ite}({true}, P, Q)] \Rightarrow C[P]$,
+		\item $C[{ite}({false}, P, Q)] \Rightarrow C[Q]$,
+		\item $C[{seq}({skip},Q)] \Rightarrow C[Q]$.
 	\end{itemize}
 	
 	Example (a). Rewrite $seq(skip,skip)$.
@@ -606,12 +614,47 @@ The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the 
 	
 	Example (b). Rewrite $ite(true, P, Q); R$.
 	\begin{align*}
-	ite(true, P, Q); R &=
-	d
-	\\seq(skip,skip) 
-	&= seq(\mathsf{I}[skip],skip) \\
-	&= (\gamma \square . seq(\mathsf{I}[\square], skip))[skip] \\
-	&= ()
+	seq(ite(true, P, Q), R) 
+	&= seq(\I[ite(true, P, Q)], R) \\
+	&= (\gamma \square . seq(\I[\square], R))[ite(true, P, Q)] \\
+	&\Rightarrow (\gamma \square . seq(\I[\square], R))[P] \\
+	&= seq(\I[P], R) \\
+	&= seq(P, R).
+	\end{align*}
+\end{eg}
+
+\begin{defn}
+	Let $\sigma \in \Sigma_{s_1\dots s_n, s}$ is an $n$-arity symbol. We say $\sigma$ is \emph{active} on its $i$th argument ($1 \le i \le n$), if
+	$\sigma(P_1,\dots, C[P_i], \dots, P_n)
+	= (\gamma \square . \sigma(P_1,\dots,C[\square], \dots, P_n))[P_i]$. Orienting the equation from the left to the right is often called \emph{heating}, while orienting from the right to the left is called \emph{cooling}.
+\end{defn}
+
+\begin{eg}
+	Suppose $f$ and $g$ are binary symbols who are active on their first argument. Suppose $a, b$ are constants, and $x$ is a variable. Let $\square_1$ and $\square_2$ be two hole variables. Define two contexts $C_1 = \gamma \square_1 . f(\square_1, a)$ and $C_2 = \gamma \square_2 . g(\square_2, b)$. 
+	
+	Because $f$ is active on the first argument, 
+	\begin{align*}
+       C_1[\varphi]
+       &= (\gamma \square_1 . f(\square_1, a)) [\varphi] \\
+       &= (\gamma \square_1 . f(\I[\square_1], a)) [\varphi] \\
+       &= f(\I[\varphi], a) \\
+       &= f(\varphi, a), \text{ for any pattern $\varphi$.}
+	\end{align*}
+	And for the same reason, $C_2[\varphi] = g(\varphi, b)$.
+	
+	On one hand, we have
+	\begin{align*}
+	C_1[C_2[x]]
+	&= C_1[f(x,a)] \\
+	&= g(f(x,a), b).
+	\end{align*}
+	
+	On the other hand,
+	\begin{align*}
+	C_1[C_2][x]
+	&= f(C_2, a)[x] \\
+	&= f(\gamma \square_2 . g(\square_2, b), a)[x] \\
+	&= 
 	\end{align*}
 \end{eg}
 
