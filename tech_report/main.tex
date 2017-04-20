@@ -37,6 +37,7 @@
 \def\imp{\to}
 \def\land{\mathbin\&}
 \def\ml2pl{\textsf{ml2pl}}
+\def\I{\textsf{I}}
 
 % Label inference rules.
 \newcommand{\rl}[1]{\text{\scriptsize{(#1)}}}
@@ -579,6 +580,40 @@ P \Coloneqq\  & \cdots \nonumber \\
 \mid\  & P[P'] . \nonumber
 \end{align}
 
+The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the sort of $P$, too. Think of $\gamma \square$ as a binder. Alpha-renaming is always assumed. Patterns of the form $\gamma \square . P$ are often called \emph{contexts}, denoted by $C, C_0, C_1, \dots$.
+
+\begin{defn}
+	The context $\gamma \square . \square$ is called the identity context, denoted as $\I$. Identity context has axioms $\I[P]=P$, for any pattern $P$.
+\end{defn}
+
+\begin{eg}
+	Consider a signature $(S,\Sigma)$ if a programming language, with $S = \{\mathsf{BExp},\mathsf{Pgm}\}$, and $\Sigma = \{\mathsf{ite}, \mathsf{seq}\}$. Add axiom schemata $$\mathsf{ite}(C_1[B], P, Q) = (\gamma \square . \mathsf{ite}(C_1[\square], P, Q))[B]$$ and $$\mathsf{seq}(C_2[P],Q) = (\gamma \square . \mathsf{seq}(C_2[\square], Q))[P]$$, where $P, Q$ are $\mathsf{Pgm}$ patterns, $B$ is a $\mathsf{BExp}$ pattern and $C_1$ is a $\mathsf{BExp}$ context, and $C_2$ is a $\mathsf{Pgm}$ context.
+	
+	Suppose we have the rewrite rules (schemata):
+	\begin{itemize}
+		\item $C[\mathsf{ite}(\mathsf{true}, P, Q)] \Rightarrow C[P]$,
+		\item $C[\mathsf{ite}(\mathsf{false}, P, Q)] \Rightarrow C[Q]$,
+		\item $C[\mathsf{seq}(\mathsf{skip},Q)] \Rightarrow C[Q]$.
+	\end{itemize}
+	
+	Example (a). Rewrite $seq(skip,skip)$.
+	\begin{align*}
+	seq(skip,skip)
+	&= \mathsf{I}[seq(skip,skip)] \\
+	&\Rightarrow \mathsf{I}[skip] \\
+	&= skip.
+	\end{align*}
+	
+	Example (b). Rewrite $ite(true, P, Q); R$.
+	\begin{align*}
+	ite(true, P, Q); R &=
+	d
+	\\seq(skip,skip) 
+	&= seq(\mathsf{I}[skip],skip) \\
+	&= (\gamma \square . seq(\mathsf{I}[\square], skip))[skip] \\
+	&= ()
+	\end{align*}
+\end{eg}
 
 
 \end{document}
