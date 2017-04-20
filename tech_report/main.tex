@@ -640,21 +640,43 @@ The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the 
        &= f(\I[\varphi], a) \\
        &= f(\varphi, a), \text{ for any pattern $\varphi$.}
 	\end{align*}
-	And for the same reason, $C_2[\varphi] = g(\varphi, b)$.
-	
-	On one hand, we have
+	And for the same reason, $C_2[\varphi] = g(\varphi, b)$. Then we have
 	\begin{align*}
 	C_1[C_2[x]]
 	&= C_1[f(x,a)] \\
 	&= g(f(x,a), b).
 	\end{align*}
-	
-	On the other hand,
+	On the other hand, 
 	\begin{align*}
-	C_1[C_2][x]
-	&= f(C_2, a)[x] \\
-	&= f(\gamma \square_2 . g(\square_2, b), a)[x] \\
-	&= 
+    g(f(x,a), b)
+    &= g(C_1[x], b) \\
+    &= (\gamma \square . g(C_1[\square], b))[x] \\
+    &= (\gamma \square . g(f(\square, a), b))[x].
+	\end{align*}
+	Therefore, the context $\gamma \square . g(f(\square, a), b))$ is often called the \emph{composition} of $C_1$ and $C_2$, denoted as $C_1 \circ C_2$.
+
+\end{eg}
+
+\begin{eg}
+	Suppose $f$ is a binary symbol with all its two arguments active. Suppose $C_1$ and $C_2$ are two contexts and $a, b$ are constants. Then easily we get
+	\begin{align*}
+	f(C_1[a],C_2[b])
+	&= (\gamma \square_2 . f(C_1[a], C_2[\square_2]))[b] \\
+	&= (\gamma \square_2 . ((\gamma \square_1 . f(C_1[\square_1], C_2[\square_2])) [a] )) [b].
+	\end{align*}
+	What happens above is similar to \emph{curring} a function that takes two arguments. It says that there exists a context $C_a$, related with $C_1, C_2, f$ and $a$ of course, such that $C_a[b]$ returns $f(C_1[a],C_2[b])$. The context $C_a$ has a binding hole $\square_2$, and a body that itself is another context $C_a'$ applied to $a$. In other words, there exists $C_a$ and $C_a'$ such that 
+	\begin{itemize}
+	\item $f(C_1[a],C_2[b]) = C_a[b]$,
+	\item $C_a = \gamma \square_2 . (C_a'[a])$,
+	\item $C_a' = \gamma \square_1 . f(C_1[\square_1], C_2[\square_2])$.
+	\end{itemize}
+	
+	A natural question is whether there is a context $C$ such that $C[a][b] = f(C_1[a],C_2[b])$. In fact, define $C = \gamma \square_1 . \gamma \square_2 . f(C_1[\square_1], C_2[\square_2])$. Then
+	\begin{align*}
+	C[a][b]
+	&= (\gamma \square_1 . \gamma \square_2 . f(C_1[\square_1], C_2[\square_2])) [a] [b] \\
+	&= (\gamma \square_2 . f(C_1[a], C_2[\square_2])) [b] \\
+	&= f(C_1[a], C_2[b]).
 	\end{align*}
 \end{eg}
 
