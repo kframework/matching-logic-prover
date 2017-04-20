@@ -561,9 +561,23 @@ If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P}
 	\text{if} \quad &\vdash P_1 \to P_2.
 	\end{align*}
 \end{proof}
-\begin{cor} [Frame Rule as Implication]
+\begin{cor} [Frame Rule]
 	$\vdash \floor*{P \to Q} \to (\sigma(P) \to \sigma(Q))$
 \end{cor}
+
+\section{Context}
+
+\subsection{Extended the grammar}
+
+Fix a signature $(S, \Sigma)$. For each sort $s \in S$, introduce an infinite number of \emph{hole} variables, written as $\square_1, \square_2, \cdots$. Think of hole variables as normal matching logic variables, but lie in a disjoint namespace. Extend the grammar by adding the following.
+
+\begin{align}
+\label{ml_grammar}
+P \Coloneqq\  & \cdots \nonumber \\
+\mid\  & \square \nonumber \\
+\mid\  & \gamma \square . P \nonumber \\
+\mid\  & P[P'] . \nonumber
+\end{align}
 
 
 
