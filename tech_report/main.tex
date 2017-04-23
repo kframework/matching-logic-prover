@@ -38,6 +38,14 @@
 \def\land{\mathbin\&}
 \def\ml2pl{\textsf{ml2pl}}
 \def\I{\textsf{I}}
+\def\snext{\bullet}
+\def\wnext{\circ}
+
+% Italic keywords used in math mode.
+\def\fv{\textit{freevars}}
+\def\Cfg{\textit{Cfg}}
+\def\pre{\textit{pre}}
+\def\post{\textit{post}}
 
 % Label inference rules.
 \newcommand{\rl}[1]{\text{\scriptsize{(#1)}}}
@@ -56,7 +64,7 @@
 
 \begin{abstract}
 
-Abstract goes here.
+This paper proposes a sound and complete deductive system of matching logic, proves dozens of useful metatheorems about the deductive system, and shows its applications in (1) modeling transition systems; (2) symbolic executions; and (3) reasoning with contexts.
 
 \end{abstract}
 
@@ -73,11 +81,15 @@ P \Coloneqq\  & x \\
        \mid\  & \forall x . P \nonumber \\
        \mid\  & \sigma(P_1,\dots,P_n), \nonumber
 \end{align}
-where the universal quantifier ($\forall x$) behaves the same as in first-order logic, with alpha-renaming always assumed.
+where the universal quantifier ($\forall x$) behaves as a binder with alpha-renaming always assumed.
 
 For simplicity, we did not mention sorting in the grammar definition, and assume it should be clear to all readers. For example, in $P_1 \wedge P_2$, both patterns $P_1$ and $P_2$ should have the same sort, and that sort is the sort of $P_1 \wedge P_2$. The sort of $\forall x . P$ is the sort of $P$, while the sort of variable $x$ does not matter. To see why it is the case, consider the pattern $\exists x . list(x, 1 \cdot 3 \cdot 5)$, which is the set of all memory configurations that has a list $(1,3,5)$ in it.
 
 Propositional connectives are always assumed, including disjunction ($\vee$), implication ($\to$), and equivalence ($\leftrightarrow$). Existential quantifier ($\exists x$) is defined by universal quantifier ($\forall x$) in the normal way. The bottom pattern ($\bot_s$) and the top pattern ($\top_s$) in sort $s$ are given by $x \wedge \neg x$ and $\neg \bot_s$, respectively, where $x$ is a variable in sort $s$. It does not matter which variable we pick.
+
+\begin{defn}
+	The set of free variables in a pattern $P$ is denoted as $\fv(P)$, defined recursively over the structure of $P$ as usual. A pattern is said to be \emph{closed} if $\fv(P) = \emptyset$. The universal (existential) generalization of $P$, denoted as $\forall P$($\exists P$), is defined as $\forall x_1 \dots \forall x_n . P$ ($\exists x_1 \dots \exists x_n . P$) where $\fv(P) = \{x_1,\dots,x_n\}$.
+\end{defn}
 
 
 \subsection{Extended syntax}
@@ -103,7 +115,7 @@ A deductive system is a recursive set of patterns as \emph{axioms} and a finite 
 
 \subsection{The deductive system}
 
-Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary patterns and $x, y$ are logic variables.
+Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary patterns and $x, y$ are arbitrary logic variables.
 \begin{itemize}
 \item (K1) $P \to (Q \to P)$
 \item (K2) $(P \to (Q \to R)) \to ((P \to Q) \to (P \to R))$
@@ -120,7 +132,7 @@ Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary p
 \end{itemize}
 
 \begin{rmk}
-	Substitution is denoted as $Q[P/x]$. Alpha-renaming is always assumed in order to avoid free variables capturing.
+	Substitution is denoted as $Q[P/x]$. Alpha-renaming is always assumed in order to avoid free variables capturing. Therefore, free variables in $P$ are kept free after the substitution, i.e., $\fv(P) \subseteq \fv(Q[P/x])$.
 \end{rmk}
 
 Inference rules include
@@ -135,7 +147,7 @@ Inference rules include
 The proof system is sound and complete.
 \end{thm}
 \begin{proof}
-  No proof.
+Refer to [RTA15].
 \end{proof}
 
 \subsection{Metatheorems of the deductive system}
@@ -154,6 +166,18 @@ Writing formal proofs is never easy. Derivations are prone to be lengthy and bor
 \end{cor}
 \begin{proof}
 By definition, $\top = \neg \bot = \neg (x \wedge \neg x)$, where $x$ is a matching logic variable who has the same sort with $\top$. Let proposition $\mathcal{A} = \neg (p \wedge \neg p)$ with $p$ is a propositional variable. Then $\mathcal{A}$ is a propositional tautology. By Proposition~\ref{prop:taut}, $\top = \mathcal{A}[x/p]$ is derivable in the proof system, i.e., $\vdash \top$.
+\end{proof}
+
+\begin{prop}
+	$\vdash P \to Q$ implies $P \vdash Q$. 
+\end{prop}
+\begin{proof}
+	The proof is a simple application of the Modus Ponens inference rule, as shown in the next derivation tree.
+	$$
+	\infer[\rl{MP}]{Q}
+	{\infer{P \to Q}{\cdot}
+	&\infer{P}{\cdot}}
+	$$
 \end{proof}
 
 \begin{prop}[$\vee$-Introduction] \label{prop:vee-introduction}
@@ -262,12 +286,33 @@ We never say $P=Q$ and $P \leftrightarrow Q$ are logically equivalent. One will 
 		\item $\vdash P = P$.
 	\end{enumerate}
 \end{cor}
+\begin{proof}
+	Left as exercises. Hint: use Proposition~\ref{prop:eestablish}.
+\end{proof}
 
+Equalities are important, both semantically and syntactically. First recall the next proposition of the semantics of equalities.
+
+\begin{prop}
+	If $\models P = Q$, then in any model $M$ and evaluation $\rho$, $\bar{\rho}(P) = \bar{\rho}(Q)$ in $M$.
+\end{prop}
+
+Roughly speaking, if we establish $\models P = Q$, then it means that $P$ and $Q$ are interchangeable in any ways in any models. The same thing happen in a syntactic prospective, too, as we have seen in Proposition~\ref{lemma:ereplacement}. But we can do more, as shown in the next proposition.
+
+\begin{prop}
+	$\vdash P=Q$ implies $\vdash \forall x . P = \forall x . Q$ and $\vdash \exists x . P = \exists x . Q$, where $x$ is an arbitraty variable that may or may not be free in $P$ or $Q$.
+\end{prop}
+\begin{proof}
+	To be continued.
+\end{proof}
 
 
 \begin{prop}[Functional Substitution]
 $\vdash \exists y . (Q = y) \to (\forall x . P \to P[Q/x]))$, if $y$ occurs free in $Q$.
 \end{prop}
+
+\begin{proof}
+	To be continued.
+\end{proof}
 
 
 \begin{prop} \label{prop:var1}
@@ -569,6 +614,53 @@ If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P}
 \section{Applications}
 
 \subsection{Axiomatizing transition systems}
+
+\begin{defn}
+	A transition system $T = (\Cfg, \tau)$ has a (finite or infinite) set $\Cfg$ of configurations and a transition (partial) function $\tau : \Cfg \rightharpoonup \Cfg$. The set of \emph{direct successors} and \emph{direct predecessors} of a configuration $c \in \Cfg$ are denoted as $\tau(c)$ and $\tau^{-1}(c)$ respectively. A configuration is \emph{terminal} if it has no successor.
+\end{defn}
+
+\begin{rmk}
+	There is a dual way to define a transition system $T = (\Cfg, \tau)$. Instead of specifying the transition function $\tau$, we can define the \emph{reverse transition function} or the \emph{predecessor function} $\tau^{-1}$. This fact is witnessed by the next Galois connection
+	\begin{align*}
+	\tau(c)      &= \{d \in \Cfg \mid c \in \tau^{-1}(d) \}, \\
+	\tau^{-1}(d) &= \{c \in \Cfg \mid d \in \tau(c) \}.
+	\end{align*}
+\end{rmk}
+
+Fix a signature $(S,\Sigma)$ where $S = \{\Cfg\}$ has only one sort and $\Sigma = \{\snext\}$ has a unary symbol. Such a signature is called \emph{the signature of transition systems}, as illustrated by the obvious interpretation that takes the sort $\Cfg$ to the carrier set $\Cfg$ of a transition system $(\Cfg, \tau)$ and interprets the symbol $\snext$ as the predecessor function $\tau^{-1}$.
+
+\begin{defn}
+  Given $(S, \Sigma)$ the a signature of transition systems. Introduce predicate patterns $P \Rightarrow^\forall_1 Q$, read as ``$P$ rewrites (?) to $Q$'', as the syntactic sugar of $P \subseteq \snext Q$. A transition system theory is a theory whose signature is the signature of transition systems, and whose axioms are all of the form $P \Rightarrow^\forall_1 Q$.
+\end{defn}
+
+The unary symbol $\snext$ is known as the ``strong-next'' temporal connective in temporal logics. Its dual version, the so-called ``weak-next'' connective $\circ$ is defined as $\neg \snext \neg$ in the usual way.
+
+\begin{eg}
+	Give $T$ is a theory of transition systems, then $T \vdash P \subseteq \wnext \bot$ implies that in any transition system $T$ who is a model of the theory, $P$ is a set of terminal configurations. For the same reason, $T \vdash P \subseteq \snext \top$ implies that $P$ is a set of nonterminal configurations.
+\end{eg}
+
+\begin{eg}
+	Let $T$ be a transition system whose configuration set contains all natural numbers plus one single special configuration $c_\textit{rand}$. Natural numbers are all terminal configurations. Intuitively, $c_\textit{rand}$ is the special configuration that will randomly rewrite to some natural number in a step.
+	
+	Suppose one has that intuition of randomness in mind, and starts to write specification for that intuition. The followings are possible ones that he might write (we abbreviate $\Rightarrow^{\forall}_1$ as $\Rightarrow$).
+	\begin{enumerate}
+		\item $c_\textit{rand} \Rightarrow \top$. \footnote{For the rewriting patterns below, we assume the right hand sides are patterns of the sort \textit{Nat}, regarded as a subsort of \Cfg, although matching logic is truly not a order-sorted logic. This is for the sake of the simplicity of the example. Otherwise one may fall into unnecessary details that prevent him seeing the big picture. } 
+	    \item $\forall x . (c_\textit{rand} \Rightarrow x)$.
+	    \item $c_\textit{rand} \subseteq \forall x . \snext x$.
+	\end{enumerate}
+Before we study the subtle difference among these specifications, let us list some patterns that are logically equivalent to one of the above, which will cover most cases that any reader might think of. Patterns that are equivalent to the first case include $c_\textit{rand} \Rightarrow \exists x . x$,
+$\exists x . (c_\textit{rand} \Rightarrow x)$,
+and $c_\textit{rand} \subseteq \exists x . \snext x$. Patterns that are equivalent ot the second are
+$c_\textit{rand} \Rightarrow \forall x . x$, or
+$c_\textit{rand} \Rightarrow \bot$.
+
+Obviously, the second case makes no sense. In fact, it is a falsity, because $c_\textit{rand}$ will never be a subset of $\snext \bot = \bot$, the empty set. The first case is simply saying that $c_\textit{rand}$ is nonterminating. This might seem counterintuitive, but it does capture some kind of randomness here: it allows \emph{any models} in which $c_\textit{rand}$ rewrites to something. Among those models, there exists the standard model where $c_\textit{rand}$ rewrites to possibly any of the natural numbers, but there also have models where $c_\textit{rand}$ only rewrite to some values but not others. It even allows models that rewrite $c_\textit{rand}$ to a fixed single value all the time. As a comparison, the third case precisely captures the standard model where $c_\textit{rand}$ is the predecessor of \emph{all natural numbers}.
+
+To conclude, the third specification is the one that fits the best with the requirement of having some random objects that can potentially become \emph{any} possible objects, while the first specification is the one that allows \emph{any} possible implementation of some nondeterministic objects. A typical example for that is the scheduler in a multithreaded program. The second specification is simply a mistake and should never be written.
+
+\end{eg}
+
+\paragraph{Problem} To define reachability logic, one needs to define $P \Rightarrow^{\forall}_{*} Q$, the so-called \emph{all-path reachability predicate}, which is basically the transitive closure of $\Rightarrow^{\forall}_1$. However, it is known that one cannot define transitive closures in first-order logic. (One can do so in second-order logic, though.)
 
 \subsection{Symbolic execution}
 
