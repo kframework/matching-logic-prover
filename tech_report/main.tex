@@ -664,6 +664,12 @@ To conclude, the third specification is the one that fits the best with the requ
 
 \subsection{Symbolic execution}
 
+Different from normal concrete execution, symbolic execution method runs programs in a symbolic way, aiming for a better state-space converge rate. In the literatures of rewriting theory, symbolic execution is often called narrowing, whose main idea is to define a sequence of (symbolic) rewriting steps such that \emph{any} concrete rewriting step can be seen as a specific way to \emph{instantiate} the symbolic rewriting steps. 
+
+\begin{defn}
+	A theory of symbolic execution is a theory of transition system whose axioms are all of the form $P(\vec{x}, \vec{z}) \Rightarrow^{\forall}_1 Q(\vec{x}, \vec{y})$ where 
+\end{defn}
+
 \subsection{Context}
 
 Fix a signature $(S, \Sigma)$. For each sort $s \in S$, introduce an infinite number of \emph{hole} variables, written as $\square_1, \square_2, \cdots$. Think of hole variables as normal matching logic variables, but lie in a disjoint namespace. Extend the grammar by adding the following.
@@ -763,15 +769,8 @@ The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the 
 	\item $C_a' = \gamma \square_1 . f(C_1[\square_1], C_2[\square_2])$.
 	\end{itemize}
 	
-	A natural question is whether there is a context $C$ such that $C[a][b] = f(C_1[a],C_2[b])$. In fact, define $C = \gamma \square_1 . \gamma \square_2 . f(C_1[\square_1], C_2[\square_2])$. Then
-	\begin{align*}
-	C[a][b]
-	&= (\gamma \square_1 . \gamma \square_2 . f(C_1[\square_1], C_2[\square_2])) [a] [b] \\
-	&= (\gamma \square_2 . f(C_1[a], C_2[\square_2])) [b] \\
-	&= f(C_1[a], C_2[b]).
-	\end{align*}
+	A natural question is whether there is a context $C$ such that $C[a][b] = f(C_1[a],C_2[b])$. 
 \end{eg}
-
 
 \end{document}
 \grid
