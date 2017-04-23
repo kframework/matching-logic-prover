@@ -1,5 +1,7 @@
 # Matching Logic Prover
 
+**Highly recommended**: Read the technical report in `tech_report/`.
+
 ## Interactive Prover
 * Change directory to `interactive_prover/`.
 
@@ -31,5 +33,3 @@
 * Convert to `example.smt2`.
 
   `./ml2fol`
-
-## Technical Report
