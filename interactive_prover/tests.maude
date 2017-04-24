@@ -83,16 +83,24 @@ reduce in TEST-PAT0 :
 
 reduce in TEST-PAT0 :
   MLCfg ==
-  getSot(#cfg(#sequential(#assign(domain-value(1, MLNat),
-                                  domain-value(3, MLNat)),
-              #sequential(#assign(domain-value(2, MLNat),
-                                  domain-value(0, MLNat)), 
-                          #assign(domain-value(1, MLNat),
-                                  domain-value(0, MLNat)))),
-              merge(mapsto(domain-value(1, MLNat),
-                           domain-value(2, MLNat)) .
-                    mapsto(domain-value(2, MLNat),
-                           domain-value(3, MLNat))))) .
+  getSot(#cfg(#sequential(#assign(domain-value("1", MLNat),
+                                  domain-value("3", MLNat)),
+              #sequential(#assign(domain-value("2", MLNat),
+                                  domain-value("0", MLNat)), 
+                          #assign(domain-value("1", MLNat),
+                                  domain-value("0", MLNat)))),
+              merge(mapsto(domain-value("1", MLNat),
+                           domain-value("2", MLNat)) .
+                    mapsto(domain-value("2", MLNat),
+                           domain-value("3", MLNat))))) .
+                           
+---- domain-value tests ----
+
+reduce in TEST-PAT0 :
+  domain-value("100", MLNat) ==
+  plus(domain-value("10", MLNat) .
+  plus(domain-value("40", MLNat) .
+       domain-value("50", MLNat))) .
 
 ------------------------------------
 ---- Test cases for Module PAT1 ----
@@ -124,9 +132,9 @@ reduce in TEST-PAT1 :
   (merge({1,MLMap} . {1,MLMap})) .
 
 reduce in TEST-PAT1 :
-  (subst(#assign({0,MLNat}, plus(domain-value(1, MLNat) . {0,MLNat})), 
-         0, domain-value(1, MLNat))) ==
-  (#assign(domain-value(1, MLNat), domain-value(2, MLNat))) .
+  (subst(#assign({0,MLNat}, plus(domain-value("1", MLNat) . {0,MLNat})), 
+         0, domain-value("1", MLNat))) ==
+  (#assign(domain-value("1", MLNat), domain-value("2", MLNat))) .
   
 quit
   

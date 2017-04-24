@@ -207,13 +207,11 @@ fmod PAT0 is
   ---- General domain values ----
   
   ---- The operator domain-value takes two arguments and returns a pattern.
+  ---- The first argument is a string representation of the value.
   ---- The second argument is a matching logic sort, who will be the sort
-  ---- of the pattern being returned. 
-  ---- The first argument is an (arbitrary) representation of values.
+  ---- of the value. 
   ---- For example, the following are some possible ways to represent
   ---- the integer 3 as a domain value.
-  ---- (*) domain-value(42, MLNat), 
-  ----       where 42 is a Maude term of sort Nat.
   ---- (*) domain-value("42", MLNat), 
   ----       where "42" is a Maude term of sort String.
   ---- (*) domain-value("101010", MLNat), 
@@ -221,10 +219,11 @@ fmod PAT0 is
   ---- (*) domain-value("0x2A", MLNat),
   ----       where "0x2A" is a Maude term of sort String.
   
-  op domain-value : Universal Sot -> Pat [poly (1)] .
-  ---- I cannot do the following, becuase Universal is not a normal sort, and
-  ---- I cannot declare variables of "sort" Universal.
-  ---- eq getSot(domain-value(U:Universal, S:Sot)) = S:Sot .
+  protecting STRING .
+  protecting CONVERSION .
+  
+  op domain-value : String Sot -> Pat .
+  eq getSot(domain-value(S:String, S:Sot)) = S:Sot .
   
   ----------------------------------
   ---- Built-in natural numbers ----
@@ -236,8 +235,13 @@ fmod PAT0 is
   eq getSot(plus) = MLNat .
   eq plus(plus(PSet) . QSet) = plus(PSet . QSet) . ---- flatterning
   
-  eq plus(domain-value(N:Nat, MLNat) . domain-value(M:Nat, MLNat))
-   = domain-value(N:Nat + M:Nat, MLNat) .
+  ---- Adding two decimal integers.
+  
+  vars Str1 Str2 : String .
+  
+  eq plus(domain-value(Str1, MLNat) . domain-value(Str2, MLNat))
+   = domain-value(string((rat(Str1, 10)) + (rat(Str2, 10)), 10), 
+       MLNat) .
   
 endfm
 
