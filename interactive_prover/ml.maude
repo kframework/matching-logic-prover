@@ -93,6 +93,15 @@ fmod PAT0 is
   eq getSot(forall P) = getSot(P) .
   eq getSot(exists P) = getSot(P) .
 
+  ------------------
+  ---- Contexts ----
+  ------------------
+  
+  op gamma_ : Pat -> Pat [ctor prec 56] .
+  eq getSot(gamma P) = getSot(P) .
+  op _[_] : Pat Pat -> Pat [ctor prec 56] .
+  eq getSot(C:Pat[P]) = getSot(C:Pat) .
+  
   ----------------------------
   ---- Symbol Application ----
   ----------------------------
@@ -351,8 +360,17 @@ fmod PAT1 is
   eq subst(P ={S} P', Q, R) = subst(P, Q, R) ={S} subst(P', Q, R) .
   eq subst(P subset{S} P', Q, R) = subst(P, Q, R) subset{S} subst(P', Q, R) .
   eq subst(P, Q, R) = P . ---- P is either top, bot, or domain-value.
+  
+  ---- Quantification with binding variables.
+  ---- Example: forall {2,MLNat} : ({1,MLNat} /\ {2,MLNat} /\ {3,MLNat})
+  ----        = forall ({2,MLNat} /\ {0,MLNat} /\ {4,MLNat}).
+  
+  op forall{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
+  op exists{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
+  eq forall {K,S} : P = forall subst(shift(P, 1, 0), (K + 1), {0,S}) .
 
 endfm
+
 
 
 
