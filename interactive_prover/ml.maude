@@ -433,9 +433,6 @@ rew left2right((P:Pat -> P:Pat) ={MLNat} top{MLNat}) .
 rew rew(({1,MLNat} -> {1,MLNat}), ((P:Pat -> P:Pat) ={MLNat} top{MLNat})) .
 
 
-quit
-
-
 
 
 
