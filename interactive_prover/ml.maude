@@ -92,6 +92,11 @@ fmod PAT0 is
   ops forall_ exists_ : Pat -> Pat [ctor prec 56] .
   eq getSot(forall P) = getSot(P) .
   eq getSot(exists P) = getSot(P) .
+  
+  ---- Quantifying on variables is defined as a syntactic sugar in Module PAT1.
+  
+  ---- op forall{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
+  ---- op exists{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
 
   ------------------
   ---- Contexts ----
@@ -101,6 +106,10 @@ fmod PAT0 is
   eq getSot(gamma P) = getSot(P) .
   op _[_] : Pat Pat -> Pat [ctor prec 56] .
   eq getSot(C:Pat[P]) = getSot(C:Pat) .
+  
+  ---- Quantifying on variables is defined as a syntactic sugar in Module PAT1.
+  
+  ---- op gamma{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
   
   ----------------------------
   ---- Symbol Application ----
@@ -361,15 +370,70 @@ fmod PAT1 is
   eq subst(P subset{S} P', Q, R) = subst(P, Q, R) subset{S} subst(P', Q, R) .
   eq subst(P, Q, R) = P . ---- P is either top, bot, or domain-value.
   
-  ---- Quantification with binding variables.
+  ---- Quantifying on variables.
   ---- Example: forall {2,MLNat} : ({1,MLNat} /\ {2,MLNat} /\ {3,MLNat})
   ----        = forall ({2,MLNat} /\ {0,MLNat} /\ {4,MLNat}).
   
   op forall{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
   op exists{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
   eq forall {K,S} : P = forall subst(shift(P, 1, 0), (K + 1), {0,S}) .
+  
+  op gamma{_,_}:_ : Nat Sot Pat -> Pat [ctor prec 56] .
+  eq gamma {K,S} : P = gamma subst(shift(P, 1, 0), (K + 1), {0,S}) .
 
 endfm
+
+----------------------------------------------------
+---- This module is still working in progress. -----
+----------------------------------------------------
+
+fmod PAT2 is
+
+  protecting META-LEVEL .
+  protecting PAT1 .
+
+  ops left2right right2left : Pat -> Rule .
+  
+  eq left2right(P:Pat ={S:Sot} Q:Pat)
+   = ( rl upTerm(P:Pat) => upTerm(Q:Pat) [none] . ) .
+  eq right2left(P:Pat ={S:Sot} Q:Pat)
+   = ( rl upTerm(Q:Pat) => upTerm(P:Pat) [none] . ) .
+   
+  op rew : Pat Pat -> Pat .
+  eq rew(P:Pat, Eq:Pat) =
+     downTerm(getTerm(metaRewrite(addRule(upModule('PAT1, false),
+                                          left2right(Eq:Pat)),
+                                  upTerm(P:Pat),
+                                  unbounded)),
+              {233,MLNat}) .
+              
+  op addRule : FModule Rule -> Module .
+  eq addRule((fmod H:Header is
+              IL:ImportList
+              sorts SS:SortSet .
+              SSDS:SubsortDeclSet
+              OpDS:OpDeclSet
+              MemS:MembAxSet
+              EqS:EquationSet
+              endfm), R:Rule)
+   = (mod H:Header is
+      IL:ImportList
+      sorts SS:SortSet .
+      SSDS:SubsortDeclSet
+      OpDS:OpDeclSet
+      MemS:MembAxSet
+      EqS:EquationSet
+      R:Rule
+      endm) .
+              
+  
+endfm
+
+rew left2right((P:Pat -> P:Pat) ={MLNat} top{MLNat}) .
+rew rew(({1,MLNat} -> {1,MLNat}), ((P:Pat -> P:Pat) ={MLNat} top{MLNat})) .
+
+
+quit
 
 
 

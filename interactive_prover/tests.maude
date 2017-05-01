@@ -142,6 +142,10 @@ reduce in TEST-PAT1 :
   (forall ({2,MLNat} /\ {0,MLNat} /\ {4,MLNat})) ==
   (forall {2,MLNat} : ({1,MLNat} /\ {2,MLNat} /\ {3,MLNat})) .
   
+reduce in TEST-PAT1 :
+  (gamma {0,MLNat}) ==
+  (gamma {4,MLNat} : {4,MLNat}) .
+  
 quit
   
 fmod TRY is
