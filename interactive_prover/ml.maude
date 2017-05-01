@@ -387,6 +387,8 @@ endfm
 ---- This module is still working in progress. -----
 ----------------------------------------------------
 
+---- Orient an equation and use it as a rewriting rule ----
+
 fmod PAT2 is
 
   protecting META-LEVEL .
