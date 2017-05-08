@@ -83,16 +83,24 @@ reduce in TEST-PAT0 :
 
 reduce in TEST-PAT0 :
   MLCfg ==
-  getSot(#cfg(#sequential(#assign(domain-value(1, MLNat),
-                                  domain-value(3, MLNat)),
-              #sequential(#assign(domain-value(2, MLNat),
-                                  domain-value(0, MLNat)), 
-                          #assign(domain-value(1, MLNat),
-                                  domain-value(0, MLNat)))),
-              merge(mapsto(domain-value(1, MLNat),
-                           domain-value(2, MLNat)) .
-                    mapsto(domain-value(2, MLNat),
-                           domain-value(3, MLNat))))) .
+  getSot(#cfg(#sequential(#assign(domain-value("1", MLNat),
+                                  domain-value("3", MLNat)),
+              #sequential(#assign(domain-value("2", MLNat),
+                                  domain-value("0", MLNat)), 
+                          #assign(domain-value("1", MLNat),
+                                  domain-value("0", MLNat)))),
+              merge(mapsto(domain-value("1", MLNat),
+                           domain-value("2", MLNat)) .
+                    mapsto(domain-value("2", MLNat),
+                           domain-value("3", MLNat))))) .
+                           
+---- domain-value tests ----
+
+reduce in TEST-PAT0 :
+  domain-value("100", MLNat) ==
+  plus(domain-value("10", MLNat) .
+  plus(domain-value("40", MLNat) .
+       domain-value("50", MLNat))) .
 
 ------------------------------------
 ---- Test cases for Module PAT1 ----
@@ -108,25 +116,35 @@ endfm
 ---- Substitution tests ----
 
 reduce in TEST-PAT1 :
-  (subst(forall {1,MLNat}, 0, {1,MLNat})) ==
-  (forall {2,MLNat}) .
+  (forall {2,MLNat}) ==
+  (subst(forall {1,MLNat}, 0, {1,MLNat})) .
 
 reduce in TEST-PAT1 :
-  (subst(forall {1,MLNat} /\ (exists {2,MLNat}), 0, {1,MLNat})) ==
-  (forall {2, MLNat} /\ (exists {3,MLNat})) .
+  (forall {2, MLNat} /\ (exists {3,MLNat})) ==
+  (subst(forall {1,MLNat} /\ (exists {2,MLNat}), 0, {1,MLNat})) .
   
 reduce in TEST-PAT1 :
-  (subst(mapsto({0,MLNat}, {1,MLNat}), 0, {1,MLNat})) ==
-  (mapsto({1,MLNat}, {1,MLNat})) .
+  (mapsto({1,MLNat}, {1,MLNat})) ==
+  (subst(mapsto({0,MLNat}, {1,MLNat}), 0, {1,MLNat}))  .
 
 reduce in TEST-PAT1 :
-  (subst(merge({0,MLMap} . {1,MLMap}), 0, {1,MLMap})) ==
-  (merge({1,MLMap} . {1,MLMap})) .
+  (merge({1,MLMap} . {1,MLMap})) ==
+  (subst(merge({0,MLMap} . {1,MLMap}), 0, {1,MLMap})) .
 
 reduce in TEST-PAT1 :
-  (subst(#assign({0,MLNat}, plus(domain-value(1, MLNat) . {0,MLNat})), 
-         0, domain-value(1, MLNat))) ==
-  (#assign(domain-value(1, MLNat), domain-value(2, MLNat))) .
+  (#assign(domain-value("1", MLNat), domain-value("2", MLNat))) ==
+  (subst(#assign({0,MLNat}, plus(domain-value("1", MLNat) . {0,MLNat})), 
+         0, domain-value("1", MLNat))) .
+  
+---- Quantification with binding variables tests ----
+
+reduce in TEST-PAT1 :
+  (forall ({2,MLNat} /\ {0,MLNat} /\ {4,MLNat})) ==
+  (forall {2,MLNat} : ({1,MLNat} /\ {2,MLNat} /\ {3,MLNat})) .
+  
+reduce in TEST-PAT1 :
+  (gamma {0,MLNat}) ==
+  (gamma {4,MLNat} : {4,MLNat}) .
   
 quit
   

@@ -1,0 +1,19 @@
+(* An example of running a program *)
+
+(* Signature *)
+
+(* Signature: Sorts *)
+
+sorts MLMap MLCfg MLPgm .
+
+(* Signature: Symbols *)
+
+ucsymbol #cfg : MLPgm MLMap -> MLCfg .
+
+ucsymbol #seq : MLPgm MLPgm -> MLPgm .
+ucsymbol #asgn : MLNat MLNat -> MLPgm .
+ucsymbol #while : MLBool MLPgm -> MLPgm .
+ucsymbol #ite : MLBool MLPgm MLPgm -> MLPgm .
+ucsymbol #skip : -> MLPgm .
+
+symbol #

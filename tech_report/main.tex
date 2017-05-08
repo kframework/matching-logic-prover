@@ -44,9 +44,16 @@
 
 % Italic keywords used in math mode.
 \def\fv{\textit{freevars}}
+\def\Nat{\textit{Nat}}
 \def\Cfg{\textit{Cfg}}
 \def\pre{\textit{pre}}
 \def\post{\textit{post}}
+\def\ite{\textit{ite}}
+\def\true{\textit{true}}
+\def\false{\textit{false}}
+
+% Rewriting
+\def\To1{\Rightarrow^{\forall}_1}
 
 
 
@@ -674,15 +681,19 @@ The unary symbol $\snext$ is known as the ``strong-next'' temporal connective in
 	\end{enumerate}
 Before we study the subtle difference among these specifications, let us list some patterns that are logically equivalent to one of the above, which will cover most cases that any reader might think of. Patterns that are equivalent to the first case include $c_\textit{rand} \Rightarrow \exists x . x$,
 $\exists x . (c_\textit{rand} \Rightarrow x)$,
-and $c_\textit{rand} \subseteq \exists x . \snext x$. Patterns that are equivalent ot the second are
+and $c_\textit{rand} \subseteq \exists x . \snext x$. Patterns that are equivalent to the second are
 $c_\textit{rand} \Rightarrow \forall x . x$, or
-$c_\textit{rand} \Rightarrow \bot$.
+$c_\textit{rand} \Rightarrow \bot$. Patterns that are equivalent to the third include $\forall x . (c_\textit{rand} \Rightarrow x)$.
 
 Obviously, the second case makes no sense. In fact, it is a falsity, because $c_\textit{rand}$ will never be a subset of $\snext \bot = \bot$, the empty set. The first case is simply saying that $c_\textit{rand}$ is nonterminating. This might seem counterintuitive, but it does capture some kind of randomness here: it allows \emph{any models} in which $c_\textit{rand}$ rewrites to something. Among those models, there exists the standard model where $c_\textit{rand}$ rewrites to possibly any of the natural numbers, but there also have models where $c_\textit{rand}$ only rewrite to some values but not others. It even allows models that rewrite $c_\textit{rand}$ to a fixed single value all the time. As a comparison, the third case precisely captures the standard model where $c_\textit{rand}$ is the predecessor of \emph{all natural numbers}.
 
 To conclude, the third specification is the one that fits the best with the requirement of having some random objects that can potentially become \emph{any} possible objects, while the first specification is the one that allows \emph{any} possible implementation of some nondeterministic objects. A typical example for that is the scheduler in a multithreaded program. The second specification is simply a mistake and should never be written.
 
 \end{eg}
+
+\begin{defn}
+	It is natural to extend the one-step reachability $P \Rightarrow^{\forall}_1 Q$ to multisteps reachability $P \Rightarrow^{\forall}_k Q$ for $k \ge 1$, defined as
+\end{defn}
 
 \paragraph{Problem} To define reachability logic, one needs to define $P \Rightarrow^{\forall}_{*} Q$, the so-called \emph{all-path reachability predicate}, which is basically the transitive closure of $\Rightarrow^{\forall}_1$. However, it is known that one cannot define transitive closures in first-order logic. (One can do so in second-order logic, though.)
 
@@ -691,8 +702,66 @@ To conclude, the third specification is the one that fits the best with the requ
 Different from normal concrete execution, symbolic execution method runs programs in a symbolic way, aiming for a better state-space converge rate. In the literatures of rewriting theory, symbolic execution is often called narrowing, whose main idea is to define a sequence of (symbolic) rewriting steps such that \emph{any} concrete rewriting step can be seen as a specific way to \emph{instantiate} the symbolic rewriting steps. 
 
 \begin{defn}
-	A theory of symbolic execution is a theory of transition system whose axioms are all of the form $P(\vec{x}, \vec{z}) \Rightarrow^{\forall}_1 Q(\vec{x}, \vec{y})$ where 
+	A theory of symbolic execution is a theory of transition system whose axioms are all of the form $P(\vec{x}, \vec{z}) \Rightarrow^{\forall}_1 Q(\vec{x}, \vec{y})$ where $P, Q$ are term patterns with 
+	\begin{align*}
+\vec{x} &= \fv(P) \cap \fv(Q), \\
+\vec{z} &= \fv(P) \setminus \fv(Q), \\
+\vec{y} &= \fv(Q) \setminus \fv(P).
+	\end{align*}
+	Axioms in a theory of symbolic execution are often called \emph{rules}.
 \end{defn}
+
+\begin{defn}
+Given $T$ is a theory of symbolic execution with rules $P_i \To1 Q_i$ for $1 \le i \le n$. Given $R$ is a term pattern. The symbolic term that $R$ rewrites to in one step is defined as
+$$
+\tau(R) = \bigvee_{i} \ceil{R \wedge P_i} \wedge Q_i.
+$$
+\end{defn}
+
+\begin{prop}
+	The following propositions hold for term patterns and unconstrained symbols.
+	\begin{itemize}
+		\item $\ceil{P \wedge Q} = (P = Q)$,
+		\item $\ceil{\sigma(P_1,\dots,P_n) \wedge \sigma(Q_1,\dots,Q_n)} = \bigwedge_{i}(P_i = Q_i)$,
+	\end{itemize}
+\end{prop}
+\begin{proof}
+	Notice that the second bullet is just a corollary of the first bullet and the fact that $\sigma$ is unconstrained.
+\end{proof}
+
+\begin{eg}
+	Fix a signature of transition systems where the only sort is $\Nat$, with the next two axioms
+	\begin{align*}
+	&2x \To1 x, \\
+	&2x+1 \To1 6x+4.
+	\end{align*}
+	
+	Start with a constant $a$. The symbolic term that $a$ rewrites to in one step is 
+	\begin{align*}
+	\tau(a) 
+	&= \ceil{a \wedge 2x} \wedge x \vee
+	          \ceil{a\wedge 2x + 1  } \wedge (6x + 4) \\
+	&= (a = 2x) \wedge x \vee (a = 2x+1) \wedge (6x+4).  
+	\end{align*}
+\end{eg}
+
+\begin{eg}
+	Given a signature of a simple programming language and the following rules.
+	\begin{align*}
+	&\ite(\true, s_1, s_2) \To1 s_1,\\
+	&\ite(\false, s_1, s_2) \To1 s_2.
+	\end{align*}
+	The symbolic term $\ite(b, \textit{stmt}_1, \textit{stmt}_2)$ rewrites in one step to
+	\begin{align*}
+	\tau(\ite(b, \textit{stmt}_1, \textit{stmt}_2))
+	&= \ceil{\ite(b, \textit{stmt}_1, \textit{stmt}_2) \wedge \ite(\true, s_1, s_2)} \wedge s_1 \\
+	&\quad \vee \ceil{\ite(b, \textit{stmt}_1, \textit{stmt}_2) \wedge \ite(\false, s_1, s_2)} \wedge s_2. \\
+    &= b = \true \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge s_1 \\
+    &\quad \vee b = \false \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge s_2\\
+    &= b = \true \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge \textit{stmt}_1 \\
+    &\quad \vee b = \false \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge \textit{stmt}_2.    
+	\end{align*}
+\end{eg}
 
 \subsection{Context}
 
