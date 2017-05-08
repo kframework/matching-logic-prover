@@ -7,6 +7,7 @@
 \usepackage{txfonts}
 \usepackage{mathtools}
 \usepackage{authblk}
+\usepackage[]{algorithm2e}
 
 % Import packages for syntax highlight code.
 \usepackage{listings}
@@ -36,7 +37,7 @@
 
 \def\imp{\to}
 \def\land{\mathbin\&}
-\def\ml2pl{\textsf{ml2pl}}
+\def\ML2FOL{\text{\small ML2FOL}}
 \def\I{\textsf{I}}
 \def\snext{\bullet}
 \def\wnext{\circ}
@@ -53,6 +54,8 @@
 
 % Rewriting
 \def\To1{\Rightarrow^{\forall}_1}
+
+
 
 % Label inference rules.
 \newcommand{\rl}[1]{\text{\scriptsize{(#1)}}}
@@ -617,6 +620,27 @@ If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P}
 \begin{cor} [Frame Rule]
 	$\vdash \floor*{P \to Q} \to (\sigma(P) \to \sigma(Q))$
 \end{cor}
+
+\subsection{The \ML2FOL translation}
+
+Given a matching logic signature $(S, \Sigma)$ where $\Sigma = \Sigma_{\textit{func}} \cup \Sigma_{\textit{partial}} \cup \Sigma_{\textit{else}}$ contains some functional symbols, some partial symbols and some other symbols. Define two formula transformations $\mathsf{fol}$ and $\mathsf{fol_2}$ as follows.
+
+
+\begin{algorithm}
+	\KwIn{a matching logic pattern $P$}
+	\KwOut{a first order formula}
+	generate a fresh variable $r$\;
+	return $\forall r . \mathsf{fol_2}(P, r)$\;
+\caption{The  $\mathsf{fol}$ transformation}
+\end{algorithm}
+
+\begin{algorithm}
+	\KwIn{a matching logic pattern $P$ and a variable $r$}
+	\KwOut{a first order formula}
+	Match $P$ with
+	\caption{The  $\mathsf{fol_2}$ transformation}
+\end{algorithm}
+
 
 \section{Applications}
 
