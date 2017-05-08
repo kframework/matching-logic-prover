@@ -35,12 +35,22 @@
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
-\def\imp{\to}
+\def\imp{\rightarrow}
 \def\land{\mathbin\&}
-\def\ML2FOL{\text{\small ML2FOL}}
+
 \def\I{\textsf{I}}
 \def\snext{\bullet}
 \def\wnext{\circ}
+
+% Sf keywords used in math mode.
+
+\def\foltwo{\mathsf{fol_2}}
+
+% Small capital letters
+
+\def\MLFOL{\text{\small ML2FOL}}
+\def\ML{\text{\small ML}}
+\def\FOL{\text{\small FOL}}
 
 % Italic keywords used in math mode.
 \def\fv{\textit{freevars}}
@@ -95,7 +105,7 @@ where the universal quantifier ($\forall x$) behaves as a binder with alpha-rena
 
 For simplicity, we did not mention sorting in the grammar definition, and assume it should be clear to all readers. For example, in $P_1 \wedge P_2$, both patterns $P_1$ and $P_2$ should have the same sort, and that sort is the sort of $P_1 \wedge P_2$. The sort of $\forall x . P$ is the sort of $P$, while the sort of variable $x$ does not matter. To see why it is the case, consider the pattern $\exists x . list(x, 1 \cdot 3 \cdot 5)$, which is the set of all memory configurations that has a list $(1,3,5)$ in it.
 
-Propositional connectives are always assumed, including disjunction ($\vee$), implication ($\to$), and equivalence ($\leftrightarrow$). Existential quantifier ($\exists x$) is defined by universal quantifier ($\forall x$) in the normal way. The bottom pattern ($\bot_s$) and the top pattern ($\top_s$) in sort $s$ are given by $x \wedge \neg x$ and $\neg \bot_s$, respectively, where $x$ is a variable in sort $s$. It does not matter which variable we pick.
+Propositional connectives are always assumed, including disjunction ($\vee$), implication ($\imp$), and equivalence ($\leftrightarrow$). Existential quantifier ($\exists x$) is defined by universal quantifier ($\forall x$) in the normal way. The bottom pattern ($\bot_s$) and the top pattern ($\top_s$) in sort $s$ are given by $x \wedge \neg x$ and $\neg \bot_s$, respectively, where $x$ is a variable in sort $s$. It does not matter which variable we pick.
 
 \begin{defn}
 	The set of free variables in a pattern $P$ is denoted as $\fv(P)$, defined recursively over the structure of $P$ as usual. A pattern is said to be \emph{closed} if $\fv(P) = \emptyset$. The universal (existential) generalization of $P$, denoted as $\forall P$($\exists P$), is defined as $\forall x_1 \dots \forall x_n . P$ ($\exists x_1 \dots \exists x_n . P$) where $\fv(P) = \{x_1,\dots,x_n\}$.
@@ -112,7 +122,7 @@ With definedness symbols, we extends the formal language $\mathcal{L}$ with
 &\floor*{P}_{s_1}^{s_2} \coloneqq {\neg} \ceil*{\neg P}_{s_1}^{s_2} \\
 &P_1 =_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \leftrightarrow P_2}_{s_1}^{s_2} \\
 &P_1 \neq_{s_1}^{s_2} P_2 \coloneqq \neg (P_1 =_{s_1}^{s_2} P_2) \\
-&P_1 \subseteq_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \to P_2}_{s_1}^{s_2} \\
+&P_1 \subseteq_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \imp P_2}_{s_1}^{s_2} \\
 &x \in_{s_1}^{s_2} P \coloneqq x \subseteq_{s_1}^{s_2} P.
 \end{align*}
 
@@ -127,12 +137,12 @@ A deductive system is a recursive set of patterns as \emph{axioms} and a finite 
 
 Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary patterns and $x, y$ are arbitrary logic variables.
 \begin{itemize}
-\item (K1) $P \to (Q \to P)$
-\item (K2) $(P \to (Q \to R)) \to ((P \to Q) \to (P \to R))$
-\item (K3) $(\neg P \to \neg Q) \to (Q \to P)$
-\item (K4) $\forall x . P \to P[y/x]$
-\item (K5) $\forall x . (P \to Q) \to (P \to \forall x . Q)$ if $x$ does not occur free in $P$
-\item (K6) $P_1 = P_2 \to (Q[P_1/x] \to Q[P_2/x])$
+\item (K1) $P \imp (Q \imp P)$
+\item (K2) $(P \imp (Q \imp R)) \imp ((P \imp Q) \imp (P \imp R))$
+\item (K3) $(\neg P \imp \neg Q) \imp (Q \imp P)$
+\item (K4) $\forall x . P \imp P[y/x]$
+\item (K5) $\forall x . (P \imp Q) \imp (P \imp \forall x . Q)$ if $x$ does not occur free in $P$
+\item (K6) $P_1 = P_2 \imp (Q[P_1/x] \imp Q[P_2/x])$
 \item (Df)  $\ceil{x}$
 \item (M1) $x \in y = (x = y)$
 \item (M2) $x \in P \wedge Q = (x \in P) \wedge (x \in Q)$
@@ -621,22 +631,22 @@ If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P}
 	$\vdash \floor*{P \to Q} \to (\sigma(P) \to \sigma(Q))$
 \end{cor}
 
-\subsection{The \ML2FOL translation}
+\subsection{The {\MLFOL} translation}
 
-Given a matching logic signature $(S, \Sigma)$ where $\Sigma = \Sigma_{\textit{func}} \cup \Sigma_{\textit{partial}} \cup \Sigma_{\textit{uninterpreted}}$ contains some functional symbols, some partial symbols and other uninterpreted symbols. Define a first-order logic signature $(S, \Sigma, \Pi)$ where function symbols $\Sigma$ and predicate symbols $\Pi$ are defined as follows.
+Given a matching logic signature $(S, \Sigma_{\textit{func}} \cup \Sigma_{\textit{partial}} \cup \Sigma_{\textit{uninterpreted}})$. Define a first-order logic signature $(S, \Phi, \Pi)$ whose has the same set of sorts $S$. The set of function symbols $\Phi$ and the set of predicate symbols $\Pi$ are defined as follows.
 \begin{itemize}
-	\item For any $n$-arity $\sigma \in \Sigma_{\textit{uninterpreted}}$, introduce $\pi_\sigma$ that is an $(n+1)$-arity predicate symbol in $\Pi$.
-	\item For any $n$-arity $\sigma \in \Sigma_{\textit{func}}$, introduce $\sigma$ that is an $n$-arity function symbol in $\Sigma$.
-	\item For any $n$-arity $\sigma \in \Sigma_{\textit{partial}}$, introduce $\delta_\sigma$ that is an $n$-arity predicate symbol in $\Pi$ and $\tilde{\sigma}$ that is an $n$-arity function symbol in $\Sigma$.
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{uninterpreted}}$ whose argument sorts are $s_1, \dots, s_n$ and result sort is $s$, introduce $\pi_\sigma$ that is an $(n+1)$-arity predicate symbol in $\Pi$  whose argument sorts are $s_1,\dots, s_n, s$. Intuitively, $\pi_\sigma(x_1,\dots,x_n, y)$ holds in {\FOL} if $y \in \sigma(x_1,\dots,x_n)$ holds in {\ML}.
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{func}}$ whose argument sorts are $s_1, \dots, s_n$ and result sort is $s$, introduce $\sigma$ that is an $n$-arity function symbol in $\Phi$ whose has the same signature as $\sigma \in \Sigma_{\textit{func}}$. Intuitively, the term $\sigma(x_1,\dots,x_n)$ in {\FOL} is the only element that is in the singleton $\sigma(x_1,\dots,x_n)$ in {\ML}.
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{partial}}$ whose argument sorts are $s_1, \dots, s_n$ and result sort is~$s$, introduce $\delta_\sigma$ that is an $n$-arity predicate symbol in $\Pi$ and $\tilde{\sigma}$ that is an $n$-arity function symbol in $\Phi$. Both $\delta_\sigma$ and $\tilde{\sigma}$ have the argument sorts $s_1,\dots,s_n$, and $\tilde{\sigma}$ has the result sort $s$. Intuitively, $\delta_\sigma(x_1,\dots,x_n)$ holds in {\FOL} if $\sigma(x_1,\dots,x_n)$ is not the empty set in {\ML}. If $\delta_\sigma(x_1,\dots,x_n)$ holds in {\FOL}, then the term $\tilde{\sigma}(x_1,\dots,x_n)$ is the only element that is in the singleton $\sigma(x_1,\dots,x_n)$ in {\ML}.
 \end{itemize}
-Define two formula transformations $\mathsf{fol}$ and $\mathsf{fol_2}$ as follows.
+Define two formula transformations $\mathsf{fol}$ and $\foltwo$ as follows.
 
 
 \begin{algorithm}
 	\KwIn{a matching logic pattern $P$}
 	\KwOut{a first order formula}
 	generate a fresh variable $r$ whose sort the same as $P$ \;
-	\Return{$\forall r . \mathsf{fol_2}(P, r)$} \;
+	\Return{$\forall r . \foltwo(P, r)$} \;
 \caption{The  $\mathsf{fol}$ transformation}
 \end{algorithm}
 
@@ -647,21 +657,34 @@ Define two formula transformations $\mathsf{fol}$ and $\mathsf{fol_2}$ as follow
       \uCase{$x$}
             {\Return{$r = x$} \;}
       \uCase{$Q_1 \wedge Q_2$}
-            {\Return{$\mathsf{fol_2}(Q_1, r) \wedge \mathsf{fol_2}(Q_2, r)$} \;}
+            {\Return{$\foltwo(Q_1, r) \wedge \foltwo(Q_2, r)$} \;}
       \uCase{$\neg Q$}
-            {\Return{$\neg \mathsf{fol_2}(Q, r)$ \;}}
+            {\Return{$\neg \foltwo(Q, r)$ \;}}
       \uCase{$\exists x . Q$}
-            {\Return{$\exists x . \mathsf{fol_2}(Q, r)$} \;}
+            {\Return{$\exists x . \foltwo(Q, r)$} \;}
       \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is uninterpreted}
-            {\Return{$\exists r_1 \dots r_n \left( \pi_\sigma(r1,\dots,r_n, r) \wedge \mathsf{fol_2}(Q_1, r_1) \wedge \dots \wedge \mathsf{fol_2}(Q_n, r_n) \right) $} \;}
+            {\Return{$\exists r_1 \dots r_n \left( \pi_\sigma(r1,\dots,r_n, r) \wedge \foltwo(Q_1, r_1) \wedge \dots \wedge \foltwo(Q_n, r_n) \right) $} \;}
       \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is functional}
-            {\Return{$\exists r_1 \dots r_n \left( r = \sigma(r_1, \dots, r_n) \wedge \mathsf{fol_2}(Q_1, r_1) \wedge \dots \wedge \mathsf{fol_2}(Q_n, r_n) \right) $} \;}
+            {\Return{$\exists r_1 \dots r_n \left( r = \sigma(r_1, \dots, r_n) \wedge \foltwo(Q_1, r_1) \wedge \dots \wedge \foltwo(Q_n, r_n) \right) $} \;}
       \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is partial}
             {\Return{$\exists r_1 \dots r_n \left( \delta_\sigma(r_1,\dots,r_n) \wedge r = \tilde{\sigma}(r_1, \dots, r_n)
-            	\wedge \mathsf{fol_2}(Q_1, r_1) \wedge \dots \wedge \mathsf{fol_2}(Q_n, r_n) \right) $} \;}
+            	\wedge \foltwo(Q_1, r_1) \wedge \dots \wedge \foltwo(Q_n, r_n) \right) $} \;}
     }
-	\caption{The  $\mathsf{fol_2}$ transformation}
+	\caption{The  $\foltwo$ transformation}
 \end{algorithm}
+
+\begin{prop}
+	For any $P, Q$ are patterns and $r, r'$ are fresh variables, the following holds.
+	\begin{itemize}
+		\item $\foltwo(P = Q, r) = \forall r' . (\foltwo(P, r') \leftrightarrow \foltwo(Q, r'))$.
+		\item $\foltwo(\ceil{P}, r) = \exists r' . \foltwo(P, r')$.
+		\item $\foltwo(\floor{P}, r) = \forall r' . \foltwo(P, r')$.
+		\item $\foltwo(P \subseteq Q, r) = \forall r' . (\foltwo(P, r') \imp \foltwo(Q, r'))$.
+	\end{itemize}
+\end{prop}
+\begin{proof}
+	To be continued.
+\end{proof}
 
 
 \section{Applications}
