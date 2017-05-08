@@ -5,10 +5,18 @@
 ----------------------------------------------------------
 
 ---- This file contains modules that incrementally build an interactive
----- prover for matching logic [1]. 
+---- prover for matching logic [1]. We highly recommend you read the
+---- technical report in "../tech_report" to get a better understanding.
 ---- [1] Grigore Rosu, Matching Logic - Extended Abstract, 
 ----     26th International Conference on Rewriting Techniques
 ----     and Applications (RTA 2015).
+
+---- This project relies on Full Maude.
+---- Full Maude is written in Maude, which contains many extensions and new
+---- functionalities that Core Maude does not have.
+---- See <http://maude.cs.illinois.edu/w/index.php?title=The_Maude_System>
+---- for more information.
+load full-maude .
 
 --------------------------------------------------------------
 ---- Module PAT0: The grammar of matching logic patterns. ----
@@ -42,7 +50,7 @@ fmod PAT0 is
 
   op getSot : PatList -> SotList . 
   eq getSot(.PatList) = .SotList .
-  eq getSot(P, Ps) = getSot(P), getSot(Ps) [owise] . 
+  ceq getSot(P, Ps) = getSot(P), getSot(Ps) if Ps =/= .PatList . 
 
   ---------------------------------
   ---- Matching logic grammar. ----
@@ -387,11 +395,14 @@ endfm
 ---- This module is still working in progress. -----
 ----------------------------------------------------
 
+---- Orient equations and use them as rewriting rules ----
+
 fmod PAT2 is
 
   protecting META-LEVEL .
   protecting PAT1 .
 
+  ---- Orient one equation. 
   ops left2right right2left : Pat -> Rule .
   
   eq left2right(P:Pat ={S:Sot} Q:Pat)
@@ -429,8 +440,11 @@ fmod PAT2 is
   
 endfm
 
-rew left2right((P:Pat -> P:Pat) ={MLNat} top{MLNat}) .
-rew rew(({1,MLNat} -> {1,MLNat}), ((P:Pat -> P:Pat) ={MLNat} top{MLNat})) .
+reduce left2right((P:Pat -> P:Pat) ={MLNat} top{getSot(P:Pat)}) .
+reduce ( rl upTerm((P:Pat -> P:Pat)) => upTerm(top{getSot(P:Pat)}) [none] . ) .
+reduce rew(({1,MLNat} -> {1,MLNat}), ((P:Pat -> P:Pat) ={MLNat} top{getSot(P:Pat)})) .
+
+quit
 
 
 
