@@ -623,21 +623,43 @@ If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P}
 
 \subsection{The \ML2FOL translation}
 
-Given a matching logic signature $(S, \Sigma)$ where $\Sigma = \Sigma_{\textit{func}} \cup \Sigma_{\textit{partial}} \cup \Sigma_{\textit{else}}$ contains some functional symbols, some partial symbols and some other symbols. Define two formula transformations $\mathsf{fol}$ and $\mathsf{fol_2}$ as follows.
+Given a matching logic signature $(S, \Sigma)$ where $\Sigma = \Sigma_{\textit{func}} \cup \Sigma_{\textit{partial}} \cup \Sigma_{\textit{uninterpreted}}$ contains some functional symbols, some partial symbols and other uninterpreted symbols. Define a first-order logic signature $(S, \Sigma, \Pi)$ where function symbols $\Sigma$ and predicate symbols $\Pi$ are defined as follows.
+\begin{itemize}
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{uninterpreted}}$, introduce $\pi_\sigma$ that is an $(n+1)$-arity predicate symbol in $\Pi$.
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{func}}$, introduce $\sigma$ that is an $n$-arity function symbol in $\Sigma$.
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{partial}}$, introduce $\delta_\sigma$ that is an $n$-arity predicate symbol in $\Pi$ and $\tilde{\sigma}$ that is an $n$-arity function symbol in $\Sigma$.
+\end{itemize}
+Define two formula transformations $\mathsf{fol}$ and $\mathsf{fol_2}$ as follows.
 
 
 \begin{algorithm}
 	\KwIn{a matching logic pattern $P$}
 	\KwOut{a first order formula}
-	generate a fresh variable $r$\;
-	return $\forall r . \mathsf{fol_2}(P, r)$\;
+	generate a fresh variable $r$ whose sort the same as $P$ \;
+	\Return{$\forall r . \mathsf{fol_2}(P, r)$} \;
 \caption{The  $\mathsf{fol}$ transformation}
 \end{algorithm}
 
 \begin{algorithm}
 	\KwIn{a matching logic pattern $P$ and a variable $r$}
 	\KwOut{a first order formula}
-	Match $P$ with
+    \Switch{the pattern $P$}{
+      \uCase{$x$}
+            {\Return{$r = x$} \;}
+      \uCase{$Q_1 \wedge Q_2$}
+            {\Return{$\mathsf{fol_2}(Q_1, r) \wedge \mathsf{fol_2}(Q_2, r)$} \;}
+      \uCase{$\neg Q$}
+            {\Return{$\neg \mathsf{fol_2}(Q, r)$ \;}}
+      \uCase{$\exists x . Q$}
+            {\Return{$\exists x . \mathsf{fol_2}(Q, r)$} \;}
+      \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is uninterpreted}
+            {\Return{$\exists r_1 \dots r_n \left( \pi_\sigma(r1,\dots,r_n, r) \wedge \mathsf{fol_2}(Q_1, r_1) \wedge \dots \wedge \mathsf{fol_2}(Q_n, r_n) \right) $} \;}
+      \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is functional}
+            {\Return{$\exists r_1 \dots r_n \left( r = \sigma(r_1, \dots, r_n) \wedge \mathsf{fol_2}(Q_1, r_1) \wedge \dots \wedge \mathsf{fol_2}(Q_n, r_n) \right) $} \;}
+      \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is partial}
+            {\Return{$\exists r_1 \dots r_n \left( \delta_\sigma(r_1,\dots,r_n) \wedge r = \tilde{\sigma}(r_1, \dots, r_n)
+            	\wedge \mathsf{fol_2}(Q_1, r_1) \wedge \dots \wedge \mathsf{fol_2}(Q_n, r_n) \right) $} \;}
+    }
 	\caption{The  $\mathsf{fol_2}$ transformation}
 \end{algorithm}
 
