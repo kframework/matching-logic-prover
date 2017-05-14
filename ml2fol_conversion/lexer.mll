@@ -17,6 +17,7 @@ rule token = parse
   | "declare-sort"      { DECLSORT }
   | "declare-symb"      { DECLSYMB }
   | "declare-func"      { DECLFUNC }
+  | "declare-partial"   { DECLPARTIAL }
   | "assert"            { ASSERT }
   | "check-sat"         { CHECKSAT }
   | "get-model"         { GETMODEL }

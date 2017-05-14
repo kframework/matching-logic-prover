@@ -4,7 +4,7 @@ open Convert
 
 %token <string> ID
 %token <int> INT
-%token LPAREN RPAREN DECLSORT DECLSYMB DECLFUNC ASSERT CHECKSAT GETMODEL 
+%token LPAREN RPAREN DECLSORT DECLSYMB DECLPARTIAL DECLFUNC ASSERT CHECKSAT GETMODEL 
 %token TOP BOTTOM AND OR NOT IMPLIES IFF FORALL EXISTS EQUAL FLOOR CEIL CONTAINS 
 %token EOF
 
@@ -25,6 +25,8 @@ system_cont: /* expect "declare-sort", "declare-func", "declare-symb", or "asser
   | DECLSORT ID RPAREN system { add_sort $2 $4 }
   | DECLFUNC ID LPAREN sorts ID RPAREN system /* sorts end with RPAREN */
       { add_func $2 $4 $5 $7 }
+  | DECLPARTIAL ID LPAREN sorts ID RPAREN system
+      { add_partial $2 $4 $5 $7 }
   | DECLSYMB ID LPAREN sorts ID RPAREN system
       { add_nonfunc $2 $4 $5 $7 }
   | ASSERT pattern RPAREN system

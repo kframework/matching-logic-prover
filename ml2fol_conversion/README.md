@@ -27,8 +27,37 @@ opam install ounit
 
   `./build`
   
-* Write matching logic specification in `example.match`.
+* Write matching logic specification in `example.match`. See the next section for how to write specifications.
 
 * Convert to `example.smt2`.
 
   `./ml2fol`
+
+# How to write my matching logic specification?
+
+A matching logic theory specification is written in a `smt2`-like style. See the regular grammar below.
+
+```
+SPEC ::= SORTDECL* SYMBOLDECL* ATTDECL* ASRTDECL+ CHECK-SAT GET-MODEL?
+
+SORTDECL ::= (declare-sort ID)
+
+SYMBOLDECL ::= (declare-symbol ID (ID*) ID)
+
+ATTDECL ::= (declare-att ID function)
+          | (declare-att ID partial-function)
+          | (declare-att ID assoc)
+          | (declare-att ID comm)
+
+ASRTDECL ::= (assert PATTERN)
+
+CHECK-SAT ::= (check-sat)
+
+GET-MODEL ::= (get-model)
+
+ID ::= [^0-9][a-zA-Z0-9]*
+
+PATTERN ::= SEXPRESSION
+```
+
+

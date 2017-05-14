@@ -6,6 +6,12 @@ ocamllex lexer.mll
 printf "\nyaccing \"parser.mly\"...\n"
 ocamlyacc parser.mly
 
+printf "\ncompiling \"prelude.ml\" ...\n"
+ocamlc -c prelude.ml
+
+printf "\ncompiling \"matching_logic.ml\" ...\n"
+ocamlc -c matching_logic.ml
+
 printf "\ncompiling \"convert.ml\" ...\n"
 ocamlc -c convert.ml
 
@@ -22,10 +28,10 @@ printf "\ncompiling \"main.ml\" ...\n"
 ocamlc -c main.ml
 
 printf "\nmaking final binaries ...\n"
-ocamlc -o ml2fol lexer.cmo convert.cmo parser.cmo main.cmo
+ocamlc -o ml2fol lexer.cmo prelude.cmo matching_logic.cmo convert.cmo parser.cmo main.cmo
 
 printf "\ncreating tests ...\n"
-ocamlfind ocamlc -o test -package oUnit -linkpkg -g convert.ml test.ml
+ocamlfind ocamlc -o test -package oUnit -linkpkg -g prelude.ml matching_logic.cmo convert.ml test.ml
 
 printf "\nrunning test suites ...\n"
 ./test

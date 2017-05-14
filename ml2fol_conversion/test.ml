@@ -1,6 +1,8 @@
 open OUnit2;;
 open Convert;;
 open List;;
+open Prelude;;
+open Matching_logic;;
 
 (* Part 0: Auxilliary Functions *)
 
