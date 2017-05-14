@@ -3,10 +3,10 @@
 open List
 open Prelude
 
-(* Part 1: Matching Logic *)
-
 (* 
-  Some common abbreviations and naming conventions:
+  I tend not to use abbreviations but sometimes they
+  are simply unavoidable. Therefore I enclosed here
+  some common abbreviations and naming conventions:
   | pat, p -> a matching logic pattern
   | pats, ps -> patterns
   | f, g, symb -> a matching logic symbol
@@ -39,6 +39,7 @@ type pattern =
   | FloorPattern of pattern
   | ContainsPattern of pattern * pattern
   | IntValuePattern of int
+  | BoolValuePattern of bool
 ;;
   
 type system = (string list)                            (* sorts *)
