@@ -1,17 +1,21 @@
+; The list example
+
 (declare-sort Nat)
 (declare-sort NatSeq)
 (declare-sort Map)
 
+; Natural numbers
+
 (declare-fun zero () Nat)
 (declare-fun succ (Nat) Nat)
 
+; define some constants for the sake of readability
 (declare-const one Nat)
 (declare-const two Nat)
 (declare-const five Nat)
 (declare-const seven Nat)
 (declare-const eight Nat)
 (declare-const nine Nat)
-
 (assert (= one (succ zero)))
 (assert (= two (succ one)))
 (assert (= five (succ (succ (succ two)))))
@@ -19,13 +23,17 @@
 (assert (= eight (succ seven)))
 (assert (= nine (succ eight)))
 
+; succ is injective
 (assert (forall ((X Nat) (Y Nat))
   (= (= X Y) (= (succ X) (succ Y)))))
 
 (assert (forall ((X Nat))
   (not (= X (succ X)))))
   
+; Sequence of Nat
+  
 (declare-fun epsilon () NatSeq)
+; the "cons" version of concat
 (declare-fun cncat (Nat NatSeq) NatSeq)
 
 (assert (forall ((X Nat) (S NatSeq))
@@ -34,10 +42,13 @@
 (assert (forall ((X1 Nat) (X2 Nat) (S1 NatSeq) (S2 NatSeq))
   (= (= (cncat X1 S1) (cncat X2 S2))
      (and (= X1 X2) (= S1 S2)))))
+     
+; Map (Heap)
 
 (declare-fun emp () Map)
 
 ; mapsto: Nat Nat -> Map is a partial function
+; mapsto(X, Y) is often written as X |-> Y
 (declare-fun total_mapsto (Nat Nat) Map)
 (declare-fun delta_mapsto (Nat Nat) Bool)
 
@@ -54,7 +65,8 @@
   (= (= (total_mapsto (succ X1) Y1) (total_mapsto (succ X2) Y2))
      (and (= X1 X2) (= Y1 Y2)))))
      
-; merge: Map Map -> Map is an associative and commutative partial function with emp as identity
+; merge: Map Map -> Map is an associative and commutative partial function 
+; with emp as the identity.
 (declare-fun total_merge (Map Map) Map)
 (declare-fun delta_merge (Map Map) Bool)
 
@@ -133,7 +145,9 @@
             (delta_merge (total_mapstoseq X (cncat Y (cncat Z epsilon))) H1)
             (= H (total_merge (total_mapstoseq X (cncat Y (cncat Z epsilon))) H1)))))))
             
-; proof obligation
+; Proof obligation
+; 7|->9 * 8|->1 * 2|->0 * 1|->5 implies list(7, [9;5])
+; Negate it and expect unsat
 (assert (not
   (=> (and (delta_mapsto one five)
            (delta_mapsto two zero)
