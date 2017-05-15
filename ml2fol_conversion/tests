@@ -1,0 +1,7 @@
+ocamlbuild -quiet -package oUnit prelude_test.byte
+./prelude_test.byte
+rm prelude_test.byte
+
+ocamlbuild -quiet -package oUnit matching_logic_test.byte
+./matching_logic_test.byte
+rm matching_logic_test.byte

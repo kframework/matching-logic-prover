@@ -1,27 +1,3 @@
-type pattern = 
-  | TopPattern
-  | BottomPattern
-  | VarPattern of string * sort 
-  | AppPattern of string * pattern list
-  | AndPattern of pattern list
-  | OrPattern of pattern list
-  | NotPattern of pattern
-  | ImpliesPattern of pattern * pattern
-  | IffPattern of pattern * pattern
-  | ForallPattern of (string * string) list * pattern
-  | ExistsPattern of (string * string) list * pattern
-  | EqualPattern of pattern * pattern
-  | CeilPattern of pattern
-  | FloorPattern of pattern
-  | ContainsPattern of pattern * pattern
-  | IntValuePattern of int
-  | BoolValuePattern of bool
-;;
-
-type att = Assoc | Functional | PartialFunctinoal | Comm
-;;
-
-
 
   
 type system = (string list)                            (* sorts *)
