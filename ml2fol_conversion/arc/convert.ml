@@ -15,31 +15,10 @@ open Matching_logic
 
 (* First-order logic terms and formulas *)
 
-type term =
-  | AtomicVarTerm of string
-  | IntValueTerm of int
-(*| more to go here *)
-  | CompoundTerm of string * term list
-;;
 
-type formula =
-  | TrueFormula
-  | FalseFormula
-  | AppFormula of string * term list
-  | EqualFormula of term * term
-  | AndFormula of formula list
-  | OrFormula of formula list
-  | NotFormula of formula
-  | ImpliesFormula of formula * formula
-  | IffFormula of formula * formula
-  | ForallFormula of (string * string) list * formula
-  | ExistsFormula of (string * string) list * formula
-;;
 
-type theory = (string list)                            (* sorts *)
-            * ((string * (string list) * string) list) (* functions and their signatures *)
-            * (formula list)                           (* assertions *)
-;;
+
+
 
 (* Collecting free variables in terms and formulas *)
 
