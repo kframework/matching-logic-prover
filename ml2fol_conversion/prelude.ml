@@ -2,6 +2,22 @@
 
 open List
 
+
+let identity x = x
+;;
+
+(********** Prettyprint lists ***************)
+
+let string_of_list open_delimiter split_delimiter closed_delimiter string_of_element l =
+  let rec aux l =
+    match l with
+    | [] -> ""
+    | [x] -> string_of_element x
+    | x::xs -> (string_of_element x) ^ split_delimiter ^ (aux xs)
+  in
+  open_delimiter ^ (aux l) ^ closed_delimiter
+;; 
+
 (**************** Fixed point ****************)
 
 let max_iter_times = 256 
@@ -44,36 +60,40 @@ let rec set_union l1 l2 =
   make_set_from_list (l1 @ l2)
 ;;
 
-(*
-  Substract one set from the other.
-  Precondition: @vars1 and @vars2 are sets.
-*)
+(* Set minus *)
 
-let rec set_minus vars1 vars2 =
-  match vars1 with
-  | [] -> []
-  | v::vs -> if (mem v vars2) then (set_minus vs vars2) else v :: (set_minus vs vars2)
-;;
-
-(* 
-  Intersect two sets.
-  Precondition: @l1 and @l2 are sets.
-*)
-
-let rec set_intersection l1 l2 =
+let rec set_minus l1 l2 =
+  let l1 = make_set_from_list l1 in
+  let l2 = make_set_from_list l2 in
   match l1 with
   | [] -> []
-  | x::xs -> if (mem x l2) then x :: (set_intersection xs l2)
-                           else set_intersection xs l2
+  | x::xs -> if mem x l2
+             then set_minus xs l2
+             else x :: (set_minus xs l2)
 ;;
 
-(*
-  Remove an element from a list.
-*)
+(* Set intersect *)
+
+let rec set_intersect l1 l2 =
+  let l1 = make_set_from_list l1 in
+  let l2 = make_set_from_list l2 in
+  match l1 with
+  | [] -> []
+  | x::xs -> if mem x l2
+             then x :: (set_intersect xs l2)
+             else set_intersect xs l2
+;;
+
+(**************** More list functions *******************)
+
+(* Remove an element *)
 
 let remove x lst =
   filter (fun y -> x <> y) lst
 ;;
+
+
+(************ Fresh names *****************)
 
 (* Generate fresh variables names $1, $2, ... *)
 

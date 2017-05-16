@@ -10,20 +10,15 @@ type sort =
   | RegularSort of string
 ;;
 
-type symbol_attribute =
-  | Assoc
-  | Comm
-  | Functional
-  | Partial
+(* Decorated symbols *)
+type symbol = 
+  | UninterpretedSymbol of string * (sort list) * sort
+  | FunctionalSymbol of string * (sort list) * sort
+  | PartialSymbol of string * (sort list) * sort
 ;;
 
-type symbol_signature = (sort list) * sort
-;;
-
-type symbol = (string * symbol_signature * (symbol_attribute list))
-;;
-
-type binders = (string * sort) list
+(* Binding variables *)
+type bindings = (string * sort) list
 ;;
 
 type pattern = 
@@ -36,63 +31,105 @@ type pattern =
   | NotPattern of pattern
   | ImpliesPattern of pattern * pattern
   | IffPattern of pattern * pattern
-  | ForallPattern of binders * pattern
-  | ExistsPattern of binders * pattern
+  | ForallPattern of bindings * pattern
+  | ExistsPattern of bindings * pattern
   | EqualPattern of pattern * pattern
   | CeilPattern of pattern
   | FloorPattern of pattern
   | ContainsPattern of pattern * pattern
-  (* Builtins *)
-  | IntValuePattern of int
-  | BoolValuePattern of bool
 ;;
 
 type signature = (sort list) * (symbol list)
 ;;
 
-type system = signature * (pattern list)
+type theory = signature * (pattern list)
 ;;
 
 
-
-(************ Getter, setter, and prettyprint ************)
+(************ Getter and setter ************)
 
 let add_sort_to_signature sort signature =
   match sort with
-  | TopSort -> raise (Failure "add topsop to a signature")
+  | TopSort -> raise (Failure "add topsop to a signature is not allowed")
   | regular_sort -> let (sorts, symbols) = signature in
-                      (sorts @ [regular_sort], symbols)
+                      ((set_union sorts [regular_sort]), symbols)
 ;;
 
 let add_symbol_to_signature symbol signature =
   let (sorts, symbols) = signature in
-  (sorts, symbols @ [symbol])
+  (sorts, (set_union symbols [symbol]))
 ;;
 
 
-let add_sort_to_system sort system =
-  let (signature, axioms) = system in
+let add_sort sort theory =
+  let (signature, axioms) = theory in
   ((add_sort_to_signature sort signature), axioms)
 ;;
 
-let add_symbol_to_system symbol system =
-  let (signature, axioms) = system in
+let add_symbol symbol theory =
+  let (signature, axioms) = theory in
   ((add_symbol_to_signature symbol signature), axioms)
 ;;
 
-let add_axiom_to_system pattern system =
-  let (signature, axioms) = system in
-  (signature, axioms @ [pattern])
+let add_axiom pattern theory =
+  let (signature, axioms) = theory in
+  (signature, (set_union axioms [pattern]))
 ;;
 
 let get_argument_sorts (f: symbol) =
-  let (name, (argument_sorts, result_sort), attributes) = f in
-  argument_sorts
+  match f with
+  | UninterpretedSymbol(name, argument_sorts, result_sort) -> argument_sorts
+  | FunctionalSymbol(name, argument_sorts, result_sort) -> argument_sorts
+  | PartialSymbol(name, argument_sorts, result_sort) -> argument_sorts
 ;;
 
 let get_return_sort (f: symbol) =
-  let (name, (argument_sorts, result_sort), attributes) = f in
-  result_sort
+  match f with
+  | UninterpretedSymbol(name, argument_sorts, result_sort) -> result_sort
+  | FunctionalSymbol(name, argument_sorts, result_sort) -> result_sort
+  | PartialSymbol(name, argument_sorts, result_sort) -> result_sort
+;;
+
+(************ Prettyprinters ***************)
+
+let string_of_sort (s: sort) =
+  match s with
+  | TopSort -> raise (Failure "string_of_sort TopSort is undefined") 
+  | RegularSort(s) -> s
+;;
+
+let string_of_symbol (f: symbol) =
+  match f with
+  | UninterpretedSymbol(name, argument_sorts, result_sort) -> name
+  | FunctionalSymbol(name, argument_sorts, result_sort) -> name
+  | PartialSymbol(name, argument_sorts, result_sort) -> name
+;;
+
+let string_of_bindings (bs: bindings) =
+  let string_of_one_binding (x, s) =
+    "(" ^ x ^ " " ^ (string_of_sort s) ^ ")"
+  in
+  string_of_list "(" " " ")" string_of_one_binding bs
+;;
+
+let rec string_of_pattern pattern =
+  match pattern with
+  | TopPattern -> "top" 
+  | BottomPattern -> "bottom"
+  | VarPattern(x, s) -> x
+  | AppPattern(f, []) -> string_of_symbol f
+  | AppPattern(f, arguments) -> string_of_list ("(" ^ (string_of_symbol f) ^ " ") " " ")" string_of_pattern arguments
+  | AndPattern(ps) -> string_of_list "(and " " " ")" string_of_pattern ps
+  | OrPattern(ps) -> string_of_list "(or " " " ")" string_of_pattern ps
+  | NotPattern(p) -> "(not " ^ (string_of_pattern p) ^ ")"
+  | ImpliesPattern(p1, p2) -> "(-> " ^ (string_of_pattern p1) ^ " " ^ (string_of_pattern p2) ^ ")"
+  | IffPattern(p1, p2) -> "(<-> " ^ (string_of_pattern p1) ^ " " ^ (string_of_pattern p2) ^ ")"
+  | ForallPattern(bindings, p) -> "(forall " ^ (string_of_bindings bindings) ^ " " ^ (string_of_pattern p) ^ ")" 
+  | ExistsPattern(bindings, p) -> "(exists " ^ (string_of_bindings bindings) ^ " " ^ (string_of_pattern p) ^ ")" 
+  | EqualPattern(p1, p2) -> "(= " ^ (string_of_pattern p1) ^ " " ^ (string_of_pattern p2) ^ ")"
+  | CeilPattern(p) -> "(ceil " ^ (string_of_pattern p) ^ ")"
+  | FloorPattern(p) -> "(floor " ^ (string_of_pattern p) ^ ")"
+  | ContainsPattern(p1, p2) -> "(contains " ^ (string_of_pattern p1) ^ " " ^ (string_of_pattern p2) ^ ")"
 ;;
 
 (************ Simplifying ************
@@ -122,14 +159,12 @@ let rec get_sort pattern =
   | NotPattern(p) -> get_sort p
   | ImpliesPattern(p1, p2) -> get_sort p1
   | IffPattern(p1, p2) -> get_sort p1
-  | ForallPattern(binders, p) -> get_sort p
-  | ExistsPattern(binders, p) -> get_sort p
+  | ForallPattern(bindings, p) -> get_sort p
+  | ExistsPattern(bindings, p) -> get_sort p
   | EqualPattern(p1, p2) -> TopSort
   | CeilPattern(p) -> TopSort
   | FloorPattern(p) -> TopSort
   | ContainsPattern(p1, p2) -> TopSort
-  | IntValuePattern(n) -> RegularSort("Int")
-  | BoolValuePattern(b) -> RegularSort("Bool")
 and get_sorts patterns =
   match patterns with
   | [] -> []
@@ -154,14 +189,12 @@ and fvs (pattern: pattern) =
   | NotPattern(p) -> fvs p
   | ImpliesPattern(p1,p2) -> set_union (fvs p1) (fvs p2)
   | IffPattern(p1,p2) -> set_union (fvs p1) (fvs p2)
-  | ForallPattern(binders, p) -> set_minus (fvs p) binders
-  | ExistsPattern(binders, p) -> set_minus (fvs p) binders
+  | ForallPattern(bindings, p) -> set_minus (fvs p) bindings
+  | ExistsPattern(bindings, p) -> set_minus (fvs p) bindings
   | EqualPattern(p1,p2) -> set_union (fvs p1) (fvs p2)
   | CeilPattern(p) -> fvs p
   | FloorPattern(p) -> fvs p
   | ContainsPattern(p1,p2) -> set_union (fvs p1) (fvs p2)
-  | IntValuePattern(n) -> []
-  | BoolValuePattern(b) -> []
 ;;
 
 

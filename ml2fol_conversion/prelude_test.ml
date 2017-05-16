@@ -3,10 +3,27 @@
 open OUnit2
 open Prelude
 
-let string_of_int_list l =
-  match l with
-  | [] -> "[]"
-  | 
+(* test suite for string_of_list *)
+
+let tests =
+
+  "test suite for string_of_list" >::: [
+
+  "(1,2,3)"	>::
+  (fun _ -> assert_equal "(1,2,3)" (string_of_list "(" "," ")" string_of_int [1;2;3]));
+
+  "[1; 2; 3]"	>::
+  (fun _ -> assert_equal "[1; 2; 3]" (string_of_list "[" "; " "]" string_of_int [1;2;3]));
+
+  "{}"		>::
+  (fun _ -> assert_equal "{}" (string_of_list "{" "any_thing" "}" string_of_int []));
+
+  "{word}"		>::
+  (fun _ -> assert_equal "{word}" (string_of_list "{" "any_thing" "}" (fun str -> str) ["word"]));
+
+]
+
+let _ = run_test_tt_main tests
 
 (* test suite for fixed_point *)
 
@@ -117,3 +134,51 @@ let tests =
 
 let _ = run_test_tt_main tests
 
+(* test suite for set_intersect *)
+
+let tests =
+
+  "test suite for set_intersect" >::: [
+
+  "empty1"	>:: (fun _ -> assert_equal [] (set_intersect [] []));
+
+  "empty2"	>:: (fun _ -> assert_equal [] (set_intersect [] [0]));
+
+  "empty3"	>:: (fun _ -> assert_equal [] (set_intersect [0] []));
+
+  "empty4"	>:: (fun _ -> assert_equal [] (set_intersect [0;0] []));
+
+  "inter1"	>:: (fun _ -> assert_equal [] (set_intersect [1] [0]));
+
+  "inter1"	>:: (fun _ -> assert_equal [0;3] (set_intersect [0;1;2;3] [3;0]));
+
+  "order"	>:: (fun _ -> assert_equal [2] (set_intersect [1;1;1;2] [2;2;2;3]));
+
+]
+
+let _ = run_test_tt_main tests
+
+
+(* test suite for remove *)
+
+let tests =
+
+  "test suite for remove" >::: [
+
+  "empty1"	>:: (fun _ -> assert_equal [] (remove 0 []));
+
+  "empty2"	>:: (fun _ -> assert_equal [] (remove 0 [0]));
+
+  "empty3"	>:: (fun _ -> assert_equal [] (remove 0 [0;0]));
+
+  "unchange1"	>:: (fun _ -> assert_equal [1] (remove 0 [1]));
+
+  "unchange2"	>:: (fun _ -> assert_equal [1;2;2] (remove 0 [1;2;2]));
+
+  "remove1"	>:: (fun _ -> assert_equal [1] (remove 0 [0;1;0]));
+
+  "remove2"	>:: (fun _ -> assert_equal [1;1] (remove 0 [0;1;0;1]));
+
+]
+
+let _ = run_test_tt_main tests
