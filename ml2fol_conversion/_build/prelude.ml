@@ -2,7 +2,7 @@
 
 open List
 
-(* Return ...f(f(f(x)))... *)
+(**************** Fixed point ****************)
 
 let max_iter_times = 256 
 ;;
@@ -15,17 +15,33 @@ let fixed_point f x =
   fixed_point_aux x (f x) 1
 ;;
 
-(* Sets as lists *)
 
-(* 
-  Join two sets of fvs.
-  Precondition: @vars1 and @vars2 are sets.
-*)
+(**************** Sets as lists ****************)
 
-let rec set_union vars1 vars2 =
-  match vars1 with
-  | [] -> vars2
-  | v::vs -> if (mem v vars2) then (set_union vs vars2) else v :: (set_union vs vars2)
+let rec delete_duplicates l =
+  match l with
+  | [] -> []
+  | x::xs -> let ys = delete_duplicates xs in
+               if mem x ys
+               then ys
+               else x::ys
+;;
+
+let make_set_from_list = delete_duplicates
+;;
+
+let rec no_duplicate_Q l =
+  match l with
+  | [] -> true
+  | x::xs -> if no_duplicate_Q xs && not (mem x xs)
+             then true
+             else false
+;;
+
+(* Set union *)
+
+let rec set_union l1 l2 =
+  make_set_from_list (l1 @ l2)
 ;;
 
 (*
