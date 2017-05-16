@@ -1,4 +1,3 @@
-PL-design/*
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
@@ -210,9 +209,4 @@ TSWLatexianTemp*
 # expex forward references with \gathertags
 *-tags.tex
 
-# IntelliJ
-ml2pl/.idea/*
-*.class
-
-# Kframework
-convert2fol/mtc-kompiled/*
+/_build/*
