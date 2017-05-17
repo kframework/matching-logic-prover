@@ -97,3 +97,8 @@ let rec ml2fol2 pattern (r: string) =
      | Some(s) -> ForallFormula([(r', s)], implies))
 ;;
  
+let ml2fol pattern (r: string) =
+  match sort_of_pattern pattern with
+  | None -> ml2fol2 pattern r
+  | Some(s) -> ForallFormula([(r, s)], ml2fol2 pattern r)
+;;
