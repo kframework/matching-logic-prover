@@ -6,12 +6,9 @@ let digit       = ['0'-'9']
 let nzdigit	= ['1'-'9']
 let lower	= ['a'-'z']
 let upper	= ['A'-'Z']
-let alpha	= lower | upper 
-let ext		= '$' | '_'
-let alphaext	= alpha | ext 
+let alpha	= lower | upper | '$'
 let alnum	= alpha | digit
-let alnumext	= alnum | ext 
-let id		= alphaext alnumext* 
+let id		= alpha alnum* 
 let space       = [' ' '\t' '\n']
 
 rule token = parse
@@ -20,9 +17,9 @@ rule token = parse
   | '('                 { LPAREN }
   | ')'                 { RPAREN }
   | "declare-sort"      { DECLSORT }
-  | "declare-symb"   	{ DECLSYMB }
+  | "declare-symb"      { DECLSYMB }
   | "declare-func"      { DECLFUNC }
-  | "declare-part"   	{ DECLPART }
+  | "declare-partial"   { DECLPARTIAL }
   | "assert"            { ASSERT }
   | "check-sat"         { CHECKSAT }
   | "get-model"         { GETMODEL }
@@ -43,7 +40,7 @@ rule token = parse
   | word as w           { ID(w) }
   | eof                 { EOF }
 and comment = parse
-  | [^'\n']             { comment lexbuf }        (* ignore anything but '\n' *)
+  | [^'\n']             { comment lexbuf }        (* ignore anything until seeing a '\n' *)
   | '\n'                { token lexbuf }
 
 {
