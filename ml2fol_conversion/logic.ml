@@ -1,7 +1,10 @@
-(* matching_logic.ml - ml2fol conversion - FSL group *)
+(* logic.ml - ml2fol conversion - FSL group *)
 
 open List
 open Prelude
+
+
+(************ MATCHING LOGIC *************)
 
 (************ Data types ************)
 
@@ -169,3 +172,73 @@ and fvs (pattern: pattern) =
 ;;
 
 *)
+
+
+(************ FIRST-ORDER LOGIC *************)
+
+type term =
+  | VarTerm of string * string
+  | CompoundTerm of (string * string list * string) * term list
+
+type formula =
+  | TrueFormula
+  | FalseFormula
+  | PredicateFormula of (string * string list) * term list
+  | EqualFormula of term * term
+  | AndFormula of formula list
+  | OrFormula of formula list
+  | NotFormula of formula
+  | ImpliesFormula of formula * formula
+  | IffFormula of formula * formula
+  | ForallFormula of (string * string) list * formula
+  | ExistsFormula of (string * string) list * formula
+
+
+(************ Getter and setter ************)
+
+let add_sort_fol sort (sorts, functions, predicates, axioms) =
+  (set_union sorts [sort], functions, predicates, axioms)
+;;
+
+let add_function f (sorts, functions, predicates, axioms) =
+  (sorts, set_union functions [f], predicates, axioms)
+;;
+
+let add_predicate p (sorts, functions, predicates, axioms) =
+  (sorts, functions, set_union predicates [p], axioms)
+;;
+
+let add_axiom_fol formula (sorts, functions, predicates, axioms) =
+  (sorts, functions, predicates, set_union axioms formula)
+;;
+
+(************** Prettyprinters ****************)
+
+let string_of_function (name, argument_sorts, result_sort) = name 
+;;
+
+let string_of_predicate (name, argument_sorts) = name
+;;
+
+let rec string_of_term term =
+  match term with 
+  | VarTerm(x, s) -> x
+  | CompoundTerm(f, []) -> string_of_function f
+  | CompoundTerm(f, ts) -> string_of_list ("(" ^ (string_of_function f) ^ " ") " " ")" string_of_term ts
+;;
+
+let rec string_of_formula formula = 
+  match formula with
+  | TrueFormula -> "true"
+  | FalseFormula -> "false"
+  | PredicateFormula(p, []) -> string_of_predicate p
+  | PredicateFormula(p, ts) -> string_of_list ("(" ^ (string_of_predicate p) ^ " ") " " ")" string_of_term ts
+  | EqualFormula(t1, t2) -> "(= " ^ (string_of_term t1) ^ " " ^ (string_of_term t2) ^ ")"
+  | AndFormula(formulas) -> string_of_list "(and " " " ")" string_of_formula formulas
+  | OrFormula(formulas) -> string_of_list "(or " " " ")" string_of_formula formulas
+  | NotFormula(form) -> "(not " ^ (string_of_formula form) ^ ")"
+  | ImpliesFormula(form1, form2) -> "(=> " ^ (string_of_formula form1) ^ " " ^ (string_of_formula form2) ^ ")"
+  | IffFormula(form1, form2) -> "(= " ^ (string_of_formula form1) ^ " " ^ (string_of_formula form2) ^ ")"
+  | ForallFormula(bindings, form) -> "(forall " ^ (string_of_bindings bindings) ^ " " ^ (string_of_formula form) ^ ")"
+  | ExistsFormula(bindings, form) -> "(exists " ^ (string_of_bindings bindings) ^ " " ^ (string_of_formula form) ^ ")"
+;;
