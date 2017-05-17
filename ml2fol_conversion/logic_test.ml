@@ -2,18 +2,14 @@ open OUnit2
 
 open List
 open Prelude
-open Matching_logic
+open Logic
 
 (* A testing matching logic theory *)
 
-let nat = RegularSort("Nat")
-let seq = RegularSort("Seq")
-let map = RegularSort("Map")
-
-let zero = FunctionalSymbol("zero", [], nat)
-let succ = FunctionalSymbol("succ", [nat], nat)
-let pred = PartialSymbol("pred", [nat], nat)
-let plus = FunctionalSymbol("plus", [nat; nat], nat)
+let zero = FunctionalSymbol("zero", [], "Nat")
+let succ = FunctionalSymbol("succ", ["Nat"], "Nat")
+let pred = PartialSymbol("pred", ["Nat"], "Nat")
+let plus = FunctionalSymbol("plus", ["Nat"; "Nat"], "Nat")
 
 let zerop = AppPattern(zero, []) 
 let one = AppPattern(succ, [zerop])
@@ -30,12 +26,12 @@ let tests =
   (fun _ -> assert_equal "()" (string_of_bindings []));
 
   "singleton"	>::
-  (fun _ -> assert_equal "((X Nat))" (string_of_bindings [("X", RegularSort("Nat"))]));
+  (fun _ -> assert_equal "((X Nat))" (string_of_bindings [("X", "Nat")]));
 
   "more1"	>::
   (fun _ -> assert_equal "((X Nat) (H Map))"
-                         (string_of_bindings [("X", RegularSort("Nat"));
-                                              ("H", RegularSort("Map"))]));
+                         (string_of_bindings [("X", "Nat");
+                                              ("H", "Map")]));
 
 ]
 
@@ -55,7 +51,7 @@ let tests =
   (fun _ -> assert_equal "bottom" (string_of_pattern BottomPattern));
 
   "var"		>::
-  (fun _ -> assert_equal "X" (string_of_pattern (VarPattern("X", nat))));
+  (fun _ -> assert_equal "X" (string_of_pattern (VarPattern("X", "Nat"))));
 
   "const"	>::
   (fun _ -> assert_equal "zero" (string_of_pattern zerop));
@@ -76,12 +72,12 @@ let tests =
 
   "forall1"	>::
   (fun _ -> assert_equal ~printer:identity "(forall ((X Nat) (Y Nat)) (= X Y))"
-            (string_of_pattern (ForallPattern([("X", nat); ("Y", nat)], 
-                                EqualPattern(VarPattern("X", nat), VarPattern("Y", nat))))));
+            (string_of_pattern (ForallPattern([("X", "Nat"); ("Y", "Nat")], 
+                                EqualPattern(VarPattern("X", "Nat"), VarPattern("Y", "Nat"))))));
   "forall2"	>::
   (fun _ -> assert_equal ~printer:identity "(forall ((X Nat)) (exists ((Y Nat)) (= X Y)))"
-            (string_of_pattern (ForallPattern([("X", nat)], ExistsPattern([("Y", nat)],
-                                EqualPattern(VarPattern("X", nat), VarPattern("Y", nat)))))));
+            (string_of_pattern (ForallPattern([("X", "Nat")], ExistsPattern([("Y", "Nat")],
+                                EqualPattern(VarPattern("X", "Nat"), VarPattern("Y", "Nat")))))));
 
 ] 
 

@@ -2,14 +2,10 @@ ocamlbuild -quiet -package oUnit prelude_test.byte
 ./prelude_test.byte
 rm prelude_test.byte
 
-ocamlbuild -quiet -package oUnit matching_logic_test.byte
-./matching_logic_test.byte
-rm matching_logic_test.byte
+ocamlbuild -quiet -package oUnit logic_test.byte
+./logic_test.byte
+rm logic_test.byte
 
-ocamlbuild -quiet -package oUnit first_order_logic_test.byte
-./first_order_logic_test.byte
-rm first_order_logic_test.byte
-
-ocamlbuild -quiet -package oUnit conversion_test.byte
-./conversion_test.byte
-rm conversion_test.byte
+# ocamlbuild -quiet -package oUnit conversion_test.byte
+# ./conversion_test.byte
+# rm conversion_test.byte

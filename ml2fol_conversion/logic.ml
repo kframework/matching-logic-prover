@@ -5,76 +5,46 @@ open Prelude
 
 (************ Data types ************)
 
-type sort =
-  | TopSort                 (* the "polymorphic" sort *)
-  | RegularSort of string
-;;
-
 (* Decorated symbols *)
 type symbol = 
-  | UninterpretedSymbol of string * (sort list) * sort
-  | FunctionalSymbol of string * (sort list) * sort
-  | PartialSymbol of string * (sort list) * sort
-;;
-
-(* Binding variables *)
-type bindings = (string * sort) list
+  | UninterpretedSymbol of string * (string list) * string 
+  | FunctionalSymbol of string * (string list) * string
+  | PartialSymbol of string * (string list) * string
 ;;
 
 type pattern = 
   | TopPattern
   | BottomPattern
-  | VarPattern of string * sort 
+  | VarPattern of string * string 
   | AppPattern of symbol * pattern list
   | AndPattern of pattern list
   | OrPattern of pattern list
   | NotPattern of pattern
   | ImpliesPattern of pattern * pattern
   | IffPattern of pattern * pattern
-  | ForallPattern of bindings * pattern
-  | ExistsPattern of bindings * pattern
+  | ForallPattern of (string * string) list * pattern
+  | ExistsPattern of (string * string) list * pattern
   | EqualPattern of pattern * pattern
   | CeilPattern of pattern
   | FloorPattern of pattern
   | ContainsPattern of pattern * pattern
 ;;
 
-type signature = (sort list) * (symbol list)
-;;
-
-type theory = signature * (pattern list)
-;;
-
-
 (************ Getter and setter ************)
 
-let add_sort_to_signature sort signature =
-  match sort with
-  | TopSort -> raise (Failure "add topsop to a signature is not allowed")
-  | regular_sort -> let (sorts, symbols) = signature in
-                      ((set_union sorts [regular_sort]), symbols)
+let add_sort sort (sorts, symbols, axioms) =
+  (set_union sorts [sort], symbols, axioms)
 ;;
 
-let add_symbol_to_signature symbol signature =
-  let (sorts, symbols) = signature in
-  (sorts, (set_union symbols [symbol]))
+let add_symbol symbol (sorts, symbols, axioms) =
+  (sorts, set_union symbols [symbol], axioms)
 ;;
 
-
-let add_sort sort theory =
-  let (signature, axioms) = theory in
-  ((add_sort_to_signature sort signature), axioms)
+let add_axiom pattern (sorts, symbols, axioms) =
+  (sorts, symbols, set_union axioms [pattern])
 ;;
 
-let add_symbol symbol theory =
-  let (signature, axioms) = theory in
-  ((add_symbol_to_signature symbol signature), axioms)
-;;
-
-let add_axiom pattern theory =
-  let (signature, axioms) = theory in
-  (signature, (set_union axioms [pattern]))
-;;
+(*
 
 let get_argument_sorts (f: symbol) =
   match f with
@@ -90,24 +60,20 @@ let get_return_sort (f: symbol) =
   | PartialSymbol(name, argument_sorts, result_sort) -> result_sort
 ;;
 
+*)
+
 (************ Prettyprinters ***************)
 
-let string_of_sort (s: sort) =
-  match s with
-  | TopSort -> raise (Failure "string_of_sort TopSort is undefined") 
-  | RegularSort(s) -> s
-;;
-
-let string_of_symbol (f: symbol) =
+let string_of_symbol f =
   match f with
-  | UninterpretedSymbol(name, argument_sorts, result_sort) -> name
-  | FunctionalSymbol(name, argument_sorts, result_sort) -> name
-  | PartialSymbol(name, argument_sorts, result_sort) -> name
+  | UninterpretedSymbol(name, _, _) -> name
+  | FunctionalSymbol(name, _, _) -> name
+  | PartialSymbol(name, _, _) -> name
 ;;
 
-let string_of_bindings (bs: bindings) =
+let string_of_bindings (bs: (string * string) list) =
   let string_of_one_binding (x, s) =
-    "(" ^ x ^ " " ^ (string_of_sort s) ^ ")"
+    "(" ^ x ^ " " ^ s ^ ")"
   in
   string_of_list "(" " " ")" string_of_one_binding bs
 ;;
@@ -146,6 +112,8 @@ let simplify_basic pattern =
 
 (************ Sorting ************)
 
+(*
+
 let rec get_sort pattern =
   match pattern with
   | TopPattern -> TopSort
@@ -171,9 +139,12 @@ and get_sorts patterns =
   | p::ps -> (get_sort p) :: (get_sorts ps)
 ;;
 
+*)
+
 
 (************ Free variables ************)
 
+(*
 let rec freevars (patterns: pattern list) : (string * sort) list =
   match patterns with
   | [] -> []
@@ -197,4 +168,4 @@ and fvs (pattern: pattern) =
   | ContainsPattern(p1,p2) -> set_union (fvs p1) (fvs p2)
 ;;
 
-
+*)
