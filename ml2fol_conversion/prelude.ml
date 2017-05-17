@@ -6,6 +6,20 @@ open List
 let identity x = x
 ;;
 
+(********** Options *************)
+
+let is_some x =
+  match x with
+  | None -> false
+  | Some(_) -> true
+;;
+
+let get x = 
+  match x with
+  | None -> raise (Failure "get none")
+  | Some(v) -> v
+;;
+
 (********** Prettyprint lists ***************)
 
 let string_of_list open_delimiter split_delimiter closed_delimiter string_of_element l =

@@ -1,6 +1,6 @@
+open List
 open Prelude
-open Matching_logic
-open First_order_logic
+open Logic
 
 
 (* Input 1: a pattern p
@@ -8,27 +8,22 @@ open First_order_logic
    Output 1: fol encoding of "r belongs to p"
    Output 2: (r, s) if the sort s of r exists
 *)
-(*
+
 let rec encode pattern (r: string) =
   match pattern with
   | TopPattern -> (TrueFormula, None)
   | BottomPattern -> (FalseFormula, None)
-  | VarPattern(x, RegularSort(s)) -> 
+  | VarPattern(x, s) -> 
     (EqualFormula(VarTerm(x, s), VarTerm(r, s)), Some((r, s)))
   | AppPattern(UninterpretedSymbol(f, argument_sorts, result_sort), ps) ->
     let m = length ps in
     let rs = freshvars m in
     let (encodings, sorted_rs) = encode_aux ps rs in
-     
-and encode_aux (ps pattern list) (rs: string list) =
+    (ExistsFormula(sorted_rs, AndFormula(encodings)), None)
+  | _ -> raise (Failure "no implementation")     
+and encode_aux (ps: pattern list) (rs: string list) =
   let (encodings, sorted_rs) = split (map2 encode ps rs) in
-  let not_none x =
-    match x with
-    | None -> false
-    | Some(_) -> true
-  in
-  let sorted_rs = filter not_none sorted_rs in
+  let sorted_rs = map get (filter is_some sorted_rs) in
   (encodings, sorted_rs)
 ;;
  
-*)
