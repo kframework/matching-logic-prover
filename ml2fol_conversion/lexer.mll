@@ -3,10 +3,12 @@ open Parser
 }
 
 let digit       = ['0'-'9']
-let int         = ['0'] | ['-'] ['1'-'9'] digit* | ['1'-'9'] digit*
-let nondigit    = ['a'-'z''A'-'Z''_''$' '+''-''*''/''>''<''=']
-let alphabet    = digit | nondigit
-let word        = nondigit alphabet*
+let nzdigit	= ['1'-'9']
+let lower	= ['a'-'z']
+let upper	= ['A'-'Z']
+let alpha	= lower | upper | '$'
+let alnum	= alpha | digit
+let id		= alpha alnum* 
 let space       = [' ' '\t' '\n']
 
 rule token = parse
@@ -41,4 +43,5 @@ and comment = parse
   | [^'\n']             { comment lexbuf }        (* ignore anything until seeing a '\n' *)
   | '\n'                { token lexbuf }
 
-  
+{
+}  

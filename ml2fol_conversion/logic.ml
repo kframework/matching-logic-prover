@@ -48,22 +48,21 @@ let add_axiom pattern (sorts, symbols, axioms) =
 ;;
 
 (*
-
-let get_argument_sorts (f: symbol) =
+let argument_sorts_of_symbol (f: symbol) =
   match f with
   | UninterpretedSymbol(name, argument_sorts, result_sort) -> argument_sorts
   | FunctionalSymbol(name, argument_sorts, result_sort) -> argument_sorts
   | PartialSymbol(name, argument_sorts, result_sort) -> argument_sorts
 ;;
+*)
 
-let get_return_sort (f: symbol) =
+let result_sort_of_symbol (f: symbol) =
   match f with
   | UninterpretedSymbol(name, argument_sorts, result_sort) -> result_sort
   | FunctionalSymbol(name, argument_sorts, result_sort) -> result_sort
   | PartialSymbol(name, argument_sorts, result_sort) -> result_sort
 ;;
 
-*)
 
 (************ Prettyprinters ***************)
 
