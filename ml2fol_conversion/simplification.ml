@@ -199,6 +199,8 @@ let simp4 formula =
 let simp5 formula = 
   match formula with
   | ForallFormula(bs, NotFormula(form)) ->
+    (* Pull the negation out, call simp1, and push 
+       the negation back in after that. *)
     let neg_formula = simp1 (ExistsFormula(bs, form)) in
     (match neg_formula with
      | TrueFormula -> FalseFormula
