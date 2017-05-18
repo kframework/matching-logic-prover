@@ -301,16 +301,16 @@ let rec traverse (k: formula -> formula) form =
 
 (* type substitution = (string * term) list *)
 
-let rec free_in_term (x: string) term =
+let rec occur_in_term (x: string) term =
   match term with
   | VarTerm(y, s) -> if x = y then true else false
-  | CompoundTerm(f, ts) -> free_in_terms x ts
-and free_in_terms (x: string) terms =
+  | CompoundTerm(f, ts) -> occur_in_terms x ts
+and occur_in_terms (x: string) terms =
   match terms with
   | [] -> false
-  | t::ts -> if free_in_term x t
+  | t::ts -> if occur_in_term x t
              then true
-             else free_in_terms x ts
+             else occur_in_terms x ts
 ;;
 
 (* substb: Substitution w.r.t. bindings *)
@@ -347,7 +347,10 @@ and substb_term s term bs =
     CompoundTerm(f, map (fun t -> substb_term s t bs) ts)                 
 ;;
 
+(* Substitution *)
 
-let subst s form =
-  substb s form []
+let subst s form = substb s form []
+;;
+
+let subst_term s term = substb s term []
 ;;

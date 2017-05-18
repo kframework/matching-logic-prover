@@ -4,13 +4,6 @@
 (declare-func succ (Nat) Nat)
 (declare-func plus (Nat Nat) Nat)
 
-(assert (forall ((X Nat) (Y Nat))
-  (= (= X Y)
-     (= (succ X) (succ Y)))))
-
-(assert (forall ((X Nat))
-  (not (= zero (succ X)))))
-
 (assert (forall ((X Nat))
   (= X (plus X zero))))
 
@@ -18,9 +11,7 @@
   (= (succ (plus X Y))
      (plus X (succ Y)))))
 
-
 (assert (not
   (= (succ (succ zero))
      (plus (succ zero) (succ zero)))))
-     
-(assert bottom)
+
