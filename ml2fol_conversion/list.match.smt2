@@ -32,15 +32,9 @@
 (assert (forall ((x Nat)) (not (= (succ x) x))))
 (assert (forall ((x Nat) (s NatSeq)) (not (= (cncat x s) s))))
 (assert (forall ((x1 Nat) (x2 Nat) (s1 NatSeq) (s2 NatSeq)) (= (= (cncat x1 s1) (cncat x2 s2)) (and (= x1 x2) (= s1 s2)))))
-(assert (forall (($53 Map) (y Nat)) (not (and (delta_mapsto zero y) (= $53 (total_mapsto zero y))))))
+(assert (forall ((y Nat)) (not (delta_mapsto zero y))))
 (assert (forall ((x Nat) (y Nat)) (delta_mapsto (succ x) y)))
-
-(assert (forall ((x1 Nat) (x2 Nat) (y1 Nat) (y2 Nat)) 
-(= (forall (($63 Map)) 
-     (= (and (delta_mapsto (succ x1) y1) (= $63 (total_mapsto (succ x1) y1))) 
-        (and (delta_mapsto (succ x2) y2) (= $63 (total_mapsto (succ x2) y2))))) 
-   (and (= x1 x2) (= y1 y2)))))
-   
+(assert (forall ((x1 Nat) (x2 Nat) (y1 Nat) (y2 Nat)) (= (forall (($63 Map)) (= (and (delta_mapsto (succ x1) y1) (= $63 (total_mapsto (succ x1) y1))) (and (delta_mapsto (succ x2) y2) (= $63 (total_mapsto (succ x2) y2))))) (and (= x1 x2) (= y1 y2)))))
 (assert (not (forall (($73 Map)) (= (and (delta_mapsto one zero) (= $73 (total_mapsto one zero))) (and (delta_mapsto one one) (= $73 (total_mapsto one one)))))))
 (check-sat)
 

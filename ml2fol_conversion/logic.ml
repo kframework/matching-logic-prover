@@ -192,25 +192,6 @@ type formula =
   | ForallFormula of (string * string) list * formula
   | ExistsFormula of (string * string) list * formula
 
-
-(************ Getter and setter ************)
-
-let add_sort_fol sort (sorts, functions, predicates, axioms) =
-  (set_union sorts [sort], functions, predicates, axioms)
-;;
-
-let add_function f (sorts, functions, predicates, axioms) =
-  (sorts, set_union functions [f], predicates, axioms)
-;;
-
-let add_predicate p (sorts, functions, predicates, axioms) =
-  (sorts, functions, set_union predicates [p], axioms)
-;;
-
-let add_axiom_fol formula (sorts, functions, predicates, axioms) =
-  (sorts, functions, predicates, set_union axioms formula)
-;;
-
 (************** Prettyprinters ****************)
 
 let string_of_function (name, argument_sorts, result_sort) = name 
@@ -271,6 +252,12 @@ let string_of_foltheory (sorts, functions, predicates, axioms) =
   let assert_axioms formulas =
     string_of_list "" "\n" "" assert_axiom formulas
   in
+  let split form =
+    match form with
+    | AndFormula(forms) -> forms
+    | _ -> [form]
+  in
+  let axioms = flatten (map split axioms) in
   (declare_sorts sorts) ^ "\n"
   ^ (declare_functions functions) ^ "\n"
   ^ (declare_predicates predicates) ^ "\n"
