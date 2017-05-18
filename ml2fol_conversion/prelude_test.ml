@@ -182,3 +182,21 @@ let tests =
 ]
 
 let _ = run_test_tt_main tests
+
+(* test suite for compose *)
+
+let tests =
+
+  let add1 x = x + 1 in
+
+  "test suite for compose" >::: [
+
+  "add1"	>::
+  (fun _ -> assert_equal ~printer:string_of_int
+  5
+  (compose [add1; add1; add1; add1; add1] 0));
+
+
+]
+
+let _ = run_test_tt_main tests

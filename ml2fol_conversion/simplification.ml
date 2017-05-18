@@ -4,44 +4,56 @@ open Prelude
 open Logic
 open List
 
+(************** STRUCTURE OF THIS FILE *******************)
+(* To simplify a formula, one defines various simplification *rules*,
+   from the very basic "true /\ form => form", to more complex ones.
+   Simplification rules are defined as functions with names "simpX", 
+   for X = 1, 2, 3 .... 
+
+   Then, the composite rule, defined as a funcion named "simp", is
+   the composition of all simpX's, that is, simp = compose [simp0; simp1; ...].
+
+   Finally, traverse simp on the whole formula being simplified (using
+   Logic.traverse) until the result doesn't change (using Prelude.fixed_point).
+
+*)
 
 
-(* Very basic simplification *)
-let rec simplify_trivial formula =
+
+(****************** Simplication rules *******************)
+
+(* Note: rules are supposed to be "local" and do not traverse over structures. *)
+
+
+
+
+(* Simplication rule #0: the basic of the basic. *)
+let rec simp0 formula =
   match formula with
   | AndFormula([]) -> TrueFormula
-  | AndFormula([form]) -> simplify_trivial form
+  | AndFormula([form]) -> form
   | OrFormula([]) -> FalseFormula
-  | OrFormula([form]) -> simplify_trivial form
-  | ForallFormula([], form) -> simplify_trivial form
-  | ExistsFormula([], form) -> simplify_trivial form
+  | OrFormula([form]) -> form
+  | ForallFormula([], form) -> form
+  | ExistsFormula([], form) -> form
   | ForallFormula(bs, ForallFormula(bs', form)) ->
-    ForallFormula(set_union bs bs', simplify_trivial form)
+    ForallFormula(set_union bs bs', form)
   | ExistsFormula(bs, ExistsFormula(bs', form)) ->
-    ExistsFormula(set_union bs bs', simplify_trivial form)
-  (* Propogating simplification top down *)
-  | AndFormula(forms) -> AndFormula(map simplify_trivial forms)
-  | OrFormula(forms) -> OrFormula(map simplify_trivial forms)
-  | NotFormula(form) -> NotFormula(simplify_trivial form)
-  | ImpliesFormula(form1, form2) -> 
-    ImpliesFormula(simplify_trivial form1, simplify_trivial form2)
-  | IffFormula(form1, form2) ->
-    IffFormula(simplify_trivial form1, simplify_trivial form2)
-  | ForallFormula(bs, form) -> ForallFormula(bs, simplify_trivial form)
-  | ExistsFormula(bs, form) -> ExistsFormula(bs, simplify_trivial form) 
+    ExistsFormula(set_union bs bs', form)
   | _ -> formula
 ;;
 
-(* Simplification #1 *)
-(* E x . x = t /\ form => form[x := t] *)
+(* Simplification rule #1: eliminating existential quantifiers *)
+(* For any term t where x does not occur free, 
+   exists x . x = t /\ form => form[x := t]
+   exists x . x = t => true *)
 
-let rec simplify_1 formula =
-  match formula with 
-  | _ -> formula
+
+(****************** Composite, traverse, and fixed points *****************)
+
+
+let simp = compose [simp0]
 ;;
 
-
-(* Main delivery, used by Conversion.ml2fol *)
-
-let simplify = simplify_trivial
+let simplify = fixed_point (traverse simp)
 ;;

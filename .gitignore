@@ -210,3 +210,4 @@ TSWLatexianTemp*
 *-tags.tex
 
 ml2fol_conversion/_build/*
+*.swp

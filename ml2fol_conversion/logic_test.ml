@@ -165,3 +165,27 @@ let tests =
 
 
 let _ = run_test_tt_main tests
+
+
+(* test suite for traverse *)
+
+let tests =
+
+  "test suite for traverse" >::: [
+
+  "neg"	>::
+  (let neg form = NotFormula(form) in
+   let form_test =
+     NotFormula(NotFormula(TrueFormula)) 
+   in   
+   let form_oracle =
+     NotFormula(NotFormula(NotFormula(NotFormula(NotFormula(TrueFormula)))))
+   in
+   fun _ -> assert_equal ~printer:string_of_formula
+   form_oracle
+   (traverse neg form_test));
+
+]
+
+
+let _ = run_test_tt_main tests

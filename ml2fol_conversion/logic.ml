@@ -278,5 +278,76 @@ let string_of_foltheory (sorts, functions, predicates, axioms) =
   ^ "(check-sat)" ^ "\n"
 ;;
 
+
+(************** Traverse *********************)
+
+let rec traverse (k: formula -> formula) form =
+  let tk = traverse k in
+  match form with
+  | TrueFormula -> k TrueFormula
+  | FalseFormula -> k FalseFormula
+  | PredicateFormula(p, ts) -> k (PredicateFormula(p, ts))
+  | EqualFormula(t1, t2) -> k (EqualFormula(t1, t2))
+  | AndFormula(forms) -> k (AndFormula(map tk forms))
+  | OrFormula(forms) -> k (OrFormula(map tk forms))
+  | NotFormula(form) -> k (NotFormula(tk form))
+  | ImpliesFormula(form1, form2) -> k (ImpliesFormula(tk form1, tk form2))
+  | IffFormula(form1, form2) -> k (IffFormula(tk form1, tk form2))
+  | ForallFormula(bs, form) -> k (ForallFormula(bs, tk form))
+  | ExistsFormula(bs, form) -> k (ExistsFormula(bs, tk form))
+;;
+
 (************** Substitution *****************)
 
+(* type substitution = (string * term) list *)
+
+let rec free_in_term (x: string) term =
+  match term with
+  | VarTerm(y, s) -> if x = y then true else false
+  | CompoundTerm(f, ts) -> free_in_terms x ts
+and free_in_terms (x: string) terms =
+  match terms with
+  | [] -> false
+  | t::ts -> if free_in_term x t
+             then true
+             else free_in_terms x ts
+;;
+
+(* substb: Substitution w.r.t. bindings *)
+
+let rec substb (s: (string * term) list) form bs =
+  match form with
+  | TrueFormula -> TrueFormula
+  | FalseFormula -> FalseFormula
+  | PredicateFormula(p, ts) ->
+    PredicateFormula(p, map (fun t -> substb_term s t bs) ts)
+  | EqualFormula(t1, t2) ->
+    EqualFormula(substb_term s t1 bs, substb_term s t2 bs)
+  | AndFormula(forms) -> 
+    AndFormula(map (fun form -> substb s form bs) forms)
+  | OrFormula(forms) -> 
+    OrFormula(map (fun form -> substb s form bs) forms)
+  | NotFormula(form) ->
+    NotFormula(substb s form bs)
+  | ImpliesFormula(form1, form2) ->
+    ImpliesFormula(substb s form1 bs, substb s form2 bs)
+  | IffFormula(form1, form2) ->
+    IffFormula(substb s form1 bs, substb s form2 bs)
+  | ForallFormula(bs', form) ->
+    ForallFormula(bs', substb s form (set_union bs bs'))
+  | ExistsFormula(bs', form) ->
+    ExistsFormula(bs', substb s form (set_union bs bs'))
+and substb_term s term bs =
+  match term with
+  | VarTerm(x, _) -> 
+    if (mem_assoc x s) && not (mem_assoc x bs)
+    then assoc x s
+    else term (* don't change *)
+  | CompoundTerm(f, ts) ->
+    CompoundTerm(f, map (fun t -> substb_term s t bs) ts)                 
+;;
+
+
+let subst s form =
+  substb s form []
+;;

@@ -16,9 +16,11 @@
 
 (assert (forall ((X Nat) (Y Nat))
   (= (succ (plus X Y))
-     (plus (X (succ Y))))))
+     (plus X (succ Y)))))
 
 
 (assert (not
   (= (succ (succ zero))
      (plus (succ zero) (succ zero)))))
+     
+(assert bottom)

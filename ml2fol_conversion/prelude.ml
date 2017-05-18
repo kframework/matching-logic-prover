@@ -136,4 +136,19 @@ let rec freshvars n =
 let freshvar () = fresh ()
 ;;
 
+(************** Function composition *******************)
 
+(* There are two notations of composition as follows. *)
+(* The l.f.s. is computer science notation while
+   the r.h.s. is mathematics notation. *)
+(* f1; f2; f3;... = ... f3 o f2 o f1 *)
+(* We use computer science notation. *)
+(* compose [f; g; h] x = f(g(h(x))) *)
+
+let compose flist =
+  let compose2 f g x =
+    f (g x)
+  in
+  fold_left (compose2) identity flist
+;;
+   
