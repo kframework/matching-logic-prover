@@ -275,7 +275,7 @@ let string_of_foltheory (sorts, functions, predicates, axioms) =
   ^ (declare_functions functions) ^ "\n"
   ^ (declare_predicates predicates) ^ "\n"
   ^ (assert_axioms axioms) ^ "\n"
-  ^ "(check-sat)"
+  ^ "(check-sat)" ^ "\n"
 ;;
 
 (************** Substitution *****************)

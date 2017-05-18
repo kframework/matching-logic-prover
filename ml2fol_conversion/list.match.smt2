@@ -1,13 +1,8 @@
 (declare-sort Nat)
-(declare-sort NatSeq)
-(declare-sort Map)
 (declare-fun zero () Nat)
 (declare-fun succ (Nat) Nat)
-(declare-fun plus (Nat Nat) Nat)
-(declare-fun total_pred (Nat) Nat)
-(declare-fun epsilon () NatSeq)
-(declare-fun delta_pred (Nat Nat) Bool)
-(assert (forall ((X Nat) ($2 Nat)) (= (exists (($3 Nat) ($4 Nat)) (and (= $2 (plus $3 $4)) (= $3 X) (= $4 zero))) (= $2 X))))
-(assert (forall ((X Nat) (Y Nat) ($6 Nat)) (= (exists (($7 Nat) ($8 Nat)) (and (= $6 (plus $7 $8)) (= $7 X) (exists (($9 Nat)) (and (= $8 (succ $9)) (= $9 Y))))) (exists (($10 Nat)) (and (= $6 (succ $10)) (exists (($11 Nat) ($12 Nat)) (and (= $10 (plus $11 $12)) (= $11 X) (= $12 Y))))))))
-(assert (not (forall (($14 Nat)) (= (exists (($15 Nat) ($16 Nat)) (and (= $14 (plus $15 $16)) (exists (($17 Nat)) (and (= $15 (succ $17)) (= $17 zero))) (exists (($18 Nat)) (and (= $16 (succ $18)) (= $18 zero))))) (exists (($19 Nat)) (and (= $14 (succ $19)) (exists (($20 Nat)) (and (= $19 (succ $20)) (= $20 zero)))))))))
+
+(assert (forall ((X Nat) (Y Nat)) (= (forall (($3 Nat)) (= (= $3 X) (= $3 Y))) (forall (($4 Nat)) (= (exists (($5 Nat)) (and (= $4 (succ $5)) (= $5 X))) (exists (($6 Nat)) (and (= $4 (succ $6)) (= $6 Y))))))))
+(assert (forall ((X Nat)) (not (forall (($8 Nat)) (= (= $8 zero) (exists (($9 Nat)) (and (= $8 (succ $9)) (= $9 X))))))))
 (check-sat)
+
