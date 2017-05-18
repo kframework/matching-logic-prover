@@ -3,6 +3,7 @@
 (declare-func zero () Nat)
 (declare-func succ (Nat) Nat)
 (declare-func plus (Nat Nat) Nat)
+(declare-part pred (Nat) Nat)
 
 (assert (forall ((X Nat))
   (= X (plus X zero))))

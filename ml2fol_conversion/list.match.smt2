@@ -2,9 +2,10 @@
 (declare-fun zero () Nat)
 (declare-fun succ (Nat) Nat)
 (declare-fun plus (Nat Nat) Nat)
-
-(assert (forall ((X Nat) ($2 Nat)) (= (= $2 X) (= $2 (plus X zero)))))
-(assert (forall ((X Nat) (Y Nat) ($6 Nat)) (= (= $6 (succ (plus X Y))) (= $6 (plus X (succ Y))))))
-(assert (not (forall (($14 Nat)) (= (= $14 (succ (succ zero))) (= $14 (plus (succ zero) (succ zero)))))))
+(declare-fun total_pred (Nat) Nat)
+(declare-fun delta_pred (Nat Nat) Bool)
+(assert (forall ((X Nat)) (= X (plus X zero))))
+(assert (forall ((X Nat) (Y Nat)) (= (succ (plus X Y)) (plus X (succ Y)))))
+(assert (not (= (succ (succ zero)) (plus (succ zero) (succ zero)))))
 (check-sat)
 

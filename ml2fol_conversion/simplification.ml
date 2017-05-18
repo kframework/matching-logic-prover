@@ -137,12 +137,45 @@ let simp3 formula =
 
 (* Simplication rule #4: eliminate universal quantifiers *)
 (* For any terms t1 and t2 where x doesn't occur,
-   forall x . x = t1 iff x = t2 => t1 = t2 *)
+   forall x . x = t iff x = t' => t = t' *)
 
 let simp4 formula =
-  formula
-;; 
+  match formula with
+  | ForallFormula(bs,
+      IffFormula(EqualFormula(t1, t2), EqualFormula(t3, t4))) ->
 
+    (* find a permutation that matches x t x t',
+       where {x, t} = {t1, t2} and {x t'} = {t3, t4} *)
+
+    (* check *)
+    let delta bs t1 t2 t3 t4 =
+      match (t1, t3) with
+      | (VarTerm(x, sx), VarTerm(y, sy)) ->
+        if x = y && sx = sy && mem_assoc x bs
+                 && not (occur_in_term x t2)
+                 && not (occur_in_term x t4)
+        then true
+        else false
+      | _ -> false
+    in
+    
+    (* make *)
+    let result bs t1 t2 t3 t4 =
+      match t1 with
+      | VarTerm(x, s) ->
+        let bs' = set_minus bs [(x, s)] in
+        ForallFormula(bs', EqualFormula(t2, t4))
+      | _ -> raise (Failure "simp4 error")
+    in
+  
+    (* try all four permutations *)
+    if delta bs t1 t2 t3 t4 then result bs t1 t2 t3 t4
+    else if delta bs t1 t2 t4 t3 then result bs t1 t2 t4 t3
+    else if delta bs t2 t1 t3 t4 then result bs t2 t1 t3 t4
+    else if delta bs t2 t1 t4 t3 then result bs t2 t1 t4 t3
+    else formula (* cannot simplify *)    
+  | _ -> formula
+;;
 
 (****************** Composite, traverse, and fixed points *****************)
 
