@@ -1,0 +1,4 @@
+ocamlbuild -quiet main.byte
+./main.byte $1
+rm main.byte
+z3 -v:1 $1".smt2"

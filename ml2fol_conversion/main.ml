@@ -4,6 +4,7 @@ open Prelude
 open Logic
 open Pat2pattern
 open Printf
+open String
 
 
 let parse_from_string s = 
@@ -28,44 +29,29 @@ let parse_from_file fname =
     close_in_noerr ic;
     raise e
 ;;
+
+let mltheory_from_string s =
+  theory_of_thy (parse_from_string s)
+;;
+
+let mltheory_from_file fname =
+  theory_of_thy (parse_from_file fname)
+;;
+
+
+let ml2fol_file fname_ml fname_fol =
+  let smt2 = string_of_foltheory (foltheory_of_mltheory (mltheory_from_file fname_ml)) in
+  let oc = open_out fname_fol in
+  fprintf oc "%s\n" smt2;
+  close_out oc
+;;
+
+(* Read matching logic theory from @fname_ml,
+   Write the first-order theory to @fname_ml ^ ".smt2". *)
   
-
-let ml2fol_file s =
-  string_of_foltheory (foltheory_of_mltheory (theory_of_thy (parse_from_file "list.match")))
+let _ =
+  if Array.length Sys.argv = 1 then print_string "No argument.\n" else
+  let fname_ml = Sys.argv.(1) in
+  let fname_fol = fname_ml ^ ".smt2" in
+  ml2fol_file fname_ml fname_fol
 ;;
-
-let fth = ml2fol_file "
-
-(declare-sort Nat)
-(declare-sort NatSeq)
-(declare-sort Map)
-
-(declare-func zero () Nat)
-(declare-func succ (Nat) Nat)
-(declare-func plus (Nat Nat) Nat)
-
-(declare-part pred (Nat) Nat)
-
-(declare-func epsilon () NatSeq)
-
-(assert (forall ((X Nat))
-  (= (plus X zero) X)))
-
-(assert (forall ((X Nat) (Y Nat))
-  (= (plus X (succ Y)) (succ (plus X Y)))))
-
-(assert (not 
-  (= (plus (succ zero) (succ zero)) (succ (succ zero)))))
-
-"
-;;
-
-
-
-let _ = print_string "\n\n\n"
-
-let _ = print_string fth
-;;
-
-
-let _ = print_string "\n\n\n"

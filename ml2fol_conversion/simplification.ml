@@ -32,6 +32,14 @@ let rec simplify_trivial formula =
   | _ -> formula
 ;;
 
+(* Simplification #1 *)
+(* E x . x = t /\ form => form[x := t] *)
+
+let rec simplify_1 formula =
+  match formula with 
+  | _ -> formula
+;;
+
 
 (* Main delivery, used by Conversion.ml2fol *)
 
