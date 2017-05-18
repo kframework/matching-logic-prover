@@ -1,6 +1,7 @@
 open List
 open Prelude
 open Logic
+open Simplification
 
 (* Get the (regular) sort of a pattern, if it exists *)
 (* TODO:: This function is mainly used by ml2fol2, which results in
@@ -98,9 +99,10 @@ let rec ml2fol2 pattern (r: string) =
 ;;
  
 let ml2fol pattern (r: string) =
-  match sort_of_pattern pattern with
+  simplify
+ (match sort_of_pattern pattern with
   | None -> ml2fol2 pattern r
-  | Some(s) -> ForallFormula([(r, s)], ml2fol2 pattern r)
+  | Some(s) -> ForallFormula([(r, s)], ml2fol2 pattern r))
 ;;
 
 (* From matching logic to first-order logic *)

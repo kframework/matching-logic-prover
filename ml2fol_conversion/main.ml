@@ -3,6 +3,7 @@ open Conversion
 open Prelude
 open Logic
 open Pat2pattern
+open Printf
 
 
 let parse_from_string s = 
@@ -11,11 +12,29 @@ let parse_from_string s =
   thy
 ;;
 
-let ml2fol_string s =
-  string_of_foltheory (foltheory_of_mltheory (theory_of_thy (parse_from_string s)))
+let parse_from_channel c = 
+  let lexbuf = Lexing.from_channel c in
+  let thy = Parser.thy Lexer.token lexbuf in
+  thy
 ;;
 
-let fth = ml2fol_string "
+let parse_from_file fname = 
+  let ic = open_in fname in
+  try
+    let thy = parse_from_channel ic in
+    close_in ic; 
+    thy
+  with e ->
+    close_in_noerr ic;
+    raise e
+;;
+  
+
+let ml2fol_file s =
+  string_of_foltheory (foltheory_of_mltheory (theory_of_thy (parse_from_file "list.match")))
+;;
+
+let fth = ml2fol_file "
 
 (declare-sort Nat)
 (declare-sort NatSeq)
@@ -34,6 +53,9 @@ let fth = ml2fol_string "
 
 (assert (forall ((X Nat) (Y Nat))
   (= (plus X (succ Y)) (succ (plus X Y)))))
+
+(assert (not 
+  (= (plus (succ zero) (succ zero)) (succ (succ zero)))))
 
 "
 ;;

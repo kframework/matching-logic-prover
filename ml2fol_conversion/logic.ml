@@ -250,7 +250,7 @@ let string_of_foltheory (sorts, functions, predicates, axioms) =
     string_of_list "" "\n" "" declare_sort sorts
   in 
   let declare_function (name, argument_sorts, result_sort) =
-    "(declare-func " ^ name ^ " " 
+    "(declare-fun " ^ name ^ " " 
   ^ (string_of_list "(" " " ")" identity argument_sorts) ^ " " 
   ^ result_sort ^ ")"
   in
@@ -258,7 +258,7 @@ let string_of_foltheory (sorts, functions, predicates, axioms) =
     string_of_list "" "\n" "" declare_function functions
   in
   let declare_predicate (name, argument_sorts) =
-    "(declare-func " ^ name ^ " "
+    "(declare-fun " ^ name ^ " "
   ^ (string_of_list "(" " " ")" identity argument_sorts) ^ " "
   ^ "Bool" ^ ")"
   in
