@@ -102,3 +102,41 @@ let ml2fol pattern (r: string) =
   | None -> ml2fol2 pattern r
   | Some(s) -> ForallFormula([(r, s)], ml2fol2 pattern r)
 ;;
+
+(* From matching logic to first-order logic *)
+
+(* Return (functions, predicates) *)
+
+let rec encode_symbols symbols = 
+  let encode_symbol symbol =
+    match symbol with
+    | UninterpretedSymbol(name, argument_sorts, result_sort) ->
+      ([], [("pi_" ^ name, argument_sorts @ [result_sort])])
+    | FunctionalSymbol(name, argument_sorts, result_sort) ->
+      ([(name, argument_sorts, result_sort)], [])
+    | PartialSymbol(name, argument_sorts, result_sort) ->
+      ([("total_" ^ name, argument_sorts, result_sort)],
+       [("delta_" ^ name, argument_sorts @ [result_sort])])
+  in
+  let append2 (xs1, ys1) (xs2, ys2) =
+    (xs1 @ xs2, ys1 @ ys2)
+  in
+  match symbols with
+  | [] -> ([], [])
+  | s::ss -> append2 (encode_symbol s) (encode_symbols ss)
+;;
+
+
+let encode_axioms patterns =
+  let encode_axiom pattern =
+    let r = freshvar () in
+    ml2fol pattern r
+  in
+  map encode_axiom patterns
+;;
+
+let foltheory_of_mltheory (sorts, symbols, patterns) =
+  let (functions, predicates) = encode_symbols symbols in
+  let formulas = encode_axioms patterns in
+  (sorts, functions, predicates, formulas)
+;;

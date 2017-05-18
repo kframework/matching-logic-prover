@@ -1,0 +1,3 @@
+ocamlbuild -quiet -package oUnit main.byte
+./main.byte
+rm main.byte

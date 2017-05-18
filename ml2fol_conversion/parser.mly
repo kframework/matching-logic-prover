@@ -1,71 +1,76 @@
 %{
-open Logic 
+open Pat
 %}
 
 %token <string> ID
-%token LPAREN RPAREN DECLSORT DECLSYMB DECLPARTIAL DECLFUNC ASSERT CHECKSAT GETMODEL 
+%token LPAREN RPAREN  
+%token DECLSORT DECLSYMB DECLPART DECLFUNC ASSERT CHECKSAT GETMODEL 
 %token TOP BOTTOM AND OR NOT IMPLIES IFF FORALL EXISTS EQUAL FLOOR CEIL CONTAINS 
 %token EOF
 
-%start system
+%start thy
+%start pat 
 
-%type <Convert.system> system
-%type <Convert.pattern> pattern
+%type <(string list) * (Pat.sym list) * (Pat.pat list)> thy
+%type <Pat.pat> pat 
+%type <Pat.pat> pat_closed
+%type <Pat.pat list> pats_closed
+%type <(string * string) list> bindings
+%type <string> sort
 %type <string list> sorts
-%type <(string * string) list> binders
 %%
 
-system:
-  | EOF { initial_system } /* the empty system */
-  | LPAREN system_cont { $2 }
-;
+thy:
+  | EOF { ([], [], []) }
+  | LPAREN thy_closed { $2 }
 
-system_cont: /* expect "declare-sort", "declare-func", "declare-symb", or "assert" */
-  | DECLSORT ID RPAREN system { add_sort $2 $4 }
-  | DECLFUNC ID LPAREN sorts ID RPAREN system /* sorts end with RPAREN */
-      { add_func $2 $4 $5 $7 }
-  | DECLPARTIAL ID LPAREN sorts ID RPAREN system
-      { add_partial $2 $4 $5 $7 }
-  | DECLSYMB ID LPAREN sorts ID RPAREN system
-      { add_nonfunc $2 $4 $5 $7 }
-  | ASSERT pattern RPAREN system
-      { add_axiom $2 $4 }
-;
+thy_closed:
+  | DECLSORT ID RPAREN thy { add_sort_pat $2 $4 }
+  | DECLSYMB ID sorts sort RPAREN thy { add_sym_pat (UI($2, $3, $4)) $6 }
+  | DECLFUNC ID sorts sort RPAREN thy { add_sym_pat (FC($2, $3, $4)) $6 }
+  | DECLPART ID sorts sort RPAREN thy { add_sym_pat (PF($2, $3, $4)) $6 }
+  | ASSERT pat RPAREN thy { add_axiom_pat $2 $4 }
+
+sort:
+  | ID { $1 }
 
 sorts:
-  | RPAREN { [] }
-  | ID sorts { $1 :: $2 }
-;
+  | LPAREN sorts_closed { $2 }
 
-pattern:
-  | TOP { TopPattern }
-  | BOTTOM { BottomPattern }
-  | ID { AppPattern($1, []) }
-  | INT { IntValuePattern($1) }
-  | LPAREN pattern_cont { $2 } /* pattern_cont ends with a RPAREN */
-;
-pattern_cont:
-  | AND patterns RPAREN { AndPattern($2) }
-  | OR patterns RPAREN { OrPattern($2) }
-  | NOT pattern RPAREN { NotPattern($2) }
-  | IMPLIES pattern pattern RPAREN { ImpliesPattern($2, $3) }
-  | IFF pattern pattern RPAREN { IffPattern($2, $3) }
-  | FORALL LPAREN binders pattern RPAREN /* binders end with RPAREN */
-      { ForallPattern($3, (replace_constants_if_binders $4 $3)) }
-  | EXISTS LPAREN binders pattern RPAREN /* binders end with RPAREN */
-      { ExistsPattern($3, (replace_constants_if_binders $4 $3)) }
-  | EQUAL pattern pattern RPAREN { EqualPattern($2, $3) }
-  | FLOOR pattern RPAREN { FloorPattern($2) }
-  | CEIL pattern RPAREN { CeilPattern($2) }
-  | ID patterns RPAREN { AppPattern($1, $2) }
-;
-patterns:
-  | pattern { [$1] }
-  | pattern patterns { $1::$2 }
-;
-
-binders: /* the starting LPAREN has been consumed */
-         /* expect " (ID ID) (ID ID) ... (ID ID)) " */
+sorts_closed:
   | RPAREN { [] }
-  | LPAREN ID ID RPAREN binders { ($2, $3) :: $5 }
-;
+  | ID sorts_closed { $1 :: $2 }
+
+pat:
+  | TOP { Top }
+  | BOTTOM { Bottom } 
+  | ID { Id($1) }
+  | LPAREN pat_closed { $2 }
+
+pat_closed:
+  | AND pats_closed { And($2) }
+  | OR pats_closed { Or($2) }
+  | NOT pat RPAREN { Not($2) }
+  | IMPLIES pat pat RPAREN { Implies($2, $3) }
+  | IFF pat pat RPAREN { Iff($2, $3) }
+  | FORALL bindings pat RPAREN { Forall($2, $3) }
+  | EXISTS bindings pat RPAREN { Exists($2, $3) }
+  | EQUAL pat pat RPAREN { Equal($2, $3) }
+  | CEIL pat RPAREN { Ceil($2) }
+  | FLOOR pat RPAREN { Floor($2) }
+  | CONTAINS pat pat RPAREN { Contains($2, $3) }
+  | ID pats_closed { App($1, $2) }
+
+pats_closed: 
+  | RPAREN { [] }
+  | pat pats_closed { $1 :: $2 }
+
+
+bindings:
+  | LPAREN bindings_closed { $2 }
+
+bindings_closed:
+  | RPAREN { [] }
+  | LPAREN ID ID RPAREN bindings_closed { ($2, $3) :: $5 }
+
+

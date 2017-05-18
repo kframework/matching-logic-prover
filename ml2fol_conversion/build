@@ -9,3 +9,16 @@ rm logic_test.byte
 ocamlbuild -quiet -package oUnit conversion_test.byte
 ./conversion_test.byte
 rm conversion_test.byte
+
+ocamlbuild -quiet -package oUnit parser_test.byte
+./parser_test.byte
+rm parser_test.byte
+
+ocamlbuild -quiet -package oUnit pat2pattern_test.byte
+./pat2pattern_test.byte
+rm pat2pattern_test.byte
+
+ocamlbuild -quiet -package oUnit main.byte
+./main.byte
+rm main.byte
+

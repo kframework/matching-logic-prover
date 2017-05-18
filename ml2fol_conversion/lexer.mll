@@ -39,8 +39,7 @@ rule token = parse
   | "exists"            { EXISTS }
   | "floor"             { FLOOR }
   | "ceil"              { CEIL }
-  | int as n            { INT(int_of_string n) }
-  | word as w           { ID(w) }
+  | id as id            { ID(id) }
   | eof                 { EOF }
 and comment = parse
   | [^'\n']             { comment lexbuf }        (* ignore anything but '\n' *)

@@ -241,3 +241,38 @@ let rec string_of_formula formula =
   | ForallFormula(bindings, form) -> "(forall " ^ (string_of_bindings bindings) ^ " " ^ (string_of_formula form) ^ ")"
   | ExistsFormula(bindings, form) -> "(exists " ^ (string_of_bindings bindings) ^ " " ^ (string_of_formula form) ^ ")"
 ;;
+
+let string_of_foltheory (sorts, functions, predicates, axioms) =
+  let declare_sort sort =
+    "(declare-sort " ^ sort ^ ")"
+  in
+  let declare_sorts sorts =
+    string_of_list "" "\n" "" declare_sort sorts
+  in 
+  let declare_function (name, argument_sorts, result_sort) =
+    "(declare-func " ^ name ^ " " 
+  ^ (string_of_list "(" " " ")" identity argument_sorts) ^ " " 
+  ^ result_sort ^ ")"
+  in
+  let declare_functions functions =
+    string_of_list "" "\n" "" declare_function functions
+  in
+  let declare_predicate (name, argument_sorts) =
+    "(declare-func " ^ name ^ " "
+  ^ (string_of_list "(" " " ")" identity argument_sorts) ^ " "
+  ^ "Bool" ^ ")"
+  in
+  let declare_predicates predicates =
+    string_of_list "" "\n" "" declare_predicate predicates
+  in
+  let assert_axiom formula =
+    "(assert " ^ (string_of_formula formula) ^ ")"
+  in 
+  let assert_axioms formulas =
+    string_of_list "" "\n" "" assert_axiom formulas
+  in
+  (declare_sorts sorts) ^ "\n"
+  ^ (declare_functions functions) ^ "\n"
+  ^ (declare_predicates predicates) ^ "\n"
+  ^ (assert_axioms axioms)
+;;
