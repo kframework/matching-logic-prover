@@ -1,18 +1,77 @@
 (declare-sort Nat)
+(declare-sort NatSeq)
+(declare-sort Map)
+
+; Natural numbers
 
 (declare-func zero () Nat)
 (declare-func succ (Nat) Nat)
-(declare-func plus (Nat Nat) Nat)
-(declare-part pred (Nat) Nat)
 
-(assert (forall ((X Nat))
-  (= X (plus X zero))))
+(declare-func one   () Nat)
+(declare-func two   () Nat)
+(declare-func three () Nat)
+(declare-func four  () Nat)
+(declare-func five  () Nat)
+(declare-func six   () Nat)
+(declare-func seven () Nat)
+(declare-func eight () Nat)
+(declare-func nine  () Nat)
+(declare-func ten   () Nat)
 
-(assert (forall ((X Nat) (Y Nat))
-  (= (succ (plus X Y))
-     (plus X (succ Y)))))
+(assert (= one   (succ zero)))
+(assert (= two   (succ one   )))
+(assert (= three (succ two   )))
+(assert (= four  (succ three )))
+(assert (= five  (succ four  )))
+(assert (= six   (succ five  )))
+(assert (= seven (succ six   )))
+(assert (= eight (succ seven )))
+(assert (= nine  (succ eight )))
+(assert (= ten   (succ nine  )))
+
+; succ is injective
+(assert (forall ((x Nat) (y Nat))
+  (= (= (succ x) (succ y))
+     (= x y))))
+
+; succ(x) =/= x
+(assert (forall ((x Nat))
+  (not (= (succ x) x))))
+
+; Sequence of naturals
+
+(declare-func epsilon () NatSeq)
+(declare-func cncat (Nat NatSeq) NatSeq)
+
+(assert (forall ((x Nat) (s NatSeq))
+  (not (= (cncat x s) s))))
+
+(assert (forall ((x1 Nat) (x2 Nat) (s1 NatSeq) (s2 NatSeq))
+  (= (= (cncat x1 s1) (cncat x2 s2))
+     (and (= x1 x2) (= s1 s2)))))
+
+; Maps
+
+(declare-func emp () Map)
+
+; x |-> y
+(declare-part mapsto (Nat Nat) Map)
+
+; 0 |-> y is bottom
+(assert (forall ((y Nat))
+  (not (mapsto zero y))))
+
+; succ(x) |-> y is defined 
+(assert (forall ((x Nat) (y Nat))
+  (ceil (mapsto (succ x) y))))
+
+; succ(x1) |-> y1 = succ(x2) |-> y2 iff x1 = x2 /\ y1 = y1
+(assert (forall ((x1 Nat) (x2 Nat) (y1 Nat) (y2 Nat))
+  (= (= (mapsto (succ x1) y1) (mapsto (succ x2) y2))
+     (and (= x1 x2) (= y1 y2)))))
+
 
 (assert (not
-  (= (succ (succ zero))
-     (plus (succ zero) (succ zero)))))
+  (= (mapsto one zero)
+     (mapsto one one))))
 

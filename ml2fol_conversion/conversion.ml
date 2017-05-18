@@ -118,7 +118,7 @@ let rec encode_symbols symbols =
       ([(name, argument_sorts, result_sort)], [])
     | PartialSymbol(name, argument_sorts, result_sort) ->
       ([("total_" ^ name, argument_sorts, result_sort)],
-       [("delta_" ^ name, argument_sorts @ [result_sort])])
+       [("delta_" ^ name, argument_sorts)])
   in
   let append2 (xs1, ys1) (xs2, ys2) =
     (xs1 @ xs2, ys1 @ ys2)
