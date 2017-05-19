@@ -221,12 +221,82 @@ let simp5 formula =
    from equalities between two partial patterns. *)
 (* This rule is a generalization of rule #4. *)
 
+let simp6 formula = 
+  match formula with
+  | ForallFormula(bs, IffFormula(AndFormula(forms1), AndFormula(forms2))) ->
+    let rec check_and_get (x: string) forms1 forms2 =
+    (* Return Some((t1, t2)),
+       if x = t1 is in forms1 and x = t2 is in forms2, and
+       x doesn't occur in t1 or t2.
+       Return None, otherwise. *) 
+      let rec cget (x: string) forms = 
+        match forms with
+        | [] -> None
+        | form :: forms -> 
+          (match form with
+           | EqualFormula(VarTerm(x, s), t) ->
+             if not (occur_in_term x t)
+             then Some(t)
+             else (match form with
+                   | EqualFormula(t, VarTerm(x, s)) ->
+                     if not (occur_in_term x t)
+                     then Some(t)
+                     else cget x forms
+                   | _ -> raise (Failure "simp6 error"))
+           | EqualFormula(t, VarTerm(x, s)) ->
+             if not (occur_in_term x t)
+             then Some(t)
+             else cget x forms
+           | _ -> cget x forms)
+      in
+      match ((cget x forms1), (cget x forms2)) with
+      | (Some(t1), Some(t2)) -> Some((t1, t2))
+      | _ -> None
+    in
+    let rec gothrough bs_tocheck bs_checked forms1 forms2 =
+      match bs_tocheck with
+      | [] -> formula (* cannot simplify *)
+      | (x, s) :: bs ->
+        (match check_and_get x forms1 forms2 with
+         | None -> gothrough bs (set_union bs_checked [(x,s)]) forms1 forms2
+         | Some((t1, t2)) -> 
+           let forms1' = remove (EqualFormula(VarTerm(x,s), t1)) 
+                        (remove (EqualFormula(t1, VarTerm(x,s))) forms1) in
+           let forms2' = remove (EqualFormula(VarTerm(x,s), t2)) 
+                        (remove (EqualFormula(t2, VarTerm(x,s))) forms2) in
+           AndFormula([IffFormula(AndFormula(forms1'), AndFormula(forms2'));
+                       ImpliesFormula(OrFormula([AndFormula(forms1'); AndFormula(forms2')]),
+                                      EqualFormula(t1, t2))]))
+    in 
+    gothrough bs [] forms1 forms2
+  | _ -> formula (* cannot simplify *)
+;;
+
+(* Simplification rule #7: flattern nested And and Or *)
+
+let simp7 formula =
+  let flattern_and form =
+    match form with
+    | AndFormula(forms) -> forms
+    | _ -> [form]
+  in
+  let flattern_or form =
+    match form with
+    | OrFormula(forms) -> forms
+    | _ -> [form]
+  in
+  match formula with
+  | AndFormula(forms) -> AndFormula(concat (map (flattern_and) forms))
+  | OrFormula(forms) -> OrFormula(concat (map (flattern_or) forms))
+  | _ -> formula (* cannot simplify *)
+;;
+    
     
 
 (****************** Composite, traverse, and fixed points *****************)
 
 
-let simp = compose [simp0; simp1; simp2; simp3; simp4; simp5; simp6]
+let simp = compose [simp0; simp1; simp2; simp3; simp4; simp5; simp6; simp7]
 ;;
 
 let simplify = fixed_point (traverse simp)

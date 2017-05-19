@@ -70,8 +70,51 @@
   (= (= (mapsto (succ x1) y1) (mapsto (succ x2) y2))
      (and (= x1 x2) (= y1 y2)))))
 
+; merge is a partial AC binary function
+(declare-part merge (Map Map) Map)
+
+; commutativity
+(assert (forall ((h1 Map) (h2 Map))
+  (= (merge h1 h2) (merge h2 h1))))
+
+; associativity
+(assert (forall ((h1 Map) (h2 Map) (h3 Map))
+  (= (merge (merge h1 h2) h3)
+     (merge h1 (merge h2 h3)))))
+; identity
+(assert (forall ((h Map))
+  (= h (merge h emp))))
+
+; x |-> y * x |-> z = bottom
+(assert (forall ((x Nat) (y Nat) (z Nat))
+  (not (merge (mapsto x y) (mapsto x z)))))
+
+; mapstoseq
+(declare-part mapstoseq (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+  (= (mapstoseq x epsilon) emp)))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+  (= (mapstoseq x (cncat y s))
+     (merge (mapsto x y) (mapstoseq (succ x) s)))))
+
+(declare-symb list (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+  (= (list x epsilon)
+     (and emp (= x zero)))))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+  (= (list x (cncat y s))
+     (exists ((z Nat))
+       (merge (mapstoseq x (cncat y (cncat z epsilon)))
+              (list z s))))))
 
 (assert (not
-  (= (mapsto one zero)
-     (mapsto one one))))
+  (-> (merge (mapsto seven nine)
+      (merge (mapsto eight one)
+      (merge (mapsto two zero)
+             (mapsto one five))))
+      (list seven (cncat nine (cncat five epsilon)))))) 
 
