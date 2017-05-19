@@ -1,4 +1,13 @@
-ocamlbuild -quiet main.byte
-./main.byte $1
-rm main.byte
-z3 -v:1 $1".smt2"
+if [ "$#" -ne 1 ]
+then echo "Error: input file was not specified."
+else
+  ocamlbuild -quiet main.byte
+  rm -f $1".smt2"
+  ./main.byte $1
+  if [ $? -eq 0 ]
+  then
+    z3 -v:1 $1".smt2"
+  else
+  fi
+fi
+

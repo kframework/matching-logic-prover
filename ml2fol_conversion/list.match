@@ -111,10 +111,10 @@
        (merge (mapstoseq x (cncat y (cncat z epsilon)))
               (list z s))))))
 
-(assert (not
-  (-> (merge (mapsto seven nine)
-      (merge (mapsto eight one)
-      (merge (mapsto two zero)
-             (mapsto one five))))
-      (list seven (cncat nine (cncat five epsilon)))))) 
+;(assert (not
+;  (-> (merge (mapsto seven nine)
+;      (merge (mapsto eight one)
+;      (merge (mapsto two zero)
+;             (mapsto one five))))
+;      (list seven (cncat nine (cncat five epsilon)))))) 
 
