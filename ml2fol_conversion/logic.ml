@@ -253,8 +253,12 @@ let string_of_foltheory (sorts, functions, predicates, axioms) =
     string_of_list "" "\n" "" assert_axiom formulas
   in
   let split form =
+  (* assert form1 /\ form2 => assert form1, assert form2.
+     assert forall x . form1 /\ form2 => assert forall x . form1, assert forall x . form2 *)
     match form with
     | AndFormula(forms) -> forms
+    | ForallFormula(bs, AndFormula(forms)) ->
+      map (fun f -> ForallFormula(bs, f)) forms
     | _ -> [form]
   in
   let axioms = flatten (map split axioms) in
