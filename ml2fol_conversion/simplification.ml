@@ -291,12 +291,60 @@ let simp7 formula =
   | _ -> formula (* cannot simplify *)
 ;;
     
-    
+(* Simplification rule #8: universal quantifiers elimination *)
+(* For terms t1, t2 where x doesn't occur,
+   forall x . x = t iff x = t' /\ form
+   =>
+   form /\ t = t'.
+*)
+(* This rule is a specific case of rule #6 *)
 
+let simp8 formula =
+  let rec cget (x: string) forms = 
+    match forms with
+    | [] -> None
+    | form :: forms -> 
+      (match form with
+       | EqualFormula(VarTerm(x, s), t) ->
+         if not (occur_in_term x t)
+         then Some(t)
+         else (match form with
+               | EqualFormula(t, VarTerm(x, s)) ->
+                 if not (occur_in_term x t)
+                 then Some(t)
+                 else cget x forms
+               | _ -> raise (Failure "simp6 error"))
+       | EqualFormula(t, VarTerm(x, s)) ->
+         if not (occur_in_term x t)
+         then Some(t)
+         else cget x forms
+       | _ -> cget x forms)
+  in
+  let rec gothrough bs_tocheck bs_checked t1 t2 forms =
+    let equality = EqualFormula(t1, t2) in
+    match bs_tocheck with
+    | [] -> ForallFormula(bs_checked, 
+            IffFormula(EqualFormula(t1, t2), AndFormula(forms)))
+    | (x,s) :: bs -> 
+      (match ((cget x [equality]), (cget x forms)) with  
+       | (Some(t), Some(t')) -> 
+         let forms' = remove (EqualFormula(VarTerm(x,s), t'))
+                     (remove (EqualFormula(t', VarTerm(x,s))) forms) in
+         let bs' = set_union bs_checked bs in
+         ForallFormula(bs', AndFormula(set_union forms' [EqualFormula(t, t')]))
+       | _ -> gothrough bs (set_union bs_checked [(x,s)]) t1 t2 forms)
+  in
+  match formula with
+  | ForallFormula(bs, IffFormula(EqualFormula(t1, t2), AndFormula(forms))) ->
+    gothrough bs [] t1 t2 forms
+  | ForallFormula(bs, IffFormula(AndFormula(forms), EqualFormula(t1, t2))) ->
+    gothrough bs [] t1 t2 forms
+  | _ -> formula (* cannot simplify *)
+;;
 (****************** Composite, traverse, and fixed points *****************)
 
 
-let simp = compose [simp0; simp1; simp2; simp3; simp4; simp5; simp6; simp7]
+let simp = compose [simp0; simp1; simp2; simp3; simp4; simp5; simp6; simp7; simp8]
 ;;
 
 let simplify = fixed_point (traverse simp)
