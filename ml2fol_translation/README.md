@@ -15,6 +15,10 @@ sudo apt install m4 ocaml opam
 ```
 If it is your first time installing `opam`, you should do `opam init` first, and then do `opam install ounit` to install the OUnit testing framework.
 
+You might want to do `./tests` to run all test suites to make sure the project is built correctly.
+
+## Use ml2fol-translation
+
 There are two bash scripts in the main directory. One is `mlprover` that takes one argument as the input file name. It reads the input file, say `example.match`, translate it to a first-order theory `example.match.smt2`, and calls Z3 to solve the first-order theory.
 
 Sometimes it is convenient to use the other bash script, `ml2fol`, which also takes one argument as the input file name, but it just translate the input matching logic theory to a first-order theory and saves it in `example.match.smt2` and doesn't call Z3.
