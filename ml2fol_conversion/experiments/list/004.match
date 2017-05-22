@@ -21,7 +21,7 @@
 (declare-func twelve     () Nat) 
 (declare-func thirteen   () Nat) 
 (declare-func fourteen   () Nat) 
-(declare-func fifthteen  () Nat) 
+(declare-func fifteen  () Nat) 
 (declare-func sixteen    () Nat) 
 (declare-func seventeen  () Nat) 
 (declare-func eighteen   () Nat) 
@@ -42,8 +42,8 @@
 (assert (= twelve     (succ eleven   ))) 
 (assert (= thirteen   (succ twelve   ))) 
 (assert (= fourteen   (succ thirteen ))) 
-(assert (= fifthteen  (succ fourteen ))) 
-(assert (= sixteen    (succ fifthteen))) 
+(assert (= fifteen  (succ fourteen ))) 
+(assert (= sixteen    (succ fifteen))) 
 (assert (= seventeen  (succ sixteen  ))) 
 (assert (= eighteen   (succ seventeen))) 
 (assert (= nineteen   (succ eighteen ))) 
@@ -155,7 +155,24 @@
      (exists ((z Nat))
        (merge (mapstoseq x (cons y (cons z epsilon)))
               (list z s))))))
+              
+;list(5, [9;2;5])
 
-(assert
-  (=  bottom
-      (mapsto one five)))
+; 5 -> 9
+; 6 -> 8
+; 8 -> 2
+; 9 -> 11
+; 11 -> 5
+; 12 -> 0
+              
+(assert (not
+  (contains
+      (list five (cons nine (cons two (cons five epsilon))))
+      (merge (mapsto five nine)
+      (merge (mapsto six eight)
+      (merge (mapsto eight two)
+      (merge (mapsto nine eleven)
+      (merge (mapsto eleven five)
+             (mapsto twelve zero))))))))) 
+          
+          

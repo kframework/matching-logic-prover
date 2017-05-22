@@ -261,7 +261,7 @@ let string_of_foltheory (sorts, functions, predicates, axioms) =
       map (fun f -> ForallFormula(bs, f)) forms
     | _ -> [form]
   in
-  let axioms = flatten (map split axioms) in
+  let axioms = flatten (map split axioms) in 
   (declare_sorts sorts) ^ "\n"
   ^ (declare_functions functions) ^ "\n"
   ^ (declare_predicates predicates) ^ "\n"

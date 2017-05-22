@@ -45,6 +45,7 @@ let simp0 formula =
   | AndFormula([form]) -> form
   | OrFormula([]) -> FalseFormula
   | OrFormula([form]) -> form
+  | NotFormula(NotFormula(form)) -> form
   | ForallFormula([], form) -> form
   | ExistsFormula([], form) -> form
   | ForallFormula(bs, ForallFormula(bs', form)) ->

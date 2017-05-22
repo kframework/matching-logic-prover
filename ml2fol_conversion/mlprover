@@ -6,7 +6,7 @@ else
   ./main.byte $1
   if [ $? -eq 0 ]
   then
-    z3 -v:1 $1".smt2"
+    z3 -v:1024 $1".smt2"
   fi
 fi
 

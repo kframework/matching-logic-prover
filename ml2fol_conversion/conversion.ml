@@ -73,9 +73,10 @@ let rec ml2fol2 pattern (r: string) =
     let r'_in_p1 = ml2fol2 p1 r' in
     let r'_in_p2 = ml2fol2 p2 r' in
     let iff = IffFormula(r'_in_p1, r'_in_p2) in
-    (match sort_of_pattern p1 with
-     | None -> iff 
-     | Some(s) -> ForallFormula([(r', s)], iff))
+    (match (sort_of_pattern p1, sort_of_pattern p2) with
+     | (None, None) -> iff
+     | (Some(s), _) -> ForallFormula([(r', s)], iff)
+     | (_, Some(s)) -> ForallFormula([(r', s)], iff))
   | CeilPattern(p) -> 
     let r' = freshvar () in
     let r'_in_p = ml2fol2 p r' in
@@ -93,9 +94,10 @@ let rec ml2fol2 pattern (r: string) =
     let r'_in_p1 = ml2fol2 p1 r' in
     let r'_in_p2 = ml2fol2 p2 r' in
     let implies = ImpliesFormula(r'_in_p2, r'_in_p1) in
-    (match sort_of_pattern p1 with
-     | None -> implies
-     | Some(s) -> ForallFormula([(r', s)], implies))
+    (match (sort_of_pattern p1, sort_of_pattern p2) with
+     | (None, None) -> implies
+     | (Some(s), _) -> ForallFormula([(r', s)], implies)
+     | (_, Some(s)) -> ForallFormula([(r', s)], implies))
 ;;
  
 let ml2fol pattern (r: string) =

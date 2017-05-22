@@ -12,15 +12,11 @@
 % Import packages for syntax highlight code.
 \usepackage{listings}
 \usepackage{xcolor}
-\lstdefinelanguage{maude}
-{
-    keywords={sort, sorts, op, ops, var, vars, eq, ceq, mb , endfm, fmod, is, endm, including},
-    morecomment=[l]{---}
-}
-\lstset{
-	language=maude,
-	basicstyle=\ttfamily,
-	keywordstyle=\color{blue}
+
+
+\lstdefinestyle{smt}{
+    basicstyle=\footnotesize\ttfamily,
+    breaklines=true
 }
 
 \theoremstyle{plain}
@@ -44,6 +40,7 @@
 
 % Sf keywords used in math mode.
 
+\def\fol{\mathsf{fol}}
 \def\foltwo{\mathsf{fol_2}}
 
 % Small capital letters
@@ -686,6 +683,164 @@ Define two formula transformations $\mathsf{fol}$ and $\foltwo$ as follows.
 	To be continued.
 \end{proof}
 
+\begin{thm}
+  For any pattern set $\Gamma$, $\Gamma$ is satisfiable in matching logic iff $\fol(\Gamma)$ is satisfiable in first-order logic.
+\end{thm}
+
+In the following, we introduce a matching logic theory of heaps as a running example to show how {\MLFOL} works. From now on, we will use s-expressions to write matching logic patterns and first-order formulas. Readers who are familiar with SMT-LIB should find our representation almost identical to the one that many SMT solvers, such as Z3, use. Lisp programmers should find our representation quite easy to understand, too.
+
+\lstset{style=smt}
+\begin{lstlisting}
+; A matching logic theory of maps
+
+(declare-sort Nat)
+(declare-sort NatSeq)
+(declare-sort Map)
+
+; Natural numbers
+
+(declare-func zero () Nat)
+(declare-func succ (Nat) Nat)
+
+(declare-func one        () Nat)
+(declare-func two        () Nat)
+...
+
+(assert (= one        (succ zero     ))) 
+(assert (= two        (succ one      ))) 
+...
+
+; succ is injective
+(assert (forall ((x Nat) (y Nat))
+  (= (= (succ x) (succ y))
+     (= x y))))
+
+; succ(x) =/= x
+(assert (forall ((x Nat))
+  (not (= (succ x) x))))
+
+; Sequence of naturals
+
+(declare-func epsilon () NatSeq)
+(declare-func cons (Nat NatSeq) NatSeq)
+(declare-func append (NatSeq NatSeq) NatSeq)
+
+(assert (forall ((x Nat) (s NatSeq))
+(not (= (cons x s) s))))
+
+(assert (forall ((x1 Nat) (x2 Nat) (s1 NatSeq) (s2 NatSeq))
+(= (= (cons x1 s1) (cons x2 s2))
+(and (= x1 x2) (= s1 s2)))))
+
+(assert (forall ((s1 NatSeq) (s2 NatSeq) (s3 NatSeq))
+(= (append (append s1 s2) s3)
+(append s1 (append s2 s3)))))
+
+(assert (forall ((s NatSeq))
+(= (append s epsilon) s)))
+
+(assert (forall ((s NatSeq))
+(= (append epsilon s) s)))
+
+(assert (forall ((s1 NatSeq) (s2 NatSeq) (x Nat))
+(= (append (cons x s1) s2)
+(cons x (append s1 s2)))))
+
+(declare-func rev (NatSeq) NatSeq)
+
+(assert (= (rev epsilon) epsilon))
+
+(assert (forall ((x Nat) (s NatSeq))
+(= (rev (cons x s))
+(append (rev s) (cons x epsilon)))))
+
+; Maps
+
+(declare-func emp () Map)
+
+; x |-> y
+(declare-part mapsto (Nat Nat) Map)
+
+; 0 |-> y is bottom
+(assert (forall ((y Nat))
+(not (mapsto zero y))))
+
+; succ(x) |-> y is defined 
+(assert (forall ((x Nat) (y Nat))
+(ceil (mapsto (succ x) y))))
+
+; succ(x1) |-> y1 = succ(x2) |-> y2 iff x1 = x2 /\ y1 = y1
+(assert (forall ((x1 Nat) (x2 Nat) (y1 Nat) (y2 Nat))
+(= (= (mapsto (succ x1) y1) (mapsto (succ x2) y2))
+(and (= x1 x2) (= y1 y2)))))
+
+; merge is a partial AC binary function
+(declare-part merge (Map Map) Map)
+
+; commutativity
+(assert (forall ((h1 Map) (h2 Map))
+(= (merge h1 h2) (merge h2 h1))))
+
+; associativity
+(assert (forall ((h1 Map) (h2 Map) (h3 Map))
+(= (merge (merge h1 h2) h3)
+(merge h1 (merge h2 h3)))))
+; identity
+(assert (forall ((h Map))
+(= h (merge h emp))))
+
+; x |-> y * x |-> z = bottom
+(assert (forall ((x Nat) (y Nat) (z Nat))
+(not (merge (mapsto x y) (mapsto x z)))))
+
+; mapstoseq
+(declare-part mapstoseq (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+(= (mapstoseq x epsilon) emp)))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+(= (mapstoseq x (cons y s))
+(merge (mapsto x y) (mapstoseq (succ x) s)))))
+
+(declare-symb list (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+(= (list x epsilon)
+(and emp (= x zero)))))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+(= (list x (cons y s))
+(exists ((z Nat))
+(merge (mapstoseq x (cons y (cons z epsilon)))
+(list z s))))))
+
+\end{lstlisting}
+
+\subsubsection*{Validity and satisfiability}
+The duality between validity and satisfiability forms the foundation of SMT solvers. Suppose one wants to deduce $\varphi$ from a set of axioms $\Gamma$. What he or she can do is adding the negation of the proof obligation $\neg \varphi$ to the axiom set and try to prove $\Gamma \cup \{\neg \varphi\}$ is unsatisfiable. This approach is justified thanks to the next theorem that establishes a duality between satisfiability and validity.
+
+\begin{thm}
+  For any first-order theory $\Gamma$ and first-order formula $\varphi$, 
+  \begin{equation*}
+  \Gamma \models \varphi \quad \text{iff} \quad \Gamma \cup \{\neg \varphi\} \text{ is unsatisfiable.}  
+  \end{equation*}
+\end{thm}
+
+The dual relation between validity and satisfiability is less straightforward then the one in first-order logic. 
+
+\begin{thm}
+	For any first-order theory $\Gamma$ and a pattern $P$,
+	\begin{equation*}
+	\Gamma \models \varphi \quad \text{iff} \quad  \Gamma \cup \{\neg \floor{\varphi}\} \text{ is unsatisfiable.}
+	\end{equation*}
+\end{thm}
+
+\subsubsection*{Simplification}
+The formula(s) that are autogenerated by $\MLFOL$ are often unnecessarily verbose. Quantified dummy variables are everywhere, which makes it too hard for SMT solvers. Therefore, it is necessary to preprocess and simplify the autogenerated formulas before throwing them to solvers. In the next paragraph, we will introduce nine simplification rules that are crucial and useful in practice. All of them are trivially valid simplification rules, so the emphasis will be put on the reason why we apply them.
+
+\paragraph{Rule 1: Eliminating true and false}
+d
 
 \section{Applications}
 
