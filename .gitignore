@@ -209,5 +209,5 @@ TSWLatexianTemp*
 # expex forward references with \gathertags
 *-tags.tex
 
-ml2fol_conversion/_build/*
+ml2fol_translation/_build/*
 *.swp
