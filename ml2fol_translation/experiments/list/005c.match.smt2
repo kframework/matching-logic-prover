@@ -64,20 +64,33 @@
 
 (assert (forall ((x Int) (y Int) (s IntSeq) ($193 Map)) (= (pi_list x (cons y s) $193) (exists ((z Int) ($199 Map)) (and (delta_merge (total_mapstoseq x (cons y (cons z epsilon))) $199) (= $193 (total_merge (total_mapstoseq x (cons y (cons z epsilon))) $199)) (delta_mapstoseq x (cons y (cons z epsilon))) (pi_list z s $199))))))
 
-(assert (and 
-  (delta_merge (total_mapsto 5 9) (total_merge (total_mapsto 6 8) (total_merge (total_mapsto 8 2) (total_merge (total_mapsto 9 11) (total_merge (total_mapsto 11 5) (total_mapsto 12 0)))))) 
-  (delta_mapsto 5 9) 
-  (delta_merge (total_mapsto 6 8) (total_merge (total_mapsto 8 2) (total_merge (total_mapsto 9 11) (total_merge (total_mapsto 11 5) (total_mapsto 12 0))))) 
-  (delta_mapsto 6 8) 
-  (delta_merge (total_mapsto 8 2) (total_merge (total_mapsto 9 11) (total_merge (total_mapsto 11 5) (total_mapsto 12 0)))) 
-  (delta_mapsto 8 2) 
-  (delta_merge (total_mapsto 9 11) (total_merge (total_mapsto 11 5) (total_mapsto 12 0))) 
-  (delta_mapsto 9 11) 
-  (delta_merge (total_mapsto 11 5) (total_mapsto 12 0)) 
-  (delta_mapsto 11 5)
-  (delta_mapsto 12 0)
-  (not (pi_list 5 (cons 9 (cons 2 (cons 5 epsilon))) (total_merge (total_mapsto 5 9) (total_merge (total_mapsto 6 8) (total_merge (total_mapsto 8 2) (total_merge (total_mapsto 9 11) (total_merge (total_mapsto 11 5) (total_mapsto 12 0))))))))))
-; (smt.stats :time 0.67 :before-memory 3.04 :after-memory 52.73)
-
+(assert
+(and 
+  (delta_merge (total_merge (total_merge (total_mapsto 17 2) (total_merge (total_mapsto 19 13) (total_mapsto 6 2))) (total_merge (total_mapsto 18 14) (total_mapsto 20 0))) (total_merge (total_mapsto 5 13) (total_merge (total_mapsto 14 5) (total_merge (total_merge (total_mapsto 15 19) (total_mapsto 2 17)) (total_merge (total_mapsto 3 11) (total_merge (total_mapsto 11 9) (total_mapsto 12 17))))))) 
+  (delta_merge (total_merge (total_mapsto 17 2) (total_merge (total_mapsto 19 13) (total_mapsto 6 2))) (total_merge (total_mapsto 18 14) (total_mapsto 20 0))) 
+  (delta_merge (total_mapsto 17 2) (total_merge (total_mapsto 19 13) (total_mapsto 6 2))) 
+  (delta_mapsto 17 2) 
+  (delta_merge (total_mapsto 19 13) (total_mapsto 6 2)) 
+  (delta_mapsto 19 13) 
+  (delta_mapsto 6 2) 
+  (delta_merge (total_mapsto 18 14) (total_mapsto 20 0)) 
+  (delta_mapsto 18 14) 
+  (delta_mapsto 20 0) 
+  (delta_merge (total_mapsto 5 13) (total_merge (total_mapsto 14 5) (total_merge (total_merge (total_mapsto 15 19) (total_mapsto 2 17)) (total_merge (total_mapsto 3 11) (total_merge (total_mapsto 11 9) (total_mapsto 12 17)))))) 
+  (delta_mapsto 5 13) 
+  (delta_merge (total_mapsto 14 5) (total_merge (total_merge (total_mapsto 15 19) (total_mapsto 2 17)) (total_merge (total_mapsto 3 11) (total_merge (total_mapsto 11 9) (total_mapsto 12 17))))) 
+  (delta_mapsto 14 5) 
+  (delta_merge (total_merge (total_mapsto 15 19) (total_mapsto 2 17)) (total_merge (total_mapsto 3 11) (total_merge (total_mapsto 11 9) (total_mapsto 12 17)))) 
+  (delta_merge (total_mapsto 15 19) (total_mapsto 2 17)) 
+  (delta_mapsto 15 19) 
+  (delta_mapsto 2 17) 
+  (delta_merge (total_mapsto 3 11) (total_merge (total_mapsto 11 9) (total_mapsto 12 17))) 
+  (delta_mapsto 3 11) 
+  (delta_merge (total_mapsto 11 9) (total_mapsto 12 17)) 
+  (delta_mapsto 11 9) 
+  (delta_mapsto 12 17)
+  (not (pi_list 5 (cons 13 (cons 17 (cons 9 (cons 2 (cons 5 (cons 13 epsilon)))))) (total_merge (total_merge (total_merge (total_mapsto 17 2) (total_merge (total_mapsto 19 13) (total_mapsto 6 2))) (total_merge (total_mapsto 18 14) (total_mapsto 20 0))) (total_merge (total_mapsto 5 13) (total_merge (total_mapsto 14 5) (total_merge (total_merge (total_mapsto 15 19) (total_mapsto 2 17)) (total_merge (total_mapsto 3 11) (total_merge (total_mapsto 11 9) (total_mapsto 12 17)))))))))))
+ 
+ ; (cannot solve)
 (check-sat)
 
