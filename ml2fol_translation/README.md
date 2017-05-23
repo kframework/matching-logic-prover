@@ -1,23 +1,24 @@
 # What is ml2fol-translation?
-
-It is a translation from matching logic to first-order logic with equality that preserves satisfiability.
-
+It is a translation from matching logic (abbrev. as ML) to first-order logic with equality (abbrev. as FOL) that preserves satisfiability.
 # Why is it useful?
-
-Suppose you have a matching logic theory `T` given as a set of axioms and a pattern `P`. You want to decide whether `T` entails `P` or not. This is equivalent to decide whether the conjuntion of `T` and the negation of `P` is satisfiable or not (not quite true but close. Check my technical report for more). With `ml2fol` conversion, it can not be easier. You simply convert your matching logic theory `T` and the pattern `not P` to a first-order logic theory `L` and checks whether `L` is satisfiable or not. If `L` is unsatisfiable, then you know `T` entails `P` in matching logic. Checking satisbility of `L` can be done by SAT/SMT solvers, such as Z3.
-
+With the ml2fol-translation, you can use FOL solvers to decide the satisfiability problem in matching logic. Given any matching logic theory `T`,
+```
+T sat iff ml2fol(T) sat.
+```
+A common scenario to use the translation is to solve the entailment problem in matching logic. The entailment problem is to decide whether a pattern `P` can be deduced from a theory `T`.
+Thanks to the duality between satisfiability and validity in matching logic, we know that
+```
+    T entails P
+iff T ∪ {not floor(P)} unsat
+iff ml2fol( T ∪ {not floor(P)} ) unsat.
+```
+So now you can use your favorite  solvers to decide whether `ml2fol( T ∪ {not floor(P)} )` is satisfiable or not. And if not, you know that `T entails P` in matching logic.
 # How to use it?
-
 ## Prerequisite
-
 ``` 
 sudo apt install m4 ocaml opam 
 ```
 If it is your first time installing `opam`, you should do `opam init` first, and then do `opam install ounit` to install the OUnit testing framework.
-
-You might want to do `./tests` to run all test suites to make sure the project is built correctly.
-
-## Use ml2fol-translation
 
 There are two bash scripts in the main directory. One is `mlprover` that takes one argument as the input file name. It reads the input file, say `example.match`, translate it to a first-order theory `example.match.smt2`, and calls Z3 to solve the first-order theory.
 
