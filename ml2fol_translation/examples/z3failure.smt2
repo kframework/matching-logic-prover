@@ -1,3 +1,6 @@
+; Z3 seems to have a hard time in eliminating redundant quantifiers,
+; as the next example shows.
+
 (declare-sort Nat)
  
 (declare-fun zero () Nat)

@@ -1,3 +1,5 @@
+; (smt.stats :time 1.12 :before-memory 2.82 :after-memory 180.93)
+
 (declare-sort Nat)
 (declare-sort NatSeq)
 (declare-sort Map)
@@ -17,7 +19,7 @@
 (declare-fun twelve () Nat)
 (declare-fun thirteen () Nat)
 (declare-fun fourteen () Nat)
-(declare-fun fifthteen () Nat)
+(declare-fun fifteen () Nat)
 (declare-fun sixteen () Nat)
 (declare-fun seventeen () Nat)
 (declare-fun eighteen () Nat)
@@ -49,8 +51,8 @@
 (assert (= twelve (succ eleven)))
 (assert (= thirteen (succ twelve)))
 (assert (= fourteen (succ thirteen)))
-(assert (= fifthteen (succ fourteen)))
-(assert (= sixteen (succ fifthteen)))
+(assert (= fifteen (succ fourteen)))
+(assert (= sixteen (succ fifteen)))
 (assert (= seventeen (succ sixteen)))
 (assert (= eighteen (succ seventeen)))
 (assert (= nineteen (succ eighteen)))
@@ -81,6 +83,6 @@
 (assert (forall ((x Nat) (y Nat) (s NatSeq)) (=> (or (delta_mapstoseq x (cons y s)) (and (delta_merge (total_mapsto x y) (total_mapstoseq (succ x) s)) (delta_mapsto x y) (delta_mapstoseq (succ x) s))) (= (total_mapstoseq x (cons y s)) (total_merge (total_mapsto x y) (total_mapstoseq (succ x) s))))))
 (assert (forall ((x Nat) ($188 Map)) (= (pi_list x epsilon $188) (and (= $188 emp) (= x zero)))))
 (assert (forall ((x Nat) (y Nat) (s NatSeq) ($193 Map)) (= (pi_list x (cons y s) $193) (exists ((z Nat) ($199 Map)) (and (delta_merge (total_mapstoseq x (cons y (cons z epsilon))) $199) (= $193 (total_merge (total_mapstoseq x (cons y (cons z epsilon))) $199)) (delta_mapstoseq x (cons y (cons z epsilon))) (pi_list z s $199))))))
-(assert (not (= (rev (cons three (cons fourteen (cons fifthteen (cons nine (cons two (cons seven (cons eighteen (cons two (cons eight (cons eighteen (cons twenty (cons three (cons six (cons eight (cons eight epsilon)))))))))))))))) (cons eight (cons eight (cons six (cons three (cons twenty (cons eighteen (cons eight (cons two (cons eighteen (cons seven (cons two (cons nine (cons fifthteen (cons fourteen (cons three epsilon))))))))))))))))))
+(assert (not (= (rev (cons three (cons fourteen (cons fifteen (cons nine (cons two (cons seven (cons eighteen (cons two (cons eight (cons eighteen (cons twenty (cons three (cons six (cons eight (cons eight epsilon)))))))))))))))) (cons eight (cons eight (cons six (cons three (cons twenty (cons eighteen (cons eight (cons two (cons eighteen (cons seven (cons two (cons nine (cons fifteen (cons fourteen (cons three epsilon))))))))))))))))))
 (check-sat)
 
