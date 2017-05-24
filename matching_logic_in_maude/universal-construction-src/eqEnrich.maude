@@ -1,0 +1,1282 @@
+--- Equality Enrichment Module
+
+---
+--- set include BOOL off . 
+---
+--- examples: red eq-enrich(upModule('PEANO, true)) .
+---           red enrich(upModule('PEANO, true)) .
+
+load tuple.maude
+
+fmod STRING-AUX is
+  pr CONVERSION .
+
+  vars Str Str1 Str2 : String .
+  var  FRes : FindResult . 
+  var  Pos  : FindResult . 
+
+--- alpha - removes _ from a string
+  op alpha : String -> String .
+  ceq alpha(Str) 
+   = if FRes == notFound
+     then Str
+     else (substr(Str,0,FRes)) + alpha(substr(Str,FRes + 1, length(Str)))
+     fi 
+  if FRes := find(Str,"_",0) .
+
+--- replace - replaces all ocurrences of the 1st string by the 2nd
+--- string in the 3rd string
+  op replace : String String String -> String .
+  ceq replace(Str, Str1, Str2) 
+   = if Pos == notFound
+     then Str
+     else substr(Str, 0, Pos) 
+          + replace(Str2 + substr(Str, Pos + length(Str1), length(Str)), Str1, Str2)
+     fi 
+  if Pos := find(Str, Str1, 0) .
+endfm
+
+view Kind from TRIV to META-TERM is
+  sort Elt to Kind .
+endv
+
+view Type from TRIV to META-TERM is
+  sort Elt to Type .
+endv
+
+view TypeList from TRIV to META-MODULE is
+  sort Elt to TypeList .
+endv
+
+view SortSet from TRIV to META-MODULE is
+  sort Elt to SortSet .
+endv
+
+view OpDeclSet from TRIV to META-MODULE is
+  sort Elt to OpDeclSet .
+endv
+
+fmod EXTENDED-OP-DECL-SET is
+  pr META-MODULE .
+  pr 2TUPLE{Kind, OpDeclSet} 
+    * ( sort Tuple{Kind, OpDeclSet} to KindOpDeclSet) .
+  pr 3TUPLE{Type, TypeList, OpDeclSet}
+    * ( sort Tuple{Type, TypeList, OpDeclSet} to TypeTypeListOpDeclSet) . 
+endfm
+
+view KindOpDeclSet from TRIV to EXTENDED-OP-DECL-SET is
+  sort Elt to KindOpDeclSet .
+endv
+
+view TypeTypeListOpDeclSet from TRIV to EXTENDED-OP-DECL-SET is
+  sort Elt to TypeTypeListOpDeclSet .
+endv
+
+fmod EXTENDED-OP-DECL-SET-SET is
+  pr EXTENDED-OP-DECL-SET .
+  pr SET{KindOpDeclSet} 
+    * ( sort Set{KindOpDeclSet} to KindOpDeclSetSet 
+      , sort NeSet{KindOpDeclSet} to NeKindOpDeclSetSet) .
+  pr SET{TypeTypeListOpDeclSet}
+    * ( sort Set{TypeTypeListOpDeclSet} to TypeTypeListOpDeclSetSet 
+      , sort NeSet{TypeTypeListOpDeclSet} to NeTypeTypeListOpDeclSetSet) .
+endfm 
+
+
+fmod EXTENDED-SORTS is
+  pr META-MODULE .
+  pr 2TUPLE{Kind, SortSet} 
+    * ( sort Tuple{Kind, SortSet} to KindSortSet) .
+
+  sort SortPair .
+
+  op ((__)) : Sort Sort -> SortPair [comm ctor] .
+endfm
+
+view KindSortSet from TRIV to EXTENDED-SORTS is
+  sort Elt to KindSortSet .
+endv
+
+view SortPair from TRIV to EXTENDED-SORTS is
+  sort Elt to SortPair .
+endv
+
+fmod EXTENDED-SORTS-SET is
+  pr EXTENDED-SORTS .
+  pr SET{KindSortSet} 
+    * ( sort Set{KindSortSet} to KindSortSetSet 
+      , sort NeSet{KindSortSet} to NeKindSortSetSet) .
+  pr SET{SortPair} 
+    * ( sort Set{SortPair} to SortPairSet 
+      , sort NeSet{SortPair} to NeSortPairSet) .
+endfm
+
+fmod OPS-AUX is
+  pr STRING-AUX .
+  pr EXTENDED-OP-DECL-SET-SET .
+  pr EXTENDED-SORTS-SET .
+  pr META-LEVEL .
+
+  vars S S1 S2 S3 S4 : Sort .
+  vars SS SS1 SS2 : SortSet .
+  vars Tp Tp1 Tp2 : Type .
+  vars TpL TpL1 TpL2 : TypeList .
+  vars ODS ODS1 ODS2 : OpDeclSet .
+  var TTLODSS : TypeTypeListOpDeclSetSet .
+  var KODS : KindOpDeclSet .
+  var KODSS : KindOpDeclSetSet .
+  var KSSS : KindSortSetSet .
+  var K : Kind .
+  vars FRes1 FRes2 : FindResult .
+  var Str : String .
+  var N : NzNat .
+  var M : Module .
+  var F : Qid .
+  var AtS : AttrSet .
+  vars OD OD1 OD2 : OpDecl .
+  var FS : QidSet .
+  vars SPS SPS1 SPS2 : SortPairSet .
+
+--- typeListLength - returns the length of a type list
+  op typeListLength : TypeList -> NzNat .
+  eq typeListLength((nil).TypeList) = 0 .
+  eq typeListLength(Tp TpL) = 1 + typeListLength(TpL) .
+
+--- fromTypeListToString - concat a list of types into a String
+  op fromTypeListToString : TypeList -> String .
+  eq fromTypeListToString((nil).TypeList) = "" .
+  eq fromTypeListToString(Tp TpL) = string(Tp) + fromTypeListToString(TpL) .
+
+--- createTopSort - create a new top sort if there is not one
+  op createTopSort : TypeList -> Type .
+  eq createTopSort(Tp)  = Tp .
+  eq createTopSort(TpL) = qid(fromTypeListToString(TpL)) [owise] .
+
+--- setNewSorts - list all the new top sorts
+  op setNewSorts : TypeTypeListOpDeclSetSet -> SortSet .
+  eq setNewSorts((empty).TypeTypeListOpDeclSetSet)
+   = none .
+  eq setNewSorts(((Tp, Tp, ODS) , TTLODSS))
+   = setNewSorts(TTLODSS) .
+  eq setNewSorts(((Tp, TpL, ODS) , TTLODSS))
+   = Tp ; setNewSorts(TTLODSS) [owise] .
+
+--- setNewSubsortDeclSet - for each new top sort, set the dependencies
+--- with respect to the rest of maximal sorts in the SCC
+  op setNewSubsortDeclSet : TypeTypeListOpDeclSetSet -> SubsortDeclSet .
+  eq setNewSubsortDeclSet((empty).TypeTypeListOpDeclSetSet)
+   = none .
+  eq setNewSubsortDeclSet(((Tp, (nil).TypeList, ODS) , TTLODSS))
+   = setNewSubsortDeclSet(TTLODSS) .
+  eq setNewSubsortDeclSet(((Tp, Tp TpL, ODS) , TTLODSS))
+   = setNewSubsortDeclSet(((Tp, TpL, ODS) , TTLODSS)) .
+  eq setNewSubsortDeclSet(((Tp1, Tp2 TpL, ODS) , TTLODSS))
+   = (subsort Tp2 < Tp1 .) setNewSubsortDeclSet(((Tp1, TpL, ODS) , TTLODSS)) [owise] .
+
+--- processKinds - set the Top Sort is exists, if not create one
+  op processKinds : KindOpDeclSetSet -> TypeTypeListOpDeclSetSet .
+  eq processKinds((empty).KindOpDeclSetSet)
+   = (empty).TypeTypeListOpDeclSetSet .
+  ceq processKinds((KODS , KODSS))
+   = (createTopSort(TpL), TpL, p2 KODS) , processKinds(KODSS)
+  if TpL := extractTypes(string(p1 KODS)) .
+
+--- extractTypes - given a Kind as a String "'`[S1`,S2`,S3`]" extracts
+--- the different maximal types as a list of Qids: 'S1 'S2 'S3
+  op extractTypes : String -> TypeList .
+  ceq extractTypes(Str) 
+   = if (substr(Str,0,2) == "`[")
+     then extractTypes(substr(Str,2, N))
+     else if (FRes1 =/= notFound) 
+          then (qid(substr(Str,0,FRes1)) 
+               extractTypes(substr(Str,FRes1 + 2,N)))
+	  else qid(substr(Str,0,FRes2))
+          fi
+     fi
+  if FRes1 := find(Str,"`,",0)
+  /\ FRes2 := find(Str,"`]",0)
+  /\ N     := length(Str) .
+
+--- getConstByKind - get all the different constructors group by kind
+  op getConstrByKind : Module KindOpDeclSetSet OpDeclSet -> KindOpDeclSetSet .
+  eq getConstrByKind(M, KODSS, ((op F : TpL -> Tp [ctor AtS] .) ODS))
+   = getConstrByKind(M, updateKindOpDeclSetSet(getKind(M, Tp), (op F : TpL -> Tp [ctor AtS] .) , KODSS), ODS) .
+  eq getConstrByKind(M, KODSS, ODS) 
+   = KODSS [owise] .
+
+--- updateKindOpDeclSetSet - add an OD to a kindset or create a new
+--- one if it does not exist
+  op updateKindOpDeclSetSet : Kind OpDecl KindOpDeclSetSet -> KindOpDeclSetSet .
+  eq updateKindOpDeclSetSet(K, OD, ((K, ODS) , KODSS)) 
+   = ((K, (ODS OD)) , KODSS) .
+  eq updateKindOpDeclSetSet(K, OD, KODSS)
+   = ((K , OD) , KODSS) .
+
+--- getSortsByKind - get all the different sorts group by kind
+  op getSortsByKind : Module KindSortSetSet SortSet -> KindSortSetSet .
+  eq getSortsByKind(M, KSSS, (S ; SS))
+   = getSortsByKind(M, updateKindSortSetSet(getKind(M, S), S, KSSS), SS) .
+  eq getSortsByKind(M, KSSS, SS) 
+   = KSSS [owise] .
+
+--- updateKindSortSetSet - add a Sort to a kindset or create a new one
+--- if it does not exist
+  op updateKindSortSetSet : Kind Sort KindSortSetSet -> KindSortSetSet .
+  eq updateKindSortSetSet(K, S, ((K, SS) , KSSS))
+   = ((K, (SS ; S)) , KSSS) .
+  eq updateKindSortSetSet(K, S, KSSS)
+   = ((K , S) , KSSS) .
+
+--- getDisjointSorts - get all the different disjoint sorts from a
+--- KindSortSetSet
+  op getDisjointSorts : Module KindSortSetSet -> SortPairSet .
+  eq getDisjointSorts(M, ((K, SS) , KSSS)) = getDisjointSorts(M, SS) , getDisjointSorts(M, KSSS) .
+  eq getDisjointSorts(M, KSSS) = (empty).SortPairSet [owise] .
+
+--- getDisjointSorts - get all the different disjoint sorts from a
+--- KindSortSetSet
+  op getDisjointSorts : Module SortSet -> SortPairSet .
+  eq getDisjointSorts(M, (S ; SS)) = getDisjointSorts(M, S, SS) , getDisjointSorts(M, SS) .
+  eq getDisjointSorts(M, SS) = (empty).SortPairSet [owise] .
+
+--- getDisjointSorts - get all the different disjoint sorts from a
+--- KindSortSetSet. We can use the structire of KindSortSetSet to
+--- store a set of pairs of sorts
+  op getDisjointSorts : Module Sort SortSet -> SortPairSet .
+  eq getDisjointSorts(M, S1, (S2 ; SS)) 
+   = if intersection(S1 ; lesserSorts(M, S1), S2 ; lesserSorts(M, S2)) == none
+     then ((S1 S2)) , getDisjointSorts(M, S1, SS)
+     else getDisjointSorts(M, S1, SS) 
+     fi .
+  eq getDisjointSorts(M, S1, SS) = (empty).SortPairSet [owise] .
+
+--- filterMaximalDisjoint - remove disjoint couples that are not
+--- maximal with respect to the rest of the set
+  op filterMaximalDisjoint : Module SortPairSet SortPairSet -> SortPairSet .
+  eq filterMaximalDisjoint(M, SPS1, (((S1 S2)) , SPS2)) 
+   = if isMaximalDisjoint(M, ((S1 S2)), (SPS1 , SPS2))
+     then filterMaximalDisjoint(M, (SPS1 , ((S1 S2))), SPS2)
+     else filterMaximalDisjoint(M, SPS1 , SPS2) 
+     fi .
+  eq filterMaximalDisjoint(M, SPS1, SPS2) = SPS1 [owise] .
+
+--- filterMaximalDisjoint - remove sorts that are not maximal with
+--- respect to the rest of the set
+  op filterMaximal : Module SortSet SortSet -> SortSet .
+  eq filterMaximal(M, SS1, (S ; SS2)) 
+   = if isMaximal(M, S, (SS1 ; SS2))
+     then filterMaximal(M, (SS1 ; S), SS2)
+     else filterMaximal(M, SS1 , SS2) 
+     fi .
+  eq filterMaximal(M, SS1, SS2) = SS1 [owise] .
+
+--- isMaximalTyping - tell us if a typing is maximal with respect to another
+  op isMaximalTyping : Module SortSet SortSet -> Bool .
+  eq isMaximalTyping(M, nil, nil)
+   = false .
+  eq isMaximalTyping(M, Tp TpL, nil)
+   = true .
+  eq isMaximalTyping(M, nil, Tp TpL)
+   = true .
+  eq isMaximalTyping(M, Tp1 TpL1, Tp2 TpL2)
+   = if intersection(Tp2 ; lesserSorts(M, Tp2),Tp1) =/= none
+     then isMaximalTyping(M, TpL1, TpL2)
+     else true
+     fi .
+
+--- isMaximalDisjoint - tell us if the pair of sorts is maximal with
+--- respect to the rest of the set of disjoint pairs
+  op isMaximalDisjoint : Module SortPair SortPairSet -> Bool .
+  eq isMaximalDisjoint(M, ((S1 S2)) , (((S3 S4)) , SPS))
+   = if (intersection(S3 ; lesserSorts(M, S3), S1) =/= none and
+        intersection(S4 ; lesserSorts(M, S4), S2) =/= none) or
+        (intersection(S4 ; lesserSorts(M, S4), S1) =/= none and
+        intersection(S3 ; lesserSorts(M, S3), S2) =/= none)
+     then false
+     else isMaximalDisjoint(M, ((S1 S2)) , SPS)
+     fi .
+  eq isMaximalDisjoint(M, ((S1 S2)) , SPS) = true [owise] .
+
+--- isMaximal - tell us if the sort is maximal with respect to the
+--- rest of the set of sorts
+  op isMaximal : Module Sort SortSet -> Bool .
+  eq isMaximal(M, S1 , (S2 ; SS))
+   = if (intersection(S2 ; lesserSorts(M, S2), S1) =/= none)
+     then false
+     else isMaximal(M, S1, SS)
+     fi .
+  eq isMaximal(M, S, SS) = true [owise] .
+
+--- getMaximalTypings - filter non maximal typings
+  op getMaximalTypings : Module TypeTypeListOpDeclSetSet -> TypeTypeListOpDeclSetSet .
+  eq getMaximalTypings(M, (empty).TypeTypeListOpDeclSetSet)
+   = (empty).TypeTypeListOpDeclSetSet .
+  ceq getMaximalTypings(M, ((Tp, TpL, (op F : TpL1 -> Tp1 [ctor AtS] .) (op F : TpL2 -> Tp2 [ctor AtS] .) ODS) , TTLODSS)) 
+   = getMaximalTypings(M, ((Tp,  TpL, (op F : TpL2 -> Tp2 [ctor AtS] .) ODS) , TTLODSS))
+  if isMaximalTyping(M, TpL1 Tp1, TpL2 Tp2) = false .
+  eq getMaximalTypings(M, ((Tp, TpL, ODS) , TTLODSS)) 
+   = ((Tp, TpL, ODS) , getMaximalTypings(M, TTLODSS)) [owise] .
+
+--- getMaximalTypings - filter non maximal typings of g wrt Tp1 and Tp2
+  op getMaximalTypings : Module OpDeclSet -> OpDeclSet .
+  eq getMaximalTypings(M, (none).OpDeclSet)
+   = (none).OpDeclSet .
+  ceq getMaximalTypings(M, (op F : TpL1 -> Tp1 [ctor AtS] .) (op F : TpL2 -> Tp2 [ctor AtS] .) ODS)
+   = getMaximalTypings(M, (op F : TpL2 -> Tp2 [ctor AtS] .) ODS)
+  if isMaximalTyping(M, TpL1 Tp1, TpL2 Tp2) = false .
+  eq getMaximalTypings(M, ODS) 
+   = ODS [owise] .
+
+--- filterOpsWRT - filter operators by name and constructor
+  op filterOpsWRT : Module Type OpDecl OpDeclSet -> OpDeclSet .
+  eq filterOpsWRT(M, Tp1, (op F : TpL2 -> Tp2 [ctor AtS] .), (op F : TpL -> Tp [ctor AtS] .) ODS)
+   = if (intersection(Tp1 ; lesserSorts(M, Tp1),Tp) =/= none) and (intersection(Tp2 ; lesserSorts(M, Tp2),Tp) =/= none)
+     then (op F : TpL -> Tp [ctor AtS] .) filterOpsWRT(M, Tp1, (op F : TpL2 -> Tp2 [ctor AtS] .), ODS)
+     else filterOpsWRT(M, Tp1, (op F : TpL2 -> Tp2 [ctor AtS] .), ODS)
+     fi .
+  eq filterOpsWRT(M, Tp, OD, ODS)
+   = (none).OpDeclSet [owise] .
+ 
+--- removeOps - remove Ops by its qid
+  op removeOps : QidSet OpDeclSet -> OpDeclSet .
+  eq removeOps((F ; FS), (op F : TpL -> Tp [AtS] .) ODS)
+   = removeOps((F ; FS), ODS) .
+  eq removeOps(FS, ODS)
+   = ODS [owise] .
+
+--- getACQids - get AC Qids from a set of declarations
+  op getACQids : OpDeclSet -> QidSet .
+  eq getACQids((op F : TpL -> Tp [ctor assoc comm AtS] .) ODS)
+   = F ; getACQids(ODS) .
+  eq getACQids(ODS) = (none).QidSet [owise] .
+
+--- filterQACODS - remove AC F-operators 
+  op filterQACODS : Qid OpDeclSet -> OpDeclSet .
+  eq filterQACODS(F, (op F : TpL -> Tp [ctor assoc comm AtS] .) ODS)
+   = filterQACODS(F, ODS) .
+  eq filterQACODS(F, ODS)
+   = ODS [owise] .
+
+--- in-op - create root operator removing underscores and undesired
+--- symbols
+  op in-op : Qid -> Qid [memo] .
+  eq in-op(F) 
+    = qid(replace(
+            replace(
+              replace( 
+                "in-" + alpha(string(F)), 
+                "`{", "ob"),
+              "`,", "comma"), 
+            "`}", "cb")) .
+
+--- isAssoc - has associative axiom
+  op isAssoc : AttrSet -> Bool .
+  eq isAssoc(assoc AtS) = true .
+  eq isAssoc(AtS) = false [owise] .
+
+--- isComm - has commutative axiom
+  op isComm : AttrSet -> Bool .
+  eq isComm(comm AtS) = true .
+  eq isComm(AtS) = false [owise] .
+
+
+--- isAssoc - has associative axiom
+  op isAssoc : OpDecl -> Bool .
+  eq isAssoc((op F : TpL -> Tp [AtS] .)) = isAssoc(AtS) .
+
+--- isComm - has commutative axiom
+  op isComm : OpDecl -> Bool .
+  eq isComm((op F : TpL -> Tp [AtS] .)) = isComm(AtS) .
+
+--- isCompatible - tell us if two typings are compatible
+  op isCompatible : Module OpDecl OpDecl -> Bool .
+  eq isCompatible(M, (op F : TpL1 -> Tp1 [AtS] .), (op F : TpL2 -> Tp2 [AtS] .))
+   = sameKind?(M, Tp1 TpL1, Tp2 TpL2) .
+  eq isCompatible(M, OD1, OD2)
+   = false [owise] .
+
+--- sameKind? - if the typings are in the same kind, they arguments
+--- can be comparable
+  op sameKind? : Module TypeList TypeList -> Bool .
+  eq sameKind?(M, nil, nil) = true .
+  eq sameKind?(M, Tp1 TpL1, Tp2 TpL2) = sameKind(M, Tp1, Tp2) == true and-then sameKind?(M, TpL1, TpL2) .
+  eq sameKind?(M, TpL1, TpL2) = false [owise] .
+endfm
+
+fmod EQUALITY-ENRICHMENT is
+  pr OPS-AUX .
+
+--- Simulating State Monad in Maude
+  sorts STMEquationSet STMTerm STMTermList .
+
+  op _,_ : EquationSet Nat -> STMEquationSet .
+  op _,_ : Term Nat -> STMTerm .
+  op _;_ : TermList Nat -> STMTermList .
+
+  var H : Header . 
+  vars IL IL1 IL2 : ImportList .
+  vars SS SS1 SS2 : SortSet .
+  var SSDS : SubsortDeclSet .
+  vars ODS ODS1 ODS2 : OpDeclSet .
+  var MAS : MembAxSet .
+  vars EqS EqS0 EqS1 EqS2 EqS3 EqS4 EqS5 EqS6 EqS7 : EquationSet .
+  var RlS : RuleSet .
+  vars TTLODSS TTLODSS1 TTLODSS2 : TypeTypeListOpDeclSetSet .
+  vars Tp Tp1 Tp2 Tp3 Tp4 : Type .
+  vars TpL TpL1 TpL2 TpL3 TpL4 : TypeList .
+  vars Q F F1 F2 F3 F4 : Qid .
+  vars AtS AtS1 AtS2 AtS3 AtS4 : AttrSet .
+  var M : Module .
+  vars OD OD1 OD2 OD3 OD4 : OpDecl .
+  vars N N1 N2 N3 N4 N5 N6 N7 : Nat .
+  vars T T1 T2 T3 T4 T5 : Term .
+  var TL : TermList .
+  vars S S1 S2 : Sort .
+  vars SPS : SortPairSet .
+  var QS : QidSet .
+
+--- addSort - add a set of sorts to a given functional module
+  op addSort : Module SortSet ~> Module .
+  eq addSort (fmod H is IL sorts SS1 . SSDS ODS MAS EqS endfm, SS2)
+   = fmod H is IL sorts (SS1 ; SS2) . SSDS ODS MAS EqS endfm .
+  eq addSort (mod H is IL sorts SS1 . SSDS ODS MAS EqS RlS endm, SS2)
+   = mod H is IL sorts (SS1 ; SS2) . SSDS ODS MAS EqS RlS endm .
+
+--- addImports - add an import list to a given functional module
+  op addImports : Module ImportList ~> Module .
+  eq addImports (fmod H is IL1 sorts SS . SSDS ODS MAS EqS endfm, IL2)
+   = fmod H is (IL1 IL2) sorts SS . SSDS ODS MAS EqS endfm .
+  eq addImports (mod H is IL1 sorts SS . SSDS ODS MAS EqS RlS endm, IL2)
+   = mod H is (IL1 IL2) sorts SS . SSDS ODS MAS EqS RlS endm .
+
+--- addOps - add a set of operators to a given functional module
+  op addOps : Module OpDeclSet ~> Module .
+  eq addOps (fmod H is IL sorts SS . SSDS ODS1 MAS EqS endfm, ODS2)
+   = fmod H is IL sorts SS . SSDS (ODS1 ODS2) MAS EqS endfm .
+  eq addOps (mod H is IL sorts SS . SSDS ODS1 MAS EqS RlS endm, ODS2)
+   = mod H is IL sorts SS . SSDS (ODS1 ODS2) MAS EqS RlS endm .
+
+--- addEqs - add a set of equations to a given functional module
+  op addEqs : Module EquationSet ~> Module .
+  eq addEqs (fmod H is IL sorts SS . SSDS ODS MAS EqS1 endfm, EqS2)
+   = fmod H is IL sorts SS . SSDS ODS MAS (EqS1 EqS2) endfm .
+  eq addEqs (mod H is IL sorts SS . SSDS ODS MAS EqS1 RlS endm, EqS2)
+   = mod H is IL sorts SS . SSDS ODS MAS (EqS1 EqS2) RlS endm .
+
+--- addEqualityOps - add equality operator
+  op addEqualityOps : TypeTypeListOpDeclSetSet -> OpDeclSet .
+  eq addEqualityOps((empty).TypeTypeListOpDeclSetSet)
+   = (none).OpDeclSet .
+  eq addEqualityOps(((Tp, TpL, ODS) , TTLODSS))
+   = (op '_==_ : Tp Tp -> 'Bool [comm] .)
+     (op '_=/=_ : Tp Tp -> 'Bool [comm] .)
+     (op 'if_then_else_fi : 'Bool Tp Tp -> Tp [strat (1 0)] .)
+     addEqualityOps(TTLODSS) .
+
+--- addInFOps - add in-f and f-root equations for AC constructors
+  op addInFOps : TypeTypeListOpDeclSetSet -> OpDeclSet .
+  eq addInFOps((empty).TypeTypeListOpDeclSetSet)
+   = (none).OpDeclSet .
+  eq addInFOps(((Tp, TpL, (op F : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS] .) ODS) , TTLODSS))
+   = (op in-op(F) : Tp Tp -> 'Bool [none] .)
+     addInFOps(((Tp, TpL, ODS) , TTLODSS)) .
+  eq addInFOps(((Tp, TpL, ODS) , TTLODSS))
+   = addInFOps(TTLODSS) [owise] .
+
+--- addEqualityEqs - for all kinds, add equality equations
+  op addEqualityEqs : Module TypeTypeListOpDeclSetSet Nat -> STMEquationSet .
+  eq addEqualityEqs(M, (empty).TypeTypeListOpDeclSetSet, N)
+   = ((none).EquationSet, N) .
+--- x:s ~ x:s  = true
+--- x:s ~/~ y:s = not (x:s ~ y:s)
+--- if true then x else y fi = x
+--- if false then x else y fi = y
+  ceq addEqualityEqs(M, ((Tp, TpL, OD ODS) , TTLODSS), N)
+   = ((eq '_==_[qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(N, 10) + ":" + string(Tp))] = 'true.Bool [none] .)
+      (eq '_=/=_[qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))] = 'not_['_==_[qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))]] [none] .)
+      (eq 'if_then_else_fi['true.Bool, qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))] = qid("V#" + string(N, 10) + ":" + string(Tp)) [none] .)
+      (eq 'if_then_else_fi['false.Bool, qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))] = qid("V#" + string(s N, 10) + ":" + string(Tp)) [none] .)
+      EqS1
+      EqS2
+      EqS3
+      EqS4
+      EqS5, N4)
+  if (EqS1,N1) := addODSEqualityEqs(M, OD ODS, s s N)
+  /\ (EqS2,N2) := add2ODSEqualityEqs(M, OD ODS, N1)
+  /\ (EqS3,N3) := add3ODSEqualityEqs(M, OD ODS, N2)
+  /\ (EqS4,N4) := add4ODSEqualityEqs(M, OD ODS, N3)
+  /\ (EqS5,N5) := addEqualityEqs(M, TTLODSS, N4) .
+  ceq addEqualityEqs(M, ((Tp, TpL, (none).OpDeclSet) , TTLODSS), N)
+   = ((eq '_==_[qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(N, 10) + ":" + string(Tp))] = 'true.Bool [none] .)
+      (eq '_=/=_[qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))] = 'not_['_==_[qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))]] [none] .)
+      (eq 'if_then_else_fi['true.Bool, qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))] = qid("V#" + string(N, 10) + ":" + string(Tp)) [none] .)
+      (eq 'if_then_else_fi['false.Bool, qid("V#" + string(N, 10) + ":" + string(Tp)), qid("V#" + string(s N, 10) + ":" + string(Tp))] = qid("V#" + string(s N, 10) + ":" + string(Tp)) [none] .)
+      EqS1, N1)
+  if (EqS1,N1) := addEqualityEqs(M, TTLODSS, N) .
+
+--- addInFEqs - for all kinds, add inf to equality equations
+  op addInFEqs : Module TypeTypeListOpDeclSetSet Nat -> STMEquationSet .
+--- inf(g(..),g(..)) = g(..) ~ g(..) or
+--- inf(g(..),h(..)) = false for all AC f
+  ceq addInFEqs(M, ((Tp, TpL, ODS) , TTLODSS), N)
+   = (EqS1
+      EqS2, N2)
+  if (EqS1,N1) := addInFEqualityEqs(M, getACQids(ODS), ODS, N)
+  /\ (EqS2,N2) := addInFEqs(M, TTLODSS, N1) .
+  eq addInFEqs(M, TTLODSS, N)
+   = ((none).EquationSet, N) [owise] .
+
+--- addInFEqualityEqs - for all AC Qid, add inf equations
+  op addInFEqualityEqs : Module QidSet OpDeclSet Nat -> STMEquationSet .
+  ceq addInFEqualityEqs(M, (Q ; QS), ODS, N)
+   = (EqS1
+      EqS2
+     ,N2)
+  if (EqS1, N1) := addInFQEqualityEqs(M, Q, filterQACODS(Q,ODS), N)
+  /\ (EqS2, N2) := addInFEqualityEqs(M, QS, ODS, N1) .
+  eq addInFEqualityEqs(M, QS, ODS, N)
+   = ((none).EquationSet, N) [owise] .
+
+--- addInFQEqualityEqs - for F, add inf equations
+  op addInFQEqualityEqs : Module Qid OpDeclSet Nat -> STMEquationSet .
+  ceq addInFQEqualityEqs(M,Q, (OD ODS), N) 
+   = (EqS1
+      EqS2
+      EqS3
+     ,N3)
+  if (EqS1,N1) := addInFQODEqualityEqs(M, Q, OD, N)
+  /\ (EqS2,N2) := addInFQ2ODEqualityEqs(M, Q, OD, ODS, N1)
+  /\ (EqS3,N3) := addInFQEqualityEqs(M, Q, ODS, N2) .
+  eq addInFQEqualityEqs(M,Q, ODS, N) 
+   = ((none).EquationSet, N) [owise] .
+
+--- addEqualityEqs - for all maximal disjoint sorts, add equality equations
+  op addEqualityEqs : SortPairSet Nat -> STMEquationSet .
+--- x:s ~ y:s'  = false -- maximal disjoint s , s'
+  ceq addEqualityEqs((((S1 S2)) , SPS), N)
+   = ((eq '_==_[qid("V#" + string(N, 10) + ":" + string(S1)), qid("V#" + string(s N, 10) + ":" + string(S2))] = 'false.Bool [none] .)
+      EqS
+     , N1)
+  if (EqS,N1) := addEqualityEqs(SPS, s s N) .
+  eq addEqualityEqs(SPS, N)
+   = ((none).EquationSet, N) [owise] .
+
+--- addODSEqualityEqs - add all the equalities related with an
+--- operator
+  op addODSEqualityEqs : Module OpDeclSet Nat -> STMEquationSet .
+  eq addODSEqualityEqs(M, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  eq addODSEqualityEqs(M, (op F : nil -> Tp [ctor AtS] .) ODS, N)
+   = addODSEqualityEqs(M, ODS, N) .
+--- f(x1,x2) ~ f(x1,y2) = x2 ~ y2
+--- inf(f(x1,x2),y) = false
+--- f(x1,x2) ~ x1 = false (addSubtermEqualityEqs)
+  ceq addODSEqualityEqs(M, (op F : Tp Tp -> Tp [ctor assoc comm AtS] .) ODS, N)
+   = ((eq '_==_[T1, T2]  = T3 [none] .)
+      (eq in-op(F)[T1, qid("V#" + string(N1, 10) + ":" + string(Tp))]  = 'false.Bool [none] .)
+      EqS1
+      EqS2, N5)
+  if (T1,N1) := constrTerm(M, op F : Tp Tp -> Tp [ctor assoc comm AtS] ., N)
+  /\ (T2,N2) := constrPartTerm(M, op F : Tp Tp -> Tp [ctor assoc comm AtS] ., qid("V#" + string(N,10) + ":" + string(Tp)), N1)
+  /\ (T3,N3) := constrAssocCommEq(Tp, Tp, N) 
+  /\ (EqS1,N4) := addSubtermEqualityEqs(M, (op F : Tp Tp -> Tp [ctor assoc comm AtS] .), Tp Tp, N2, N2) 
+  /\ (EqS2,N5) := addODSEqualityEqs(M, ODS, N4) .
+  ceq addODSEqualityEqs(M, (op F : TpL -> Tp [ctor AtS] .) ODS, N)
+   = (EqS1
+      EqS2, N2)
+  if (EqS1,N1) := addODEqualityEqs(M, (op F : TpL -> Tp [ctor AtS] .), N)
+  /\ (EqS2,N2) := addODSEqualityEqs(M, ODS, N1) [owise] .
+
+--- addODEqualityEqs - cases A, C and Empty
+  op addODEqualityEqs : Module OpDecl Nat -> STMEquationSet .
+--- f(x1,x2) ~ f(x1,y) = x2 ~ y
+--- f(x1,x2) ~ f(y,x2) = x1 ~ y
+--- f(x1,x2) ~ x1 = false (addSubtermEqualityEqs)
+--- f(x1,x2) ~ x2 = false (addSubtermEqualityEqs)
+  ceq addODEqualityEqs(M, (op F : Tp Tp -> Tp [ctor assoc AtS] .), N)
+   = ((eq '_==_[T, T1] = '_==_[qid("V#" + string(s N,10) + ":" + string(Tp)),qid("V#" + string(s s N,10) + ":" + string(Tp))] [none] .)
+      (eq '_==_[T, T2] = '_==_[qid("V#" + string(N,10) + ":" + string(Tp)),qid("V#" + string(s s N,10) + ":" + string(Tp))] [none] .)
+      EqS, N4)
+  if (T, N1) := constrTerm(M, (op F : Tp Tp -> Tp [ctor assoc AtS] .), N)
+  /\ (T1, N2) := constrPartTerm(M, (op F : Tp Tp -> Tp [ctor assoc AtS] .), qid("V#" + string(N,10) + ":" + string(Tp)), N1)
+  /\ (T2, N3) := constrInvPartTerm(M, (op F : Tp Tp -> Tp [ctor assoc AtS] .), qid("V#" + string(s N,10) + ":" + string(Tp)), s s N) 
+  /\ (EqS, N4) := addSubtermEqualityEqs(M, (op F : Tp Tp -> Tp [ctor assoc AtS] .), Tp Tp, N3, N2) .
+--- f(x1,x2) ~ f(y1,y2) = or(and((x1 ~ y1), (x2 ~ y2)),and((x1 ~ y2),(x2 ~ y1)))
+--- (constrCompatibleEqs)
+--- f(x1,x2) ~ x1 = false (addSubtermEqualityEqs)
+  ceq addODEqualityEqs(M, (op F : Tp1 Tp1 -> Tp2 [ctor comm AtS] .), N)
+   = (EqS1 
+      EqS2, N2)
+  if (EqS1,N1) := constrCompatibleEqs(M, (op F : Tp1 Tp1 -> Tp2 [ctor comm AtS] .), (op F : Tp1 Tp1 -> Tp2 [ctor comm AtS] .), N)
+  /\ (EqS2,N2) := addSubtermEqualityEqs(M, (op F : Tp1 Tp1 -> Tp2 [ctor comm AtS] .), Tp1 Tp1,N1,N1) .
+--- f(x1,...,xn) ~ f(y1,...,yn) = x1 ~ y1 and ... and xn ~ yn 
+--- (constrCompatibleEqs)
+--- f(x1,...,xn) ~ xi = false (addSubtermEqualityEqs)
+  ceq addODEqualityEqs(M, (op F : TpL -> Tp [ctor AtS] .), N)
+   = (EqS1
+      EqS2,N2)
+  if (EqS1,N1) := constrCompatibleEqs(M, (op F : TpL -> Tp [ctor AtS] .), (op F : TpL -> Tp [ctor AtS] .), N)
+  /\ (EqS2,N2) := addSubtermEqualityEqs(M, (op F : TpL -> Tp [ctor AtS] .), TpL,N1,N1) [owise] .
+
+--- addInFQODEqualityEqs - add all the inf to equality related with an
+--- operator
+  op addInFQODEqualityEqs : Module Qid OpDecl Nat -> STMEquationSet .
+--- in(g(x1,...,xn),g(y1,...,yn)) = g(x1,...,xn) ~ g(y1,...,yn)
+  ceq addInFQODEqualityEqs(M, Q, (op F : TpL -> Tp [ctor AtS] .), N)
+    = if TpL == nil
+      then ((eq in-op(Q)[T1, T2]  = 'true.Bool [none] .), N2)
+      else ((eq in-op(Q)[T1, T2]  = '_==_[T1,T2] [none] .), N2)
+      fi
+  if (T1,N1) := constrTerm(M, (op F : TpL -> Tp [ctor AtS] .), N) 
+  /\ (T2,N2) := constrTerm(M, (op F : TpL -> Tp [ctor AtS] .), N1) .
+  eq addInFQODEqualityEqs(M, Q, ODS, N)
+   = ((none).EquationSet, N) [owise] .
+
+--- add2ODSEqualityEqs - add all the equalities related with an
+--- operator and a set of operators
+  op add2ODSEqualityEqs : Module OpDeclSet Nat -> STMEquationSet .
+  eq add2ODSEqualityEqs(M, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add2ODSEqualityEqs(M, OD ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add2ODSEqualityEqs(M, OD, ODS, N)
+  /\ (EqS2,N2) := add2ODSEqualityEqs(M, ODS, N1) .
+
+--- add2ODSEqualityEqs - add all the equalities related with an
+--- operator and a set of operators
+  op add2ODSEqualityEqs : Module OpDecl OpDeclSet Nat -> STMEquationSet .
+  eq add2ODSEqualityEqs(M, OD, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add2ODSEqualityEqs(M, OD1, OD2 ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add2ODEqualityEqs(M, OD1, OD2, N)
+  /\ (EqS2,N2) := add2ODSEqualityEqs(M, OD1, ODS, N1) .
+
+--- addOPDOPDEqualityEqs - add all the equalities related with two
+--- operators - we know that both operators are in the same kind
+  op add2ODEqualityEqs : Module OpDecl OpDecl Nat -> STMEquationSet .
+--- if f and g are compatible then 
+--- f(x1,...,xn) ~ f(y1,...,yn) = x1 ~ y1 and ... and xn ~ yn
+--- else
+--- f(x1,...,xn) ~ g(y1,...,yn) = false
+--- 
+--- f(g(x1,...,xn),z1) ~ f(g(y1,...,yn),z2) = g(x1,...,xn) ~
+--- g(y1,...,yn) and z1 ~ z2 (add2ODAEqualityEqs)
+  ceq add2ODEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N)
+   = ((eq '_==_[T, T1]  = 'false.Bool [none] .)
+      EqS1
+      EqS2, N4)
+  if isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .)) = false
+  /\ (T,N1)  := constrTerm(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), N) 
+  /\ (T1,N2) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N1)
+  /\ (EqS1,N3) := if isAssoc(AtS1) 
+                  then if isComm(AtS1) 
+                       then add2ODACEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N2)
+	               else add2ODAEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N2)
+                       fi
+                  else ((none).EquationSet, N2)
+                  fi
+  /\ (EqS2,N4) := if isAssoc(AtS2) 
+                  then if isComm(AtS2) 
+                       then add2ODACEqualityEqs(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F1 : TpL1 -> Tp1 [ctor AtS1] .), N3)
+	               else add2ODAEqualityEqs(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F1 : TpL1 -> Tp1 [ctor AtS1] .), N3)
+                       fi
+                  else ((none).EquationSet, N3)
+                  fi .
+  ceq add2ODEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N)
+   = (EqS, N1)
+  if isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .)) = true
+  /\ (EqS, N1) := if isAssoc(AtS1)
+                  then if isComm(AtS1)
+                       then add2ODACEqualityEqs'(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N)
+	               else add2ODAEqualityEqs'(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N)
+	               fi
+	          else constrCompatibleEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N)
+                  fi .
+
+--- add2ODAEqualityEqs - add all the equalities related with two
+--- operators where the first one is A - we know that both operators
+--- are in the same kind and they are not compatible. If Tp2 <= Tp1
+--- does not hold then we have to find the maximal typings wrt Tp1 and
+--- Tp2 of g.
+  op add2ODAEqualityEqs : Module OpDecl OpDecl Nat -> STMEquationSet .
+--- f(g(x1,...,xn),z1) ~ f(g(y1,...,yn),z2) = g(x1,...,xn) ~
+--- g(y1,...,yn) and z1 ~ z2 (add2ODMaxWRTAEqualityEqs)
+  ceq add2ODAEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N)
+   = add2ODMaxWRTAEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), getMaximalTypings(M, filterOpsWRT(M, Tp1, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), getOps(M))), N)
+  if intersection(Tp1 ; lesserSorts(M, Tp1),Tp2) == none .
+  eq add2ODAEqualityEqs(M, OD1, OD2, N)
+   = add2ODMaxWRTAEqualityEqs(M, OD1, OD2, N) [owise] .
+
+--- add2ODAEqualityEqs' - add all the equalities related with two
+--- operators where the first one is A - we know that both operators
+--- are in the same kind and they are compatible.
+  op add2ODAEqualityEqs' : Module OpDecl OpDecl Nat -> STMEquationSet .
+  eq add2ODAEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS2] .), N)
+   = add2ODAEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS2] .), filterMaximal(M,(none).SortSet, intersection(Tp1 ; lesserSorts(M, Tp1),Tp2 ; lesserSorts(M, Tp2))), N) .
+  eq add2ODAEqualityEqs'(M, OD1, OD2, N) = ((none).EquationSet, N) [owise] .
+
+--- add2ODAEqualityEqs' - for all maximal sorts in the intersection of
+--- Tp1 and Tp2
+  op add2ODAEqualityEqs' : Module OpDecl OpDecl SortSet Nat -> STMEquationSet .
+--- f(x1,x2) ~ f(x1,y) = x2 ~ y
+--- f(x1,x2) ~ f(y,x2) = x1 ~ y
+  ceq add2ODAEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS2] .), (S ; SS), N)
+   = ((eq '_==_[T1, T2]  = '_==_[qid("V#" + string(s N,10) + ":" + string(Tp1)),qid("V#" + string(s s N,10) + ":" + string(Tp2))] [none] .)
+      (eq '_==_[T3, T4]  = '_==_[qid("V#" + string(s N2,10) + ":" + string(Tp1)),qid("V#" + string(s s N2,10) + ":" + string(Tp2))] [none] .)
+      EqS, N4)
+  if (T1,N1) := constrPartTerm(M, op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] ., qid("V#" + string(N,10) + ":" + string(S)), s N)
+  /\ (T2,N2) := constrPartTerm(M, op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS2] ., qid("V#" + string(N,10) + ":" + string(S)), N1)
+  /\ (T3, N3) := constrInvPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), qid("V#" + string(N2,10) + ":" + string(S)), s N2) 
+  /\ (T4, N4) := constrInvPartTerm(M, (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS1] .), qid("V#" + string(N2,10) + ":" + string(S)), N3) 
+  /\ (EqS,N5) := add2ODAEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS2] .), SS, N4) .
+  eq add2ODAEqualityEqs'(M, OD1, OD2, SS, N)
+   = ((none).EquationSet, N) [owise] .
+
+--- add2ODMaxWRTAEqualityEqs - add all the equalities related with two
+--- operators where the first one is A - we know that both operators
+--- are in the same kind and they are not compatible and Tp2 <= Tp1
+  op add2ODMaxWRTAEqualityEqs : Module OpDecl OpDeclSet Nat -> STMEquationSet .
+--- f(g(x1,...,xn),z1) ~ f(g(y1,...,yn),z2) = g(x1,...,xn) ~
+--- g(y1,...,yn) and z1 ~ z2
+  ceq add2ODMaxWRTAEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .) ODS, N)
+   = if TpL2 == nil 
+     then ((eq '_==_[T3, T4]  = '_==_[qid("V#" + string(N2,10) + ":" + string(Tp1)), qid("V#" + string(N3,10) + ":" + string(Tp1))] [none] .) EqS, N5)
+     else ((eq '_==_[T3, T4]  = '_and_['_==_[T1,T2],'_==_[qid("V#" + string(N2,10) + ":" + string(Tp1)), qid("V#" + string(N3,10) + ":" + string(Tp1))]] [none] .) EqS, N5)
+     fi
+  if (T1,N1) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N) 
+  /\ (T2,N2) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N1) 
+  /\ (T3,N3) := constrPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor AtS1] .), T1, N2) 
+  /\ (T4,N4) := constrPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor AtS1] .), T2, N3)
+  /\ (EqS,N5) := add2ODMaxWRTAEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), ODS, N4) .
+  eq add2ODMaxWRTAEqualityEqs(M, OD1, ODS, N) = ((none).EquationSet, N) [owise] .
+
+--- add2ODACEqualityEqs - add all the equalities related with two
+--- operators where the first one is AC - we know that both operators
+--- are in the same kind and they are not compatible. If Tp2 <= Tp1
+--- does not hold then we have to find the maximal typings wrt Tp1 and
+--- Tp2 of g.
+  op add2ODACEqualityEqs : Module OpDecl OpDecl Nat -> STMEquationSet .
+--- in(g(x1,...,xn),f(z1,z2)) = in(g(x1,...,xn),z1) or in(g(x1,...,xn),z2)
+--- f(g(x1,...,xn),z1) ~ f(z2,z3) = false if in(g(x1,...,xn),f(z2,z3) = false (add2ODMaxWRTACEqualityEqs)
+  ceq add2ODACEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .) ODS, N)
+   = if TpL2 == nil
+     then
+      ((eq in-op(F1)[T1, T3]  = '_or_[in-op(F1)[T1,qid("V#" + string(N2,10) + ":" + string(Tp1))],in-op(F1)[T1, qid("V#" + string(s N2,10) + ":" + string(Tp1))]] [none] .)
+      EqS, N4)
+     else
+      ((eq in-op(F1)[T1, T3]  = '_or_[in-op(F1)[T1,qid("V#" + string(N2,10) + ":" + string(Tp1))],in-op(F1)[T1, qid("V#" + string(s N2,10) + ":" + string(Tp1))]] [none] .)
+      EqS, N4)
+     fi
+  if (T1,N1) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N) 
+  /\ (T2,N2) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N1) 
+  /\ (T3,N3) := constrTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor AtS1] .), N2) 
+  /\ (EqS,N4) := if intersection(Tp1 ; lesserSorts(M, Tp1),Tp2) == none
+            then add2ODMaxWRTACEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), getMaximalTypings(M, filterOpsWRT(M, Tp1, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), getOps(M))), N3)
+	    else add2ODMaxWRTACEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N)
+	    fi .
+  eq add2ODACEqualityEqs(M, OD1, OD2, N)
+   = ((none).EquationSet,N) [owise] .
+
+--- add2ODACEqualityEqs' - add all the equalities related with two
+--- operators where the first one is AC - we know that both operators
+--- are in the same kind and they are compatible.
+  op add2ODACEqualityEqs' : Module OpDecl OpDecl Nat -> STMEquationSet .
+  eq add2ODACEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), N)
+   = add2ODACEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), filterMaximal(M,(none).SortSet, intersection(Tp1 ; lesserSorts(M, Tp1),Tp2 ; lesserSorts(M, Tp2))), N) .
+  eq add2ODACEqualityEqs'(M, OD1, OD2, N) = ((none).EquationSet, N) [owise] .
+
+--- add2ODACEqualityEqs' - for all maximal sorts in the intersection of
+--- Tp1 and Tp2
+  op add2ODACEqualityEqs' : Module OpDecl OpDecl SortSet Nat -> STMEquationSet .
+--- f(x1,x2) ~ f'(x1,y2) = x2 ~ y2
+  ceq add2ODACEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), (S ; SS), N)
+   = ((eq '_==_[T1, T2]  = T3 [none] .)
+      EqS, N4)
+  if (T1,N1) := constrPartTerm(M, op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] ., qid("V#" + string(N,10) + ":" + string(S)), s N)
+  /\ (T2,N2) := constrPartTerm(M, op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] ., qid("V#" + string(N,10) + ":" + string(S)), N1)
+  /\ (T3,N3) := constrAssocCommEq(Tp1, Tp2, N)
+  /\ (EqS,N4) := add2ODACEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), SS, N) .
+  eq add2ODACEqualityEqs'(M, OD1, OD2, SS, N)
+   = ((none).EquationSet, N) [owise] .
+
+--- add2ODMaxWRTACEqualityEqs - add all the equalities related with two
+--- operators where the first one is AC - we know that both operators
+--- are in the same kind and Tp2 <= Tp1
+  op add2ODMaxWRTACEqualityEqs : Module OpDecl OpDeclSet Nat -> STMEquationSet .
+--- f(g(x1,...,xn),z1) ~ f(z2,z3) = false if in(g(x1,...,xn),f(z2,z3) = false
+  ceq add2ODMaxWRTACEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .) ODS, N)
+   = ((ceq '_==_[T2, T3]  = 'false.Bool if in-op(F1)[T1,T3] = 'false.Bool [none] .)
+      EqS, N4)
+  if (T1,N1) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N) 
+  /\ (T2,N2) := constrPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor AtS1] .), T1, N1) 
+  /\ (T3,N3) := constrTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor AtS1] .), N2) 
+  /\ (EqS,N4) := add2ODMaxWRTACEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), ODS, N3) .
+  eq add2ODMaxWRTACEqualityEqs(M, OD1, ODS, N) = ((none).EquationSet, N) [owise] .
+
+--- addInFQ2ODEqualityEqs - add all inf to equalities related with two
+--- operators
+  op addInFQ2ODEqualityEqs : Module Qid OpDecl OpDeclSet Nat -> STMEquationSet .
+---(M, Q, OD, ODS, N1)
+--- in(g(x1,...,xn),g(y1,...,yn)) = g(x1,...,xn) ~ g(y1,...,yn) if args 2
+--- and 3 are compatible 
+--- in(g(x1,...,xn),h(y1,...,ym)) = false if args 2 and 3 are not compatible
+  ceq addInFQ2ODEqualityEqs(M, Q, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .) ODS, N)
+   = ((if isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .)) == true
+      then (eq in-op(Q)[T1, T2]  = '_==_[T1,T2] [none] .) (eq in-op(Q)[T2, T1]  = '_==_[T2,T1] [none] .)
+      else (eq in-op(Q)[T1, T2]  = 'false.Bool [none] .) (eq in-op(Q)[T2, T1]  = 'false.Bool [none] .)
+      fi)
+      EqS
+     ,N3)
+  if (T1,N1) := constrTerm(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), N) 
+  /\ (T2,N2) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N1)
+  /\ (EqS,N3) := addInFQ2ODEqualityEqs(M, Q, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), ODS, N) .
+  eq addInFQ2ODEqualityEqs(M, Q, OD, ODS, N) 
+   = ((none).EquationSet, N) [owise] .
+
+
+--- add3ODSEqualityEqs - add all the equalities related with three
+--- operators
+  op add3ODSEqualityEqs : Module OpDeclSet Nat -> STMEquationSet .
+  eq add3ODSEqualityEqs(M, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add3ODSEqualityEqs(M, OD ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add3ODSEqualityEqs(M, OD, ODS, N)
+  /\ (EqS2,N2) := add3ODSEqualityEqs(M, ODS, N1) .
+
+--- add3ODSEqualityEqs - add all the equalities related with three
+--- operators
+  op add3ODSEqualityEqs : Module OpDecl OpDeclSet Nat -> STMEquationSet .
+  eq add3ODSEqualityEqs(M, OD, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add3ODSEqualityEqs(M, OD1, OD2 ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add3ODSEqualityEqs(M, OD1, OD2, ODS, N)
+  /\ (EqS2,N2) := add3ODSEqualityEqs(M, OD1, ODS, N1) .
+
+--- add3ODSEqualityEqs - add all the equalities related with three
+--- operators
+  op add3ODSEqualityEqs : Module OpDecl OpDecl OpDeclSet Nat -> STMEquationSet .
+  eq add3ODSEqualityEqs(M, OD1, OD2, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add3ODSEqualityEqs(M, OD1, OD2, OD3 ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add3ODEqualityEqs(M, OD1, OD2, OD3, N)
+  /\ (EqS2,N2) := add3ODSEqualityEqs(M, OD1, OD2, ODS, N1) .
+
+--- add3ODEqualityEqs - add all the equalities related with three
+--- operators
+  op add3ODEqualityEqs : Module OpDecl OpDecl OpDecl Nat -> STMEquationSet .
+  ceq add3ODEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N)
+   =  (EqS1 EqS2 EqS3 EqS4, N4)
+  if (EqS1,N1) := if isAssoc((op F1 : TpL1 -> Tp1 [ctor AtS1] .)) 
+                  then if isComm((op F1 : TpL1 -> Tp1 [ctor AtS1] .))
+                       then ((none).EquationSet, N)
+	               else add3ODAEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp2) == none then getMaximalTypings(M, filterOpsWRT(M, Tp1, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), getOps(M))) else (op F2 : TpL2 -> Tp2 [ctor AtS2] .) fi ) (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp3) == none then getMaximalTypings(M, filterOpsWRT(M, Tp1, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), getOps(M))) else (op F3 : TpL3 -> Tp3 [ctor AtS3] .) fi ), N)
+	               fi
+                  else ((none).EquationSet,N)
+                  fi
+  /\ (EqS2,N2) := if isAssoc((op F2 : TpL2 -> Tp2 [ctor AtS2] .)) 
+                  then if isComm((op F2 : TpL2 -> Tp2 [ctor AtS2] .))
+                       then ((none).EquationSet, N1)
+                       else add3ODAEqualityEqs(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp2) == none then getMaximalTypings(M, filterOpsWRT(M, Tp2, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), getOps(M))) else (op F2 : TpL2 -> Tp2 [ctor AtS2] .) fi ) (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp3) == none then getMaximalTypings(M, filterOpsWRT(M, Tp2, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), getOps(M))) else (op F3 : TpL3 -> Tp3 [ctor AtS3] .) fi ), N1)
+                       fi
+                  else ((none).EquationSet,N1)
+                  fi
+  /\ (EqS3,N3) := if isAssoc((op F3 : TpL3 -> Tp3 [ctor AtS3] .)) 
+                  then if isComm((op F3 : TpL3 -> Tp3 [ctor AtS3] .))
+                       then ((none).EquationSet, N2)
+                       else add3ODAEqualityEqs(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp2) == none then getMaximalTypings(M, filterOpsWRT(M, Tp3, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), getOps(M))) else (op F2 : TpL2 -> Tp2 [ctor AtS2] .) fi ) (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp3) == none then getMaximalTypings(M, filterOpsWRT(M, Tp3, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), getOps(M))) else (op F3 : TpL3 -> Tp3 [ctor AtS3] .) fi ), N2)
+                       fi
+                  else ((none).EquationSet,N2)
+                  fi
+  /\ (EqS4,N4) := if (isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .)) == true) and (isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .)) == false)
+	          then if isAssoc((op F1 : TpL1 -> Tp1 [ctor AtS1] .)) 
+                       then if isComm((op F1 : TpL1 -> Tp1 [ctor AtS1] .))
+                            then add3ODACEqualityEqs'(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N3)
+	                    else add3ODAEqualityEqs'(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N3)
+	                    fi
+                       else ((none).EquationSet,N3)
+                       fi
+                  else if (isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .)) == true) and (isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .)) == false)
+	               then if isAssoc((op F1 : TpL1 -> Tp1 [ctor AtS1] .)) 
+                            then if isComm((op F1 : TpL1 -> Tp1 [ctor AtS1] .))
+                                 then add3ODACEqualityEqs'(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N3)
+	                         else add3ODAEqualityEqs'(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N3)
+	                         fi
+                            else ((none).EquationSet,N3)
+                            fi
+                       else if (isCompatible(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .)) == true) and (isCompatible(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .)) == false)
+	                    then if isAssoc((op F2 : TpL2 -> Tp2 [ctor AtS2] .)) 
+                                 then if isComm((op F2 : TpL2 -> Tp2 [ctor AtS2] .))
+                                      then add3ODAEqualityEqs'(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F1 : TpL1 -> Tp1 [ctor AtS1] .), N3)
+	                              else add3ODAEqualityEqs'(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F1 : TpL1 -> Tp1 [ctor AtS1] .), N3)
+	                              fi
+                                 else ((none).EquationSet,N3)
+                                 fi
+                            else ((none).EquationSet,N3)
+                            fi
+                       fi
+                  fi .
+
+--- add3ODAEqualityEqs - add all the equalities related with three
+--- operators - A case
+  op add3ODAEqualityEqs : Module OpDecl OpDeclSet Nat ~> STMEquationSet .
+  ceq add3ODAEqualityEqs(M, OD1, OD2 ODS, N) 
+   = (EqS1 EqS2, N2)
+  if (EqS1, N1) := add3ODAEqualityEqs(M, OD1, OD2, ODS, N)
+  /\ (EqS2, N2) := add3ODAEqualityEqs(M, OD1, ODS, N1) .
+  eq add3ODAEqualityEqs(M, OD1, ODS, N) 
+   = ((none).EquationSet, N) [owise] .
+
+--- add3ODAEqualityEqs - add all the equalities related with three
+--- operators - A case
+  op add3ODAEqualityEqs : Module OpDecl OpDecl OpDeclSet Nat ~> STMEquationSet .
+  ceq add3ODAEqualityEqs(M, OD1, OD2, OD3 ODS, N) 
+   = (EqS1 EqS2, N2)
+  if (EqS1, N1) := add3ODMaxWRTEqualityEqs(M, OD1, OD2, OD3, N)
+  /\ (EqS2, N2) := add3ODAEqualityEqs(M, OD1, OD2, ODS, N1) .
+  eq add3ODEqualityEqs(M, OD1, OD2, ODS, N) 
+   = ((none).EquationSet, N) [owise] .
+
+--- add3ODAEqualityEqs' - add all the equalities related with three
+--- operators - A case
+  op add3ODAEqualityEqs' : Module OpDecl OpDecl OpDeclSet Nat ~> STMEquationSet .
+  --- f(g(x1,...,xn),z1) ~ f'(g(y1,...,yn),z2) = g(x1,...,xn) ~ g(y1,...,yn) 
+--- and z1 ~ z2 if f, f' compatible, same g
+  ceq add3ODAEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N)
+   = if TpL3 == nil
+     then ((eq '_==_[T3, T4]  = '_==_[qid("V#" + string(N2,10) + ":" + string(Tp1)), qid("V#" + string(N3,10) + ":" + string(Tp2))] [none] .), N4)
+     else ((eq '_==_[T3, T4]  = '_and_['_==_[T1,T2],'_==_[qid("V#" + string(N2,10) + ":" + string(Tp1)), qid("V#" + string(N3,10) + ":" + string(Tp2))]] [none] .), N4)
+     fi
+  if intersection(Tp1 ; lesserSorts(M, Tp1), Tp3) =/= none
+  /\ intersection(Tp2 ; lesserSorts(M, Tp2), Tp3) =/= none
+  /\ (T1,N1) := constrTerm(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N) 
+  /\ (T2,N2) := constrTerm(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N1) 
+  /\ (T3,N3) := constrPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), T1, N2)
+  /\ (T4,N4) := constrPartTerm(M, (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc AtS2] .), T2, N3) .
+  eq add3ODAEqualityEqs'(M, OD1, OD2, OD3, N) = ((none).EquationSet,N) [owise] .
+
+--- add3ODACEqualityEqs' - add all the equalities related with three
+--- operators - AC case
+  op add3ODACEqualityEqs' : Module OpDecl OpDecl OpDeclSet Nat ~> STMEquationSet .
+  ceq add3ODACEqualityEqs'(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N)
+   = (EqS1
+      EqS2
+     ,N2)
+  if (EqS1,N1) := if intersection(Tp1 ; lesserSorts(M, Tp1), Tp3) =/= none
+                  then constr3ODACEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N)
+	          else ((none).EquationSet,N)
+                  fi
+  /\ (EqS2,N2) := if intersection(Tp2 ; lesserSorts(M, Tp2), Tp3) =/= none
+                  then constr3ODACEqs(M, (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N1)
+	          else ((none).EquationSet,N1)
+                  fi .
+  eq add3ODACEqualityEqs'(M, OD1, OD2, OD3, N) = ((none).EquationSet,N) [owise] .
+
+--- constr3ODACEqs - equalities related with three operators when
+--- first and second arguments are compatible and the third is op type
+--- less or equal to Tp1 - AC case
+  op constr3ODACEqs : Module OpDecl OpDecl OpDeclSet Nat ~> STMEquationSet .
+--- f(g(x1,...,xn),z1) ~ f'(z2,z3) = false if
+--- inf(g(x1,...,xn),f'(z2,z3)) = false and f, f' compatible, same g
+  ceq constr3ODACEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N)
+   = ((ceq '_==_[T2, T3]  = 'false.Bool if in-op(F1)[T1,T3] = 'false.Bool [none] .), N3)
+  if (T1,N1) := constrTerm(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N) 
+  /\ (T2,N2) := constrPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc comm AtS1] .), T1, N1)
+  /\ (T3,N3) := constrTerm(M, (op F2 : Tp2 Tp2 -> Tp2 [ctor assoc comm AtS2] .), N2) .
+  eq constr3ODACEqs(M, OD1, OD2, OD3, N) = ((none).EquationSet,N) [owise] .
+
+--- add3ODMaxWRTEqualityEqs - add all the equalities related with three
+--- operators when the first one is associative
+  op add3ODMaxWRTEqualityEqs : Module OpDecl OpDecl OpDecl Nat ~> STMEquationSet .
+--- f(g(x1,...,xn),z1) ~ f(g(y1,...,yn),z2) = g(x1,...,xn) ~ g(y1,...,yn) 
+--- and z1 ~ z2 if compatible
+--- f(g(x1,...,xn),z1) ~ f(h(y1,...,ym),z2) = false if not compatible
+  ceq add3ODMaxWRTEqualityEqs(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N)
+   = ((if isCompatible(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .)) == true
+      then (eq '_==_[T3, T4]  = '_and_['_==_[T1,T2],'_==_[qid("V#" + string(N2,10) + ":" + string(Tp1)), qid("V#" + string(N3,10) + ":" + string(Tp1))]] [none] .)
+      else (eq '_==_[T3, T4]  = 'false.Bool [none] .)
+      fi), N4)
+  if isCompatible(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .)) = false
+  /\ isCompatible(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .)) = false
+  /\ (T1,N1) := constrTerm(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N) 
+  /\ (T2,N2) := constrTerm(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N1) 
+  /\ (T3,N3) := constrPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor AtS1] .), T1, N2) 
+  /\ (T4,N4) := constrPartTerm(M, (op F1 : Tp1 Tp1 -> Tp1 [ctor AtS1] .), T2, N3) .
+  eq add3ODMaxWRTEqualityEqs(M, OD1, OD2, OD3, N) = ((none).EquationSet, N) [owise] .
+
+--- add4ODSEqualityEqs - add all the equalities related with four
+--- operators
+  op add4ODSEqualityEqs : Module OpDeclSet Nat -> STMEquationSet .
+  eq add4ODSEqualityEqs(M, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add4ODSEqualityEqs(M, OD ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add4ODSEqualityEqs(M, OD, ODS, N)
+  /\ (EqS2,N2) := add4ODSEqualityEqs(M, ODS, N1) .
+
+--- add4ODSEqualityEqs - add all the equalities related with four
+--- operators
+  op add4ODSEqualityEqs : Module OpDecl OpDeclSet Nat -> STMEquationSet .
+  eq add4ODSEqualityEqs(M, OD, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add4ODSEqualityEqs(M, OD1, OD2 ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add4ODSEqualityEqs(M, OD1, OD2, ODS, N)
+  /\ (EqS2,N2) := add4ODSEqualityEqs(M, OD1, ODS, N1) .
+
+--- add4ODSEqualityEqs - add all the equalities related with four
+--- operators
+  op add4ODSEqualityEqs : Module OpDecl OpDecl OpDeclSet Nat -> STMEquationSet .
+  eq add4ODSEqualityEqs(M, OD1, OD2, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add4ODSEqualityEqs(M, OD1, OD2, OD3 ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add4ODSEqualityEqs(M, OD1, OD2, OD3, ODS, N)
+  /\ (EqS2,N2) := add4ODSEqualityEqs(M, OD1, OD2, ODS, N1) .
+
+--- add4ODSEqualityEqs - add all the equalities related with four
+--- operators
+  op add4ODSEqualityEqs : Module OpDecl OpDecl OpDecl OpDeclSet Nat -> STMEquationSet .
+  eq add4ODSEqualityEqs(M, OD1, OD2, OD3, (none).OpDeclSet, N)
+   = ((none).EquationSet, N) .
+  ceq add4ODSEqualityEqs(M, OD1, OD2, OD3, OD4 ODS, N)
+   =  (EqS1 EqS2, N2)
+  if (EqS1,N1) := add4ODEqualityEqs(M, OD1, OD2, OD3, OD4, N)
+  /\ (EqS2,N2) := add4ODSEqualityEqs(M, OD1, OD2, OD3, ODS, N1) .
+
+--- add4ODEqualityEqs - add all the equalities related with four operators
+  op add4ODEqualityEqs : Module OpDecl OpDecl OpDecl OpDecl Nat -> STMEquationSet .
+  ceq add4ODEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F4 : TpL4 -> Tp4 [ctor AtS4] .), N)
+   =  (EqS1 EqS2 EqS3 EqS4 EqS5 EqS6, N6)
+  if (EqS1,N1) := add4ODEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .) (op F4 : TpL4 -> Tp4 [ctor AtS4] .), N)
+  /\ (EqS2,N2) := add4ODEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .) (op F4 : TpL4 -> Tp4 [ctor AtS4] .), N1)
+  /\ (EqS3,N3) := add4ODEqualityEqs(M, (op F1 : TpL1 -> Tp1 [ctor AtS1] .), (op F4 : TpL4 -> Tp4 [ctor AtS4] .), (op F2 : TpL2 -> Tp2 [ctor AtS2] .) (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N2)
+  /\ (EqS4,N4) := add4ODEqualityEqs(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F1 : TpL1 -> Tp1 [ctor AtS1] .) (op F4 : TpL4 -> Tp4 [ctor AtS4] .), N3)
+  /\ (EqS5,N5) := add4ODEqualityEqs(M, (op F2 : TpL2 -> Tp2 [ctor AtS2] .), (op F4 : TpL4 -> Tp4 [ctor AtS4] .), (op F1 : TpL1 -> Tp1 [ctor AtS1] .) (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N4)
+  /\ (EqS6,N6) := add4ODEqualityEqs(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F4 : TpL4 -> Tp4 [ctor AtS4] .), (op F1 : TpL1 -> Tp1 [ctor AtS1] .) (op F2 : TpL2 -> Tp2 [ctor AtS2] .), N5) .
+
+--- add4ODEqualityEqs - add all the equalities related with couples of
+--- two operators - only for the A case
+  op add4ODEqualityEqs : Module OpDecl OpDecl OpDeclSet Nat -> STMEquationSet .
+  ceq add4ODEqualityEqs(M, (op F : TpL1 -> Tp1 [ctor assoc AtS1] .), (op F : TpL2 -> Tp2 [ctor assoc AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .) (op F4 : TpL4 -> Tp4 [ctor AtS4] .), N)
+   = (EqS1 EqS2, N2)
+  if isComm((op F : TpL1 -> Tp1 [ctor assoc AtS1] .)) = false
+  /\ isComm((op F : TpL2 -> Tp2 [ctor assoc AtS2] .)) = false
+  /\ isCompatible(M, (op F : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F : TpL2 -> Tp2 [ctor assoc AtS2] .)) = true
+  /\ (EqS1, N1) := add4ODSMaxWRTEqualityEqs(M, (op F : TpL1 -> Tp1 [ctor assoc AtS1] .), (op F : TpL2 -> Tp2 [ctor assoc AtS2] .), (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp3) == none then getMaximalTypings(M, filterOpsWRT(M, Tp1, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), getOps(M))) else (op F3 : TpL3 -> Tp3 [ctor AtS3] .) fi ), (if intersection(Tp2 ; lesserSorts(M, Tp2),Tp4) == none then getMaximalTypings(M, filterOpsWRT(M, Tp2, (op F4 : TpL4 -> Tp4 [ctor AtS4] .), getOps(M))) else (op F4 : TpL4 -> Tp4 [ctor AtS4] .) fi ), N)
+  /\ (EqS2, N2) := add4ODSMaxWRTEqualityEqs(M, (op F : TpL1 -> Tp1 [ctor assoc AtS1] .), (op F : TpL2 -> Tp2 [ctor assoc AtS2] .), (if intersection(Tp1 ; lesserSorts(M, Tp1),Tp4) == none then getMaximalTypings(M, filterOpsWRT(M, Tp1, (op F4 : TpL4 -> Tp4 [ctor AtS4] .), getOps(M))) else (op F4 : TpL4 -> Tp4 [ctor AtS4] .) fi ), (if intersection(Tp2 ; lesserSorts(M, Tp2),Tp3) == none then getMaximalTypings(M, filterOpsWRT(M, Tp2, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), getOps(M))) else (op F3 : TpL3 -> Tp3 [ctor AtS3] .) fi ), N1) .
+  eq add4ODEqualityEqs(M, OD1, OD2, ODS, N)
+   = ((none).EquationSet, N) .
+
+--- add4ODSMaxWRTEqualityEqs - add all the equalities related with
+--- couples of two operators where the fourth and the fifth argument
+--- are maximal with respect to the second and the third respectively
+  op add4ODSMaxWRTEqualityEqs : Module OpDecl OpDecl OpDeclSet OpDeclSet Nat -> STMEquationSet .
+  ceq add4ODSMaxWRTEqualityEqs(M, OD1, OD2, OD3 ODS1, ODS2, N)
+   = (EqS1 EqS2, N2)
+  if (EqS1, N1) := add4ODMaxWRTEqualityEqs(M, OD1, OD2, OD3, ODS2, N)
+  /\ (EqS2, N2) := add4ODSMaxWRTEqualityEqs(M, OD1, OD2, ODS1, ODS2, N1) .
+  eq add4ODSMaxWRTEqualityEqs(M, OD1, OD2, ODS1, ODS2, N)
+   = ((none).EquationSet, N) [owise] .
+
+--- add4ODMaxWRTEqualityEqs - add all the equalities related with couples of
+--- two operators - only for the A case
+  op add4ODMaxWRTEqualityEqs : Module OpDecl OpDecl OpDecl OpDeclSet Nat -> STMEquationSet .
+  ceq add4ODMaxWRTEqualityEqs(M, (op F : TpL1 -> Tp1 [ctor assoc AtS1] .), (op F : TpL2 -> Tp2 [ctor assoc AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F4 : TpL4 -> Tp4 [ctor AtS4] .) ODS, N)
+   = ((if isCompatible(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), (op F4 : TpL4 -> Tp4 [ctor AtS4] .)) == true 
+     then (eq '_==_[T3, T4]  = '_and_['_==_[T1,T2],'_==_[qid("V#" + string(N2,10) + ":" + string(Tp1)), qid("V#" + string(N3,10) + ":" + string(Tp2))]] [none] .)
+     else (eq '_==_[T3, T4]  = 'false.Bool [none] .)
+     fi)
+     EqS, N5)
+  if isCompatible(M, (op F : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .)) = false
+  /\ isCompatible(M, (op F : Tp1 Tp1 -> Tp1 [ctor assoc AtS1] .), (op F4 : TpL4 -> Tp4 [ctor AtS4] .)) = false
+  /\ (T1,N1) := constrTerm(M, (op F3 : TpL3 -> Tp3 [ctor AtS3] .), N) 
+  /\ (T2,N2) := constrTerm(M, (op F4 : TpL4 -> Tp4 [ctor AtS4] .), N1) 
+  /\ (T3,N3) := constrPartTerm(M, (op F : Tp1 Tp1 -> Tp1 [ctor AtS1] .), T1, N2) 
+  /\ (T4,N4) := constrPartTerm(M, (op F : Tp2 Tp2 -> Tp2 [ctor AtS1] .), T2, N3)
+  /\ (EqS,N5) := add4ODMaxWRTEqualityEqs(M, (op F : TpL1 -> Tp1 [ctor assoc AtS1] .), (op F : TpL2 -> Tp2 [ctor assoc AtS2] .), (op F3 : TpL3 -> Tp3 [ctor AtS3] .), ODS, N4) .
+  eq add4ODMaxWRTEqualityEqs(M, OD1, OD2, OD3, ODS, N)
+   = ((none).EquationSet, N) [owise] .
+
+
+--- constrTerm - Construct a Term from its operators
+  op constrTerm : Module OpDecl Nat -> STMTerm .
+  eq constrTerm(M, (op F : nil -> Tp [ctor AtS] .), N)
+   = (qid(string(F) + "." + string(Tp)), N) .
+  ceq constrTerm(M, (op F : Tp1 TpL -> Tp2 [ctor AtS] .), N)
+   = (F [TL], N1) 
+  if (TL ; N1) := listVars(Tp1 TpL, N) .
+
+--- constrPartTerm - Construct a Term from its operators where the
+--- first argument is T and the rest of variables start from N
+  op constrPartTerm : Module OpDecl Term Nat -> STMTerm .
+  eq constrPartTerm(M, op F : nil -> Tp [ctor AtS] ., T, N)
+   = (qid(string(F) + "." + string(Tp)), N) .
+  ceq constrPartTerm(M, op F : Tp1 TpL -> Tp2 [ctor AtS] ., T, N)
+   = (F [TL], N1) 
+  if (TL ; N1) := listPartVars(Tp1 TpL, T, N) .
+
+--- constrInvPartTerm - Construct a Term from its operators where the
+--- last argument is T and the rest of variables decrease from N
+  op constrInvPartTerm : Module OpDecl Term Nat -> STMTerm .
+  eq constrInvPartTerm(M, op F : nil -> Tp [ctor AtS] ., T, N)
+   = (qid(string(F) + "." + string(Tp)), N) .
+  ceq constrInvPartTerm(M, op F : Tp1 TpL -> Tp2 [ctor AtS] ., T, N)
+   = (F [TL], N1)
+  if (TL ; N1) := listInvPartVars(Tp1 TpL, T, N) .
+
+--- constrAnd - Construct an nested And Term.
+  op constrAnd : TypeList TypeList Nat Nat -> STMTerm .
+  eq constrAnd(Tp1, Tp2, N1, N2)
+   = ('_==_[qid("V#" + string(N1,10) + ":" + string(Tp1)), qid("V#" + string(N2,10) + ":" + string(Tp2))], s N2) .
+  ceq constrAnd(Tp1 TpL1, Tp2 TpL2, N1, N2)
+   = ('_and_['_==_[qid("V#" + string(N1,10) + ":" + string(Tp1)), qid("V#" + string(N2,10) + ":" + string(Tp2))], T], N3) 
+  if (T,N3) := constrAnd(TpL1, TpL2, s N1, s N2) [owise] .
+
+--- constrCommAnd - Commutative case when Tp1 \equiv_\le Tp2
+  op constrCommAnd : Type Type Nat -> STMTerm .
+  eq constrCommAnd(Tp1, Tp2, N)
+   = ('_or_['_and_['_==_[qid("V#" + string(N,10) + ":" + string(Tp1)), qid("V#" + string(s s N,10) + ":" + string(Tp2))], '_==_[qid("V#" + string(s N,10) + ":" + string(Tp1)), qid("V#" + string(s s s N,10) + ":" + string(Tp2))]], '_and_['_==_[qid("V#" + string(N,10) + ":" + string(Tp1)), qid("V#" + string(s s s N,10) + ":" + string(Tp2))], '_==_[qid("V#" + string(s N,10) + ":" + string(Tp1)), qid("V#" + string(s s N,10) + ":" + string(Tp2))]]], s s s s N) .
+
+--- constrAssocCommEq - Construct an Equality removing the equal first
+--- variable
+  op constrAssocCommEq : Type Type Nat -> STMTerm .
+  eq constrAssocCommEq(Tp1, Tp2, N)
+   = ('_==_[qid("V#" + string(s N,10) + ":" + string(Tp1)), qid("V#" + string(s s N,10) + ":" + string(Tp2))], s s s N) .
+
+--- constrCompatibleEqs - cases C and Empty
+  op constrCompatibleEqs : Module OpDecl OpDecl Nat -> STMEquationSet .
+  ceq constrCompatibleEqs(M, (op F : Tp1 Tp1 -> Tp2 [ctor comm AtS] .), (op F : Tp3 Tp3 -> Tp4 [ctor comm AtS] .), N)
+   = ((eq '_==_[T, T1]  = T2 [none] .), N3)
+  if (T,N1)   := constrTerm(M, (op F : Tp1 Tp1 -> Tp2 [ctor comm AtS] .), N)
+  /\ (T1,N2)  := constrTerm(M, (op F : Tp3 Tp3 -> Tp4 [ctor comm AtS] .), N1)
+  /\ (T2,N3)  := constrCommAnd(Tp1, Tp3, N) .
+  ceq constrCompatibleEqs(M, (op F : TpL1 -> Tp1 [ctor AtS] .), (op F : TpL2 -> Tp2 [ctor AtS] .), N)
+   = ((eq '_==_[T, T1]  = T2 [none] .), N3)
+  if (T,N1)   := constrTerm(M, (op F : TpL1 -> Tp1 [ctor AtS] .), N)
+  /\ (T1,N2)  := constrTerm(M, (op F : TpL2 -> Tp2 [ctor AtS] .), N1)
+  /\ (T2,N3)  := constrAnd(TpL1, TpL2, N, N + typeListLength(TpL1)) [owise] .
+
+--- addSubtermEqualityEqs - add false considering the subterm relation.
+--- eq(f(x1,...,xn), xi) = false
+--- if comm then there is only one equation eq(f(x1,...,xn),x1) = false
+  op addSubtermEqualityEqs : Module OpDecl TypeList Nat Nat -> STMEquationSet .
+  eq addSubtermEqualityEqs(M, op F : TpL -> Tp [ctor AtS] ., nil, N1, N2)
+   = (none, N1) .
+  ceq addSubtermEqualityEqs(M, op F : TpL1 -> Tp1 [ctor comm AtS] ., Tp2 TpL2, N1, N2)
+   = if sameKind(M, Tp2, Tp1) == true then ((eq '_==_[T, qid("V#" + string(N2,10) + ":" + string(Tp2))]  = 'false.Bool [none] .), N3) else (none, N2) fi
+  if (T, N3) := constrTerm(M, op F : TpL1 -> Tp1 [ctor AtS] ., N2) .
+  ceq addSubtermEqualityEqs(M, op F : TpL1 -> Tp1 [ctor AtS] ., Tp2 TpL2, N1, N2)
+   = if sameKind(M, Tp2, Tp1) == true then ((eq '_==_[T, qid("V#" + string(N2,10) + ":" + string(Tp2))]  = 'false.Bool [none] .) EqS,N4) else (EqS, N4) fi
+  if (T, N3)  := constrTerm(M, op F : TpL1 -> Tp1 [ctor AtS] ., N1)
+  /\ (EqS,N4) := addSubtermEqualityEqs(M, op F : TpL1 -> Tp1 [ctor AtS] ., TpL2, N1, s N2) [owise] .
+
+--- listVars - Construct a list of Vars separated by comma
+  op listVars : TypeList Nat -> STMTermList .
+  eq listVars(Tp nil, N)
+   = (qid("V#" + string(N,10) + ":" + string(Tp)) ; s N) .
+  ceq listVars(Tp TpL, N)
+   = ((qid("V#" + string(N,10) + ":" + string(Tp)) , TL) ; N1) 
+  if (TL ; N1) := listVars(TpL, s N) [owise] .
+
+--- listPartVars - Construct a list of terms where the first term is T
+--- and the rest is a list of variables starting from N
+  op listPartVars : TypeList Term Nat -> STMTermList .
+  eq listPartVars(Tp nil, T, N)
+   = (T ; N) .
+  ceq listPartVars(Tp TpL, T, N)
+   = ((T , TL) ; N1)
+  if (TL ; N1) := listVars(TpL, N) [owise] .
+
+--- listInvPartVars - Construct a list of terms where the last term is
+--- T and the rest is a list of variables starting from N
+  op listInvPartVars : TypeList Term Nat -> STMTermList .
+  eq listInvPartVars(Tp nil, T, N)
+   = (T ; N) .
+  ceq listInvPartVars(Tp TpL, T, N)
+   = ((qid("V#" + string(N,10) + ":" + string(Tp)) , TL) ; N1)
+  if (TL ; N1) := listInvPartVars(TpL, T, s N) [owise] .
+
+--- eq-enrich - Protecting equality Enrichment of the input theory
+  op eq-enrich : Module -> Module .
+  ceq eq-enrich(M) 
+   = if M :: FModule 
+     then fmod qid("EQ-" + string(getName(M))) is 
+            (protecting getName(M) .) 
+            (protecting 'BOOL-OPS .) 
+            sorts setNewSorts(TTLODSS) .
+            setNewSubsortDeclSet(TTLODSS) 
+            addEqualityOps(TTLODSS)
+            addInFOps(TTLODSS)
+            none 
+            EqS1
+            EqS2
+          endfm
+     else mod qid("EQ-" + string(getName(M))) is 
+            (protecting getName(M) .) 
+            (protecting 'BOOL-OPS .) 
+            sorts setNewSorts(TTLODSS) .
+            setNewSubsortDeclSet(TTLODSS) 
+            addEqualityOps(TTLODSS)
+            addInFOps(TTLODSS)
+            none 
+            EqS1
+            EqS2
+            EqS3
+            none
+          endm
+     fi
+  if TTLODSS := getMaximalTypings(M,processKinds(getConstrByKind(M, (empty).KindOpDeclSetSet, getOps(M))))
+  /\ (EqS1,N1) := addEqualityEqs(M, TTLODSS, 0) 
+  /\ (EqS2,N2) := addInFEqs(M, TTLODSS, N1)
+  /\ (EqS3,N3) := addEqualityEqs(filterMaximalDisjoint(M,(empty).SortPairSet,getDisjointSorts(M,getSortsByKind(M,(empty).KindSortSetSet,getSorts(M)))), N2) .
+
+--- enrich - Equality Enrichment of the input theory
+  op enrich : Module -> Module .
+  ceq enrich(fmod H is IL sorts SS . SSDS ODS MAS EqS0 endfm) 
+   = fmod qid("EQ-" + string(getName(M))) is 
+       nil
+       sorts (getSorts(M) ; setNewSorts(TTLODSS)) .
+       getSubsorts(M) 
+       setNewSubsortDeclSet(TTLODSS)
+       removeOps(('_==_ ; '_=/=_ ; 'if_then_else_fi), getOps(M))
+       addEqualityOps(TTLODSS)
+       addInFOps(TTLODSS)
+       none 
+       getEqs(M)
+       EqS1
+       EqS2
+       EqS3
+     endfm
+  if M           := (fmod H is IL sorts SS . SSDS ODS MAS EqS0 endfm)
+  /\ TTLODSS     := getMaximalTypings(M,processKinds(getConstrByKind(M, (empty).KindOpDeclSetSet, getOps(M))))
+  /\ (EqS1,N1) := addEqualityEqs(M, TTLODSS, 0)
+  /\ (EqS2,N2) := addInFEqs(M, TTLODSS, N1)
+  /\ (EqS3,N3) := addEqualityEqs(filterMaximalDisjoint(M,(empty).SortPairSet,getDisjointSorts(M,getSortsByKind(M,(empty).KindSortSetSet,getSorts(M)))), N2) .
+
+  ceq enrich(mod H is IL sorts SS . SSDS ODS MAS EqS0 RlS endm) 
+   = mod qid("EQ-" + string(getName(M))) is 
+       nil
+       sorts (getSorts(M) ; setNewSorts(TTLODSS)) .
+       getSubsorts(M) 
+       setNewSubsortDeclSet(TTLODSS)
+       removeOps(('_==_ ; '_=/=_ ; 'if_then_else_fi), getOps(M))
+       addEqualityOps(TTLODSS)
+       addInFOps(TTLODSS)
+       none 
+       getEqs(M)
+       EqS1
+       EqS2
+       EqS3
+       getRls(M)
+     endm
+  if M := (mod H is IL sorts SS . SSDS ODS MAS EqS0 RlS endm)
+  /\ TTLODSS := getMaximalTypings(M,processKinds(getConstrByKind(M, (empty).KindOpDeclSetSet, getOps(M))))
+  /\ (EqS1,N1) := addEqualityEqs(M, TTLODSS, 0)
+  /\ (EqS2,N2) := addInFEqs(M, TTLODSS, N1)
+  /\ (EqS3,N3) := addEqualityEqs(filterMaximalDisjoint(M,(empty).SortPairSet,getDisjointSorts(M,getSortsByKind(M,(empty).KindSortSetSet,getSorts(M)))), N2) .
+
+endfm

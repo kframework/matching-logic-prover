@@ -1,0 +1,46 @@
+
+fmod IMP is
+
+  protecting NAT .
+  
+  sort  Var{MLNAT} .
+  sort  Term{MLNAT} . 
+  sort  Term?{MLNAT} .
+  sort  Top{MLNAT} .
+  sort  Bottom{MLNAT} .
+  sort  Predicate{MLNAT} . 
+  sort  Pattern{MLNAT} .
+  
+  subsorts Var{MLNAT} < Term{MLNAT} < Term?{MLNAT} < Pattern{MLNAT} .
+  subsort Predicate{MLNAT} < Pattern{MLNAT} .
+  subsort Top{MLNAT} Bottom{MLNAT} < Predicate{MLNAT} .
+  subsort Bottom{MLNAT} < Term?{MLNAT} .
+  
+  op  top{MLNAT}    :                                             	-> Top{MLNAT} .
+  op  bottom{MLNAT} :                                             	-> Bottom{MLNAT} .
+  op  {_,MLNAT}     : Nat                                   	    -> Var{MLNAT} .
+  
+  op  _/\_          : Term?{MLNAT} Pattern{MLNAT}         			-> Term?{MLNAT} [assoc comm] .
+  op  _/\_          : Top{MLNAT} Var{MLNAT}        					-> Var{MLNAT} [ditto] .
+  op  _/\_          : Top{MLNAT} Term{MLNAT}       					-> Term{MLNAT} [ditto] .
+  op  _/\_          : Top{MLNAT} Term?{MLNAT}      					-> Term?{MLNAT} [ditto] .
+  op  _/\_          : Top{MLNAT} Top{MLNAT} 						-> Top{MLNAT} [ditto] .
+  op  _/\_          : Top{MLNAT} Bottom{MLNAT} 						-> Bottom{MLNAT} [ditto] .
+  op  _/\_          : Top{MLNAT} Predicate{MLNAT}        			-> Predicate{MLNAT} [ditto] .
+  op  _/\_          : Bottom{MLNAT} Pattern{MLNAT} 					-> Bottom{MLNAT} [ditto] .
+  op  _/\_          : Predicate{MLNAT} Predicate{MLNAT}   			-> Predicate{MLNAT} [ditto] .
+  op  _/\_          : Pattern{MLNAT} Pattern{MLNAT}       			-> Pattern{MLNAT} [ditto] .
+
+  op  _\/_          : Bottom{MLNAT} Var{MLNAT}        				-> Var{MLNAT} [ditto] .
+  op  _\/_          : Bottom{MLNAT} Term{MLNAT}       				-> Term{MLNAT} [ditto] .
+  op  _\/_          : Bottom{MLNAT} Term?{MLNAT}      				-> Term?{MLNAT} [ditto] .
+  op  _\/_          : Bottom{MLNAT} Top{MLNAT} 					 	-> Top{MLNAT} [ditto] .
+  op  _\/_          : Bottom{MLNAT} Bottom{MLNAT} 					-> Bottom{MLNAT} [ditto] .
+  op  _\/_          : Bottom{MLNAT} Predicate{MLNAT}        		-> Predicate{MLNAT} [ditto] .
+  op  _\/_          : Top{MLNAT} Pattern{MLNAT}						-> Top{MLNAT} [ditto] .
+  op  _\/_			: Pattern{MLNAT} Pattern{MLNAT}					-> Pattern{MLNAT} [ditto] .
+
+
+endfm
+
+quit

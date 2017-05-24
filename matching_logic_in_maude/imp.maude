@@ -1,46 +1,201 @@
-
 fmod IMP is
 
   protecting NAT .
-  
-  sort  Var{MLNAT} .
-  sort  Term{MLNAT} . 
-  sort  Term?{MLNAT} .
-  sort  Top{MLNAT} .
-  sort  Bottom{MLNAT} .
-  sort  Predicate{MLNAT} . 
-  sort  Pattern{MLNAT} .
-  
-  subsorts Var{MLNAT} < Term{MLNAT} < Term?{MLNAT} < Pattern{MLNAT} .
-  subsort Predicate{MLNAT} < Pattern{MLNAT} .
-  subsort Top{MLNAT} Bottom{MLNAT} < Predicate{MLNAT} .
-  subsort Bottom{MLNAT} < Term?{MLNAT} .
-  
-  op  top{MLNAT}    :                                             	-> Top{MLNAT} .
-  op  bottom{MLNAT} :                                             	-> Bottom{MLNAT} .
-  op  {_,MLNAT}     : Nat                                   	    -> Var{MLNAT} .
-  
-  op  _/\_          : Term?{MLNAT} Pattern{MLNAT}         			-> Term?{MLNAT} [assoc comm] .
-  op  _/\_          : Top{MLNAT} Var{MLNAT}        					-> Var{MLNAT} [ditto] .
-  op  _/\_          : Top{MLNAT} Term{MLNAT}       					-> Term{MLNAT} [ditto] .
-  op  _/\_          : Top{MLNAT} Term?{MLNAT}      					-> Term?{MLNAT} [ditto] .
-  op  _/\_          : Top{MLNAT} Top{MLNAT} 						-> Top{MLNAT} [ditto] .
-  op  _/\_          : Top{MLNAT} Bottom{MLNAT} 						-> Bottom{MLNAT} [ditto] .
-  op  _/\_          : Top{MLNAT} Predicate{MLNAT}        			-> Predicate{MLNAT} [ditto] .
-  op  _/\_          : Bottom{MLNAT} Pattern{MLNAT} 					-> Bottom{MLNAT} [ditto] .
-  op  _/\_          : Predicate{MLNAT} Predicate{MLNAT}   			-> Predicate{MLNAT} [ditto] .
-  op  _/\_          : Pattern{MLNAT} Pattern{MLNAT}       			-> Pattern{MLNAT} [ditto] .
 
-  op  _\/_          : Bottom{MLNAT} Var{MLNAT}        				-> Var{MLNAT} [ditto] .
-  op  _\/_          : Bottom{MLNAT} Term{MLNAT}       				-> Term{MLNAT} [ditto] .
-  op  _\/_          : Bottom{MLNAT} Term?{MLNAT}      				-> Term?{MLNAT} [ditto] .
-  op  _\/_          : Bottom{MLNAT} Top{MLNAT} 					 	-> Top{MLNAT} [ditto] .
-  op  _\/_          : Bottom{MLNAT} Bottom{MLNAT} 					-> Bottom{MLNAT} [ditto] .
-  op  _\/_          : Bottom{MLNAT} Predicate{MLNAT}        		-> Predicate{MLNAT} [ditto] .
-  op  _\/_          : Top{MLNAT} Pattern{MLNAT}						-> Top{MLNAT} [ditto] .
-  op  _\/_			: Pattern{MLNAT} Pattern{MLNAT}					-> Pattern{MLNAT} [ditto] .
+  sorts Var Term Term? Top Bottom Predicate Pattern .
+  sorts Var{Bool} Term{Bool} Term?{Bool} Top{Bool} Bottom{Bool} Predicate{Bool} Pattern{Bool} .
+  sorts Var{Nat} Term{Nat} Term?{Nat} Top{Nat} Bottom{Nat} Predicate{Nat} Pattern{Nat} .
+  sorts Var{Seq} Term{Seq} Term?{Seq} Top{Seq} Bottom{Seq} Predicate{Seq} Pattern{Seq} .
+  sorts Var{Map} Term{Map} Term?{Map} Top{Map} Bottom{Map} Predicate{Map} Pattern{Map} .
+  sorts Var{Pgm} Term{Pgm} Term?{Pgm} Top{Pgm} Bottom{Pgm} Predicate{Pgm} Pattern{Pgm} .
+  sorts Var{Cfg} Term{Cfg} Term?{Cfg} Top{Cfg} Bottom{Cfg} Predicate{Cfg} Pattern{Cfg} .
+  sorts Var{Poly} Term{Poly} Term?{Poly} Top{Poly} Bottom{Poly} Predicate{Poly} Pattern{Poly} .
+
+  subsorts Var < Term < Term? < Pattern .
+  subsorts Top Bottom < Predicate < Pattern .
+  subsorts Bottom < Term? .
+  subsorts Var{Bool} < Term{Bool} < Term?{Bool} < Pattern{Bool} .
+  subsorts Top{Bool} Bottom{Bool} < Predicate{Bool} < Pattern{Bool} .
+  subsorts Bottom{Bool} < Term?{Bool} .
+  subsorts Var{Nat} < Term{Nat} < Term?{Nat} < Pattern{Nat} .
+  subsorts Top{Nat} Bottom{Nat} < Predicate{Nat} < Pattern{Nat} .
+  subsorts Bottom{Nat} < Term?{Nat} .
+  subsorts Var{Seq} < Term{Seq} < Term?{Seq} < Pattern{Seq} .
+  subsorts Top{Seq} Bottom{Seq} < Predicate{Seq} < Pattern{Seq} .
+  subsorts Bottom{Seq} < Term?{Seq} .
+  subsorts Var{Map} < Term{Map} < Term?{Map} < Pattern{Map} .
+  subsorts Top{Map} Bottom{Map} < Predicate{Map} < Pattern{Map} .
+  subsorts Bottom{Map} < Term?{Map} .
+  subsorts Var{Pgm} < Term{Pgm} < Term?{Pgm} < Pattern{Pgm} .
+  subsorts Top{Pgm} Bottom{Pgm} < Predicate{Pgm} < Pattern{Pgm} .
+  subsorts Bottom{Pgm} < Term?{Pgm} .
+  subsorts Var{Cfg} < Term{Cfg} < Term?{Cfg} < Pattern{Cfg} .
+  subsorts Top{Cfg} Bottom{Cfg} < Predicate{Cfg} < Pattern{Cfg} .
+  subsorts Bottom{Cfg} < Term?{Cfg} .
+  subsorts Var{Poly} < Term{Poly} < Term?{Poly} < Pattern{Poly} .
+  subsorts Top{Poly} Bottom{Poly} < Predicate{Poly} < Pattern{Poly} .
+  subsorts Bottom{Poly} < Term?{Poly} .
+
+  subsorts Var{Poly} < Var{Bool} Var{Nat} Var{Seq} Var{Map} Var{Pgm} Var{Cfg} < Var .
+  subsorts Term{Poly} < Term{Bool} Term{Nat} Term{Seq} Term{Map} Term{Pgm} Term{Cfg} < Term .
+  subsorts Term?{Poly} < Term?{Bool} Term?{Nat} Term?{Seq} Term?{Map} Term?{Pgm} Term?{Cfg} < Term? .
+  subsorts Top{Poly} < Top{Bool} Top{Nat} Top{Seq} Top{Map} Top{Pgm} Top{Cfg} < Top .
+  subsorts Bottom{Poly} < Bottom{Bool} Bottom{Nat} Bottom{Seq} Bottom{Map} Bottom{Pgm} Bottom{Cfg} < Bottom .
+  subsorts Pattern{Poly} < Pattern{Bool} Pattern{Nat} Pattern{Seq} Pattern{Map} Pattern{Pgm} Pattern{Cfg} < Pattern .
 
 
+  op top{Bool} : -> Top{Bool} . op bottom{Bool} : -> Bottom{Bool} .
+  op top{Nat} : -> Top{Nat} . op bottom{Nat} : -> Bottom{Nat} .
+  op top{Seq} : -> Top{Seq} . op bottom{Seq} : -> Bottom{Seq} .
+  op top{Map} : -> Top{Map} . op bottom{Map} : -> Bottom{Map} .
+  op top{Pgm} : -> Top{Pgm} . op bottom{Pgm} : -> Bottom{Pgm} .
+  op top{Cfg} : -> Top{Cfg} . op bottom{Cfg} : -> Bottom{Cfg} .
+  op top{Poly} : -> Top{Poly} . op bottom{Poly} : -> Bottom{Poly} .
+
+  op {_,Bool} : Nat -> Var{Bool} [ctor] .
+  op {_,Nat} : Nat -> Var{Nat} [ctor] .
+  op {_,Seq} : Nat -> Var{Seq} [ctor] .
+  op {_,Map} : Nat -> Var{Map} [ctor] .
+  op {_,Pgm} : Nat -> Var{Pgm} [ctor] .
+  op {_,Cfg} : Nat -> Var{Cfg} [ctor] .
+
+  op _=_ : Pattern{Bool} Pattern{Bool} -> Predicate{Poly} .
+  op _=_ : Pattern{Nat} Pattern{Nat} -> Predicate{Poly} .
+  op _=_ : Pattern{Seq} Pattern{Seq} -> Predicate{Poly} .
+  op _=_ : Pattern{Map} Pattern{Map} -> Predicate{Poly} .
+  op _=_ : Pattern{Pgm} Pattern{Pgm} -> Predicate{Poly} .
+  op _=_ : Pattern{Cfg} Pattern{Cfg} -> Predicate{Poly} .
+
+  op _/\_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} .
+  op _/\_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} .
+  op _/\_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} .
+  op _/\_ : Pattern{Map} Pattern{Map} -> Pattern{Map} .
+  op _/\_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} .
+  op _/\_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} .
+  op _/\_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} .
+
+  ---- (declare-func zero () Nat)
+  op zero : -> Term{Nat} .
+ 
+
+  ---- (declare-func succ (Nat) Nat)
+  op succ : Term{Nat} -> Term{Nat} .
+  op succ : Term?{Nat} -> Term?{Nat} .
+  op succ : Pattern{Nat} -> Pattern{Nat} .
+
+  ---- (declare-func ... () Nat)
+  op one : -> Term{Nat} .
+  op two : -> Term{Nat} .
+  op three : -> Term{Nat} .
+  op four : -> Term{Nat} .
+  op five : -> Term{Nat} .
+  op six : -> Term{Nat} .
+  op seven : -> Term{Nat} .
+  op eight : -> Term{Nat} .
+  op nine : -> Term{Nat} .
+  op ten : -> Term{Nat} .
+
+  ---- (declare-part pred (Nat) Nat)
+  op pred : Term?{Nat} -> Term?{Nat} . 
+  op pred : Pattern{Nat} -> Pattern{Nat} .
+
+  ---- (declare-func plus (Nat Nat) Nat)
+  op plus : Term{Nat} Term{Nat} -> Term{Nat} [assoc comm] .
+  op plus : Term?{Nat} Term?{Nat} -> Term?{Nat} [assoc comm] .
+  op plus : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [assoc comm] .
+
+  ---- (declare-func epsilon () Seq)
+  op epsilon : -> Term{Seq} .
+
+  ---- (declare-func concat (Seq Seq) Seq)
+  op concat : Term{Seq} Term{Seq} -> Term{Seq} [assoc] .
+  op concat : Term?{Seq} Term?{Seq} -> Term?{Seq} [assoc] .
+  op concat : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [assoc] .
+
+  --- (declare-func seq<-nat (Nat) Seq)
+  op seq<-nat : Term{Nat} -> Term{Seq} .
+  op seq<-nat : Pattern{Nat} -> Pattern{Seq} .
+
+  ---- (declare-func emp () Map)
+  op emp : -> Term{Map} .
+
+  ---- (declare-part mapsto (Nat Nat) Map)
+  op mapsto : Term?{Nat} Term?{Nat} -> Term?{Map} .
+  op mapsto : Pattern{Nat} Pattern{Nat} -> Pattern{Map} .
+
+  ---- (declare-part merge (Map Map) Map)
+  op merge : Term?{Map} Term?{Map} -> Term?{Map} [assoc comm] .
+  op merge : Pattern{Map} Pattern{Map} -> Pattern{Map} [assoc comm] .
+
+  ---- (declare-part mapstoseq (Nat Seq) Map)
+  op mapstoseq : Term?{Nat} Term?{Seq} -> Term?{Map} .
+  op mapstoseq : Pattern{Nat} Pattern{Seq} -> Pattern{Map} .
+
+  ---- (declare-symb list (Nat Seq) Map) 
+  op list : Pattern{Nat} Pattern{Seq} -> Pattern{Map} .
+
+
+  ---- (assert (= .. (succ ...)))
+  eq one = succ(zero) .
+  eq two = succ(one) .
+  eq three = succ(two) .
+  eq four = succ(three) .
+  eq five = succ(four) .
+  eq six = succ(five) .
+  eq seven = succ(six) . 
+  eq eight = succ(seven) .
+  eq nine = succ(eight) . 
+  eq ten = succ(nine) .
+  ---- (assert (= (plus x zero) x))
+  eq plus(X:Pattern{Nat}, zero)
+   = X:Pattern{Nat} .
+
+  ---- (assert (= (plus x (succ y)) (succ (plus x y))))
+  eq plus(X:Pattern{Nat}, succ(Y:Pattern{Nat}))
+   = succ(plus(X:Pattern{Nat}, Y:Pattern{Nat})) .
+
+  ---- (assert (= (pred zero) bottom)
+  eq pred(zero)
+   = bottom{Nat} .
+
+  ---- (assert (= (pred (succ x)) x))
+  eq pred(succ(X:Pattern{Nat}))
+   = X:Pattern{Nat} .
+  
+  ---- (assert (= (concat s epsilon) s))
+  eq concat(S:Pattern{Seq}, epsilon)
+   = S:Pattern{Seq} .
+
+  ---- (assert (= (concat epsilon s) s))
+  eq concat(epsilon, S:Pattern{Seq})
+   = S:Pattern{Seq} . 
+
+  ---- (assert (= (mapsto zero x) bottom))
+  eq mapsto(zero, X:Pattern{Nat})
+   = bottom{Map} .
+
+  ---- (assert (= (merge emp h) h))
+  eq merge(emp, H:Pattern{Map})
+   = H:Pattern{Map} .
+
+  ---- (assert (= (merge (mapsto x y) (mapsto x z)) bottom))
+  eq merge(mapsto(X:Pattern{Nat}, Y:Pattern{Nat}),
+           mapsto(X:Pattern{Nat}, Z:Pattern{Nat}))
+   = bottom{Map} .
+
+  ---- (assert (= (mapstoseq x epsilon) (and (= x 0) emp)))
+  eq mapstoseq(X:Pattern{Nat}, epsilon)
+   = (X:Pattern{Nat} = zero) /\ emp .
+
+  ---- (assert (= (mapstoseq x (seq<-nat y)) (mapsto x y)))
+  eq mapstoseq(X:Pattern{Nat}, seq<-nat(Y:Pattern{Nat}))
+   = mapsto(X:Pattern{Nat}, Y:Pattern{Nat}) .
+
+  ---- (assert (= (mapstoseq x (concat (seq<-nat y) s))
+  ----            (merge (mapsto x y) (mapstoseq (succ x) s))))
+  eq mapstoseq(X:Pattern{Nat}, concat(seq<-nat(Y:Pattern{Nat}), S:Pattern{Seq}))
+   = merge(mapsto(X:Pattern{Nat}, Y:Pattern{Nat}),
+           mapstoseq(succ(X:Pattern{Nat}), S:Pattern{Seq})) .
 endfm
 
 quit
