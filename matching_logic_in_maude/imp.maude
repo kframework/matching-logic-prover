@@ -134,6 +134,17 @@ fmod IMP is
   ---- (declare-symb list (Nat Seq) Map) 
   op list : Pattern{Nat} Pattern{Seq} -> Pattern{Map} .
 
+  ---- (declare-func skip () Pgm)
+  op skip : -> Term{Pgm} .
+
+  ---- (declare-func while (Bool Pgm) Pgm)
+  
+endfm
+
+quit
+
+
+---- Assersions.
 
   ---- (assert (= .. (succ ...)))
   eq one = succ(zero) .
@@ -196,6 +207,3 @@ fmod IMP is
   eq mapstoseq(X:Pattern{Nat}, concat(seq<-nat(Y:Pattern{Nat}), S:Pattern{Seq}))
    = merge(mapsto(X:Pattern{Nat}, Y:Pattern{Nat}),
            mapstoseq(succ(X:Pattern{Nat}), S:Pattern{Seq})) .
-endfm
-
-quit
