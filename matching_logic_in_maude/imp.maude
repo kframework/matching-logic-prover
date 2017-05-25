@@ -43,6 +43,7 @@ fmod IMP is
   subsorts Bottom{Poly} < Bottom{Bool} Bottom{Nat} Bottom{Seq} Bottom{Map} Bottom{Pgm} Bottom{Cfg} < Bottom .
   subsorts Pattern{Poly} < Pattern{Bool} Pattern{Nat} Pattern{Seq} Pattern{Map} Pattern{Pgm} Pattern{Cfg} < Pattern .
 
+  ---- top and bottom patterns
 
   op top{Bool} : -> Top{Bool} . op bottom{Bool} : -> Bottom{Bool} .
   op top{Nat} : -> Top{Nat} . op bottom{Nat} : -> Bottom{Nat} .
@@ -52,6 +53,8 @@ fmod IMP is
   op top{Cfg} : -> Top{Cfg} . op bottom{Cfg} : -> Bottom{Cfg} .
   op top{Poly} : -> Top{Poly} . op bottom{Poly} : -> Bottom{Poly} .
 
+  ---- variables
+
   op {_,Bool} : Nat -> Var{Bool} [ctor] .
   op {_,Nat} : Nat -> Var{Nat} [ctor] .
   op {_,Seq} : Nat -> Var{Seq} [ctor] .
@@ -59,20 +62,93 @@ fmod IMP is
   op {_,Pgm} : Nat -> Var{Pgm} [ctor] .
   op {_,Cfg} : Nat -> Var{Cfg} [ctor] .
 
-  op _=_ : Pattern{Bool} Pattern{Bool} -> Predicate{Poly} .
-  op _=_ : Pattern{Nat} Pattern{Nat} -> Predicate{Poly} .
-  op _=_ : Pattern{Seq} Pattern{Seq} -> Predicate{Poly} .
-  op _=_ : Pattern{Map} Pattern{Map} -> Predicate{Poly} .
-  op _=_ : Pattern{Pgm} Pattern{Pgm} -> Predicate{Poly} .
-  op _=_ : Pattern{Cfg} Pattern{Cfg} -> Predicate{Poly} .
+  ---- equalities
 
-  op _/\_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} .
-  op _/\_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} .
-  op _/\_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} .
-  op _/\_ : Pattern{Map} Pattern{Map} -> Pattern{Map} .
-  op _/\_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} .
-  op _/\_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} .
-  op _/\_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} .
+  op _=_ : Pattern{Bool} Pattern{Bool} -> Predicate{Poly} [comm] .
+  op _=_ : Pattern{Nat} Pattern{Nat} -> Predicate{Poly} [comm] .
+  op _=_ : Pattern{Seq} Pattern{Seq} -> Predicate{Poly} [comm] .
+  op _=_ : Pattern{Map} Pattern{Map} -> Predicate{Poly} [comm] .
+  op _=_ : Pattern{Pgm} Pattern{Pgm} -> Predicate{Poly} [comm] .
+  op _=_ : Pattern{Cfg} Pattern{Cfg} -> Predicate{Poly} [comm] .
+
+  ---- matching logic and
+
+  op _/\_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [assoc comm] .
+  op _/\_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [assoc comm] .
+  op _/\_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [assoc comm] .
+  op _/\_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [assoc comm] .
+  op _/\_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [assoc comm] .
+  op _/\_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} [assoc comm] .
+  op _/\_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} [assoc comm] .
+
+  op _/\_ : Predicate{Bool} Predicate{Bool} -> Predicate{Bool} [ditto] .
+  op _/\_ : Predicate{Nat} Predicate{Nat} -> Predicate{Nat} [ditto] .
+  op _/\_ : Predicate{Seq} Predicate{Seq} -> Predicate{Seq} [ditto] .
+  op _/\_ : Predicate{Map} Predicate{Map} -> Predicate{Map} [ditto] .
+  op _/\_ : Predicate{Pgm} Predicate{Pgm} -> Predicate{Pgm} [ditto] .
+  op _/\_ : Predicate{Cfg} Predicate{Cfg} -> Predicate{Cfg} [ditto] .
+  op _/\_ : Predicate{Poly} Predicate{Poly} -> Predicate{Poly} [ditto] .
+
+  op _/\_ : Top{Bool} Top{Bool} -> Top{Bool} [ditto] .
+  op _/\_ : Top{Nat} Top{Nat} -> Top{Nat} [ditto] .
+  op _/\_ : Top{Seq} Top{Seq} -> Top{Seq} [ditto] .
+  op _/\_ : Top{Map} Top{Map} -> Top{Map} [ditto] .
+  op _/\_ : Top{Pgm} Top{Pgm} -> Top{Pgm} [ditto] .
+  op _/\_ : Top{Cfg} Top{Cfg} -> Top{Cfg} [ditto] .
+  op _/\_ : Top{Poly} Top{Poly} -> Top{Poly} [ditto] .
+
+  op _/\_ : Pattern{Bool} Bottom{Bool} -> Bottom{Bool} [ditto] .
+  op _/\_ : Pattern{Nat} Bottom{Nat} -> Bottom{Nat} [ditto] .
+  op _/\_ : Pattern{Seq} Bottom{Seq} -> Bottom{Seq} [ditto] .
+  op _/\_ : Pattern{Map} Bottom{Map} -> Bottom{Map} [ditto] .
+  op _/\_ : Pattern{Pgm} Bottom{Pgm} -> Bottom{Pgm} [ditto] .
+  op _/\_ : Pattern{Cfg} Bottom{Cfg} -> Bottom{Cfg} [ditto] .
+  op _/\_ : Pattern{Poly} Bottom{Poly} -> Bottom{Poly} [ditto] .
+
+
+  ---- matching logic or
+
+  ---- matching logic implies
+
+  op _->_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} .
+  op _->_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} .
+  op _->_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} .
+  op _->_ : Pattern{Map} Pattern{Map} -> Pattern{Map} .
+  op _->_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} .
+  op _->_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} .
+  op _->_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} .
+
+  op _->_ : Predicate{Bool} Predicate{Bool} -> Predicate{Bool} .
+  op _->_ : Predicate{Nat} Predicate{Nat} -> Predicate{Nat} .
+  op _->_ : Predicate{Seq} Predicate{Seq} -> Predicate{Seq} .
+  op _->_ : Predicate{Map} Predicate{Map} -> Predicate{Map} .
+  op _->_ : Predicate{Pgm} Predicate{Pgm} -> Predicate{Pgm} .
+  op _->_ : Predicate{Cfg} Predicate{Cfg} -> Predicate{Cfg} .
+  op _->_ : Predicate{Poly} Predicate{Poly} -> Predicate{Poly} .
+
+  op _->_ : Bottom{Bool} Predicate{Bool} -> Top{Bool} .
+  op _->_ : Bottom{Nat} Predicate{Nat} -> Top{Nat} .
+  op _->_ : Bottom{Seq} Predicate{Seq} -> Top{Seq} .
+  op _->_ : Bottom{Map} Predicate{Map} -> Top{Map} .
+  op _->_ : Bottom{Pgm} Predicate{Pgm} -> Top{Pgm} .
+  op _->_ : Bottom{Cfg} Predicate{Cfg} -> Top{Cfg} .
+  op _->_ : Bottom{Poly} Predicate{Poly} -> Top{Poly} .
+
+  op _->_ : Top{Bool} Top{Bool} -> Top{Bool} .
+  op _->_ : Top{Nat} Top{Nat} -> Top{Nat} .
+  op _->_ : Top{Seq} Top{Seq} -> Top{Seq} .
+  op _->_ : Top{Map} Top{Map} -> Top{Map} .
+  op _->_ : Top{Pgm} Top{Pgm} -> Top{Pgm} .
+  op _->_ : Top{Cfg} Top{Cfg} -> Top{Cfg} .
+  op _->_ : Top{Poly} Top{Poly} -> Top{Poly} .
+
+  op _->_ : Top{Bool} Bottom{Bool} -> Bottom{Bool} .
+  op _->_ : Top{Nat} Bottom{Nat} -> Bottom{Nat} .
+  op _->_ : Top{Seq} Bottom{Seq} -> Bottom{Seq} .
+  op _->_ : Top{Map} Bottom{Map} -> Bottom{Map} .
+  op _->_ : Top{Pgm} Bottom{Pgm} -> Bottom{Pgm} .
+  op _->_ : Top{Cfg} Bottom{Cfg} -> Bottom{Cfg} .
+  op _->_ : Top{Poly} Bottom{Poly} -> Bottom{Poly} .
 
   ---- (declare-func zero () Nat)
   op zero : -> Term{Nat} .
@@ -94,6 +170,16 @@ fmod IMP is
   op eight : -> Term{Nat} .
   op nine : -> Term{Nat} .
   op ten : -> Term{Nat} .
+  eq one = succ(zero) .
+  eq two = succ(one) .
+  eq three = succ(two) .
+  eq four = succ(three) .
+  eq five = succ(four) .
+  eq six = succ(five) .
+  eq seven = succ(six) . 
+  eq eight = succ(seven) .
+  eq nine = succ(eight) . 
+  eq ten = succ(nine) .
 
   ---- (declare-part pred (Nat) Nat)
   op pred : Term?{Nat} -> Term?{Nat} . 
@@ -137,13 +223,43 @@ fmod IMP is
   ---- (declare-func skip () Pgm)
   op skip : -> Term{Pgm} .
 
-  ---- (declare-func while (Bool Pgm) Pgm)
+endfm
+
+mod IMP-RULES is
+
+  protecting IMP .
+
+  sort PatternSet . subsort Pattern < PatternSet .
+  
+  op .PatternSet : -> PatternSet .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet] .
+
+  rl [K1] : P:Pattern{Bool} -> (Q:Pattern{Bool} -> P:Pattern{Bool})
+  => .PatternSet .
+  rl [K1] : P:Pattern{Nat} -> (Q:Pattern{Nat} -> P:Pattern{Nat})
+  => .PatternSet .
+  rl [K1] : P:Pattern{Seq} -> (Q:Pattern{Seq} -> P:Pattern{Seq})
+  => .PatternSet .
+  rl [K1] : P:Pattern{Map} -> (Q:Pattern{Map} -> P:Pattern{Map})
+  => .PatternSet .
+  rl [K1] : P:Pattern{Pgm} -> (Q:Pattern{Pgm} -> P:Pattern{Pgm})
+  => .PatternSet .
+  rl [K1] : P:Pattern{Cfg} -> (Q:Pattern{Cfg} -> P:Pattern{Cfg})
+  => .PatternSet .
+
+endm
+
+fmod PROVER is
+  
+  protecting META-LEVEL .
+
+  sort TermSet . 
   
 endfm
 
 quit
 
-
+---(
 ---- Assersions.
 
   ---- (assert (= .. (succ ...)))
@@ -207,3 +323,4 @@ quit
   eq mapstoseq(X:Pattern{Nat}, concat(seq<-nat(Y:Pattern{Nat}), S:Pattern{Seq}))
    = merge(mapsto(X:Pattern{Nat}, Y:Pattern{Nat}),
            mapstoseq(succ(X:Pattern{Nat}), S:Pattern{Seq})) .
+---)
