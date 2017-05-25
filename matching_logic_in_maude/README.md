@@ -1,4 +1,4 @@
-** This file is ourdated **
+** This file is outdated **
 # Objective
 Try to define a matching logic theory as maude modules.
 
