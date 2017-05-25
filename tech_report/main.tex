@@ -560,9 +560,10 @@ And this concludes the proof.
 \end{proof}
 
 
-\begin{prop}[Deduction Theorem]
+\begin{thm}[Deduction Theorem]
+\label{thm:deduction}
 If $\Gamma \cup \{P\} \vdash Q$ and the derivation does not use \mbox{$\forall x$-Generalization} where $x$ is free in $P$, then $\Gamma \vdash \floor*{P} \to Q$. 
-\end{prop}
+\end{thm}
 \begin{proof}
 The proof is by induction on $n$, the length of the derivation of $Q$ from $\Gamma \cup \{P\}$.
 
@@ -726,33 +727,33 @@ In the following, we introduce a matching logic theory of heaps as a running exa
 (declare-func append (NatSeq NatSeq) NatSeq)
 
 (assert (forall ((x Nat) (s NatSeq))
-(not (= (cons x s) s))))
+  (not (= (cons x s) s))))
 
 (assert (forall ((x1 Nat) (x2 Nat) (s1 NatSeq) (s2 NatSeq))
-(= (= (cons x1 s1) (cons x2 s2))
-(and (= x1 x2) (= s1 s2)))))
+  (= (= (cons x1 s1) (cons x2 s2))
+     (and (= x1 x2) (= s1 s2)))))
 
 (assert (forall ((s1 NatSeq) (s2 NatSeq) (s3 NatSeq))
-(= (append (append s1 s2) s3)
-(append s1 (append s2 s3)))))
+  (= (append (append s1 s2) s3)
+     (append s1 (append s2 s3)))))
 
 (assert (forall ((s NatSeq))
-(= (append s epsilon) s)))
+  (= (append s epsilon) s)))
 
 (assert (forall ((s NatSeq))
-(= (append epsilon s) s)))
+  (= (append epsilon s) s)))
 
 (assert (forall ((s1 NatSeq) (s2 NatSeq) (x Nat))
-(= (append (cons x s1) s2)
-(cons x (append s1 s2)))))
+  (= (append (cons x s1) s2)
+     (cons x (append s1 s2)))))
 
 (declare-func rev (NatSeq) NatSeq)
 
 (assert (= (rev epsilon) epsilon))
 
 (assert (forall ((x Nat) (s NatSeq))
-(= (rev (cons x s))
-(append (rev s) (cons x epsilon)))))
+  (= (rev (cons x s))
+     (append (rev s) (cons x epsilon)))))
 
 ; Maps
 
@@ -763,16 +764,16 @@ In the following, we introduce a matching logic theory of heaps as a running exa
 
 ; 0 |-> y is bottom
 (assert (forall ((y Nat))
-(not (mapsto zero y))))
+  (not (mapsto zero y))))
 
 ; succ(x) |-> y is defined 
 (assert (forall ((x Nat) (y Nat))
-(ceil (mapsto (succ x) y))))
+  (ceil (mapsto (succ x) y))))
 
 ; succ(x1) |-> y1 = succ(x2) |-> y2 iff x1 = x2 /\ y1 = y1
 (assert (forall ((x1 Nat) (x2 Nat) (y1 Nat) (y2 Nat))
-(= (= (mapsto (succ x1) y1) (mapsto (succ x2) y2))
-(and (= x1 x2) (= y1 y2)))))
+  (= (= (mapsto (succ x1) y1) (mapsto (succ x2) y2))
+     (and (= x1 x2) (= y1 y2)))))
 
 ; merge is a partial AC binary function
 (declare-part merge (Map Map) Map)
@@ -783,37 +784,37 @@ In the following, we introduce a matching logic theory of heaps as a running exa
 
 ; associativity
 (assert (forall ((h1 Map) (h2 Map) (h3 Map))
-(= (merge (merge h1 h2) h3)
-(merge h1 (merge h2 h3)))))
+  (= (merge (merge h1 h2) h3)
+     (merge h1 (merge h2 h3)))))
 ; identity
 (assert (forall ((h Map))
-(= h (merge h emp))))
+  (= h (merge h emp))))
 
 ; x |-> y * x |-> z = bottom
 (assert (forall ((x Nat) (y Nat) (z Nat))
-(not (merge (mapsto x y) (mapsto x z)))))
+  (not (merge (mapsto x y) (mapsto x z)))))
 
 ; mapstoseq
 (declare-part mapstoseq (Nat NatSeq) Map)
 
 (assert (forall ((x Nat))
-(= (mapstoseq x epsilon) emp)))
+  (= (mapstoseq x epsilon) emp)))
 
 (assert (forall ((x Nat) (y Nat) (s NatSeq))
-(= (mapstoseq x (cons y s))
-(merge (mapsto x y) (mapstoseq (succ x) s)))))
+  (= (mapstoseq x (cons y s))
+     (merge (mapsto x y) (mapstoseq (succ x) s)))))
 
 (declare-symb list (Nat NatSeq) Map)
 
 (assert (forall ((x Nat))
-(= (list x epsilon)
-(and emp (= x zero)))))
+  (= (list x epsilon)
+     (and emp (= x zero)))))
 
 (assert (forall ((x Nat) (y Nat) (s NatSeq))
-(= (list x (cons y s))
-(exists ((z Nat))
-(merge (mapstoseq x (cons y (cons z epsilon)))
-(list z s))))))
+  (= (list x (cons y s))
+     (exists ((z Nat))
+       (merge (mapstoseq x (cons y (cons z epsilon)))
+              (list z s))))))
 
 \end{lstlisting}
 
@@ -830,13 +831,13 @@ The duality between validity and satisfiability forms the foundation of SMT solv
 The dual relation between validity and satisfiability is less straightforward then the one in first-order logic. 
 
 \begin{thm}
-	For any matching logic theory $\Gamma$ and a pattern $P$,
+	For any matching logic theory $\Gamma$ and a closed pattern $P$,
 	\begin{equation*}
 	\Gamma \models \varphi \quad \text{iff} \quad  \Gamma \cup \{\neg \floor{\varphi}\} \text{ is unsatisfiable.}
 	\end{equation*}
 \end{thm}
 \begin{proof}
-	TBC.
+	We here give a proof using the deduction theorem (Theorem~\ref{thm:deduction}). 
 \end{proof}
 
 \subsubsection*{Simplification}
