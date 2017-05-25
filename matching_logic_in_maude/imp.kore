@@ -1,8 +1,0 @@
-fmod IMP is
-
-  sorts MLBool MLNat MLSeq MLMap MLPgm MLCfg .
-
-  ops MLtrue MLfalse : -> MLBool .
-  ops _MLand_ _
-
-endfm
