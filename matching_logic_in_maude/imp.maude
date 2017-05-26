@@ -2,43 +2,43 @@ fmod IMP is
 
   protecting NAT .
 
-  sorts Var Term Term? Top Bottom Predicate Pattern .
-  sorts Var{Bool} Term{Bool} Term?{Bool} Top{Bool} Bottom{Bool} Predicate{Bool} Pattern{Bool} .
-  sorts Var{Nat} Term{Nat} Term?{Nat} Top{Nat} Bottom{Nat} Predicate{Nat} Pattern{Nat} .
-  sorts Var{Seq} Term{Seq} Term?{Seq} Top{Seq} Bottom{Seq} Predicate{Seq} Pattern{Seq} .
-  sorts Var{Map} Term{Map} Term?{Map} Top{Map} Bottom{Map} Predicate{Map} Pattern{Map} .
-  sorts Var{Pgm} Term{Pgm} Term?{Pgm} Top{Pgm} Bottom{Pgm} Predicate{Pgm} Pattern{Pgm} .
-  sorts Var{Cfg} Term{Cfg} Term?{Cfg} Top{Cfg} Bottom{Cfg} Predicate{Cfg} Pattern{Cfg} .
-  sorts Var{Poly} Term{Poly} Term?{Poly} Top{Poly} Bottom{Poly} Predicate{Poly} Pattern{Poly} .
+  sorts Var Trm Trm? Top Bottom Predicate Pattern .
+  sorts Var{Bool} Trm{Bool} Trm?{Bool} Top{Bool} Bottom{Bool} Predicate{Bool} Pattern{Bool} .
+  sorts Var{Nat} Trm{Nat} Trm?{Nat} Top{Nat} Bottom{Nat} Predicate{Nat} Pattern{Nat} .
+  sorts Var{Seq} Trm{Seq} Trm?{Seq} Top{Seq} Bottom{Seq} Predicate{Seq} Pattern{Seq} .
+  sorts Var{Map} Trm{Map} Trm?{Map} Top{Map} Bottom{Map} Predicate{Map} Pattern{Map} .
+  sorts Var{Pgm} Trm{Pgm} Trm?{Pgm} Top{Pgm} Bottom{Pgm} Predicate{Pgm} Pattern{Pgm} .
+  sorts Var{Cfg} Trm{Cfg} Trm?{Cfg} Top{Cfg} Bottom{Cfg} Predicate{Cfg} Pattern{Cfg} .
+  sorts Var{Poly} Trm{Poly} Trm?{Poly} Top{Poly} Bottom{Poly} Predicate{Poly} Pattern{Poly} .
 
-  subsorts Var < Term < Term? < Pattern .
+  subsorts Var < Trm < Trm? < Pattern .
   subsorts Top Bottom < Predicate < Pattern .
-  subsorts Bottom < Term? .
-  subsorts Var{Bool} < Term{Bool} < Term?{Bool} < Pattern{Bool} .
+  subsorts Bottom < Trm? .
+  subsorts Var{Bool} < Trm{Bool} < Trm?{Bool} < Pattern{Bool} .
   subsorts Top{Bool} Bottom{Bool} < Predicate{Bool} < Pattern{Bool} .
-  subsorts Bottom{Bool} < Term?{Bool} .
-  subsorts Var{Nat} < Term{Nat} < Term?{Nat} < Pattern{Nat} .
+  subsorts Bottom{Bool} < Trm?{Bool} .
+  subsorts Var{Nat} < Trm{Nat} < Trm?{Nat} < Pattern{Nat} .
   subsorts Top{Nat} Bottom{Nat} < Predicate{Nat} < Pattern{Nat} .
-  subsorts Bottom{Nat} < Term?{Nat} .
-  subsorts Var{Seq} < Term{Seq} < Term?{Seq} < Pattern{Seq} .
+  subsorts Bottom{Nat} < Trm?{Nat} .
+  subsorts Var{Seq} < Trm{Seq} < Trm?{Seq} < Pattern{Seq} .
   subsorts Top{Seq} Bottom{Seq} < Predicate{Seq} < Pattern{Seq} .
-  subsorts Bottom{Seq} < Term?{Seq} .
-  subsorts Var{Map} < Term{Map} < Term?{Map} < Pattern{Map} .
+  subsorts Bottom{Seq} < Trm?{Seq} .
+  subsorts Var{Map} < Trm{Map} < Trm?{Map} < Pattern{Map} .
   subsorts Top{Map} Bottom{Map} < Predicate{Map} < Pattern{Map} .
-  subsorts Bottom{Map} < Term?{Map} .
-  subsorts Var{Pgm} < Term{Pgm} < Term?{Pgm} < Pattern{Pgm} .
+  subsorts Bottom{Map} < Trm?{Map} .
+  subsorts Var{Pgm} < Trm{Pgm} < Trm?{Pgm} < Pattern{Pgm} .
   subsorts Top{Pgm} Bottom{Pgm} < Predicate{Pgm} < Pattern{Pgm} .
-  subsorts Bottom{Pgm} < Term?{Pgm} .
-  subsorts Var{Cfg} < Term{Cfg} < Term?{Cfg} < Pattern{Cfg} .
+  subsorts Bottom{Pgm} < Trm?{Pgm} .
+  subsorts Var{Cfg} < Trm{Cfg} < Trm?{Cfg} < Pattern{Cfg} .
   subsorts Top{Cfg} Bottom{Cfg} < Predicate{Cfg} < Pattern{Cfg} .
-  subsorts Bottom{Cfg} < Term?{Cfg} .
-  subsorts Var{Poly} < Term{Poly} < Term?{Poly} < Pattern{Poly} .
+  subsorts Bottom{Cfg} < Trm?{Cfg} .
+  subsorts Var{Poly} < Trm{Poly} < Trm?{Poly} < Pattern{Poly} .
   subsorts Top{Poly} Bottom{Poly} < Predicate{Poly} < Pattern{Poly} .
-  subsorts Bottom{Poly} < Term?{Poly} .
+  subsorts Bottom{Poly} < Trm?{Poly} .
 
   subsorts Var{Poly} < Var{Bool} Var{Nat} Var{Seq} Var{Map} Var{Pgm} Var{Cfg} < Var .
-  subsorts Term{Poly} < Term{Bool} Term{Nat} Term{Seq} Term{Map} Term{Pgm} Term{Cfg} < Term .
-  subsorts Term?{Poly} < Term?{Bool} Term?{Nat} Term?{Seq} Term?{Map} Term?{Pgm} Term?{Cfg} < Term? .
+  subsorts Trm{Poly} < Trm{Bool} Trm{Nat} Trm{Seq} Trm{Map} Trm{Pgm} Trm{Cfg} < Trm .
+  subsorts Trm?{Poly} < Trm?{Bool} Trm?{Nat} Trm?{Seq} Trm?{Map} Trm?{Pgm} Trm?{Cfg} < Trm? .
   subsorts Top{Poly} < Top{Bool} Top{Nat} Top{Seq} Top{Map} Top{Pgm} Top{Cfg} < Top .
   subsorts Bottom{Poly} < Bottom{Bool} Bottom{Nat} Bottom{Seq} Bottom{Map} Bottom{Pgm} Bottom{Cfg} < Bottom .
   subsorts Pattern{Poly} < Pattern{Bool} Pattern{Nat} Pattern{Seq} Pattern{Map} Pattern{Pgm} Pattern{Cfg} < Pattern .
@@ -151,25 +151,25 @@ fmod IMP is
   op _->_ : Top{Poly} Bottom{Poly} -> Bottom{Poly} .
 
   ---- (declare-func zero () Nat)
-  op zero : -> Term{Nat} .
+  op zero : -> Trm{Nat} .
  
 
   ---- (declare-func succ (Nat) Nat)
-  op succ : Term{Nat} -> Term{Nat} .
-  op succ : Term?{Nat} -> Term?{Nat} .
+  op succ : Trm{Nat} -> Trm{Nat} .
+  op succ : Trm?{Nat} -> Trm?{Nat} .
   op succ : Pattern{Nat} -> Pattern{Nat} .
 
   ---- (declare-func ... () Nat)
-  op one : -> Term{Nat} .
-  op two : -> Term{Nat} .
-  op three : -> Term{Nat} .
-  op four : -> Term{Nat} .
-  op five : -> Term{Nat} .
-  op six : -> Term{Nat} .
-  op seven : -> Term{Nat} .
-  op eight : -> Term{Nat} .
-  op nine : -> Term{Nat} .
-  op ten : -> Term{Nat} .
+  op one : -> Trm{Nat} .
+  op two : -> Trm{Nat} .
+  op three : -> Trm{Nat} .
+  op four : -> Trm{Nat} .
+  op five : -> Trm{Nat} .
+  op six : -> Trm{Nat} .
+  op seven : -> Trm{Nat} .
+  op eight : -> Trm{Nat} .
+  op nine : -> Trm{Nat} .
+  op ten : -> Trm{Nat} .
   eq one = succ(zero) .
   eq two = succ(one) .
   eq three = succ(two) .
@@ -182,52 +182,54 @@ fmod IMP is
   eq ten = succ(nine) .
 
   ---- (declare-part pred (Nat) Nat)
-  op pred : Term?{Nat} -> Term?{Nat} . 
+  op pred : Trm?{Nat} -> Trm?{Nat} . 
   op pred : Pattern{Nat} -> Pattern{Nat} .
 
   ---- (declare-func plus (Nat Nat) Nat)
-  op plus : Term{Nat} Term{Nat} -> Term{Nat} [assoc comm] .
-  op plus : Term?{Nat} Term?{Nat} -> Term?{Nat} [assoc comm] .
+  op plus : Trm{Nat} Trm{Nat} -> Trm{Nat} [assoc comm] .
+  op plus : Trm?{Nat} Trm?{Nat} -> Trm?{Nat} [assoc comm] .
   op plus : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [assoc comm] .
 
   ---- (declare-func epsilon () Seq)
-  op epsilon : -> Term{Seq} .
+  op epsilon : -> Trm{Seq} .
 
   ---- (declare-func concat (Seq Seq) Seq)
-  op concat : Term{Seq} Term{Seq} -> Term{Seq} [assoc] .
-  op concat : Term?{Seq} Term?{Seq} -> Term?{Seq} [assoc] .
+  op concat : Trm{Seq} Trm{Seq} -> Trm{Seq} [assoc] .
+  op concat : Trm?{Seq} Trm?{Seq} -> Trm?{Seq} [assoc] .
   op concat : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [assoc] .
 
   --- (declare-func seq<-nat (Nat) Seq)
-  op seq<-nat : Term{Nat} -> Term{Seq} .
+  op seq<-nat : Trm{Nat} -> Trm{Seq} .
   op seq<-nat : Pattern{Nat} -> Pattern{Seq} .
 
   ---- (declare-func emp () Map)
-  op emp : -> Term{Map} .
+  op emp : -> Trm{Map} .
 
   ---- (declare-part mapsto (Nat Nat) Map)
-  op mapsto : Term?{Nat} Term?{Nat} -> Term?{Map} .
+  op mapsto : Trm?{Nat} Trm?{Nat} -> Trm?{Map} .
   op mapsto : Pattern{Nat} Pattern{Nat} -> Pattern{Map} .
 
   ---- (declare-part merge (Map Map) Map)
-  op merge : Term?{Map} Term?{Map} -> Term?{Map} [assoc comm] .
+  op merge : Trm?{Map} Trm?{Map} -> Trm?{Map} [assoc comm] .
   op merge : Pattern{Map} Pattern{Map} -> Pattern{Map} [assoc comm] .
 
   ---- (declare-part mapstoseq (Nat Seq) Map)
-  op mapstoseq : Term?{Nat} Term?{Seq} -> Term?{Map} .
+  op mapstoseq : Trm?{Nat} Trm?{Seq} -> Trm?{Map} .
   op mapstoseq : Pattern{Nat} Pattern{Seq} -> Pattern{Map} .
 
   ---- (declare-symb list (Nat Seq) Map) 
   op list : Pattern{Nat} Pattern{Seq} -> Pattern{Map} .
 
   ---- (declare-func skip () Pgm)
-  op skip : -> Term{Pgm} .
+  op skip : -> Trm{Pgm} .
 
 endfm
 
+---(
 mod IMP-RULES is
 
   protecting IMP .
+  protecting META-LEVEL . ---- we have to include META-LEVEL to call upTerm
 
   sort PatternSet . subsort Pattern < PatternSet .
   
@@ -247,15 +249,61 @@ mod IMP-RULES is
   rl [K1] : P:Pattern{Cfg} -> (Q:Pattern{Cfg} -> P:Pattern{Cfg})
   => .PatternSet .
 
+
 endm
+---)
 
 fmod PROVER is
   
-  protecting META-LEVEL .
+  protecting IMP .
 
-  sort TermSet . 
+  sorts Task Tactic .
+
+  op apply : Tactic Task -> Task .
+
+  op .Task : -> Task .
+
+  op __ : Task Task -> Task [assoc comm id: .Task] .
+
+  op _|-_ : TermList Term -> Task . 
+
+  op auto : -> Tactic .
+
+  op axiom : -> Tactic .
+
+  op modus-ponens : Term -> Tactic . 
+
+  op universal-generalization : -> Tactic .
+
+  op membership-introduction : -> Tactic .
+  
+  op membership-elimination : -> Tactic .
+  
+  op frame-rule : -> Tactic .
+
+  op deduction-theorm : -> Tactic .
+
+  eq apply(axiom, ((TL:TermList |- '_->_[T:Term, '_->_[T':Term, T:Term]]) Tsk:Task))
+   = Tsk:Task .
+  ---- if T:Term and T'Term are of the same sort Pattern{S} for some S.
+
+
+  eq apply(modus-ponens(T':Term), (TL:TermList |- T:Term) Tsk:Task)
+   = (TL:TermList |- T':Term) (TL:TermList |- '_->_[T':Term, T:Term]) Tsk:Task .
+
+
+  ceq apply(frame-rule, (TL:TermList |- '_->_[F:Qid[TL:TermList], F:Qid[TL':TermList]]) Tsk:Task)
+    = (TL:TermList |- '_->_[TL:TermList, TL':TermList]) Tsk:Task 
+   if F:Qid =/= '_->_ .
   
 endfm
+
+reduce metaApply(upModule('IMP-RULES, false),
+                 '_->_['`{_`,Nat`}['s_['0.Zero]],'_->_['`{_`,Nat`}['s_^2['0.Zero]],'`{_`,Nat`}['s_['0.Zero]]]],
+                 'K1,
+                 none,
+                 0) .
+
 
 quit
 
