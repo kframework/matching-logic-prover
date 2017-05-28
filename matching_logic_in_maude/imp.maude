@@ -225,6 +225,31 @@ fmod IMP is
 
 endfm
 
+mod PROVER is
+
+  protecting IMP .
+
+  sort PatternSet . subsort Pattern < PatternSet .
+  
+  op .PatternSet : -> PatternSet .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet] .
+
+  sort Task .
+  
+  op none : -> Task .
+  op _|-_ : PatternSet Pattern -> Task .
+  op __ : Task Task -> Task [assoc id: none] .
+
+  sort Tactic .
+
+  op idle : -> Tactic .
+  op axiom : -> Tactic .
+  
+
+endm
+
+quit
+
 ---(
 mod IMP-RULES is
 
