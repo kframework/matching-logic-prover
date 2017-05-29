@@ -64,22 +64,22 @@ fmod IMP is
 
   ---- equalities
 
-  op _=_ : Pattern{Bool} Pattern{Bool} -> Predicate{Poly} [comm] .
-  op _=_ : Pattern{Nat} Pattern{Nat} -> Predicate{Poly} [comm] .
-  op _=_ : Pattern{Seq} Pattern{Seq} -> Predicate{Poly} [comm] .
-  op _=_ : Pattern{Map} Pattern{Map} -> Predicate{Poly} [comm] .
-  op _=_ : Pattern{Pgm} Pattern{Pgm} -> Predicate{Poly} [comm] .
-  op _=_ : Pattern{Cfg} Pattern{Cfg} -> Predicate{Poly} [comm] .
+  op _=_ : Pattern{Bool} Pattern{Bool} -> Predicate{Poly} [comm prec 66] .
+  op _=_ : Pattern{Nat} Pattern{Nat} -> Predicate{Poly} [ditto] .
+  op _=_ : Pattern{Seq} Pattern{Seq} -> Predicate{Poly} [ditto] .
+  op _=_ : Pattern{Map} Pattern{Map} -> Predicate{Poly} [ditto] .
+  op _=_ : Pattern{Pgm} Pattern{Pgm} -> Predicate{Poly} [ditto] .
+  op _=_ : Pattern{Cfg} Pattern{Cfg} -> Predicate{Poly} [ditto] .
 
   ---- matching logic and
 
-  op _/\_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [assoc comm] .
-  op _/\_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [assoc comm] .
-  op _/\_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [assoc comm] .
-  op _/\_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [assoc comm] .
-  op _/\_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [assoc comm] .
-  op _/\_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} [assoc comm] .
-  op _/\_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} [assoc comm] .
+  op _/\_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [assoc comm prec 62] .
+  op _/\_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [ditto] .
+  op _/\_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [ditto] .
+  op _/\_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [ditto] .
+  op _/\_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+  op _/\_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} [ditto] .
+  op _/\_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} [ditto] .
 
   op _/\_ : Predicate{Bool} Predicate{Bool} -> Predicate{Bool} [ditto] .
   op _/\_ : Predicate{Nat} Predicate{Nat} -> Predicate{Nat} [ditto] .
@@ -108,47 +108,49 @@ fmod IMP is
 
   ---- matching logic or
 
+  ---- matching logic not
+
   ---- matching logic implies
 
-  op _->_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} .
-  op _->_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} .
-  op _->_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} .
-  op _->_ : Pattern{Map} Pattern{Map} -> Pattern{Map} .
-  op _->_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} .
-  op _->_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} .
-  op _->_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} .
+  op _->_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [gather(e E) prec 64] .
+  op _->_ : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [ditto] .
+  op _->_ : Pattern{Seq} Pattern{Seq} -> Pattern{Seq} [ditto] .
+  op _->_ : Pattern{Map} Pattern{Map} -> Pattern{Map} [ditto] .
+  op _->_ : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+  op _->_ : Pattern{Cfg} Pattern{Cfg} -> Pattern{Cfg} [ditto] .
+  op _->_ : Pattern{Poly} Pattern{Poly} -> Pattern{Poly} [ditto] .
 
-  op _->_ : Predicate{Bool} Predicate{Bool} -> Predicate{Bool} .
-  op _->_ : Predicate{Nat} Predicate{Nat} -> Predicate{Nat} .
-  op _->_ : Predicate{Seq} Predicate{Seq} -> Predicate{Seq} .
-  op _->_ : Predicate{Map} Predicate{Map} -> Predicate{Map} .
-  op _->_ : Predicate{Pgm} Predicate{Pgm} -> Predicate{Pgm} .
-  op _->_ : Predicate{Cfg} Predicate{Cfg} -> Predicate{Cfg} .
-  op _->_ : Predicate{Poly} Predicate{Poly} -> Predicate{Poly} .
+  op _->_ : Predicate{Bool} Predicate{Bool} -> Predicate{Bool} [ditto] .
+  op _->_ : Predicate{Nat} Predicate{Nat} -> Predicate{Nat} [ditto] .
+  op _->_ : Predicate{Seq} Predicate{Seq} -> Predicate{Seq} [ditto] .
+  op _->_ : Predicate{Map} Predicate{Map} -> Predicate{Map} [ditto] .
+  op _->_ : Predicate{Pgm} Predicate{Pgm} -> Predicate{Pgm} [ditto] .
+  op _->_ : Predicate{Cfg} Predicate{Cfg} -> Predicate{Cfg} [ditto] .
+  op _->_ : Predicate{Poly} Predicate{Poly} -> Predicate{Poly} [ditto] .
 
-  op _->_ : Bottom{Bool} Predicate{Bool} -> Top{Bool} .
-  op _->_ : Bottom{Nat} Predicate{Nat} -> Top{Nat} .
-  op _->_ : Bottom{Seq} Predicate{Seq} -> Top{Seq} .
-  op _->_ : Bottom{Map} Predicate{Map} -> Top{Map} .
-  op _->_ : Bottom{Pgm} Predicate{Pgm} -> Top{Pgm} .
-  op _->_ : Bottom{Cfg} Predicate{Cfg} -> Top{Cfg} .
-  op _->_ : Bottom{Poly} Predicate{Poly} -> Top{Poly} .
+  op _->_ : Bottom{Bool} Predicate{Bool} -> Top{Bool} [ditto] .
+  op _->_ : Bottom{Nat} Predicate{Nat} -> Top{Nat} [ditto] .
+  op _->_ : Bottom{Seq} Predicate{Seq} -> Top{Seq} [ditto] .
+  op _->_ : Bottom{Map} Predicate{Map} -> Top{Map} [ditto] .
+  op _->_ : Bottom{Pgm} Predicate{Pgm} -> Top{Pgm} [ditto] .
+  op _->_ : Bottom{Cfg} Predicate{Cfg} -> Top{Cfg} [ditto] .
+  op _->_ : Bottom{Poly} Predicate{Poly} -> Top{Poly} [ditto] .
 
-  op _->_ : Top{Bool} Top{Bool} -> Top{Bool} .
-  op _->_ : Top{Nat} Top{Nat} -> Top{Nat} .
-  op _->_ : Top{Seq} Top{Seq} -> Top{Seq} .
-  op _->_ : Top{Map} Top{Map} -> Top{Map} .
-  op _->_ : Top{Pgm} Top{Pgm} -> Top{Pgm} .
-  op _->_ : Top{Cfg} Top{Cfg} -> Top{Cfg} .
-  op _->_ : Top{Poly} Top{Poly} -> Top{Poly} .
+  op _->_ : Top{Bool} Top{Bool} -> Top{Bool} [ditto] .
+  op _->_ : Top{Nat} Top{Nat} -> Top{Nat} [ditto] .
+  op _->_ : Top{Seq} Top{Seq} -> Top{Seq} [ditto] .
+  op _->_ : Top{Map} Top{Map} -> Top{Map} [ditto] .
+  op _->_ : Top{Pgm} Top{Pgm} -> Top{Pgm} [ditto] .
+  op _->_ : Top{Cfg} Top{Cfg} -> Top{Cfg} [ditto] .
+  op _->_ : Top{Poly} Top{Poly} -> Top{Poly} [ditto] .
 
-  op _->_ : Top{Bool} Bottom{Bool} -> Bottom{Bool} .
-  op _->_ : Top{Nat} Bottom{Nat} -> Bottom{Nat} .
-  op _->_ : Top{Seq} Bottom{Seq} -> Bottom{Seq} .
-  op _->_ : Top{Map} Bottom{Map} -> Bottom{Map} .
-  op _->_ : Top{Pgm} Bottom{Pgm} -> Bottom{Pgm} .
-  op _->_ : Top{Cfg} Bottom{Cfg} -> Bottom{Cfg} .
-  op _->_ : Top{Poly} Bottom{Poly} -> Bottom{Poly} .
+  op _->_ : Top{Bool} Bottom{Bool} -> Bottom{Bool} [ditto] .
+  op _->_ : Top{Nat} Bottom{Nat} -> Bottom{Nat} [ditto] .
+  op _->_ : Top{Seq} Bottom{Seq} -> Bottom{Seq} [ditto] .
+  op _->_ : Top{Map} Bottom{Map} -> Bottom{Map} [ditto] .
+  op _->_ : Top{Pgm} Bottom{Pgm} -> Bottom{Pgm} [ditto] .
+  op _->_ : Top{Cfg} Bottom{Cfg} -> Bottom{Cfg} [ditto] .
+  op _->_ : Top{Poly} Bottom{Poly} -> Bottom{Poly} [ditto] .
 
   ---- (declare-func zero () Nat)
   op zero : -> Trm{Nat} .
@@ -231,22 +233,84 @@ mod PROVER is
 
   sort PatternSet . subsort Pattern < PatternSet .
   
-  op .PatternSet : -> PatternSet .
-  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet] .
+  op none : -> PatternSet .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: none prec 81] .
 
   sort Task .
   
   op none : -> Task .
-  op _|-_ : PatternSet Pattern -> Task .
-  op __ : Task Task -> Task [assoc id: none] .
+  op _|-_ : PatternSet Pattern -> Task [prec 82] .
+  op __ : Task Task -> Task [assoc id: none prec 83 format(d n d)] .
 
   sort Tactic .
 
   op idle : -> Tactic .
+  op set-active : Nat -> Tactic .
   op axiom : -> Tactic .
+  op auto : -> Tactic .
+  op taut : -> Tactic .
+  op modus-ponens : Pattern -> Tactic .
+  op mem-intro : -> Tactic . 
+  op mem-elimn : -> Tactic .  
+  op __ : Tactic Tactic -> Tactic [assoc id: idle prec 83 format(d n d)] .
+
+  sort State .
+
+  op _====================_ : Task Tactic -> State [prec 84 format(d n n d)] .
   
+  var Tsk : Task . var Tcc : Tactic .
+  var PSet : PatternSet .
+
+  ---- P |- P
+
+  eq P:Pattern PSet |- P:Pattern 
+   = none .
+
+  ---- |- top
+
+  eq PSet |- T:Top 
+   = none .
+
+  ---- |- P -> (Q -> P)
+  
+  ceq PSet |- P:Pattern -> (Q:Pattern -> P:Pattern)
+    = none 
+   if P:Pattern -> (Q:Pattern -> P:Pattern) :: Pattern .
+
+  ---- |- (P -> (Q -> R)) -> (P -> Q) -> (P -> R)
+
+  ceq PSet |- (P:Pattern -> (Q:Pattern -> R:Pattern)) -> (P:Pattern -> Q:Pattern) -> (P:Pattern -> R:Pattern)  
+    = none 
+   if (P:Pattern -> (Q:Pattern -> R:Pattern)) -> (P:Pattern -> Q:Pattern) -> (P:Pattern -> R:Pattern) :: Pattern .
+
+  ---- |- (~ Q -> ~ P) -> (P -> Q)
+
+  ---- modus-ponens rule  
+
+  ceq PSet |- P:Pattern
+      Tsk
+      ====================
+      modus-ponens(Q:Pattern)
+      Tcc
+      
+    = PSet |- Q:Pattern
+      PSet |- Q:Pattern -> P:Pattern
+      Tsk
+      ====================
+      Tcc 
+    
+   if (Q:Pattern -> P:Pattern) :: Pattern .
 
 endm
+
+reduce
+
+none |- {1,Bool} -> {1,Bool}
+====================
+modus-ponens({1,Bool} -> {1,Bool} -> {1,Bool})
+modus-ponens({1,Bool} -> ({1,Bool} -> {1,Bool}) -> {1,Bool})
+
+.
 
 quit
 
