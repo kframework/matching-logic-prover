@@ -171,7 +171,7 @@ fmod IMP is
 
   ---- matching logic exists 
 
-  op exists_ : Pattern{Bool} -> Pattern{Bool} [ditto] .
+  op exists_ : Pattern{Bool} -> Pattern{Bool} [prec 61] .
   op exists_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
   op exists_ : Pattern{Seq} -> Pattern{Seq} [ditto] .
   op exists_ : Pattern{Map} -> Pattern{Map} [ditto] .
@@ -255,7 +255,7 @@ fmod IMP is
 
 endfm
 
-mod PROVER is
+fmod PROVER is
 
   protecting IMP .
 
@@ -361,7 +361,7 @@ mod PROVER is
 
    if P:Pattern /\ Q:Pattern :: Pattern .
 
-endm
+endfm
 
 
 ---- Example #1
@@ -379,6 +379,15 @@ modus-ponens {1,Nat} -> ({1,Nat} -> {1,Nat}) -> {1,Nat}
 .
 
 ---)
+
+mod TEST is
+
+  ---- exists P needs to do some extra work
+
+  rl list(X:Term{Nat}, concat(seq<-nat(Y:Term{Nat}), S:Term{Seq}))
+  => exists (merge(mapstoseq(X:Term{Nat}, concat(seq<-nat(Y:Term{Nat}), seq<-nat({0,Nat}))
+
+endm
 
 quit
 
