@@ -110,6 +110,23 @@ fmod IMP is
 
   ---- matching logic not
 
+  op ~_ : Pattern{Bool} -> Pattern{Bool} [prec 61] .
+  op ~_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
+  op ~_ : Pattern{Seq} -> Pattern{Seq} [ditto] .
+  op ~_ : Pattern{Map} -> Pattern{Map} [ditto] .
+  op ~_ : Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+  op ~_ : Pattern{Cfg} -> Pattern{Cfg} [ditto] .
+  op ~_ : Pattern{Poly} -> Pattern{Poly} [ditto] .
+
+  op ~_ : Predicate{Bool} -> Predicate{Bool} [prec 61] .
+  op ~_ : Predicate{Nat} -> Predicate{Nat} [ditto] .
+  op ~_ : Predicate{Seq} -> Predicate{Seq} [ditto] .
+  op ~_ : Predicate{Map} -> Predicate{Map} [ditto] .
+  op ~_ : Predicate{Pgm} -> Predicate{Pgm} [ditto] .
+  op ~_ : Predicate{Cfg} -> Predicate{Cfg} [ditto] .
+
+  
+
   ---- matching logic implies
 
   op _->_ : Pattern{Bool} Pattern{Bool} -> Pattern{Bool} [gather(e E) prec 64] .
@@ -151,6 +168,15 @@ fmod IMP is
   op _->_ : Top{Pgm} Bottom{Pgm} -> Bottom{Pgm} [ditto] .
   op _->_ : Top{Cfg} Bottom{Cfg} -> Bottom{Cfg} [ditto] .
   op _->_ : Top{Poly} Bottom{Poly} -> Bottom{Poly} [ditto] .
+
+  ---- matching logic exists 
+
+  op exists_ : Pattern{Bool} -> Pattern{Bool} [ditto] .
+  op exists_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
+  op exists_ : Pattern{Seq} -> Pattern{Seq} [ditto] .
+  op exists_ : Pattern{Map} -> Pattern{Map} [ditto] .
+  op exists_ : Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+  op exists_ : Pattern{Cfg} -> Pattern{Cfg} [ditto] .
 
   ---- (declare-func zero () Nat)
   op zero : -> Trm{Nat} .
@@ -225,6 +251,8 @@ fmod IMP is
   ---- (declare-func skip () Pgm)
   op skip : -> Trm{Pgm} .
 
+  ---- Simplification rule
+
 endfm
 
 mod PROVER is
@@ -245,13 +273,12 @@ mod PROVER is
   sort Tactic .
 
   op idle : -> Tactic .
-  op set-active : Nat -> Tactic .
-  op axiom : -> Tactic .
-  op auto : -> Tactic .
-  op taut : -> Tactic .
-  op modus-ponens : Pattern -> Tactic .
+  op set-active_ : Nat -> Tactic [prec 82] .
+  op modus-ponens_ : Pattern -> Tactic [prec 82] .
+  op /\-intro : -> Tactic .
+  op /\-elim_ : Pattern -> Tactic [prec 82] .
   op mem-intro : -> Tactic . 
-  op mem-elimn : -> Tactic .  
+  op mem-elim : -> Tactic .  
   op __ : Tactic Tactic -> Tactic [assoc id: idle prec 83 format(d n d)] .
 
   sort State .
@@ -285,12 +312,16 @@ mod PROVER is
 
   ---- |- (~ Q -> ~ P) -> (P -> Q)
 
-  ---- modus-ponens rule  
+  ceq PSet |- (~ Q:Pattern -> ~ P:Pattern) -> (P:Pattern -> Q:Pattern)
+    = none
+   if (~ Q:Pattern -> ~ P:Pattern) -> (P:Pattern -> Q:Pattern) :: Pattern .
+
+  ---- modus ponens  
 
   ceq PSet |- P:Pattern
       Tsk
       ====================
-      modus-ponens(Q:Pattern)
+      modus-ponens Q:Pattern
       Tcc
       
     = PSet |- Q:Pattern
@@ -299,165 +330,55 @@ mod PROVER is
       ====================
       Tcc 
     
-   if (Q:Pattern -> P:Pattern) :: Pattern .
+   if Q:Pattern -> P:Pattern :: Pattern .
+
+  ---- /\-intro
+
+   eq PSet |- P:Pattern /\ Q:Pattern
+      Tsk
+      ====================
+      /\-intro
+      Tcc
+   
+    = PSet |- P:Pattern
+      PSet |- Q:Pattern
+      Tsk
+      ====================
+      Tcc . 
+
+  ---- /\-elim
+
+  ceq PSet |- P:Pattern
+      Tsk
+      ====================
+      /\-elim Q:Pattern
+      Tcc
+  
+    = PSet |- P:Pattern /\ Q:Pattern
+      Tsk
+      ====================
+      Tcc 
+
+   if P:Pattern /\ Q:Pattern :: Pattern .
 
 endm
+
+
+---- Example #1
+---- |- X1:Nat -> X1:Nat
+
+---(
 
 reduce
 
-none |- {1,Bool} -> {1,Bool}
+none |- {1,Nat} -> {1,Nat}
 ====================
-modus-ponens({1,Bool} -> {1,Bool} -> {1,Bool})
-modus-ponens({1,Bool} -> ({1,Bool} -> {1,Bool}) -> {1,Bool})
+modus-ponens {1,Nat} -> {1,Nat} -> {1,Nat}
+modus-ponens {1,Nat} -> ({1,Nat} -> {1,Nat}) -> {1,Nat} 
 
 .
 
-quit
-
----(
-mod IMP-RULES is
-
-  protecting IMP .
-  protecting META-LEVEL . ---- we have to include META-LEVEL to call upTerm
-
-  sort PatternSet . subsort Pattern < PatternSet .
-  
-  op .PatternSet : -> PatternSet .
-  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: .PatternSet] .
-
-  rl [K1] : P:Pattern{Bool} -> (Q:Pattern{Bool} -> P:Pattern{Bool})
-  => .PatternSet .
-  rl [K1] : P:Pattern{Nat} -> (Q:Pattern{Nat} -> P:Pattern{Nat})
-  => .PatternSet .
-  rl [K1] : P:Pattern{Seq} -> (Q:Pattern{Seq} -> P:Pattern{Seq})
-  => .PatternSet .
-  rl [K1] : P:Pattern{Map} -> (Q:Pattern{Map} -> P:Pattern{Map})
-  => .PatternSet .
-  rl [K1] : P:Pattern{Pgm} -> (Q:Pattern{Pgm} -> P:Pattern{Pgm})
-  => .PatternSet .
-  rl [K1] : P:Pattern{Cfg} -> (Q:Pattern{Cfg} -> P:Pattern{Cfg})
-  => .PatternSet .
-
-
-endm
 ---)
-
-fmod PROVER is
-  
-  protecting IMP .
-
-  sorts Task Tactic .
-
-  op apply : Tactic Task -> Task .
-
-  op .Task : -> Task .
-
-  op __ : Task Task -> Task [assoc comm id: .Task] .
-
-  op _|-_ : TermList Term -> Task . 
-
-  op auto : -> Tactic .
-
-  op axiom : -> Tactic .
-
-  op modus-ponens : Term -> Tactic . 
-
-  op universal-generalization : -> Tactic .
-
-  op membership-introduction : -> Tactic .
-  
-  op membership-elimination : -> Tactic .
-  
-  op frame-rule : -> Tactic .
-
-  op deduction-theorm : -> Tactic .
-
-  eq apply(axiom, ((TL:TermList |- '_->_[T:Term, '_->_[T':Term, T:Term]]) Tsk:Task))
-   = Tsk:Task .
-  ---- if T:Term and T'Term are of the same sort Pattern{S} for some S.
-
-
-  eq apply(modus-ponens(T':Term), (TL:TermList |- T:Term) Tsk:Task)
-   = (TL:TermList |- T':Term) (TL:TermList |- '_->_[T':Term, T:Term]) Tsk:Task .
-
-
-  ceq apply(frame-rule, (TL:TermList |- '_->_[F:Qid[TL:TermList], F:Qid[TL':TermList]]) Tsk:Task)
-    = (TL:TermList |- '_->_[TL:TermList, TL':TermList]) Tsk:Task 
-   if F:Qid =/= '_->_ .
-  
-endfm
-
-reduce metaApply(upModule('IMP-RULES, false),
-                 '_->_['`{_`,Nat`}['s_['0.Zero]],'_->_['`{_`,Nat`}['s_^2['0.Zero]],'`{_`,Nat`}['s_['0.Zero]]]],
-                 'K1,
-                 none,
-                 0) .
-
 
 quit
 
----(
----- Assersions.
-
-  ---- (assert (= .. (succ ...)))
-  eq one = succ(zero) .
-  eq two = succ(one) .
-  eq three = succ(two) .
-  eq four = succ(three) .
-  eq five = succ(four) .
-  eq six = succ(five) .
-  eq seven = succ(six) . 
-  eq eight = succ(seven) .
-  eq nine = succ(eight) . 
-  eq ten = succ(nine) .
-  ---- (assert (= (plus x zero) x))
-  eq plus(X:Pattern{Nat}, zero)
-   = X:Pattern{Nat} .
-
-  ---- (assert (= (plus x (succ y)) (succ (plus x y))))
-  eq plus(X:Pattern{Nat}, succ(Y:Pattern{Nat}))
-   = succ(plus(X:Pattern{Nat}, Y:Pattern{Nat})) .
-
-  ---- (assert (= (pred zero) bottom)
-  eq pred(zero)
-   = bottom{Nat} .
-
-  ---- (assert (= (pred (succ x)) x))
-  eq pred(succ(X:Pattern{Nat}))
-   = X:Pattern{Nat} .
-  
-  ---- (assert (= (concat s epsilon) s))
-  eq concat(S:Pattern{Seq}, epsilon)
-   = S:Pattern{Seq} .
-
-  ---- (assert (= (concat epsilon s) s))
-  eq concat(epsilon, S:Pattern{Seq})
-   = S:Pattern{Seq} . 
-
-  ---- (assert (= (mapsto zero x) bottom))
-  eq mapsto(zero, X:Pattern{Nat})
-   = bottom{Map} .
-
-  ---- (assert (= (merge emp h) h))
-  eq merge(emp, H:Pattern{Map})
-   = H:Pattern{Map} .
-
-  ---- (assert (= (merge (mapsto x y) (mapsto x z)) bottom))
-  eq merge(mapsto(X:Pattern{Nat}, Y:Pattern{Nat}),
-           mapsto(X:Pattern{Nat}, Z:Pattern{Nat}))
-   = bottom{Map} .
-
-  ---- (assert (= (mapstoseq x epsilon) (and (= x 0) emp)))
-  eq mapstoseq(X:Pattern{Nat}, epsilon)
-   = (X:Pattern{Nat} = zero) /\ emp .
-
-  ---- (assert (= (mapstoseq x (seq<-nat y)) (mapsto x y)))
-  eq mapstoseq(X:Pattern{Nat}, seq<-nat(Y:Pattern{Nat}))
-   = mapsto(X:Pattern{Nat}, Y:Pattern{Nat}) .
-
-  ---- (assert (= (mapstoseq x (concat (seq<-nat y) s))
-  ----            (merge (mapsto x y) (mapstoseq (succ x) s))))
-  eq mapstoseq(X:Pattern{Nat}, concat(seq<-nat(Y:Pattern{Nat}), S:Pattern{Seq}))
-   = merge(mapsto(X:Pattern{Nat}, Y:Pattern{Nat}),
-           mapstoseq(succ(X:Pattern{Nat}), S:Pattern{Seq})) .
----)
