@@ -187,7 +187,17 @@ fmod IMP is
 
   ---- matching logic contained (subset) 
 
-  ---- matching logic exists 
+   ---- matching logic forall 
+
+  op forall_ : Pattern{Bol} -> Pattern{Bol} [prec 61] .
+  op forall_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
+  op forall_ : Pattern{Seq} -> Pattern{Seq} [ditto] .
+  op forall_ : Pattern{Map} -> Pattern{Map} [ditto] .
+  op forall_ : Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+  op forall_ : Pattern{Cfg} -> Pattern{Cfg} [ditto] .
+  op forall_ : Pattern{Ply} -> Pattern{Ply} [ditto] .
+
+ ---- matching logic exists 
 
   op exists_ : Pattern{Bol} -> Pattern{Bol} [prec 61] .
   op exists_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
@@ -281,8 +291,8 @@ fmod IMP is
 
 
 
-  vars K D C : Nat .
-  vars P Q : Pattern .
+  vars K J D C : Nat .
+  vars P Q R : Pattern .
 
   ---- Helper functions
 
@@ -362,6 +372,11 @@ fmod IMP is
   eq shift(zero, D, C) = zero .
   eq shift(succ(P), D, C) = succ(shift(P, D, C)) .
   eq shift(plus(P, Q), D, C) = plus(shift(P, D, C), shift(Q, D, C)) .
+  eq shift(concat(P, Q), D, C) = concat(shift(P, D, C), shift(Q, D, C)) .
+  eq shift(seq<-nat(P), D, C) = seq<-nat(shift(P, D, C)) .
+  eq shift(mapstoseq(P, Q), D, C) = mapstoseq(shift(P, D, C), shift(Q, D, C)) .
+  eq shift(merge(P, Q), D, C) = merge(shift(P, D, C), shift(Q, D, C)) .
+  eq shift(list(P, Q), D, C) = list(shift(P, D, C), shift(Q, D, C)) .
 
 
   ---- #exists
@@ -383,10 +398,24 @@ fmod IMP is
 
   eq #exists P = exists shift(P, 1, 0) .
 
+  ---- substitution
+  ---- P[K := Q]
+
+  op _[_:=_] : Pattern Nat Pattern -> Pattern . 
+
+  eq {K,Bol}[J := R] = if K == J then R else {K,Bol} fi .
+  eq {K,Nat}[J := R] = if K == J then R else {K,Nat} fi .
+  eq {K,Seq}[J := R] = if K == J then R else {K,Seq} fi .
+  eq {K,Map}[J := R] = if K == J then R else {K,Map} fi .
+  eq {K,Pgm}[J := R] = if K == J then R else {K,Pgm} fi .
+  eq {K,Cfg}[J := R] = if K == J then R else {K,Cfg} fi .
+
+  eq (P = Q) [J := R] = ((P[J := R]) = (Q[J := R])) .
+  eq (P -> Q) [J := R] = ((P[J := R]) -> (Q[J := R])) .
+  eq (P /\ Q) [J := R] = ((P[J := R]) /\ (Q[J := R])) .
+  eq (forall P) [J := R] = forall (P [J + 1 := shift(R, 1, 0)]) .
+  eq (exists P) [J := R] = exists (P [J + 1 := shift(R, 1, 0)]) .
 endfm
-
-reduce #exists ({1,Bol} -> {#,Bol}) .
-
 
 fmod PROVER is
 
@@ -496,9 +525,6 @@ fmod PROVER is
 
 endfm
 
-quit
-
-
 ---- Example #1
 ---- |- X1:Nat -> X1:Nat
 
@@ -517,10 +543,20 @@ modus-ponens {1,Nat} -> ({1,Nat} -> {1,Nat}) -> {1,Nat}
 
 mod TEST is
 
-  ---- exists P needs to do some extra work
+  protecting IMP .
 
-  rl list(X:Term{Nat}, concat(seq<-nat(Y:Term{Nat}), S:Term{Seq}))
-  => exists (merge(mapstoseq(X:Term{Nat}, concat(seq<-nat(Y:Term{Nat}), seq<-nat({0,Nat})) .
+  rl concat(S:Pattern{Seq}, epsilon)
+  => S:Pattern{Seq} .
+
+  rl S:Pattern{Seq}
+  => concat(S:Pattern{Seq}, epsilon) .
+
+  rl mapstoseq(X:Trm{Nat}, epsilon)
+  => emp .
+
+  rl list(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), S:Trm{Seq}))
+  => #exists (merge(mapstoseq(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), seq<-nat({#,Nat}))),
+                    list({#,Nat}, S:Trm{Seq}))) .
 
 endm
 
