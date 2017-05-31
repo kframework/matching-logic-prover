@@ -1,6 +1,6 @@
 fmod IMP is
 
-  protecting NAT .
+  protecting INT .
 
   sorts Var Trm Trm? Top Bottom Predicate Pattern .
   sorts Var{Bol} Trm{Bol} Trm?{Bol} Top{Bol} Bottom{Bol} Predicate{Bol} Pattern{Bol} .
@@ -291,7 +291,7 @@ fmod IMP is
 
 
 
-  vars K J D C : Nat .
+  vars K J C : Nat . var D : Int .
   vars P Q R : Pattern .
 
   ---- Helper functions
@@ -299,7 +299,7 @@ fmod IMP is
   ---- shift function for De Brujin indices.
   ---- shift(P, delta-place, cut-off)
 
-  op shift : Pattern Nat Nat -> Pattern .
+  op shift : Pattern Int Nat -> Pattern .
 
   ---(
 
@@ -382,6 +382,8 @@ fmod IMP is
   ---- #exists
 
   op #exists_ : Pattern -> Pattern .
+
+  ---- place holders
   op {#,Bol} : -> Var{Bol} .
   op {#,Nat} : -> Var{Nat} .
   op {#,Seq} : -> Var{Seq} .
@@ -413,13 +415,51 @@ fmod IMP is
   eq (P = Q) [J := R] = ((P[J := R]) = (Q[J := R])) .
   eq (P -> Q) [J := R] = ((P[J := R]) -> (Q[J := R])) .
   eq (P /\ Q) [J := R] = ((P[J := R]) /\ (Q[J := R])) .
+
   eq (forall P) [J := R] = forall (P [J + 1 := shift(R, 1, 0)]) .
   eq (exists P) [J := R] = exists (P [J + 1 := shift(R, 1, 0)]) .
+
+  eq zero [J := R] = zero .
+  eq (succ(P)) [J := R] = succ(P [J := R]) .
+  eq (plus(P, Q)) [J := R] = plus(P [J := R], Q [J := R]) .
+  eq (seq<-nat(P)) [J := R] = seq<-nat(P [J := R]) .
+  eq (concat(P, Q)) [J := R] = concat(P [J := R], Q [J := R]) .
+  eq (mapstoseq(P, Q)) [J := R] = mapstoseq(P [J := R], Q [J := R]) .
+  eq (merge(P, Q)) [J := R] = merge(P [J := R], Q [J := R]) .
+  eq (list(P, Q)) [J := R] = list(P [J := R], Q [J := R]) .
+
+  ---- instantiate _[_]
+
+  op _[_] : Pattern Pattern -> Pattern .
+
+  eq (forall P) [R] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+  eq (exists P) [R] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+
 endfm
+
+mod RULES is
+
+  protecting IMP .
+
+  rl concat(S:Pattern{Seq}, epsilon)
+  => S:Pattern{Seq} [label concat-l2r] .
+
+  rl S:Pattern{Seq}
+  => concat(S:Pattern{Seq}, epsilon) [label concat-r2l] .
+
+  rl mapstoseq(X:Trm{Nat}, epsilon)
+  => emp [label mapstoseq-epsilon-l2r] .
+
+  rl list(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), S:Trm{Seq}))
+  => #exists (merge(mapstoseq(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), seq<-nat({#,Nat}))),
+                    list({#,Nat}, S:Trm{Seq}))) [label list-ind-l2r] .
+
+endm
 
 fmod PROVER is
 
   protecting IMP .
+  protecting META-LEVEL . ---- reluctantly 
 
   sort PatternSet . subsort Pattern < PatternSet .
   
@@ -435,13 +475,21 @@ fmod PROVER is
   sort Tactic .
 
   op idle : -> Tactic .
+  op __ : Tactic Tactic -> Tactic [assoc id: idle prec 83 format(d n d)] .
+
   op set-active_ : Nat -> Tactic [prec 82] .
+
   op modus-ponens_ : Pattern -> Tactic [prec 82] .
   op /\-intro : -> Tactic .
   op /\-elim_ : Pattern -> Tactic [prec 82] .
   op mem-intro : -> Tactic . 
   op mem-elim : -> Tactic .  
-  op __ : Tactic Tactic -> Tactic [assoc id: idle prec 83 format(d n d)] .
+  ---- Ad-hoc
+  ---- existantial quantifier instantiation 
+  op exists-inst_ : Trm -> Tactic [prec 82] .
+
+  ---- Rules
+  op apply_ : Qid -> Tactic [prec 82] .
 
   sort State .
 
@@ -523,6 +571,46 @@ fmod PROVER is
 
    if P:Pattern /\ Q:Pattern :: Pattern .
 
+  ---- ad-hoc
+
+  ceq PSet |- P:Pattern -> exists Q:Pattern
+      Tsk
+      ====================
+      exists-inst T:Trm
+      Tcc
+
+    = PSet |- P:Pattern -> ((exists Q:Pattern) [T:Trm])
+      Tsk
+      ====================
+      Tcc
+
+   if P:Pattern -> ((exists Q:Pattern) [T:Trm]) :: Pattern .
+
+  ---- apply rules
+
+  ---- TODO:: ERROR HANDLING
+
+   op RULES : -> Module .
+   eq RULES = upModule('RULES, false) .
+
+   eq PSet |- P:Pattern
+      Tsk
+      ====================
+      apply Label:Qid 
+      Tcc
+
+    = PSet |- downTerm(getTerm(metaXapply(RULES,
+                                          upTerm(P:Pattern),
+                                          Label:Qid,
+                                          none,       ---- no substitution
+                                          0,          ---- searching from the top
+                                          unbounded,  ---- no cut off 
+                                          0)),        ---- want the first solution 
+                       P:Pattern)
+      Tsk
+      ====================
+      Tcc .
+
 endfm
 
 ---- Example #1
@@ -541,24 +629,22 @@ modus-ponens {1,Nat} -> ({1,Nat} -> {1,Nat}) -> {1,Nat}
 
 ---)
 
-mod TEST is
+---- Example #2
+---- |- 7 |-> 9 * 8 |-> 1 * 1 |-> 5 * 2 |-> 0 -> list(7, [9;5])
 
-  protecting IMP .
+reduce
 
-  rl concat(S:Pattern{Seq}, epsilon)
-  => S:Pattern{Seq} .
+none |- merge(mapsto(seven, nine),
+              mapsto(eight, one),
+              mapsto(one, five),
+              mapsto(two, zero))
+        -> list(seven, concat(seq<-nat(nine), seq<-nat(five))) 
+====================
+apply 'list-ind-l2r
+exists-inst one
 
-  rl S:Pattern{Seq}
-  => concat(S:Pattern{Seq}, epsilon) .
+.
 
-  rl mapstoseq(X:Trm{Nat}, epsilon)
-  => emp .
-
-  rl list(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), S:Trm{Seq}))
-  => #exists (merge(mapstoseq(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), seq<-nat({#,Nat}))),
-                    list({#,Nat}, S:Trm{Seq}))) .
-
-endm
 
 quit
 
