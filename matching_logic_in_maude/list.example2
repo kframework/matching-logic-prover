@@ -1,0 +1,59 @@
+none |- merge(mapsto(seven, nine),
+              mapsto(eight, one),
+              mapsto(one, five),
+              mapsto(two, zero))
+        -> list(seven, concat(seq<-nat(nine), seq<-nat(five))) 
+====================
+apply 'list-ind-l2r
+exists-inst one
+apply 'mapstoseq-ind-l2r
+apply[0] 'concat-r2l
+apply 'mapstoseq-ind-l2r
+apply 'mapstoseq-base-l2r
+
+
+
+
+none |- merge(mapsto(succ(zero), succ(succ(succ(succ(succ(zero)))))),
+    mapsto(succ(succ(zero)), zero), mapsto(succ(succ(succ(succ(succ(succ(succ(
+    zero))))))), succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))),
+    mapsto(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))), succ(zero))) 
+    ->
+    exists merge(mapstoseq(succ(succ(succ(succ(succ(succ(succ(zero))))))), concat(
+    seq<-nat(succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))), seq<-nat(
+    {0,Nat}))), list({0,Nat}, seq<-nat(succ(succ(succ(succ(succ(zero))))))))
+====================
+exists-inst one
+apply 'mapstoseq-ind-l2r
+apply[0] 'concat-r2l
+apply 'mapstoseq-ind-l2r
+apply 'mapstoseq-base-l2r
+
+
+none |- merge(mapsto(succ(zero), succ(succ(succ(succ(succ(zero)))))),
+    mapsto(succ(succ(zero)), zero), mapsto(succ(succ(succ(succ(succ(succ(succ(
+    zero))))))), succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))),
+    mapsto(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))), succ(zero))) 
+    ->
+    merge(mapstoseq(succ(succ(succ(succ(succ(succ(succ(zero))))))), concat(
+    seq<-nat(succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))), seq<-nat(
+    succ(zero)))), list(succ(zero), seq<-nat(succ(succ(succ(succ(succ(zero))))))))
+====================
+apply 'mapstoseq-ind-l2r
+apply[0] 'concat-r2l
+apply 'mapstoseq-ind-l2r
+apply 'mapstoseq-base-l2r
+
+
+
+none |- merge(mapsto(succ(zero), succ(succ(succ(succ(succ(zero)))))),
+    mapsto(succ(succ(zero)), zero), mapsto(succ(succ(succ(succ(succ(succ(succ(
+    zero))))))), succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))),
+    mapsto(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))), succ(zero))) 
+    ->
+    merge(emp, mapsto(succ(succ(succ(succ(succ(succ(succ(zero))))))), succ(succ(
+    succ(succ(succ(succ(succ(succ(succ(zero)))))))))), mapsto(succ(succ(succ(succ(
+    succ(succ(succ(succ(zero)))))))), succ(zero)), list(succ(zero), seq<-nat(succ(
+    succ(succ(succ(succ(zero))))))))
+
+

@@ -1,0 +1,71 @@
+---- proof obligation
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies list(7, concat(seq<-nat(5), seq<-nat(9)))
+
+---- list(X,[seq<-nat(Y);S]) => exists Z . mapstoseq(X, concat(seq<-nat(Y), seq<-nat(Z))) * list(Z,S)
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies exists Z . mapstoseq(7, concat(seq<-nat(9), seq<-nat(Z))) * list(Z, seq<-nat(5))
+
+---- instantiate by Maude variable
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies mapstoseq(7, concat(seq<-nat(9), seq<-nat(Z:Trm{Nat}))) * list(Z:Trm{Nat}, seq<-nat(5))
+
+---- mapstoseq(X, concat(seq<-nat(Y), S)) => X|->Y * mapstoseq(succ(X), S)
+ 
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * mapstoseq(8, seq<-nat(Z:Trm{Nat})) * list(Z:Trm{Nat}, seq<-nat(5))
+
+---- S => concat(S, epsilon)
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * mapstoseq(8, concat(seq<-nat(Z:Trm{Nat}), epsilon)) * list(Z:Trm{Nat}, seq<-nat(5))
+
+---- mapstoseq(X, concat(seq<-nat(Y), S)) => X|->Y * mapstoseq(succ(X), S)
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * mapstoseq(9, epsilon) * list(Z:Trm{Nat}, seq<-nat(5))
+
+---- mapstoseq(X, epsilon) => emp
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * emp * list(Z:Trm{Nat}, seq<-nat(5))
+
+---- merge(H, emp) => H
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * list(Z:Trm{Nat}, seq<-nat(5))
+
+---- S => concat(S, epsilon)
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * list(Z:Trm{Nat}, concat(seq<-nat(5), epsilon))
+
+---- list(X,[seq<-nat(Y);S]) => exists Z . mapstoseq(X, concat(seq<-nat(Y), seq<-nat(Z))) * list(Z,S)
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * exists Z' . mapstoseq(Z:Trm{Nat}, concat(seq<-nat(5), seq<-nat(Z'))) * list(Z', epsilon)
+
+---- instantiate with Maude variable
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * mapstoseq(Z:Trm{Nat}, concat(seq<-nat(5), seq<-nat(Z':Trm{Nat}))) * list(Z':Trm{Nat}, epsilon)
+
+---- more steps ...
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * Z:Trm{Nat}|->5 * succ(Z:Trm{Nat})|->Z':Trm{Nat} * list(Z':Trm{Nat}, epsilon)
+
+---- list(X, epsilon) => (X = 0) /\ emp
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * Z:Trm{Nat}|->5 * succ(Z:Trm{Nat})|->Z':Trm{Nat} * ((Z':Trm{Nat} = 0) /\ emp) 
+
+---- f(..., P /\ C, ...) => f(..., P, ...) /\ C
+---- if C :: Predicate
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * Z:Trm{Nat}|->5 * succ(Z:Trm{Nat})|->Z':Trm{Nat} * emp /\ (Z':Trm{Nat} = 0)
+
+---- merge(H, emp) => H
+
+7|->9 * 8|->1 * 1|->5 * 2|->0 implies 7|->9 * 8|->Z:Trm{Nat} * Z:Trm{Nat}|->5 * succ(Z:Trm{Nat})|->Z':Trm{Nat} /\ (Z':Trm{Nat} = 0)
+ 
+---- matching and unifying
+
+match Z'Trm{Nat} 
+
+  <=? 0
+
+
+match 7|->9 * 8|->1 * 1|->5 * 2|->0 
+  <=? 7|->9 * 8|->Z:Trm{Nat} * Z:Trm{Nat}|->5 * succ(Z:Trm{Nat})|-> 0
+

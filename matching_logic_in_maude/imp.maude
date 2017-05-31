@@ -373,7 +373,10 @@ fmod IMP is
   eq shift(succ(P), D, C) = succ(shift(P, D, C)) .
   eq shift(plus(P, Q), D, C) = plus(shift(P, D, C), shift(Q, D, C)) .
   eq shift(concat(P, Q), D, C) = concat(shift(P, D, C), shift(Q, D, C)) .
+  eq shift(epsilon, D, C) = epsilon .
+  eq shift(emp, D, C) = emp .
   eq shift(seq<-nat(P), D, C) = seq<-nat(shift(P, D, C)) .
+  eq shift(mapsto(P, Q), D, C) = mapsto(shift(P, D, C), shift(Q, D, C)) .
   eq shift(mapstoseq(P, Q), D, C) = mapstoseq(shift(P, D, C), shift(Q, D, C)) .
   eq shift(merge(P, Q), D, C) = merge(shift(P, D, C), shift(Q, D, C)) .
   eq shift(list(P, Q), D, C) = list(shift(P, D, C), shift(Q, D, C)) .
@@ -448,11 +451,18 @@ mod RULES is
   => concat(S:Pattern{Seq}, epsilon) [label concat-r2l] .
 
   rl mapstoseq(X:Trm{Nat}, epsilon)
-  => emp [label mapstoseq-epsilon-l2r] .
+  => emp [label mapstoseq-base-l2r] .
+
+  rl mapstoseq(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), S:Trm{Seq}))
+  => merge(mapsto(X:Trm{Nat}, Y:Trm{Nat}),
+           mapstoseq(succ(X:Trm{Nat}), S:Trm{Seq})) [label mapstoseq-ind-l2r] .
 
   rl list(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), S:Trm{Seq}))
   => #exists (merge(mapstoseq(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), seq<-nat({#,Nat}))),
                     list({#,Nat}, S:Trm{Seq}))) [label list-ind-l2r] .
+
+  rl merge(P:Pattern{Map}, exists Q:Pattern{Map})
+  => exists merge(shift(P:Pattern{Map}, 1, 0), Q:Pattern{Map}) [label merge-exists] .
 
 endm
 
@@ -490,6 +500,9 @@ fmod PROVER is
 
   ---- Rules
   op apply_ : Qid -> Tactic [prec 82] .
+  op apply[_]_ : Nat Qid -> Tactic [prec 82] . --- asking for the nth solution.
+
+  eq apply Label:Qid = apply [0] Label:Qid .
 
   sort State .
 
@@ -596,7 +609,7 @@ fmod PROVER is
    eq PSet |- P:Pattern
       Tsk
       ====================
-      apply Label:Qid 
+      apply [N:Nat] Label:Qid 
       Tcc
 
     = PSet |- downTerm(getTerm(metaXapply(RULES,
@@ -605,7 +618,7 @@ fmod PROVER is
                                           none,       ---- no substitution
                                           0,          ---- searching from the top
                                           unbounded,  ---- no cut off 
-                                          0)),        ---- want the first solution 
+                                          N:Nat)),        ---- want the first solution 
                        P:Pattern)
       Tsk
       ====================
@@ -642,6 +655,14 @@ none |- merge(mapsto(seven, nine),
 ====================
 apply 'list-ind-l2r
 exists-inst one
+apply 'mapstoseq-ind-l2r
+apply 'concat-r2l
+apply 'mapstoseq-ind-l2r
+apply 'mapstoseq-base-l2r
+apply 'concat-r2l
+apply 'list-ind-l2r
+apply 'merge-exists
+exists-inst zero 
 
 .
 
