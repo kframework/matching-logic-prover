@@ -53,7 +53,7 @@ fmod IMP is
   op top{Cfg} : -> Top{Cfg} . op bottom{Cfg} : -> Bottom{Cfg} .
   op top{Ply} : -> Top{Ply} . op bottom{Ply} : -> Bottom{Ply} .
 
-  ---- variables
+  ---- matching logic variables
 
   op {_,Bol} : Nat -> Var{Bol} [ctor] .
   op {_,Nat} : Nat -> Var{Nat} [ctor] .
@@ -62,7 +62,7 @@ fmod IMP is
   op {_,Pgm} : Nat -> Var{Pgm} [ctor] .
   op {_,Cfg} : Nat -> Var{Cfg} [ctor] .
 
-  ---- equalities
+  ---- matching logic equalities
 
   op _=_ : Pattern{Bol} Pattern{Bol} -> Predicate{Ply} [comm prec 66] .
   op _=_ : Pattern{Nat} Pattern{Nat} -> Predicate{Ply} [ditto] .
@@ -187,7 +187,9 @@ fmod IMP is
 
   ---- matching logic contained (subset) 
 
-   ---- matching logic forall 
+  ---- matching logic bindings: universal/existential/contextual quantification
+
+  ---- matching logic forall 
 
   op forall_ : Pattern{Bol} -> Pattern{Bol} [prec 61] .
   op forall_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
@@ -197,7 +199,7 @@ fmod IMP is
   op forall_ : Pattern{Cfg} -> Pattern{Cfg} [ditto] .
   op forall_ : Pattern{Ply} -> Pattern{Ply} [ditto] .
 
- ---- matching logic exists 
+  ---- matching logic exists 
 
   op exists_ : Pattern{Bol} -> Pattern{Bol} [prec 61] .
   op exists_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
@@ -206,6 +208,24 @@ fmod IMP is
   op exists_ : Pattern{Pgm} -> Pattern{Pgm} [ditto] .
   op exists_ : Pattern{Cfg} -> Pattern{Cfg} [ditto] .
   op exists_ : Pattern{Ply} -> Pattern{Ply} [ditto] .
+
+  ---- matching logic context
+
+  op context_ : Pattern{Bol} -> Pattern{Bol} [prec 61] .
+  op context_ : Pattern{Nat} -> Pattern{Nat} [ditto] .
+  op context_ : Pattern{Seq} -> Pattern{Seq} [ditto] .
+  op context_ : Pattern{Map} -> Pattern{Map} [ditto] .
+  op context_ : Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+  op context_ : Pattern{Cfg} -> Pattern{Cfg} [ditto] .
+  op context_ : Pattern{Ply} -> Pattern{Ply} [ditto] .
+
+  ---- binding instantiation (context application) 
+
+  ---- TODO:: add sorting information here.
+
+  op _[_] : Pattern Pattern -> Pattern .
+
+  ---- symbols of IMP theory  
 
   ---- (declare-func zero () Nat)
   op zero : -> Trm{Nat} .
@@ -279,6 +299,18 @@ fmod IMP is
 
   ---- (declare-func skip () Pgm)
   op skip : -> Trm{Pgm} .
+  
+  ---- (declare-func asgn (Nat Nat) Pgm)
+  op asgn : Trm{Nat} Trm{Nat} -> Trm{Pgm} .
+  op asgn : Pattern{Nat} Pattern{Nat} -> Pattern{Pgm} .
+
+  ---- (declare-func seqn (Pgm Pgm) Pgm)
+  op seq : Trm{Pgm} Trm{Pgm} -> Trm{Pgm} [assoc comm] .
+  op seq : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+
+  ---- (declare-func cfg (Pgm Map) Cfg)
+  op cfg : Trm{Pgm} Trm{Map} -> Trm{Cfg} .
+  op cfg : Pattern{Pgm} Pattern{Map} -> Pattern{Cfg} .
 
 
 
@@ -290,11 +322,15 @@ fmod IMP is
 
 
 
+
+
+
+
+
+  ---- Helper functions
 
   vars K J C : Nat . var D : Int .
   vars P Q R : Pattern .
-
-  ---- Helper functions
 
   ---- shift function for De Brujin indices.
   ---- shift(P, delta-place, cut-off)
@@ -382,11 +418,10 @@ fmod IMP is
   eq shift(list(P, Q), D, C) = list(shift(P, D, C), shift(Q, D, C)) .
 
 
-  ---- #exists
-
-  op #exists_ : Pattern -> Pattern .
+  ---- helper functions for contructing binding structures.
 
   ---- place holders
+
   op {#,Bol} : -> Var{Bol} .
   op {#,Nat} : -> Var{Nat} .
   op {#,Seq} : -> Var{Seq} .
@@ -401,7 +436,23 @@ fmod IMP is
   eq shift({#,Pgm}, D, C) = {0,Pgm} .
   eq shift({#,Cfg}, D, C) = {0,Cfg} .
 
+  ---- #exists
+
+  op #exists_ : Pattern -> Pattern .
+
   eq #exists P = exists shift(P, 1, 0) .
+
+  ---- #forall
+
+  op #forall_ : Pattern -> Pattern .
+
+  eq #forall P = forall shift(P, 1, 0) . 
+
+  ---- #context
+
+  op #context_ : Pattern -> Pattern .
+
+  eq #context P = context shift(P, 1, 0) . 
 
   ---- substitution
   ---- P[K := Q]
@@ -421,6 +472,7 @@ fmod IMP is
 
   eq (forall P) [J := R] = forall (P [J + 1 := shift(R, 1, 0)]) .
   eq (exists P) [J := R] = exists (P [J + 1 := shift(R, 1, 0)]) .
+  eq (context P) [J := R] = context (P [J + 1 := shift(R, 1, 0)]) .
 
   eq zero [J := R] = zero .
   eq (succ(P)) [J := R] = succ(P [J := R]) .
@@ -431,12 +483,30 @@ fmod IMP is
   eq (merge(P, Q)) [J := R] = merge(P [J := R], Q [J := R]) .
   eq (list(P, Q)) [J := R] = list(P [J := R], Q [J := R]) .
 
-  ---- instantiate _[_]
-
-  op _[_] : Pattern Pattern -> Pattern .
+  ---(
 
   eq (forall P) [R] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
   eq (exists P) [R] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+  eq (context P) [R] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+
+  ---)
+
+endfm
+
+fmod EXE is
+
+  protecting IMP .
+
+  ---(
+
+  op step : Trm{Cfg} -> Trm{Cfg} .
+
+  vars C C' : Pattern . vars X Y Z : Trm{Nat} .
+
+  eq step(cfg(C[asgn(X, Y)], C'[mapsto(X, Z)]))
+   = step(cfg(C[skip], C'[mapsto(X, Y)])) .
+
+  ---)
 
 endfm
 
