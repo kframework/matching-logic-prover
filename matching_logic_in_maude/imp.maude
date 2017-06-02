@@ -267,6 +267,17 @@ fmod IMP is
   op plus : Trm?{Nat} Trm?{Nat} -> Trm?{Nat} [assoc comm] .
   op plus : Pattern{Nat} Pattern{Nat} -> Pattern{Nat} [assoc comm] .
 
+  ---- (declare-func ge (Nat Nat) Bool)
+  op gt : Trm{Nat} Trm{Nat} -> Trm{Bol} .
+  op gt : Trm?{Nat} Trm?{Nat} -> Trm?{Bol} .
+  op gt : Pattern{Nat} Pattern{Nat} -> Pattern{Bol} .
+
+  ---- (declare-func tt () Bol)
+  op tt : -> Trm{Bol} .
+
+  ---- (declare-func ff () Bol)
+  op ff : -> Trm{Bol} .
+
   ---- (declare-func epsilon () Seq)
   op epsilon : -> Trm{Seq} .
 
@@ -304,13 +315,26 @@ fmod IMP is
   op asgn : Trm{Nat} Trm{Nat} -> Trm{Pgm} .
   op asgn : Pattern{Nat} Pattern{Nat} -> Pattern{Pgm} .
 
+  ---- (declare-func ite (Bol, Pgm, Pgm) Pgm)
+  op ite : Trm{Bol} Trm{Pgm} Trm{Pgm} -> Trm{Pgm} [frozen(2 3)] . 
+  op ite : Pattern{Bol} Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [ditto] . 
+
+  ---- (declare-func while (Bol Pgm) Pgm)
+  op while : Trm{Bol} Trm{Pgm} -> Trm{Pgm} [frozen(1 2)] .
+  op while : Pattern{Bol} Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+
+  ---- (declare-func dereference (Nat) Nat)
+  op dereference : Trm{Nat} -> Trm{Nat} . 
+  op dereference : Pattern{Nat} -> Pattern{Nat} . 
+
   ---- (declare-func seqn (Pgm Pgm) Pgm)
-  op seq : Trm{Pgm} Trm{Pgm} -> Trm{Pgm} [assoc comm] .
+  op seq : Trm{Pgm} Trm{Pgm} -> Trm{Pgm} [assoc frozen(2)] .
   op seq : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [ditto] .
 
   ---- (declare-func cfg (Pgm Map) Cfg)
   op cfg : Trm{Pgm} Trm{Map} -> Trm{Cfg} .
   op cfg : Pattern{Pgm} Pattern{Map} -> Pattern{Cfg} .
+
 
 
 
@@ -439,19 +463,16 @@ fmod IMP is
   ---- #exists
 
   op #exists_ : Pattern -> Pattern .
-
   eq #exists P = exists shift(P, 1, 0) .
 
   ---- #forall
 
   op #forall_ : Pattern -> Pattern .
-
   eq #forall P = forall shift(P, 1, 0) . 
 
   ---- #context
 
   op #context_ : Pattern -> Pattern .
-
   eq #context P = context shift(P, 1, 0) . 
 
   ---- substitution
@@ -497,18 +518,92 @@ fmod EXE is
 
   protecting IMP .
 
-  ---(
+  eq cfg(seq(skip, P:Trm{Pgm}), H:Trm{Map}) 
+   
+   = cfg(P:Trm{Pgm}, H:Trm{Map}) .  
 
-  op step : Trm{Cfg} -> Trm{Cfg} .
 
-  vars C C' : Pattern . vars X Y Z : Trm{Nat} .
 
-  eq step(cfg(C[asgn(X, Y)], C'[mapsto(X, Z)]))
-   = step(cfg(C[skip], C'[mapsto(X, Y)])) .
+  eq plus(X:Trm{Nat}, zero) = X:Trm{Nat} .
+  eq plus(X:Trm{Nat}, succ(Y:Trm{Nat})) = succ(plus(X:Trm{Nat}, Y:Trm{Nat})) .
 
-  ---)
+  eq pred(succ(X:Trm{Nat})) = X:Trm{Nat} .
+
+  eq gt(succ(X:Trm{Nat}), zero) = tt .
+  eq gt(zero, zero) = ff .
+  eq gt(succ(X:Trm{Nat}), succ(Y:Trm{Nat})) = gt(X:Trm{Nat}, Y:Trm{Nat}) .
+
+  eq cfg(ite(gt(dereference(X:Trm{Nat}), Y:Trm{Nat}), P1:Pattern{Pgm}, P2:Pattern{Pgm}),
+         merge(mapsto(X:Trm{Nat}, Z:Trm{Nat}), H:Pattern{Map})) 
+   
+   = cfg(ite(gt(Z:Trm{Nat}, Y:Trm{Nat}), P1:Pattern{Pgm}, P2:Pattern{Pgm}),
+         merge(mapsto(X:Trm{Nat}, Z:Trm{Nat}), H:Pattern{Map})) .
+
+  eq cfg(seq(asgn(X:Trm{Nat}, plus(dereference(Y:Trm{Nat}), Z:Trm{Nat})), P:Pattern{Pgm}),
+         merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map}))
+
+   = cfg(seq(asgn(X:Trm{Nat}, plus(V:Trm{Nat}, Z:Trm{Nat})), P:Pattern{Pgm}),
+         merge(mapsto(X:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map})) .
+
+  eq cfg(seq(asgn(X:Trm{Nat}, pred(dereference(Y:Trm{Nat}))), P:Pattern{Pgm}),
+         merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map}))
+
+   = cfg(seq(asgn(X:Trm{Nat}, pred(V:Trm{Nat})), P:Pattern{Pgm}),
+         merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map})) .
+
+  eq cfg(seq(asgn(X:Trm{Nat}, dereference(Y:Trm{Nat})), P:Pattern{Pgm}),
+         merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map}))
+
+   = cfg(seq(asgn(X:Trm{Nat}, V:Trm{Nat}), P:Pattern{Pgm}),
+         merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map})) .
+
+  eq ite(tt, P1:Pattern{Pgm}, P2:Pattern{Pgm}) = P1:Pattern{Pgm} .
+  eq ite(ff, P1:Pattern{Pgm}, P2:Pattern{Pgm}) = P2:Pattern{Pgm} .
+          
+
+  eq cfg(asgn(X:Trm{Nat}, Y:Trm{Nat}),
+         merge(mapsto(X:Trm{Nat}, Z:Trm{Nat}), H:Trm?{Map}))
+
+   = cfg(skip, merge(mapsto(X:Trm{Nat}, Y:Trm{Nat}), H:Trm?{Map})) .
+
+  eq cfg(seq(asgn(X:Trm{Nat}, Y:Trm{Nat}), P:Pattern{Pgm}),
+         mapsto(X:Trm{Nat}, Z:Trm{Nat}))
+
+   = cfg(P:Pattern{Pgm}, mapsto(X:Trm{Nat}, Y:Trm{Nat})) .
+
+  eq cfg(seq(asgn(X:Trm{Nat}, Y:Trm{Nat}), P:Pattern{Pgm}),
+         merge(mapsto(X:Trm{Nat}, Z:Trm{Nat}), H:Trm?{Map}))
+
+   = cfg(P:Pattern{Pgm}, merge(mapsto(X:Trm{Nat}, Y:Trm{Nat}), H:Trm?{Map})) .
+
+  eq cfg(while(B:Pattern{Bol}, P:Pattern{Pgm}), H:Pattern{Map})
+ 
+   = cfg(ite(B:Pattern{Bol}, seq(P:Pattern{Pgm}, while(B:Pattern{Bol}, P:Pattern{Pgm})), skip),
+         H:Pattern{Map}) .
+
+  eq cfg(asgn(X:Trm{Nat}, Y:Trm{Nat}),
+         mapsto(X:Trm{Nat}, Z:Trm{Nat}))
+
+   = cfg(skip, mapsto(X:Trm{Nat}, Y:Trm{Nat})) .
 
 endfm
+
+set trace on .
+
+
+reduce
+
+
+cfg(while(gt(dereference(one), zero), 
+          seq(asgn(two, plus(dereference(two), dereference(one))),
+              asgn(one, pred(dereference(one))))),
+    merge(mapsto(one, ten),
+          mapsto(two, zero)))
+
+.
+
+
+quit
 
 mod RULES is
 
