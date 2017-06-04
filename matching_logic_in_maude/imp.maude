@@ -533,17 +533,31 @@ fmod EXE is
   eq gt(zero, zero) = ff .
   eq gt(succ(X:Trm{Nat}), succ(Y:Trm{Nat})) = gt(X:Trm{Nat}, Y:Trm{Nat}) .
 
-  eq cfg(ite(gt(dereference(X:Trm{Nat}), Y:Trm{Nat}), P1:Pattern{Pgm}, P2:Pattern{Pgm}),
-         merge(mapsto(X:Trm{Nat}, Z:Trm{Nat}), H:Pattern{Map})) 
+  eq cfg(while(B:Pattern{Bol}, P:Pattern{Pgm}), H:Pattern{Map})
+ 
+   = cfg(ite(B:Pattern{Bol}, seq(P:Pattern{Pgm}, while(B:Pattern{Bol}, P:Pattern{Pgm})), skip),
+         H:Pattern{Map}) .
+
+   eq cfg(ite(gt(dereference(X:Trm{Nat}), Y:Trm{Nat}), P1:Pattern{Pgm}, P2:Pattern{Pgm}),
+         merge(mapsto(X:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map})) 
    
-   = cfg(ite(gt(Z:Trm{Nat}, Y:Trm{Nat}), P1:Pattern{Pgm}, P2:Pattern{Pgm}),
-         merge(mapsto(X:Trm{Nat}, Z:Trm{Nat}), H:Pattern{Map})) .
+   = cfg(ite(gt(V:Trm{Nat}, Y:Trm{Nat}), P1:Pattern{Pgm}, P2:Pattern{Pgm}),
+         merge(mapsto(X:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map})) .
+
+  eq ite(tt, P1:Pattern{Pgm}, P2:Pattern{Pgm}) = P1:Pattern{Pgm} .
+  eq ite(ff, P1:Pattern{Pgm}, P2:Pattern{Pgm}) = P2:Pattern{Pgm} .
 
   eq cfg(seq(asgn(X:Trm{Nat}, plus(dereference(Y:Trm{Nat}), Z:Trm{Nat})), P:Pattern{Pgm}),
          merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map}))
 
    = cfg(seq(asgn(X:Trm{Nat}, plus(V:Trm{Nat}, Z:Trm{Nat})), P:Pattern{Pgm}),
          merge(mapsto(X:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map})) .
+
+
+
+
+
+  ---(
 
   eq cfg(seq(asgn(X:Trm{Nat}, pred(dereference(Y:Trm{Nat}))), P:Pattern{Pgm}),
          merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map}))
@@ -557,8 +571,6 @@ fmod EXE is
    = cfg(seq(asgn(X:Trm{Nat}, V:Trm{Nat}), P:Pattern{Pgm}),
          merge(mapsto(Y:Trm{Nat}, V:Trm{Nat}), H:Pattern{Map})) .
 
-  eq ite(tt, P1:Pattern{Pgm}, P2:Pattern{Pgm}) = P1:Pattern{Pgm} .
-  eq ite(ff, P1:Pattern{Pgm}, P2:Pattern{Pgm}) = P2:Pattern{Pgm} .
           
 
   eq cfg(asgn(X:Trm{Nat}, Y:Trm{Nat}),
@@ -576,20 +588,15 @@ fmod EXE is
 
    = cfg(P:Pattern{Pgm}, merge(mapsto(X:Trm{Nat}, Y:Trm{Nat}), H:Trm?{Map})) .
 
-  eq cfg(while(B:Pattern{Bol}, P:Pattern{Pgm}), H:Pattern{Map})
- 
-   = cfg(ite(B:Pattern{Bol}, seq(P:Pattern{Pgm}, while(B:Pattern{Bol}, P:Pattern{Pgm})), skip),
-         H:Pattern{Map}) .
 
   eq cfg(asgn(X:Trm{Nat}, Y:Trm{Nat}),
          mapsto(X:Trm{Nat}, Z:Trm{Nat}))
 
    = cfg(skip, mapsto(X:Trm{Nat}, Y:Trm{Nat})) .
 
+  ---)
+
 endfm
-
-set trace on .
-
 
 reduce
 
