@@ -7,8 +7,6 @@
 \lstdefinestyle{code}{
     basicstyle=\footnotesize\ttfamily,
     frame=single,
-    xleftmargin= .1\textwidth, 
-    xrightmargin=.1\textwidth,
     breaklines=true
 }
 
@@ -16,9 +14,11 @@
 
 Hi Grigore,
 
-I have a feeling that we in fact disagree on nothing. Let me use a simple IMP program as an example to illustrate what I mean. 
+I have a feeling that we in fact disagree on nothing. 
 
-Remind that we have Maude module called IMP that builds all patterns. 
+Let me use a simple \texttt{IMP} program as an example to illustrate what I mean. 
+
+Remind that we have Maude module called \texttt{IMP} that builds all patterns. 
 
 
 \lstset{style=code}
@@ -31,12 +31,14 @@ fmod IMP is
         -> Pattern{Pgm} [frozen(2 3)] .
   op while : Pattern{Bool} Pattern{Pgm} 
           -> Pattern{Pgm} [frozen(1 2)] .
+  ---- dereferencing a pointer
+  op dereference : Pattern{Nat} -> Pattern{Nat} . 
   ...
 endfm
 
 \end{lstlisting}
 
-My goal is to write a Maude module called EXE that reduces configurations of IMP programs according to their semantics. 
+My objective is to write a Maude module called \texttt{EXE} that reduces configurations of \texttt{IMP} programs according to their semantics. 
 
 \lstset{style=code}
 
@@ -51,11 +53,71 @@ endfm
 
 reduce
 
-#cfg(#k(seq(...)),
-     #state(merge(binder(
+#cfg(#k(seq(while(...), ...)),
+     #state(merge(binder(three, one), ...))))
+     
+.
 
 \end{lstlisting}
 
-Let us 
+Notice how ``frozen'' attributes play a role here.
 
+The look-up rule is the problem. 
+
+\lstset{style=code}
+
+\begin{lstlisting}
+   #cfg(C[dereference(X)], C'[binder(X, V)]) 
+=> #cfg(C[V], C'[binder(X, V)]) .
+\end{lstlisting}
+
+This look-up rule has two context variables $C$ and $C'$. It is easy to instantiate $C'$ as follows
+
+\lstset{style=code}
+
+\begin{lstlisting}
+   #cfg(C[dereference(X)], #state(merge(binder(X, V), H)))
+=> #cfg(C[V], #state(merge(binder(X, V), H))) .
+\end{lstlisting}
+
+\noindent where variable $H$ can match the rest of the heap, thanks to the associativity and commutativity of \texttt{merge} and that \texttt{emp} being the identity of \texttt{merge}.
+
+The context $C$, though, has an infinite number of instances. For example,
+
+\lstset{style=code}
+
+\begin{lstlisting}
+   #cfg(#k(asgn(Y, dereference(X))), 
+        #state(merge(binder(X, V), H)))
+=> #cfg(#k(asgn(Y, V)), 
+        #state(merge(binder(X, V), H)))
+        
+   #cfg(#k(asgn(Y, succ(dereference(X)))), 
+        #state(merge(binder(X, V), H)))
+=> #cfg(#k(asgn(Y, V)), 
+        #state(merge(binder(X, V), H)))
+        
+   #cfg(#k(asgn(Y, succ(succ(dereference(X))))), 
+        #state(merge(binder(X, V), H)))
+=> #cfg(#k(asgn(Y, V)), 
+        #state(merge(binder(X, V), H)))
+        
+   #cfg(#k(asgn(Y, succ(succ(succ(dereference(X)))))), 
+        #state(merge(binder(X, V), H)))
+=> #cfg(#k(asgn(Y, V)), 
+        #state(merge(binder(X, V), H)))
+        
+        ......
+        
+\end{lstlisting}
+
+Of course, given an initial configuration, we can write a Maude module \texttt{EXE} with a finite number of rules that reduces \emph{that} configuration all the way to the end. My argument is that we cannot write a Maude module which can reduce \emph{all} configurations, because that will need an infinite number of rules, unless we explicitly deal with context splitting, plugging, refocusing, etc.
+
+I have been reading Traian's ``\emph{A rewriting logic approach to operational semantics}'' and I found many good references in that paper. I have been looking into reduction semantics and techniques (such as refocusing) that helps to implement an efficient interpreter. I will keep reading literatures for a while.
+
+I also intend to implement an algorithm in Maude that calculates the equivalence class under context application of a pattern $\varphi$, which is the set of all pairs of context and redex $(C, R)$ such that $\varphi = C[R]$.
+
+\noindent Yours, \newline
+\noindent Xiaohong
+        
 \end{document}
