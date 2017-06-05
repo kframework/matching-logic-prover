@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+
+\setlength{\parskip}{1em}
+
+\lstdefinestyle{code}{
+    basicstyle=\footnotesize\ttfamily,
+    frame=single,
+    xleftmargin= .1\textwidth, 
+    xrightmargin=.1\textwidth,
+    breaklines=true
+}
+
+\begin{document}
+
+Hi Grigore,
+
+I have a feeling that we in fact disagree on nothing. Let me use a simple IMP program as an example to illustrate what I mean. 
+
+Remind that we have Maude module called IMP that builds all patterns. 
+
+
+\lstset{style=code}
+
+\begin{lstlisting}
+fmod IMP is
+  sorts Variable Trm Trm? Predicate Pattern ... .
+  ...
+  op ite : Pattern{Bool} Pattern{Pgm} Pattern{Pgm} 
+        -> Pattern{Pgm} [frozen(2 3)] .
+  op while : Pattern{Bool} Pattern{Pgm} 
+          -> Pattern{Pgm} [frozen(1 2)] .
+  ...
+endfm
+
+\end{lstlisting}
+
+My goal is to write a Maude module called EXE that reduces configurations of IMP programs according to their semantics. 
+
+\lstset{style=code}
+
+\begin{lstlisting}
+fmod EXE is
+  vars P Q : Pattern{Pgm} . var B : Pattern{Bool} .
+  eq ite(tt, P, Q) = P .
+  eq ite(ff, P, Q) = Q .
+  eq while(B, P) = ite(B, seq(P, while(B, P)), skip) .
+  ...
+endfm
+
+reduce
+
+#cfg(#k(seq(...)),
+     #state(merge(binder(
+
+\end{lstlisting}
+
+Let us 
+
+\end{document}
