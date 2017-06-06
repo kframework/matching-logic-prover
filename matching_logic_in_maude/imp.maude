@@ -552,7 +552,7 @@ fmod CTXT is
 
   sort CR . ---- context-redex pairs
 
-  op <_,_> : Pattern Pattern -> CR [format(d b so s d d)] .
+  op <_,_> : Pattern Pattern -> CR [format(d b so sg o d)] .
   op __ : CR CR -> CR [assoc comm] .
 
   op eq-class : Pattern -> CR .
