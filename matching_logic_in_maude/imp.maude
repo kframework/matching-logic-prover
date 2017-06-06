@@ -454,12 +454,22 @@ fmod IMP is
 
   ---- place holders
 
+  ---- This is very tricky.
+  ---- This relates to #forall and shift functions.
+
   op {#,Bol} : -> Var{Bol} .
   op {#,Nat} : -> Var{Nat} .
   op {#,Seq} : -> Var{Seq} .
   op {#,Map} : -> Var{Map} .
   op {#,Pgm} : -> Var{Pgm} .
   op {#,Cfg} : -> Var{Cfg} .
+
+  eq {-1,Bol} = {#,Bol} .
+  eq {-1,Nat} = {#,Nat} .
+  eq {-1,Seq} = {#,Seq} .
+  eq {-1,Map} = {#,Map} .
+  eq {-1,Pgm} = {#,Pgm} .
+  eq {-1,Cfg} = {#,Cfg} .
 
   eq shift({#,Bol}, D, C) = {0,Bol} .
   eq shift({#,Nat}, D, C) = {0,Nat} .
@@ -510,6 +520,7 @@ fmod IMP is
   eq (gt(P, Q)) [J := R] = gt(P [J := R], Q [J := R]) .
   eq (seq<-nat(P)) [J := R] = seq<-nat(P [J := R]) .
   eq (concat(P, Q)) [J := R] = concat(P [J := R], Q [J := R]) .
+  eq (mapsto(P, Q)) [J := R] = mapsto(P [J := R], Q [J := R]) .
   eq (mapstoseq(P, Q)) [J := R] = mapstoseq(P [J := R], Q [J := R]) .
   eq (merge(P, Q)) [J := R] = merge(P [J := R], Q [J := R]) .
   eq (list(P, Q)) [J := R] = list(P [J := R], Q [J := R]) .
@@ -541,12 +552,12 @@ fmod CTXT is
 
   sort CR . ---- context-redex pairs
 
-  op <_,_> : Pattern Pattern -> CR .
+  op <_,_> : Pattern Pattern -> CR [format(d b so s d d)] .
   op __ : CR CR -> CR [assoc comm] .
 
   op eq-class : Pattern -> CR .
 
-  vars P Q C : Pattern . var Qid : Qid . vars T T' : Term . vars TL TL' : TermList .
+  vars P Q C : Pattern . var Qid : Qid . vars T T' T'' : Term . vars TL TL' : TermList .
   vars CR CRs : CR . var N : Nat .
 
   ---- aux function def begin
@@ -561,18 +572,134 @@ fmod CTXT is
   eq aux'(T, (CR CRs), N)
    = aux'(T, CR, N) aux'(T, CRs, N) .
 
+  ---- Case N = 1
+
+  eq aux'(Qid[T, TL], < C , R:Pattern{Bol} >, 1)
+   = < downTerm('#context_[Qid['_`{_`}[upTerm(C), '`{#`,Bol`}.Var`{Bol`}], TL]], 
+                error-aux),
+       R:Pattern{Bol} > .
 
   eq aux'(Qid[T, TL], < C , R:Pattern{Nat} >, 1)
    = < downTerm('#context_[Qid['_`{_`}[upTerm(C), '`{#`,Nat`}.Var`{Nat`}], TL]], 
                 error-aux),
        R:Pattern{Nat} > .
 
+  eq aux'(Qid[T, TL], < C , R:Pattern{Seq} >, 1)
+   = < downTerm('#context_[Qid['_`{_`}[upTerm(C), '`{#`,Seq`}.Var`{Seq`}], TL]], 
+                error-aux),
+       R:Pattern{Seq} > .
+
+  eq aux'(Qid[T, TL], < C , R:Pattern{Map} >, 1)
+   = < downTerm('#context_[Qid['_`{_`}[upTerm(C), '`{#`,Map`}.Var`{Map`}], TL]], 
+                error-aux),
+       R:Pattern{Map} > .
+
+  eq aux'(Qid[T, TL], < C , R:Pattern{Pgm} >, 1)
+   = < downTerm('#context_[Qid['_`{_`}[upTerm(C), '`{#`,Pgm`}.Var`{Pgm`}], TL]], 
+                error-aux),
+       R:Pattern{Pgm} > .
+
+  eq aux'(Qid[T, TL], < C , R:Pattern{Cfg} >, 1)
+   = < downTerm('#context_[Qid['_`{_`}[upTerm(C), '`{#`,Cfg`}.Var`{Cfg`}], TL]], 
+                error-aux),
+       R:Pattern{Cfg} > .
+
+  ---- Case N = 2
+
+  eq aux'(Qid[T', T, TL], < C , R:Pattern{Bol} >, 2)
+   = < downTerm('#context_[Qid[T', '_`{_`}[upTerm(C), '`{#`,Bol`}.Var`{Bol`}], TL]], 
+                error-aux),
+       R:Pattern{Bol} > .
+
+  eq aux'(Qid[T', T, TL], < C , R:Pattern{Nat} >, 2)
+   = < downTerm('#context_[Qid[T', '_`{_`}[upTerm(C), '`{#`,Nat`}.Var`{Nat`}], TL]], 
+                error-aux),
+       R:Pattern{Nat} > .
+
+  eq aux'(Qid[T', T, TL], < C , R:Pattern{Seq} >, 2)
+   = < downTerm('#context_[Qid[T', '_`{_`}[upTerm(C), '`{#`,Seq`}.Var`{Seq`}], TL]], 
+                error-aux),
+       R:Pattern{Seq} > .
+
+  eq aux'(Qid[T', T, TL], < C , R:Pattern{Map} >, 2)
+   = < downTerm('#context_[Qid[T', '_`{_`}[upTerm(C), '`{#`,Map`}.Var`{Map`}], TL]], 
+                error-aux),
+       R:Pattern{Map} > .
+
+  eq aux'(Qid[T', T, TL], < C , R:Pattern{Pgm} >, 2)
+   = < downTerm('#context_[Qid[T', '_`{_`}[upTerm(C), '`{#`,Pgm`}.Var`{Pgm`}], TL]], 
+                error-aux),
+       R:Pattern{Pgm} > .
+
+  eq aux'(Qid[T', T, TL], < C , R:Pattern{Cfg} >, 2)
+   = < downTerm('#context_[Qid[T', '_`{_`}[upTerm(C), '`{#`,Cfg`}.Var`{Cfg`}], TL]], 
+                error-aux),
+       R:Pattern{Cfg} > .
+
+
   ---- aux function def end
 
+
+  ---- eq-class definitions for symbols.
+
   eq eq-class(zero) = < #context {#,Nat} , zero > .
+
   eq eq-class(succ(P))
    = < #context {#,Nat} , succ(P) >
      aux(succ(P), eq-class(P), 1) . 
+
+  eq eq-class(plus(P, Q))
+   = < #context {#,Nat} , plus(P, Q) >
+     aux(plus(P, Q), eq-class(P), 1)
+     aux(plus(P, Q), eq-class(Q), 2) .
+
+  eq eq-class(pred(P))
+   = < #context {#,Nat} , pred(P) >
+     aux(pred(P), eq-class(P), 1) . 
+
+  eq eq-class(dereference(P))
+   = < #context {#,Nat} , dereference(P) >
+     aux(dereference(P), eq-class(P), 1) . 
+
+  eq eq-class(gt(P, Q))
+   = < #context {#,Nat} , gt(P, Q) >
+     aux(gt(P, Q), eq-class(P), 1)
+     aux(gt(P, Q), eq-class(Q), 2) .
+
+  eq eq-class(merge(P, Q))
+   = < #context {#,Nat} , merge(P, Q) >
+     aux(merge(P, Q), eq-class(P), 1)
+     aux(merge(P, Q), eq-class(Q), 2) .
+
+  eq eq-class(mapsto(P, Q))
+   = < #context {#,Nat} , mapsto(P, Q) >
+     aux(mapsto(P, Q), eq-class(P), 1)
+     aux(mapsto(P, Q), eq-class(Q), 2) .
+
+  eq eq-class(cfg(P, Q))
+   = < #context {#,Cfg} , cfg(P, Q) >
+     aux(cfg(P, Q), eq-class(P), 1)
+     aux(cfg(P, Q), eq-class(Q), 2) .
+
+  eq eq-class(while(P, Q))
+   = < #context {#,Pgm} , while(P, Q) > .
+
+  eq eq-class(seq(P, Q))
+   = < #context {#,Pgm} , seq(P, Q) >
+     aux(seq(P, Q), eq-class(P), 1) .
+
+  eq eq-class(asgn(P, Q))
+   = < #context {#,Pgm} , asgn(P, Q) >
+     aux(asgn(P, Q), eq-class(P), 1)
+     aux(asgn(P, Q), eq-class(Q), 2) .
+
+  eq eq-class(skip) 
+   = < #context {#,Pgm} , skip > .
+
+
+
+
+
 
 
   
@@ -581,11 +708,323 @@ endfm
 
 reduce
 
-eq-class(succ(zero)) .
+eq-class(
+
+cfg(while(gt(dereference(one), zero), 
+          seq(asgn(two, plus(dereference(two), dereference(one))),
+              asgn(one, pred(dereference(one))))),
+    merge(mapsto(one, ten),
+          mapsto(two, zero)))
+
+) 
+
+.
+
+
+
+---(
+
+fmod EXE is
+
+  protecting IMP .
+
+  protecting META-LEVEL .
+
+  sort Action .
+
+  op _====================_ : Pattern Action -> Pattern [format (d n n d) prec 95] .
+
+  op idle : -> Action .
+  op apply[_]_ : Nat Qid -> Action [format(d s d d s s) prec 91] .
+  op apply_ : Qid -> Action [prec 91] .
+  op __ : Action Action -> Action [assoc id: idle format(d n d) prec 93] .
+
+  op error[_]_ : Nat Qid -> Action [format(d s d d s s) prec 91] .
+
+  eq apply Q:Qid = apply [0] Q:Qid .
+
+
+  var N : Nat . var Q : Qid . var Act : Action .
+
+  op CTXT : -> Module . eq CTXT = upModule('CTXT, false) .
+
+  eq P:Pattern
+     ====================
+     apply [N] Q
+     Act
+
+   = downTerm(getTerm(metaXapply(CTXT,
+                                 upTerm(P:Pattern),
+                                 Q,
+                                 none,
+                                 0, unbounded,
+                                 N)),
+              (P:Pattern
+               ====================
+               error [N] Q
+               Act)) .
+
+endfm
 
 reduce
 
-#context ((context {0,Nat}){{0,Nat}}) .
+
+cfg(while(gt(dereference(one), zero), 
+          seq(asgn(two, plus(dereference(two), dereference(one))),
+              asgn(one, pred(dereference(one))))),
+    merge(mapsto(one, ten),
+          mapsto(two, zero)))
+====================
+apply [1] 'id
+
+.
+
+quit
+
+mod RULES is
+
+  protecting IMP .
+
+  rl concat(S:Pattern{Seq}, epsilon)
+  => S:Pattern{Seq} [label concat-l2r] .
+
+  rl S:Pattern{Seq}
+  => concat(S:Pattern{Seq}, epsilon) [label concat-r2l] .
+
+  rl mapstoseq(X:Trm{Nat}, epsilon)
+  => emp [label mapstoseq-base-l2r] .
+
+  rl mapstoseq(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), S:Trm{Seq}))
+  => merge(mapsto(X:Trm{Nat}, Y:Trm{Nat}),
+           mapstoseq(succ(X:Trm{Nat}), S:Trm{Seq})) [label mapstoseq-ind-l2r] .
+
+  rl list(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), S:Trm{Seq}))
+  => #exists (merge(mapstoseq(X:Trm{Nat}, concat(seq<-nat(Y:Trm{Nat}), seq<-nat({#,Nat}))),
+                    list({#,Nat}, S:Trm{Seq}))) [label list-ind-l2r] .
+
+  rl merge(P:Pattern{Map}, exists Q:Pattern{Map})
+  => exists merge(shift(P:Pattern{Map}, 1, 0), Q:Pattern{Map}) [label merge-exists] .
+
+endm
+
+fmod PROVER is
+
+  protecting IMP .
+  protecting META-LEVEL . ---- reluctantly 
+
+  sort PatternSet . subsort Pattern < PatternSet .
+  
+  op none : -> PatternSet .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: none prec 81] .
+
+  sort Task .
+  
+  op none : -> Task .
+  op _|-_ : PatternSet Pattern -> Task [prec 82] .
+  op __ : Task Task -> Task [assoc id: none prec 83 format(d n d)] .
+
+  sort Tactic .
+
+  op idle : -> Tactic .
+  op __ : Tactic Tactic -> Tactic [assoc id: idle prec 83 format(d n d)] .
+
+  op set-active_ : Nat -> Tactic [prec 82] .
+
+  op modus-ponens_ : Pattern -> Tactic [prec 82] .
+  op /\-intro : -> Tactic .
+  op /\-elim_ : Pattern -> Tactic [prec 82] .
+  op mem-intro : -> Tactic . 
+  op mem-elim : -> Tactic .  
+  ---- Ad-hoc
+  ---- existantial quantifier instantiation 
+  op exists-inst_ : Trm -> Tactic [prec 82] .
+
+  ---- Rules
+  op apply_ : Qid -> Tactic [prec 82] .
+  op apply[_]_ : Nat Qid -> Tactic [prec 82] . --- asking for the nth solution.
+
+  eq apply Label:Qid = apply [0] Label:Qid .
+
+  sort State .
+
+  op _====================_ : Task Tactic -> State [prec 84 format(d n n d)] .
+  
+  var Tsk : Task . var Tcc : Tactic .
+  var PSet : PatternSet .
+
+  ---- P |- P
+
+  eq P:Pattern PSet |- P:Pattern 
+   = none .
+
+  ---- |- top
+
+  eq PSet |- T:Top 
+   = none .
+
+  ---- |- P -> (Q -> P)
+  
+  ceq PSet |- P:Pattern -> (Q:Pattern -> P:Pattern)
+    = none 
+   if P:Pattern -> (Q:Pattern -> P:Pattern) :: Pattern .
+
+  ---- |- (P -> (Q -> R)) -> (P -> Q) -> (P -> R)
+
+  ceq PSet |- (P:Pattern -> (Q:Pattern -> R:Pattern)) -> (P:Pattern -> Q:Pattern) -> (P:Pattern -> R:Pattern)  
+    = none 
+   if (P:Pattern -> (Q:Pattern -> R:Pattern)) -> (P:Pattern -> Q:Pattern) -> (P:Pattern -> R:Pattern) :: Pattern .
+
+  ---- |- (~ Q -> ~ P) -> (P -> Q)
+
+  ceq PSet |- (~ Q:Pattern -> ~ P:Pattern) -> (P:Pattern -> Q:Pattern)
+    = none
+   if (~ Q:Pattern -> ~ P:Pattern) -> (P:Pattern -> Q:Pattern) :: Pattern .
+
+  ---- modus ponens  
+
+  ceq PSet |- P:Pattern
+      Tsk
+      ====================
+      modus-ponens Q:Pattern
+      Tcc
+      
+    = PSet |- Q:Pattern
+      PSet |- Q:Pattern -> P:Pattern
+      Tsk
+      ====================
+      Tcc 
+    
+   if Q:Pattern -> P:Pattern :: Pattern .
+
+  ---- /\-intro
+
+   eq PSet |- P:Pattern /\ Q:Pattern
+      Tsk
+      ====================
+      /\-intro
+      Tcc
+   
+    = PSet |- P:Pattern
+      PSet |- Q:Pattern
+      Tsk
+      ====================
+      Tcc . 
+
+  ---- /\-elim
+
+  ceq PSet |- P:Pattern
+      Tsk
+      ====================
+      /\-elim Q:Pattern
+      Tcc
+  
+    = PSet |- P:Pattern /\ Q:Pattern
+      Tsk
+      ====================
+      Tcc 
+
+   if P:Pattern /\ Q:Pattern :: Pattern .
+
+  ---- ad-hoc
+
+  ceq PSet |- P:Pattern -> exists Q:Pattern
+      Tsk
+      ====================
+      exists-inst T:Trm
+      Tcc
+
+    = PSet |- P:Pattern -> ((exists Q:Pattern) [T:Trm])
+      Tsk
+      ====================
+      Tcc
+
+   if P:Pattern -> ((exists Q:Pattern) [T:Trm]) :: Pattern .
+
+  ---- apply rules
+
+  ---- TODO:: ERROR HANDLING
+
+   op RULES : -> Module .
+   eq RULES = upModule('RULES, false) .
+
+   eq PSet |- P:Pattern
+      Tsk
+      ====================
+      apply [N:Nat] Label:Qid 
+      Tcc
+
+    = PSet |- downTerm(getTerm(metaXapply(RULES,
+                                          upTerm(P:Pattern),
+                                          Label:Qid,
+                                          none,       ---- no substitution
+                                          0,          ---- searching from the top
+                                          unbounded,  ---- no cut off 
+                                          N:Nat)),        ---- want the first solution 
+                       P:Pattern)
+      Tsk
+      ====================
+      Tcc .
+
+endfm
+
+---)
+
+---- Example #1
+---- |- X1:Nat -> X1:Nat
+
+---(
+
+reduce
+
+none |- {1,Nat} -> {1,Nat}
+====================
+modus-ponens {1,Nat} -> {1,Nat} -> {1,Nat}
+modus-ponens {1,Nat} -> ({1,Nat} -> {1,Nat}) -> {1,Nat} 
+
+.
+
+---)
+
+---(
+
+---- Example #2
+---- |- 7 |-> 9 * 8 |-> 1 * 1 |-> 5 * 2 |-> 0 -> list(7, [9;5])
+
+reduce
+
+none |- merge(mapsto(seven, nine),
+              mapsto(eight, one),
+              mapsto(one, five),
+              mapsto(two, zero))
+        -> list(seven, concat(seq<-nat(nine), seq<-nat(five))) 
+====================
+apply 'list-ind-l2r
+exists-inst one
+apply 'mapstoseq-ind-l2r
+apply 'concat-r2l
+apply 'mapstoseq-ind-l2r
+apply 'mapstoseq-base-l2r
+apply 'concat-r2l
+apply 'list-ind-l2r
+apply 'merge-exists
+exists-inst zero 
+
+.
+
+---)
+
+
+
+
+quit
+
+  
+
+endfm
+
+reduce
+
+eq-class(plus(succ(zero), zero)) .
 
 
 
