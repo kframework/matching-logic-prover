@@ -533,58 +533,63 @@ fmod IMP is
 endfm
 
 
-mod CTXT is
+fmod CTXT is
 
   protecting IMP .
 
-  vars C P Q : Pattern .
+  protecting META-LEVEL .
 
-  rl [inst] :
+  sort CR . ---- context-redex pairs
 
-     C[P]
+  op <_,_> : Pattern Pattern -> CR .
+  op __ : CR CR -> CR [assoc comm] .
 
-  => C{P} .
+  op eq-class : Pattern -> CR .
+
+  vars P Q C : Pattern . var Qid : Qid . vars T T' : Term . vars TL TL' : TermList .
+  vars CR CRs : CR . var N : Nat .
+
+  ---- aux function def begin
+
+  op error-aux : -> [Pattern] .
+
+  op aux : Pattern CR Nat -> CR .
+  op aux' : Term CR Nat -> CR .
+
+  eq aux(P, CR, N) = aux'(upTerm(P), CR, N) .
+
+  eq aux'(T, (CR CRs), N)
+   = aux'(T, CR, N) aux'(T, CRs, N) .
 
 
-  rl [id] : 
+  eq aux'(Qid[T, TL], < C , R:Pattern{Nat} >, 1)
+   = < downTerm('#context_[Qid['_`{_`}[upTerm(C), '`{#`,Nat`}.Var`{Nat`}], TL]], 
+                error-aux),
+       R:Pattern{Nat} > .
 
-     P:Pattern{Bol}
+  ---- aux function def end
 
-  => (context {0,Bol}) [P:Pattern{Bol}] .
+  eq eq-class(zero) = < #context {#,Nat} , zero > .
+  eq eq-class(succ(P))
+   = < #context {#,Nat} , succ(P) >
+     aux(succ(P), eq-class(P), 1) . 
 
-  rl [id] : 
-
-     P:Pattern{Nat}
-
-  => (context {0,Nat}) [P:Pattern{Nat}] .
-
-  rl [id] : 
-
-     P:Pattern{Seq}
-
-  => (context {0,Seq}) [P:Pattern{Seq}] .
-
-  rl [id] : 
-
-     P:Pattern{Map}
-
-  => (context {0,Map}) [P:Pattern{Map}] .
-
-  rl [id] : 
-
-     P:Pattern{Pgm}
-
-  => (context {0,Pgm}) [P:Pattern{Pgm}] .
-
-  rl [id] : 
-
-     P:Pattern{Cfg}
-
-  => (context {0,Cfg}) [P:Pattern{Cfg}] .
 
   
 
-endm
+endfm
+
+reduce
+
+eq-class(succ(zero)) .
+
+reduce
+
+#context ((context {0,Nat}){{0,Nat}}) .
+
+
+
+---(
 
 fmod EXE is
 
@@ -828,6 +833,8 @@ fmod PROVER is
       Tcc .
 
 endfm
+
+---)
 
 ---- Example #1
 ---- |- X1:Nat -> X1:Nat
