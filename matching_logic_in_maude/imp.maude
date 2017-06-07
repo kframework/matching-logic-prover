@@ -544,6 +544,8 @@ fmod IMP is
 
 endfm
 
+quit
+
 
 ---(
 
@@ -586,45 +588,71 @@ fmod CTXT is
   op __ : PatternSet PatternSet -> PatternSet [assoc comm format(d n d) prec 81] .
 
 
-  op pnf : Pattern -> PatternSet .
+  op pnfs : Pattern -> PatternSet .
 
-  vars P P1 P2 P3 Q C R : Pattern .
+  vars P P1 P2 P3 Q C R : Pattern . vars PNFs PNFs' PNFs1 PNFs2 : PatternSet .
+  vars N1 N2 : Nat .
 
   ---- aux function
 
-  op pnf' : Pattern NatList -> PatternSet .
-  op pnfm : Term NatList -> Term . ---- goes to the meta-level
-  op error-pnf : -> [Pattern] .
+  op pnfs : Pattern PatternSet Nat -> PatternSet .  
 
-  ---- pnf' calls pnfm
+  op pnfs : Pattern PatternSet PatternSet Nat Nat -> PatternSet .
 
-  eq pnf'(P, NL:NeNatList) 
-   
-   = downTerm(pnfm(upTerm(P), NL:NeNatList), error-pnf) .
+  eq pnfs(P, (P1 PNFs1), 1)
 
-  ---- pnfm does the real work in meta-level
+   = (pnfs(P, P1, 1)
+      pnfs(P, PNFs1, 1)) .
+
+  eq pnfs(P, (P1 PNFs1), (P2 PNFs2), N1, N2)
+
+   = (pnfs(P, P1, P2, N1, N2)
+      pnfs(P, PNFs1, PNFs2, N1, N2)) .
+
+  ---- Case analysis
+
+  ---- succ(C[R]) = succ(C) [R]
+
+  eq pnfs(succ(P),
+          C[R:Pattern{Bol}],
+          1)
+
+   = (#context (succ(C{{#,Bol}})))[R:Pattern{Bol}] .
+
+  eq pnfs(succ(P),
+          C[R:Pattern{Nat}],
+          1)
+
+   = (#context (succ(C{{#,Nat}})))[R:Pattern{Nat}] .
+
+  ---- succ(C[R1][R2]) = succ(C)[R1][R2] 
+
+
+
+
 
 
   ---- definitions of pnfs for symbols
 
-  eq pnf(zero) 
+  eq pnfs(zero) 
    
    = (context {0,Nat}) [zero] .
 
 
 
-  eq pnf(succ(P))
+  eq pnfs(succ(P))
 
    = ((context {0,Nat}) [succ(P)] 
-      pnf'(succ(P), 1)) .
+      pnfs(succ(P), pnfs(P), 1)) .
 
-  eq pnf(plus(P1, P2))
+
+  eq pnfs(plus(P1, P2))
 
    = ((context {0,Nat}) [plus(P1, P2)]
-      pnf'(plus(P1, P2), 1)
-      pnf'(plus(P1, P2), 2)
-      pnf'(plus(P1, P2), (1 2))
-      pnf'(plus(P1, P2), (2 1))) . 
+      pnfs(plus(P1, P2), pnfs(P1), 1)
+      pnfs(plus(P1, P2), pnfs(P2), 2)
+      pnfs(plus(P1, P2), pnfs(P1), pnfs(P2), 1, 2)
+      pnfs(plus(P1, P2), pnfs(P2), pnfs(P1), 2, 1)) . 
 
 
   
@@ -632,6 +660,14 @@ fmod CTXT is
   
 
 endfm
+
+set trace on .
+
+reduce 
+
+pnfs(succ(zero))
+
+.
 
 ---(
 
