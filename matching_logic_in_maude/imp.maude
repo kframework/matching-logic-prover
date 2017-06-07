@@ -55,12 +55,28 @@ fmod IMP is
 
   ---- matching logic variables
 
-  op {_,Bol} : Nat -> Var{Bol} [ctor] .
-  op {_,Nat} : Nat -> Var{Nat} [ctor] .
-  op {_,Seq} : Nat -> Var{Seq} [ctor] .
-  op {_,Map} : Nat -> Var{Map} [ctor] .
-  op {_,Pgm} : Nat -> Var{Pgm} [ctor] .
-  op {_,Cfg} : Nat -> Var{Cfg} [ctor] .
+  ---- Normal variables are numbered from zero.
+  ---- Variables with negative indices are regarded as
+  ---- place-holders that work together with #exists,
+  ---- #forall and #context (helper) functions.
+  ---- The index of a variable IS its name, so variables
+  ---- with the same index MUST have the same sort.
+
+  op {_,Bol} : Int -> [Var{Bol}] [ctor] .
+  op {_,Nat} : Int -> [Var{Nat}] [ctor] .
+  op {_,Seq} : Int -> [Var{Seq}] [ctor] .
+  op {_,Map} : Int -> [Var{Map}] [ctor] .
+  op {_,Pgm} : Int -> [Var{Pgm}] [ctor] .
+  op {_,Cfg} : Int -> [Var{Cfg}] [ctor] .
+
+  var N : Nat .
+
+  mb {N,Bol} : Var{Bol} .
+  mb {N,Nat} : Var{Nat} .
+  mb {N,Seq} : Var{Seq} .
+  mb {N,Map} : Var{Map} .
+  mb {N,Pgm} : Var{Pgm} .
+  mb {N,Cfg} : Var{Cfg} .
 
   ---- matching logic equalities
 
@@ -229,7 +245,6 @@ fmod IMP is
 
   ---- (declare-func zero () Nat)
   op zero : -> Trm{Nat} .
- 
 
   ---- (declare-func succ (Nat) Nat)
   op succ : Trm{Nat} -> Trm{Nat} .
@@ -356,65 +371,11 @@ fmod IMP is
   vars K J C : Nat . var D : Int .
   vars P Q Q1 Q2 R : Pattern .
 
+
   ---- shift function for De Brujin indices.
   ---- shift(P, delta-place, cut-off)
 
   op shift : Pattern Int Nat -> Pattern .
-
-  ---(
-
-  ---- more detailed sorting information.
-  ---- I don't think we need this.
-
-  op shift : Pattern{Bol} Nat Nat -> Pattern{Bol} .
-  op shift : Pattern{Nat} Nat Nat -> Pattern{Nat} .
-  op shift : Pattern{Seq} Nat Nat -> Pattern{Seq} .
-  op shift : Pattern{Map} Nat Nat -> Pattern{Map} .
-  op shift : Pattern{Pgm} Nat Nat -> Pattern{Pgm} .
-  op shift : Pattern{Cfg} Nat Nat -> Pattern{Cfg} .
-  op shift : Pattern{Ply} Nat Nat -> Pattern{Ply} .
-
-  op shift : Predicate{Bol} Nat Nat -> Predicate{Bol} .
-  op shift : Predicate{Nat} Nat Nat -> Predicate{Nat} .
-  op shift : Predicate{Seq} Nat Nat -> Predicate{Seq} .
-  op shift : Predicate{Map} Nat Nat -> Predicate{Map} .
-  op shift : Predicate{Pgm} Nat Nat -> Predicate{Pgm} .
-  op shift : Predicate{Cfg} Nat Nat -> Predicate{Cfg} .
-  op shift : Predicate{Ply} Nat Nat -> Predicate{Ply} .
-
-  op shift : Trm{Bol} Nat Nat -> Trm{Bol} .
-  op shift : Trm{Nat} Nat Nat -> Trm{Nat} .
-  op shift : Trm{Seq} Nat Nat -> Trm{Seq} .
-  op shift : Trm{Map} Nat Nat -> Trm{Map} .
-  op shift : Trm{Pgm} Nat Nat -> Trm{Pgm} .
-  op shift : Trm{Cfg} Nat Nat -> Trm{Cfg} .
-  op shift : Trm{Ply} Nat Nat -> Trm{Ply} .
-  
-  op shift : Trm?{Bol} Nat Nat -> Trm?{Bol} .
-  op shift : Trm?{Nat} Nat Nat -> Trm?{Nat} .
-  op shift : Trm?{Seq} Nat Nat -> Trm?{Seq} .
-  op shift : Trm?{Map} Nat Nat -> Trm?{Map} .
-  op shift : Trm?{Pgm} Nat Nat -> Trm?{Pgm} .
-  op shift : Trm?{Cfg} Nat Nat -> Trm?{Cfg} .
-  op shift : Trm?{Ply} Nat Nat -> Trm?{Ply} .
-
-  op shift : Top{Bol} Nat Nat -> Top{Bol} .
-  op shift : Top{Nat} Nat Nat -> Top{Nat} .
-  op shift : Top{Seq} Nat Nat -> Top{Seq} .
-  op shift : Top{Map} Nat Nat -> Top{Map} .
-  op shift : Top{Pgm} Nat Nat -> Top{Pgm} .
-  op shift : Top{Cfg} Nat Nat -> Top{Cfg} .
-  op shift : Top{Ply} Nat Nat -> Top{Ply} .
-
-  op shift : Bottom{Bol} Nat Nat -> Bottom{Bol} .
-  op shift : Bottom{Nat} Nat Nat -> Bottom{Nat} .
-  op shift : Bottom{Seq} Nat Nat -> Bottom{Seq} .
-  op shift : Bottom{Map} Nat Nat -> Bottom{Map} .
-  op shift : Bottom{Pgm} Nat Nat -> Bottom{Pgm} .
-  op shift : Bottom{Cfg} Nat Nat -> Bottom{Cfg} .
-  op shift : Bottom{Ply} Nat Nat -> Bottom{Ply} .
-
-  ---)
 
   eq shift({K,Bol}, D, C) = if K < C then {K,Bol} else {K + D,Bol} fi . 
   eq shift({K,Nat}, D, C) = if K < C then {K,Nat} else {K + D,Nat} fi . 
@@ -452,47 +413,7 @@ fmod IMP is
   eq shift(seq(P, Q), D, C) = seq(shift(P, D, C), shift(Q, D, C)) .
   eq shift(cfg(P, Q), D, C) = cfg(shift(P, D, C), shift(Q, D, C)) .
 
-  ---- helper functions for contructing binding structures.
-  ---- This is very tricky.
-  ---- This relates to #forall and shift functions.
 
-  ---- place holders
-
-  op {#,Bol} : -> Var{Bol} .
-  op {#,Nat} : -> Var{Nat} .
-  op {#,Seq} : -> Var{Seq} .
-  op {#,Map} : -> Var{Map} .
-  op {#,Pgm} : -> Var{Pgm} .
-  op {#,Cfg} : -> Var{Cfg} .
-
-  eq {-1,Bol} = {#,Bol} .
-  eq {-1,Nat} = {#,Nat} .
-  eq {-1,Seq} = {#,Seq} .
-  eq {-1,Map} = {#,Map} .
-  eq {-1,Pgm} = {#,Pgm} .
-  eq {-1,Cfg} = {#,Cfg} .
-
-  eq shift({#,Bol}, D, C) = {0,Bol} .
-  eq shift({#,Nat}, D, C) = {0,Nat} .
-  eq shift({#,Seq}, D, C) = {0,Seq} .
-  eq shift({#,Map}, D, C) = {0,Map} .
-  eq shift({#,Pgm}, D, C) = {0,Pgm} .
-  eq shift({#,Cfg}, D, C) = {0,Cfg} .
-
-  ---- #exists
-
-  op #exists_ : Pattern -> Pattern [strat(1 0)] .
-  eq #exists P = exists shift(P, 1, 0) .
-
-  ---- #forall
-
-  op #forall_ : Pattern -> Pattern [strat(1 0)] .
-  eq #forall P = forall shift(P, 1, 0) . 
-
-  ---- #context
-
-  op #context_ : Pattern -> Pattern [strat(1 0)] .
-  eq #context P = context shift(P, 1, 0) . 
 
   ---- substitution
   ---- P[K := Q]
@@ -541,8 +462,28 @@ fmod IMP is
   eq (exists P) {R} = shift(P[0 := shift(R, 1, 0)], -1, 0) .
   eq (context P) {R} = shift(P[0 := shift(R, 1, 0)], -1, 0) .
 
+  ---- helper functions for contructing binding structures.
+  ---- This is tricky.
+
+  ---- shift with no cut-offs
+
+  ---- #exists
+
+  op #exists_ : Pattern -> Pattern [strat(1 0)] .
+  eq #exists P = exists shift(P, 1) .
+
+  ---- #forall
+
+  op #forall_ : Pattern -> Pattern [strat(1 0)] .
+  eq #forall P = forall shift(P, 1) . 
+
+  ---- #context
+
+  op #context_ : Pattern -> Pattern [strat(1 0)] .
+  eq #context P = context shift(P, 1) . 
 
 endfm
+
 
 quit
 
