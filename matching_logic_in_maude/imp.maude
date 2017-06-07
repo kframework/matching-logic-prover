@@ -428,6 +428,8 @@ fmod IMP is
   eq shift(P -> Q, D, C) = shift(P, D, C) -> shift(Q, D, C) .
 
   eq shift(exists P, D, C) = exists shift(P, D, C + 1) .
+  eq shift(forall P, D, C) = forall shift(P, D, C + 1) .
+  eq shift(context P, D, C) = context shift(P, D, C + 1) .
 
   eq shift(zero, D, C) = zero .
   eq shift(succ(P), D, C) = succ(shift(P, D, C)) .
@@ -451,11 +453,10 @@ fmod IMP is
   eq shift(cfg(P, Q), D, C) = cfg(shift(P, D, C), shift(Q, D, C)) .
 
   ---- helper functions for contructing binding structures.
-
-  ---- place holders
-
   ---- This is very tricky.
   ---- This relates to #forall and shift functions.
+
+  ---- place holders
 
   op {#,Bol} : -> Var{Bol} .
   op {#,Nat} : -> Var{Nat} .
@@ -480,17 +481,17 @@ fmod IMP is
 
   ---- #exists
 
-  op #exists_ : Pattern -> Pattern .
+  op #exists_ : Pattern -> Pattern [strat(1 0)] .
   eq #exists P = exists shift(P, 1, 0) .
 
   ---- #forall
 
-  op #forall_ : Pattern -> Pattern .
+  op #forall_ : Pattern -> Pattern [strat(1 0)] .
   eq #forall P = forall shift(P, 1, 0) . 
 
   ---- #context
 
-  op #context_ : Pattern -> Pattern .
+  op #context_ : Pattern -> Pattern [strat(1 0)] .
   eq #context P = context shift(P, 1, 0) . 
 
   ---- substitution
@@ -542,6 +543,104 @@ fmod IMP is
 
 
 endfm
+
+
+---(
+
+---- A test case for #context.
+
+reduce 
+
+#context ({#,Nat} -> {0,Nat} -> (#context({#,Nat} -> {0,Nat})))
+
+---- should return
+---- context({0,Nat} -> {1,Nat} -> (context({0,Nat} -> {2,Nat})))
+.
+
+---)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fmod CTXT is
+
+  ---- In this module, we are going to calculate (given a pattern P)
+  ---- all C[R1]...[Rn] such that P = C[R1]...[Rn]. 
+  ---- Such a C[R1]...[Rn] is called a prenex normal form. 
+
+  protecting IMP .
+  protecting META-LEVEL .
+
+  sort PatternSet . subsort Pattern < PatternSet .
+
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm format(d n d) prec 81] .
+
+
+  op pnf : Pattern -> PatternSet .
+
+  vars P P1 P2 P3 Q C R : Pattern .
+
+  ---- aux function
+
+  op pnf' : Pattern NatList -> PatternSet .
+  op pnfm : Term NatList -> Term . ---- goes to the meta-level
+  op error-pnf : -> [Pattern] .
+
+  ---- pnf' calls pnfm
+
+  eq pnf'(P, NL:NeNatList) 
+   
+   = downTerm(pnfm(upTerm(P), NL:NeNatList), error-pnf) .
+
+  ---- pnfm does the real work in meta-level
+
+
+  ---- definitions of pnfs for symbols
+
+  eq pnf(zero) 
+   
+   = (context {0,Nat}) [zero] .
+
+
+
+  eq pnf(succ(P))
+
+   = ((context {0,Nat}) [succ(P)] 
+      pnf'(succ(P), 1)) .
+
+  eq pnf(plus(P1, P2))
+
+   = ((context {0,Nat}) [plus(P1, P2)]
+      pnf'(plus(P1, P2), 1)
+      pnf'(plus(P1, P2), 2)
+      pnf'(plus(P1, P2), (1 2))
+      pnf'(plus(P1, P2), (2 1))) . 
+
+
+  
+
+  
+
+endfm
+
+---(
+
+---- The following module works, but not general enough.
+
+---- It calculates the equivalent context application of a pattern, where
+---- each application has only one redex.
+
+---- P = C1[R1] = C2[R2] = ...
 
 
 fmod CTXT is
@@ -719,6 +818,8 @@ cfg(while(gt(dereference(one), zero),
 ) 
 
 .
+
+---)
 
 
 
