@@ -69,14 +69,14 @@ fmod IMP is
   op {_,Pgm} : Int -> [Var{Pgm}] [ctor] .
   op {_,Cfg} : Int -> [Var{Cfg}] [ctor] .
 
-  var N : Nat .
+  var K : Nat .
 
-  mb {N,Bol} : Var{Bol} .
-  mb {N,Nat} : Var{Nat} .
-  mb {N,Seq} : Var{Seq} .
-  mb {N,Map} : Var{Map} .
-  mb {N,Pgm} : Var{Pgm} .
-  mb {N,Cfg} : Var{Cfg} .
+  mb {K,Bol} : Var{Bol} .
+  mb {K,Nat} : Var{Nat} .
+  mb {K,Seq} : Var{Seq} .
+  mb {K,Map} : Var{Map} .
+  mb {K,Pgm} : Var{Pgm} .
+  mb {K,Cfg} : Var{Cfg} .
 
   ---- matching logic equalities
 
@@ -368,7 +368,7 @@ fmod IMP is
 
   ---- Helper functions
 
-  vars K J C : Nat . var D : Int .
+  vars J C : Nat . var D : Int .
   vars P Q Q1 Q2 R : Pattern .
 
 
@@ -407,7 +407,7 @@ fmod IMP is
   eq shift(list(P, Q), D, C) = list(shift(P, D, C), shift(Q, D, C)) .
   eq shift(skip, D, C) = skip .
   eq shift(asgn(P, Q), D, C) = asgn(shift(P, D, C), shift(Q, D, C)) .
-  eq shift(ite(P, Q, R), C, D) = ite(shift(P, D, C), shift(Q, D, C), shift(R, D, C)) .
+  eq shift(ite(P, Q, R), D, C) = ite(shift(P, D, C), shift(Q, D, C), shift(R, D, C)) .
   eq shift(while(P, Q), D, C) = while(shift(P, D, C), shift(Q, D, C)) .
   eq shift(dereference(P), D, C) = dereference(shift(P, D, C)) .
   eq shift(seq(P, Q), D, C) = seq(shift(P, D, C), shift(Q, D, C)) .
@@ -462,25 +462,6 @@ fmod IMP is
   eq (exists P) {R} = shift(P[0 := shift(R, 1, 0)], -1, 0) .
   eq (context P) {R} = shift(P[0 := shift(R, 1, 0)], -1, 0) .
 
-  ---- helper functions for contructing binding structures.
-  ---- This is tricky.
-
-  ---- shift with no cut-offs
-
-  ---- #exists
-
-  op #exists_ : Pattern -> Pattern [strat(1 0)] .
-  eq #exists P = exists shift(P, 1) .
-
-  ---- #forall
-
-  op #forall_ : Pattern -> Pattern [strat(1 0)] .
-  eq #forall P = forall shift(P, 1) . 
-
-  ---- #context
-
-  op #context_ : Pattern -> Pattern [strat(1 0)] .
-  eq #context P = context shift(P, 1) . 
 
 endfm
 
