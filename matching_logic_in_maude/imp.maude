@@ -536,6 +536,7 @@ fmod CTXT is
 
   op none : -> PatternSet .
   op __ : PatternSet PatternSet -> PatternSet [assoc comm id: none format(d n d) prec 81] .
+  eq P:Pattern P:Pattern = P:Pattern .
 
   ---- We are going to calculate (given a pattern P)
   ---- all C[R1]...[Rn] such that P = C[R1]...[Rn]. 
@@ -663,6 +664,12 @@ fmod CTXT is
           1)
 
    = (#context (succ(C[[{-1,Nat}]])))[R:Pattern{Nat}] .
+
+  eq pnfs(pred(P),
+          C[R:Pattern{Nat}],
+          1)
+
+   = (#context (pred(C[[{-1,Nat}]])))[R:Pattern{Nat}] .
 
   eq pnfs(dereference(P),
           C[R:Pattern{Nat}],
@@ -887,36 +894,53 @@ fmod EXE is
 
   protecting CTXT .
 
+  vars C C' #P #P' : [Pattern] . var B : Pattern{Bol} . var P Q : Pattern{Pgm} . vars X Y V V' : Pattern{Nat} .
+
   op step : PatternSet -> PatternSet .
+  op step : PatternSet Nat -> PatternSet .
+
+  eq step(PS:[PatternSet], 0) = PS:[PatternSet] .
+  eq step(PS:[PatternSet], N:Nat) = step(step(PS:[PatternSet], N:Nat - 1)) .
 
   ceq step(P:Pattern PS:[PatternSet]) = (step(P:Pattern) step(PS:[PatternSet])) if PS:[PatternSet] =/= none .
 
-  vars C C' : [Pattern] . var B : Pattern{Bol} . var P Q : Pattern{Pgm} . vars X Y V : Pattern{Nat} .
+  eq step(#P) = #step(pnfs(#P)) .
 
-  eq step(C[plus(X, zero)]) = step(pnfs(C[[X]])) .
-  eq step(C[gt(zero, zero)]) = step(pnfs(C[[ff]])) .
-  eq step(C[gt(succ(X), zero)]) = step(pnfs(C[[tt]])) .
-  eq step(C[gt(succ(X), succ(Y))]) = step(C[gt(X, Y)]) .
-  eq step(C[ite(tt, P, Q)]) = step(pnfs(C[[P]])) .
-  eq step(C[while(B, P)]) = step(pnfs(C[[ite(B, seq(P, while(B, P)), skip)]])) .
-  eq step(C[dereference(X)][mapsto(X, V)]) = step(pnfs(C[[V]][[mapsto(X, V)]])) . 
+  op #step : PatternSet -> PatternSet .
 
+  ceq #step(P:Pattern PS:[PatternSet]) = (#step(P:Pattern) #step(PS:[PatternSet])) if PS:[PatternSet] =/= none .
+
+  eq #step(C[dereference(X)][mapsto(X, V)]) = C[[V]][[mapsto(X, V)]] . 
+  eq #step(C[pred(succ(X))]) = C[[X]] .
+  eq #step(C[plus(X, zero)]) = C[[X]] .
+  eq #step(C[plus(X, succ(Y))]) = C[[succ(plus(X, Y))]] .
+  eq #step(C[gt(zero, zero)]) = C[[ff]] .
+  eq #step(C[gt(succ(X), zero)]) = C[[tt]] .
+  eq #step(C[gt(succ(X), succ(Y))]) = C[[gt(X, Y)]] .
+  eq #step(C[ite(tt, P, Q)]) = C[[P]] .
+  eq #step(C[ite(ff, P, Q)]) = C[[Q]] .
+  eq #step(C[asgn(X, V')][mapsto(X, V)]) = C[[skip]][[mapsto(X, V')]] .
+  eq #step(C[seq(skip, P)]) = C[[P]] .
+  eq #step(C[while(B, P)]) = C[[ite(B, seq(P, while(B, P)), skip)]] .
+  eq #step(C) = none .
 
 endfm
 
 reduce 
 
 step(
-pnfs(
 cfg(while(gt(dereference(one), zero), 
           seq(asgn(two, plus(dereference(two), dereference(one))),
               asgn(one, pred(dereference(one))))),
-    merge(mapsto(one, ten),
-          mapsto(two, zero)))
-)
-)
+    merge(mapsto(one, three),
+          mapsto(two, zero))),
+30)
 
 .
+
+
+
+
 
 quit
 
