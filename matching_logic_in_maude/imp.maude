@@ -456,45 +456,71 @@ fmod IMP is
 
   ---- instantaneous instantiation
 
-  op _{_} : Pattern Pattern -> Pattern .
+  op _[[_]] : Pattern Pattern -> Pattern .
 
-  eq (forall P) {R} = shift(P[0 := shift(R, 1, 0)], -1, 0) .
-  eq (exists P) {R} = shift(P[0 := shift(R, 1, 0)], -1, 0) .
-  eq (context P) {R} = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+  eq (forall P) [[R]] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+  eq (exists P) [[R]] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+  eq (context P) [[R]] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
+
+  ---- #binding
+
+  vars #P #Q : [Pattern] . var Z : Int .
+
+  op #exists_ : [Pattern] -> [Pattern] [strat(1 0)] . 
+  op #forall_ : [Pattern] -> [Pattern] [strat(1 0)] . 
+  op #context_ : [Pattern] -> [Pattern] [strat(1 0)] . 
+
+  eq #exists #P = exists #shift(#P, 0) .
+  eq #forall #P = forall #shift(#P, 0) .
+  eq #context #P = context #shift(#P, 0) .
+
+  op #shift : Pattern Nat -> Pattern .
+
+  eq #shift({-1,Bol}, C) = {C,Bol} . 
+  eq #shift({-1,Nat}, C) = {C,Nat} . 
+  eq #shift({-1,Seq}, C) = {C,Seq} . 
+  eq #shift({-1,Map}, C) = {C,Map} . 
+  eq #shift({-1,Pgm}, C) = {C,Pgm} . 
+  eq #shift({-1,Cfg}, C) = {C,Cfg} . 
+
+  eq #shift({Z,Bol}, C) = if Z < -1 or C <= Z then {Z + 1,Bol} else {Z,Bol} fi . 
+  eq #shift({Z,Nat}, C) = if Z < -1 or C <= Z then {Z + 1,Nat} else {Z,Nat} fi . 
+  eq #shift({Z,Seq}, C) = if Z < -1 or C <= Z then {Z + 1,Seq} else {Z,Seq} fi . 
+  eq #shift({Z,Map}, C) = if Z < -1 or C <= Z then {Z + 1,Map} else {Z,Map} fi . 
+  eq #shift({Z,Pgm}, C) = if Z < -1 or C <= Z then {Z + 1,Pgm} else {Z,Pgm} fi . 
+  eq #shift({Z,Cfg}, C) = if Z < -1 or C <= Z then {Z + 1,Cfg} else {Z,Cfg} fi . 
+
+  eq #shift(#P = #Q, C) = (#shift(#P, C) = #shift(#Q, C)) .
+  eq #shift(#P /\ #Q, C) = #shift(#P, C) /\ #shift(#Q, C) .
+  eq #shift(#P -> #Q, C) = #shift(#P, C) -> #shift(#Q, C) .
+
+  eq #shift(exists #P, C) = exists #shift(#P, C + 1) .
+  eq #shift(forall #P, C) = forall #shift(#P, C + 1) .
+  eq #shift(context #P, C) = context #shift(#P, C + 1) .
+
+  eq #shift(zero, C) = zero .
+  eq #shift(succ(#P), C) = succ(#shift(#P, C)) .
+  eq #shift(pred(#P), C) = pred(#shift(#P, C)) .
+  eq #shift(plus(#P, #Q), C) = plus(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(gt(#P, #Q), C) = gt(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(concat(#P, #Q), C) = concat(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(epsilon, C) = epsilon .
+  eq #shift(emp, C) = emp .
+  eq #shift(seq<-nat(#P), C) = seq<-nat(#shift(#P, C)) .
+  eq #shift(mapsto(#P, #Q), C) = mapsto(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(mapstoseq(#P, #Q), C) = mapstoseq(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(merge(#P, #Q), C) = merge(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(list(#P, #Q), C) = list(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(skip, C) = skip .
+  eq #shift(asgn(#P, #Q), C) = asgn(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(ite(#P, #Q, R), C) = ite(#shift(#P, C), #shift(#Q, C), #shift(R, C)) .
+  eq #shift(while(#P, #Q), C) = while(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(dereference(#P), C) = dereference(#shift(#P, C)) .
+  eq #shift(seq(#P, #Q), C) = seq(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(cfg(#P, #Q), C) = cfg(#shift(#P, C), #shift(#Q, C)) .
 
 
 endfm
-
-
-quit
-
-
----(
-
----- A test case for #context.
-
-reduce 
-
-#context ({#,Nat} -> {0,Nat} -> (#context({#,Nat} -> {0,Nat})))
-
----- should return
----- context({0,Nat} -> {1,Nat} -> (context({0,Nat} -> {2,Nat})))
-.
-
----)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 fmod CTXT is
 
