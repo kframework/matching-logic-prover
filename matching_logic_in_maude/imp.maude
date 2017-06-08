@@ -331,19 +331,19 @@ fmod IMP is
   op asgn : Pattern{Nat} Pattern{Nat} -> Pattern{Pgm} .
 
   ---- (declare-func ite (Bol, Pgm, Pgm) Pgm)
-  op ite : Trm{Bol} Trm{Pgm} Trm{Pgm} -> Trm{Pgm} [frozen(2 3)] . 
-  op ite : Pattern{Bol} Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [ditto] . 
+  op ite : Trm{Bol} Trm{Pgm} Trm{Pgm} -> Trm{Pgm} .
+  op ite : Pattern{Bol} Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} . 
 
   ---- (declare-func while (Bol Pgm) Pgm)
-  op while : Trm{Bol} Trm{Pgm} -> Trm{Pgm} [frozen(1 2)] .
-  op while : Pattern{Bol} Pattern{Pgm} -> Pattern{Pgm} [ditto] .
+  op while : Trm{Bol} Trm{Pgm} -> Trm{Pgm} .
+  op while : Pattern{Bol} Pattern{Pgm} -> Pattern{Pgm} .
 
   ---- (declare-func dereference (Nat) Nat)
   op dereference : Trm{Nat} -> Trm{Nat} . 
   op dereference : Pattern{Nat} -> Pattern{Nat} . 
 
   ---- (declare-func seqn (Pgm Pgm) Pgm)
-  op seq : Trm{Pgm} Trm{Pgm} -> Trm{Pgm} [assoc frozen(2)] .
+  op seq : Trm{Pgm} Trm{Pgm} -> Trm{Pgm} [assoc] .
   op seq : Pattern{Pgm} Pattern{Pgm} -> Pattern{Pgm} [ditto] .
 
   ---- (declare-func cfg (Pgm Map) Cfg)
@@ -369,7 +369,8 @@ fmod IMP is
   ---- Helper functions
 
   vars J C : Nat . var D : Int .
-  vars P Q Q1 Q2 R : Pattern .
+  vars P Q Q1 Q2 R : [Pattern] .
+  vars #P #Q : [Pattern] . var Z : Int .
 
 
   ---- shift function for De Brujin indices.
@@ -377,12 +378,12 @@ fmod IMP is
 
   op shift : Pattern Int Nat -> Pattern .
 
-  eq shift({K,Bol}, D, C) = if K < C then {K,Bol} else {K + D,Bol} fi . 
-  eq shift({K,Nat}, D, C) = if K < C then {K,Nat} else {K + D,Nat} fi . 
-  eq shift({K,Seq}, D, C) = if K < C then {K,Seq} else {K + D,Seq} fi . 
-  eq shift({K,Map}, D, C) = if K < C then {K,Map} else {K + D,Map} fi . 
-  eq shift({K,Pgm}, D, C) = if K < C then {K,Pgm} else {K + D,Pgm} fi . 
-  eq shift({K,Cfg}, D, C) = if K < C then {K,Cfg} else {K + D,Cfg} fi . 
+  eq shift({Z,Bol}, D, C) = if Z < C then {Z,Bol} else {Z + D,Bol} fi . 
+  eq shift({Z,Nat}, D, C) = if Z < C then {Z,Nat} else {Z + D,Nat} fi . 
+  eq shift({Z,Seq}, D, C) = if Z < C then {Z,Seq} else {Z + D,Seq} fi . 
+  eq shift({Z,Map}, D, C) = if Z < C then {Z,Map} else {Z + D,Map} fi . 
+  eq shift({Z,Pgm}, D, C) = if Z < C then {Z,Pgm} else {Z + D,Pgm} fi . 
+  eq shift({Z,Cfg}, D, C) = if Z < C then {Z,Cfg} else {Z + D,Cfg} fi . 
 
   eq shift(P = Q, D, C) = (shift(P, D, C) = shift(Q, D, C)) .
   eq shift(P /\ Q, D, C) = shift(P, D, C) /\ shift(Q, D, C) .
@@ -396,6 +397,8 @@ fmod IMP is
   eq shift(succ(P), D, C) = succ(shift(P, D, C)) .
   eq shift(pred(P), D, C) = pred(shift(P, D, C)) .
   eq shift(plus(P, Q), D, C) = plus(shift(P, D, C), shift(Q, D, C)) .
+  eq shift(tt, D, C) = tt .
+  eq shift(ff, D, C) = ff .
   eq shift(gt(P, Q), D, C) = gt(shift(P, D, C), shift(Q, D, C)) .
   eq shift(concat(P, Q), D, C) = concat(shift(P, D, C), shift(Q, D, C)) .
   eq shift(epsilon, D, C) = epsilon .
@@ -420,12 +423,12 @@ fmod IMP is
 
   op _[_:=_] : Pattern Nat Pattern -> Pattern . 
 
-  eq {K,Bol}[J := R] = if K == J then R else {K,Bol} fi .
-  eq {K,Nat}[J := R] = if K == J then R else {K,Nat} fi .
-  eq {K,Seq}[J := R] = if K == J then R else {K,Seq} fi .
-  eq {K,Map}[J := R] = if K == J then R else {K,Map} fi .
-  eq {K,Pgm}[J := R] = if K == J then R else {K,Pgm} fi .
-  eq {K,Cfg}[J := R] = if K == J then R else {K,Cfg} fi .
+  eq {Z,Bol}[J := R] = if Z == J then R else {Z,Bol} fi .
+  eq {Z,Nat}[J := R] = if Z == J then R else {Z,Nat} fi .
+  eq {Z,Seq}[J := R] = if Z == J then R else {Z,Seq} fi .
+  eq {Z,Map}[J := R] = if Z == J then R else {Z,Map} fi .
+  eq {Z,Pgm}[J := R] = if Z == J then R else {Z,Pgm} fi .
+  eq {Z,Cfg}[J := R] = if Z == J then R else {Z,Cfg} fi .
 
   eq (P = Q) [J := R] = ((P[J := R]) = (Q[J := R])) .
   eq (P -> Q) [J := R] = ((P[J := R]) -> (Q[J := R])) .
@@ -447,6 +450,8 @@ fmod IMP is
   eq (merge(P, Q)) [J := R] = merge(P [J := R], Q [J := R]) .
   eq (list(P, Q)) [J := R] = list(P [J := R], Q [J := R]) .
   eq skip [J := R] = skip .
+  eq tt [J := R] = tt .
+  eq ff [J := R] = ff .
   eq (asgn(P, Q)) [J := R] = asgn(P [J := R], Q [J := R]) .
   eq (ite(P, Q1, Q2)) [J := R] = ite(P [J := R], Q1 [J := R], Q2 [J := R]) .
   eq (while(P, Q)) [J := R] = while(P [J := R], Q [J := R]) .
@@ -464,7 +469,6 @@ fmod IMP is
 
   ---- #binding
 
-  vars #P #Q : [Pattern] . var Z : Int .
 
   op #exists_ : [Pattern] -> [Pattern] [strat(1 0)] . 
   op #forall_ : [Pattern] -> [Pattern] [strat(1 0)] . 
@@ -502,6 +506,8 @@ fmod IMP is
   eq #shift(succ(#P), C) = succ(#shift(#P, C)) .
   eq #shift(pred(#P), C) = pred(#shift(#P, C)) .
   eq #shift(plus(#P, #Q), C) = plus(#shift(#P, C), #shift(#Q, C)) .
+  eq #shift(tt, C) = tt .
+  eq #shift(ff, C) = ff .
   eq #shift(gt(#P, #Q), C) = gt(#shift(#P, C), #shift(#Q, C)) .
   eq #shift(concat(#P, #Q), C) = concat(#shift(#P, C), #shift(#Q, C)) .
   eq #shift(epsilon, C) = epsilon .
@@ -524,60 +530,271 @@ endfm
 
 fmod CTXT is
 
-  ---- In this module, we are going to calculate (given a pattern P)
-  ---- all C[R1]...[Rn] such that P = C[R1]...[Rn]. 
-  ---- Such a C[R1]...[Rn] is called a prenex normal form. 
-
   protecting IMP .
-  protecting META-LEVEL .
 
   sort PatternSet . subsort Pattern < PatternSet .
 
-  op __ : PatternSet PatternSet -> PatternSet [assoc comm format(d n d) prec 81] .
+  op none : -> PatternSet .
+  op __ : PatternSet PatternSet -> PatternSet [assoc comm id: none format(d n d) prec 81] .
 
+  ---- We are going to calculate (given a pattern P)
+  ---- all C[R1]...[Rn] such that P = C[R1]...[Rn]. 
+  ---- Such a C[R1]...[Rn] is called a prenex normal form. 
 
   op pnfs : Pattern -> PatternSet .
 
-  vars P P1 P2 P3 Q C R : Pattern . vars PNFs PNFs' PNFs1 PNFs2 : PatternSet .
-  vars N1 N2 : Nat .
+  vars P P1 P2 P3 Q C R C1 C2 : Pattern . vars PNFs PNFs' PNFs1 PNFs2 : PatternSet .
+  vars N N1 N2 : Nat .
 
   ---- aux function
+
+  ---- pnfs(F(P1,...,Pn), PNF_i1, ..., PNF_ik, i1, ..., ik)
+  ---- where i1 ... ik is a subset of 1 ... n
+  ---- each PNF_i* is of the form C_i*[]...[]
+  ---- 
 
   op pnfs : Pattern PatternSet Nat -> PatternSet .  
 
   op pnfs : Pattern PatternSet PatternSet Nat Nat -> PatternSet .
 
-  eq pnfs(P, (P1 PNFs1), 1)
+ ceq pnfs(P, (P1 PNFs1), N)
 
-   = (pnfs(P, P1, 1)
-      pnfs(P, PNFs1, 1)) .
+   = (pnfs(P, P1, N)
+      pnfs(P, PNFs1, N)) 
+  if PNFs1 =/= none .
 
-  eq pnfs(P, (P1 PNFs1), (P2 PNFs2), N1, N2)
+
+
+
+
+ ceq pnfs(P, (P1 PNFs1), P2, N1, N2)
 
    = (pnfs(P, P1, P2, N1, N2)
-      pnfs(P, PNFs1, PNFs2, N1, N2)) .
+      pnfs(P, PNFs1, P2, N1, N2))
+  if PNFs1 =/= none .
+
+
+ ceq pnfs(P, PNFs1, (P2 PNFs2), N1, N2)
+
+   = (pnfs(P, PNFs1, P2, N1, N2)
+      pnfs(P, PNFs1, PNFs2, N1, N2))
+  if PNFs2 =/= none .
+
+
 
   ---- Case analysis
 
-  ---- succ(C[R]) = succ(C) [R]
 
+  ---(
   eq pnfs(succ(P),
-          C[R:Pattern{Bol}],
+          C[R1:Pattern{Nat}][R2:Pattern{Nat}],
           1)
 
-   = (#context (succ(C{{#,Bol}})))[R:Pattern{Bol}] .
+   = (#context #context succ(C[[{-2,Nat}]][[{-1,Nat}]]))[R1:Pattern{Nat}][R2:Pattern{Nat}] .
+  ---)
+
+
+  ---( 
+  eq pnfs(plus(P1, P2),
+          C1[R11:Pattern{Nat}][R12:Pattern{Nat}],
+          1)
+
+   = (#context #context (plus(C1[[{-2,Nat}]][[{-1,Nat}]], P2)))[R11:Pattern{Nat}][R12:Pattern{Nat}] .
+
+  eq pnfs(plus(P1, P2),
+          C2[R21:Pattern{Nat}][R22:Pattern{Nat}],
+          2)
+
+   = (#context #context (plus(P1, C2[[{-2,Nat}]][[{-1,Nat}]])))[R21:Pattern{Nat}][R22:Pattern{Nat}] .
+
+  eq pnfs(plus(P1, P2),
+          C1[R11:Pattern{Nat}][R12:Pattern{Nat}],
+          C2[R2:Pattern{Nat}],
+          1,
+          2)
+   = (#context #context #context plus(C1[[{-3,Nat}]][[{-2,Nat}]], C2[[{-1,Nat}]]))
+     [R11:Pattern{Nat}][R12:Pattern{Nat}][R2:Pattern{Nat}] .
+
+  eq pnfs(plus(P1, P2),
+          C1[R1:Pattern{Nat}],
+          C2[R21:Pattern{Nat}][R22:Pattern{Nat}],
+          1,
+          2)
+   = (#context #context #context plus(C1[[{-3,Nat}]], C2[[{-2,Nat}]][[{-1,Nat}]]))
+     [R1:Pattern{Nat}][R21:Pattern{Nat}][R22:Pattern{Nat}] .
+
+  eq pnfs(plus(P1, P2),
+          C1[R11:Pattern{Nat}][R12:Pattern{Nat}],
+          C2[R21:Pattern{Nat}][R22:Pattern{Nat}],
+          1,
+          2) 
+   = (#context #context #context #context
+      plus(C1[[{-4,Nat}]][[{-3,Nat}]], C2[[{-2,Nat}]][[{-1,Nat}]]))
+      [R11:Pattern{Nat}][R12:Pattern{Nat}][R21:Pattern{Nat}][R22:Pattern{Nat}] .
+           
+  eq pnfs(plus(P1, P2),
+          C2[R2:Pattern{Nat}],
+          C1[R11:Pattern{Nat}][R12:Pattern{Nat}],
+          2,
+          1)
+   = (#context #context #context plus(C1[[{-2,Nat}]][[{-1,Nat}]], C2[[{-3,Nat}]]))
+     [R2:Pattern{Nat}][R11:Pattern{Nat}][R12:Pattern{Nat}] .
+
+  eq pnfs(plus(P1, P2),
+          C2[R21:Pattern{Nat}][R22:Pattern{Nat}],
+          C1[R1:Pattern{Nat}],
+          2,
+          1)
+   = (#context #context #context plus(C1[[{-3,Nat}]], C2[[{-1,Nat}]][[{-2,Nat}]]))
+     [R21:Pattern{Nat}][R22:Pattern{Nat}][R1:Pattern{Nat}] .
+
+  eq pnfs(plus(P1, P2),
+          C2[R21:Pattern{Nat}][R22:Pattern{Nat}],
+          C1[R11:Pattern{Nat}][R12:Pattern{Nat}],
+          2,
+          1) 
+   = (#context #context #context #context
+      plus(C1[[{-2,Nat}]][[{-1,Nat}]], C2[[{-4,Nat}]][[{-3,Nat}]]))
+      [R21:Pattern{Nat}][R22:Pattern{Nat}][R11:Pattern{Nat}][R12:Pattern{Nat}] .
+  ---)
 
   eq pnfs(succ(P),
           C[R:Pattern{Nat}],
           1)
 
-   = (#context (succ(C{{#,Nat}})))[R:Pattern{Nat}] .
+   = (#context (succ(C[[{-1,Nat}]])))[R:Pattern{Nat}] .
 
-  ---- succ(C[R1][R2]) = succ(C)[R1][R2] 
+  eq pnfs(dereference(P),
+          C[R:Pattern{Nat}],
+          1)
+
+   = (#context (dereference(C[[{-1,Nat}]])))[R:Pattern{Nat}] .
+
+  eq pnfs(plus(P1, P2),
+          C1[R1:Pattern{Nat}],
+          1)
+
+   = (#context (plus(C1[[{-1,Nat}]], P2)))[R1:Pattern{Nat}] .
+
+
+  eq pnfs(plus(P1, P2),
+          C2[R2:Pattern{Nat}],
+          2)
+
+   = (#context (plus(P1, C2[[{-1,Nat}]])))[R2:Pattern{Nat}] .
+
+  eq pnfs(gt(P1, P2),
+          C1[R1:Pattern{Nat}],
+          1)
+
+   = (#context (gt(C1[[{-1,Nat}]], P2)))[R1:Pattern{Nat}] .
+
+
+  eq pnfs(gt(P1, P2),
+          C2[R2:Pattern{Nat}],
+          2)
+
+   = (#context (gt(P1, C2[[{-1,Nat}]])))[R2:Pattern{Nat}] .
+
+  eq pnfs(merge(P1, P2),
+          C1[R1:Pattern{Map}],
+          1)
+
+   = (#context (merge(C1[[{-1,Map}]], P2)))[R1:Pattern{Map}] .
+
+
+  eq pnfs(merge(P1, P2),
+          C2[R2:Pattern{Map}],
+          2)
+
+   = (#context (merge(P1, C2[[{-1,Map}]])))[R2:Pattern{Map}] .
 
 
 
+  eq pnfs(seq(P1, P2),
+          C1[R1:Pattern{Bol}],
+          1)
 
+   = (#context seq(C1[[{-1,Bol}]], P2))[R1:Pattern{Bol}] .
+
+  eq pnfs(seq(P1, P2),
+          C1[R1:Pattern{Nat}],
+          1)
+
+   = (#context seq(C1[[{-1,Nat}]], P2))[R1:Pattern{Nat}] .
+
+
+  eq pnfs(seq(P1, P2),
+          C1[R1:Pattern{Pgm}],
+          1)
+
+   = (#context seq(C1[[{-1,Pgm}]], P2))[R1:Pattern{Pgm}] . 
+
+  eq pnfs(asgn(P1, P2),
+          C1[R1:Pattern{Nat}],
+          1)
+
+   = (#context asgn(C1[[{-1,Nat}]], P2))[R1:Pattern{Nat}] .
+
+  eq pnfs(asgn(P1, P2),
+          C2[R2:Pattern{Nat}],
+          2)
+
+   = (#context asgn(P1, C2[[{-1,Nat}]]))[R2:Pattern{Nat}] .
+
+  eq pnfs(ite(P1, P2, P3),
+          C1[R1:Pattern{Bol}],
+          1)
+
+   = (#context ite(C1[[{-1,Bol}]], P2, P3))[R1:Pattern{Bol}] .
+
+
+  eq pnfs(ite(P1, P2, P3),
+          C1[R1:Pattern{Nat}],
+          1)
+
+   = (#context ite(C1[[{-1,Nat}]], P2, P3))[R1:Pattern{Nat}] .
+
+ 
+  eq pnfs(cfg(P1, P2),
+          C1[R1:Pattern{Pgm}],
+          1)
+
+   = (#context (cfg(C1[[{-1,Pgm}]], P2)))[R1:Pattern{Pgm}] .
+
+  eq pnfs(cfg(P1, P2),
+          C1[R1:Pattern{Nat}],
+          1)
+
+   = (#context (cfg(C1[[{-1,Nat}]], P2)))[R1:Pattern{Nat}] . 
+
+
+  eq pnfs(cfg(P1, P2),
+          C1[R1:Pattern{Bol}],
+          1)
+
+   = (#context (cfg(C1[[{-1,Bol}]], P2)))[R1:Pattern{Bol}] .
+
+  eq pnfs(cfg(P1, P2),
+          C1[R1:Pattern{Nat}],
+          C2[R2:Pattern{Map}],
+          1,
+          2)
+   = (#context #context cfg(C1[[{-2,Nat}]], C2[[{-1,Map}]]))[R1:Pattern{Nat}][R2:Pattern{Map}] .
+
+  eq pnfs(cfg(P1, P2),
+          C1[R1:Pattern{Bol}],
+          C2[R2:Pattern{Map}],
+          1,
+          2)
+   = (#context #context cfg(C1[[{-2,Bol}]], C2[[{-1,Map}]]))[R1:Pattern{Bol}][R2:Pattern{Map}] .
+
+  eq pnfs(cfg(P1, P2),
+          C1[R1:Pattern{Pgm}],
+          C2[R2:Pattern{Map}],
+          1,
+          2)
+   = (#context #context cfg(C1[[{-2,Pgm}]], C2[[{-1,Map}]]))[R1:Pattern{Pgm}][R2:Pattern{Map}] .
 
 
   ---- definitions of pnfs for symbols
@@ -585,8 +802,6 @@ fmod CTXT is
   eq pnfs(zero) 
    
    = (context {0,Nat}) [zero] .
-
-
 
   eq pnfs(succ(P))
 
@@ -598,24 +813,112 @@ fmod CTXT is
 
    = ((context {0,Nat}) [plus(P1, P2)]
       pnfs(plus(P1, P2), pnfs(P1), 1)
-      pnfs(plus(P1, P2), pnfs(P2), 2)
-      pnfs(plus(P1, P2), pnfs(P1), pnfs(P2), 1, 2)
-      pnfs(plus(P1, P2), pnfs(P2), pnfs(P1), 2, 1)) . 
+      pnfs(plus(P1, P2), pnfs(P2), 2)) .
+
+  eq pnfs(pred(P))
+
+   = ((context {0,Nat}) [pred(P)] 
+      pnfs(pred(P), pnfs(P), 1)) .
+
+  eq pnfs(dereference(P))
+
+   = ((context {0,Nat}) [dereference(P)] 
+      pnfs(dereference(P), pnfs(P), 1)) .
+
+  eq pnfs(tt) 
+   
+   = (context {0,Bol}) [tt] . 
+
+  eq pnfs(ff) 
+   
+   = (context {0,Bol}) [ff] .
+
+  eq pnfs(gt(P1, P2))
+
+   = ((context {0,Bol}) [gt(P1, P2)]
+      pnfs(gt(P1, P2), pnfs(P1), 1)
+      pnfs(gt(P1, P2), pnfs(P2), 2)) .
+
+  eq pnfs(merge(P1, P2))
+
+   = ((context {0,Map}) [merge(P1, P2)]
+      pnfs(merge(P1, P2), pnfs(P1), 1)
+      pnfs(merge(P1, P2), pnfs(P2), 2)) .
+
+  eq pnfs(mapsto(P1, P2))
+
+   = ((context {0,Map}) [mapsto(P1, P2)]) .
+
+  eq pnfs(skip)
+
+   = (context {0,Pgm})[skip] .
+
+  eq pnfs(seq(P1, P2))
+
+   = ((context {0,Pgm})[seq(P1, P2)]
+      pnfs(seq(P1, P2), pnfs(P1), 1)) .
+
+  eq pnfs(asgn(P1, P2))
+
+   = ((context {0,Pgm}) [asgn(P1, P2)]
+      pnfs(asgn(P1, P2), pnfs(P1), 1)
+      pnfs(asgn(P1, P2), pnfs(P2), 2)) .
+
+  eq pnfs(ite(P1, P2, P3))
+
+   = ((context {0,Pgm}) [ite(P1, P2, P3)]
+      pnfs(ite(P1, P2, P3), pnfs(P1), 1)) .
+
+  eq pnfs(while(P1, P2))
+
+   = ((context {0,Pgm}) [while(P1, P2)]) .
+
+  eq pnfs(cfg(P1, P2))
+
+   = ((context {0,Cfg}) [cfg(P1, P2)]
+      pnfs(cfg(P1, P2), pnfs(P1), 1)
+      pnfs(cfg(P1, P2), pnfs(P1), pnfs(P2), 1, 2)) .
 
 
-  
-
-  
 
 endfm
 
-set trace on .
+fmod EXE is
+
+  protecting CTXT .
+
+  op step : PatternSet -> PatternSet .
+
+  ceq step(P:Pattern PS:[PatternSet]) = (step(P:Pattern) step(PS:[PatternSet])) if PS:[PatternSet] =/= none .
+
+  vars C C' : [Pattern] . var B : Pattern{Bol} . var P Q : Pattern{Pgm} . vars X Y V : Pattern{Nat} .
+
+  eq step(C[plus(X, zero)]) = step(pnfs(C[[X]])) .
+  eq step(C[gt(zero, zero)]) = step(pnfs(C[[ff]])) .
+  eq step(C[gt(succ(X), zero)]) = step(pnfs(C[[tt]])) .
+  eq step(C[gt(succ(X), succ(Y))]) = step(C[gt(X, Y)]) .
+  eq step(C[ite(tt, P, Q)]) = step(pnfs(C[[P]])) .
+  eq step(C[while(B, P)]) = step(pnfs(C[[ite(B, seq(P, while(B, P)), skip)]])) .
+  eq step(C[dereference(X)][mapsto(X, V)]) = step(pnfs(C[[V]][[mapsto(X, V)]])) . 
+
+
+endfm
 
 reduce 
 
-pnfs(succ(zero))
+step(
+pnfs(
+cfg(while(gt(dereference(one), zero), 
+          seq(asgn(two, plus(dereference(two), dereference(one))),
+              asgn(one, pred(dereference(one))))),
+    merge(mapsto(one, ten),
+          mapsto(two, zero)))
+)
+)
 
 .
+
+quit
 
 ---(
 
