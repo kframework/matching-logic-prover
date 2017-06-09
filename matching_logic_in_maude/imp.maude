@@ -1,4 +1,14 @@
+------------------------------------
+---- Modules for the IMP theory ----
+----         FSL Group          ----
+----      xc3@illinois.edu      ----
+------------------------------------
+
+
+
 fmod IMP is
+
+  ---- This module builds matching logic patterns.
 
   protecting INT .
 
@@ -53,14 +63,16 @@ fmod IMP is
   op top{Cfg} : -> Top{Cfg} . op bottom{Cfg} : -> Bottom{Cfg} .
   op top{Ply} : -> Top{Ply} . op bottom{Ply} : -> Bottom{Ply} .
 
-  ---- matching logic variables
+  ---- matching logic variables with de Brujin indices
 
-  ---- Normal variables are numbered from zero.
-  ---- Variables with negative indices are regarded as
+  ---- Variables are numbered starting from zero.
+  ---- "Variables" with negative indices are regarded as
   ---- place-holders that work together with #exists,
-  ---- #forall and #context (helper) functions.
-  ---- The index of a variable IS its name, so variables
-  ---- with the same index MUST have the same sort.
+  ---- #forall and #context. See their definitions for
+  ---- more details.
+
+  ---- The index of a variable *is* its name, so variables
+  ---- with the same index MUST *must* the same sort.
 
   op {_,Bol} : Int -> [Var{Bol}] [ctor] .
   op {_,Nat} : Int -> [Var{Nat}] [ctor] .
@@ -241,15 +253,15 @@ fmod IMP is
 
   op _[_] : Pattern Pattern -> Pattern .
 
-  ---- symbols of IMP theory  
+  ---- symbols in the IMP theory  
 
   ---- (declare-func zero () Nat)
   op zero : -> Trm{Nat} .
 
   ---- (declare-func succ (Nat) Nat)
-  op succ : Trm{Nat} -> Trm{Nat} .
-  op succ : Trm?{Nat} -> Trm?{Nat} .
-  op succ : Pattern{Nat} -> Pattern{Nat} .
+  op succ : Trm{Nat} -> Trm{Nat} [iter] .
+  op succ : Trm?{Nat} -> Trm?{Nat} [ditto] .
+  op succ : Pattern{Nat} -> Pattern{Nat} [ditto] .
 
   ---- (declare-func ... () Nat)
   op one : -> Trm{Nat} .
@@ -368,6 +380,10 @@ fmod IMP is
 
   ---- Helper functions
 
+  ---- TODO:: Choose better names.
+  ---- TODO:: I kind of forget why I ended up
+  ----        with using kinds here.
+
   vars J C : Nat . var D : Int .
   vars P Q Q1 Q2 R : [Pattern] .
   vars #P #Q : [Pattern] . var Z : Int .
@@ -376,7 +392,7 @@ fmod IMP is
   ---- shift function for De Brujin indices.
   ---- shift(P, delta-place, cut-off)
 
-  op shift : Pattern Int Nat -> Pattern .
+  op shift : Pattern Int Nat -> Pattern [memo] .
 
   eq shift({Z,Bol}, D, C) = if Z < C then {Z,Bol} else {Z + D,Bol} fi . 
   eq shift({Z,Nat}, D, C) = if Z < C then {Z,Nat} else {Z + D,Nat} fi . 
@@ -417,11 +433,10 @@ fmod IMP is
   eq shift(cfg(P, Q), D, C) = cfg(shift(P, D, C), shift(Q, D, C)) .
 
 
-
   ---- substitution
   ---- P[K := Q]
 
-  op _[_:=_] : Pattern Nat Pattern -> Pattern . 
+  op _[_:=_] : Pattern Nat Pattern -> Pattern [memo] . 
 
   eq {Z,Bol}[J := R] = if Z == J then R else {Z,Bol} fi .
   eq {Z,Nat}[J := R] = if Z == J then R else {Z,Nat} fi .
@@ -460,25 +475,42 @@ fmod IMP is
   eq (cfg(P, Q)) [J := R] = cfg(P [J := R], Q [J := R]) .
 
   ---- instantaneous instantiation
+  ---- Unlike _[_], this instantiates applications immediately.
 
-  op _[[_]] : Pattern Pattern -> Pattern .
+  op _[[_]] : Pattern Pattern -> Pattern [memo] .
 
   eq (forall P) [[R]] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
   eq (exists P) [[R]] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
   eq (context P) [[R]] = shift(P[0 := shift(R, 1, 0)], -1, 0) .
 
-  ---- #binding
 
+
+
+
+  ---- Helper functions that help you construct a binding structure.
+
+  ---- Sometimes it is convenient not to use de Brujin indices but
+  ---- explicitly stating which variables you want to bind with.
+  ---- For example, you want to write
+  ----    #exists #forall cfg({-1}, merge({-2}, ...))
+  ---- and get
+  ----     exists  forall cfg({0},  merge({1},  ...))
+  ---- where the "..." has to be shifted up by two.
+
+  ---- Variables with negative indices are place holders.
+  ---- The variable {-n} pairs with the nth inner #bindings.
+
+  ---- The following #binding's do this for you.
 
   op #exists_ : [Pattern] -> [Pattern] [strat(1 0)] . 
   op #forall_ : [Pattern] -> [Pattern] [strat(1 0)] . 
-  op #context_ : [Pattern] -> [Pattern] [strat(1 0)] . 
+  op #context_ : [Pattern] -> [Pattern] [strat(1 0) memo] . 
 
   eq #exists #P = exists #shift(#P, 0) .
   eq #forall #P = forall #shift(#P, 0) .
   eq #context #P = context #shift(#P, 0) .
 
-  op #shift : Pattern Nat -> Pattern .
+  op #shift : Pattern Nat -> Pattern [memo] .
 
   eq #shift({-1,Bol}, C) = {C,Bol} . 
   eq #shift({-1,Nat}, C) = {C,Nat} . 
@@ -528,9 +560,26 @@ fmod IMP is
 
 endfm
 
+
+
+
+
+
+
+
+
+
 fmod CTXT is
 
+  ---- This module calculates all prenex normal forms decomposition
+  ---- of a pattern P.
+
+  ---- A prenex normal form of a pattern P is of the form
+  ---- C[R1][R2]...[Rn] such that it equals to P.
+
   protecting IMP .
+
+  ---- A set of patterns
 
   sort PatternSet . subsort Pattern < PatternSet .
 
@@ -538,11 +587,14 @@ fmod CTXT is
   op __ : PatternSet PatternSet -> PatternSet [assoc comm id: none format(d n d) prec 81] .
   eq P:Pattern P:Pattern = P:Pattern .
 
+
+
+
   ---- We are going to calculate (given a pattern P)
   ---- all C[R1]...[Rn] such that P = C[R1]...[Rn]. 
   ---- Such a C[R1]...[Rn] is called a prenex normal form. 
 
-  op pnfs : Pattern -> PatternSet .
+  op pnfs : Pattern -> PatternSet [memo] .
 
   vars P P1 P2 P3 Q C R C1 C2 : Pattern . vars PNFs PNFs' PNFs1 PNFs2 : PatternSet .
   vars N N1 N2 : Nat .
@@ -550,23 +602,24 @@ fmod CTXT is
   ---- aux function
 
   ---- pnfs(F(P1,...,Pn), PNF_i1, ..., PNF_ik, i1, ..., ik)
-  ---- where i1 ... ik is a subset of 1 ... n
-  ---- each PNF_i* is of the form C_i*[]...[]
-  ---- 
+
+  ---- where (1) i1 ... ik is a subset of 1 ... n
+  ----       (2) each PNF_ik is of the form C_ik[]...[]
+  ----       (3) P_ik = C_ik[]...[]
+
+  ---- See the comments above each equational rules in the following.
 
   op pnfs : Pattern PatternSet Nat -> PatternSet .  
 
   op pnfs : Pattern PatternSet PatternSet Nat Nat -> PatternSet .
+
+ 
 
  ceq pnfs(P, (P1 PNFs1), N)
 
    = (pnfs(P, P1, N)
       pnfs(P, PNFs1, N)) 
   if PNFs1 =/= none .
-
-
-
-
 
  ceq pnfs(P, (P1 PNFs1), P2, N1, N2)
 
@@ -583,19 +636,22 @@ fmod CTXT is
 
 
 
-  ---- Case analysis
+  ---- Case by case
 
 
   ---(
+
+  ---- Everything here *are* PNFs but they are not needed to execute a program.
+  ---- So, we do not calculate them, because the number of *all* PNFs of a pattern
+  ---- can be extremely large, even for a medium size pattern.
+
+
   eq pnfs(succ(P),
           C[R1:Pattern{Nat}][R2:Pattern{Nat}],
           1)
 
    = (#context #context succ(C[[{-2,Nat}]][[{-1,Nat}]]))[R1:Pattern{Nat}][R2:Pattern{Nat}] .
-  ---)
 
-
-  ---( 
   eq pnfs(plus(P1, P2),
           C1[R11:Pattern{Nat}][R12:Pattern{Nat}],
           1)
@@ -657,13 +713,30 @@ fmod CTXT is
    = (#context #context #context #context
       plus(C1[[{-2,Nat}]][[{-1,Nat}]], C2[[{-4,Nat}]][[{-3,Nat}]]))
       [R21:Pattern{Nat}][R22:Pattern{Nat}][R11:Pattern{Nat}][R12:Pattern{Nat}] .
+
   ---)
+
+
+
+
+
+
+
+
+
+
+
+
+  ---- succ(C[R]) = succ(C)[R]
 
   eq pnfs(succ(P),
           C[R:Pattern{Nat}],
           1)
 
    = (#context (succ(C[[{-1,Nat}]])))[R:Pattern{Nat}] .
+
+
+  ---- pred(C[R]) = pred(C)[R]
 
   eq pnfs(pred(P),
           C[R:Pattern{Nat}],
@@ -756,6 +829,10 @@ fmod CTXT is
    = (#context ite(C1[[{-1,Bol}]], P2, P3))[R1:Pattern{Bol}] .
 
 
+  ---- ite(C[R], P2, P3) = ite(C, P2, P3)[R]
+
+  ---- ite is *active* on its first argument but *frozen* on the second and third.
+
   eq pnfs(ite(P1, P2, P3),
           C1[R1:Pattern{Nat}],
           1)
@@ -781,6 +858,10 @@ fmod CTXT is
           1)
 
    = (#context (cfg(C1[[{-1,Bol}]], P2)))[R1:Pattern{Bol}] .
+
+
+  ---- cfg(C1[R1], C2[R2]) = cfg(C1, C2)[R1][R2]
+  ---- Notice that R1 can be of different sorts.
 
   eq pnfs(cfg(P1, P2),
           C1[R1:Pattern{Nat}],
@@ -890,6 +971,12 @@ fmod CTXT is
 
 endfm
 
+
+
+
+
+
+
 fmod EXE is
 
   protecting CTXT .
@@ -898,15 +985,9 @@ fmod EXE is
   var  PS : [PatternSet] .
   var N : Nat .
 
-  op step : Pattern -> Pattern .
+  op step : Pattern -> Pattern [iter] .
 
   eq step(P) = #step(pnfs(P)) .
-
-  op step : Pattern Nat -> Pattern .
-  
-  eq step(P, 0) = P .
-
-  eq step(P, N) = step(step(P, N - 1)) .
 
   op #step : PatternSet -> Pattern . 
 
@@ -966,13 +1047,16 @@ endfm
 
 reduce 
 
-step(
+
+
+step^179(   ---- it takes 179 steps to fully reduce the program.
+
 cfg(while(gt(dereference(one), zero), 
           seq(asgn(two, plus(dereference(two), dereference(one))),
               asgn(one, pred(dereference(one))))),
-    merge(mapsto(one, ten),
-          mapsto(two, zero))),
-179)
+    merge(mapsto(one, succ^10(zero)), ---- sum(10)
+          mapsto(two, zero))))
+
 
 .
 
