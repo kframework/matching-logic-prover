@@ -894,35 +894,73 @@ fmod EXE is
 
   protecting CTXT .
 
-  vars C C' #P #P' : [Pattern] . var B : Pattern{Bol} . var P Q : Pattern{Pgm} . vars X Y V V' : Pattern{Nat} .
+  vars C C' P P' Q B X Y V V' : [Pattern] .
+  var  PS : [PatternSet] .
+  var N : Nat .
 
-  op step : PatternSet -> PatternSet .
-  op step : PatternSet Nat -> PatternSet .
+  op step : Pattern -> Pattern .
 
-  eq step(PS:[PatternSet], 0) = PS:[PatternSet] .
-  eq step(PS:[PatternSet], N:Nat) = step(step(PS:[PatternSet], N:Nat - 1)) .
+  eq step(P) = #step(pnfs(P)) .
 
-  ceq step(P:Pattern PS:[PatternSet]) = (step(P:Pattern) step(PS:[PatternSet])) if PS:[PatternSet] =/= none .
+  op step : Pattern Nat -> Pattern .
+  
+  eq step(P, 0) = P .
 
-  eq step(#P) = #step(pnfs(#P)) .
+  eq step(P, N) = step(step(P, N - 1)) .
 
-  op #step : PatternSet -> PatternSet .
+  op #step : PatternSet -> Pattern . 
 
-  ceq #step(P:Pattern PS:[PatternSet]) = (#step(P:Pattern) #step(PS:[PatternSet])) if PS:[PatternSet] =/= none .
+  eq #step( C[dereference(X)][mapsto(X, V)] PS )
 
-  eq #step(C[dereference(X)][mapsto(X, V)]) = C[[V]][[mapsto(X, V)]] . 
-  eq #step(C[pred(succ(X))]) = C[[X]] .
-  eq #step(C[plus(X, zero)]) = C[[X]] .
-  eq #step(C[plus(X, succ(Y))]) = C[[succ(plus(X, Y))]] .
-  eq #step(C[gt(zero, zero)]) = C[[ff]] .
-  eq #step(C[gt(succ(X), zero)]) = C[[tt]] .
-  eq #step(C[gt(succ(X), succ(Y))]) = C[[gt(X, Y)]] .
-  eq #step(C[ite(tt, P, Q)]) = C[[P]] .
-  eq #step(C[ite(ff, P, Q)]) = C[[Q]] .
-  eq #step(C[asgn(X, V')][mapsto(X, V)]) = C[[skip]][[mapsto(X, V')]] .
-  eq #step(C[seq(skip, P)]) = C[[P]] .
-  eq #step(C[while(B, P)]) = C[[ite(B, seq(P, while(B, P)), skip)]] .
-  eq #step(C) = none .
+   = C[[V]][[mapsto(X, V)]] .
+
+  eq #step( C[plus(X, zero)] PS )
+
+   = C[[X]] .
+
+  eq #step( C[plus(X, succ(Y))] PS )
+   = C[[succ(plus(X, Y))]] .
+
+  eq #step( C[pred(succ(X))] PS ) 
+ 
+   = C[[X]] .
+
+  eq #step( C[gt(zero, zero)] PS ) 
+ 
+   = C[[ff]] .
+  
+  eq #step( C[gt(succ(X), zero)] PS ) 
+ 
+   = C[[tt]] .
+  
+  eq #step( C[gt(succ(X), succ(Y))] PS ) 
+ 
+   = C[[gt(X, Y)]] .
+  
+  eq #step( C[ite(tt, P, Q)] PS ) 
+ 
+   = C[[P]] .
+  
+  eq #step( C[ite(ff, P, Q)] PS ) 
+ 
+   = C[[Q]] .
+  
+  eq #step( C[asgn(X, V')][mapsto(X, V)] PS ) 
+ 
+   = C[[skip]][[mapsto(X, V')]] .
+  
+  eq #step( C[seq(skip, P)] PS ) 
+ 
+   = C[[P]] .
+  
+  eq #step( C[while(B, P)] PS ) 
+
+   = C[[ite(B, seq(P, while(B, P)), skip)]] .
+
+  eq #step( C[skip] PS )
+
+   = C[[skip]] .
+
 
 endfm
 
@@ -932,21 +970,23 @@ step(
 cfg(while(gt(dereference(one), zero), 
           seq(asgn(two, plus(dereference(two), dereference(one))),
               asgn(one, pred(dereference(one))))),
-    merge(mapsto(one, three),
+    merge(mapsto(one, ten),
           mapsto(two, zero))),
-30)
+179)
 
 .
 
-
-
-
-
 quit
+
+
+
+
 
 ---(
 
 ---- The following module works, but not general enough.
+
+---- This module uses meta-level.
 
 ---- It calculates the equivalent context application of a pattern, where
 ---- each application has only one redex.
