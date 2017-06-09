@@ -1045,6 +1045,20 @@ fmod EXE is
 
 endfm
 
+---(
+
+reduce in EXE : step^179(cfg(while(gt(dereference(one), zero),
+    seq(asgn(two, plus(dereference(one), dereference(two))),
+    asgn(one, pred(dereference(one))))), merge(mapsto(one,
+    succ^10(zero)), mapsto(two, zero)))) .
+rewrites: 445736 in 420ms cpu (435ms real) (1061276
+    rewrites/second)
+result Pattern{Cfg}: cfg(skip, merge(mapsto(succ(zero), zero),
+    mapsto(succ^2(zero), succ^55(zero))))
+Bye.
+
+---)
+
 reduce 
 
 
