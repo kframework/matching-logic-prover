@@ -1,0 +1,127 @@
+---- sum(10) 
+
+reduce in EXE : 
+
+step(cfg(while(gt(dereference(one), zero), 
+               seq(asgn(two, plus(dereference(one), dereference(two))), 
+                   asgn(one, pred(dereference(one))))), 
+         merge(mapsto(one, ten), mapsto(two, zero))), 
+     180) .
+
+rewrites: 9421312 in 1156ms cpu (1153ms real) (8149923 rewrites/second)
+
+result Pattern{Cfg}: 
+
+cfg(skip, 
+    merge(mapsto(succ(zero), zero), 
+          mapsto(succ(succ(zero)), succ(...))))
+
+
+
+
+---- sum(20)
+
+reduce in EXE : 
+
+step(cfg(while(gt(dereference(one), zero), 
+               seq(asgn(two, plus(dereference(one), dereference(two))), 
+                   asgn(one, pred(dereference(one))))), 
+         merge(mapsto(one, twenty), mapsto(two, zero))), 
+     500) .
+
+rewrites: 532309142 in 61516ms cpu (61536ms real) (8653181 rewrites/second)
+
+result Pattern{Cfg}: 
+
+cfg(skip, 
+    merge(mapsto(succ(zero), zero), 
+          mapsto(succ(succ(zero)), succ(...))))
+
+
+
+
+
+---- sum(10) with succ [iter]
+
+reduce in EXE : 
+
+step(cfg(while(gt(dereference(one), zero), 
+               seq(asgn(two, plus(dereference(one), dereference(two))), 
+                   asgn(one, pred(dereference(one))))), 
+         merge(mapsto(one, ten), mapsto(two, zero))), 
+     180) .
+
+rewrites: 9421312 in 3488ms cpu (3485ms real) (2701064 rewrites/second)
+
+result Pattern{Cfg}: 
+
+cfg(skip, 
+    merge(mapsto(succ(zero), zero), 
+          mapsto(succ^2(zero), succ^55(zero))))
+
+
+
+
+
+---- sum(10) with [memo]
+
+reduce in EXE : 
+
+step(cfg(while(gt(dereference(one), zero), 
+               seq(asgn(two, plus(dereference(one), dereference(two))), 
+                   asgn(one, pred(dereference(one))))), 
+         merge(mapsto(one, ten), mapsto(two, zero))), 
+     180) .
+
+rewrites: 1049536 in 4696ms cpu (4699ms real) (223495 rewrites/second)
+
+result Pattern{Cfg}: 
+
+cfg(skip, 
+    merge(mapsto(succ(zero), zero), 
+          mapsto(succ(succ(zero)), succ(...))))
+
+
+
+
+
+---- sum(10) with [iter] and [memo]
+
+reduce in EXE : 
+
+step(cfg(while(gt(dereference(one), zero), 
+               seq(asgn(two, plus(dereference(one), dereference(two))), 
+                   asgn(one, pred(dereference(one))))), 
+         merge(mapsto(one, ten), mapsto(two, zero))), 
+     180) .
+
+rewrites: 1049536 in 928ms cpu (944ms real) (1130965 rewrites/second)
+
+result Pattern{Cfg}: 
+
+cfg(skip, 
+    merge(mapsto(succ(zero), zero), 
+          mapsto(succ^2(zero), succ^55(zero))))
+
+
+
+
+---- sum(20) with [iter] and [memo]
+
+reduce in EXE : 
+
+step(cfg(while(gt(dereference(one), zero), 
+               seq(asgn(two, plus(dereference(one), dereference(two))), 
+                   asgn(one, pred(dereference(one))))), 
+         merge(mapsto(one, twenty), mapsto(two, zero))), 
+     500) .
+
+rewrites: 27454221 in 41468ms cpu (41475ms real) (662057 rewrites/second)
+
+result Pattern{Cfg}: 
+
+cfg(skip, 
+    merge(mapsto(succ(zero), zero), 
+          mapsto(succ^2(zero), succ^210(zero))))
+
+

@@ -1,0 +1,94 @@
+mod IMP is
+
+  sorts BVal BExp AVal AExp Pgm Map Cfg .
+
+  op tt : -> BVal .
+  op ff : -> BVal . 
+
+  op zero : -> AVal .
+  op succ : AVal -> AVal [iter] .
+
+  op val : AVal -> AExp .
+  op val : BVal -> BExp .
+
+  op succ : AExp -> AExp .
+  op pred : AExp -> AExp .
+  op plus : AExp AExp -> AExp .
+  op gt : AExp AExp -> BExp .
+  op derefer : AExp -> AExp .
+
+  op emp : -> Map .
+  op bind : AVal AVal -> Map .
+  op merge : Map Map -> Map [assoc comm] .
+
+  op skip : -> Pgm .
+  op seq : Pgm Pgm -> Pgm [frozen(2)] .
+  op ite : BExp Pgm Pgm -> Pgm [frozen(2 3)] .
+  op while : BExp Pgm -> Pgm [frozen(1 2)] .
+  op asgn : AExp AExp -> Pgm .
+
+  op cfg : Pgm Map -> Cfg .
+
+
+  ---- context 
+
+  op [_] : BVal -> BVal .
+  op [_] : BExp -> BExp .
+  op [_] : AVal -> AVal .
+  op [_] : AExp -> AExp .
+  op [_] : Pgm -> Pgm .
+  op [_] : Map -> Map .
+  op [_] : Cfg -> Cfg .
+
+  eq X:BVal = [X:BVal] .
+  
+
+
+  ---- example
+
+  op sum : -> Cfg .
+
+  eq sum
+
+   = cfg(while(gt(derefer(val(succ(zero))), val(zero)),
+               seq(asgn(val(succ(succ(zero))),
+                        plus(derefer(val(succ(zero))),
+                             derefer(val(succ(succ(zero)))))),
+                   asgn(val(succ(zero)),
+                        pred(derefer(val(succ(zero))))))),
+         merge(bind(succ(zero), succ^10(zero)),
+               bind(succ(succ(zero)), zero))) .
+
+
+endm
+
+mod METAIMP is
+
+  protecting IMP .
+  
+  protecting META-LEVEL .
+
+  op IMP : -> Module .
+ 
+  eq IMP = upModule('IMP, false) .
+
+endm
+
+set trace on .
+
+reduce 
+
+tt .
+
+reduce 
+
+metaXmatch(IMP,
+           upTerm(derefer(val(succ(zero)))),
+           upTerm(sum),
+           nil,
+           0,
+           unbounded,
+           0) .
+           
+
+quit
