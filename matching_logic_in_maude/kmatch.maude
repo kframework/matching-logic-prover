@@ -1,0 +1,60 @@
+---(
+
+Term       ::= Variable | GroundTerm
+
+GroundTerm ::= Symbol applications
+             | Context applications
+             | Context abstractions
+
+Eq         ::= GroundTerm =? Term
+             | GroundTerm =? Term /\ Eq
+
+op kmatch : Eq -> Substitution? .
+
+ceq kmatch(GT =? T /\ Eq)
+  = subst + kmatch(subst(Eq))
+ if subst ::= kmatch(GT =? T) .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---)
+
+
+
+fmod KMATCH is
+
+  protecting META-LEVEL .
+
+  op kmatch : Module Term Term Nat -> Substitution? .
+
+
+  var MOD : Module .
+  var Const : Constant .
+  var T T' T'' : Term .
+  var V : Variable .
+  vars N N' N'' : Nat .
+  var Q : Qid .
+  vars TL TL' TL'' : TermList .
+
+  eq kmatch(MOD, T, V, 0) = V <- T .
+  eq kmatch(MOD, T, V, N) = noMatch . ---- if N > 0 .
+
+
+endfm
+
+
+quit

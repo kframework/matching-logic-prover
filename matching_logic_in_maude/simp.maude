@@ -1,6 +1,14 @@
-mod IMP is
+fmod IMP is
 
+  protecting INT .
+  protecting META-LEVEL .
+
+  sort K .
   sorts BVal BExp AVal AExp Pgm Map Cfg .
+
+  subsorts BVal BExp AVal AExp Pgm Map Cfg < K .
+
+  ---- symbols 
 
   op tt : -> BVal .
   op ff : -> BVal . 
@@ -11,7 +19,6 @@ mod IMP is
   op val : AVal -> AExp .
   op val : BVal -> BExp .
 
-  op succ : AExp -> AExp .
   op pred : AExp -> AExp .
   op plus : AExp AExp -> AExp .
   op gt : AExp AExp -> BExp .
@@ -22,27 +29,20 @@ mod IMP is
   op merge : Map Map -> Map [assoc comm] .
 
   op skip : -> Pgm .
-  op seq : Pgm Pgm -> Pgm [frozen(2)] .
-  op ite : BExp Pgm Pgm -> Pgm [frozen(2 3)] .
-  op while : BExp Pgm -> Pgm [frozen(1 2)] .
+  op seq : Pgm Pgm -> Pgm .
+  op ite : BExp Pgm Pgm -> Pgm .
+  op while : BExp Pgm -> Pgm .
   op asgn : AExp AExp -> Pgm .
 
   op cfg : Pgm Map -> Cfg .
 
-
   ---- context 
 
-  op [_] : BVal -> BVal .
-  op [_] : BExp -> BExp .
-  op [_] : AVal -> AVal .
-  op [_] : AExp -> AExp .
-  op [_] : Pgm -> Pgm .
-  op [_] : Map -> Map .
-  op [_] : Cfg -> Cfg .
+  op {_} : Int -> K .
+  op gamma_ : K -> K .
+  op _[_] : K K -> K .
 
-  eq X:BVal = [X:BVal] .
   
-
 
   ---- example
 
@@ -60,35 +60,6 @@ mod IMP is
                bind(succ(succ(zero)), zero))) .
 
 
-endm
-
-mod METAIMP is
-
-  protecting IMP .
-  
-  protecting META-LEVEL .
-
-  op IMP : -> Module .
- 
-  eq IMP = upModule('IMP, false) .
-
-endm
-
-set trace on .
-
-reduce 
-
-tt .
-
-reduce 
-
-metaXmatch(IMP,
-           upTerm(derefer(val(succ(zero)))),
-           upTerm(sum),
-           nil,
-           0,
-           unbounded,
-           0) .
-           
+endfm
 
 quit

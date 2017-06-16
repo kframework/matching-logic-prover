@@ -561,31 +561,13 @@ fmod IMP is
 endfm
 
 
-fmod METAIMP is
 
-  protecting IMP .
-  protecting META-LEVEL .
 
-  op IMP : -> Module .
-  eq IMP = upModule('IMP, false) .
 
-  
 
-endfm
 
-reduce
 
-metaXmatch(IMP,
-           upTerm(zero),
-           upTerm(ite(gt(succ(zero), zero), while(gt(succ(zero), zero), skip), skip)),
-           nil,
-           0,
-           unbounded,
-           3)
 
-.
-
-quit
 
 
 
