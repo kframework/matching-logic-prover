@@ -1,0 +1,34 @@
+
+fmod UNIFY is
+  
+  protecting IMP .
+
+  
+
+endfm
+
+quit
+
+fmod MATCH is
+
+  protecting META-LEVEL .
+
+  op match : Module Term Term Nat -> Substitution? .
+
+
+  var MOD : Module .
+  var Const : Constant .
+  var T T' T'' : Term .
+  var V : Variable .
+  vars N N' N'' : Nat .
+  var Q : Qid .
+  vars TL TL' TL'' : TermList .
+
+  eq match(MOD, T, V, 0) = V <- T .
+  eq match(MOD, T, V, N) = noMatch . ---- if N > 0 .
+
+
+endfm
+
+
+quit
