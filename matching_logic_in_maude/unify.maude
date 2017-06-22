@@ -1,0 +1,13 @@
+fmod UNIFY is
+
+  protecting META-LEVEL .
+
+  op unify : Term -> Term .
+
+  vars Q Q' : Qid .
+
+  eq unify(
+
+endfm
+
+quit
