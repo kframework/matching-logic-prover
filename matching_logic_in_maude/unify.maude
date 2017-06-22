@@ -1,3 +1,5 @@
+load imp .
+
 fmod UNIFY is
 
   protecting META-LEVEL .
@@ -6,8 +8,19 @@ fmod UNIFY is
 
   vars Q Q' : Qid .
 
-  eq unify(
+endfm
+
+fmod TEST is
+
+  protecting UNIFY .
+  protecting IMP .
+
+  op IMP : -> Module .
+  eq IMP = upModule('IMP, false) .
 
 endfm
+
+meta
+
 
 quit
