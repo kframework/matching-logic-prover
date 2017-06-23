@@ -18,9 +18,8 @@ fmod TEST is
   op IMP : -> Module .
   eq IMP = upModule('IMP, false) .
 
+  
+
 endfm
-
-meta
-
 
 quit
