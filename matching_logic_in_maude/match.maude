@@ -1,34 +1,18 @@
-
-fmod UNIFY is
-  
-  protecting IMP .
-
-  
-
-endfm
-
-quit
+load imp .
 
 fmod MATCH is
 
   protecting META-LEVEL .
 
-  op match : Module Term Term Nat -> Substitution? .
+  protecting IMP . ---- we don't really need this one.
 
-
-  var MOD : Module .
-  var Const : Constant .
-  var T T' T'' : Term .
-  var V : Variable .
-  vars N N' N'' : Nat .
-  var Q : Qid .
-  vars TL TL' TL'' : TermList .
-
-  eq match(MOD, T, V, 0) = V <- T .
-  eq match(MOD, T, V, N) = noMatch . ---- if N > 0 .
-
+  sorts KMatchPair KMatchPair? . subsort KMatchPair < KMatchPair? .
+  op kmatch : Module Term Term Nat -> Subst? .
 
 endfm
 
+reduce
+
+'a <- 'b .
 
 quit
