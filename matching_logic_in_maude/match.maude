@@ -1,4 +1,16 @@
-load imp .
+fmod META is
+
+  protecting META-LEVEL .
+
+  
+
+
+endfm
+
+
+
+
+
 
 fmod MATCH is
 
@@ -43,14 +55,9 @@ fmod MATCH is
 
   eq kmatch(MOD, Q, Q', N) = noKMatch . ---- Q =/= Q'
 
-  
-
-
-  
-
-  
-  
 endfm
+
+load imp .
 
 fmod TEST is
 

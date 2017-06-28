@@ -1,0 +1,57 @@
+fmod STRING-EXTRA is
+  pr STRING .
+  pr NAT .
+
+  op insert    : String Nat Nat String -> String .
+
+  op replace   : String String String ~> String .
+  op replace   : String String String Nat ~> String .
+  op $replace1 : String String Nat String Nat FindResult Nat Nat -> String .
+  op $replace? : String String Nat String Nat Nat Nat Nat -> String .
+
+  var S O R : String .
+  var N L1 L2 P1 P2 I C : Nat .
+
+  --- INP: String1 Nat1 Nat2 String2
+  --- PRE: None
+  --- OUT: Replaces substr(String1,Nat1,sd(Nat2,Nat1)) with String2
+  eq insert(S,P1,P2,R) = substr(S,0,P1) + R + substr(S,P2,length(S)) .
+
+  --- INP: String0 String1 String2 [Nat]
+  --- PRE: None
+  --- OUT: Replaces first [Nat] occurences of String1 with String2 in String0
+  eq replace(S,O,R) = replace(S,O,R,length(S)) .
+  ceq replace(S,O,R,N) =
+    if N == 0 then
+      S
+    else
+      $replace1(S,O,length(O),R,length(R),find(S,O,0),0,s(N))
+    fi
+  if O =/= "" .
+  eq $replace1(S,O,L1,R,L2,notFound,C,N) = S .
+  eq $replace1(S,O,L1,R,L2,I,C,N) = $replace?(insert(S,I,I + L1,R),O,L1,R,L2,I,s(C),N) .
+  eq $replace?(S,O,L1,R,L2,I,C,N) =
+    if C < N then
+      $replace1(S,O,L1,R,L2,find(S,O,I + L2),C,N)
+    else
+      S
+    fi .
+endfm
+
+fmod STRING-PAIR is
+  pr STRING .
+
+  sort StringPair .
+  op ((_,_)) : String String -> StringPair [ctor] .
+
+  var S S'   : String .
+  var B L    : Nat .
+
+  op split   : String String ~> StringPair .
+  op rsplit  : String String ~> StringPair .
+  op split   : String Nat Nat -> StringPair .
+
+  eq  split(S,S')  = split(S, find(S,S',0),length(S')) .
+  eq rsplit(S,S')  = split(S,rfind(S,S',length(S)),length(S')) .
+  eq  split(S,B,L) = (substr(S,0,B),substr(S,B + L,length(S))) .
+endfm
