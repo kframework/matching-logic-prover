@@ -958,11 +958,69 @@ Note that the only \emph{atomic} patterns in propositional matching logic are of
 
 Our goal is to find a minimal proof system for propositional matching logic that is sound and complete. We will prove its completeness using the standard approach of \emph{maximal consistent sets} from which to build a \emph{canonical model}. To help us focus on the real business, let us prove the completeness \emph{before} introducing the proof system. The reader should think of the proof system as one that makes our proofs work.
 
-We use $\Gamma$ to denote a set of patterns.
+In the following, we use $\Gamma$ to denote a set of patterns.
+
+One key fact about our proof system is that the deduction theorem holds. 
+
+\begin{thm}
+$\Gamma \cup \{Q\} \vdash P$ iff $\Gamma \vdash Q \to P$.
+\end{thm}
+
+Thus the reader can think of the proof system as the one that has only one inference rule: the modus ponens rule, together with the three axioms in the Hilbert propositional calculus.
 
 \begin{defn}
-  $\Gamma$ is consistent if $\Gamma \not \vdash \bottom$.
+  $\Gamma$ is consistent if $\Gamma \not \vdash \bot$.
 \end{defn}
+
+\begin{defn}
+  $\Gamma$ is maximal consistent if it is consistent and for any $\Gamma' \supsetneqq \Gamma$, $\Gamma'$ is inconsistent.
+\end{defn}
+
+\begin{prop}
+If $\Gamma$ is consistent and $\Gamma \not \vdash P$, then $\Gamma \cup \{\neg P\}$ is consistent.
+\end{prop}
+\begin{proof}
+Suppose $\Gamma \cup \{\neg P\}$ is inconsistent. By definition, $\Gamma \cup \{\neg P\} \vdash \bot$. By deduction theorem, $\Gamma \vdash \neg P \to \bot$, that is, $\Gamma \vdash P$, which contradicts the fact that $\Gamma \not \vdash P$.
+\end{proof}
+
+\begin{prop}
+If $\Gamma$ is maximal consistent, then $P \in \Gamma$ iff $\Gamma \vdash P$.
+\end{prop}
+\begin{proof}
+($\Rightarrow$) is trivial. Let us prove ($\Leftarrow$). Since $\Gamma$ is consistent and $\Gamma \vdash P$, we know $\Gamma \cup \{P\}$ is also consistent. Since $\Gamma$ is maximal consistent, we know $\Gamma = \Gamma \cup \{P\}$, which implies that $P \in \Gamma$.
+\end{proof}
+
+\begin{prop}
+If $\Gamma$ is maximal consistent, then for any $P$, either $\Gamma \vdash P$ or $\Gamma \vdash \neg P$.
+\end{prop}
+\begin{proof}
+Suppose $\Gamma \not \vdash P$. Since $\Gamma$ is consistent, we know $\Gamma \cup \{\neg P\}$ is also consistent. Since $\Gamma$ is maximal consistent, we know $\Gamma = \Gamma \cup \{\neg P\}$, which implies that $\Gamma \vdash \neg P$.
+\end{proof}
+
+\begin{prop}
+If $\Gamma \vdash P$, then $\Gamma \cup \{\neg P\}$ is inconsistent.
+\end{prop}
+
+\begin{prop}
+For any $\Gamma$ is consistent, there exists an extension $\Gamma' \supseteqq \Gamma$ such that $\Gamma'$ is maximal consistent.
+\end{prop}
+\begin{proof}
+Enumerate all patterns as $P_1, P_2, \dots$. Define a sequence of sets $\Gamma_0, \Gamma_1, \Gamma_2, \dots$ as follows.
+
+\begin{align*}
+  \Gamma_0 &= \Gamma, \\
+  \Gamma_{i} &= \begin{cases}
+                  \Gamma_{i-1} \cup \{P_i\} \quad &\text{if it is consistent} \\
+                  \Gamma_{i-1} \quad &\text{otherwise}
+                \end{cases}.
+\end{align*}
+Then $\Gamma = \Gamma_0 \subseteqq \Gamma_1 \subseteqq \dots$ is a monotonic sequence of consistent sets. Let $\Gamma' = \bigcup \Gamma_i$. It is obvious that $\Gamma' \supseteqq \Gamma$. We are going to show that $\Gamma'$ is maximal consistent.
+
+Suppose $\Gamma'$ is inconsistent. By definition, $\Gamma' \vdash \bot$. The derivation of $\bot$ must only use a finite number of patterns in $\Gamma'$, which means there is a finite subset of $\Gamma'$ that is inconsistent. Therefore, there must exist an $n > 0$ such that $\Gamma_n$ is inconsistent, which contradicts the way we construct the sequence $\{\Gamma_i\}_i$.
+
+Suppose $\Gamma'$ is not maximal consistent. By definition, there exists a $P$ such that $\Gamma' \not \vdash P$ and $\Gamma' \cup \{P\}$ is also consistent. Rememeber we have enumerated all patterns as $P_1, P_2, \dots$, so the pattern $P$ must be one of them. Suppose $P = P_n$. Since $P = P_n \not \in \Gamma'$, we know $\Gamma_n$ does not include $P_n$. By the way of how we construct $\{\Gamma_i\}_i$, it must be the case that $\Gamma_{n-1} \cup \{P_n\}$ is inconsistent, which contradicts the fact that $\Gamma' \cup \{P\}$ is consistent.
+\end{proof}
+
 
 \section{Applications}
 
