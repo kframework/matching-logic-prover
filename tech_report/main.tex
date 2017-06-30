@@ -942,6 +942,27 @@ list(5,[13;17;9;2;5;13]) \text{ with domain theory} & n.a. & n.a.
 \end{array} 
 \end{equation*}
 
+\subsection{Propositional proof system}
+
+In this section, we consider the propositional fragment of matching logic, and its proof system. This work is closely related to polyadic model logic. The main technical methods are from there.
+
+Before we introduce the proof system for propositional matching logic, let us define the syntax of propositional patterns as shown in the next grammar.
+
+\begin{align}
+P \Coloneqq\  & P_1 \wedge P_2 \nonumber \\
+       \mid\  & \neg P \nonumber \\
+       \mid\  & \sigma(P_1,\dots,P_n). \nonumber
+\end{align}
+
+Note that the only \emph{atomic} patterns in propositional matching logic are of the form $\sigma()$ where $\sigma$ is a zero-arity symbol. 
+
+Our goal is to find a minimal proof system for propositional matching logic that is sound and complete. We will prove its completeness using the standard approach of \emph{maximal consistent sets} from which to build a \emph{canonical model}. To help us focus on the real business, let us prove the completeness \emph{before} introducing the proof system. The reader should think of the proof system as one that makes our proofs work.
+
+We use $\Gamma$ to denote a set of patterns.
+
+\begin{defn}
+  $\Gamma$ is consistent if $\Gamma \not \vdash \bottom$.
+\end{defn}
 
 \section{Applications}
 
