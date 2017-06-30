@@ -1002,7 +1002,7 @@ If $\Gamma \vdash P$, then $\Gamma \cup \{\neg P\}$ is inconsistent.
 \end{prop}
 
 \begin{prop}
-For any $\Gamma$ is consistent, there exists an extension $\Gamma' \supseteqq \Gamma$ such that $\Gamma'$ is maximal consistent.
+For any $\Gamma$ is consistent, there exists an extension $\Gamma' \supseteqq \Gamma$ such that $\Gamma'$ is maximal consistent. We call such $\Gamma'$ the maximal consistent extension of $\Gamma$.
 \end{prop}
 \begin{proof}
 Enumerate all patterns as $P_1, P_2, \dots$. Define a sequence of sets $\Gamma_0, \Gamma_1, \Gamma_2, \dots$ as follows.
@@ -1021,6 +1021,43 @@ Suppose $\Gamma'$ is inconsistent. By definition, $\Gamma' \vdash \bot$. The der
 Suppose $\Gamma'$ is not maximal consistent. By definition, there exists a $P$ such that $\Gamma' \not \vdash P$ and $\Gamma' \cup \{P\}$ is also consistent. Rememeber we have enumerated all patterns as $P_1, P_2, \dots$, so the pattern $P$ must be one of them. Suppose $P = P_n$. Since $P = P_n \not \in \Gamma'$, we know $\Gamma_n$ does not include $P_n$. By the way of how we construct $\{\Gamma_i\}_i$, it must be the case that $\Gamma_{n-1} \cup \{P_n\}$ is inconsistent, which contradicts the fact that $\Gamma' \cup \{P\}$ is consistent.
 \end{proof}
 
+\begin{defn}
+Suppose $\Gamma$ is maximal consistent. Its canonical model $M_\Gamma$ is defined as follows.
+\begin{itemize}
+\item For each sort $s \in S$, the carrier set $M_s = \{\Gamma_s\}$ is a singleton set;
+\item For each symbol $\sigma \in \Sigma_{s_1,\dots,s_n,s}$, its interpretation $\sigma_M \colon M_{s_1} \times \dots \times M_{s_n} \to \rho(M_s)$ is defined as
+\begin{equation*}
+\sigma_M(\Gamma_{s_1},\dots,\Gamma_{s_n}) = \begin{cases}
+                                            \{\Gamma_s\} \quad &\text{if for any $P_1 \in \Gamma_{s_1}, \dots, P_n \in \Gamma_{s_n}$, $\sigma(P_1,\dots,P_n) \in \Gamma_s$} \\
+                                            \emptyset    \quad &\text{otherwise}
+                                            \end{cases}.
+\end{equation*}
+\end{itemize}
+\end{defn}
+
+\begin{prop}
+Suppose $M$ is a canonical model. Then $M$ is negation complete, in the sense that for any pattern $P$, either $M \vDash P$ or $M \vDash \neg P$.
+\end{prop}
+\begin{proof}
+Simply notice that all the carrier sets of $M$ are singleton sets.
+\end{proof}
+
+\begin{prop} \label{prop:canonicalmodel}
+Suppose $\Gamma$ is maximal consistent and $M_\Gamma$ is its canonical model. For any pattern $P$, $M \vDash P$ iff $P \in \Gamma$.
+\end{prop}
+
+\begin{proof}
+We only prove ($\Rightarrow$). The other direction follows from the fact that both $M$ and $\Gamma$ are negation complete.
+
+Let us conduct structural induction on $P$.
+\end{proof}
+
+\begin{thm}
+For any set of patterns $\Gamma$ and any pattern $P$, if $\Gamma \vDash P$ then $\Gamma \vdash P$.
+\end{thm}
+\begin{proof}
+The case where $\Gamma$ is inconsistent is trivial, so let us suppose $\Gamma$ is consistent. Suppose there is a pattern $P$ such that $\Gamma \vDash P$ but $\Gamma \not \vdash P$. By Proposition~\ref{prop:consistent1}, $\Gamma \cup \{\neg P\}$ is consistent. Let $\Gamma'$ be the maximal consistent extension of $\Gamma \cup \{\neg P\}$, and $M$ be the canonical model of $\Gamma'$. Note that $\Gamma'$ is consistent, so $\Gamma' \not \vdash P$, and, by Proposition~\ref{prop:canonicalmodel}, $M \not \vDash P$. On the other hand, $M \vDash \Gamma'$, which implies that $M \vDash \Gamma$ because $\Gamma \subseteq \Gamma'$. This contradicts against the fact that $\Gamma \vDash P$, because we found a model $M$ which satisfies $\Gamma$ but does not entail $P$.
+\end{proof}
 
 \section{Applications}
 
