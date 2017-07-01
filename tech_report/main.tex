@@ -1047,9 +1047,46 @@ Suppose $\Gamma$ is maximal consistent and $M_\Gamma$ is its canonical model. Fo
 \end{prop}
 
 \begin{proof}
-We only prove ($\Rightarrow$). The other direction follows from the fact that both $M$ and $\Gamma$ are negation complete.
-
 Let us conduct structural induction on $P$.
+
+(Base case). $P$ is atomic, that is, $P = \sigma()$ for some zero-arity symbol $\sigma$.
+\begin{align*}
+M \vDash \sigma() \quad &\text{iff} \quad 
+\sigma_M() = \{\Gamma_s\} \\
+&\text{iff} \quad \sigma() \in \Gamma_s.
+\end{align*}
+
+(Induction step). $P$ is of the form $\neg Q$, $Q_1 \wedge Q_2$, or $\sigma(Q_1,\dots,Q_n)$.
+
+\quad (Case A) $P = \neg Q$.
+\begin{align*}
+M \vDash \neg Q \quad &\text{iff} \quad
+\bar{\rho}(\neg Q) = \{\Gamma_s\} \\
+&\text{iff} \quad \bar{\rho}(Q) = \emptyset \\
+&\text{iff} \quad Q \not \in \Gamma_s \\
+&\text{iff} \quad \neg Q \in \Gamma_s.
+\end{align*}
+
+\quad (Case B) $P = Q_1 \wedge Q_2$.
+\begin{align*}
+M \vDash Q_1 \wedge Q_2 \quad &\text{iff} \quad
+\bar{\rho}(Q_1 \wedge Q_2) = \{\Gamma_s\} \\
+&\text{iff} \quad \bar{\rho}(Q_1) = \bar{\rho}(Q_2) = \{\Gamma_s\} \\
+&\text{iff} \quad Q_1, Q_2 \in \Gamma_s \\
+&\text{iff} \quad Q_1 \wedge Q_2 \in \Gamma_s.
+\end{align*}
+
+\quad (Case C) $P = \sigma(Q_1,\dots,Q_n)$.
+\begin{align*}
+M \vDash \sigma(Q_1,\dots,Q_n) \quad &\text{iff} \quad
+\bar{\rho}(\sigma(Q_1,\dots,Q_n)) = \{\Gamma_s\} \\
+&\text{iff} \quad \text{for any } 1 \le i \le n,\ \bar{\rho}(Q_i) = \{\Gamma_{s_i}\}\\
+&\quad \quad \text{and } \sigma_M(\Gamma_{s_1}, \dots, \Gamma_{s_n}) = \{\Gamma_s\}\\
+&\text{iff} \quad \text{for any } 1 \le i \le n,\ Q_i \in \Gamma_{s_i} \\
+&\quad \quad \text{and } \text{for any } P_i \in \Gamma_{s_i}, \ 
+\sigma(P_1, \dots, P_n) \in \Gamma_s \\
+&\text{implies} \quad \sigma(Q_1,\dots,Q_n) \in \Gamma_s.
+\end{align*}
 \end{proof}
 
 \begin{thm}
