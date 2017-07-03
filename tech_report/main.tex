@@ -956,20 +956,20 @@ P \Coloneqq\  & P_1 \wedge P_2 \nonumber \\
 
 Note that the only \emph{atomic} patterns in propositional matching logic are of the form $\sigma()$ where $\sigma$ is a zero-arity symbol. 
 
-Our goal is to find a minimal proof system for propositional matching logic that is sound and complete. We will prove its completeness using the standard approach of \emph{maximal consistent sets} from which we can build a \emph{canonical model}. To help us focus on the real business, let us prove the completeness \emph{before} introducing the proof system. The reader should think of the proof system as one that makes our proofs work.
+Our goal is to find a minimal proof system for propositional matching logic that is sound and complete. We will prove its completeness using the standard approach of \emph{maximal consistent sets} from which we can build a \emph{canonical model}. To help us focus on the real business, let us prove the completeness \emph{before} introducing the proof system. The reader should think of the proof system as one that makes our proofs work. The sound and complete proof system are shown in Section~\ref{sec:completepropproofsystem} after we prove its completeness.
 
 In the following, we use $\Gamma$ to denote a set of patterns.
 
 One key fact about our proof system is that the deduction theorem holds. 
 
 \begin{thm}
-$\Gamma \cup \{Q\} \vdash P$ iff $\Gamma \vdash Q \to P$.
+For any patterns $P$ and $Q$ that belong to the same sort, $\Gamma \cup \{Q\} \vdash P$ iff $\Gamma \vdash Q \to P$.
 \end{thm}
 
 Thus the reader can think of the proof system as the one that has only one inference rule: the modus ponens rule, together with the three axioms in the Hilbert propositional calculus.
 
 \begin{defn}
-  $\Gamma$ is consistent if $\Gamma \not \vdash \bot$.
+  $\Gamma$ is consistent if $\Gamma \not \vdash \bot_s$ for any sort $s$.
 \end{defn}
 
 \begin{defn}
@@ -1117,6 +1117,21 @@ For any set of patterns $\Gamma$ and any pattern $P$, if $\Gamma \vDash P$ then 
 \begin{proof}
 The case where $\Gamma$ is inconsistent is trivial, so let us suppose $\Gamma$ is consistent. Suppose there is a pattern $P$ such that $\Gamma \vDash P$ but $\Gamma \not \vdash P$. By Proposition~\ref{prop:consistent1}, $\Gamma \cup \{\neg P\}$ is consistent. Let $\Gamma'$ be the maximal consistent extension of $\Gamma \cup \{\neg P\}$, and $M$ be the canonical model of $\Gamma'$. Note that $\Gamma'$ is consistent, so $\Gamma' \not \vdash P$, and, by Proposition~\ref{prop:canonicalmodel}, $M \not \vDash P$. On the other hand, $M \vDash \Gamma'$, which implies that $M \vDash \Gamma$ because $\Gamma \subseteq \Gamma'$. This contradicts against the fact that $\Gamma \vDash P$, because we found a model $M$ which satisfies $\Gamma$ but does not entail $P$.
 \end{proof}
+
+\subsubsection{A complete proof system of propositional matching logic}
+\label{sec:completepropproofsystem}
+
+Following previous proofs, we introduce the next complete proof system of propositional matching logic, which consists of five axiom schemata and one inference rule.
+
+\begin{itemize}
+\item (A1) $P \to (Q \to P)$
+\item (A2) $(P \to (Q \to R)) \to (P \to Q) \to (P \to R)$
+\item (A3) $(\neg Q \to \neg P) \to (P \to Q)$
+\item (K){\ } $\sigma(\dots P \vee Q \dots) \leftrightarrow \sigma(\dots P \dots) \vee \sigma(\dots Q \dots)$ 
+\item (N){\ } $\neg \sigma(\dots \bot \dots)$
+\item (MP) From $P$ and $P \to Q$, deduce $Q$.
+\item (CG) From $P \leftrightarrow Q$, deduce $R[P] \leftrightarrow R[Q]$.
+\end{itemize}
 
 \section{Applications}
 
