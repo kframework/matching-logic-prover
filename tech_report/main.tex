@@ -956,7 +956,7 @@ P \Coloneqq\  & P_1 \wedge P_2 \nonumber \\
 
 Note that the only \emph{atomic} patterns in propositional matching logic are of the form $\sigma()$ where $\sigma$ is a zero-arity symbol. 
 
-Our goal is to find a minimal proof system for propositional matching logic that is sound and complete. We will prove its completeness using the standard approach of \emph{maximal consistent sets} from which to build a \emph{canonical model}. To help us focus on the real business, let us prove the completeness \emph{before} introducing the proof system. The reader should think of the proof system as one that makes our proofs work.
+Our goal is to find a minimal proof system for propositional matching logic that is sound and complete. We will prove its completeness using the standard approach of \emph{maximal consistent sets} from which we can build a \emph{canonical model}. To help us focus on the real business, let us prove the completeness \emph{before} introducing the proof system. The reader should think of the proof system as one that makes our proofs work.
 
 In the following, we use $\Gamma$ to denote a set of patterns.
 
@@ -1087,6 +1087,28 @@ M \vDash \sigma(Q_1,\dots,Q_n) \quad &\text{iff} \quad
 \sigma(P_1, \dots, P_n) \in \Gamma_s \\
 &\text{implies} \quad \sigma(Q_1,\dots,Q_n) \in \Gamma_s.
 \end{align*}
+
+We need a little bit trick to finish our proof of (Case C). In the last step, we showed only one direction of implication. We need to prove the other direction, that is, $\sigma(Q_1,\dots,Q_n) \in \Gamma_s$ implies that for any $1 \le i \le n$, $Q_i \in \Gamma_{s_i}$, and for any $P_i \in \Gamma_{s_i}$, $\sigma(P_1, \dots, P_n) \in \Gamma_s$.
+
+Let us first show the simpler one that every $Q_i$ belongs to $\Gamma_{s_i}$. Assume the opposite. Without loss of generality, let us assume $Q_1 \not \in \Gamma_{s_1}$. From $\Gamma_{s_1}$'s maximal consistency, we know that $\neg Q_1 \in \Gamma_{s_1}$, in other words, $\Gamma \vdash \neg Q_1$. The proof system (that we haven't seen) should let us deduce from that $\Gamma \vdash \neg \sigma(Q_1,\dots, Q_n)$, which contradicts $\Gamma$'s consistency.
+
+We are going to prove the second point that $\sigma(P_1,\dots,P_n) \in \Gamma_s$ for any $P_i \in \Gamma_{s_i}$. The proof needs a trick which I firstly learned from Natalia Gabriela Moanga's thesis \emph{Many-sorted polyadic modal logic}~\cite{}, where Moanga uses it to prove a similar result called the \emph{Existence Lemma}.
+
+We know that $\sigma(Q_1,\dots,Q_n) \in \Gamma_s$ and that every $Q_i$ belongs to $\Gamma_{s_i}$. We are going to consistently maximize $\{Q_i\}$ as we did in Proposition~\ref{maximalconsistentextension}, until we reach $\Gamma_{s_i}$. To do that, we enumerate all patterns as $P_1, P_2, \dots$. 
+
+\begin{align*}
+\Gamma \vdash \sigma(Q_1,\dots,Q_n) \quad
+&\text{iff} \quad \Gamma \vdash \sigma(Q_1 \wedge (P_1 \vee \neg P_1), \dots, Q_n \wedge (P_1 \vee \neg P_1)) \\
+&\text{iff} \quad \Gamma \vdash \bigvee_{\sim_i \in \{+, -\}} \sigma(Q_1 \wedge \sim_1 P_1, \dots, Q_n \wedge \sim_n P_1) \\
+&\text{iff} \quad \Gamma \vdash \sigma(Q_1 \wedge \sim_1 P_1, \dots, Q_n \wedge \sim_n P_1) \ \text{for some $\sim_i \in \{+, -\}$}.
+\end{align*}
+
+Repeat the procedure for $P_2, P_3, \dots$ until we obtain $\Pi^i = \{Q_i, [\neg]P_1, [\neg]P_2, \dots\}$ for each $1 \le i \le n$. It is easy to show that $\Pi^i$ is maximal consistent, by noticing that $\Pi^i$ is negation complete and consistent. 
+
+In fact, $\Pi^i = \Gamma_{s_i}$. If not, then there exists a pattern $P_i^*$ such that $P_i^* \in \Pi^i$ and $\neg P_i^* \in \Gamma_{s_i}$. By the contruction of $\Pi^i$, we can prove that $\Gamma \vdash \sigma(Q_1,\dots,P_i^*,\dots,Q_n)$, while from $\neg P_i^* \in \Gamma_{s_i}$ we can deduce $\Gamma \vdash \neg \sigma(Q_1,\dots,P_i^*,\dots,Q_n)$. This contradition shows that $\Pi^i = \Gamma_{s_i}$, which directly follows that $\Gamma \vdash \sigma(P_1,\dots,P_n)$ for any $P_i \in \Gamma_{s_i} = \Pi^i$.
+
+And here ends the whole proof.
+
 \end{proof}
 
 \begin{thm}
