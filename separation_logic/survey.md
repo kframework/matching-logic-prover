@@ -11,6 +11,8 @@ This paper investigates the model checking problem for symbolic-heap separation 
 
 [PMQ14] *Natural Proofs for Data Structure Manipulation in C using Separation Logic*
 
+[AJP15] *Sound Modular Verification of C Code Executing in an Unverified Context*
+
 [JBR15] *Modular Termination Verification*
 
 
