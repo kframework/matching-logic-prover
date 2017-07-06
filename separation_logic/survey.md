@@ -7,7 +7,7 @@ Along with the tool, a comprehensive set of programs (over a hundred test cases)
 [BGKR16] *Model Checking for Symbolic-Heap Separation Logic with Inductive Predicates*
 This paper investigates the model checking problem for symbolic-heap separation logic with user-defined inductive predicates. The problem is proved to be decidable and appreciates a bottom-up fixed point algorithm (instead of a top-down one). In general, the problem is EXPTIME-complete, but becomes NP-complete or PTIME-solvable when natural syntactic restrictions on the schemata defining the inductive predicates are assumed. This paper is a hard one. I haven't understood it yet. However, it has a good list of references.
 
-[JSPVPP] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
+[JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
 [PMQ14] *Natural Proofs for Data Structure Manipulation in C using Separation Logic*
 
