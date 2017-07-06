@@ -1,5 +1,8 @@
 # A survey of separation logic and its tools
 
+[Rey02] *Separation Logic: A Logic for Shared Mutable Data Structures*
+This paper proposes the idea of separation logic, an extension of Hoare logic that permits reasoning about low-level imperative programs that use shared mutable data strctures.It extends assertions by introducing "separation conjunction" and "separation implication",which, coupled with the inductive definition of predicates on abstract data structures, permit the concise and flexible description of structures with controlled sharing.This paper also surveys the current development of this program logic, including extensions that permit unrestricted address arithmetics, dynamically allocated arrays and recursive procedures. 
+
 [CD11] *Infer: An Automatic Program Verifier for Memory Safety of C Programs*
 
 [DPV11] *Predator: A Practical Tool for Checking Manipulation of Dynamic Data Structures Using Separation Logic*
@@ -18,5 +21,4 @@ Along with the tool, a comprehensive set of programs (over a hundred test cases)
 This paper investigates the model checking problem for symbolic-heap separation logic with user-defined inductive predicates. The problem is proved to be decidable and appreciates a bottom-up fixed point algorithm (instead of a top-down one). In general, the problem is EXPTIME-complete, but becomes NP-complete or PTIME-solvable when natural syntactic restrictions on the schemata defining the inductive predicates are assumed. This paper is a hard one. I haven't understood it yet. However, it has a good list of references.
 
 [???] *Space Invader*
-
 
