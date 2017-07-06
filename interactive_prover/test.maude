@@ -1,0 +1,41 @@
+mod MOD is
+
+  sorts Nat Int .
+
+  subsort Nat < Int .
+
+  op zero : -> Nat .
+
+  op succ : Nat -> Nat .
+
+  op plus : Nat Nat -> Nat .
+
+  ---- plus(X, 0) = X
+  ---- plux(X, succ(Y)) = succ(plus(X, Y))
+
+  rl plus(X:Nat, zero) => X:Nat .
+
+  rl plus(X:Nat, succ(Y:Nat)) => succ(plus(X:Nat, Y:Nat)) .
+
+endm
+
+rewrite plus(succ(zero), succ(succ(zero))) .
+
+.....
+
+
+
+mod META-LEVEL is
+
+  sorts ..
+  ops ... 
+
+  op metaRewrite : Module Term -> Result .
+
+  eqs ...
+
+endm
+
+rewrite metaRewrite(MOD, plus( ,,, )) = 
+
+quit
