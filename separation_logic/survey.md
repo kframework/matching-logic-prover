@@ -1,4 +1,4 @@
-# A survey of separation logic and its tools
+# A Survey of Separation Logic and Its Tools
 
 [Rey02] *Separation Logic: A Logic for Shared Mutable Data Structures*
 
