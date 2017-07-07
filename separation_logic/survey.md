@@ -15,6 +15,8 @@ Along with the tool, a comprehensive set of programs (over a hundred test cases)
 
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
+[MQS12] *Recursive Proofs for Inductive Tree Data-Structures*
+
 [QGSM13] *Natural Proofs for Structure, Data, and Separation*
 
 [PMQ14] *Natural Proofs for Data Structure Manipulation in C using Separation Logic*
