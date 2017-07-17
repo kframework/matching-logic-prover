@@ -15,6 +15,8 @@ Along with the tool, a comprehensive set of programs (over a hundred test cases)
 
 [Chl11] *Mostly-Automated Verification of Low-Level Programs in Computational Separation Logic*
 
+This paper introduces a framework called Bedrock, which supports mostly-automated proofs about programs with the full range of features needed to implement. The key of its approach is in mostly-automated discharge of verification conditions inspired by separation logic. It can almost entirely avoid quantifiers, which are challenging in automated verifiers, by relying on functional programs, which leads to dramatic improvements compared to past work in classical verification and verified programming with code pointers. 
+
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
 [MQS12] *Recursive Proofs for Inductive Tree Data-Structures*
