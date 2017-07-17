@@ -1157,7 +1157,7 @@ Following previous proofs, we introduce the next complete proof system of propos
 Fix a signature $(S,\Sigma)$ where $S = \{\Cfg\}$ has only one sort and $\Sigma = \{\snext\}$ has a unary symbol. Such a signature is called \emph{the signature of transition systems}, as illustrated by the obvious interpretation that takes the sort $\Cfg$ to the carrier set $\Cfg$ of a transition system $(\Cfg, \tau)$ and interprets the symbol $\snext$ as the predecessor function $\tau^{-1}$.
 
 \begin{defn}
-  Given $(S, \Sigma)$ the a signature of transition systems. Introduce predicate patterns $P \Rightarrow^\exists_1 Q$, read as ``$P$ rewrites (?) to $Q$'', as the syntactic sugar of $P \to \snext Q$. A transition system theory is a theory whose signature is the signature of transition systems, and whose axioms are all of the form $P \Rightarrow^\exists_1 Q$.
+  Given $(S, \Sigma)$ the a signature of transition systems. Introduce predicate patterns $P \Rightarrow^\exists_1 Q$, read as ``$P$ rewrites (?) to $Q$'', as syntactic sugar of $P \to \snext Q$. A transition system theory is a theory whose signature is the signature of transition systems, and whose axioms are all of the form $P \Rightarrow^\exists_1 Q$.
 \end{defn}
 
 The unary symbol $\snext$ is known as the ``strong-next'' temporal connective in temporal logics. Its dual version, the so-called ``weak-next'' connective $\wnext$ is defined as $\neg \snext \neg$ in the usual way.
@@ -1190,18 +1190,18 @@ To conclude, the third specification is the one that fits the best with the requ
 	I'm not sure I understand why 2 and 3 are different. It seems to me that $c_{\it rand} \subseteq \forall x. \snext x$ iff $c_{\it rand} \to \forall x. \snext x$ iff $\forall x. c_{\it rand} \to \snext x$ iff $\forall x. c_{\it rand} \Rightarrow x$
 }
 
-We can define $\eventually P$, the temporal eventually operator with the semantics: if the computation terminates then a state where $P$ holds is reachable.  This can be written as:
+We can define $\eventually P$, the temporal ``eventually'' operator with the semantics: if the computation terminates then a state where $P$ holds is reachable.  This can be written as:
 \[\eventually P = (\mu x . (P \vee \snext x)) \vee (\nu x. \snext x)\]
 
 \begin{defn}
-	It is natural to extend the one-step one-path reachability $P \Rightarrow^{\exists}_1 Q$ relation to multisteps one-path reachability $P \Rightarrow^\exists Q$, defined as the syntactic sugar for $P \to \eventually Q$.
+	It is natural to extend the one-step one-path reachability $P \Rightarrow^{\exists}_1 Q$ relation to multisteps one-path reachability $P \Rightarrow^\exists Q$, defined as syntactic sugar for $P \to \eventually Q$.
 \end{defn}
 
 \section{All-path reachability}
 
 When dealing with nondeterministic programs, we are interested in a different kind of reachability.  Instead of proving that there exists an execution path leading from $P$ to $Q$ we rather want that on all execution paths starting with $P$ $Q$ would eventually hold.
 
-Notice that $P \Rightarrow^\forall_1 Q$ relation models the fact $Q$ {\em can} be reached (i.e., there exists a path) from $P$ in one step. To model all-path reachability, we first need to model that $Q$ must hold if previously $P$ held.  We do that using the previously operator $\prev$ which is the inverse of $\snext$ (thus representing the forward transition relation):
+Note that $P \Rightarrow^\exists_1 Q$ models the fact $Q$ {\em can} be reached (i.e., there exists a path) from $P$ in one step. To model all-path reachability, we first need to model that $Q$ must hold if previously $P$ held.  We do that using the previously operator $\prev$ which is the inverse of $\snext$ (thus representing the forward transition relation):
 \[y\in \prev x \leftrightarrow x\in\snext y\]
 $\prev$ can also be defined functionally as
 $\prev x = \exists y. y\wedge x\in \snext y$
