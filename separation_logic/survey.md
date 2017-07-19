@@ -43,7 +43,30 @@ http://www.cs.kuleuven.be/ ̃bartj/verifast/<br />
 
 [MQS12] *Recursive Proofs for Inductive Tree Data-Structures*
 
+Ths paper develops logical mechanisms and procedures to facilitate the verification of full functional properties of inductive tree data- structures using recursion that are sound, incomplete, but terminating.Its contribution rests in a new extension of first-order logic with recursive definitions called Dryad, a syntactical restriction on pre- and post-conditions of recursive imperative programs using Dryad, and a systematic methodology for accurately unfolding the footprint on the heap uncovered by the program that leads to finding simple recursive proofs using formula abstraction and calls to SMT solvers.  
+
+http://www.cs.illinois.edu/∼madhu/dryad
+*Tool&features:<br /> 
+VCRYAD framework.<br /> 
+*Verified programs/structures:<br /> 
+   &nbsp;&nbsp; &nbsp;&nbsp;Sorted List &nbsp;&nbsp; &nbsp;&nbsp; Binary Heap  &nbsp;&nbsp; &nbsp;&nbsp;Treap  &nbsp;&nbsp; &nbsp;&nbsp;AVL Tree  &nbsp;&nbsp; &nbsp;&nbsp;Red-Black Tree &nbsp;&nbsp; &nbsp;&nbsp; B-Tree &nbsp;&nbsp; &nbsp;&nbsp; Binomial Heap <br /> 
+*Experimental results<br /> 
+On page 12<br /> 
+
 [QGSM13] *Natural Proofs for Structure, Data, and Separation*
+
+This paper proposes natural proofs for reasoning with programs that manipulate data-structures against specifications that describe the structure of the heap, the data stored within it, and separation and framing of sub-structures. It develops Dryad and ways to reason with heaplets using classical logic over the theory of sets, and develop natural proofs for reasoning using proof tactics involving disciplined unfoldings and formula abstractions.It implement the technique and tested it on a large class of programs.
+
+*Tool&features:<br /> 
+&nbsp;&nbsp;VCRYAD framework.<br /> 
+*Verified programs/structures:<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;Schorr-Waite algorithm for garbage collection<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;A large number of low-level C routines from the Glib library and OpenBSD library<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;The Linux kernel<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;Routines from a secure verified OS-browser project<br /> 
+*Experimental results<br /> 
+http://www.cs.uiuc.edu/ ̃ madhu/dryad/sl/<br /> 
+&nbsp;&nbsp;On page 10<br /> 
 
 [PMQ14] *Natural Proofs for Data Structure Manipulation in C using Separation Logic*
 
@@ -54,7 +77,7 @@ http://madhu.cs.illinois.edu/vcdryad/<br />
 *Verified programs/structures:<br /> 
   &nbsp;&nbsp;>150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
   &nbsp;&nbsp;open source library routines (Glib, OpenBSD), Linux ker- nel routines, customized OS data structures<br /> 
-*Experimental reuslts<br /> 
+*Experimental results<br /> 
   &nbsp;&nbsp;On page 10<br /> 
 
 [AJP15] *Sound Modular Verification of C Code Executing in an Unverified Context*
