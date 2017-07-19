@@ -84,7 +84,10 @@ http://madhu.cs.illinois.edu/vcdryad/<br />
 
 This paper is based on the VeriFast verifier [JSPVPP11]. It develops runtime checks to be inserted at the boundary between the verified and the unverified part of a program to guarantee that no assertion failures or invalid memory accesses can occur at runtime in any verified module. The key part is transforming a verified module (with specification annotations) to a *hardened* module that consists of a functional part and a boundary checking part. Pure assertions, spatial assertions, predicates, inductive data types, and function pointers are taken into account. The authors formalize the approach in terms of a simple imperative programming language that models the C language, providing a comprehensive syntax and small-step semantics of the imperative language. Using that, the authors provide a formal correctness proof of those runtime checks. The tool is tested on some benchmark systems, including the insertion sorting algorithm on linked lists of integers, the in-order traversal algorithm on binary search trees, and some real world artifacts including Apache httpd authentication modules and NetKit FTP daemon. 
 
-[JBR15] *Modular Termination Verification*
+[JBK15] *Modular Termination Verification*
+
+http://www.cs.kuleuven.be/~bartj/verifast/
+This paper proposes an approach for the modular specification and verification of total correctness properties of object-oriented programs. It extends the existing program logic for partial correctness based on separation logic and abstract predicate families, with call permissions qualified by an arbitrary ordinal number, and it defines a specification style that properly hides implementation details, based on the ideas of using methods and bags of methods as ordinals, and exposing the bag of methods reachable from an object as an abstract predicate argument. The approach was illusitrated by several examples, including an example of transfering an amount of money between two bank accounts and an example of an interface method that takes as an argument another object.
 
 [BGKR16] *Model Checking for Symbolic-Heap Separation Logic with Inductive Predicates*
 
