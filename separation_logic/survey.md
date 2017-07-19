@@ -25,19 +25,19 @@ http://adam.chlipala.net/bedrock/<br />
   &nbsp;&nbsp;The swap function<br /> 
   &nbsp;&nbsp;In-place list reverse<br /> 
 *Statics on case studies<br /> 
-  &nbsp;&nbsp;Module:        &nbsp;&nbsp;&nbsp;&nbsp;          Build(min)<br /> 
-  &nbsp;&nbsp;Malloc         &nbsp;&nbsp;&nbsp;&nbsp;          5<br /> 
-  &nbsp;&nbsp;Theory of arrays/lists &nbsp;&nbsp;&nbsp;&nbsp;  <1 <br /> 
-  &nbsp;&nbsp;ArrayList      &nbsp;&nbsp;&nbsp;&nbsp;          35<br /> 
-  &nbsp;&nbsp;Theory of sets    &nbsp;&nbsp;&nbsp;&nbsp;       <1 <br /> 
-  &nbsp;&nbsp;SinglyLinkedList  &nbsp;&nbsp;&nbsp;&nbsp;       2<br /> 
-  &nbsp;&nbsp;BinarySearchTree   &nbsp;&nbsp;&nbsp;&nbsp;      13<br /> 
-  &nbsp;&nbsp;Theory of maps    &nbsp;&nbsp;&nbsp;&nbsp;       <1 <br /> 
-  &nbsp;&nbsp;AssociationList     &nbsp;&nbsp;&nbsp;&nbsp;     3<br /> 
-  &nbsp;&nbsp;Hashtable        &nbsp;&nbsp;&nbsp;&nbsp;        4<br /> 
-  &nbsp;&nbsp;Memoize         &nbsp;&nbsp;&nbsp;&nbsp;         2<br /> 
-  &nbsp;&nbsp;AppendCPS       &nbsp;&nbsp;&nbsp;&nbsp;         4<br /> 
-  &nbsp;&nbsp;ThreadLib       &nbsp;&nbsp;&nbsp;&nbsp;         6<br /> 
+  &nbsp;&nbsp;Module:    
+  &nbsp;&nbsp;Malloc       
+  &nbsp;&nbsp;Theory of arrays/lists 
+  &nbsp;&nbsp;ArrayList     
+  &nbsp;&nbsp;Theory of sets    
+  &nbsp;&nbsp;SinglyLinkedList  
+  &nbsp;&nbsp;BinarySearchTree  
+  &nbsp;&nbsp;Theory of maps   
+  &nbsp;&nbsp;AssociationList     
+  &nbsp;&nbsp;Hashtable    
+  &nbsp;&nbsp;Memoize     
+  &nbsp;&nbsp;AppendCPS    
+  &nbsp;&nbsp;ThreadLib    
 
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
