@@ -102,7 +102,23 @@ http://plv.mpi-sws.org/iris<br />
   &nbsp;&nbsp;Hash Tables<br /> 
   
 
-*Report on SL-COMP 2014*
+[SL-COMP14]*Report on SL-COMP 2014*
+
+https://github.com/mihasighi/smtcomp14-sl<br /> 
+*Participants:<br /> 
+  &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/.<br /> 
+  &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/.<br /> 
+  &nbsp;&nbsp;&nbsp;&nbsp;SmallFoot. www0.cs.ucl.ac.uk/staff/p.ohearn/smallfoot/.<br /> 
+  &nbsp;&nbsp;&nbsp;&nbsp;SMT-COMP. smtcomp.sourceforge.org.<br /> 
+  &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen.<br /> 
+  &nbsp;&nbsp;&nbsp;&nbsp;StarExec. www.starexec.org.<br /> 
+*Benchmark features:<br /> 
+&nbsp;&nbsp;Total number of problems: <br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;678 Satisfiability 25% Entailment 75%<br /> 
+&nbsp;&nbsp;Origin:<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;Crafted 41% Randomly generated 59%<br /> 
+&nbsp;&nbsp;Problems by division:<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;sll(|=) 110 &nbsp;&nbsp;sll(⇒) 292 &nbsp;&nbsp;FDB(⇒) 43 &nbsp;&nbsp;UDB(|=) 61 &nbsp;&nbsp;UDB(⇒) 172
 
 
 *Competitions*<br /> 
