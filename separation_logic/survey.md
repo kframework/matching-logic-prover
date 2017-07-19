@@ -41,6 +41,17 @@ http://adam.chlipala.net/bedrock/<br />
 
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
+http://www.cs.kuleuven.be/ ̃bartj/verifast/
+*Tool&features:<br /> 
+  &nbsp;&nbsp;VeriFast. C & Java.single/multi-threaded.Support for permission accounting.<br /> 
+*Verified programs/structures:<br /> 
+  &nbsp;&nbsp;>Symbolic execution algorithm<br /> 
+  &nbsp;&nbsp;Permission accounting<br /> 
+  &nbsp;&nbsp;JavaCard Programs<br /> 
+  &nbsp;&nbsp;Integrating Shape Analysis<br /> 
+  &nbsp;&nbsp;Linux Device Drivers<br /> 
+
+
 [MQS12] *Recursive Proofs for Inductive Tree Data-Structures*
 
 [QGSM13] *Natural Proofs for Structure, Data, and Separation*
@@ -50,9 +61,10 @@ http://adam.chlipala.net/bedrock/<br />
 http://madhu.cs.illinois.edu/vcdryad/examples/<br /> 
 http://madhu.cs.illinois.edu/vcdryad/<br /> 
 *Tool&features:<br /> 
-  &nbsp;&nbsp;VCRYAD framework.<br /> 
+  &nbsp;&nbsp;VCRYAD framework. C programs.Lift Natural Proofs to the Code-Level<br /> 
 *Verified programs/structures:<br /> 
   &nbsp;&nbsp;>150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
+  &nbsp;&nbsp;open source library routines (Glib, OpenBSD), Linux ker- nel routines, customized OS data structures<br /> 
 *Experimental reuslts<br /> 
   &nbsp;&nbsp;On page 10<br /> 
 
@@ -91,7 +103,7 @@ http://www.cs.kuleuven.be/ ̃bartj/verifast/<br />
 &nbsp;&nbsp;lcset.c lcset client.c rdcss.c mcas.c mcas client.c<br /> 
 &nbsp;&nbsp;0.37s &nbsp;0.13s &nbsp;0.5s &nbsp;1.33s &nbsp;0.22s<br /> 
 
-[RDF15]Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning*<br /> 
+[RDF15]*Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning*<br /> 
 
 http://plv.mpi-sws.org/iris<br /> 
 *Tool&features:<br /> 
@@ -99,7 +111,11 @@ http://plv.mpi-sws.org/iris<br />
 *Verified programs/structures:<br /> 
   &nbsp;&nbsp;A fine-grained elimination stack ADT<br /> 
   &nbsp;&nbsp;Hash Tables<br /> 
+  
+
+*Report on SL-COMP 2014*
+
 
 *Competitions*<br /> 
-*Separation logic Competition <br /> 
+*Separation logic Competition &nbsp; https://groups.google.com/forum/#!topic/sl-comp/tZLCevpNdmg<br /> 
 *VerifyThis Competition  &nbsp;http://etaps2016.verifythis.org/home<br /> 
