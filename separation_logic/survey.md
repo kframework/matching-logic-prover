@@ -26,18 +26,7 @@ http://adam.chlipala.net/bedrock/<br />
   &nbsp;&nbsp;In-place list reverse<br /> 
 *Statics on case studies<br /> 
   &nbsp;&nbsp;Module:    
-  &nbsp;&nbsp;Malloc       
-  &nbsp;&nbsp;Theory of arrays/lists 
-  &nbsp;&nbsp;ArrayList     
-  &nbsp;&nbsp;Theory of sets    
-  &nbsp;&nbsp;SinglyLinkedList  
-  &nbsp;&nbsp;BinarySearchTree  
-  &nbsp;&nbsp;Theory of maps   
-  &nbsp;&nbsp;AssociationList     
-  &nbsp;&nbsp;Hashtable    
-  &nbsp;&nbsp;Memoize     
-  &nbsp;&nbsp;AppendCPS    
-  &nbsp;&nbsp;ThreadLib    
+  &nbsp;&nbsp;Malloc &nbsp;&nbsp;Theory of arrays/lists &nbsp;&nbsp;ArrayList     &nbsp;&nbsp;Theory of sets    &nbsp;&nbsp;SinglyLinkedList  &nbsp;&nbsp;BinarySearchTree  &nbsp;&nbsp;Theory of maps   &nbsp;&nbsp;AssociationList     &nbsp;&nbsp;Hashtable    &nbsp;&nbsp;Memoize     &nbsp;&nbsp;AppendCPS    &nbsp;&nbsp;ThreadLib    
 
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
