@@ -47,11 +47,11 @@ Ths paper develops logical mechanisms and procedures to facilitate the verificat
 
 http://www.cs.illinois.edu/∼madhu/dryad
 *Tool&features:<br /> 
-VCRYAD framework.<br /> 
+&nbsp;&nbsp;VCRYAD framework.<br /> 
 *Verified programs/structures:<br /> 
    &nbsp;&nbsp; &nbsp;&nbsp;Sorted List &nbsp;&nbsp; &nbsp;&nbsp; Binary Heap  &nbsp;&nbsp; &nbsp;&nbsp;Treap  &nbsp;&nbsp; &nbsp;&nbsp;AVL Tree  &nbsp;&nbsp; &nbsp;&nbsp;Red-Black Tree &nbsp;&nbsp; &nbsp;&nbsp; B-Tree &nbsp;&nbsp; &nbsp;&nbsp; Binomial Heap <br /> 
 *Experimental results<br /> 
-On page 12<br /> 
+&nbsp;&nbsp;On page 12<br /> 
 
 [QGSM13] *Natural Proofs for Structure, Data, and Separation*
 
