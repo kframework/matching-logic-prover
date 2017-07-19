@@ -17,10 +17,10 @@ Along with the tool, a comprehensive set of programs (over a hundred test cases)
 
 This paper introduces a framework called Bedrock, which supports mostly-automated proofs about programs with the full range of features needed to implement. The key of its approach is in mostly-automated discharge of verification conditions inspired by separation logic. It can almost entirely avoid quantifiers, which are challenging in automated verifiers, by relying on functional programs, which leads to dramatic improvements compared to past work in classical verification and verified programming with code pointers. 
 
-http://adam.chlipala.net/bedrock/
-*Tool&features:
-  Bedrock. reason about first-class code pointers;low-level;avoid quantifiers.
-*Verified programs/structures:
+http://adam.chlipala.net/bedrock/<br /> 
+*Tool&features:<br /> 
+  Bedrock. reason about first-class code pointers;low-level;avoid quantifiers.<br /> 
+*Verified programs/structures:<br /> 
   The add function
   The swap function
   In-place list reverse
