@@ -21,23 +21,23 @@ http://adam.chlipala.net/bedrock/<br />
 *Tool&features:<br /> 
   Bedrock. reason about first-class code pointers;low-level;avoid quantifiers.<br /> 
 *Verified programs/structures:<br /> 
-  The add function
-  The swap function
-  In-place list reverse
-*Statics on case studies
-  Module:                  Build(min)
-  Malloc                   5
-  Theory of arrays/lists   <1
-  ArrayList                35
-  Theory of sets           <1
-  SinglyLinkedList         2
-  BinarySearchTree         13
-  Theory of maps           <1
-  AssociationList          3
-  Hashtable                4
-  Memoize                  2
-  AppendCPS                4
-  ThreadLib                6
+  The add function<br /> 
+  The swap function<br /> 
+  In-place list reverse<br /> 
+*Statics on case studies<br /> 
+  Module:                  Build(min)<br /> 
+  Malloc                   5<br /> 
+  Theory of arrays/lists   <1 <br /> 
+  ArrayList                35<br /> 
+  Theory of sets           <1 <br /> 
+  SinglyLinkedList         2<br /> 
+  BinarySearchTree         13<br /> 
+  Theory of maps           <1 <br /> 
+  AssociationList          3<br /> 
+  Hashtable                4<br /> 
+  Memoize                  2<br /> 
+  AppendCPS                4<br /> 
+  ThreadLib                6<br /> 
 
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
@@ -47,14 +47,14 @@ http://adam.chlipala.net/bedrock/<br />
 
 [PMQ14] *Natural Proofs for Data Structure Manipulation in C using Separation Logic*
 
-http://madhu.cs.illinois.edu/vcdryad/examples/
-http://madhu.cs.illinois.edu/vcdryad/
-*Tool&features:
-  VCRYAD framework.
-*Verified programs/structures:
-  >150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)
-*Experimental reuslts
-  On page 10
+http://madhu.cs.illinois.edu/vcdryad/examples/<br /> 
+http://madhu.cs.illinois.edu/vcdryad/<br /> 
+*Tool&features:<br /> 
+  VCRYAD framework.<br /> 
+*Verified programs/structures:<br /> 
+  >150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
+*Experimental reuslts<br /> 
+  On page 10<br /> 
 
 [AJP15] *Sound Modular Verification of C Code Executing in an Unverified Context*
 
@@ -68,38 +68,38 @@ This paper investigates the model checking problem for symbolic-heap separation 
 
 [???] *Space Invader*
 
-[Bar16]*Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast*
+[Bar16]*Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast*<br /> 
 
-https://github.com/verifast/verifast
-*Tool&features:
-  VeriFast. C & Java; symbolic execution; single/multi-threaded.
-*Verified programs/structures:
-  Binary Tree Traversal
-    79 lines of annotations for 17LOC means an overhead of 5×.
-  Static Tree Barriers
-    190 lines of annotations for 25LOC means an overhead of 8×.
+https://github.com/verifast/verifast<br /> 
+*Tool&features:<br /> 
+  VeriFast. C & Java; symbolic execution; single/multi-threaded.<br /> 
+*Verified programs/structures:<br /> 
+  Binary Tree Traversal<br /> 
+    79 lines of annotations for 17LOC means an overhead of 5×.<br /> 
+  Static Tree Barriers<br /> 
+    190 lines of annotations for 25LOC means an overhead of 8×.<br /> 
 
 [BF11]*Expressive Modular Fine-Grained Concurrency Specification*
 
-http://www.cs.kuleuven.be/ ̃bartj/verifast/
-*Tool&features:
-  VeriFast. extend resource-invariants-based method to achieve procedure-modularity;lift limitations on expressiveness of specifications;enable fully general specification of fine-grained concurrent data structures.
-*Verified programs/structures:
-  multiple-compare-and-swap algorithm (MCAS)
-  lock-couping list
-*Statics
-lcset.c lcset client.c rdcss.c mcas.c mcas client.c
-0.37s 0.13s 0.5s 1.33s 0.22s
+http://www.cs.kuleuven.be/ ̃bartj/verifast/<br /> 
+*Tool&features:<br /> 
+  VeriFast. extend resource-invariants-based method to achieve procedure-modularity;lift limitations on expressiveness of specifications;enable fully general specification of fine-grained concurrent data structures.<br /> 
+*Verified programs/structures:<br /> 
+  multiple-compare-and-swap algorithm (MCAS)<br /> 
+  lock-couping list<br /> 
+*Statics<br /> 
+lcset.c lcset client.c rdcss.c mcas.c mcas client.c<br /> 
+0.37s 0.13s 0.5s 1.33s 0.22s<br /> 
 
-[RDF15]Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning*
+[RDF15]Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning*<br /> 
 
-http://plv.mpi-sws.org/iris
-*Tool&features:
-  Iris logic. only need monoids and invariants.
-*Verified programs/structures:
-  A fine-grained elimination stack ADT
-  Hash Tables
+http://plv.mpi-sws.org/iris<br /> 
+*Tool&features:<br /> 
+  Iris logic. only need monoids and invariants.<br /> 
+*Verified programs/structures:<br /> 
+  A fine-grained elimination stack ADT<br /> 
+  Hash Tables<br /> 
 
-*Competitions*
-*Separation logic Competition 
-*VerifyThis Competition  http://etaps2016.verifythis.org/home
+*Competitions*<br /> 
+*Separation logic Competition <br /> 
+*VerifyThis Competition  http://etaps2016.verifythis.org/home<br /> 
