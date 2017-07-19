@@ -17,6 +17,28 @@ Along with the tool, a comprehensive set of programs (over a hundred test cases)
 
 This paper introduces a framework called Bedrock, which supports mostly-automated proofs about programs with the full range of features needed to implement. The key of its approach is in mostly-automated discharge of verification conditions inspired by separation logic. It can almost entirely avoid quantifiers, which are challenging in automated verifiers, by relying on functional programs, which leads to dramatic improvements compared to past work in classical verification and verified programming with code pointers. 
 
+http://adam.chlipala.net/bedrock/
+*Tool&features:
+  Bedrock. reason about first-class code pointers;low-level;avoid quantifiers.
+*Verified programs/structures:
+  The add function
+  The swap function
+  In-place list reverse
+*Statics on case studies
+  Module:                  Build(min)
+  Malloc                   5
+  Theory of arrays/lists   <1
+  ArrayList                35
+  Theory of sets           <1
+  SinglyLinkedList         2
+  BinarySearchTree         13
+  Theory of maps           <1
+  AssociationList          3
+  Hashtable                4
+  Memoize                  2
+  AppendCPS                4
+  ThreadLib                6
+
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
 [MQS12] *Recursive Proofs for Inductive Tree Data-Structures*
@@ -24,6 +46,15 @@ This paper introduces a framework called Bedrock, which supports mostly-automate
 [QGSM13] *Natural Proofs for Structure, Data, and Separation*
 
 [PMQ14] *Natural Proofs for Data Structure Manipulation in C using Separation Logic*
+
+http://madhu.cs.illinois.edu/vcdryad/examples/
+http://madhu.cs.illinois.edu/vcdryad/
+*Tool&features:
+  VCRYAD framework.
+*Verified programs/structures:
+  >150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)
+*Experimental reuslts
+  On page 10
 
 [AJP15] *Sound Modular Verification of C Code Executing in an Unverified Context*
 
@@ -37,3 +68,38 @@ This paper investigates the model checking problem for symbolic-heap separation 
 
 [???] *Space Invader*
 
+[Bar16]*Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast*
+
+https://github.com/verifast/verifast
+*Tool&features:
+  VeriFast. C & Java; symbolic execution; single/multi-threaded.
+*Verified programs/structures:
+  Binary Tree Traversal
+    79 lines of annotations for 17LOC means an overhead of 5×.
+  Static Tree Barriers
+    190 lines of annotations for 25LOC means an overhead of 8×.
+
+[BF11]*Expressive Modular Fine-Grained Concurrency Specification*
+
+http://www.cs.kuleuven.be/ ̃bartj/verifast/
+*Tool&features:
+  VeriFast. extend resource-invariants-based method to achieve procedure-modularity;lift limitations on expressiveness of specifications;enable fully general specification of fine-grained concurrent data structures.
+*Verified programs/structures:
+  multiple-compare-and-swap algorithm (MCAS)
+  lock-couping list
+*Statics
+lcset.c lcset client.c rdcss.c mcas.c mcas client.c
+0.37s 0.13s 0.5s 1.33s 0.22s
+
+[RDF15]Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning*
+
+http://plv.mpi-sws.org/iris
+*Tool&features:
+  Iris logic. only need monoids and invariants.
+*Verified programs/structures:
+  A fine-grained elimination stack ADT
+  Hash Tables
+
+*Competitions*
+*Separation logic Competition 
+*VerifyThis Competition  http://etaps2016.verifythis.org/home
