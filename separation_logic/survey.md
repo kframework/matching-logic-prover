@@ -41,11 +41,11 @@ http://adam.chlipala.net/bedrock/<br />
 
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
-http://www.cs.kuleuven.be/ ̃bartj/verifast/
+http://www.cs.kuleuven.be/ ̃bartj/verifast/<br /> 
 *Tool&features:<br /> 
-  &nbsp;&nbsp;VeriFast. C & Java.single/multi-threaded.Support for permission accounting.<br /> 
+  &nbsp;&nbsp;VeriFast. C & Java.Single/multi-threaded.Support for permission accounting.<br /> 
 *Verified programs/structures:<br /> 
-  &nbsp;&nbsp;>Symbolic execution algorithm<br /> 
+  &nbsp;&nbsp;Symbolic execution algorithm<br /> 
   &nbsp;&nbsp;Permission accounting<br /> 
   &nbsp;&nbsp;JavaCard Programs<br /> 
   &nbsp;&nbsp;Integrating Shape Analysis<br /> 
