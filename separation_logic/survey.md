@@ -95,6 +95,9 @@ This paper investigates the model checking problem for symbolic-heap separation 
 
 [???] *Space Invader*
 
+http://www0.cs.ucl.ac.uk/staff/p.ohearn/Invader/Invader/Invader_Home.html
+http://www.cl.cam.ac.uk/~mjcg/SLandSI.pdf
+
 [Bar16]*Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast*<br /> 
 
 https://github.com/verifast/verifast<br /> 
