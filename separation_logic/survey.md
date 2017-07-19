@@ -45,7 +45,7 @@ http://www.cs.kuleuven.be/ ̃bartj/verifast/<br />
 
 Ths paper develops logical mechanisms and procedures to facilitate the verification of full functional properties of inductive tree data- structures using recursion that are sound, incomplete, but terminating.Its contribution rests in a new extension of first-order logic with recursive definitions called Dryad, a syntactical restriction on pre- and post-conditions of recursive imperative programs using Dryad, and a systematic methodology for accurately unfolding the footprint on the heap uncovered by the program that leads to finding simple recursive proofs using formula abstraction and calls to SMT solvers.  
 
-http://www.cs.illinois.edu/∼madhu/dryad
+http://www.cs.illinois.edu/∼madhu/dryad<br /> 
 *Tool&features:<br /> 
 &nbsp;&nbsp;VCRYAD framework.<br /> 
 *Verified programs/structures:<br /> 
@@ -65,7 +65,7 @@ This paper proposes natural proofs for reasoning with programs that manipulate d
 &nbsp;&nbsp;&nbsp;&nbsp;The Linux kernel<br /> 
 &nbsp;&nbsp;&nbsp;&nbsp;Routines from a secure verified OS-browser project<br /> 
 *Experimental results<br /> 
-http://www.cs.uiuc.edu/ ̃ madhu/dryad/sl/<br /> 
+&nbsp;&nbsp;http://www.cs.uiuc.edu/ ̃ madhu/dryad/sl/<br /> 
 &nbsp;&nbsp;On page 10<br /> 
 
 [PMQ14] *Natural Proofs for Data Structure Manipulation in C using Separation Logic*
