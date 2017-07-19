@@ -19,25 +19,25 @@ This paper introduces a framework called Bedrock, which supports mostly-automate
 
 http://adam.chlipala.net/bedrock/<br /> 
 *Tool&features:<br /> 
-  Bedrock. reason about first-class code pointers;low-level;avoid quantifiers.<br /> 
+  &nbsp;&nbsp;Bedrock. reason about first-class code pointers;low-level;avoid quantifiers.<br /> 
 *Verified programs/structures:<br /> 
-  The add function<br /> 
-  The swap function<br /> 
-  In-place list reverse<br /> 
+  &nbsp;&nbsp;The add function<br /> 
+  &nbsp;&nbsp;The swap function<br /> 
+  &nbsp;&nbsp;In-place list reverse<br /> 
 *Statics on case studies<br /> 
-  Module:                  Build(min)<br /> 
-  Malloc                   5<br /> 
-  Theory of arrays/lists   <1 <br /> 
-  ArrayList                35<br /> 
-  Theory of sets           <1 <br /> 
-  SinglyLinkedList         2<br /> 
-  BinarySearchTree         13<br /> 
-  Theory of maps           <1 <br /> 
-  AssociationList          3<br /> 
-  Hashtable                4<br /> 
-  Memoize                  2<br /> 
-  AppendCPS                4<br /> 
-  ThreadLib                6<br /> 
+  &nbsp;&nbsp;Module:        &nbsp;&nbsp;&nbsp;&nbsp;          Build(min)<br /> 
+  &nbsp;&nbsp;Malloc         &nbsp;&nbsp;&nbsp;&nbsp;          5<br /> 
+  &nbsp;&nbsp;Theory of arrays/lists &nbsp;&nbsp;&nbsp;&nbsp;  <1 <br /> 
+  &nbsp;&nbsp;ArrayList      &nbsp;&nbsp;&nbsp;&nbsp;          35<br /> 
+  &nbsp;&nbsp;Theory of sets    &nbsp;&nbsp;&nbsp;&nbsp;       <1 <br /> 
+  &nbsp;&nbsp;SinglyLinkedList  &nbsp;&nbsp;&nbsp;&nbsp;       2<br /> 
+  &nbsp;&nbsp;BinarySearchTree   &nbsp;&nbsp;&nbsp;&nbsp;      13<br /> 
+  &nbsp;&nbsp;Theory of maps    &nbsp;&nbsp;&nbsp;&nbsp;       <1 <br /> 
+  &nbsp;&nbsp;AssociationList     &nbsp;&nbsp;&nbsp;&nbsp;     3<br /> 
+  &nbsp;&nbsp;Hashtable        &nbsp;&nbsp;&nbsp;&nbsp;        4<br /> 
+  &nbsp;&nbsp;Memoize         &nbsp;&nbsp;&nbsp;&nbsp;         2<br /> 
+  &nbsp;&nbsp;AppendCPS       &nbsp;&nbsp;&nbsp;&nbsp;         4<br /> 
+  &nbsp;&nbsp;ThreadLib       &nbsp;&nbsp;&nbsp;&nbsp;         6<br /> 
 
 [JSPVPP11] *VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java*
 
@@ -50,11 +50,11 @@ http://adam.chlipala.net/bedrock/<br />
 http://madhu.cs.illinois.edu/vcdryad/examples/<br /> 
 http://madhu.cs.illinois.edu/vcdryad/<br /> 
 *Tool&features:<br /> 
-  VCRYAD framework.<br /> 
+  &nbsp;&nbsp;VCRYAD framework.<br /> 
 *Verified programs/structures:<br /> 
-  >150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
+  &nbsp;&nbsp;>150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
 *Experimental reuslts<br /> 
-  On page 10<br /> 
+  &nbsp;&nbsp;On page 10<br /> 
 
 [AJP15] *Sound Modular Verification of C Code Executing in an Unverified Context*
 
@@ -72,34 +72,34 @@ This paper investigates the model checking problem for symbolic-heap separation 
 
 https://github.com/verifast/verifast<br /> 
 *Tool&features:<br /> 
-  VeriFast. C & Java; symbolic execution; single/multi-threaded.<br /> 
+  &nbsp;&nbsp;VeriFast. C & Java; symbolic execution; single/multi-threaded.<br /> 
 *Verified programs/structures:<br /> 
-  Binary Tree Traversal<br /> 
-    79 lines of annotations for 17LOC means an overhead of 5×.<br /> 
-  Static Tree Barriers<br /> 
-    190 lines of annotations for 25LOC means an overhead of 8×.<br /> 
+  &nbsp;&nbsp;Binary Tree Traversal<br /> 
+  &nbsp;&nbsp;&nbsp;&nbsp;  79 lines of annotations for 17LOC means an overhead of 5×.<br /> 
+  &nbsp;&nbsp;Static Tree Barriers<br /> 
+   &nbsp;&nbsp;&nbsp;&nbsp; 190 lines of annotations for 25LOC means an overhead of 8×.<br /> 
 
 [BF11]*Expressive Modular Fine-Grained Concurrency Specification*
 
 http://www.cs.kuleuven.be/ ̃bartj/verifast/<br /> 
 *Tool&features:<br /> 
-  VeriFast. extend resource-invariants-based method to achieve procedure-modularity;lift limitations on expressiveness of specifications;enable fully general specification of fine-grained concurrent data structures.<br /> 
+  &nbsp;&nbsp;VeriFast. extend resource-invariants-based method to achieve procedure-modularity;lift limitations on expressiveness of specifications;enable fully general specification of fine-grained concurrent data structures.<br /> 
 *Verified programs/structures:<br /> 
-  multiple-compare-and-swap algorithm (MCAS)<br /> 
-  lock-couping list<br /> 
+  &nbsp;&nbsp;multiple-compare-and-swap algorithm (MCAS)<br /> 
+ &nbsp;&nbsp; lock-couping list<br /> 
 *Statics<br /> 
-lcset.c lcset client.c rdcss.c mcas.c mcas client.c<br /> 
-0.37s 0.13s 0.5s 1.33s 0.22s<br /> 
+&nbsp;&nbsp;lcset.c lcset client.c rdcss.c mcas.c mcas client.c<br /> 
+&nbsp;&nbsp;0.37s &nbsp;0.13s &nbsp;0.5s &nbsp;1.33s &nbsp;0.22s<br /> 
 
 [RDF15]Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning*<br /> 
 
 http://plv.mpi-sws.org/iris<br /> 
 *Tool&features:<br /> 
-  Iris logic. only need monoids and invariants.<br /> 
+  &nbsp;&nbsp;Iris logic. only need monoids and invariants.<br /> 
 *Verified programs/structures:<br /> 
-  A fine-grained elimination stack ADT<br /> 
-  Hash Tables<br /> 
+  &nbsp;&nbsp;A fine-grained elimination stack ADT<br /> 
+  &nbsp;&nbsp;Hash Tables<br /> 
 
 *Competitions*<br /> 
 *Separation logic Competition <br /> 
-*VerifyThis Competition  http://etaps2016.verifythis.org/home<br /> 
+*VerifyThis Competition  &nbsp;http://etaps2016.verifythis.org/home<br /> 
