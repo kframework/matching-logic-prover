@@ -1143,7 +1143,7 @@ Following previous proofs, we introduce the next complete proof system of propos
 \subsection{Axiomatizing transition systems}
 
 \begin{defn}
-	A transition system $T = (\Cfg, \tau)$ has a (finite or infinite) set $\Cfg$ of configurations and a transition (partial) function $\tau : \Cfg \rightharpoonup \Cfg$. The set of \emph{direct successors} and \emph{direct predecessors} of a configuration $c \in \Cfg$ are denoted as $\tau(c)$ and $\tau^{-1}(c)$ respectively. A configuration is \emph{terminal} if it has no successor.
+	A transition system $T = (\Cfg, \tau)$ has a (finite or infinite) set $\Cfg$ of configurations and a (partial) transition function $\tau : \Cfg \rightharpoonup \Cfg$. The set of \emph{direct successors} and \emph{direct predecessors} of a configuration $c \in \Cfg$ are denoted as $\tau(c)$ and $\tau^{-1}(c)$ respectively. A configuration is \emph{terminal} if it has no successor.
 \end{defn}
 
 \begin{rmk}
@@ -1156,8 +1156,10 @@ Following previous proofs, we introduce the next complete proof system of propos
 
 Fix a signature $(S,\Sigma)$ where $S = \{\Cfg\}$ has only one sort and $\Sigma = \{\snext\}$ has a unary symbol. Such a signature is called \emph{the signature of transition systems}, as illustrated by the obvious interpretation that takes the sort $\Cfg$ to the carrier set $\Cfg$ of a transition system $(\Cfg, \tau)$ and interprets the symbol $\snext$ as the predecessor function $\tau^{-1}$.
 
+\subsubsection{One-path reachability}
+
 \begin{defn}
-  Given $(S, \Sigma)$ the a signature of transition systems. Introduce predicate patterns $P \Rightarrow^\exists_1 Q$, read as ``$P$ rewrites (?) to $Q$'', as syntactic sugar of $P \to \snext Q$. A transition system theory is a theory whose signature is the signature of transition systems, and whose axioms are all of the form $P \Rightarrow^\exists_1 Q$.
+  Given $(S, \Sigma)$ the a signature of transition systems. Introduce predicate patterns $P \Rightarrow^\exists_1 Q$, read as ``$P$ one-step rewrites to $Q$'', as syntactic sugar of $P \to \snext Q$. A transition system theory is a theory whose signature is the signature of transition systems, and whose axioms are all of the form $P \Rightarrow^\exists_1 Q$.
 \end{defn}
 
 The unary symbol $\snext$ is known as the ``strong-next'' temporal connective in temporal logics. Its dual version, the so-called ``weak-next'' connective $\wnext$ is defined as $\neg \snext \neg$ in the usual way.
@@ -1171,7 +1173,7 @@ The unary symbol $\snext$ is known as the ``strong-next'' temporal connective in
 	
 	Suppose one has that intuition of randomness in mind, and starts to write a specification for that intuition. The followings are possible rules that could be written (we abbreviate $\Rightarrow^{\exists}_1$ as $\Rightarrow$).
 	\begin{enumerate}
-		\item $c_\textit{rand} \Rightarrow \top$. \footnote{For the rewriting patterns below, we assume the right hand sides are patterns of the sort \textit{Nat}, regarded as a subsort of \Cfg, although matching logic is truly not a order-sorted logic. This is for the sake of the simplicity of the example. Otherwise one may fall into unnecessary details that prevent him seeing the big picture. } 
+		\item $c_\textit{rand} \Rightarrow \top$. \footnote{For the rewriting patterns below, we assume the right hand sides are patterns of the sort \textit{Nat}, regarded as a subsort of \Cfg, although matching logic is truly not an order-sorted logic. This is for the sake of the simplicity. Otherwise one may fall into unnecessary details that prevent him seeing the big picture. } 
 	    \item $\forall x . (c_\textit{rand} \Rightarrow x)$.
 	    \item $c_\textit{rand} \subseteq \forall x . \snext x$.
 	\end{enumerate}
@@ -1197,14 +1199,14 @@ We can define $\eventually P$, the temporal ``eventually'' operator with the sem
 	It is natural to extend the one-step one-path reachability $P \Rightarrow^{\exists}_1 Q$ relation to multisteps one-path reachability $P \Rightarrow^\exists Q$, defined as syntactic sugar for $P \to \eventually Q$.
 \end{defn}
 
-\section{All-path reachability}
+\subsubsection{All-path reachability}
 
 When dealing with nondeterministic programs, we are interested in a different kind of reachability.  Instead of proving that there exists an execution path leading from $P$ to $Q$ we rather want that on all execution paths starting with $P$ $Q$ would eventually hold.
 
 Note that $P \Rightarrow^\exists_1 Q$ models the fact $Q$ {\em can} be reached (i.e., there exists a path) from $P$ in one step. To model all-path reachability, we first need to model that $Q$ must hold if previously $P$ held.  We do that using the previously operator $\prev$ which is the inverse of $\snext$ (thus representing the forward transition relation):
-\[y\in \prev x \leftrightarrow x\in\snext y\]
-$\prev$ can also be defined functionally as
-$\prev x = \exists y. y\wedge x\in \snext y$
+\[y\in \prev x \leftrightarrow x\in\snext y.\]
+Alternatively, $\prev$ can be defined as
+$\prev x = \exists y. y\wedge x\in \snext y$ where $y$ is distinct from $x$.
 
 
 Using this we can express that if $P$ previously held then $Q$ must hold now.
