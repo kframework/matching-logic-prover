@@ -21,7 +21,7 @@
 (declare-func twelve     () Nat) 
 (declare-func thirteen   () Nat) 
 (declare-func fourteen   () Nat) 
-(declare-func fifteen    () Nat) 
+(declare-func fifteen  () Nat) 
 (declare-func sixteen    () Nat) 
 (declare-func seventeen  () Nat) 
 (declare-func eighteen   () Nat) 
@@ -48,7 +48,6 @@
 (assert (= eighteen   (succ seventeen))) 
 (assert (= nineteen   (succ eighteen ))) 
 (assert (= twenty     (succ nineteen ))) 
-
 
 
 ; succ is injective
@@ -157,24 +156,24 @@
               (list z s))))))
 
 ;simply - not partial function. 
-;(declare-part simply (Map Map) Map)
-;(assert (forall ((h1 Map) (h2 Map) ) 
-;(= (simply h1 h2) (exists ((h3 Map)) (and h3 (floor (-> (merge h3 h1) h2)))))))
+; (simply h1 h2) is a syntactic sugar of
+; (exists ((h3 Map)) (and h3 (floor (-> (merge h3 h1) h2))))
 
 ;reverse-single-list invariant
 (assert (not (floor
-(->(exists ((alpha NatSeq) (beta NatSeq)) 
-(and (merge (list eleven alpha) (list ten beta))
-     (and (= (rev (cons one (cons two (cons three (cons four (cons five (cons six (cons seven (cons eight epsilon))))))))) (append (rev alpha) beta)) 
-          (not (= eleven zero)))))
-
-(exists ((k Nat)) 
-(and (merge (mapsto (succ eleven) k) top) (merge (exists ((v Nat)) (mapsto (succ eleven) v))  (exists ((h3 Map)) (and h3 (floor (-> (merge h3 (mapsto (succ eleven) ten)) (exists ((alpha NatSeq) (beta NatSeq)) 
-     (and (merge (list k alpha) (list eleven beta))
-           (and (= (rev (cons one (cons two (cons three (cons four (cons five (cons six (cons seven (cons eight epsilon))))))))) 
-                (append (rev alpha) beta)))))))))
-))))
-)))
-; 
-          
+  (forall ((i Nat) (j Nat) (alpha0 NatSeq))
+    (-> (exists ((alpha NatSeq) (beta NatSeq))
+          (and (merge (list i alpha) (list j beta))
+               (= (rev alpha0) (append (rev alpha) beta))
+               (not (= i zero))))
+        (exists ((k Nat)) 
+          (and (merge (mapsto (succ i) k) top)
+               (merge (exists ((v Nat)) (mapsto (succ i) v))
+                      (exists ((h3 Map))
+                        (and h3 
+                             (floor (-> (merge h3 (mapsto (succ i) j))
+                                        (exists ((alpha NatSeq) (beta NatSeq))
+                                          (and (merge (list k alpha) (list i beta))
+                                               (= (rev alpha0) (append (rev alpha) beta))))))))))))))))
+     
           
