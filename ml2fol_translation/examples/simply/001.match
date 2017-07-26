@@ -1,0 +1,180 @@
+(declare-sort Nat)
+(declare-sort NatSeq)
+(declare-sort Map)
+
+; Natural numbers
+
+(declare-func zero () Nat)
+(declare-func succ (Nat) Nat)
+
+(declare-func one        () Nat)
+(declare-func two        () Nat)
+(declare-func three      () Nat)
+(declare-func four       () Nat)
+(declare-func five       () Nat)
+(declare-func six        () Nat)
+(declare-func seven      () Nat)
+(declare-func eight      () Nat)
+(declare-func nine       () Nat)
+(declare-func ten        () Nat)
+(declare-func eleven     () Nat) 
+(declare-func twelve     () Nat) 
+(declare-func thirteen   () Nat) 
+(declare-func fourteen   () Nat) 
+(declare-func fifteen    () Nat) 
+(declare-func sixteen    () Nat) 
+(declare-func seventeen  () Nat) 
+(declare-func eighteen   () Nat) 
+(declare-func nineteen   () Nat) 
+(declare-func twenty     () Nat) 
+
+(assert (= one        (succ zero     ))) 
+(assert (= two        (succ one      ))) 
+(assert (= three      (succ two      ))) 
+(assert (= four       (succ three    ))) 
+(assert (= five       (succ four     ))) 
+(assert (= six        (succ five     ))) 
+(assert (= seven      (succ six      ))) 
+(assert (= eight      (succ seven    ))) 
+(assert (= nine       (succ eight    ))) 
+(assert (= ten        (succ nine     ))) 
+(assert (= eleven     (succ ten      ))) 
+(assert (= twelve     (succ eleven   ))) 
+(assert (= thirteen   (succ twelve   ))) 
+(assert (= fourteen   (succ thirteen ))) 
+(assert (= fifteen  (succ fourteen ))) 
+(assert (= sixteen    (succ fifteen))) 
+(assert (= seventeen  (succ sixteen  ))) 
+(assert (= eighteen   (succ seventeen))) 
+(assert (= nineteen   (succ eighteen ))) 
+(assert (= twenty     (succ nineteen ))) 
+
+
+
+; succ is injective
+(assert (forall ((x Nat) (y Nat))
+  (= (= (succ x) (succ y))
+     (= x y))))
+
+; succ(x) =/= x
+(assert (forall ((x Nat))
+  (not (= (succ x) x))))
+
+; Sequence of naturals
+
+(declare-func epsilon () NatSeq)
+(declare-func cons (Nat NatSeq) NatSeq)
+(declare-func append (NatSeq NatSeq) NatSeq)
+
+(assert (forall ((x Nat) (s NatSeq))
+  (not (= (cons x s) s))))
+
+(assert (forall ((x1 Nat) (x2 Nat) (s1 NatSeq) (s2 NatSeq))
+  (= (= (cons x1 s1) (cons x2 s2))
+     (and (= x1 x2) (= s1 s2)))))
+
+(assert (forall ((s1 NatSeq) (s2 NatSeq) (s3 NatSeq))
+  (= (append (append s1 s2) s3)
+     (append s1 (append s2 s3)))))
+
+(assert (forall ((s NatSeq))
+  (= (append s epsilon) s)))
+
+(assert (forall ((s NatSeq))
+  (= (append epsilon s) s)))
+
+(assert (forall ((s1 NatSeq) (s2 NatSeq) (x Nat))
+  (= (append (cons x s1) s2)
+     (cons x (append s1 s2)))))
+
+(declare-func rev (NatSeq) NatSeq)
+
+(assert (= (rev epsilon) epsilon))
+
+(assert (forall ((x Nat) (s NatSeq))
+  (= (rev (cons x s))
+     (append (rev s) (cons x epsilon)))))
+
+; Maps
+
+(declare-func emp () Map)
+
+; x |-> y
+(declare-part mapsto (Nat Nat) Map)
+
+; 0 |-> y is bottom
+(assert (forall ((y Nat))
+  (not (mapsto zero y))))
+
+; succ(x) |-> y is defined 
+(assert (forall ((x Nat) (y Nat))
+  (ceil (mapsto (succ x) y))))
+
+; succ(x1) |-> y1 = succ(x2) |-> y2 iff x1 = x2 /\ y1 = y1
+(assert (forall ((x1 Nat) (x2 Nat) (y1 Nat) (y2 Nat))
+  (= (= (mapsto (succ x1) y1) (mapsto (succ x2) y2))
+     (and (= x1 x2) (= y1 y2)))))
+
+; merge is a partial AC binary function
+(declare-part merge (Map Map) Map)
+
+; commutativity
+(assert (forall ((h1 Map) (h2 Map))
+  (= (merge h1 h2) (merge h2 h1))))
+
+; associativity
+(assert (forall ((h1 Map) (h2 Map) (h3 Map))
+  (= (merge (merge h1 h2) h3)
+     (merge h1 (merge h2 h3)))))
+; identity
+(assert (forall ((h Map))
+  (= h (merge h emp))))
+
+; x |-> y * x |-> z = bottom
+(assert (forall ((x Nat) (y Nat) (z Nat))
+  (not (merge (mapsto x y) (mapsto x z)))))
+
+; mapstoseq
+(declare-part mapstoseq (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+  (= (mapstoseq x epsilon) emp)))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+  (= (mapstoseq x (cons y s))
+     (merge (mapsto x y) (mapstoseq (succ x) s)))))
+
+(declare-symb list (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+  (= (list x epsilon)
+     (and emp (= x zero)))))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+  (= (list x (cons y s))
+     (exists ((z Nat))
+       (merge (mapstoseq x (cons y (cons z epsilon)))
+              (list z s))))))
+
+;simply - not partial function. 
+;(declare-part simply (Map Map) Map)
+;(assert (forall ((h1 Map) (h2 Map) ) 
+;(= (simply h1 h2) (exists ((h3 Map)) (and h3 (floor (-> (merge h3 h1) h2)))))))
+
+;reverse-single-list invariant
+(assert (not (floor
+(->(exists ((alpha NatSeq) (beta NatSeq)) 
+(and (merge (list eleven alpha) (list ten beta))
+     (and (= (rev (cons one (cons two (cons three (cons four (cons five (cons six (cons seven (cons eight epsilon))))))))) (append (rev alpha) beta)) 
+          (not (= eleven zero)))))
+
+(exists ((k Nat)) 
+(and (merge (mapsto (succ eleven) k) top) (merge (exists ((v Nat)) (mapsto (succ eleven) v))  (exists ((h3 Map)) (and h3 (floor (-> (merge h3 (mapsto (succ eleven) ten)) (exists ((alpha NatSeq) (beta NatSeq)) 
+     (and (merge (list k alpha) (list eleven beta))
+           (and (= (rev (cons one (cons two (cons three (cons four (cons five (cons six (cons seven (cons eight epsilon))))))))) 
+                (append (rev alpha) beta)))))))))
+))))
+)))
+; 
+          
+          
