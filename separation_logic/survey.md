@@ -134,6 +134,7 @@ http://plv.mpi-sws.org/iris<br />
 [SL-COMP14]*Report on SL-COMP 2014*
 
 https://github.com/mihasighi/smtcomp14-sl<br /> 
+http://smtcomp.sourceforge.net/2014/results-SLCOMP2.shtml <br /> 
 *Participants:<br /> 
   &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/.<br /> 
   &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/.<br /> 
