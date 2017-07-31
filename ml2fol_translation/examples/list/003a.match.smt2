@@ -1,6 +1,8 @@
-(declare-sort Nat)
-(declare-sort NatSeq)
-(declare-sort Map)
+(set-logic UF)
+
+(declare-sort Nat 0)
+(declare-sort NatSeq 0)
+(declare-sort Map 0)
 (declare-fun zero () Nat)
 (declare-fun succ (Nat) Nat)
 (declare-fun one () Nat)
