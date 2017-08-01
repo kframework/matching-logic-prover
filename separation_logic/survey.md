@@ -1,6 +1,6 @@
 # A Survey of Separation Logic and Its Tools
 
-### [[Rey02] Separation Logic: A Logic for Shared Mutable Data Structures](https://www.cs.cmu.edu/~jcr/seplogic.pdf)
+### [Rey02] Separation Logic: A Logic for Shared Mutable Data Structures
 
   &nbsp;&nbsp;This paper proposes the idea of separation logic, an extension of Hoare logic that permits reasoning about low-level imperative programs that use shared mutable data strctures.It extends assertions by introducing "separation conjunction" and "separation implication",which, coupled with the inductive definition of predicates on abstract data structures, permit the concise and flexible description of structures with controlled sharing.This paper also surveys the current development of this program logic, including extensions that permit unrestricted address arithmetics, dynamically allocated arrays and recursive procedures. 
  
@@ -101,14 +101,12 @@
 ### [SL-COMP14]Report on SL-COMP 2014
 
 &nbsp;&nbsp;https://github.com/mihasighi/smtcomp14-sl<br /> 
-&nbsp;&nbsp;This report summarizes the Separation Logic Competition 2014, including its input theory, 
-> * Participants:<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br/ >
->   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br/ >
->   &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf< br/ >
->   &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen<br /> 
+&nbsp;&nbsp;This report summarizes the Separation Logic Competition 2014, including its input theory, introduction to the participants and the benchmarks, competition results, conclusions and future work. The participating solvers are ASTERIX, CYCLIST-SL, SLEEK, SLIDE, SLSAT and SPEN. Their benchmarks can be found [here](https://github.com/mihasighi/smtcomp14-sl/tree/master/bench), which are organized in a common format designed like a logic of the SMT-LIB format. [Pre-processors](https://github.com/mihasighi/smtcomp14-sl/tree/master/pre-processors-sl) are used to for each solver to translate the common format problem into the internal format of each solver. The benchmarks are split into 5 divisions by the kind of problems solved and the kind of inductive definitions used. <br />
+> &nbsp;&nbsp;sll(|=): includes satisfiability problems for the SLL fragment.
+> &nbsp;&nbsp;sll(=>): includes entailment problems for the SLL fragment and has the same source. 
+> &nbsp;&nbsp;UDB(|=): includes satisfiability problems for the SLID+ fragment.
+> &nbsp;&nbsp;UDB(=>): includes entailment problems for formulas in the SLID+ fragment.
+> &nbsp;&nbsp;FDB(=>): includes entailment problems for formulas in the SLNL fragment.
 > * Benchmark features:<br /> 
 > &nbsp;&nbsp;Total number of problems: <br /> 
 > &nbsp;&nbsp;&nbsp;&nbsp;678 Satisfiability 25% Entailment 75%<br /> 
@@ -116,6 +114,14 @@
 > &nbsp;&nbsp;&nbsp;&nbsp;Crafted 41% Randomly generated 59%<br /> 
 > &nbsp;&nbsp;Problems by division:<br /> 
 > &nbsp;&nbsp;&nbsp;&nbsp;sll(|=) 110 &nbsp;&nbsp;sll(⇒) 292 &nbsp;&nbsp;FDB(⇒) 43 &nbsp;&nbsp;UDB(|=) 61 &nbsp;&nbsp;UDB(⇒) 172
+<br />
+> * Participants:<br /> 
+>   &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/<br /> 
+>   &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/<br /> 
+>   &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen<br /> 
 
 ### [AJP15] Sound Modular Verification of C Code Executing in an Unverified Context
 
@@ -155,7 +161,7 @@
 ### [] Space Invader
 
 &nbsp;&nbsp;http://www0.cs.ucl.ac.uk/staff/p.ohearn/Invader/Invader/Invader_Home.html <br /> 
-&nbsp;&nbsp;http://www.cl.cam.ac.uk/~mjcg/SLandSI.pdf
+&nbsp;&nbsp;http://www.cl.cam.ac.uk/~mjcg/SLandSI.pdf<br />
 
 ### Competitions<br /> 
 * Separation Logic Competition 2014 <br /> 
