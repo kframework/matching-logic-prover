@@ -78,10 +78,10 @@
 > * Tool&features:<br /> 
 > &nbsp;&nbsp;VCRYAD framework.<br /> 
 > * Verified programs/structures:<br /> 
-> &nbsp;&nbsp;&nbsp;&nbsp;Schorr-Waite algorithm for garbage collection<br /> 
-> &nbsp;&nbsp;&nbsp;&nbsp;A large number of low-level C routines from the Glib library and OpenBSD library<br /> 
-> &nbsp;&nbsp;&nbsp;&nbsp;The Linux kernel<br /> 
-> &nbsp;&nbsp;&nbsp;&nbsp;Routines from a secure verified OS-browser project<br /> 
+> &nbsp;&nbsp;Schorr-Waite algorithm for garbage collection<br /> 
+> &nbsp;&nbsp;A large number of low-level C routines from the Glib library and OpenBSD library<br /> 
+> &nbsp;&nbsp;The Linux kernel<br /> 
+> &nbsp;&nbsp;Routines from a secure verified OS-browser project<br /> 
 > * Experimental results<br /> 
 > &nbsp;&nbsp;On page 10<br /> 
 
@@ -94,7 +94,9 @@
 >    &nbsp;&nbsp;C programs.Lift Natural Proofs to the Code-Level<br /> 
 > * Verified programs/structures:<br /> 
 >   &nbsp;&nbsp;>150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
->   &nbsp;&nbsp;open source library routines (Glib, OpenBSD), Linux kernel routines, customized OS data structures<br /> 
+>   &nbsp;&nbsp;Open source library routines (Glib, OpenBSD) <br /> 
+    Linux kernel routines <br /> 
+    Customized OS data structures<br /> 
 > * Experimental results<br /> 
 >   &nbsp;&nbsp;On page 10<br /> 
 
@@ -102,11 +104,11 @@
 
 &nbsp;&nbsp;https://github.com/mihasighi/smtcomp14-sl<br /> 
 &nbsp;&nbsp;This report summarizes the Separation Logic Competition 2014, including its input theory, introduction to the participants and the benchmarks, competition results, conclusions and future work. The participating solvers are ASTERIX, CYCLIST-SL, SLEEK, SLIDE, SLSAT and SPEN. Their benchmarks can be found [here](https://github.com/mihasighi/smtcomp14-sl/tree/master/bench), which are organized in a common format designed like a logic of the SMT-LIB format. [Pre-processors](https://github.com/mihasighi/smtcomp14-sl/tree/master/pre-processors-sl) are used to for each solver to translate the common format problem into the internal format of each solver. The benchmarks are split into 5 divisions by the kind of problems solved and the kind of inductive definitions used. <br />
-> &nbsp;&nbsp;sll(|=): includes satisfiability problems for the SLL fragment.
-> &nbsp;&nbsp;sll(=>): includes entailment problems for the SLL fragment and has the same source. 
-> &nbsp;&nbsp;UDB(|=): includes satisfiability problems for the SLID+ fragment.
-> &nbsp;&nbsp;UDB(=>): includes entailment problems for formulas in the SLID+ fragment.
-> &nbsp;&nbsp;FDB(=>): includes entailment problems for formulas in the SLNL fragment.
+> &nbsp;&nbsp;sll(|=): includes satisfiability problems for the SLL fragment.<br />
+> &nbsp;&nbsp;sll(=>): includes entailment problems for the SLL fragment and has the same source. <br />
+> &nbsp;&nbsp;UDB(|=): includes satisfiability problems for the SLID+ fragment.<br />
+> &nbsp;&nbsp;UDB(=>): includes entailment problems for formulas in the SLID+ fragment.<br />
+> &nbsp;&nbsp;FDB(=>): includes entailment problems for formulas in the SLNL fragment.<br />
 > * Benchmark features:<br /> 
 > &nbsp;&nbsp;Total number of problems: <br /> 
 > &nbsp;&nbsp;&nbsp;&nbsp;678 Satisfiability 25% Entailment 75%<br /> 
@@ -116,11 +118,11 @@
 > &nbsp;&nbsp;&nbsp;&nbsp;sll(|=) 110 &nbsp;&nbsp;sll(⇒) 292 &nbsp;&nbsp;FDB(⇒) 43 &nbsp;&nbsp;UDB(|=) 61 &nbsp;&nbsp;UDB(⇒) 172
 <br />
 > * Participants:<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br/ >
->   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br/>
+>   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br/>
 >   &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/<br /> 
 >   &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf< br/>
 >   &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen<br /> 
 
 ### [AJP15] Sound Modular Verification of C Code Executing in an Unverified Context
