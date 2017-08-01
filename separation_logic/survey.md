@@ -11,7 +11,7 @@
 ### [DPV11] Predator: A Practical Tool for Checking Manipulation of Dynamic Data Structures Using Separation Logic
 
   &nbsp;&nbsp;This paper presents a tool called Predator for fully automatic verification of sequential C programs with dynamic linked data structures (various complex kinds of singly-linked as well as doubly-linked lists in particular). Predator has a long-term goal of handling real system code, in particular, the Linux kernel. It is written in C++, built as a gcc plug-in, and open source. It comes with a limited support of pointer arithmetic. <br />
-  &nbsp;&nbsp;Along with the tool, a comprehensive set of programs (over a hundred test cases) that can be handled is distributed. Those include various textbook implementations of lists and examples using Linux lists at https://github.com/kdudka/predator/tree/61d5df3/sl/data. Those case studies are mid-size (up to 300 lines) but contain almost only pointer manipulations. What is also provided are examples of various sorting algorithms operating on various dynamic data structures. The tool is not proving the resulting lists are sorted but verifies memory safety of the code, which Invader is not able to do.
+  &nbsp;&nbsp;Along with the tool, a comprehensive set of programs (over a hundred test cases) that can be handled is distributed. Those include various textbook implementations of lists and examples using Linux lists are [here] (https://github.com/kdudka/predator/tree/61d5df3/sl/data). Those case studies are mid-size (up to 300 lines) but contain almost only pointer manipulations. What is also provided are examples of various sorting algorithms operating on various dynamic data structures. The tool is not proving the resulting lists are sorted but verifies memory safety of the code, which Invader is not able to do.
 
 ### [Chl11] Mostly-Automated Verification of Low-Level Programs in Computational Separation Logic
 
@@ -27,7 +27,7 @@
 > * Statics on case studies<br /> 
 >  &nbsp;&nbsp;Module:    
 >  &nbsp;&nbsp;Malloc &nbsp;&nbsp;Theory of arrays/lists &nbsp;&nbsp;ArrayList     &nbsp;&nbsp;Theory of sets   &nbsp;&nbsp;ThreadLib 
->  &nbsp;&nbsp;SinglyLinkedList  &nbsp;&nbsp;BinarySearchTree  &nbsp;&nbsp;Theory of maps 
+>  &nbsp;&nbsp;SinglyLinkedList  &nbsp;&nbsp;BinarySearchTree <br /> &nbsp;&nbsp;Theory of maps 
 >  &nbsp;&nbsp;AssociationList     &nbsp;&nbsp;Hashtable    &nbsp;&nbsp;Memoize     &nbsp;&nbsp;AppendCPS   
 
 ### [JSPVPP11] VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java
@@ -94,13 +94,32 @@
 > * Experimental results<br /> 
 >   &nbsp;&nbsp;On page 10<br /> 
 
+### [SL-COMP14]Report on SL-COMP 2014
+
+&nbsp;&nbsp;https://github.com/mihasighi/smtcomp14-sl<br /> 
+&nbsp;&nbsp;This report 
+> * Participants:<br /> 
+>   &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/<br /> 
+>   &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/<br /> 
+>   &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf< br/ >
+>   &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen<br /> 
+> * Benchmark features:<br /> 
+> &nbsp;&nbsp;Total number of problems: <br /> 
+> &nbsp;&nbsp;&nbsp;&nbsp;678 Satisfiability 25% Entailment 75%<br /> 
+> &nbsp;&nbsp;Origin:<br /> 
+> &nbsp;&nbsp;&nbsp;&nbsp;Crafted 41% Randomly generated 59%<br /> 
+> &nbsp;&nbsp;Problems by division:<br /> 
+> &nbsp;&nbsp;&nbsp;&nbsp;sll(|=) 110 &nbsp;&nbsp;sll(⇒) 292 &nbsp;&nbsp;FDB(⇒) 43 &nbsp;&nbsp;UDB(|=) 61 &nbsp;&nbsp;UDB(⇒) 172
+
 ### [AJP15] Sound Modular Verification of C Code Executing in an Unverified Context
 
   &nbsp;&nbsp;This paper is based on the VeriFast verifier [JSPVPP11]. It develops runtime checks to be inserted at the boundary between the verified and the unverified part of a program to guarantee that no assertion failures or invalid memory accesses can occur at runtime in any verified module. The key part is transforming a verified module (with specification annotations) to a *hardened* module that consists of a functional part and a boundary checking part. Pure assertions, spatial assertions, predicates, inductive data types, and function pointers are taken into account. The authors formalize the approach in terms of a simple imperative programming language that models the C language, providing a comprehensive syntax and small-step semantics of the imperative language. Using that, the authors provide a formal correctness proof of those runtime checks. The tool is tested on some benchmark systems, including the insertion sorting algorithm on linked lists of integers, the in-order traversal algorithm on binary search trees, and some real world artifacts including Apache httpd authentication modules and NetKit FTP daemon. 
 
 ### [JBK15] Modular Termination Verification
 
-&nbsp;&nbsp;http://www.cs.kuleuven.be/~bartj/verifast/
+&nbsp;&nbsp;http://www.cs.kuleuven.be/~bartj/verifast/<br /> 
   &nbsp;&nbsp;This paper proposes an approach for the modular specification and verification of total correctness properties of object-oriented programs. It extends the existing program logic for partial correctness based on separation logic and abstract predicate families, with call permissions qualified by an arbitrary ordinal number, and it defines a specification style that properly hides implementation details, based on the ideas of using methods and bags of methods as ordinals, and exposing the bag of methods reachable from an object as an abstract predicate argument. The approach was illusitrated by several examples, including an example of transfering an amount of money between two bank accounts and an example of an interface method that takes as an argument another object.
 
 ### [RDF15]Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning 
@@ -116,11 +135,6 @@
 
   &nbsp;&nbsp;This paper investigates the model checking problem for symbolic-heap separation logic with user-defined inductive predicates. The problem is proved to be decidable and appreciates a bottom-up fixed point algorithm (instead of a top-down one). In general, the problem is EXPTIME-complete, but becomes NP-complete or PTIME-solvable when natural syntactic restrictions on the schemata defining the inductive predicates are assumed. This paper is a hard one. I haven't understood it yet. However, it has a good list of references.
 
-### [] Space Invader
-
-&nbsp;&nbsp;http://www0.cs.ucl.ac.uk/staff/p.ohearn/Invader/Invader/Invader_Home.html
-&nbsp;&nbsp;http://www.cl.cam.ac.uk/~mjcg/SLandSI.pdf
-
 ### [Bar16]Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast
 
 &nbsp;&nbsp;https://github.com/verifast/verifast<br /> 
@@ -132,24 +146,10 @@
 >   &nbsp;&nbsp;Static Tree Barriers<br /> 
 >    &nbsp;&nbsp;&nbsp;&nbsp; 190 lines of annotations for 25LOC means an overhead of 8×.<br /> 
 
-### [SL-COMP14]Report on SL-COMP 2014
+### [] Space Invader
 
-&nbsp;&nbsp;https://github.com/mihasighi/smtcomp14-sl<br /> 
-> * Participants:<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/.<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/.<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SmallFoot. www0.cs.ucl.ac.uk/staff/p.ohearn/smallfoot/.<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SMT-COMP. smtcomp.sourceforge.org.<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen.<br /> 
->   &nbsp;&nbsp;&nbsp;&nbsp;StarExec. www.starexec.org.<br /> 
-> * Benchmark features:<br /> 
-> &nbsp;&nbsp;Total number of problems: <br /> 
-> &nbsp;&nbsp;&nbsp;&nbsp;678 Satisfiability 25% Entailment 75%<br /> 
-> &nbsp;&nbsp;Origin:<br /> 
-> &nbsp;&nbsp;&nbsp;&nbsp;Crafted 41% Randomly generated 59%<br /> 
-> &nbsp;&nbsp;Problems by division:<br /> 
-> &nbsp;&nbsp;&nbsp;&nbsp;sll(|=) 110 &nbsp;&nbsp;sll(⇒) 292 &nbsp;&nbsp;FDB(⇒) 43 &nbsp;&nbsp;UDB(|=) 61 &nbsp;&nbsp;UDB(⇒) 172
-
+&nbsp;&nbsp;http://www0.cs.ucl.ac.uk/staff/p.ohearn/Invader/Invader/Invader_Home.html <br /> 
+&nbsp;&nbsp;http://www.cl.cam.ac.uk/~mjcg/SLandSI.pdf
 
 ### Competitions<br /> 
 * Separation Logic Competition 2014 <br /> 
@@ -157,5 +157,9 @@
 &nbsp;&nbsp; https://groups.google.com/forum/#!topic/sl-comp/tZLCevpNdmg<br /> 
 * Separation Logic Competition 2015 <br />
 &nbsp;&nbsp;https://www.irif.fr/~sighirea/slcomp/2015/index.html<br /> 
+* VerifyThis Competition 2015 <br /> 
+&nbsp;&nbsp;http://etaps2015.verifythis.org<br /> 
 * VerifyThis Competition 2016 <br /> 
 &nbsp;&nbsp;http://etaps2016.verifythis.org/home<br /> 
+* VerifyThis Competition 2017 <br /> 
+&nbsp;&nbsp;https://formal.iti.kit.edu/ulbrich/verifythis2017/<br /> 
