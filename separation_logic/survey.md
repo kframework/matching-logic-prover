@@ -34,6 +34,7 @@
 ### [JSPVPP11] VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java
 
 &nbsp;&nbsp;https://people.cs.kuleuven.be/~bart.jacobs/verifast/<br /> 
+&nbsp;&nbsp;This paper introduces a prototype verification tool Verifast for single-threaded and multithreaded C and Java programs.It first describes the basic symbolic execution approach in some formal detail. Then it zooms in on two technical aspects: the approach to permission accounting, including fractional permissions, precise predicates, and counting permissions; and the approach to lemma function termination in the presence of dynamically-bound lemma function calls.
 > * Tool&features:<br /> 
 >   &nbsp;&nbsp;VeriFast. <br /> 
 >  &nbsp;&nbsp;C & Java.Single/multi-threaded.Support for permission accounting.<br /> 
@@ -73,8 +74,7 @@
 ### [QGSM13] Natural Proofs for Structure, Data, and Separation
 
   &nbsp;&nbsp;http://www.cs.uiuc.edu/∼madhu/dryad/sl/<br /> 
-  &nbsp;&nbsp;This paper proposes natural proofs for reasoning with programs that manipulate data-structures against specifications that describe the structure of the heap, the data stored within it, and separation and framing of sub-structures. It develops Dryad and ways to reason with heaplets using classical logic over the theory of sets, and develop natural proofs for reasoning using proof tactics involving disciplined unfoldings and formula abstractions.It implement the technique and tested it on a large class of programs.
-
+  &nbsp;&nbsp;This paper proposes natural proofs for reasoning with programs that manipulate data-structures against specifications that describe the structure of the heap, the data stored within it, and separation and framing of sub-structures. It develops Dryad and ways to reason with heaplets using classical logic over the theory of sets, and develop natural proofs for reasoning using proof tactics involving disciplined unfoldings and formula abstractions.It implement the technique and tested it on a large class of programs.<br /> 
 > * Tool&features:<br /> 
 > &nbsp;&nbsp;VCRYAD framework.<br /> 
 > * Verified programs/structures:<br /> 
@@ -89,6 +89,7 @@
 
 &nbsp;&nbsp;http://madhu.cs.illinois.edu/vcdryad/examples/<br /> 
 &nbsp;&nbsp;http://madhu.cs.illinois.edu/vcdryad/<br /> 
+&nbsp;&nbsp;This paper introduces a framework called VCDRYAD that extends the VCC framework to provide an automated deductive framework against separation logic specifications for C programs based on natural proofs. It develops several new techniques to build this framework, including a novel tool architecture that allows encoding natural proofs at a higher level in order to use the existing VCC framework (including its intricate memory model, the underlying type-checker, and the SMT-based verification infrastructure), and a synthesis of ghost-code annotations that captures natural proof tactics, in essence forcing VCC to find natural proofs using primarily decidable theories.<br />
 > * Tool&features:<br /> 
 >   &nbsp;&nbsp;VCRYAD framework. <br />
 >    &nbsp;&nbsp;C programs.Lift Natural Proofs to the Code-Level<br /> 
@@ -124,16 +125,16 @@
   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist<br />
 > &nbsp;&nbsp;&nbsp;An entailment prover for separation logic with inductive predicates based on cyclic proof.  The theory and design is described in J. Brotherston, N. Gorogiannis, and R. L. Petersen. A generic cyclic theorem prover. In Proc. APLAS-10, pages 350-367. Springer, 2012.
 
-  &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;SLEEK: http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/<br /> 
 > &nbsp;&nbsp;&nbsp;A solver deals with the satisfiability and entailment checking for SLID+ formulas. It is an (incomplete but) automatic prover, that builds a proof tree for the input problem by using the classical inference rules and the frame rule of SL. It also uses a database of lemmas for the inductive definitions in order to discharge the proof obligations on the spatial formulas. Provided by Quang Loc Le and Wei Ngan Chin.
 
-  &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;SLIDE: http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/<br /> 
 > &nbsp;&nbsp;&nbsp;SLIDE is a tool for deciding entailments between two given predicates, from a larger system of inductively defined predicates, written in an existential fragment of Separation Logic. The proof method relies on converting both the left hand and right hand sides of the entailment into two tree automata AutLHS and AutRHS, respectively, and checking the tree language inclusion of the automaton AutLHS in the automaton AutRHS.
 
   &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf<br />
 > &nbsp;&nbsp;&nbsp;A satisfiability checker for separation logic with inductive predicates. The algorithm, its soundness and its complexity are described in James Brotherston, Carsten Fuhs, Nikos Gorogiannis, and Juan Navarro Prez. A decision procedure for satisfiability in separation logic with inductive predicates. To appear at CSL-LICS, 2014.
 
-  &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen<br /> 
+&nbsp;&nbsp;&nbsp;&nbsp;SPEN: https://www.github.com/mihasighi/spen<br /> 
 > &nbsp;&nbsp;&nbsp;An solver deals with satisfiability and entailment problems for the fragment SLNL. The decision pro- cedures calls the MiniSAT solver on a boolean abstraction of the SL formulas to check their satisfiability and to “normalize” the formulas by inferring its implicit (dis)equalities. Provided by Mihaela Sighireanu. 
 
 
