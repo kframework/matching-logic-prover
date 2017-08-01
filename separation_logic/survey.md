@@ -1,6 +1,6 @@
 # A Survey of Separation Logic and Its Tools
 
-### [Rey02] Separation Logic: A Logic for Shared Mutable Data Structures
+### [[Rey02] Separation Logic: A Logic for Shared Mutable Data Structures](https://www.cs.cmu.edu/~jcr/seplogic.pdf)
 
   &nbsp;&nbsp;This paper proposes the idea of separation logic, an extension of Hoare logic that permits reasoning about low-level imperative programs that use shared mutable data strctures.It extends assertions by introducing "separation conjunction" and "separation implication",which, coupled with the inductive definition of predicates on abstract data structures, permit the concise and flexible description of structures with controlled sharing.This paper also surveys the current development of this program logic, including extensions that permit unrestricted address arithmetics, dynamically allocated arrays and recursive procedures. 
  
@@ -19,7 +19,8 @@
   &nbsp;&nbsp;This paper introduces a framework called Bedrock, which supports mostly-automated proofs about programs with the full range of features needed to implement. The key of its approach is in mostly-automated discharge of verification conditions inspired by separation logic. It can almost entirely avoid quantifiers, which are challenging in automated verifiers, by relying on functional programs, which leads to dramatic improvements compared to past work in classical verification and verified programming with code pointers. 
 
 > * Tool&features:<br /> 
->  &nbsp;&nbsp;Bedrock. reason about first-class code pointers;low-level;avoid quantifiers.<br /> 
+>  &nbsp;&nbsp;Bedrock. <br /> 
+> &nbsp;&nbsp;Reason about first-class code pointers.Low-level.Avoid quantifiers.<br /> 
 > * Verified programs/structures:<br /> 
 >  &nbsp;&nbsp;The add function<br /> 
 >  &nbsp;&nbsp;The swap function<br /> 
@@ -32,9 +33,10 @@
 
 ### [JSPVPP11] VeriFast: A Powerful, Sound, Predictable, Fast Verifier for C and Java
 
-&nbsp;&nbsp;http://www.cs.kuleuven.be/ ̃bartj/verifast/<br /> 
+&nbsp;&nbsp;https://people.cs.kuleuven.be/~bart.jacobs/verifast/<br /> 
 > * Tool&features:<br /> 
->   &nbsp;&nbsp;VeriFast. C & Java.Single/multi-threaded.Support for permission accounting.<br /> 
+>   &nbsp;&nbsp;VeriFast. <br /> 
+>  &nbsp;&nbsp;C & Java.Single/multi-threaded.Support for permission accounting.<br /> 
 > * Verified programs/structures:<br /> 
 >   &nbsp;&nbsp;Symbolic execution algorithm<br /> 
 >   &nbsp;&nbsp;Permission accounting<br /> 
@@ -42,11 +44,12 @@
 >   &nbsp;&nbsp;Integrating Shape Analysis<br /> 
 >   &nbsp;&nbsp;Linux Device Drivers<br /> 
 
-### [BF11]Expressive Modular Fine-Grained Concurrency Specification
+### [BF11] Expressive Modular Fine-Grained Concurrency Specification
 
-&nbsp;&nbsp;http://www.cs.kuleuven.be/ ̃bartj/verifast/<br /> 
+&nbsp;&nbsp;https://people.cs.kuleuven.be/~bart.jacobs/verifast/<br /> 
 > * Tool&features:<br /> 
-> &nbsp;&nbsp;VeriFast. extend resource-invariants-based method to achieve procedure-modularity;lift limitations on expressiveness of specifications;enable fully general specification of fine-grained concurrent data structures.<br /> 
+> &nbsp;&nbsp;VeriFast. <br /> 
+>  &nbsp;&nbsp;Extend resource-invariants-based method to achieve procedure-modularity.Lift limitations on expressiveness of specifications.Enable fully general specification of fine-grained concurrent data structures.<br /> 
 > * Verified programs/structures:<br /> 
 > &nbsp;&nbsp;multiple-compare-and-swap algorithm (MCAS)<br /> 
 > &nbsp;&nbsp; lock-couping list<br /> 
@@ -87,17 +90,18 @@
 &nbsp;&nbsp;http://madhu.cs.illinois.edu/vcdryad/examples/<br /> 
 &nbsp;&nbsp;http://madhu.cs.illinois.edu/vcdryad/<br /> 
 > * Tool&features:<br /> 
->   &nbsp;&nbsp;VCRYAD framework. C programs.Lift Natural Proofs to the Code-Level<br /> 
+>   &nbsp;&nbsp;VCRYAD framework. <br />
+>    &nbsp;&nbsp;C programs.Lift Natural Proofs to the Code-Level<br /> 
 > * Verified programs/structures:<br /> 
 >   &nbsp;&nbsp;>150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
->   &nbsp;&nbsp;open source library routines (Glib, OpenBSD), Linux ker- nel routines, customized OS data structures<br /> 
+>   &nbsp;&nbsp;open source library routines (Glib, OpenBSD), Linux kernel routines, customized OS data structures<br /> 
 > * Experimental results<br /> 
 >   &nbsp;&nbsp;On page 10<br /> 
 
 ### [SL-COMP14]Report on SL-COMP 2014
 
 &nbsp;&nbsp;https://github.com/mihasighi/smtcomp14-sl<br /> 
-&nbsp;&nbsp;This report 
+&nbsp;&nbsp;This report summarizes the Separation Logic Competition 2014, including its input theory, 
 > * Participants:<br /> 
 >   &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br/ >
 >   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br/ >
@@ -122,11 +126,12 @@
 &nbsp;&nbsp;http://www.cs.kuleuven.be/~bartj/verifast/<br /> 
   &nbsp;&nbsp;This paper proposes an approach for the modular specification and verification of total correctness properties of object-oriented programs. It extends the existing program logic for partial correctness based on separation logic and abstract predicate families, with call permissions qualified by an arbitrary ordinal number, and it defines a specification style that properly hides implementation details, based on the ideas of using methods and bags of methods as ordinals, and exposing the bag of methods reachable from an object as an abstract predicate argument. The approach was illusitrated by several examples, including an example of transfering an amount of money between two bank accounts and an example of an interface method that takes as an argument another object.
 
-### [RDF15]Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning 
+### [RDF15] Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning 
 
 &nbsp;&nbsp;http://plv.mpi-sws.org/iris<br /> 
 > * Tool&features:<br /> 
-> &nbsp;&nbsp;Iris logic. only need monoids and invariants.<br /> 
+> &nbsp;&nbsp;Iris logic.<br /> 
+>  &nbsp;&nbsp;Only need monoids and invariants.<br /> 
 > * Verified programs/structures:<br /> 
 > &nbsp;&nbsp;A fine-grained elimination stack ADT<br /> 
 > &nbsp;&nbsp;Hash Tables<br /> 
@@ -135,11 +140,12 @@
 
   &nbsp;&nbsp;This paper investigates the model checking problem for symbolic-heap separation logic with user-defined inductive predicates. The problem is proved to be decidable and appreciates a bottom-up fixed point algorithm (instead of a top-down one). In general, the problem is EXPTIME-complete, but becomes NP-complete or PTIME-solvable when natural syntactic restrictions on the schemata defining the inductive predicates are assumed. This paper is a hard one. I haven't understood it yet. However, it has a good list of references.
 
-### [Bar16]Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast
+### [Bar16] Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast
 
 &nbsp;&nbsp;https://github.com/verifast/verifast<br /> 
 > * Tool&features:<br /> 
->   &nbsp;&nbsp;VeriFast. C & Java; symbolic execution; single/multi-threaded.<br /> 
+>   &nbsp;&nbsp;VeriFast. <br />
+>   &nbsp;&nbsp;C & Java.Symbolic execution.Single/multi-threaded.<br /> 
 > * Verified programs/structures:<br /> 
 >   &nbsp;&nbsp;Binary Tree Traversal<br /> 
 >   &nbsp;&nbsp;&nbsp;&nbsp;  79 lines of annotations for 17LOC means an overhead of 5×.<br /> 
