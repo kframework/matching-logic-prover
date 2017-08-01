@@ -66,13 +66,13 @@
 > * Tool&features:<br /> 
 > &nbsp;&nbsp;VCRYAD framework.<br /> 
 > * Verified programs/structures:<br /> 
->    &nbsp;&nbsp; Sorted List &nbsp;&nbsp; &nbsp;&nbsp; Binary Heap  &nbsp;&nbsp; &nbsp;&nbsp;Treap  &nbsp;&nbsp; &nbsp;&nbsp;AVL Tree  &nbsp;&nbsp; &nbsp;&nbsp;Red-Black Tree &nbsp;&nbsp; &nbsp;&nbsp; B-Tree &nbsp;&nbsp; &nbsp;&nbsp; Binomial Heap <br /> 
+>  &nbsp;&nbsp; Sorted List &nbsp;&nbsp; &nbsp;&nbsp; Binary Heap  &nbsp;&nbsp; &nbsp;&nbsp;Treap  &nbsp;&nbsp; &nbsp;&nbsp;AVL Tree  &nbsp;&nbsp; &nbsp;&nbsp;Red-Black Tree &nbsp;&nbsp; &nbsp;&nbsp; B-Tree &nbsp;&nbsp; &nbsp;&nbsp; Binomial Heap <br /> 
 > * Experimental results<br /> 
 > &nbsp;&nbsp;On page 12<br /> 
 
 ### [QGSM13] Natural Proofs for Structure, Data, and Separation
 
-  &nbsp;&nbsp;http://www.cs.uiuc.edu/ ̃ madhu/dryad/sl/<br /> 
+  &nbsp;&nbsp;http://www.cs.uiuc.edu/∼madhu/dryad/sl/<br /> 
   &nbsp;&nbsp;This paper proposes natural proofs for reasoning with programs that manipulate data-structures against specifications that describe the structure of the heap, the data stored within it, and separation and framing of sub-structures. It develops Dryad and ways to reason with heaplets using classical logic over the theory of sets, and develop natural proofs for reasoning using proof tactics involving disciplined unfoldings and formula abstractions.It implement the technique and tested it on a large class of programs.
 
 > * Tool&features:<br /> 
@@ -118,16 +118,16 @@
 > &nbsp;&nbsp;&nbsp;&nbsp;sll(|=) 110 &nbsp;&nbsp;sll(⇒) 292 &nbsp;&nbsp;FDB(⇒) 43 &nbsp;&nbsp;UDB(|=) 61 &nbsp;&nbsp;UDB(⇒) 172
 
 * Participants:<br /> 
-  &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br />
-> &nbsp;&nbsp;&nbsp;Asterix implements a model-based approach to decide separation logic satisfiability and entailment queries. Our procedure, relying on SMT solving technology to untangle potential aliasing between program variables, has at its core a _matching_ function that checks whether a concrete valuation is a model of the input formula and, if so, generalises it to a larger class of models where the formula is also valid. The version submitted to this competition is dynamically linked with Z3 and implements support for the acyclic list segment predicate only. Details about the algorithm and its correctness are described in J. A. Navarro Perez and A. Rybalchenko. Separation Logic Modulo Theories.< br />
-  &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br />
-> &nbsp;&nbsp;&nbsp;An entailment prover for separation logic with inductive predicates based on cyclic proof.  The theory and design is described in J. Brotherston, N. Gorogiannis, and R. L. Petersen. A generic cyclic theorem prover. In Proc. APLAS-10, pages 350-367. Springer, 2012.< br />
+  &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf<br />
+> &nbsp;&nbsp;&nbsp;Asterix implements a model-based approach to decide separation logic satisfiability and entailment queries. Our procedure, relying on SMT solving technology to untangle potential aliasing between program variables, has at its core a _matching_ function that checks whether a concrete valuation is a model of the input formula and, if so, generalises it to a larger class of models where the formula is also valid. The version submitted to this competition is dynamically linked with Z3 and implements support for the acyclic list segment predicate only. Details about the algorithm and its correctness are described in J. A. Navarro Perez and A. Rybalchenko. Separation Logic Modulo Theories.<br />
+  &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist<br />
+> &nbsp;&nbsp;&nbsp;An entailment prover for separation logic with inductive predicates based on cyclic proof.  The theory and design is described in J. Brotherston, N. Gorogiannis, and R. L. Petersen. A generic cyclic theorem prover. In Proc. APLAS-10, pages 350-367. Springer, 2012.<br />
   &nbsp;&nbsp;&nbsp;&nbsp;SLEEK. http://loris-7.ddns.comp.nus.edu.sg/~project/s2/beta/<br /> 
-> &nbsp;&nbsp;&nbsp;A solver deals with the satisfiability and entailment checking for SLID+ formulas. It is an (incomplete but) automatic prover, that builds a proof tree for the input problem by using the classical inference rules and the frame rule of SL. It also uses a database of lemmas for the inductive definitions in order to discharge the proof obligations on the spatial formulas. Provided by Quang Loc Le and Wei Ngan Chin.< br />
+> &nbsp;&nbsp;&nbsp;A solver deals with the satisfiability and entailment checking for SLID+ formulas. It is an (incomplete but) automatic prover, that builds a proof tree for the input problem by using the classical inference rules and the frame rule of SL. It also uses a database of lemmas for the inductive definitions in order to discharge the proof obligations on the spatial formulas. Provided by Quang Loc Le and Wei Ngan Chin.<br />
   &nbsp;&nbsp;&nbsp;&nbsp;SLIDE. http://www.fit.vutbr.cz/research/groups/verifit/tools/slide/<br /> 
-> &nbsp;&nbsp;&nbsp;SLIDE is a tool for deciding entailments between two given predicates, from a larger system of inductively defined predicates, written in an existential fragment of Separation Logic. The proof method relies on converting both the left hand and right hand sides of the entailment into two tree automata AutLHS and AutRHS, respectively, and checking the tree language inclusion of the automaton AutLHS in the automaton AutRHS.< br />
-  &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf< br />
-> &nbsp;&nbsp;&nbsp;A satisfiability checker for separation logic with inductive predicates. The algorithm, its soundness and its complexity are described in James Brotherston, Carsten Fuhs, Nikos Gorogiannis, and Juan Navarro Prez. A decision procedure for satisfiability in separation logic with inductive predicates. To appear at CSL-LICS, 2014.< br />
+> &nbsp;&nbsp;&nbsp;SLIDE is a tool for deciding entailments between two given predicates, from a larger system of inductively defined predicates, written in an existential fragment of Separation Logic. The proof method relies on converting both the left hand and right hand sides of the entailment into two tree automata AutLHS and AutRHS, respectively, and checking the tree language inclusion of the automaton AutLHS in the automaton AutRHS.<br />
+  &nbsp;&nbsp;&nbsp;&nbsp;SLSAT: http://www.dcs.bbk.ac.uk/~carsten/papers/CSLLICS14-slsat.pdf<br />
+> &nbsp;&nbsp;&nbsp;A satisfiability checker for separation logic with inductive predicates. The algorithm, its soundness and its complexity are described in James Brotherston, Carsten Fuhs, Nikos Gorogiannis, and Juan Navarro Prez. A decision procedure for satisfiability in separation logic with inductive predicates. To appear at CSL-LICS, 2014.<br />
   &nbsp;&nbsp;&nbsp;&nbsp;SPEN. https://www.github.com/mihasighi/spen<br /> 
 > &nbsp;&nbsp;&nbsp;An solver deals with satisfiability and entailment problems for the fragment SLNL. The decision pro- cedures calls the MiniSAT solver on a boolean abstraction of the SL formulas to check their satisfiability and to “normalize” the formulas by inferring its implicit (dis)equalities. Provided by Mihaela Sighireanu. 
 
