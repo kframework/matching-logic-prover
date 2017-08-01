@@ -66,7 +66,7 @@
 > * Tool&features:<br /> 
 > &nbsp;&nbsp;VCRYAD framework.<br /> 
 > * Verified programs/structures:<br /> 
->    &nbsp;&nbsp; &nbsp;&nbsp;Sorted List &nbsp;&nbsp; &nbsp;&nbsp; Binary Heap  &nbsp;&nbsp; &nbsp;&nbsp;Treap  &nbsp;&nbsp; &nbsp;&nbsp;AVL Tree  &nbsp;&nbsp; &nbsp;&nbsp;Red-Black Tree &nbsp;&nbsp; &nbsp;&nbsp; B-Tree &nbsp;&nbsp; &nbsp;&nbsp; Binomial Heap <br /> 
+>    &nbsp;&nbsp; Sorted List &nbsp;&nbsp; &nbsp;&nbsp; Binary Heap  &nbsp;&nbsp; &nbsp;&nbsp;Treap  &nbsp;&nbsp; &nbsp;&nbsp;AVL Tree  &nbsp;&nbsp; &nbsp;&nbsp;Red-Black Tree &nbsp;&nbsp; &nbsp;&nbsp; B-Tree &nbsp;&nbsp; &nbsp;&nbsp; Binomial Heap <br /> 
 > * Experimental results<br /> 
 > &nbsp;&nbsp;On page 12<br /> 
 
@@ -95,8 +95,8 @@
 > * Verified programs/structures:<br /> 
 >   &nbsp;&nbsp;>150 data structures (singly-linked-list,sorted-list,doubly-linked-list,treap,avl...)<br /> 
 >   &nbsp;&nbsp;Open source library routines (Glib, OpenBSD) <br /> 
-    Linux kernel routines <br /> 
-    Customized OS data structures<br /> 
+    &nbsp;&nbsp;Linux kernel routines <br /> 
+    &nbsp;&nbsp;Customized OS data structures<br /> 
 > * Experimental results<br /> 
 >   &nbsp;&nbsp;On page 10<br /> 
 
@@ -110,13 +110,13 @@
 > &nbsp;&nbsp;UDB(=>): includes entailment problems for formulas in the SLID+ fragment.<br />
 > &nbsp;&nbsp;FDB(=>): includes entailment problems for formulas in the SLNL fragment.<br />
 > * Benchmark features:<br /> 
-> &nbsp;&nbsp;Total number of problems: <br /> 
+> Total number of problems: <br /> 
 > &nbsp;&nbsp;&nbsp;&nbsp;678 Satisfiability 25% Entailment 75%<br /> 
-> &nbsp;&nbsp;Origin:<br /> 
+> Origin:<br /> 
 > &nbsp;&nbsp;&nbsp;&nbsp;Crafted 41% Randomly generated 59%<br /> 
-> &nbsp;&nbsp;Problems by division:<br /> 
+> Problems by division:<br /> 
 > &nbsp;&nbsp;&nbsp;&nbsp;sll(|=) 110 &nbsp;&nbsp;sll(⇒) 292 &nbsp;&nbsp;FDB(⇒) 43 &nbsp;&nbsp;UDB(|=) 61 &nbsp;&nbsp;UDB(⇒) 172
-<br />
+
 > * Participants:<br /> 
 >   &nbsp;&nbsp;&nbsp;&nbsp;ASTERIX: http://www.lsv.fr/~demri/NavarroPerezRybalchenko13.pdf< br/>
 >   &nbsp;&nbsp;&nbsp;&nbsp;CYCLIST-SL: https://github.com/ngorogiannis/cyclist< br/>
@@ -155,9 +155,9 @@
 >   &nbsp;&nbsp;VeriFast. <br />
 >   &nbsp;&nbsp;C & Java.Symbolic execution.Single/multi-threaded.<br /> 
 > * Verified programs/structures:<br /> 
->   &nbsp;&nbsp;Binary Tree Traversal<br /> 
+>   Binary Tree Traversal<br /> 
 >   &nbsp;&nbsp;&nbsp;&nbsp;  79 lines of annotations for 17LOC means an overhead of 5×.<br /> 
->   &nbsp;&nbsp;Static Tree Barriers<br /> 
+>   Static Tree Barriers<br /> 
 >    &nbsp;&nbsp;&nbsp;&nbsp; 190 lines of annotations for 25LOC means an overhead of 8×.<br /> 
 
 ### [] Space Invader
