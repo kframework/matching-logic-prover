@@ -55,7 +55,7 @@
 > &nbsp;&nbsp; lock-couping list<br /> 
 > * Statics<br /> 
 > &nbsp;&nbsp;lcset.c | client.c | rdcss.c |mcas.c |client.c <br /> 
-> &nbsp;&nbsp;&nbsp; 0.37s&nbsp;&nbsp;  |&nbsp;&nbsp;&nbsp;   0.13s &nbsp;&nbsp;  | &nbsp;&nbsp;&nbsp;  0.5s &nbsp;&nbsp; | &nbsp;1.33s &nbsp;|&nbsp; 0.22s  <br /> 
+> &nbsp;&nbsp; 0.37s&nbsp;&nbsp;  |&nbsp;&nbsp;  0.13s &nbsp;  | &nbsp;&nbsp;  0.5s &nbsp;&nbsp; | &nbsp;1.33s &nbsp;|&nbsp; 0.22s  <br /> 
 
 
 ### [MQS12] Recursive Proofs for Inductive Tree Data-Structures
