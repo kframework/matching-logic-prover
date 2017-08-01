@@ -54,9 +54,9 @@
 > &nbsp;&nbsp;multiple-compare-and-swap algorithm (MCAS)<br /> 
 > &nbsp;&nbsp; lock-couping list<br /> 
 > * Statics<br /> 
-> &nbsp;&nbsp;lcset.c | client.c | rdcss.c |mcas.c |client.c
->   -|-|-|-|-
-> &nbsp;&nbsp;0.37s |0.13s |0.5s |1.33s |0.22s <br /> 
+> &nbsp;&nbsp;lcset.c | client.c | rdcss.c |mcas.c |client.c <br /> 
+> &nbsp;&nbsp;--------|----------|---------|-------|------- <br /> 
+> &nbsp;&nbsp; 0.37s  |   0.13s  |   0.5s  | 1.33s | 0.22s  <br /> 
 
 
 ### [MQS12] Recursive Proofs for Inductive Tree Data-Structures
