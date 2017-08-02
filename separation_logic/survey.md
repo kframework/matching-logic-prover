@@ -150,6 +150,7 @@
 ### [RDF15] Iris: Monoids and invariants as an orthogonal basis for concurrent reasoning 
 
 &nbsp;&nbsp;http://plv.mpi-sws.org/iris<br /> 
+&nbsp;&nbsp;This paper presents Iris, a concurrent separation logic which only needs monoids and invariants. Partial commutative monoids enable us to express and invariants enable us to enforce— user-defined protocols on shared state, which are at the conceptual core of most recent program logics for concurrency. Furthermore, through a novel extension of the concept of a view shift, Iris supports the encoding of logically atomic specifications.<br />
 > * Tool&features:<br /> 
 > &nbsp;&nbsp;Iris logic.<br /> 
 >  &nbsp;&nbsp;Only need monoids and invariants.<br /> 
@@ -164,6 +165,7 @@
 ### [Bar16] Partial Solutions to VerifyThis 2016 Challenges 2 and 3 with VeriFast
 
 &nbsp;&nbsp;https://github.com/verifast/verifast<br /> 
+&nbsp;&nbsp;This paper presents the partial solutions, using their VeriFast separation-logic based tool for modular formal verification of C and Java programs, to Challenges 2 and 3 of the VerifyThis 2016 Verification Competition, involving the verification of crash- freedom and certain correctness properties of code fragments implementing constant-space tree traversal and a tree barrier.<br />
 > * Tool&features:<br /> 
 >   &nbsp;&nbsp;VeriFast. <br />
 >   &nbsp;&nbsp;C & Java.Symbolic execution.Single/multi-threaded.<br /> 
