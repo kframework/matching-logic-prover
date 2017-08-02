@@ -180,6 +180,7 @@
 
 &nbsp;&nbsp;http://www0.cs.ucl.ac.uk/staff/p.ohearn/Invader/Invader/Invader_Home.html <br /> 
 &nbsp;&nbsp;http://www.cl.cam.ac.uk/~mjcg/SLandSI.pdf<br />
+&nbsp;&nbsp;SpaceInvader 1.1 is a prototype analyzer for C programs, based on separation logic. It was developed in the period 2005-2008. It is no longer being actively maintained.
 
 ### Competitions<br /> 
 * Separation Logic Competition 2014 <br /> 
