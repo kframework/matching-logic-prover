@@ -48,6 +48,7 @@
 ### [BF11] Expressive Modular Fine-Grained Concurrency Specification
 
 &nbsp;&nbsp;https://people.cs.kuleuven.be/~bart.jacobs/verifast/<br /> 
+&nbsp;&nbsp;This paper proposes a novel approach that lifts limitations on expressiveness of specifications, and enables fully general specification of fine-grained concurrent data structures. The basic idea is that clients pass the ghost code required to instantiate an operation’s specification for a specific client scenario into the operation in a simple form of higher-order programming.<br />
 > * Tool&features:<br /> 
 > &nbsp;&nbsp;VeriFast. <br /> 
 >  &nbsp;&nbsp;Extend resource-invariants-based method to achieve procedure-modularity.Lift limitations on expressiveness of specifications.Enable fully general specification of fine-grained concurrent data structures.<br /> 
