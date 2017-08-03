@@ -1399,8 +1399,21 @@ The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the 
 
 In this section, we consider \emph{decomposition} of patterns. A decomposition of a pattern $P$ is a pair $\langle C, R \rangle $ such that $C[R] = P$. Let us now consider patterns that do not have logical connectives.
 
+\subsection{Separation logic and their variants}
+
+In this section we show how various variants of separation logic are instances of matching logic. We will choose $n$ most popular variants $\mathrm{SL}_1, \dots, \mathrm{SL}_n$, and for each of them prove the following conservative extension result:
+\begin{equation*}
+\vDash_{\mathrm{SL}_i} \varphi \quad \text{iff} \quad T_{\mathrm{SL}_i} \vDash t_i(\varphi),
+\end{equation*}
+where $T_{\mathrm{SL}_i}$ is the matching logic theory of $\mathrm{SL}_i$ and $t_i$ is the corresponding ``separation logic formulae to matching logic patterns''  translation function, which in most cases should be the identity function.
+
+\subsubsection{Original separation logic}
+
+\subsubsection{Separation logic with symbolic heaps}
+
 \section{Semantics of K}
 
+Moved to a separate repository.
 
 
 \end{document}
