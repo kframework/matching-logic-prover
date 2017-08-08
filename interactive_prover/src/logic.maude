@@ -1,1 +1,36 @@
-fmod 
+fmod ML is
+
+  protecting STRING .
+
+  sort MLSort .
+  op mlsort : String -> MLSort [ctor] .
+
+  sort MLSortList .
+  subsort MLSort < MLSortList .
+  op nilMLSortList : -> MLSortList [ctor] .
+  op _,_ : MLSortList MLSortList -> MLSortList [ctor assoc id: nilMLSortList] .
+
+  sort MLSymbolAtt .
+  op functional : -> MLSymbolAtt .
+  op partial : -> MLSymbolAtt .
+  op associative : -> MLSymbolAtt .
+  op commutative : -> MLSymbolAtt .
+
+  sort MLSymbol .
+  op mlsymbol : String MLSortList MLSort MLSymbolAtt -> MLSymbol .
+
+  sort MLSymbolList .
+  subsort MLSymbol < MLSymbolList .
+  op nilMLSymbolList : -> MLSymbolList [ctor] .
+  op _,_ : MLSymbolList MLSymbolList -> MLSymbolList [ctor assoc id: nilMLSymbolList] .
+
+  sort MLSignature .
+  op mlsignature : MLSortList MLSymbolList -> MLSignature [ctor] .
+
+  ---- Patterns ----
+
+  
+
+endfm
+
+quit
