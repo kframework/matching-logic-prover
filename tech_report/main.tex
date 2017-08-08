@@ -1414,8 +1414,8 @@ In this section we focus on separation logic with symbolic heaps, the separation
 This variant describes $\mathtt{states}$ consisting of a $\mathtt{stack}$ and a $\mathtt{heap}$. A $\mathtt{stack}$ is a function mapping reference variables to non-addressable values and locations, which are disjoint sets. A $\mathtt{heap}$ is a partial function mapping locations to $\mathtt{records}$. The $\mathtt{records}$ are defined by the user as a set of fields typed as reference or data. The domain of the $\mathtt{heap\ H}$ is denoted by $\mathtt{ldom(H)}$. $\mathtt{nil}$ is interpreted to a location $\mathtt{S(nil) \notin\ ldom(H)}$. Two $\mathtt{heaps}$ are disjoint if their domains do not overlap.
 \begin{equation*}
 \begin{split}
-& \mathtt{Heaps \buildrel \text{d{}ef}\over= Loc \rightharpoonup (Fields \to Val\cup Loc)} \\
-& \mathtt{Stacks \buildrel \text{d{}ef}\over= Var \to Val \cup Loc}
+& \mathrm{Heaps \buildrel \text{d{}ef}\over= Loc \rightharpoonup (Fields \to Val\cup Loc)} \\
+& \mathrm{Stacks \buildrel \text{d{}ef}\over= Var \to Val \cup Loc}
 \end{split}
 \end{equation*}
 The syntax of formulas of this variant is given by the following grammar.\\
@@ -1427,28 +1427,50 @@ $\rho$ \Coloneqq \{(\emph{f},\emph{E})\}\ |\ \{(\emph{f},\emph{D})\} \ |\ $\rho$
 $\Pi$ \Coloneqq \emph{E}=\emph{F}\ |\ \emph{E}\ne\emph{F} \ |\ $\Pi$ \wedge \ $\Pi$ \qquad\qquad \ \ \text{pure formulas}\\
 $\Sigma$ \Coloneqq \emph{emp}\ |\ \emph{junk}\ |\ \emph{E} \mapsto $\rho$\ \mid \emph(P(E,D)) \mid\ $\Sigma$ *$\Sigma$    \ \text{spatial formulas}\\
 \emph{A,B} $\overset{\Delta}{=}$\ \exists \emph{X},\emph{D}.\ $\Pi$ \wedge \ $\Sigma$ \ \wedge \ $\Delta$\ \qquad\qquad\qquad\quad \text{formulas}\\
+$\mathbb{F}$ is the set of field names, which is defined using the $\mathtt{Field}$ sort in the theory. Each field is declared as a function symbol of arity 0 and result type $\mathtt{Field\ A\ B}$. $\mathtt{A}$ is the sort corresponding to the record type declaring the field and $\mathtt{B}$ is the sort typing the field. The following is an example of binary tree node.
+\begin{verbatim}
+  typedef struct btree_s {
+  struct btree_s* lson;
+  struct btree_s* rson;
+  int data;
+  }* btree_t;
+  
+  (declare-fun lson () (Field Btree_t Btree_t))
+  (declare-fun rson () (Field Btree_t Btree_t))
+  (declare-fun data () (Field Btree_t Int))
+\end{verbatim}
+Record values are denoted by mappings of record fields to locations stored in variables. The following is an example value for a record defining a binary tree node.
+\begin{verbatim}
+ {(lson, x), (rson, y),(data, z)}
+\end{verbatim}
 The logic allows to prove judgments of the form $(S,H)$ $\vDash$ $P$, where $S$ is a $\mathtt{stack}$, $H$ is a $\mathtt{heap}$, and $P$ is an assertion over the given $\mathtt{stack}$ and $\mathtt{heap}$. The semantics are given as follows:
 \begin{flalign*}
    & (S,H) \models E = F  \ \text{iff} \  S(E) = S(F)&&\\
    & (S,H) \models E \neq F \ \text{iff} \  S(E) \neq S(F)&&\\
-   & (S,H) \models \varphi \wedge \psi \ \text{iff} \ (S,H) \models \phi \ \text{and} \ (S,H) \models \psi&&\\
-    &(S,H) \models emp \ \text{iff} \ dom(H) = \emptyset&&\\
-    &(S,H) \models junk  \qquad  \text{always}&&\\
-    &(S,H) \models E \mapsto \{p\} \ \text{iff} \ dom(H) = \{(S(E),f_i) \mid (f_i,E_i) \in \{p\}\} &&\\ &\text{and for every} \ (f_i,E_i) \in \{p\} , \ H(S(E),f_i) = S(E_i) &&\\
+   & (S,H) \models \varphi \wedge \psi \ \ \text{iff} \ (S,H) \models \phi \ \text{and} \ (S,H) \models \psi&&\\
+    &(S,H) \models emp \ \quad \text{iff} \ dom(H) = \emptyset&&\\
+    &(S,H) \models junk  \quad  \text{always}&&\\
+    &(S,H) \models E \mapsto \{p\} \ \text{iff} \ dom(H) = \{(S(E),f_i) \mid (f_i,E_i) \in \{p\}\} &&\\ & \qquad\qquad\qquad\quad \ \text{and for every} \ (f_i,E_i) \in \{p\} , \ H(S(E),f_i) = S(E_i) &&\\
     &(S,H) \models \Sigma_1 \ast \Sigma_2 \ \text{iff} \  \exists H_1 , \ H_2 \ \text{s.t} \ ldom(H_1) \uplus ldom(H_2),(S,H_1) \models \Sigma_1, \ \text{and} \ (S,H_2) \models \Sigma_2&&\\
-    &(S,H) \models P(\text{E}) \ \text{iff} \ (S,H) \in  \mathbb{[P]}(P(E))&&\\
-    &(S,H) \models \exists X.\phi \ \text{iff} \ \text{there exists} \  l \in Loc \ \text{s.t.}  (S[X \gets l], H) \models \varphi&&
+    &(S,H) \models P(\text{E}) \ \quad \text{iff} \ (S,H) \in  \mathbb{[P]}(P(E))&&\\
+    &(S,H) \models \exists X.\phi \ \quad\text{iff} \ \text{there exists} \  l \in Loc \ \text{s.t.}  (S[X \gets l], H) \models \varphi&&
 \end{flalign*}
-The benchmarks of SL-COMP use inductive definitions and the general syntax and examples can be referred from the report on SL-COMP.\\
+The benchmarks of SL-COMP use inductive definitions and the general syntax and examples have no big differences from those shown above. They can be referred from the report on SL-COMP.\\
 The reason why separation logic with symbolic heaps is an instance of matching logic is that we can build a separation logic theory of this variant.\\
-$T_{\mathrm{SL}}$\ = \ \{\ S\ ,\ $\Sigma$\ ,\ A \}\\
-S\ = \ \{Sll\_t\ ,\ Subrecord\ , \ Record\ , \ Map \} \\
-$\Sigma$\ = \ \{nil\ ,\ emp\ ,\ ref\ , \ pto\ , \ ssep\ , \ sref\ , \ ls \ , \ all field names\}\\
-$\text{A}\ = \ \{\text{nil} \mapsto \text{y} = \bot\ , \text{ssep\ (*) is comm+assoc}\ , \ x \mapsto y * x \mapsto z = \bot \ ,\text{ls(in out) = (in = out) }\vee \text{(} \exists \text{u (in} \ne \text{out} \wedge \text{in} \mapsto \text{ref(u) * ls(u out))}\}$ \\
-In $S$ we have 4 sorts: $Sll\_t$ is the sort of constants. A $Subrecord$ is the combination of a field name and a variable. A $Record$ is the combination of a symbol $ref$ and a $Subrecord$. A $Map$ is the transformation result by symbol $pto$ from a combination of a $Sll\_t$ and a $Record$.In $\Sigma$, $nil$ is a program variable representing an undefined reference. $emp$ means an empty heap. $ref$ and $pto$ have been explained above. $ssep$ is the separating conjunction operator. $sref$ combines several $Records$ together, it is used when a $Sll\_t$ is defined to have several fields. $ls$ means list, the features of which can be seen in $A$. We define all the field names to be symbols. They take a variable as input and form a $Subrecord$.\\
-----add explanation (and proof? ) to S Sigma and A-----\\
-Here we show an example of translation from the benchmark of SL-COMP to matching logic.\\
-Separation logic example:\\
+$T_{\mathrm{SL}}$\ = \ \{\ $\mathtt{S}$\ ,\ $\mathtt{\Sigma}$\ ,\ $\mathtt{A}$ \}\\
+$\mathtt{S}$\ = \ \{$\mathtt{Sll\_t}$\ ,\ $\mathtt{Subrecord}$\ , \ $\mathtt{Record}$\ ,\ $\mathtt{Records}$\ , \ $\mathtt{Map}$ \} \\
+$\mathtt{\Sigma}$\ = \ \{$\mathtt{nil}$\ ,\ $\mathtt{emp}$\ ,\ $\mathtt{ref}$\ , \ $\mathtt{pto}$\ , \ $\mathtt{ssep}$\ , \ $\mathtt{sref}$\ , \ $\mathtt{ls}$ \ , \ all field names\}\\
+$\mathtt{A} =  \{\mathtt{nil} \mapsto y = \bot\ , \mathtt{ssep\ (*)}\text{\ is comm+assoc}\ , \ x \mapsto y\ *\ x \mapsto z = \bot \ ,\mathtt{ls} (in\ out) = (in = out)\vee \text{(} \exists u\ (in \ne out \wedge in \mapsto \mathtt{sref}(\mathtt{ref}\ f\ ,\ u)*\mathtt{ls} (u\ out))\}$ \\
+In $\mathtt{S}$ we have 5 sorts: $\mathtt{Sll\_t}$ is the sort of constants. A $\mathtt{Subrecord}$ is the combination of a field name and a variable. A $\mathtt{Record}$ is a field reference, which is the combination of a symbol $\mathtt{ref}$ and a $\mathtt{Subrecord}$. A $\mathtt{Records}$ is a set of field references. A $\mathtt{Map}$ is the mapping result by symbol $\mathtt{pto}$ from a $\mathtt{Sll\_t}$ to a $\mathtt{Records}$. In $\mathtt{\Sigma}$, $\mathtt{nil}$ is a program variable representing an undefined reference. $\mathtt{emp}$ means an empty heap. $\mathtt{ref}$ and $\mathtt{pto}$ have been explained above. $\mathtt{ssep}$ is the separating conjunction operator. $\mathtt{sref}$ combines several $\mathtt{Record}$ together to a $\mathtt{Records}$, it is used when a $\mathtt{Sll\_t}$ is defined to have several fields. $\mathtt{ls}$ means list, its definition can be seen in $\mathtt{A}$. We define all the field names to be symbols. They take a certain type variable as input and form a $\mathtt{Subrecord}$. The following is the example of binary tree node.
+\begin{verbatim}
+  Sll_t    : t
+  Subrecord: (lson x), (rson y),(data z)
+  Record   : (ref lson x), (ref rson y), (ref data z)
+  Records  : {sref (ref lson x), (ref rson y), (ref data z)}
+  Map      : t |-> {sref (ref lson x), (ref rson y), (ref data z)}   
+\end{verbatim}
+---------add  proof ? to \{ S $\Sigma$ A \}------------\\
+Here we show an example of translation from the benchmark of SL-COMP to matching logic. In the following separation logic example, $\mathtt{next}$ is a field name with record type $\mathtt{Sll\_t}$ and field type $\mathtt{Sll\_t}$. The formulas\\ $(\mathtt{nil}\ =\ \mathtt{nil}) \wedge ((\mathtt{ls}\ x2\ x7) * (x6 \mapsto (\mathtt{next},x1)) * (x4 \mapsto (\mathtt{next},x9)) * (x3 \mapsto (\mathtt{next},x2)) * (x8 \mapsto (\mathtt{next},x4)) * (\mathtt{ls}\ x10\ x2) *\mathtt{emp})$\ \ \  and\\  $\neg((\mathtt{ls}\ x6\ x1) *(\mathtt{ls}\ x10\ x2) *\mathtt{emp})$ are asserted.
 \begin{verbatim}
 (declare-sort Sll_t 0)
 (declare-fun next () (Field Sll_t Sll_t))
@@ -1469,10 +1491,6 @@ Separation logic example:\\
 (declare-fun x8 () Sll_t)
 (declare-fun x9 () Sll_t)
 (declare-fun x10 () Sll_t)
-(declare-fun x11 () Sll_t)
-(declare-fun x12 () Sll_t)
-(declare-fun x13 () Sll_t)
-(declare-fun x14 () Sll_t)
 (assert
   (and 
     (= nil nil)
@@ -1484,10 +1502,6 @@ Separation logic example:\\
 		(pto x3 (ref next x2)) 
 		(pto x8 (ref next x4)) 
 		(ls  x10 x2) 
-		(pto x5 (ref next x7)) 
-		(pto x1 (ref next x6)) 
-		(pto x9 (ref next x1)) 
-		(ls  x7 x2) 
 		emp
 	) )
   )
@@ -1498,23 +1512,18 @@ Separation logic example:\\
 	(ssep
 		(ls  x6 x1) 
 		(ls  x10 x2) 
-		(ls  x8 x4) 
-		(ls  x3 x2) 
-		(ls  x5 x7) 
-		(ls  x4 x6) 
-		(ls  x2 x7) 
-		(ls  x7 x2) 
 		emp
 	) )
   ))
 (check-sat)
 
 \end{verbatim}
-Then we show the matching logic example below.It shall be noted that proving assertion $P$ is equivalent to establishing $not(floor P)$ is unsat.\\
+The following is the matching logic version of the above example. It shall be noted that proving assertion $P$ is equivalent to establishing $not(floor\ P)$ is unsat.
 \begin{verbatim}
 (declare-sort Sll_t)
 (declare-sort Subrecord)
 (declare-sort Record)
+(declare-sort Records)
 (declare-sort Map)
 
 ;Sll_t constants
@@ -1529,10 +1538,6 @@ Then we show the matching logic example below.It shall be noted that proving ass
 (declare-func x8 () Sll_t)
 (declare-func x9 () Sll_t)
 (declare-func x10 () Sll_t)
-(declare-func x11 () Sll_t)
-(declare-func x12 () Sll_t)
-(declare-func x13 () Sll_t)
-(declare-func x14 () Sll_t)
 
 (declare-func nil () Sll_t)
 
@@ -1544,21 +1549,21 @@ Then we show the matching logic example below.It shall be noted that proving ass
 
 ;Records
 (declare-func ref (Subrecord) Record)
+(declare-func sref (Record) Records)
 
 ; Maps
 
 (declare-func emp () Map)
 
 ; x |-> y
-(declare-part pto (Sll_t Record) Map)
+(declare-part pto (Sll_t Records) Map)
 
 ; 0 |-> y is bottom
-(assert (forall ((y Record))
+(assert (forall ((y Records))
   (not (pto nil y))))
 
-; ssep is sseparating conjunction
+; ssep is separating conjunction
 (declare-part ssep (Map Map) Map)
-;Question: how to let ssep have arbitary number of arguments
 
 ; commutativity
 (assert (forall ((h1 Map) (h2 Map))
@@ -1574,14 +1579,15 @@ Then we show the matching logic example below.It shall be noted that proving ass
   (= h (ssep h emp))))
 
 ; x |-> y * x |-> z = bottom
-(assert (forall ((x Sll_t) (y Record) (z Record))
+(assert (forall ((x Sll_t) (y Records) (z Records))
   (not (ssep (pto x y) (pto x z)))))
 
 
 ;List
 (declare-func ls (Sll_t Sll_t) Map)
 (assert (forall ((in Sll_t)(out Sll_t)) 
- (= (ls in out) (or (= in out) (exists ((u Sll_t)) (and (not (= in out)) (ssep (pto in (ref (next u))) (ls u out)
+ (= (ls in out) (or (= in out) (exists ((u Sll_t)) (and (not 
+ (= in out)) (ssep (pto in (sref (ref (next u)))) (ls u out)
 )))))
 ))
 (assert
@@ -1591,25 +1597,17 @@ Then we show the matching logic example below.It shall be noted that proving ass
 	(ssep
 		(ls  x2 x7) 
 	(ssep 		
-		(pto x6 (ref (next x1))) 
+		(pto x6 (sref (ref (next x1)))) 
 	(ssep 		
-		(pto x4 (ref (next x9))) 
+		(pto x4 (sref (ref (next x9)))) 
 	(ssep 		
-		(pto x3 (ref (next x2))) 
+		(pto x3 (sref (ref (next x2)))) 
 	(ssep 		
-		(pto x8 (ref (next x4))) 
+		(pto x8 (sref (ref (next x4))))
 	(ssep 		
 		(ls  x10 x2) 
-	(ssep 		
-		(pto x5 (ref (next x7))) 
-	(ssep 		
-		(pto x1 (ref (next x6))) 
-	(ssep 		
-		(pto x9 (ref (next x1))) 
-	(ssep 		
-		(ls  x7 x2) 
 		emp
-	)))))))))) ))
+	))))))))
   )
 )
 (assert
@@ -1619,22 +1617,9 @@ Then we show the matching logic example below.It shall be noted that proving ass
 		(ls  x6 x1) 
 	(ssep 		
 		(ls  x10 x2) 
-	(ssep 		
-		(ls  x8 x4) 
-	(ssep 		
-		(ls  x3 x2) 
-	(ssep 		
-		(ls  x5 x7) 
-	(ssep 		
-		(ls  x4 x6) 
-	(ssep 		
-		(ls  x2 x7) 
-	(ssep 		
-		(ls  x7 x2) 
 		emp
-	)))))))) ))
-  ))
-
+	)))))
+)
 \end{verbatim}
 -----add explanation to this translation---
 \section{Semantics of K}
