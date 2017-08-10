@@ -1427,11 +1427,11 @@ Then let's look at the syntax of formulas of this variant.\\
 &\emph{E,F} \Coloneqq \emph{x}\ |\ \emph{X}\qquad \qquad\qquad\qquad\qquad\quad\qquad\qquad\ \text{reference\ variables}\\
 &\rho \Coloneqq \{(\emph{f},\emph{E})\}\ |\ \{(\emph{f},\emph{D})\} \ |\ \rho\cup \rho \qquad\qquad\qquad\quad\qquad \text{set of field references}\\
 &\Pi \Coloneqq \emph{E}=\emph{F}\ |\ \emph{E}\ne\emph{F} \ |\ \Pi \wedge  \Pi \qquad\qquad\qquad \ \qquad\ \ \ \text{pure formulas}\\
-&\Sigma \Coloneqq \emph{emp}\ |\ \emph{junk}\ |\ \emph{E} \mapsto \rho\ \mid \emph(P(E,D)) \mid\ \Sigma *\Sigma \  \qquad \ \text{spatial formulas}\\
-&\emph{A,B} \overset{\Delta}{=}\ \exists \emph{X},\emph{D}.\ \Pi \wedge  \Sigma  \wedge  \Delta\ \qquad\qquad\qquad\quad\ \ \ \qquad\ \text{formulas}\\
+&\Sigma \Coloneqq \emph{emp}\ |\ \emph{junk}\ |\ \emph{E} \mapsto \rho\ \mid \emph(P(\mathbf{E},\mathbf{D})) \mid\ \Sigma *\Sigma \  \qquad \ \text{spatial formulas}\\
+&\emph{A,B} \overset{\Delta}{=}\ \exists \mathbf{X},\mathbf{D}.\ \Pi \wedge  \Sigma  \wedge  \Delta\ \qquad\qquad\qquad\quad\ \ \ \qquad\ \text{formulas}\\
 \end{split}
 \end{equation*}
-$\mathbb{F}$ is the set of field names, which is defined using the $\mathtt{Field}$ sort in the theory. Each field is declared as a function symbol of arity 0 and result type $\mathtt{Field\ A\ B}$. $\mathtt{A}$ is the sort corresponding to the record type declaring the field and $\mathtt{B}$ is the sort typing the field. The following is an example of binary tree node.
+$\mathbb{F}$ is the set of field names, which is defined using the $\mathtt{Field}$ sort in the theory. Each field is declared as a function symbol of arity 0 and result type $\mathtt{Field\ A\ B}$. $\mathtt{A}$ is the sort corresponding to the record type declaring the field and $\mathtt{B}$ is the sort typing the field. The following is an example of a binary tree node.
 \begin{verbatim}
   typedef struct btree_s {
   struct btree_s* lson;
@@ -1447,7 +1447,7 @@ $\mathtt{Records}$ values are denoted by mappings of record fields to locations 
 \begin{verbatim}
  {(lson, x), (rson, y),(data, z)}
 \end{verbatim}
-$\mathbb{P}$ is the set of recursive definitions defined by the syntax $P(\mathbf{E}\text{,}\mathbf{D}\text{)}\overset{\Delta}{=}\bigvee_{i}\ \exists X_i,D_i,\Pi_i\wedge \Sigma_i \wedge \Delta_i$ where the spatial formulas $\Sigma_i$ may call $P$ or other predicates from $\mathbb{P}$. In spatial formulas, $emp$ means empty $\mathtt{heap}$.  $junk$ is true for any $\mathtt{heap}$,whether empty or consisting of some allocated nodes. * is the separating conjunction symbol. What's more, note that we have pure formulas typed by the $\mathtt{Bool}$ sort and spatial formulas typed by the $\mathtt{Space}$ sort, the spatial atoms' combination with a pure formula requires to cast $\mathtt{Space}$ to $\mathtt{Bool}$ using the symbol $\mathtt{tobool}$. The example can be seen below in the translation example.\\ 　
+$\mathbb{P}$ is the set of recursive definitions defined by the syntax $P(\mathbf{E}\text{,}\mathbf{D}\text{)}\overset{\Delta}{=}\bigvee_{i}\ \exists \mathbf{X_i},\mathbf{D_i},\Pi_i\wedge \Sigma_i \wedge \Delta_i$ where the spatial formulas $\Sigma_i$ may call $P$ or other predicates from $\mathbb{P}$. In spatial formulas, $emp$ means empty $\mathtt{heap}$.  $junk$ is true for any $\mathtt{heap}$,whether empty or consisting of some allocated nodes. * is the separating conjunction symbol. What's more, note that we have pure formulas typed by the $\mathtt{Bool}$ sort and spatial formulas typed by the $\mathtt{Space}$ sort, the spatial atoms' combination with a pure formula requires to cast $\mathtt{Space}$ to $\mathtt{Bool}$ using the symbol $\mathtt{tobool}$. The example can be seen below in the translation example.\\ 　
 After we have known the syntax of this variant, we then turn our attention to the semantics. The logic allows to prove judgments of the form $(S,H)$ $\vDash$ $\varphi$, where $S$ is a $\mathtt{stack}$, $H$ is a $\mathtt{heap}$, and $\varphi$ is an assertion over the given $\mathtt{stack}$ and $\mathtt{heap}$. The semantics are given as follows:
 \begin{equation*}
 \begin{split}
@@ -1463,7 +1463,7 @@ After we have known the syntax of this variant, we then turn our attention to th
 \end{split}
 \end{equation*}
 In the above semantics, $\uplus$ denotes the disjoint union of sets. $ S[X\gets\mathit{l}]$ denotes the function $S'$ s.t. $S'(X) = l$ and $S'(Y)=S(Y)$ for any $Y \ne X$. Note that a configuration $(S,H)$ satisfies a predicate atom $P(\mathbf{E})$ if it belongs to the least fix point of the set of recursive definitions $\mathbb{P}$ for the actual parameters $\mathbf{E}$ of $P$. The set of models of a formula $\varphi$ is denoted by [$\varphi$]. Given two formulas $\varphi_1$ and $\varphi_2$, we have $\varphi_1 \Rightarrow \varphi_2$ iff $[\varphi_1] \subseteq [\varphi_2]$.\\
-Now we have got the general idea of this separation logic variant. We will then focus on building a separation logic theory of this variant, in other words, to prove that this separation logic variant is an instance of matching logic. The theory $T_{\mathrm{SL}}$ consists of 3 parts: $S$ is the set of sorts, $\Sigma$ is the set of symbols, and $A$ is the set of axioms. In the following definition, $\mathit{H,H_1,H_2,H_3}$ are of sort $\mathit{Map}$. $\mathit{r,r_1,r_2}$ are of sort $\mathit{Records}$. $\mathit{x,y,z}$ are of sort $\mathit{Sll\_t}$. $\mathit{f}$ is a field name.
+Now we have got the general idea of this separation logic variant. We will then focus on building a separation logic theory of this variant using matching logic, in other words, to prove that this separation logic variant is an instance of matching logic. The theory $T_{\mathrm{SL}}$ consists of 3 parts: $S$ is the set of sorts, $\Sigma$ is the set of symbols, and $A$ is the set of axioms. In the following definition, $\mathit{H,H_1,H_2,H_3}$ are of sort $\mathit{Map}$. $\mathit{r,r_1,r_2}$ are of sort $\mathit{Records}$. $\mathit{x,y,z}$ are of sort $\mathit{Sll\_t}$. $\mathit{f}$ is a field name.
 \begin{equation*}
 \begin{split}
 &T_{\mathrm{SL}}\ = \ \{\ S\ ,\ \Sigma\ ,\ A \}\\
@@ -1484,7 +1484,7 @@ In $S$ we have 5 sorts: $\mathit{Sll\_t}$ is the sort of constants. It can also 
 Finally, we show an example of translation from the benchmark of SL-COMP to matching logic. In the following separation logic example, $\mathit{next}$ is a field name with record type $\mathit{Sll\_t}$ and field type $\mathit{Sll\_t}$. $x_1$ - $x_{10}$ are constants of sort $\mathit{Sll\_t}$. The following formulas are asserted:
 \begin{equation*}
 \begin{split}
-&(\mathit{nil} = \mathit{nil}) \wedge ((\mathit{ls}\ x_2\ x_7) * (x_6 \mapsto (\mathit{next},x_1)) * (x_4 \mapsto (\mathit{next},x_9)) *\mathit{emp}) \\  &\neg((\mathit{ls}\ x_6\ x_1) *(\mathit{ls}\ x_{10}\ x_2) *\mathit{emp})
+&(\mathit{nil} = \mathit{nil}) \wedge ((\mathit{ls}\ x_2\ x_7) * (x_6 \mapsto \{(\mathit{next},x_1)\}) * (x_4 \mapsto \{(\mathit{next},x_9)\}) *\mathit{emp}) \\  &\neg((\mathit{ls}\ x_6\ x_1) *(\mathit{ls}\ x_{10}\ x_2) *\mathit{emp})
 \end{split}
 \end{equation*}
 The following is the example encoded in the separation logic theory in SMT\_LIB. In the following codes, $ssep$ is separating conjunction symbol, $pto$ is $\mapsto$, and $\mathtt{tobool}$ is used to cast spatial formulas to pure ones.
