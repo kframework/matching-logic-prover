@@ -1579,7 +1579,7 @@ The following is the matching logic version of the above example. It shall be no
 ; x |-> y
 (declare-part pto (Sll_t Records) Map)
 
-; 0 |-> y is bottom
+; nil |-> y is bottom
 (assert (forall ((y Records))
   (not (pto nil y))))
 
