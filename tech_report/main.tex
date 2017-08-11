@@ -1482,30 +1482,7 @@ Now we have got the general idea of this separation logic variant. We will then 
 &\qquad\ \_\cup\_:\mathit{Record}\times\mathit{Record}\to\mathit{Record} & &\{\_\}:\mathit{Record}\to\mathit{Record} \\&\qquad\ \mathit{ls} (x\ z) = (x = z)\vee ( \exists y\ (x \ne z \wedge x \mapsto \{( f\ y)\} *\mathit{ls} (y\ z))
 \end{align*}
 
-In $S$ we have 4 sorts: \textit{Sll\_t} is the sort of constants. It can also 
-be some others, we use \textit{Sll\_t} here just because the benchmarks of 
-SL-COMP use it. A \textit{Subrecord} is the combination of a field name and a 
-variable. A \textit{Record} is a set of field references. We use a syntactic 
-sugar $\mathit{(\ )}$ to convert a \textit{Subrecord} to a field reference and 
-another syntactic sugar \textit{\{ \}} to denote a set of field references, 
-which looks more intuitive. We use symbol $\cup$ to group 2 \textit{Record} 
-together to form a new \textit{Record}. Note that its semantic is not like $or$ 
-because it doesn't conform to the ($\vee$)-rule: $\sigma (...,P\vee 
-Q,...)=\sigma(...P...)\vee\sigma(...Q...)$. In general it's more like $and$. 
-Let's look at an example. $(S,H) \models E \mapsto 
-\{(lson,3)\}\cup\{(rson,4)\}$ iff the domain of $H$ is the fields $lson$ and 
-$rson$ of \textit{E}'s location, and the corresponding values of the fields are 
-3 and 4. The values of other fields are not concerned. What's more, 
-$\{(lson,3)\}\cup\{(lson,4)\}$ can not be satisfied because the function cannot 
-have multiple values. We use $\cup$ here because we want to keep consistent 
-with the separation logic syntax. A \textit{Map} is the mapping by symbol 
-$\mapsto$ from a \textit{Sll\_t} to a \textit{Record}. In $\Sigma$, 
-\textit{nil} is a program variable representing an undefined reference. 
-\textit{emp} means an empty heap. $\mapsto$ has been explained above. $*$ is 
-the separating conjunction operator. \textit{ls} means list, its definition can 
-be seen above. We define all the field names to be symbols. They take a certain 
-type variable as input and form a \textit{Subrecord}. The following is an 
-example of a binary tree node.
+In $S$ we have 4 sorts: \textit{Sll\_t} is the sort of constants. It can also be some others, we use \textit{Sll\_t} here just because the benchmarks of SL-COMP use it. A \textit{Subrecord} is the combination of a field name and a variable. A \textit{Record} is a set of field references. We use a syntactic sugar $\mathit{(\ )}$ to convert a \textit{Subrecord} to a field reference and another syntactic sugar \textit{\{ \}} to denote a set of field references, which looks more intuitive. We use symbol $\cup$ to group 2 \textit{Record} together to form a new \textit{Record}. Note that its semantic is not like $or$ because it doesn't conform to the ($\vee$)-rule: $\sigma (...,P\vee Q,...)=\sigma(...P...)\vee\sigma(...Q...)$. In general it's more like $and$. Let's look at an example. $(S,H) \models E \mapsto \{(lson,3)\}\cup\{(rson,4)\}$ iff the domain of $H$ is the fields $lson$ and $rson$ of \textit{E}'s location, and the corresponding values of the fields are 3 and 4. The values of other fields are not concerned. What's more, $\{(lson,3)\}\cup\{(lson,4)\}$ can not be satisfied because the function cannot have multiple values. We use $\cup$ here because we want to keep consistent with the separation logic syntax. A \textit{Map} is the mapping by symbol $\mapsto$ from a \textit{Sll\_t} to a \textit{Record}. In $\Sigma$, \textit{nil} is a program variable representing an undefined reference. \textit{emp} means an empty heap. $\mapsto$ has been explained above. $*$ is the separating conjunction operator. \textit{ls} means list, its definition can be seen above. We define all the field names to be symbols. They take a certain type variable as input and form a \textit{Subrecord}. The following is an example of a binary tree node.
 \begin{verbatim}
   Sll_t    : t
   Subrecord: lson x, rson y,data z
@@ -1541,7 +1518,7 @@ Finally, we show an example of translation from the benchmark of SL-COMP to matc
 \end{split}
 \end{equation*}
 
-The following is the example encoded in the separation logic theory in SMT\_LIB. In the following codes, \textit{ssep} denotes the separating conjunction symbol $*$, \textit{pto} denotes $\mapsto$, and \textit{tobool} is used to cast spatial formulas to pure ones. \textit{ref} denotes the syntactic sugar $\mathit{(\ )}$ and \textit{sref} denotes the syntactic sugar \textit{\{ \}}. Note that we only have one field, so \textit{ref} and \textit{sref} may look redundant, but if we have multiple fields then their differences can be seen.
+The following is the example encoded in the separation logic theory in SMT\_LIB. In the following codes, \textit{ssep} denotes the separating conjunction symbol $*$, \textit{pto} denotes $\mapsto$, and \textit{tobool} is used to cast spatial formulas to pure ones. \textit{ref} denotes the syntactic sugar $\mathit{(\ )}$ and \textit{sref} denotes the syntactic sugar \textit{\{ \}}. Note that we only have one field here, so \textit{ref} and \textit{sref} may look redundant, but if we have multiple fields then their differences can be seen.
 \begin{verbatim}
 ;Sll_t is of arity 0
 (declare-sort Sll_t 0)
@@ -1602,9 +1579,6 @@ The following is the matching logic version of the above example. It shall be no
 (declare-sort Record)
 (declare-sort Map)
 
-;used to make it look intuitive
-(declare-sort Records)
-
 ;Sll_t constants
 (declare-func x0 () Sll_t)
 (declare-func x1 () Sll_t)
@@ -1628,16 +1602,16 @@ The following is the matching logic version of the above example. It shall be no
 
 ;Records
 (declare-func ref (Subrecord) Record)
-(declare-func sref (Record) Records)
+(declare-func sref (Record) Record)
 
 ; Maps
 (declare-func emp () Map)
 
 ; x |-> y
-(declare-part pto (Sll_t Records) Map)
+(declare-part pto (Sll_t Record) Map)
 
 ; nil |-> y is bottom
-(assert (forall ((y Records))
+(assert (forall ((y Record))
   (not (pto nil y))))
 
 ; ssep is separating conjunction
@@ -1657,7 +1631,7 @@ The following is the matching logic version of the above example. It shall be no
   (= h (ssep h emp))))
 
 ; x |-> y * x |-> z = bottom
-(assert (forall ((x Sll_t) (y Records) (z Records))
+(assert (forall ((x Sll_t) (y Record) (z Record))
   (not (ssep (pto x y) (pto x z)))))
 
 ;List
@@ -1673,27 +1647,28 @@ The following is the matching logic version of the above example. It shall be no
   (and 
     (= nil nil)
     (not (floor  
-       	(ssep
-	       	(ls  x2 x7) 
-       	(ssep 		
-	       	(pto x6 (sref (ref (next x1)))) 
-       	(ssep 		
-	       	(pto x4 (sref (ref (next x9)))) 
-	       	(ls  x10 x2) 
-	       	emp)
-	)))))
+        (ssep
+          (ls  x2 x7) 
+        (ssep     
+          (pto x6 (sref (ref (next x1)))) 
+        (ssep     
+          (pto x4 (sref (ref (next x9)))) 
+        (ssep
+          (ls  x10 x2) 
+          emp)
+  ))))))
 )
 
 ;(not ((ls x6 x1)*(ls x10 x2)*emp))
 (assert
   (not
     (not (floor  
-       	(ssep
-	       	(ls  x6 x1) 
-       	(ssep 		
-	       	(ls  x10 x2) 
-	       	emp
-	)))))
+        (ssep
+          (ls  x6 x1) 
+        (ssep     
+          (ls  x10 x2) 
+          emp
+  )))))
 )
 \end{verbatim}
 \section{Semantics of K}
