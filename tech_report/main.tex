@@ -1472,24 +1472,33 @@ Now we have got the general idea of this separation logic variant. We will then 
 \begin{align*}
 &T_{\mathrm{SL}} =  \{ S , \Sigma \}\\
 & S =  \{\mathit{Sll\_t} ,  \mathit{Record} , \mathit{Map} \} \\
-&\Sigma = \{\mathit{nil} , \mathit{emp} , \mapsto ,  \mathit{*} , \mathit{ls} , \cup , \mathbb{F }\}\\
+&\Sigma = \{\cup , \mathit{nil} , \mathit{emp} , \mapsto ,  \mathit{*} , \mathit{ls}\}\cup  \mathbb{F }\\
 &\qquad\ nil:\to\mathit{Sll\_t} & &\mathit{emp}:\to \mathit{Map} \\ 
 &\qquad\ \_*\_:\mathit{Map}\times\mathit{Map}\rightharpoonup Map& &\mathit{H_1 * H_2 = H_2 * H_1}\\
 &\qquad\ (H_1 * H_2) * H_3 = H_1 * (H_2 * H_3)& & \mathit{emp}*\mathit{H}=\mathit{H}\\
 &\qquad\ \_ \mapsto \_ :Sll\_t\times Record \rightharpoonup Map& & x \mapsto r_1 * x \mapsto r_2 = \bot\\
 &\qquad\ \_\cup\_:\mathit{Record}\times\mathit{Record}\to\mathit{Record} & &nil \mapsto r = \bot
 \\
-&\qquad\ \mathit{ls} (x\ z) = (x = z)\vee ( \exists y\ (x \ne z \wedge x \mapsto \{( f\ y)\} *\mathit{ls} (y\ z))& &f \_:\mathit{Sll\_t} \to \mathit{Record}
+&\qquad\ \{f\ x\}\cup\{f\ y\} = \bot& &f \_:\mathit{Sll\_t} \to \mathit{Record}\\&\qquad\ \mathit{ls} (x\ z) = (x = z)\vee ( \exists y\ (x \ne z \wedge x \mapsto \{( f\ y)\} *\mathit{ls} (y\ z))
 \end{align*}
 
-In $S$ we have 3 sorts: \textit{Sll\_t} is the sort of constants. It can also be some others, we use \textit{Sll\_t} here just because the benchmarks of SL-COMP use it. A field reference is the combination of a field name and a variable. A \textit{Record} is a set of field references. We use a syntactic sugar $\mathit{(\ )}$ to denote a field reference and another syntactic sugar \textit{\{ \}} to denote a set of field references, in other words a \textit{Record}, which looks more intuitive. We use symbol $\cup$ to group 2 \textit{Record} together to form a new \textit{Record}. Note that its semantic is not like $or$ because it doesn't conform to the ($\vee$)-rule: $\sigma (...,P\vee Q,...)=\sigma(...,P,...)\vee\sigma(...,Q,...)$. In general it's more like $and$. Let's look at an example. $(S,H) \models E \mapsto \{(lson,3)\}\cup\{(rson,4)\}$ iff the domain of $H$ is the fields $lson$ and $rson$ of \textit{E}'s location, and the corresponding values of the fields are 3 and 4. The values of other fields are not concerned. What's more, $\{(lson,3)\}\cup\{(lson,4)\}$ can not be satisfied because the function $H$ cannot have multiple values. We use $\cup$ here because we want to keep consistent with the separation logic syntax. A \textit{Map} is the mapping by symbol $\mapsto$ from a \textit{Sll\_t} to a \textit{Record}. In $\Sigma$, \textit{nil} is a program variable representing an undefined reference. \textit{emp} means an empty heap. $\mapsto$ has been explained above. $*$ is the separating conjunction operator. \textit{ls} means list, its definition can be seen above. We define all the field names to be symbols. They take a certain type variable as input and form a field reference. The following is an example of a binary tree node.
+In $S$ we have 3 sorts: \textit{Sll\_t} is the sort of constants. It can also be some others, we use \textit{Sll\_t} here just because the benchmarks of SL-COMP use it. A field reference is the combination of a field name and a variable. A \textit{Record} is a set of field references. We use a syntactic sugar $\mathit{(\ )}$ to denote a field reference and another syntactic sugar \textit{\{ \}} to denote a set of field references, in other words a \textit{Record}, which looks more intuitive. We use symbol $\cup$ to group 2 \textit{Record} together to form a new \textit{Record}. Note that its semantic is not like $or$ because it doesn't conform to the ($\vee$)-rule: $\sigma (...,P\vee Q,...)=\sigma(...,P,...)\vee\sigma(...,Q,...)$. In general it's more like $and$. Let's look at an example. $(S,H) \models E \mapsto \{(lson,3)\}\cup\{(rson,4)\}$ iff the domain of $H$ is the fields $lson$ and $rson$ of \textit{E}'s location, and the corresponding values of the fields are 3 and 4. The values of other fields are not concerned. What's more, $\{(lson,3)\}\cup\{(lson,4)\}$ can not be satisfied because the function $H$ cannot have multiple values. We use $\cup$ here because we want to keep consistent with the separation logic syntax. A \textit{Map} is the mapping by symbol $\mapsto$ from a \textit{Sll\_t} to a \textit{Record}. The definitions of our syntactic sugars can be seen below. \textit{d} is of sort \textit{Sll\_t}.
+\begin{equation*}
+\begin{split}
+ \{(f\ d)\} &\equiv f\ d\\
+ \{(f\ d),(f'\ d'),...\} &\equiv \{(f\ d)\}\cup\{(f'\ d')\}\cup...\\
+ junk &\equiv \top\\
+\end{split}
+\end{equation*}
+
+In $\Sigma$, \textit{nil} is a program variable representing an undefined reference. \textit{emp} means an empty heap. $\mapsto$ has been explained above. $*$ is the separating conjunction operator. \textit{ls} means list, its definition can be seen above. We define all the field names to be symbols. They take a certain type variable as input and form a field reference. The following is an example of a binary tree node.
 \begin{verbatim}
   Sll_t    : t
   Record   : {(lson x), (rson y), (data z)}
   Map      : t |-> {(lson x), (rson y), (data z)}   
 \end{verbatim}
 
-Now we can do the formula transformation from separation logic with recursive definitions to matching logic. $junk$ shall be substituted by the top pattern ($\top$), which is a syntactic sugar of total set in matching logic. As for recursive definitions, pure formulas and other spatial formulas, they stay the same in matching logic as in this separation logic variant.
+Now we can do the formula transformation from separation logic with recursive definitions to matching logic. $junk$ stands for the top pattern ($\top$), which is a syntactic sugar of total set in matching logic. As for recursive definitions, pure formulas and other spatial formulas, they stay the same in matching logic as in this separation logic variant.
 \begin{comment}
 \begin{algorithm}
 	\KwIn{a separation logic pattern $P$}
