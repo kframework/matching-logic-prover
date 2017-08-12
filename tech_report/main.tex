@@ -1440,14 +1440,14 @@ Here we only provide a brief review of SLRD. Readers are refered to~\cite{} for 
 
 Let $\FF$ be a finite nonempty set of field names, $\DD$ be a set of data types, and $\PP$ be a finite set of recursive predicates. The next figure summaries the syntax of SLRD. 
 \begin{align*}
-&f \in \FF \ \text{field names} & &\emph{P} \in \PP \ \text{recursive definition name}\\
-&\emph{x,y} \in \emph{Vars} \ \text{reference program vars}& &\emph{X,Y} \in \emph{LVars} \ \text{reference logical vars}\\
-&\emph{d,D} \in \emph{DVars} \ \text{data\ variables}& &\Delta \ \text{data constraints}\\
-&\emph{E,F} \Coloneqq \emph{x} \mid \emph{X} & &\text{reference  variables}\\
-&\rho \Coloneqq \{(\emph{f},\emph{E})\} \mid \{(\emph{f},\emph{D})\}  \mid \rho\cup \rho & &\text{set of field references}\\
-&\Pi \Coloneqq \emph{E}=\emph{F} \mid\emph{E}\ne\emph{F}  \mid \Pi \wedge  \Pi & &\text{pure formulas}\\
-&\Sigma \Coloneqq \emph{emp} \mid \emph{junk} \mid \emph{E} \mapsto \rho \mid \emph(P(\mathbf{E},\mathbf{D})) \mid \Sigma *\Sigma & &\text{spatial formulas}\\
-&\emph{A,B} \overset{\Delta}{=} \exists \mathbf{X},\mathbf{D}. \Pi \wedge  \Sigma  \wedge  \Delta & &\text{formulas}\\
+&f \in \mathbb{F} \ \text{field names} & &P \in \mathbb{P} \ \text{recursive definition name}\\
+&x,y \in Vars \ \text{reference program vars}& &X,Y \in LVars \ \text{reference logical vars}\\
+&d,D \in DVars \ \text{data\ variables}& &\Delta \ \text{data constraints}\\
+&E,F \Coloneqq x \mid X & &\text{reference  variables}\\
+&\rho \Coloneqq \{(f,E)\} \mid \{(f,D)\}  \mid \rho\cup \rho & &\text{set of field references}\\
+&\Pi \Coloneqq E=F \midE\neF  \mid \Pi \wedge  \Pi & &\text{pure formulas}\\
+&\Sigma \Coloneqq emp \mid junk \mid E \mapsto \rho \mid (P(\mathbf{E},\mathbf{D})) \mid \Sigma *\Sigma & &\text{spatial formulas}\\
+&A,B \overset{\Delta}{=} \exists \mathbf{X},\mathbf{D}. \Pi \wedge  \Sigma  \wedge  \Delta & &\text{formulas}\\
 \end{align*}
 
 %In this section we focus on separation logic with recursive definitions, the separation logic variant first introduced in 2013 by Radu Iosif, Adam Rogalewicz, and Jirı Simácek. Its $symbolic\ heaps$ part was first introduced in 2005 by Josh Berdine, Cristiano Calcagno and Peter W. O'Hearn. It is also the main focus of the SL-COMP 2014 chaired by David R. Cok.
