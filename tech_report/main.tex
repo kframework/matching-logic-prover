@@ -1411,7 +1411,7 @@ where $T_{\mathrm{SL}_i}$ is the matching logic theory of $\mathrm{SL}_i$ and $t
 
 \subsubsection{Separation logic with recursive definitions}
 
-In this section we focus on separation logic with  recursive definitions, the separation logic variant first introduced in 2013 by Radu Iosif, Adam Rogalewicz, and Jirı Simácek. Its $symbolic\ heaps$ part was first introduced in 2005 by Josh Berdine, Cristiano Calcagno and Peter W. O'Hearn. It is also the main focus of the SL-COMP 2014 chaired by David R. Cok.
+In this section we focus on separation logic with recursive definitions, the separation logic variant first introduced in 2013 by Radu Iosif, Adam Rogalewicz, and Jirı Simácek. Its $symbolic\ heaps$ part was first introduced in 2005 by Josh Berdine, Cristiano Calcagno and Peter W. O'Hearn. It is also the main focus of the SL-COMP 2014 chaired by David R. Cok.
 
 This variant describes $\mathtt{states}$ consisting of a stack and a heap. A stack \textit{S} is a function mapping reference variables to non-addressable values and locations, which are disjoint sets. A heap \textit{H} is a binary partial function that defines values of fields for some of the locations, it can also be seen as a partial mapping from locations to records. The records are defined by the user as a set of fields typed as reference or data. The domain of the heap $H$ is denoted by \textit{ldom(H)}. Two heaps are disjoint if their domains do not overlap. \textit{nil} is interpreted to a location $\mathit{S(nil) \notin ldom(H)}$. Their definitions are as follows.
 \begin{equation*}
@@ -1468,33 +1468,34 @@ After we have known the syntax of this variant, we then turn our attention to th
 
 In the above semantics, $\uplus$ denotes the disjoint union of sets. $ S[X\gets\mathit{l}]$ denotes the function $S'$ s.t. $S'(X) = l$ and $S'(Y)=S(Y)$ for any $Y \ne X$. Note that a configuration $(S,H)$ satisfies a predicate atom $P(\mathbf{E})$ if it belongs to the least fix point of the set of recursive definitions $\mathbb{P}$ for the actual parameters $\mathbf{E}$ of $P$. The set of models of a formula $\varphi$ is denoted by [$\varphi$]. Given two formulas $\varphi_1$ and $\varphi_2$, we have $\varphi_1 \Rightarrow \varphi_2$ iff $[\varphi_1] \subseteq [\varphi_2]$.
 
-Now we have got the general idea of this separation logic variant. We will then focus on building a separation logic theory of this variant using matching logic, in other words, to contribute to proving that this separation logic variant is an instance of matching logic. The theory $T_{\mathrm{SL}}$ consists of 2 parts: $S$ is the set of sorts and $\Sigma$ is the set of symbols. Our definition focus on the \textit{symbolic\ heaps} part, while there is no need to redefine recursive definitions. In the following definition, $\mathit{H,H_1,H_2,H_3}$ are of sort \textit{Map}. $\mathit{r,r_1,r_2}$ are of sort \textit{Record}. \textit{x,y,z} are of sort \textit{Sll\_t}. $f\in\mathbb{F}$.
+Now we have got the general idea of this separation logic variant. We will then focus on building a separation logic theory of this variant using matching logic, in other words, to contribute to proving that this separation logic variant is an instance of matching logic. The theory $T_{\mathrm{SL}}$ consists of 2 parts: $S$ is the set of sorts and $\Sigma$ is the set of symbols. Our definition focus on the \textit{symbolic\ heaps} part, because there is no need to redefine recursive definitions in matching logic. In the following definition, $\mathbb{D}$ is a set of data types. We can define different types such as \textit{Nat}, \textit{node}, etc. $\mathit{H,H_1,H_2,H_3}$ are of sort \textit{Map}. $\mathit{r,r_1,r_2,r_3}$ are of sort \textit{Record}. \textit{x,y,z} are variables of the same data type.  $f\in\mathbb{F}$. $D\in\mathbb{D}$. $\mathbb{F_\mathrm{D}}$ denotes the subset of field names which take a value of type $D$ to form a \textit{Record}.
 \begin{align*}
 &T_{\mathrm{SL}} =  \{ S , \Sigma \}\\
-& S =  \{\mathit{Sll\_t} ,  \mathit{Record} , \mathit{Map} \} \\
+& S =  \{ \mathit{Record} , \mathit{Map} \} \cup  \mathbb{D }\\
 &\Sigma = \{\cup , \mathit{nil} , \mathit{emp} , \mapsto ,  \mathit{*} , \mathit{ls}\}\cup  \mathbb{F }\\
-&\qquad\ nil:\to\mathit{Sll\_t} & &\mathit{emp}:\to \mathit{Map} \\ 
+&\qquad\ nil:\to\mathit{D} & &\mathit{emp}:\to \mathit{Map} \\ 
 &\qquad\ \_*\_:\mathit{Map}\times\mathit{Map}\rightharpoonup Map& &\mathit{H_1 * H_2 = H_2 * H_1}\\
 &\qquad\ (H_1 * H_2) * H_3 = H_1 * (H_2 * H_3)& & \mathit{emp}*\mathit{H}=\mathit{H}\\
-&\qquad\ \_ \mapsto \_ :Sll\_t\times Record \rightharpoonup Map& & x \mapsto r_1 * x \mapsto r_2 = \bot\\
-&\qquad\ \_\cup\_:\mathit{Record}\times\mathit{Record}\to\mathit{Record} & &nil \mapsto r = \bot
+&\qquad\ \_ \mapsto \_ :D\times Record \rightharpoonup Map& & x \mapsto r_1 * x \mapsto r_2 = \bot\\
+&\qquad\ \{(f\ \_)\}:\mathit{D} \to \mathit{Record}\text{\ \ for any }f\in\mathbb{F_\mathrm{D}} & &nil \mapsto r = \bot
 \\
-&\qquad\ \{(f\ x)\}\cup\{(f\ y)\} = \bot& &f \_:\mathit{Sll\_t} \to \mathit{Record}\\&\qquad\ \mathit{ls} (x\ z) = (x = z)\vee ( \exists y\ (x \ne z \wedge x \mapsto \{( f\ y)\} *\mathit{ls} (y\ z))
+&\qquad\ \_\cup\_:\mathit{Record}\times\mathit{Record}\rightharpoonup\mathit{Record}& &\{(f\ x)\}\cup\{(f\ y)\} = \bot\\
+&\qquad\ (r_1 \cup r_2) \cup r_3 = r_1 \cup (r_2 \cup r_3)& &r_1 \cup r_2 = r_2 \cup r_1
+\\&\qquad\ \mathit{ls} (x\ z) = (x = z)\vee ( \exists y\ (x \ne z \wedge x \mapsto \{( f\ y)\} *\mathit{ls} (y\ z))
 \end{align*}
 
-In $S$ we have 3 sorts: \textit{Sll\_t} is the sort of constants. It can also be some others, we use \textit{Sll\_t} here just because the benchmarks of SL-COMP use it. A field reference is the combination of a field name and a variable. A \textit{Record} is a set of field references. We use a syntactic sugar $\mathit{(\ )}$ to denote a field reference and another syntactic sugar \textit{\{ \}} to denote a set of field references, in other words a \textit{Record}, which looks more intuitive. We use symbol $\cup$ to group 2 \textit{Record} together to form a new \textit{Record}. Note that its semantic is not like $or$ because it doesn't conform to the ($\vee$)-rule: $\sigma (...,P\vee Q,...)=\sigma(...,P,...)\vee\sigma(...,Q,...)$. In general it's more like $and$. Let's look at an example. $(S,H) \models E \mapsto \{(lson,3)\}\cup\{(rson,4)\}$ iff the domain of $H$ is the fields $lson$ and $rson$ of \textit{E}'s location, and the corresponding values of the fields are 3 and 4. The values of other fields are not concerned. What's more, $\{(lson,3)\}\cup\{(lson,4)\}$ can not be satisfied because the function $H$ cannot have multiple values. We use $\cup$ here because we want to keep consistent with the separation logic syntax. A \textit{Map} is the mapping by symbol $\mapsto$ from a \textit{Sll\_t} to a \textit{Record}. 
-In $\Sigma$, \textit{nil} is a program variable representing an undefined reference. \textit{emp} means an empty heap. $\mapsto$ has been explained above. $*$ is the separating conjunction operator. \textit{ls} means list, its definition can be seen above. We define all the field names to be symbols. They take a certain type variable as input and form a field reference. The following is an example of a binary tree node.
+In $S$ we have sorts \textit{Record}, \textit{Map} and all the data types. In the benchmarks of SL-COMP they have data types \textit{Sll\_t}, \textit{TLL\_t}, etc. We can define all of them in \textit{S}. A field reference is the combination of a field name and a data. A \textit{Record} is a set of field references. A \textit{Map} is the mapping by symbol $\mapsto$ from a data to a \textit{Record}. 
+
+In $\Sigma$, the symbol $\cup$ is used to group 2 \textit{Record} together to form a new \textit{Record}. Note that its semantic is not like $or$ because it doesn't conform to the ($\vee$)-rule: $\sigma (...,P\vee Q,...)=\sigma(...,P,...)\vee\sigma(...,Q,...)$. In general it's more like $and$. Let's look at an example: $(S,H) \models E \mapsto \{(lson,3)\}\cup\{(rson,4)\}$ iff the domain of heap $H$ is the fields $lson$ and $rson$ of \textit{E}'s location, and the corresponding values of the fields are 3 and 4. The values of other fields are not concerned. What's more, $\{(lson,3)\}\cup\{(lson,4)\}$ can not be satisfied because the function $H$ cannot have multiple values. We use $\cup$ here because we want to keep consistent with the separation logic syntax. \textit{nil} is a program variable representing an undefined reference. \textit{emp} means an empty heap. $\mapsto$ has been explained above. $*$ is the separating conjunction operator. Note that $\cup$ and $*$ are both associative and commutative. \textit{ls} means list, its definition can be seen above. We define all the field names to be symbols. They take a certain type data as input and form a field reference. The following is an example of a binary tree node.
 \begin{verbatim}
-  Sll_t    : t
+  D        : t
   Record   : {(lson x), (rson y), (data z)}
   Map      : t |-> {(lson x), (rson y), (data z)}   
 \end{verbatim}
 
-The formal definitions of our syntactic sugars can be seen below. \textit{d} is a data of sort \textit{Sll\_t}. \textit{junk} stands for the top pattern ($\top$), which means total set in matching logic. 
+In addition, we define a syntactic sugar in our theory called  \textit{junk}. It stands for the top pattern ($\top$), which means total set in matching logic. 
 \begin{equation*}
 \begin{split}
- \{(f\ d)\} &\equiv f\ d\\
- \{(f\ d),(f'\ d'),...\} &\equiv \{(f\ d)\}\cup\{(f'\ d')\}\cup...\\
  junk &\equiv \top\\
 \end{split}
 \end{equation*}
@@ -1520,14 +1521,14 @@ Now we can do the formula transformation from separation logic with recursive de
 \end{algorithm}
 \end{comment}
 
-Finally, we show an example of translation from the benchmark of SL-COMP to matching logic. In the following separation logic example, \textit{next} is a field name with record type \textit{Sll\_t} and field type \textit{Sll\_t}. $x_1$ - $x_{10}$ are constants of sort \textit{Sll\_t}. The following formulas are asserted:
+Finally, we show an example of translation from the benchmark of SL-COMP to matching logic. In the following separation logic example, data type \textit{Sll\_t} is defined.  \textit{next} is a field name with record type \textit{Sll\_t} and field type \textit{Sll\_t}. $x_1$ - $x_{10}$ are constants of data type \textit{Sll\_t}. The following formulas are asserted:
 \begin{equation*}
 \begin{split}
 &(\mathit{nil} = \mathit{nil}) \wedge ((\mathit{ls}\ x_2\ x_7) * (x_6 \mapsto \{(\mathit{next},x_1)\}) * (x_4 \mapsto \{(\mathit{next},x_9)\}) *\mathit{emp}) \\  &\neg((\mathit{ls}\ x_6\ x_1) *(\mathit{ls}\ x_{10}\ x_2) *\mathit{emp})
 \end{split}
 \end{equation*}
 
-The following is the example encoded in the separation logic theory in SMT\_LIB. In the following codes, \textit{ssep} denotes the separating conjunction symbol $*$, \textit{pto} denotes $\mapsto$, and \textit{tobool} is used to cast spatial formulas to pure ones. \textit{ref} denotes the syntactic sugar $\mathit{(\ )}$ and \textit{sref} denotes the syntactic sugar \textit{\{ \}}. Note that we only have one field here, so \textit{ref} and \textit{sref} may look redundant, but if we have multiple fields then their differences can be seen.
+The following is the example encoded in the separation logic theory in SMT\_LIB. In the following codes, \textit{ssep} denotes the separating conjunction symbol, it can take arbitrary number of \textit{Maps} as input. \textit{pto} denotes $\mapsto$, and \textit{tobool} is used to cast spatial formulas to pure ones. \textit{ref} denotes a field reference and \textit{sref} denotes a set of field references. Note that we only have one field here, so \textit{ref} and \textit{sref} may look redundant, but if we have multiple fields then their differences can be seen.
 \begin{verbatim}
 ;Sll_t is of arity 0
 (declare-sort Sll_t 0)
