@@ -1411,14 +1411,46 @@ where $T_{\mathrm{SL}_i}$ is the matching logic theory of $\mathrm{SL}_i$ and $t
 
 \subsubsection{Separation logic with recursive definitions}
 
+% PLEASE FOLLOW FSL RULES. FOR EXAMPLE, EACH SENTENCE IN ONE LINE, ETC.
+
 Since 200? when [authors] firstly proposed separation logic as a formalization 
 of mutable data structures on heaps in the canonical paper~\cite{}, many people 
 have studied and proposed various variants of separation logic. 
 Among all variants, the one that was proposed in~\cite{}, named 
 \emph{separation logic with recursive/inductive definitions} (SLRD or SLID), 
-seem to be the most popular one. 
+seem to be the most popular one [5+ citations]. 
+In 2014, [who] initiated the first edition of separation logic competition (SL-COMP) alongside the satisfiability modulo theories competition (SMT-COMP), and successfully held the second edition in 2015. 
+Six(?) state-of-the-art separation logic provers participated in the events and competed on a set of benchmarks~\cite{}. 
+The benchmarks include hundreds of separation logic formulas of a fragment of SLRD, namely XXX (SLL?), in which ....
 
-In this section we focus on separation logic with recursive definitions, the separation logic variant first introduced in 2013 by Radu Iosif, Adam Rogalewicz, and Jirı Simácek. Its $symbolic\ heaps$ part was first introduced in 2005 by Josh Berdine, Cristiano Calcagno and Peter W. O'Hearn. It is also the main focus of the SL-COMP 2014 chaired by David R. Cok.
+The main goal of this section is to show that SLRD is an instance of matching logic.
+We will introduce a matching logic theory $T_{\text{SLRD}}$ that is a \emph{conservative extension} of SLRD, which means that every separation logic formula is a well-formed pattern in $T_{\text{SLRD}}$ (modulo syntactic sugar), and  
+\begin{equation*}
+\vdash_\text{SL} \varphi \quad \text{iff} \quad T_\text{SLRD} \vdash \varphi
+\quad \text{for any separation logic formula $\varphi$.}
+\end{equation*}
+Separation logic assertions are often written in an extended SMT-LIB format~\cite{}. 
+Therefore we also implemented a code-translator that converts separation logic assertions to matching logic definitions, which can later be fed to the matching logic prover. 
+
+Here we only provide a brief review of SLRD. Readers are refered to~\cite{} for more details.
+
+\newcommand{\FF}{\mathbb{F}}
+\newcommand{\DD}{\mathbb{D}}
+\newcommand{\PP}{\mathbb{P}}
+
+Let $\FF$ be a finite nonempty set of field names, $\DD$ be a set of data types, and $\PP$ be a finite set of recursive predicates. The next figure summaries the syntax of SLRD. 
+\begin{align*}
+&f \in \FF \ \text{field names} & &\emph{P} \in \PP \ \text{recursive definition name}\\
+&\emph{x,y} \in \emph{Vars} \ \text{reference program vars}& &\emph{X,Y} \in \emph{LVars} \ \text{reference logical vars}\\
+&\emph{d,D} \in \emph{DVars} \ \text{data\ variables}& &\Delta \ \text{data constraints}\\
+&\emph{E,F} \Coloneqq \emph{x} \mid \emph{X} & &\text{reference  variables}\\
+&\rho \Coloneqq \{(\emph{f},\emph{E})\} \mid \{(\emph{f},\emph{D})\}  \mid \rho\cup \rho & &\text{set of field references}\\
+&\Pi \Coloneqq \emph{E}=\emph{F} \mid\emph{E}\ne\emph{F}  \mid \Pi \wedge  \Pi & &\text{pure formulas}\\
+&\Sigma \Coloneqq \emph{emp} \mid \emph{junk} \mid \emph{E} \mapsto \rho \mid \emph(P(\mathbf{E},\mathbf{D})) \mid \Sigma *\Sigma & &\text{spatial formulas}\\
+&\emph{A,B} \overset{\Delta}{=} \exists \mathbf{X},\mathbf{D}. \Pi \wedge  \Sigma  \wedge  \Delta & &\text{formulas}\\
+\end{align*}
+
+%In this section we focus on separation logic with recursive definitions, the separation logic variant first introduced in 2013 by Radu Iosif, Adam Rogalewicz, and Jirı Simácek. Its $symbolic\ heaps$ part was first introduced in 2005 by Josh Berdine, Cristiano Calcagno and Peter W. O'Hearn. It is also the main focus of the SL-COMP 2014 chaired by David R. Cok.
 
 This variant describes $\mathtt{states}$ consisting of a stack and a heap. A stack \textit{S} is a function mapping reference variables to non-addressable values and locations, which are disjoint sets. A heap \textit{H} is a binary partial function that defines values of fields for some of the locations, it can also be seen as a partial mapping from locations to records. The records are defined by the user as a set of fields typed as reference or data. The domain of the heap $H$ is denoted by \textit{ldom(H)}. Two heaps are disjoint if their domains do not overlap. \textit{nil} is interpreted to a location $\mathit{S(nil) \notin ldom(H)}$. Their definitions are as follows.
 \begin{equation*}
@@ -1429,18 +1461,9 @@ This variant describes $\mathtt{states}$ consisting of a stack and a heap. A sta
 \end{equation*}
 
 Then let's look at the syntax of formulas of this variant.
-\begin{align*}
-&\emph{f} \in \mathbb{F} \ \text{field names} & &\emph{P} \in \mathbb{P} \ \text{recursive definition name}\\
-&\emph{x,y} \in \emph{Vars} \ \text{reference program vars}& &\emph{X,Y} \in \emph{LVars} \ \text{reference logical vars}\\
-&\emph{d,D} \in \emph{DVars} \ \text{data\ variables}& &\Delta \ \text{data constraints}\\
-&\emph{E,F} \Coloneqq \emph{x} \mid \emph{X} & &\text{reference  variables}\\
-&\rho \Coloneqq \{(\emph{f},\emph{E})\} \mid \{(\emph{f},\emph{D})\}  \mid \rho\cup \rho & &\text{set of field references}\\
-&\Pi \Coloneqq \emph{E}=\emph{F} \mid\emph{E}\ne\emph{F}  \mid \Pi \wedge  \Pi & &\text{pure formulas}\\
-&\Sigma \Coloneqq \emph{emp} \mid \emph{junk} \mid \emph{E} \mapsto \rho \mid \emph(P(\mathbf{E},\mathbf{D})) \mid \Sigma *\Sigma & &\text{spatial formulas}\\
-&\emph{A,B} \overset{\Delta}{=} \exists \mathbf{X},\mathbf{D}. \Pi \wedge  \Sigma  \wedge  \Delta & &\text{formulas}\\
-\end{align*}
 
-$\mathbb{F}$ is the set of field names, which is defined using the \textit{Field} sort in the theory. Each field is declared as a function symbol of arity 0 and result type \textit{Field\ A\ B}. \textit{A} is the sort corresponding to the record type declaring the field and \textit{B} is the sort typing the field. The following is an example of the definition of a binary tree node.
+
+$\FF$ is the set of field names, which is defined using the \textit{Field} sort in the theory. Each field is declared as a function symbol of arity 0 and result type \textit{Field\ A\ B}. \textit{A} is the sort corresponding to the record type declaring the field and \textit{B} is the sort typing the field. The following is an example of the definition of a binary tree node.
 \begin{verbatim}
   typedef struct btree_s {
   struct btree_s* lson;
@@ -1458,7 +1481,7 @@ $\mathbb{F}$ is the set of field names, which is defined using the \textit{Field
  {(lson, x), (rson, y),(data, z)}
 \end{verbatim}
 
-$\mathbb{P}$ is the set of recursive definitions defined by the syntax $P(\mathbf{E}\text{,}\mathbf{D}\text{)}\overset{\Delta}{=}\bigvee_{i}\ \exists \mathbf{X_i},\mathbf{D_i},\Pi_i\wedge \Sigma_i \wedge \Delta_i$ where the spatial formulas $\Sigma_i$ may call $P$ or other predicates from $\mathbb{P}$. In spatial formulas, \textit{emp} means empty heap. \textit{junk} is true for any heap,whether empty or consisting of some allocated nodes. * is the separating conjunction symbol. What's more, note that we have pure formulas typed by the \textit{Bool} sort and spatial formulas typed by the \textit{Space} sort, the spatial atoms' combination with a pure formula requires to cast \textit{Space} to \textit{Bool} using the symbol \textit{tobool}. The example can be seen below in the translation example.
+$\PP$ is the set of recursive definitions defined by the syntax $P(\mathbf{E}\text{,}\mathbf{D}\text{)}\overset{\Delta}{=}\bigvee_{i}\ \exists \mathbf{X_i},\mathbf{D_i},\Pi_i\wedge \Sigma_i \wedge \Delta_i$ where the spatial formulas $\Sigma_i$ may call $P$ or other predicates from $\PP$. In spatial formulas, \textit{emp} means empty heap. \textit{junk} is true for any heap,whether empty or consisting of some allocated nodes. * is the separating conjunction symbol. What's more, note that we have pure formulas typed by the \textit{Bool} sort and spatial formulas typed by the \textit{Space} sort, the spatial atoms' combination with a pure formula requires to cast \textit{Space} to \textit{Bool} using the symbol \textit{tobool}. The example can be seen below in the translation example.
 
 After we have known the syntax of this variant, we then turn our attention to the semantics. The logic allows to prove judgments of the form $(S,H)$ $\vDash$ $\varphi$, where $S$ is a stack, $H$ is a heap, and $\varphi$ is an assertion over the given stack and heap. The semantics are given as follows:
 \begin{align*}
@@ -1473,9 +1496,9 @@ After we have known the syntax of this variant, we then turn our attention to th
     &(S,H) \models \exists X.\varphi & &\text{iff } \text{there exists }  \mathit{l} \in Loc \text{ s.t.}  (S[X \gets \mathit{l}], H) \models \varphi
 \end{align*}
 
-In the above semantics, $\uplus$ denotes the disjoint union of sets. $ S[X\gets\mathit{l}]$ denotes the function $S'$ s.t. $S'(X) = l$ and $S'(Y)=S(Y)$ for any $Y \ne X$. Note that a configuration $(S,H)$ satisfies a predicate atom $P(\mathbf{E})$ if it belongs to the least fix point of the set of recursive definitions $\mathbb{P}$ for the actual parameters $\mathbf{E}$ of $P$. The set of models of a formula $\varphi$ is denoted by [$\varphi$]. Given two formulas $\varphi_1$ and $\varphi_2$, we have $\varphi_1 \Rightarrow \varphi_2$ iff $[\varphi_1] \subseteq [\varphi_2]$.
+In the above semantics, $\uplus$ denotes the disjoint union of sets. $ S[X\gets\mathit{l}]$ denotes the function $S'$ s.t. $S'(X) = l$ and $S'(Y)=S(Y)$ for any $Y \ne X$. Note that a configuration $(S,H)$ satisfies a predicate atom $P(\mathbf{E})$ if it belongs to the least fix point of the set of recursive definitions $\PP$ for the actual parameters $\mathbf{E}$ of $P$. The set of models of a formula $\varphi$ is denoted by [$\varphi$]. Given two formulas $\varphi_1$ and $\varphi_2$, we have $\varphi_1 \Rightarrow \varphi_2$ iff $[\varphi_1] \subseteq [\varphi_2]$.
 
-Now we have got the general idea of this separation logic variant. We will then focus on building a separation logic theory of this variant using matching logic, in other words, to contribute to proving that this separation logic variant is an instance of matching logic. The theory $T_{\mathrm{SL}}$ consists of 2 parts: $S$ is the set of sorts and $\Sigma$ is the set of symbols. Our definition focus on the \textit{symbolic\ heaps} part, because there is no need to redefine recursive definitions in matching logic. In the following definition, $\mathbb{D}$ is a set of data types. We can define different types such as \textit{Nat}, \textit{node}, etc. $\mathit{H,H_1,H_2,H_3}$ are of sort \textit{Map}. $\mathit{r,r_1,r_2,r_3}$ are of sort \textit{Record}. \textit{x,y,z} are variables of the same data type.  $f\in\mathbb{F}$. $D\in\mathbb{D}$. $\mathbb{F_\mathrm{D}}$ denotes the subset of field names which take a value of type $D$ to form a \textit{Record}.
+Now we have got the general idea of this separation logic variant. We will then focus on building a separation logic theory of this variant using matching logic, in other words, to contribute to proving that this separation logic variant is an instance of matching logic. The theory $T_{\mathrm{SL}}$ consists of 2 parts: $S$ is the set of sorts and $\Sigma$ is the set of symbols. Our definition focus on the \textit{symbolic\ heaps} part, because there is no need to redefine recursive definitions in matching logic. In the following definition, $\DD$ is a set of data types. We can define different types such as \textit{Nat}, \textit{node}, etc. $\mathit{H,H_1,H_2,H_3}$ are of sort \textit{Map}. $\mathit{r,r_1,r_2,r_3}$ are of sort \textit{Record}. \textit{x,y,z} are variables of the same data type.  $f\in\FF$. $D\in\DD$. $\mathbb{F_\mathrm{D}}$ denotes the subset of field names which take a value of type $D$ to form a \textit{Record}.
 \begin{align*}
 &T_{\mathrm{SL}} =  \{ S , \Sigma \}\\
 & S =  \{ \mathit{Record} , \mathit{Map} \} \cup  \mathbb{D }\\
