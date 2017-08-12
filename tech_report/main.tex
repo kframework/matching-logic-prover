@@ -1411,6 +1411,13 @@ where $T_{\mathrm{SL}_i}$ is the matching logic theory of $\mathrm{SL}_i$ and $t
 
 \subsubsection{Separation logic with recursive definitions}
 
+Since 200? when [authors] firstly proposed separation logic as a formalization 
+of mutable data structures on heaps in the canonical paper~\cite{}, many people 
+have studied and proposed various variants of separation logic. 
+Among all variants, the one that was proposed in~\cite{}, named 
+\emph{separation logic with recursive/inductive definitions} (SLRD or SLID), 
+seem to be the most popular one. 
+
 In this section we focus on separation logic with recursive definitions, the separation logic variant first introduced in 2013 by Radu Iosif, Adam Rogalewicz, and Jirı Simácek. Its $symbolic\ heaps$ part was first introduced in 2005 by Josh Berdine, Cristiano Calcagno and Peter W. O'Hearn. It is also the main focus of the SL-COMP 2014 chaired by David R. Cok.
 
 This variant describes $\mathtt{states}$ consisting of a stack and a heap. A stack \textit{S} is a function mapping reference variables to non-addressable values and locations, which are disjoint sets. A heap \textit{H} is a binary partial function that defines values of fields for some of the locations, it can also be seen as a partial mapping from locations to records. The records are defined by the user as a set of fields typed as reference or data. The domain of the heap $H$ is denoted by \textit{ldom(H)}. Two heaps are disjoint if their domains do not overlap. \textit{nil} is interpreted to a location $\mathit{S(nil) \notin ldom(H)}$. Their definitions are as follows.
