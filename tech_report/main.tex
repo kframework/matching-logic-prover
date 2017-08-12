@@ -1445,7 +1445,7 @@ Let $\FF$ be a finite nonempty set of field names, $\DD$ be a set of data types,
 &d,D \in DVars \ \text{data\ variables}& &\Delta \ \text{data constraints}\\
 &E,F \Coloneqq x \mid X & &\text{reference  variables}\\
 &\rho \Coloneqq \{(f,E)\} \mid \{(f,D)\}  \mid \rho\cup \rho & &\text{set of field references}\\
-&\Pi \Coloneqq E=F \midE\neF  \mid \Pi \wedge  \Pi & &\text{pure formulas}\\
+&\Pi \Coloneqq E=F \mid E \ne F  \mid \Pi \wedge  \Pi & &\text{pure formulas}\\
 &\Sigma \Coloneqq emp \mid junk \mid E \mapsto \rho \mid (P(\mathbf{E},\mathbf{D})) \mid \Sigma *\Sigma & &\text{spatial formulas}\\
 &A,B \overset{\Delta}{=} \exists \mathbf{X},\mathbf{D}. \Pi \wedge  \Sigma  \wedge  \Delta & &\text{formulas}\\
 \end{align*}
