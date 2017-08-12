@@ -3,6 +3,8 @@
 ### [Rey02] Separation Logic: A Logic for Shared Mutable Data Structures
 
   &nbsp;&nbsp;This paper proposes the idea of separation logic, an extension of Hoare logic that permits reasoning about low-level imperative programs that use shared mutable data strctures.It extends assertions by introducing "separation conjunction" and "separation implication",which, coupled with the inductive definition of predicates on abstract data structures, permit the concise and flexible description of structures with controlled sharing.This paper also surveys the current development of this program logic, including extensions that permit unrestricted address arithmetics, dynamically allocated arrays and recursive procedures. 
+  
+### [BCO05] Symbolic Execution with Separation Logic
  
 ### [CD11] Infer: An Automatic Program Verifier for Memory Safety of C Programs
 
@@ -85,6 +87,8 @@
 > &nbsp;&nbsp;Routines from a secure verified OS-browser project<br /> 
 > * Experimental results<br /> 
 > &nbsp;&nbsp;On page 10<br /> 
+
+### [IRS13] The Tree Width of Separation Logic with Recursive Definitions
 
 ### [PMQ14] Natural Proofs for Data Structure Manipulation in C using Separation Logic
 
