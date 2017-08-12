@@ -1,0 +1,44 @@
+fmod K is
+
+  protecting STRING .
+
+  sorts KSort KSortList . subsort KSort < KSortList .
+  op #sort : String -> KSort [ctor] .
+  op .KSort : -> KSortList [ctor] .
+  op _,_ : KSortList KSortList -> KSortList [ctor assoc id: .KSort] .
+
+  sort Symbol .
+  op #symbol : String KSortList KSort -> Symbol [ctor] .
+  
+  sorts K KList . subsort K < KList .
+  op .K : -> KList [ctor] .
+  op _,_ : KList KList -> KList [ctor assoc id: .K] .
+
+  op #variable : String KSort -> K [ctor] .
+  ops #and #or : K K -> K [ctor assoc comm] .
+  op #not : K -> K [ctor] .
+  ops #top #bot : KSort -> K [ctor] .
+  op #implies : K K -> K [ctor assoc comm] .
+  ops #exists #forall : String KSort K -> K [ctor] .
+  op #application : Symbol KList -> K [ctor] .
+  op #value : String KSort -> K [ctor] .
+
+  op getKSort : K -> [KSort] .
+
+  var X : String . var S : KSort .
+  vars K K1 K2 K3 : K . var Ks : KList .
+
+  eq getKSort(#variable(X, S)) = S .
+  ceq getKSort(#and(K1, K2)) = getKSort(K1)
+  if getKSort(K1) = getKSort(K2) .
+  ceq getKSort(#or(K1, K2)) = getKSort(K1)
+  if getKSort(K1) = getKSort(K2) .
+  eq getKSort(#not(K)) = getKSort(K) .
+  ---- TODO
+
+  
+
+endfm
+
+quit
+
