@@ -91,49 +91,55 @@
     (= nil nil)
      
 	(ssep
-		(ls  x1 x3) 
+		(pto x9 (next x2)) 
 	(ssep 		
-		(pto x8 (next x11)) 
+		(pto x7 (next x10)) 
 	(ssep 		
-		(pto x5 (next x8)) 
+		(ls  x12 x5) 
 	(ssep 		
-		(pto x11 (next x10)) 
+		(pto x4 (next x13)) 
 	(ssep 		
-		(ls  x3 x1) 
+		(pto x10 (next x13)) 
 	(ssep 		
-		(ls  x10 x9) 
+		(pto x3 (next x9)) 
 	(ssep 		
-		(pto x4 (next x6)) 
+		(ls  x13 x7) 
 	(ssep 		
-		(pto x6 (next x4)) 
+		(pto x11 (next x13)) 
 	(ssep 		
-		(pto x9 (next x10)) 
+		(ls  x1 x12) 
 	(ssep 		
-		(pto x7 (next x1)) 
+		(pto x6 (next x5)) 
 	(ssep 		
-		(ls  x2 x6) 
+		(pto x5 (next x9)) 
+	(ssep 		
+		(pto x8 (next x4)) 
+	(ssep 		
+		(pto x2 (next x1)) 
 		emp
-	))))))))))) ))
+	))))))))))))) ))
   )
 )
 (assert (not (floor
   (not
          
 	(ssep
-		(ls  x2 x4) 
+		(ls  x8 x4) 
 	(ssep 		
-		(ls  x9 x10) 
+		(ls  x7 x10) 
 	(ssep 		
-		(ls  x7 x3) 
+		(ls  x4 x13) 
 	(ssep 		
-		(ls  x4 x6) 
+		(ls  x12 x5) 
 	(ssep 		
-		(ls  x3 x1) 
+		(ls  x11 x13) 
 	(ssep 		
-		(ls  x5 x11) 
+		(ls  x3 x9) 
 	(ssep 		
-		(ls  x11 x9) 
+		(ls  x6 x12) 
+	(ssep 		
+		(ls  x10 x7) 
 		emp
-	))))))) ))
+	)))))))) ))
   ))
 

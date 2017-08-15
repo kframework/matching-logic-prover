@@ -21,6 +21,10 @@
 (declare-func x15 () Sll_t)
 (declare-func x16 () Sll_t)
 (declare-func x17 () Sll_t)
+(declare-func x18 () Sll_t)
+(declare-func x19 () Sll_t)
+(declare-func x20 () Sll_t)
+(declare-func x21 () Sll_t)
 
 (declare-func nil () Sll_t)
 
@@ -91,49 +95,67 @@
     (= nil nil)
      
 	(ssep
-		(ls  x1 x3) 
+		(pto x14 (next x7)) 
 	(ssep 		
-		(pto x8 (next x11)) 
+		(ls  x9 x8) 
 	(ssep 		
-		(pto x5 (next x8)) 
+		(pto x7 (next x17)) 
 	(ssep 		
-		(pto x11 (next x10)) 
+		(ls  x8 x11) 
 	(ssep 		
-		(ls  x3 x1) 
+		(pto x5 (next x14)) 
 	(ssep 		
-		(ls  x10 x9) 
+		(ls  x12 x5) 
 	(ssep 		
-		(pto x4 (next x6)) 
+		(pto x2 (next x16)) 
 	(ssep 		
-		(pto x6 (next x4)) 
+		(ls  x16 x3) 
 	(ssep 		
-		(pto x9 (next x10)) 
+		(ls  x15 x10) 
 	(ssep 		
-		(pto x7 (next x1)) 
+		(pto x10 (next x7)) 
 	(ssep 		
-		(ls  x2 x6) 
+		(pto x6 (next x17)) 
+	(ssep 		
+		(pto x13 (next x3)) 
+	(ssep 		
+		(ls  x17 x9) 
+	(ssep 		
+		(ls  x11 x3) 
+	(ssep 		
+		(ls  x4 x16) 
+	(ssep 		
+		(pto x3 (next x14)) 
+	(ssep 		
+		(pto x1 (next x3)) 
 		emp
-	))))))))))) ))
+	))))))))))))))))) ))
   )
 )
 (assert (not (floor
   (not
          
 	(ssep
-		(ls  x2 x4) 
+		(ls  x1 x3) 
 	(ssep 		
-		(ls  x9 x10) 
+		(ls  x2 x16) 
 	(ssep 		
-		(ls  x7 x3) 
+		(ls  x13 x3) 
 	(ssep 		
-		(ls  x4 x6) 
+		(ls  x12 x5) 
 	(ssep 		
-		(ls  x3 x1) 
+		(ls  x4 x16) 
 	(ssep 		
-		(ls  x5 x11) 
+		(ls  x16 x3) 
 	(ssep 		
-		(ls  x11 x9) 
+		(ls  x6 x17) 
+	(ssep 		
+		(ls  x15 x7) 
+	(ssep 		
+		(ls  x5 x7) 
+	(ssep 		
+		(ls  x7 x14) 
 		emp
-	))))))) ))
+	)))))))))) ))
   ))
 
