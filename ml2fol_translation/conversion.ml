@@ -14,9 +14,10 @@ let rec sort_of_pattern pattern =
   | VarPattern(x, s) -> Some(s)
   | AppPattern(f, arguments) -> Some(result_sort_of_symbol f)
   | AndPattern([]) -> None
-  | AndPattern(p::ps) -> sort_of_pattern p
-  | OrPattern([]) -> None
-  | OrPattern(p::ps) -> sort_of_pattern p
+  | AndPattern(p::ps) -> if (sort_of_pattern p) = None 
+                         then sort_of_pattern (AndPattern(ps)) 
+                         else sort_of_pattern p
+  | OrPattern(ps) -> sort_of_pattern (AndPattern(ps))
   | NotPattern(p) -> sort_of_pattern p
   | ImpliesPattern(p1, p2) -> sort_of_pattern p1
   | IffPattern(p1, p2) -> sort_of_pattern p1
