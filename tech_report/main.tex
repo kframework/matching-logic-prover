@@ -1493,8 +1493,7 @@ The following is an example value for a record defining a binary tree node.
 
 The set of recursive definitions $\PP$ is defined by the syntax $P(\mathbf{E}\text{,}\mathbf{D}\text{)}\overset{\Delta}{=}\bigvee_{i}\ \exists \mathbf{X_i},\mathbf{D_i},\\ \Pi_i\wedge \Sigma_i \wedge \Delta_i$ where the spatial formulas $\Sigma_i$ may call $P$ or other predicates from $\PP$. 
 In spatial formulas, we have \textit{emp} that denotes empty heap. 
-We have \textit{junk} that is true for any heap, whether empty or consisting of some allocated nodes. We have * that means the separating conjunction symbol. What's more, note that we have pure formulas typed by the \textit{Bool} sort and spatial formulas typed by the \textit{Space} sort, the spatial atoms' combination with a pure formula requires to cast \textit{Space} to \textit{Bool} using the symbol \textit{tobool}. 
-The example can be seen below in the translation example.
+We have \textit{junk} that is true for any heap, whether empty or consisting of some allocated nodes. We have * as the separating conjunction symbol. %What's more, note that we have pure formulas typed by the \textit{Bool} sort and spatial formulas typed by the \textit{Space} sort, the spatial atoms' combination with a pure formula requires to cast \textit{Space} to \textit{Bool} using the symbol \textit{tobool}. 
 
 After we have known the syntax of SLRD, we then turn our attention to the semantics. 
 The logic allows to prove judgments of the form $(S,H)$ $\vDash$ $\varphi$, where $S$ is a stack, $H$ is a heap, and $\varphi$ is an assertion over the given stack and heap. 
@@ -1579,15 +1578,43 @@ Now we can do the formula transformation from separation logic with recursive de
 \end{algorithm}
 \end{comment}
 
-Finally, we show an example of translation from the benchmark of SL-COMP to matching logic. In the following separation logic example, data type \textit{Sll\_t} is defined.  \textit{next} is a field name with record type \textit{Sll\_t} and field type \textit{Sll\_t}. $x_1$ - $x_{10}$ are constants of data type \textit{Sll\_t}. The following formulas are asserted:
+Finally, we show an example of translation from the benchmark of SL-COMP to matching logic. 
+In the following separation logic example, data type \textit{Sll\_t} is defined. 
+Let \textit{next} be a field name with record type \textit{Sll\_t} and field type \textit{Sll\_t}. Let $x_1$ - $x_{10}$ be constants of data type \textit{Sll\_t}. The following formulas are asserted:
 \begin{equation*}
 \begin{split}
 &(\mathit{nil} = \mathit{nil}) \wedge ((\mathit{ls}\ x_2\ x_7) * (x_6 \mapsto \{(\mathit{next},x_1)\}) * (x_4 \mapsto \{(\mathit{next},x_9)\}) *\mathit{emp}) \\  &\neg((\mathit{ls}\ x_6\ x_1) *(\mathit{ls}\ x_{10}\ x_2) *\mathit{emp})
 \end{split}
 \end{equation*}
 
-The following is the example encoded in the separation logic theory in SMT\_LIB. In the following codes, symbol \textit{ssep} denotes the separating conjunction symbol, it can take arbitrary number of \textit{Maps} as input. Symbol \textit{pto} denotes $\mapsto$, and \textit{tobool} is used to cast spatial formulas to pure ones. We use \textit{ref} to denote a field reference and \textit{sref} to denote a set of field references. Note that we only have one field here, so \textit{ref} and \textit{sref} may look redundant, but if we have multiple fields then their differences can be seen.
-----add difference from SMT\_LIB-----
+The following is the example encoded in the separation logic theory in SMT\_LIB. 
+The sorts and the set of reference variables (program or existentially quantified) are declared in a classic way. For example:
+\begin{verbatim}
+(declare-sort Btree_t () 0)
+(declare-fun root () Btree_t)
+\end{verbatim}
+declares a binary tree sort with no parameters and a variable root to be a reference to a binary tree.
+The way to declare field names has been explained above. This is an extension from SMT\_LIB.
+Note that in the benchmarks of SL-COMP the flatness of formulas is not ensured. 
+So the spatial atoms are typed in the theory by the \textit{Space} sort (arity 0) and their combination with a pure (boolean) formula requires to cast \textit{Space} to \textit{Bool}.
+The space atoms are built using the following theory operators.
+\begin{equation*}
+\begin{array}{ccc}
+\text{Syntax} & &\text{SMT\_LIB notation} \\ 
+\hline
+emp & &\mathtt{emp}  \\ 
+junk & &\mathtt{junk} \\ 
+\Sigma_1*...*\Sigma_n & &\mathtt{(ssep\ \mathrm{<form>^{+}})}  \\ 
+E \mapsto \rho & &\mathtt{(pto\ \mathrm{<var>}\ \rho)} \\ 
+none & &\mathtt{(tobool\ \mathrm{<form>\ <form>})} \\
+none & &\mathtt{(tospace\ \mathrm{<form>\ <form>})}\\
+\{(f,E)\} & &\mathtt{(ref\ \mathrm{<f>\ <var>})}\\
+\rho \cup\rho &  &\mathtt{(sref\ \mathrm{<\rho>^{+}})}
+\end{array} 
+\end{equation*}
+
+In the following codes, %symbol \textit{ssep} denotes the separating conjunction symbol, it can take arbitrary number of \textit{Maps} as input. Symbol \textit{pto} denotes $\mapsto$. %and \textit{tobool} is used to cast spatial formulas to pure ones. %We use \textit{ref} to denote a field reference and \textit{sref} to denote a set of field references.
+note that we only have one field here, so $\mathtt{ref}$ and $\mathtt{sref}$ may look redundant, but if we have multiple fields then their differences can be seen.
 \begin{verbatim}
 ;Sll_t is of arity 0
 (declare-sort Sll_t 0)
