@@ -35,7 +35,13 @@ fmod K is
   if getKSort(K1) = getKSort(K2) .
   eq getKSort(#not(K)) = getKSort(K) .
   ---- TODO
-
+  eq getKSort(#top(S)) = S .
+  eq getKSort(#bot(S)) = S .
+  ceq getKSort(#implies(K1, K2)) = getKSort(K1)
+  if getKSort(K1) = getKSort(K2) .
+  eq getKSort(#exists(X, S, K)) = S .
+  eq getKSort(#forall(X, S, K)) = S .
+  eq getKSort(#value(X, S)) = S .
   
 
 endfm
