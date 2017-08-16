@@ -34,7 +34,7 @@ fmod K is
   ceq getKSort(#or(K1, K2)) = getKSort(K1)
   if getKSort(K1) = getKSort(K2) .
   eq getKSort(#not(K)) = getKSort(K) .
-  ---- TODO
+
   eq getKSort(#top(S)) = S .
   eq getKSort(#bot(S)) = S .
   ceq getKSort(#implies(K1, K2)) = getKSort(K1)
