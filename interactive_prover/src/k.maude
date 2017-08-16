@@ -4,14 +4,14 @@ fmod K is
 
   sorts KSort KSortList . subsort KSort < KSortList .
   op #sort : String -> KSort [ctor] .
-  op .KSort : -> KSortList [ctor] .
+  op .KSortList : -> KSortList [ctor] .
   op _,_ : KSortList KSortList -> KSortList [ctor assoc id: .KSort] .
 
   sort Symbol .
   op #symbol : String KSortList KSort -> Symbol [ctor] .
   
   sorts K KList . subsort K < KList .
-  op .K : -> KList [ctor] .
+  op .KList : -> KList [ctor] .
   op _,_ : KList KList -> KList [ctor assoc id: .K] .
 
   op #variable : String KSort -> K [ctor] .
@@ -39,8 +39,9 @@ fmod K is
   eq getKSort(#bot(S)) = S .
   ceq getKSort(#implies(K1, K2)) = getKSort(K1)
   if getKSort(K1) = getKSort(K2) .
-  eq getKSort(#exists(X, S, K)) = S .
-  eq getKSort(#forall(X, S, K)) = S .
+  eq getKSort(#exists(X, S, K)) = getKSort(K) .
+  eq getKSort(#forall(X, S, K)) = getKSort(K) .
+  eq getKSort(#application(#symbol(X, L:KSortList, S), Ks)) = S .
   eq getKSort(#value(X, S)) = S .
   
 
