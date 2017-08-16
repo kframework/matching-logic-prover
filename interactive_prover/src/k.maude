@@ -28,13 +28,13 @@ fmod K is
   var X : String . var S : KSort .
   vars K K1 K2 K3 : K . var Ks : KList .
 
+;get sort
   eq getKSort(#variable(X, S)) = S .
   ceq getKSort(#and(K1, K2)) = getKSort(K1)
   if getKSort(K1) = getKSort(K2) .
   ceq getKSort(#or(K1, K2)) = getKSort(K1)
   if getKSort(K1) = getKSort(K2) .
   eq getKSort(#not(K)) = getKSort(K) .
-
   eq getKSort(#top(S)) = S .
   eq getKSort(#bot(S)) = S .
   ceq getKSort(#implies(K1, K2)) = getKSort(K1)
@@ -43,6 +43,10 @@ fmod K is
   eq getKSort(#forall(X, S, K)) = getKSort(K) .
   eq getKSort(#application(#symbol(X, L:KSortList, S), Ks)) = S .
   eq getKSort(#value(X, S)) = S .
+  
+  ;well formed
+  
+  ;substitute
   
 
 endfm
