@@ -57,12 +57,12 @@ fmod K is
   eq subst(#variable(X, S), K, #variable(X, S)) = K .
   eq subst(#variable(Y, S), K, #variable(X, S)) = #variable(Y, S) .
   eq subst(#application(#symbol(Y, L : KSortList, S), (K1, Kl)), K, #variable(X, S)) = 
-  subst(#application(#symbol(Y, L : KSortList, S), K1), K, #variable(X, S)), subst(#application(#symbol(Y, L : KSortList, S), Kl), K, #variable(X, S)) .
+  subst(#application(#symbol(Y, L : KSortList, S), K1), K, #variable(X, S)), subst(#application(#symbol(Y, L : KSortList, S), Kl), K, #variable(X, S)) [owise] .
   eq subst(#not(K1), K, #variable(X, S)) = #not(subst(K1, K, #variable(X, S))) .
   eq subst(#and(K1, K2), K, #variable(X, S)) = #and(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
   eq subst(#or(K1, K2), K, #variable(X, S)) = #or(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
   eq subst(#implies(K1, K2), K, #variable(X, S)) = #implies(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
-  eq subst(#exists(Y, S, K1), K, #variable(X, S)) = if K = #variable(Y, S) 
+  eq subst(#exists(Y, S, K1), K, #variable(X, S)) = if K == #variable(Y, S) 
     then subst(#exists(U:String, S, subst(K1, #variable(U, S), #variable(Y, S))), K, #variable(X, S)) 
     else #exists(Y, S, subst(K1, K, #variable(X, S))) fi .
   eq subst(#exists(X, S, K1), K, #variable(X, S)) = #exists(X, S, K1) .
