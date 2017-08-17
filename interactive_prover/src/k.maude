@@ -25,7 +25,7 @@ fmod K is
 
   op getKSort : K -> [KSort] .
 
-  var X : String . var S : KSort .
+  vars X Y : String . var S : KSort .
   vars K K1 K2 K3 : K . var Ks : KList .
 
 ;get sort
@@ -41,12 +41,31 @@ fmod K is
   if getKSort(K1) = getKSort(K2) .
   eq getKSort(#exists(X, S, K)) = getKSort(K) .
   eq getKSort(#forall(X, S, K)) = getKSort(K) .
-  eq getKSort(#application(#symbol(X, L:KSortList, S), Ks)) = S .
+  eq getKSort(#application(#symbol(X, L : KSortList, S), Ks)) = S .
   eq getKSort(#value(X, S)) = S .
   
   ;well formed
   
-  ;substitute
+  var Ks1 Ks2 Ks3 : KSortList .
+  var Kl1 Kl2 Kl3 : KList .
+  
+  ;substitute ?? 
+  ceq Ks1,Ks3 = Ks2,Ks3
+  if Ks1 = Ks2 .
+  ceq Kl1,Kl3 = Kl2,Kl3
+  if Kl1 = Kl2 .
+  ceq Ks1,Ks2 = Ks1,Ks3
+  if Ks2 = Ks3 .
+  ceq Kl1,Kl2 = Kl1,Kl3
+  if Kl2 = Kl3 .
+  ceq #not(K) = #not(K1)
+  if K = K1 .
+  eq #exists(X, S, K) = #exists(Y, S, K) . ; if Y not in K ?
+  eq #forall(X, S, K) = #forall(Y, S, K) . ; ?
+  eq #application(#symbol(X, L : KSortList, S), Ks) = #application(#symbol(Y, L : KSortList, S), Ks) . ; ?
+  ceq #application(#symbol(X, L : KSortList, S), Ks) = #application(#symbol(X, L : KSortList, S), Kl1) 
+  if getKSort(Ks) = getKSort(Kl1) . ; ?
+  
   
 
 endfm
