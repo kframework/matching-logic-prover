@@ -26,7 +26,7 @@ fmod K is
   op getKSort : K -> [KSort] .
 
   vars X Y : String . var S : KSort .
-  vars K K1 K2 K3 : K . var Ks : KList .
+  vars K K1 K2 K3 : K . var Kl : KList .
 
 ;get sort
   eq getKSort(#variable(X, S)) = S .
@@ -41,30 +41,33 @@ fmod K is
   if getKSort(K1) = getKSort(K2) .
   eq getKSort(#exists(X, S, K)) = getKSort(K) .
   eq getKSort(#forall(X, S, K)) = getKSort(K) .
-  eq getKSort(#application(#symbol(X, L : KSortList, S), Ks)) = S .
+  eq getKSort(#application(#symbol(X, L : KSortList, S), Kl)) = S .
   eq getKSort(#value(X, S)) = S .
   
   ;well formed
   
+
+  
+  ;substitute ?? 
+  
   var Ks1 Ks2 Ks3 : KSortList .
   var Kl1 Kl2 Kl3 : KList .
   
-  ;substitute ?? 
-  ceq Ks1,Ks3 = Ks2,Ks3
-  if Ks1 = Ks2 .
-  ceq Kl1,Kl3 = Kl2,Kl3
-  if Kl1 = Kl2 .
-  ceq Ks1,Ks2 = Ks1,Ks3
-  if Ks2 = Ks3 .
-  ceq Kl1,Kl2 = Kl1,Kl3
-  if Kl2 = Kl3 .
-  ceq #not(K) = #not(K1)
-  if K = K1 .
-  eq #exists(X, S, K) = #exists(Y, S, K) . ; if Y not in K ?
-  eq #forall(X, S, K) = #forall(Y, S, K) . ; ?
-  eq #application(#symbol(X, L : KSortList, S), Ks) = #application(#symbol(Y, L : KSortList, S), Ks) . ; ?
-  ceq #application(#symbol(X, L : KSortList, S), Ks) = #application(#symbol(X, L : KSortList, S), Kl1) 
-  if getKSort(Ks) = getKSort(Kl1) . ; ?
+  op subst K K K -> K .
+  eq subst(#variable(X, S), K, #variable(X, S)) = K .
+  eq subst(#variable(Y, S), K, #variable(X, S)) = #variable(Y, S) .
+  eq subst(#application(#symbol(Y, L : KSortList, S), (K1, Kl)), K, #variable(X, S)) = 
+  subst(#application(#symbol(Y, L : KSortList, S), K1), K, #variable(X, S)), subst(#application(#symbol(Y, L : KSortList, S), Kl), K, #variable(X, S)) .
+  eq subst(#not(K1), K, #variable(X, S)) = #not(subst(K1, K, #variable(X, S))) .
+  eq subst(#and(K1, K2), K, #variable(X, S)) = #and(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
+  eq subst(#or(K1, K2), K, #variable(X, S)) = #or(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
+  eq subst(#implies(K1, K2), K, #variable(X, S)) = #implies(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
+  eq subst(#exists(Y, S, K1), K, #variable(X, S)) = if K = #variable(Y, S) 
+    then subst(#exists(U:String, S, subst(K1, #variable(U, S), #variable(Y, S))), K, #variable(X, S)) 
+    else #exists(Y, S, subst(K1, K, #variable(X, S))) fi .
+  eq subst(#exists(X, S, K1), K, #variable(X, S)) = #exists(X, S, K1) .
+  
+  
   
   
 
