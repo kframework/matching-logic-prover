@@ -1,18 +1,19 @@
 fmod K is
 
   protecting STRING .
+  protecting BOOL .
 
   sorts KSort KSortList . subsort KSort < KSortList .
   op #sort : String -> KSort [ctor] .
   op .KSortList : -> KSortList [ctor] .
-  op _,_ : KSortList KSortList -> KSortList [ctor assoc id: .KSort] .
+  op _,_ : KSortList KSortList -> KSortList [ctor assoc id: .KSortList] .
 
   sort Symbol .
   op #symbol : String KSortList KSort -> Symbol [ctor] .
   
   sorts K KList . subsort K < KList .
   op .KList : -> KList [ctor] .
-  op _,_ : KList KList -> KList [ctor assoc id: .K] .
+  op _,_ : KList KList -> KList [ctor assoc id: .KList] .
 
   op #variable : String KSort -> K [ctor] .
   ops #and #or : K K -> K [ctor assoc comm] .
@@ -25,8 +26,10 @@ fmod K is
 
   op getKSort : K -> [KSort] .
 
-  vars X Y : String . var S : KSort .
+  vars X Y U : String . var S : KSort .
   vars K K1 K2 K3 : K . var Kl : KList .
+  var Ks Ks1 Ks2 Ks3 : KSortList .
+  var Kl1 Kl2 Kl3 : KList .
 
 ---- get sort
   eq getKSort(#variable(X, S)) = S .
@@ -41,19 +44,23 @@ fmod K is
   if getKSort(K1) = getKSort(K2) .
   eq getKSort(#exists(X, S, K)) = getKSort(K) .
   eq getKSort(#forall(X, S, K)) = getKSort(K) .
-  eq getKSort(#application(#symbol(X, L : KSortList, S), Kl)) = S .
+  eq getKSort(#application(#symbol(X, Ks, S), Kl)) = S .
   eq getKSort(#value(X, S)) = S .
   
   ---- well formed
+ 
   
+  ---- substitute 
 
   
-  ---- substitute ?? 
-  
-  var Ks Ks1 Ks2 Ks3 : KSortList .
-  var Kl1 Kl2 Kl3 : KList .
-  
-  op subst K K K -> K .
+  op subst : K K K -> K .
+  op _in_ : K KList -> Bool .
+  op new : KList -> String .
+
+  eq K in K,Kl = true .
+  eq K in Kl = false [owise] .
+  eq #variable(new(Kl), S) in Kl = false . 
+
   eq subst(#variable(X, S), K, #variable(X, S)) = K .
   eq subst(#variable(Y, S), K, #variable(X, S)) = #variable(Y, S) .
   eq subst(#application(#symbol(Y, Ks, S), (K1, Kl)), K, #variable(X, S)) = 
@@ -61,16 +68,20 @@ fmod K is
   eq subst(#not(K1), K, #variable(X, S)) = #not(subst(K1, K, #variable(X, S))) .
   eq subst(#and(K1, K2), K, #variable(X, S)) = #and(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
   eq subst(#or(K1, K2), K, #variable(X, S)) = #or(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
-  eq subst(#implies(K1, K2), K, #variable(X, S)) = #implies(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
+  eq subst(#implies(K1, K2), K, #variable(X, S)) = #implies(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) .
+  eq subst(#exists(X, S, K1), K, #variable(X, S)) = #exists(X, S, K1) . 
   eq subst(#exists(Y, S, K1), K, #variable(X, S)) = if K == #variable(Y, S)    ---- #variable(Y, S) in K ?
-    then subst(#exists(U:String, S, subst(K1, #variable(U, S), #variable(Y, S))), K, #variable(X, S)) 
+    then subst(#exists(new(#variable(X, S),#variable(Y, S),K1), S, subst(K1, #variable(new(#variable(X, S),#variable(Y, S),K1), S), #variable(Y, S))), K, #variable(X, S)) 
     else #exists(Y, S, subst(K1, K, #variable(X, S))) fi .
-  eq subst(#exists(X, S, K1), K, #variable(X, S)) = #exists(X, S, K1) .
-  
+
   
   
   
 
 endfm
+
+reduce subst((#exists(X,S,#and(#variable(X, S),#variable(Y, S)))), #variable(Y, S), #variable(X, S)) .
+
+reduce subst((#exists(X,S,#and(#variable(X, S),#variable(Y, S)))), #variable(X, S), #variable(Y, S)) .
 
 quit
