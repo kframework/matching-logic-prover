@@ -52,14 +52,16 @@ fmod K is
   
   ---- substitute 
 
-  
   op subst : K K K -> K .
   op _in_ : K KList -> Bool .
-  op new : KList -> String .
+  op _ _ : KList KList -> KList [ctor assoc comm id: .KList] .
+  op new : KList -> K .
+  op str : K -> String .
 
-  eq K in K,Kl = true .
+  eq K in K Kl = true .
   eq K in Kl = false [owise] .
-  eq #variable(new(Kl), S) in Kl = false . 
+  eq K in .KList = false .
+  ---eq new(Kl) in Kl = false . 
 
   eq subst(#variable(X, S), K, #variable(X, S)) = K .
   eq subst(#variable(Y, S), K, #variable(X, S)) = #variable(Y, S) .
@@ -70,8 +72,9 @@ fmod K is
   eq subst(#or(K1, K2), K, #variable(X, S)) = #or(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
   eq subst(#implies(K1, K2), K, #variable(X, S)) = #implies(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) .
   eq subst(#exists(X, S, K1), K, #variable(X, S)) = #exists(X, S, K1) . 
-  eq subst(#exists(Y, S, K1), K, #variable(X, S)) = if K == #variable(Y, S)    ---- #variable(Y, S) in K ?
-    then subst(#exists(new(#variable(X, S),#variable(Y, S),K1), S, subst(K1, #variable(new(#variable(X, S),#variable(Y, S),K1), S), #variable(Y, S))), K, #variable(X, S)) 
+
+  eq subst(#exists(Y, S, K1), K, #variable(X, S)) = if #variable(Y, S) in K 
+    then subst(#exists(str(new(#variable(X, S),#variable(Y, S),K1)), S, subst(K1, #variable(str(new(#variable(X, S),#variable(Y, S),K1)), S), #variable(Y, S))), K, #variable(X, S)) 
     else #exists(Y, S, subst(K1, K, #variable(X, S))) fi .
 
   
@@ -83,5 +86,7 @@ endfm
 reduce subst((#exists(X,S,#and(#variable(X, S),#variable(Y, S)))), #variable(Y, S), #variable(X, S)) .
 
 reduce subst((#exists(X,S,#and(#variable(X, S),#variable(Y, S)))), #variable(X, S), #variable(Y, S)) .
+
+reduce new(#variable(X, S)) in #variable(X, S) .
 
 quit
