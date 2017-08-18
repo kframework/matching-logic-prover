@@ -110,7 +110,7 @@
 > * Experimental results<br /> 
 >   &nbsp;&nbsp;On page 10<br /> 
 
-### [SL-COMP14]Report on SL-COMP 2014
+### [SL-COMP14] Report on SL-COMP 2014
 
 &nbsp;&nbsp;https://github.com/mihasighi/smtcomp14-sl<br /> 
 &nbsp;&nbsp;This report summarizes the Separation Logic Competition 2014, including its input theory, introduction to the participants and the benchmarks, competition results, conclusions and future work. The participating solvers are ASTERIX, CYCLIST-SL, SLEEK, SLIDE, SLSAT and SPEN. Their benchmarks can be found [here](https://github.com/mihasighi/smtcomp14-sl/tree/master/bench), which are organized in a common format designed like a logic of the SMT-LIB format. [Pre-processors](https://github.com/mihasighi/smtcomp14-sl/tree/master/pre-processors-sl) are used to for each solver to translate the common format problem into the internal format of each solver. The benchmarks are split into 5 divisions by the kind of problems solved and the kind of inductive definitions used. <br />
