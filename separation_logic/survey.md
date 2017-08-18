@@ -184,6 +184,14 @@
 >   Static Tree Barriers<br /> 
 >    &nbsp;&nbsp;&nbsp;&nbsp; 190 lines of annotations for 25LOC means an overhead of 8×.<br /> 
 
+### [RIS16] A Decision Procedure for Separation Logic in SMT
+
+&nbsp;&nbsp;This paper presents a complete decision procedure for the entire quantifier-free fragment of Separation Logic (SL) interpreted over heaplets with data elements ranging over a parametric multi-sorted (possibly infinite) domain. The algorithm uses a combination of theories and is used as a specialized solver inside a DPLL(T) architecture. A prototype was implemented within the CVC4 SMT solver. 
+
+### [IS16] Complete Cyclic Proof Systems for Inductive Entailments
+
+&nbsp;&nbsp;In this paper the cyclic proof systems are developed for the problem of inclusion between the least sets of models of mutually recursive predicates, when the ground constraints in the inductive definitions belong to the quantifier-free fragment of Separation Logic. A small set of inference rules that are proved to be sound and complete under certain semantic restrictions are given. The decidability and computational complexity of the restrictions are also investigated. 
+
 ### Space Invader
 
 &nbsp;&nbsp;http://www0.cs.ucl.ac.uk/staff/p.ohearn/Invader/Invader/Invader_Home.html <br /> 
