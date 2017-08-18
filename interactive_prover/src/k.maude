@@ -20,19 +20,20 @@ fmod K is
   ops #and #or : K K -> K [ctor assoc comm] .
   op #not : K -> K [ctor] .
   ops #top #bot : KSort -> K [ctor] .
-  op #implies : K K -> K [ctor assoc comm] .
+  op #implies : K K -> K [ctor assoc] .
   ops #exists #forall : String KSort K -> K [ctor] .
   op #application : Symbol KList -> K [ctor] .
   op #value : String KSort -> K [ctor] .
 
   op getKSort : K -> [KSort] .
 
-  vars X Y U : String . var S : KSort .
+  vars X Y U V W : String . var S : KSort .
   vars K K1 K2 K3 : K . var Kl : KList .
   var Ks Ks1 Ks2 Ks3 : KSortList .
   var Kl1 Kl2 Kl3 : KList .
 
----- get sort
+---- get sort ----
+
   eq getKSort(#variable(X, S)) = S .
   ceq getKSort(#and(K1, K2)) = getKSort(K1)
   if getKSort(K1) = getKSort(K2) .
@@ -48,10 +49,10 @@ fmod K is
   eq getKSort(#application(#symbol(X, Ks, S), Kl)) = S .
   eq getKSort(#value(X, S)) = S .
   
-  ---- well formed
+---- well formed ----
  
   
-  ---- substitute 
+---- substitute ----
 
   op subst : K K K -> K .
   op _in_ : K KList -> Bool .
@@ -75,34 +76,62 @@ fmod K is
   ceq K in #forall(X, S, K1) = true 
   if K in K1 .
   ceq K in #application(#symbol(X, Ks, S), Kl) = true 
-  if K in Kl .
-  ---eq new(Kl) in Kl = false . 
+  if K in Kl or K in #variable(X,S) .
 
   eq subst(#variable(X, S), K, #variable(X, S)) = K .
+
   eq subst(#variable(Y, S), K, #variable(X, S)) = #variable(Y, S) .
-  eq subst(#application(#symbol(Y, Ks, S), (K1, Kl)), K, #variable(X, S)) = 
-  subst(#application(#symbol(Y, Ks, S), K1), K, #variable(X, S)), subst(#application(#symbol(Y, Ks, S), Kl), K, #variable(X, S)) [owise] .
+
+  eq subst(#application(#symbol(Y, Ks, S), K1), K, #variable(X, S)) 
+   = #application(#symbol(Y, Ks, S), subst(K1, K, #variable(X, S))).
+
+  eq subst(#application(#symbol(Y, Ks, S), (K1, Kl)), K, #variable(X, S)) 
+   = #application(#symbol(Y, Ks, S), subst(K1, K, #variable(X, S))), 
+   subst(#application(#symbol(Y, Ks, S), Kl), K, #variable(X, S)) [owise] .
+
   eq subst(#not(K1), K, #variable(X, S)) = #not(subst(K1, K, #variable(X, S))) .
-  eq subst(#and(K1, K2), K, #variable(X, S)) = #and(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
-  eq subst(#or(K1, K2), K, #variable(X, S)) = #or(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
-  eq subst(#implies(K1, K2), K, #variable(X, S)) = #implies(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) .
+
+  eq subst(#and(K1, K2), K, #variable(X, S)) 
+   = #and(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
+
+  eq subst(#or(K1, K2), K, #variable(X, S)) 
+   = #or(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) . 
+
+  eq subst(#implies(K1, K2), K, #variable(X, S)) 
+   = #implies(subst(K1, K, #variable(X, S)), subst(K2, K, #variable(X, S))) .
+
   eq subst(#exists(X, S, K1), K, #variable(X, S)) = #exists(X, S, K1) . 
 
-  eq subst(#exists(Y, S, K1), K, #variable(X, S)) = if #variable(Y, S) in K 
-    then subst(#exists(str(new(#variable(X, S),#variable(Y, S),K1)), S, subst(K1, #variable(str(new(#variable(X, S),#variable(Y, S),K1)), S), #variable(Y, S))), K, #variable(X, S)) 
-    else #exists(Y, S, subst(K1, K, #variable(X, S))) fi .
-
-  
-  
-  
+  eq subst(#exists(Y, S, K1), K, #variable(X, S)) 
+   = if #variable(Y, S) in K 
+     then subst(#exists(str(new(#variable(X, S),#variable(Y, S),K1)), S, 
+        subst(K1, #variable(str(new(#variable(X, S),#variable(Y, S),K1)), S), 
+        #variable(Y, S))), K, #variable(X, S)) 
+     else #exists(Y, S, subst(K1, K, #variable(X, S))) fi .
+ 
 
 endfm
 
-reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), #variable(Y, S), #variable(X, S)) .
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
+       #variable(Y, S), #variable(X, S)) .
 
-reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), #variable(X, S), #variable(Y, S)) .
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
+       #variable(X, S), #variable(Y, S)) .
 
-reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), #and(#variable(X, S),#variable(Y, S)), #variable(Y, S)) .
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
+       #and(#variable(X, S),#variable(Y, S)), #variable(Y, S)) .
+
+reduce subst(#exists(X,S,#implies(#variable(X, S),#variable(Y, S))), 
+       #not(#variable(X, S)), #variable(Y, S)) .
+
+reduce subst(#application(#symbol(X, Ks, S), #variable(U,S)),
+       #variable(Y,S),#variable(U,S)) .
+
+reduce subst(#application(#symbol(X, Ks, S), (#variable(U,S), #variable(Y,S), 
+       #variable(V,S))), #variable(W,S),#variable(V,S)) .
+
+reduce subst(#exists(U,S,#and(#variable(X, S), #or(#variable(Y, S),
+       #not(#variable(U, S))))), #variable(U, S),#variable(X, S)) .
 
 reduce new(#variable(X, S)) in #variable(X, S) .
 
