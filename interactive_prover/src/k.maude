@@ -1,3 +1,4 @@
+----set trace on .  
 fmod K is
 
   protecting STRING .
@@ -61,6 +62,20 @@ fmod K is
   eq K in K Kl = true .
   eq K in Kl = false [owise] .
   eq K in .KList = false .
+  ceq K in #not(K1) = true 
+  if K in K1 .
+  ceq K in #and(K1,K2) = true 
+  if K in K1 or K in K2 .
+  ceq K in #or(K1,K2) = true 
+  if K in K1 or K in K2 .
+  ceq K in #implies(K1,K2) = true 
+  if K in K1 or K in K2 .
+  ceq K in #exists(X, S, K1) = true 
+  if K in K1 .
+  ceq K in #forall(X, S, K1) = true 
+  if K in K1 .
+  ceq K in #application(#symbol(X, Ks, S), Kl) = true 
+  if K in Kl .
   ---eq new(Kl) in Kl = false . 
 
   eq subst(#variable(X, S), K, #variable(X, S)) = K .
@@ -83,9 +98,11 @@ fmod K is
 
 endfm
 
-reduce subst((#exists(X,S,#and(#variable(X, S),#variable(Y, S)))), #variable(Y, S), #variable(X, S)) .
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), #variable(Y, S), #variable(X, S)) .
 
-reduce subst((#exists(X,S,#and(#variable(X, S),#variable(Y, S)))), #variable(X, S), #variable(Y, S)) .
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), #variable(X, S), #variable(Y, S)) .
+
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), #and(#variable(X, S),#variable(Y, S)), #variable(Y, S)) .
 
 reduce new(#variable(X, S)) in #variable(X, S) .
 
