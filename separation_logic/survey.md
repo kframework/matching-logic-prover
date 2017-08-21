@@ -110,7 +110,7 @@
 > * Experimental results<br /> 
 >   &nbsp;&nbsp;On page 10<br /> 
 
-### [SL-COMP14]Report on SL-COMP 2014
+### [SL-COMP14] Report on SL-COMP 2014
 
 &nbsp;&nbsp;https://github.com/mihasighi/smtcomp14-sl<br /> 
 &nbsp;&nbsp;This report summarizes the Separation Logic Competition 2014, including its input theory, introduction to the participants and the benchmarks, competition results, conclusions and future work. The participating solvers are ASTERIX, CYCLIST-SL, SLEEK, SLIDE, SLSAT and SPEN. Their benchmarks can be found [here](https://github.com/mihasighi/smtcomp14-sl/tree/master/bench), which are organized in a common format designed like a logic of the SMT-LIB format. [Pre-processors](https://github.com/mihasighi/smtcomp14-sl/tree/master/pre-processors-sl) are used to for each solver to translate the common format problem into the internal format of each solver. The benchmarks are split into 5 divisions by the kind of problems solved and the kind of inductive definitions used. <br />
@@ -183,6 +183,14 @@
 >   &nbsp;&nbsp;&nbsp;&nbsp;  79 lines of annotations for 17LOC means an overhead of 5×.<br /> 
 >   Static Tree Barriers<br /> 
 >    &nbsp;&nbsp;&nbsp;&nbsp; 190 lines of annotations for 25LOC means an overhead of 8×.<br /> 
+
+### [RIS16] A Decision Procedure for Separation Logic in SMT
+
+&nbsp;&nbsp;This paper presents a complete decision procedure for the entire quantifier-free fragment of Separation Logic (SL) interpreted over heaplets with data elements ranging over a parametric multi-sorted (possibly infinite) domain. The algorithm uses a combination of theories and is used as a specialized solver inside a DPLL(T) architecture. A prototype was implemented within the CVC4 SMT solver. 
+
+### [IS16] Complete Cyclic Proof Systems for Inductive Entailments
+
+&nbsp;&nbsp;In this paper the cyclic proof systems are developed for the problem of inclusion between the least sets of models of mutually recursive predicates, when the ground constraints in the inductive definitions belong to the quantifier-free fragment of Separation Logic. A small set of inference rules that are proved to be sound and complete under certain semantic restrictions are given. The decidability and computational complexity of the restrictions are also investigated. 
 
 ### Space Invader
 
