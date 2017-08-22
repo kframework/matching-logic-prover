@@ -63,6 +63,8 @@ fmod ML is
 
   var X : String . var S : MLSort . vars P1 P2 : Pattern .
 
+  var Ps : PatternList . 
+
   eq wellFormed(#variable(X, S)) = true .
   eq wellFormed(#and(P1, P2))
    = wellFormed(P1) and wellFormed(P2) and getSort(P1) == getSort(P2) .
@@ -78,6 +80,12 @@ fmod ML is
   eq wellFormed(#exists(X, S, P)) = wellFormed(P) .
   eq wellFormed(#forall(X, S, P)) = wellFormed(P) .
   ---- TODO:: Add wellFormed(#application(...)) here.
+  eq wellFormed(#application(#symbol(X, Ss:MLSortList, S), Ps)) 
+   = getArgumentSorts(#symbol(X, Ss, S)) == getSortList(Ps) 
+   and getReturnSort(#symbol(X, Ss, S)) 
+   == getSort(#application(#symbol(X, Ss, S), Ps)) 
+   and getArity(#symbol(X, Ss, S)) == length(getSortList(Ps)) .
+
   eq wellFormed(#value(ValueRepresentation:String, S)) = true .
   eq wellFormed(P) = false [owise] .
 
@@ -92,13 +100,17 @@ fmod ML is
   eq getSort(#exists(X, S, P)) = getSort(P) .
   eq getSort(#forall(X, S, P)) = getSort(P) .
   ---- TODO:: Add getSort(#application(...)) here.
+  ceq getSort(#application(#symbol(X, Ss:MLSortList, S), Ps)) 
+   = S if wellFormed(#application(#symbol(X, Ss, S), Ps)) .
+
   eq getSort(#value(ValueRepresentation:String, S)) = S .
 
   ---- Substitution ----
 
-  var Y : String . var Ps : PatternList . var Ss : MLSortList .
+  var Y : String . var Ss : MLSortList .
 
   op subst : Pattern Pattern Pattern -> Pattern .
+  op substs : PatternList Pattern Pattern -> PatternList .
   op _in_ : Pattern PatternList -> Bool .
   op __ : PatternList PatternList -> PatternList [ctor assoc comm id: .PatternList] .
   op new : PatternList -> Pattern .
@@ -122,16 +134,16 @@ fmod ML is
   ceq P in #application(#symbol(X, Ss, S), Ps) = true 
   if P in Ps or P in #variable(X,S) .
 
+  eq substs(P, P1, P2) = subst(P, P1, P2) .
+
+  eq substs((P,Ps), P1, P2) = subst(P, P1, P2), substs(Ps, P1, P2) .
+
   eq subst(#variable(X, S), P, #variable(X, S)) = P .
 
   eq subst(#variable(Y, S), P, #variable(X, S)) = #variable(Y, S) .
 
-  eq subst(#application(#symbol(Y, Ss, S), P1), P, #variable(X, S)) 
-   = #application(#symbol(Y, Ss, S), subst(P1, P, #variable(X, S))).
-
-  eq subst(#application(#symbol(Y, Ss, S), (P1, Ps)), P, #variable(X, S)) 
-   = #application(#symbol(Y, Ss, S), subst(P1, P, #variable(X, S))), 
-   subst(#application(#symbol(Y, Ss, S), Ps), P, #variable(X, S)) [owise] .
+  eq subst(#application(#symbol(Y, Ss, S), Ps), P, #variable(X, S))
+   = #application(#symbol(Y, Ss, S), substs(Ps, P, #variable(X, S))) .
 
   eq subst(#not(P1), P, #variable(X, S)) = #not(subst(P1, P, #variable(X, S))) .
 
@@ -152,6 +164,7 @@ fmod ML is
         subst(P1, #variable(str(new(#variable(X, S),#variable(Y, S),P1)), S), 
         #variable(Y, S))), P, #variable(X, S)) 
      else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
+
 
   ---- Proof system ----
 
@@ -189,3 +202,5 @@ reduce subst(#exists("U",S,#and(#variable(X, S), #or(#variable(Y, S),
 reduce new(#variable(X, S)) in #variable(X, S) .
 
 quit
+
+
