@@ -12,8 +12,11 @@ fmod ML is
   op _,_ : MLSortList MLSortList 
          -> MLSortList [ctor assoc id: .MLSortList] .
   op length : MLSortList -> Nat .
+
+  var S : MLSort . var Ss : MLSortList .
+
   eq length(.MLSortList) = 0 .
-  eq length(S:MLSort, Ss:MLSortList) = 1 + length(Ss:MLSortList) .
+  eq length(S, Ss) = 1 + length(Ss) .
 
   ---- Matching logic symbols ----
 
@@ -22,12 +25,9 @@ fmod ML is
   op getArgumentSorts : Symbol -> MLSortList .
   op getReturnSort : Symbol -> MLSort .
   op getArity : Symbol -> Nat .
-  eq getArgumentSorts(#symbol(F:String, Ss:MLSortList, S:MLSort))
-   = Ss:MLSortList .
-  eq getReturnSort(#symbol(F:String, Ss:MLSortList, S:MLSort))
-   = S:MLSort .
-  eq getArity(#symbol(F:String, Ss:MLSortList, S:MLSort))
-   = length(Ss:MLSortList) .
+  eq getArgumentSorts(#symbol(F:String, Ss, S)) = Ss .
+  eq getReturnSort(#symbol(F:String, Ss, S)) = S .
+  eq getArity(#symbol(F:String, Ss, S)) = length(Ss) .
 
   ---- Matching logic patterns ----
   
@@ -53,8 +53,9 @@ fmod ML is
         -> PatternList [ctor assoc id: .PatternList] .
 
   op .PatternSet : -> PatternSet [ctor] .
-  op _ _ : PatternSet PatternSet -> PatternSet  [ctor assoc comm id: .PatternSet] .
-  op set : PatternList -> PatternSet .
+  op __ : PatternSet PatternSet 
+        -> PatternSet  [ctor assoc comm id: .PatternSet] .
+  op set : PatternList -> PatternSet . ---- TODO
 
   ---- Well-Formedness and getSort ----
 
@@ -67,9 +68,7 @@ fmod ML is
 
   cmb getSort(P) : MLSort if wellFormed(P) .
 
-  var X : String . var S : MLSort . vars P1 P2 : Pattern .
-
-  var Ps : PatternList . 
+  var X : String . vars P1 P2 : Pattern . var Ps : PatternList .
 
   eq wellFormed(#variable(X, S)) = true .
   eq wellFormed(#and(P1, P2))
@@ -85,13 +84,8 @@ fmod ML is
    = wellFormed(P1) and wellFormed(P2) and getSort(P1) == getSort(P2) .
   eq wellFormed(#exists(X, S, P)) = wellFormed(P) .
   eq wellFormed(#forall(X, S, P)) = wellFormed(P) .
-  ---- TODO:: Add wellFormed(#application(...)) here.
-  eq wellFormed(#application(#symbol(X, Ss:MLSortList, S), Ps)) 
-   = getArgumentSorts(#symbol(X, Ss, S)) == getSortList(Ps) 
-   and getReturnSort(#symbol(X, Ss, S)) 
-   == getSort(#application(#symbol(X, Ss, S), Ps)) 
-   and getArity(#symbol(X, Ss, S)) == length(getSortList(Ps)) .
-
+  eq wellFormed(#application(#symbol(X, Ss, S), Ps))
+   = getArgumentSorts(#symbol(X, Ss, S)) == getSortList(Ps) .
   eq wellFormed(#value(ValueRepresentation:String, S)) = true .
   eq wellFormed(P) = false [owise] .
 
@@ -105,24 +99,28 @@ fmod ML is
   ceq getSort(#iff(P1, P2)) = getSort(P1) if wellFormed(#iff(P1, P2)) .
   eq getSort(#exists(X, S, P)) = getSort(P) .
   eq getSort(#forall(X, S, P)) = getSort(P) .
-  ---- TODO:: Add getSort(#application(...)) here.
-  ceq getSort(#application(#symbol(X, Ss:MLSortList, S), Ps)) 
-   = S if wellFormed(#application(#symbol(X, Ss, S), Ps)) .
-
+  ceq getSort(#application(#symbol(X, Ss, S), Ps)) = S 
+  if wellFormed(#application(#symbol(X, Ss, S), Ps)) .
   eq getSort(#value(ValueRepresentation:String, S)) = S .
 
   ---- Substitution ----
 
-  var Y : String . var Ss : MLSortList . var Pt : PatternSet .
+  var Y : String . var PSet : PatternSet .
 
   op subst : Pattern Pattern Pattern -> Pattern .
-  op substs : PatternList Pattern Pattern -> PatternList .
+  op subst : PatternList Pattern Pattern -> PatternList .
+
+  op _in_ : Pattern Pattern -> Bool .
   op _in_ : Pattern PatternSet -> Bool .
+
   op new : PatternSet -> Pattern .
   op str : Pattern -> String .
 
-  eq P in P Pt = true .
-  eq P in Pt = false [owise] .
+  eq P in emptyset = false 
+  eq P in Q QSet = P in Q or P in QSet 
+
+  eq P in P PSet = true .
+  eq P in PSet = false [owise] .
   eq P in .PatternSet = false .
   ceq P in #not(P1) = true 
   if P in P1 .
@@ -140,16 +138,28 @@ fmod ML is
   if P in set(Ps) or P in #variable(X,S) .
   eq P in set(P1,Ps) = P in P1 or P in set(Ps) .
 
-  eq substs(P, P1, P2) = subst(P, P1, P2) .
-
-  eq substs((P,Ps), P1, P2) = subst(P, P1, P2), substs(Ps, P1, P2) .
+  eq subst((P,Ps), P1, P2) = subst(P, P1, P2), subst(Ps, P1, P2) .
 
   eq subst(#variable(X, S), P, #variable(X, S)) = P .
 
   eq subst(#variable(Y, S), P, #variable(X, S)) = #variable(Y, S) .
 
+endfm
+
+reduce #variable("X", #sort("Bool"))
+ in    #and(#variable("Y", #sort("Bool")), #variable("Y", #sort("Bool"))) 
+       #and(#variable("Y", #sort("Bool")), #variable("X", #sort("Bool"))) .
+
+quit
+
+endfm
+reduce subst(#variable("X", #sort("Bool")), 
+             #variable("Y", #sort("Nat")),
+             #variable("Z", #sort("Nat"))) .
+quit
+
   eq subst(#application(#symbol(Y, Ss, S), Ps), P, #variable(X, S))
-   = #application(#symbol(Y, Ss, S), substs(Ps, P, #variable(X, S))) .
+   = #application(#symbol(Y, Ss, S), subst(Ps, P, #variable(X, S))) .
 
   eq subst(#not(P1), P, #variable(X, S)) = #not(subst(P1, P, #variable(X, S))) .
 
