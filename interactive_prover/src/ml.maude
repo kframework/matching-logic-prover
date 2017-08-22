@@ -31,7 +31,9 @@ fmod ML is
 
   ---- Matching logic patterns ----
   
-  sorts Pattern PatternList . subsort Pattern < PatternList .
+  sorts Pattern PatternList PatternSet . 
+  subsort Pattern < PatternList .
+  subsort Pattern < PatternSet . 
 
   op #variable : String MLSort -> Pattern [ctor] .
   op #and : Pattern Pattern -> Pattern [ctor] .
@@ -49,6 +51,10 @@ fmod ML is
   op .PatternList : -> PatternList [ctor] .
   op _,_ : PatternList PatternList 
         -> PatternList [ctor assoc id: .PatternList] .
+
+  op .PatternSet : -> PatternSet [ctor] .
+  op _ _ : PatternSet PatternSet -> PatternSet  [ctor assoc comm id: .PatternSet] .
+  op set : PatternList -> PatternSet .
 
   ---- Well-Formedness and getSort ----
 
@@ -107,18 +113,17 @@ fmod ML is
 
   ---- Substitution ----
 
-  var Y : String . var Ss : MLSortList .
+  var Y : String . var Ss : MLSortList . var Pt : PatternSet .
 
   op subst : Pattern Pattern Pattern -> Pattern .
   op substs : PatternList Pattern Pattern -> PatternList .
-  op _in_ : Pattern PatternList -> Bool .
-  op __ : PatternList PatternList -> PatternList [ctor assoc comm id: .PatternList] .
-  op new : PatternList -> Pattern .
+  op _in_ : Pattern PatternSet -> Bool .
+  op new : PatternSet -> Pattern .
   op str : Pattern -> String .
 
-  eq P in P Ps = true .
-  eq P in Ps = false [owise] .
-  eq P in .PatternList = false .
+  eq P in P Pt = true .
+  eq P in Pt = false [owise] .
+  eq P in .PatternSet = false .
   ceq P in #not(P1) = true 
   if P in P1 .
   ceq P in #and(P1,P2) = true 
@@ -132,7 +137,8 @@ fmod ML is
   ceq P in #forall(X, S, P1) = true 
   if P in P1 .
   ceq P in #application(#symbol(X, Ss, S), Ps) = true 
-  if P in Ps or P in #variable(X,S) .
+  if P in set(Ps) or P in #variable(X,S) .
+  eq P in set(P1,Ps) = P in P1 or P in set(Ps) .
 
   eq substs(P, P1, P2) = subst(P, P1, P2) .
 
@@ -160,8 +166,8 @@ fmod ML is
 
   eq subst(#exists(Y, S, P1), P, #variable(X, S)) 
    = if #variable(Y, S) in P 
-     then subst(#exists(str(new(#variable(X, S),#variable(Y, S),P1)), S, 
-        subst(P1, #variable(str(new(#variable(X, S),#variable(Y, S),P1)), S), 
+     then subst(#exists(str(new(#variable(X, S) #variable(Y, S) P1)), S, 
+        subst(P1, #variable(str(new(#variable(X, S) #variable(Y, S) P1)), S), 
         #variable(Y, S))), P, #variable(X, S)) 
      else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
 
