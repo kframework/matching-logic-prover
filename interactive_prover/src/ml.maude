@@ -1,6 +1,6 @@
 ----set trace on .  
 
-fmod ML-PATTERN is
+fmod ML is
 
   protecting STRING .
 
@@ -152,6 +152,16 @@ fmod ML-PATTERN is
         subst(P1, #variable(str(new(#variable(X, S),#variable(Y, S),P1)), S), 
         #variable(Y, S))), P, #variable(X, S)) 
      else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
+
+  ---- Proof system ----
+
+  sorts Goal GoalList . subsort Goal < GoalList .
+  op .GoalList : -> GoalList [ctor] . 
+  op __ : GoalList GoalList 
+        -> GoalList [ctor assoc id: .GoalList format(d n d)] .
+  op _|-_ : PatternList Pattern -> Goal [ctor] .
+
+  sort Tactic .
  
 endfm
 
