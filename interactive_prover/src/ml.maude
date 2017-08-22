@@ -1,0 +1,181 @@
+----set trace on .  
+
+fmod ML-PATTERN is
+
+  protecting STRING .
+
+  ---- Matching logic sorts ----
+
+  sorts MLSort MLSortList . subsort MLSort < MLSortList .
+  op #sort : String -> MLSort [ctor] .
+  op .MLSortList : -> MLSortList [ctor] .
+  op _,_ : MLSortList MLSortList 
+         -> MLSortList [ctor assoc id: .MLSortList] .
+  op length : MLSortList -> Nat .
+  eq length(.MLSortList) = 0 .
+  eq length(S:MLSort, Ss:MLSortList) = 1 + length(Ss:MLSortList) .
+
+  ---- Matching logic symbols ----
+
+  sort Symbol .
+  op #symbol : String MLSortList MLSort -> Symbol [ctor] .
+  op getArgumentSorts : Symbol -> MLSortList .
+  op getReturnSort : Symbol -> MLSort .
+  op getArity : Symbol -> Nat .
+  eq getArgumentSorts(#symbol(F:String, Ss:MLSortList, S:MLSort))
+   = Ss:MLSortList .
+  eq getReturnSort(#symbol(F:String, Ss:MLSortList, S:MLSort))
+   = S:MLSort .
+  eq getArity(#symbol(F:String, Ss:MLSortList, S:MLSort))
+   = length(Ss:MLSortList) .
+
+  ---- Matching logic patterns ----
+  
+  sorts Pattern PatternList . subsort Pattern < PatternList .
+
+  op #variable : String MLSort -> Pattern [ctor] .
+  op #and : Pattern Pattern -> Pattern [ctor] .
+  op #or : Pattern Pattern -> Pattern [ctor] .
+  op #not : Pattern -> Pattern [ctor] .
+  op #top : MLSort -> Pattern [ctor] .
+  op #bottom : MLSort -> Pattern [ctor] .
+  op #implies : Pattern Pattern -> Pattern [ctor] .
+  op #iff : Pattern Pattern -> Pattern [ctor] .
+  op #exists : String MLSort Pattern -> Pattern [ctor] .
+  op #forall : String MLSort Pattern -> Pattern [ctor] .
+  op #application : Symbol PatternList -> Pattern [ctor] .
+  op #value : String MLSort -> Pattern [ctor] .
+
+  op .PatternList : -> PatternList [ctor] .
+  op _,_ : PatternList PatternList 
+        -> PatternList [ctor assoc id: .PatternList] .
+
+  ---- Well-Formedness and getSort ----
+
+  op wellFormed : Pattern -> Bool .
+  op wellFormed : PatternList -> Bool . ---- if all patterns are well-formed
+  op getSort : Pattern -> [MLSort] .
+  op getSortList : PatternList -> [MLSortList] .
+
+  var P : Pattern .
+
+  cmb getSort(P) : MLSort if wellFormed(P) .
+
+  var X : String . var S : MLSort . vars P1 P2 : Pattern .
+
+  eq wellFormed(#variable(X, S)) = true .
+  eq wellFormed(#and(P1, P2))
+   = wellFormed(P1) and wellFormed(P2) and getSort(P1) == getSort(P2) .
+  eq wellFormed(#or(P1, P2))
+   = wellFormed(P1) and wellFormed(P2) and getSort(P1) == getSort(P2) .
+  eq wellFormed(#not(P)) = wellFormed(P) .
+  eq wellFormed(#top(S)) = true .
+  eq wellFormed(#bottom(S)) = true .
+  eq wellFormed(#implies(P1, P2))
+   = wellFormed(P1) and wellFormed(P2) and getSort(P1) == getSort(P2) .
+  eq wellFormed(#iff(P1, P2))
+   = wellFormed(P1) and wellFormed(P2) and getSort(P1) == getSort(P2) .
+  eq wellFormed(#exists(X, S, P)) = wellFormed(P) .
+  eq wellFormed(#forall(X, S, P)) = wellFormed(P) .
+  ---- TODO:: Add wellFormed(#application(...)) here.
+  eq wellFormed(#value(ValueRepresentation:String, S)) = true .
+  eq wellFormed(P) = false [owise] .
+
+  eq getSort(#variable(X, S)) = S .
+  ceq getSort(#and(P1, P2)) = getSort(P1) if wellFormed(#and(P1, P2)) .
+  ceq getSort(#or(P1, P2)) = getSort(P1) if wellFormed(#or(P1, P2)) .
+  eq getSort(#not(P)) = getSort(P) .
+  eq getSort(#top(S)) = S .
+  eq getSort(#bottom(S)) = S .
+  ceq getSort(#implies(P1, P2)) = getSort(P1) if wellFormed(#implies(P1, P2)) .
+  ceq getSort(#iff(P1, P2)) = getSort(P1) if wellFormed(#iff(P1, P2)) .
+  eq getSort(#exists(X, S, P)) = getSort(P) .
+  eq getSort(#forall(X, S, P)) = getSort(P) .
+  ---- TODO:: Add getSort(#application(...)) here.
+  eq getSort(#value(ValueRepresentation:String, S)) = S .
+
+  ---- Substitution ----
+
+  var Y : String . var Ps : PatternList . var Ss : MLSortList .
+
+  op subst : Pattern Pattern Pattern -> Pattern .
+  op _in_ : Pattern PatternList -> Bool .
+  op __ : PatternList PatternList -> PatternList [ctor assoc comm id: .PatternList] .
+  op new : PatternList -> Pattern .
+  op str : Pattern -> String .
+
+  eq P in P Ps = true .
+  eq P in Ps = false [owise] .
+  eq P in .PatternList = false .
+  ceq P in #not(P1) = true 
+  if P in P1 .
+  ceq P in #and(P1,P2) = true 
+  if P in P1 or P in P2 .
+  ceq P in #or(P1,P2) = true 
+  if P in P1 or P in P2 .
+  ceq P in #implies(P1,P2) = true 
+  if P in P1 or P in P2 .
+  ceq P in #exists(X, S, P1) = true 
+  if P in P1 .
+  ceq P in #forall(X, S, P1) = true 
+  if P in P1 .
+  ceq P in #application(#symbol(X, Ss, S), Ps) = true 
+  if P in Ps or P in #variable(X,S) .
+
+  eq subst(#variable(X, S), P, #variable(X, S)) = P .
+
+  eq subst(#variable(Y, S), P, #variable(X, S)) = #variable(Y, S) .
+
+  eq subst(#application(#symbol(Y, Ss, S), P1), P, #variable(X, S)) 
+   = #application(#symbol(Y, Ss, S), subst(P1, P, #variable(X, S))).
+
+  eq subst(#application(#symbol(Y, Ss, S), (P1, Ps)), P, #variable(X, S)) 
+   = #application(#symbol(Y, Ss, S), subst(P1, P, #variable(X, S))), 
+   subst(#application(#symbol(Y, Ss, S), Ps), P, #variable(X, S)) [owise] .
+
+  eq subst(#not(P1), P, #variable(X, S)) = #not(subst(P1, P, #variable(X, S))) .
+
+  eq subst(#and(P1, P2), P, #variable(X, S)) 
+   = #and(subst(P1, P, #variable(X, S)), subst(P2, P, #variable(X, S))) . 
+
+  eq subst(#or(P1, P2), P, #variable(X, S)) 
+   = #or(subst(P1, P, #variable(X, S)), subst(P2, P, #variable(X, S))) . 
+
+  eq subst(#implies(P1, P2), P, #variable(X, S)) 
+   = #implies(subst(P1, P, #variable(X, S)), subst(P2, P, #variable(X, S))) .
+
+  eq subst(#exists(X, S, P1), P, #variable(X, S)) = #exists(X, S, P1) . 
+
+  eq subst(#exists(Y, S, P1), P, #variable(X, S)) 
+   = if #variable(Y, S) in P 
+     then subst(#exists(str(new(#variable(X, S),#variable(Y, S),P1)), S, 
+        subst(P1, #variable(str(new(#variable(X, S),#variable(Y, S),P1)), S), 
+        #variable(Y, S))), P, #variable(X, S)) 
+     else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
+ 
+endfm
+
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
+       #variable(Y, S), #variable(X, S)) .
+
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
+       #variable(X, S), #variable(Y, S)) .
+
+reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
+       #and(#variable(X, S),#variable(Y, S)), #variable(Y, S)) .
+
+reduce subst(#exists(X,S,#implies(#variable(X, S),#variable(Y, S))), 
+       #not(#variable(X, S)), #variable(Y, S)) .
+
+reduce subst(#application(#symbol(X, Ss, S), #variable("U",S)),
+       #variable(Y,S),#variable("U",S)) .
+
+reduce subst(#application(#symbol(X, Ss, S), (#variable("U",S), #variable(Y,S), 
+       #variable("V",S))), #variable("W",S),#variable("V",S)) .
+
+reduce subst(#exists("U",S,#and(#variable(X, S), #or(#variable(Y, S),
+       #not(#variable("U", S))))), #variable("U", S),#variable(X, S)) .
+
+reduce new(#variable(X, S)) in #variable(X, S) .
+
+quit
