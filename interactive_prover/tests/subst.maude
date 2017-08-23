@@ -1,0 +1,25 @@
+load ml .
+
+---- tests for substitution part ----
+
+fmod SUBST is
+
+  protecting STRING .
+
+  reduce subst(#exists("X",#sort("Bool"),
+         #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+         #variable("Y", #sort("Bool")), #variable("X", #sort("Bool"))) .
+
+  reduce subst(#exists("X",#sort("Bool"),
+         #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+         #variable("X", #sort("Bool")), #variable("Y", #sort("Bool"))) .
+
+  reduce subst(#exists("X",#sort("Bool"),
+         #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+         #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool"))), 
+         #variable("Y", #sort("Bool"))) .
+
+endfm
+
+
+
