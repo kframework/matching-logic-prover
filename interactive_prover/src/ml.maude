@@ -13,7 +13,7 @@ fmod ML is
          -> MLSortList [ctor assoc id: .MLSortList] .
   op length : MLSortList -> Nat .
 
-  var S : MLSort . var Ss : MLSortList .
+  vars S S1 : MLSort . var Ss : MLSortList .
 
   eq length(.MLSortList) = 0 .
   eq length(S, Ss) = 1 + length(Ss) .
@@ -55,7 +55,12 @@ fmod ML is
   op .PatternSet : -> PatternSet [ctor] .
   op __ : PatternSet PatternSet 
         -> PatternSet  [ctor assoc comm id: .PatternSet] .
-  op set : PatternList -> PatternSet . ---- TODO
+  op set : PatternList -> PatternSet .
+
+  var P : Pattern . var Ps : PatternList .
+
+  eq set(P) = P .
+  eq set(P,Ps) = P set(Ps) .
 
   ---- Well-Formedness and getSort ----
 
@@ -64,11 +69,9 @@ fmod ML is
   op getSort : Pattern -> [MLSort] .
   op getSortList : PatternList -> [MLSortList] .
 
-  var P : Pattern .
-
   cmb getSort(P) : MLSort if wellFormed(P) .
 
-  var X : String . vars P1 P2 : Pattern . var Ps : PatternList .
+  var X : String . vars P1 P2 : Pattern .
 
   eq wellFormed(#variable(X, S)) = true .
   eq wellFormed(#and(P1, P2))
@@ -113,50 +116,29 @@ fmod ML is
   op _in_ : Pattern Pattern -> Bool .
   op _in_ : Pattern PatternSet -> Bool .
 
-  op new : PatternSet -> Pattern .
+  op new : PatternSet MLSort -> Pattern [ctor] .
   op str : Pattern -> String .
 
-  eq P in emptyset = false 
-  eq P in Q QSet = P in Q or P in QSet 
+  eq new(PSet,S) = #variable("new",S) . ----just for easier check
+  eq str(#variable(X, S)) = X .
 
-  eq P in P PSet = true .
-  eq P in PSet = false [owise] .
-  eq P in .PatternSet = false .
-  ceq P in #not(P1) = true 
-  if P in P1 .
-  ceq P in #and(P1,P2) = true 
-  if P in P1 or P in P2 .
-  ceq P in #or(P1,P2) = true 
-  if P in P1 or P in P2 .
-  ceq P in #implies(P1,P2) = true 
-  if P in P1 or P in P2 .
-  ceq P in #exists(X, S, P1) = true 
-  if P in P1 .
-  ceq P in #forall(X, S, P1) = true 
-  if P in P1 .
-  ceq P in #application(#symbol(X, Ss, S), Ps) = true 
-  if P in set(Ps) or P in #variable(X,S) .
+  eq P in #variable(X, S) = if P == #variable(X, S) then true else false fi .
+  eq P in #not(P1) = if P in P1 then true else false fi .
+  eq P in #and(P1,P2) = if P in P1 or P in P2 then true else false fi .
+  eq P in #or(P1,P2) = if P in P1 or P in P2 then true else false fi .
+  eq P in #implies(P1,P2) = if P in P1 or P in P2 then true else false fi .
+  eq P in #exists(X, S, P1) = if P in P1 then true else false fi .
+  eq P in #forall(X, S, P1) = if P in P1 then true else false fi .
+  eq P in #application(#symbol(X, Ss, S), Ps) 
+   = if P in set(Ps) then true else false fi .
   eq P in set(P1,Ps) = P in P1 or P in set(Ps) .
 
-  eq subst((P,Ps), P1, P2) = subst(P, P1, P2), subst(Ps, P1, P2) .
+  eq P in .PatternSet = false .
+  eq P in P1 PSet = P in P1 or P in PSet . 
 
   eq subst(#variable(X, S), P, #variable(X, S)) = P .
 
-  eq subst(#variable(Y, S), P, #variable(X, S)) = #variable(Y, S) .
-
-endfm
-
-reduce #variable("X", #sort("Bool"))
- in    #and(#variable("Y", #sort("Bool")), #variable("Y", #sort("Bool"))) 
-       #and(#variable("Y", #sort("Bool")), #variable("X", #sort("Bool"))) .
-
-quit
-
-endfm
-reduce subst(#variable("X", #sort("Bool")), 
-             #variable("Y", #sort("Nat")),
-             #variable("Z", #sort("Nat"))) .
-quit
+  eq subst(#variable(Y, S), P, #variable(X, S1)) = #variable(Y, S) .
 
   eq subst(#application(#symbol(Y, Ss, S), Ps), P, #variable(X, S))
    = #application(#symbol(Y, Ss, S), subst(Ps, P, #variable(X, S))) .
@@ -174,12 +156,16 @@ quit
 
   eq subst(#exists(X, S, P1), P, #variable(X, S)) = #exists(X, S, P1) . 
 
+  op repl : Pattern Pattern -> Pattern .
   eq subst(#exists(Y, S, P1), P, #variable(X, S)) 
-   = if #variable(Y, S) in P 
-     then subst(#exists(str(new(#variable(X, S) #variable(Y, S) P1)), S, 
-        subst(P1, #variable(str(new(#variable(X, S) #variable(Y, S) P1)), S), 
-        #variable(Y, S))), P, #variable(X, S)) 
-     else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
+   = #exists(Y, S, subst(P1, repl(P, #exists(Y, S, P1)), #variable(X, S))) .
+   ---- = if #variable(Y, S) in P 
+   ----   then subst(#exists(str(new(#variable(X, S) #variable(Y, S) P1 ,S)), S, 
+   ----      subst(P1, #variable(str(new(#variable(X, S) #variable(Y, S) P1,S)), S), 
+   ----      #variable(Y, S))), P, #variable(X, S)) 
+   ----   else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
+
+  eq subst((P,Ps), P1, P2) = subst(P, P1, P2), subst(Ps, P1, P2) .
 
 
   ---- Proof system ----
@@ -194,28 +180,32 @@ quit
  
 endfm
 
-reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
-       #variable(Y, S), #variable(X, S)) .
+reduce subst(#exists("X",#sort("Bool"),
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+       #variable("Y", #sort("Bool")), #variable("X", #sort("Bool"))) .
 
-reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
-       #variable(X, S), #variable(Y, S)) .
+reduce subst(#exists("X",#sort("Bool"),
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+       #variable("X", #sort("Bool")), #variable("Y", #sort("Bool"))) .
 
-reduce subst(#exists(X,S,#and(#variable(X, S),#variable(Y, S))), 
-       #and(#variable(X, S),#variable(Y, S)), #variable(Y, S)) .
+reduce subst(#exists("X",#sort("Bool"),
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool"))), 
+       #variable("Y", #sort("Bool"))) .
 
-reduce subst(#exists(X,S,#implies(#variable(X, S),#variable(Y, S))), 
-       #not(#variable(X, S)), #variable(Y, S)) .
+reduce #variable("X", #sort("Bool")) 
+       in #variable("Y", #sort("Bool")) #variable("X", #sort("Bool")) .
 
-reduce subst(#application(#symbol(X, Ss, S), #variable("U",S)),
-       #variable(Y,S),#variable("U",S)) .
+reduce #variable("X", #sort("Bool"))
+       in #and(#variable("Y", #sort("Bool")), #variable("W", #sort("Bool"))) 
+          #and(#variable("Y", #sort("Bool")), #variable("W", #sort("Bool")))
+          #and(#variable("Y", #sort("Bool")), #variable("X", #sort("Bool"))) .
 
-reduce subst(#application(#symbol(X, Ss, S), (#variable("U",S), #variable(Y,S), 
-       #variable("V",S))), #variable("W",S),#variable("V",S)) .
+reduce subst(#variable("X", #sort("Bool")), 
+             #variable("Y", #sort("Nat")),
+             #variable("Z", #sort("Nat"))) .
 
-reduce subst(#exists("U",S,#and(#variable(X, S), #or(#variable(Y, S),
-       #not(#variable("U", S))))), #variable("U", S),#variable(X, S)) .
-
-reduce new(#variable(X, S)) in #variable(X, S) .
+reduce new(#variable("X", S),S) in #variable("X", S) .
 
 quit
 
