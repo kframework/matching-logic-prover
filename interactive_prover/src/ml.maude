@@ -113,8 +113,8 @@ fmod ML is
   op subst : Pattern Pattern Pattern -> Pattern .
   op subst : PatternList Pattern Pattern -> PatternList .
 
-  op _in_ : Pattern Pattern -> Bool .
-  op _in_ : Pattern PatternSet -> Bool .
+  op _memOf_ : Pattern Pattern -> Bool .
+  op _memOf_ : Pattern PatternSet -> Bool .
 
   op new : PatternSet MLSort -> Pattern [ctor] .
   op str : Pattern -> String .
@@ -122,19 +122,26 @@ fmod ML is
   eq new(PSet,S) = #variable("new",S) . ----just for easier check
   eq str(#variable(X, S)) = X .
 
-  eq P in #variable(X, S) = if P == #variable(X, S) then true else false fi .
-  eq P in #not(P1) = if P in P1 then true else false fi .
-  eq P in #and(P1,P2) = if P in P1 or P in P2 then true else false fi .
-  eq P in #or(P1,P2) = if P in P1 or P in P2 then true else false fi .
-  eq P in #implies(P1,P2) = if P in P1 or P in P2 then true else false fi .
-  eq P in #exists(X, S, P1) = if P in P1 then true else false fi .
-  eq P in #forall(X, S, P1) = if P in P1 then true else false fi .
-  eq P in #application(#symbol(X, Ss, S), Ps) 
-   = if P in set(Ps) then true else false fi .
-  eq P in set(P1,Ps) = P in P1 or P in set(Ps) .
+  eq P memOf #variable(X, S) 
+   = if P == #variable(X, S) then true else false fi .
+  eq P memOf #not(P1) 
+   = if P memOf P1 then true else false fi .
+  eq P memOf #and(P1,P2) 
+   = if P memOf P1 or P memOf P2 then true else false fi .
+  eq P memOf #or(P1,P2) 
+   = if P memOf P1 or P memOf P2 then true else false fi .
+  eq P memOf #implies(P1,P2) 
+   = if P memOf P1 or P memOf P2 then true else false fi .
+  eq P memOf #exists(X, S, P1) 
+   = if P memOf P1 #variable(X,S) then true else false fi .
+  eq P memOf #forall(X, S, P1) 
+   = if P memOf P1 #variable(X,S) then true else false fi .
+  eq P memOf #application(#symbol(X, Ss, S), Ps) 
+   = if P memOf set(Ps) #variable(X,S) then true else false fi .
+  eq P memOf set(P1,Ps) = P memOf P1 or P memOf set(Ps) .
 
-  eq P in .PatternSet = false .
-  eq P in P1 PSet = P in P1 or P in PSet . 
+  eq P memOf .PatternSet = false .
+  eq P memOf P1 PSet = P memOf P1 or P memOf PSet . 
 
   eq subst(#variable(X, S), P, #variable(X, S)) = P .
 
@@ -157,13 +164,39 @@ fmod ML is
   eq subst(#exists(X, S, P1), P, #variable(X, S)) = #exists(X, S, P1) . 
 
   op repl : Pattern Pattern -> Pattern .
+  op getVar : Pattern -> PatternSet .
+  op getVar : PatternSet -> PatternSet .
+  op getOne : PatternSet -> Pattern .
+  eq getOne(P) = P .
+  eq getOne(P PSet) = P . ----problem
+
+  eq getVar(#variable(X,S)) = #variable(X,S) .
+  eq getVar(#not(P)) = getVar(P) .
+  eq getVar(#and(P1, P2)) = getVar(P1) getVar(P2) .
+  eq getVar(#or(P1, P2)) = getVar(P1) getVar(P2) .
+  eq getVar(#implies(P1, P2)) = getVar(P1) getVar(P2) .
+  eq getVar(#iff(P1, P2)) = getVar(P1) getVar(P2) .
+  eq getVar(#exists(X, S, P)) = getVar(P) #variable(X,S) .
+  eq getVar(#forall(X, S, P)) = getVar(P) #variable(X,S) .
+  eq getVar(#application(#symbol(X, Ss, S), Ps)) = getVar(Ps) #variable(X,S) .
+  eq getVar(P,PSet) = getVar(P) getVar(PSet) .
+
+  eq repl(P1, P2) 
+   = if getOne(getVar(P2)) memOf P1 then 
+     repl(subst(P1, new(getOne(getVar(P2)),getSort(getOne(getVar(P2)))),getOne(getVar(P2))),P2)
+     else P1 fi .
+
   eq subst(#exists(Y, S, P1), P, #variable(X, S)) 
    = #exists(Y, S, subst(P1, repl(P, #exists(Y, S, P1)), #variable(X, S))) .
-   ---- = if #variable(Y, S) in P 
-   ----   then subst(#exists(str(new(#variable(X, S) #variable(Y, S) P1 ,S)), S, 
-   ----      subst(P1, #variable(str(new(#variable(X, S) #variable(Y, S) P1,S)), S), 
-   ----      #variable(Y, S))), P, #variable(X, S)) 
-   ----   else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
+   ----= if getOne(getVar(P)) memOf #exists(Y, S, P1) 
+   ----  then subst(repl(#exists(Y, S, P1),P), P, #variable(X, S)) 
+   ----  else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
+
+   ----= if #variable(Y, S) memOf P 
+   ----  then subst(#exists(str(new(#variable(X, S) #variable(Y, S) P1 ,S)), S, 
+   ----     subst(P1, #variable(str(new(#variable(X, S) #variable(Y, S) P1,S)), S), 
+   ----     #variable(Y, S))), P, #variable(X, S)) 
+   ----  else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
 
   eq subst((P,Ps), P1, P2) = subst(P, P1, P2), subst(Ps, P1, P2) .
 
@@ -193,11 +226,14 @@ reduce subst(#exists("X",#sort("Bool"),
        #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool"))), 
        #variable("Y", #sort("Bool"))) .
 
+reduce repl(#and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool"))), 
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))) . 
+
 reduce #variable("X", #sort("Bool")) 
-       in #variable("Y", #sort("Bool")) #variable("X", #sort("Bool")) .
+       memOf #variable("Y", #sort("Bool")) #variable("X", #sort("Bool")) .
 
 reduce #variable("X", #sort("Bool"))
-       in #and(#variable("Y", #sort("Bool")), #variable("W", #sort("Bool"))) 
+       memOf #and(#variable("Y", #sort("Bool")), #variable("W", #sort("Bool"))) 
           #and(#variable("Y", #sort("Bool")), #variable("W", #sort("Bool")))
           #and(#variable("Y", #sort("Bool")), #variable("X", #sort("Bool"))) .
 
@@ -205,7 +241,7 @@ reduce subst(#variable("X", #sort("Bool")),
              #variable("Y", #sort("Nat")),
              #variable("Z", #sort("Nat"))) .
 
-reduce new(#variable("X", S),S) in #variable("X", S) .
+reduce new(#variable("X", S),S) memOf #variable("X", S) .
 
 quit
 
