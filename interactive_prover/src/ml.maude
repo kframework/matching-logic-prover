@@ -1,5 +1,3 @@
-----set trace on .  
-
 fmod ML is
 
   protecting STRING .
@@ -10,10 +8,13 @@ fmod ML is
   op #sort : String -> MLSort [ctor] .
   op .MLSortList : -> MLSortList [ctor] .
   op _,_ : MLSortList MLSortList 
-         -> MLSortList [ctor assoc id: .MLSortList] .
+         -> MLSortList [ctor assoc] .
   op length : MLSortList -> Nat .
 
   vars S S1 : MLSort . var Ss : MLSortList .
+
+  eq .MLSortList, Ss = Ss .
+  eq Ss, .MLSortList = Ss .
 
   eq length(.MLSortList) = 0 .
   eq length(S, Ss) = 1 + length(Ss) .
@@ -31,11 +32,25 @@ fmod ML is
 
   ---- Matching logic patterns ----
   
-  sorts Pattern PatternList PatternSet . 
+  sorts Pattern PatternList . 
   subsort Pattern < PatternList .
-  subsort Pattern < PatternSet . 
 
-  op #variable : String MLSort -> Pattern [ctor] .
+  op .PatternList : -> PatternList [ctor] .
+  op _,_ : PatternList PatternList -> PatternList [ctor assoc] .
+
+  var Ps : PatternList .
+  
+  eq .PatternList, Ps = Ps .
+  eq Ps, .PatternList = Ps .
+
+  sorts VarPattern VarPatternList .
+  subsort VarPattern < VarPatternList .
+  subsort VarPattern < Pattern .
+  subsort VarPatternList < PatternList .
+
+  op _,_ : VarPatternList VarPatternList -> VarPatternList [ctor assoc] .
+
+  op #variable : String MLSort -> VarPattern [ctor] .
   op #and : Pattern Pattern -> Pattern [ctor] .
   op #or : Pattern Pattern -> Pattern [ctor] .
   op #not : Pattern -> Pattern [ctor] .
@@ -48,19 +63,24 @@ fmod ML is
   op #application : Symbol PatternList -> Pattern [ctor] .
   op #value : String MLSort -> Pattern [ctor] .
 
-  op .PatternList : -> PatternList [ctor] .
-  op _,_ : PatternList PatternList 
-        -> PatternList [ctor assoc id: .PatternList] .
+  var P Q : Pattern . 
 
-  op .PatternSet : -> PatternSet [ctor] .
-  op __ : PatternSet PatternSet 
-        -> PatternSet  [ctor assoc comm id: .PatternSet] .
-  op set : PatternList -> PatternSet .
-
-  var P : Pattern . var Ps : PatternList .
-
-  eq set(P) = P .
-  eq set(P,Ps) = P set(Ps) .
+  ---- delete an element from a list
+  op delete : Pattern PatternList -> PatternList .
+  eq delete(P, .PatternList) = .PatternList .
+  eq delete(P, Q) = if P == Q then .PatternList else Q fi .
+  eq delete(P, (Q, Ps)) 
+   = if P == Q 
+     then delete(P, Ps)
+     else Q, delete(P, Ps)
+     fi .
+  
+  ---- delete duplicate elements in a list.
+  ---- remain the one that appears the first in the list.
+  op deleteDuplicate : PatternList -> PatternList .
+  eq deleteDuplicate(.PatternList) = .PatternList .
+  eq deleteDuplicate(P) = P .
+  eq deleteDuplicate(P, Ps) = P, deleteDuplicate(delete(P, Ps)) .
 
   ---- Well-Formedness and getSort ----
 
@@ -106,12 +126,108 @@ fmod ML is
   if wellFormed(#application(#symbol(X, Ss, S), Ps)) .
   eq getSort(#value(ValueRepresentation:String, S)) = S .
 
-  ---- Substitution ----
+  ---- Free variables ----
 
-  var Y : String . var PSet : PatternSet .
+  op getFvs : Pattern -> VarPatternList . 
+  op getFvs : PatternList -> VarPatternList . 
+  
+  eq getFvs(.PatternList) = .PatternList .
+  eq getFvs(P, Ps) = deleteDuplicate(getFvs(P), getFvs(Ps)) .
+
+  eq getFvs(#variable(X,S)) = #variable(X,S) .
+  eq getFvs(#and(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#or(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#not(P)) = getFvs(P) .
+  eq getFvs(#top(S)) = .PatternList .
+  eq getFvs(#bottom(S)) = .PatternList .
+  eq getFvs(#implies(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#iff(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#exists(X, S, P)) = delete(#variable(X, S), getFvs(P)) .
+  eq getFvs(#forall(X, S, P)) = delete(#variable(X, S), getFvs(P)) .
+  eq getFvs(#application(Sigma:Symbol, Ps)) = getFvs(Ps) .
+  eq getFvs(#value(ValueRepresentation:String, S)) = .PatternList .
+
+  ---- Fresh variable generation ----
+
+  sort StringList . subsort String < StringList .
+  op .StringList : -> StringList [ctor] .
+  op _,_ : StringList StringList -> StringList [ctor assoc] .
+
+  var Strs : StringList .
+
+  eq .StringList, Strs = Strs .
+  eq Strs, .StringList = Strs .
+
+  ---- Generate (in a deterministic way) a fresh variable name 
+  ---- that is not in the argument name list. 
+
+  op freshName : StringList -> String .
+
+  ---- Generate (in a deterministic way) a fresh variable name 
+  ---- that does not occur free in the argument pattern list. 
+
+  op freshName : PatternList -> String .
+
+  op getName : VarPattern -> String .
+  op getName : VarPatternList -> StringList .
+  eq getName(#variable(X, S)) = X .
+  eq getName(.PatternList) = .StringList .
+  eq getName(P, Ps) = getName(P), getName(Ps) .
+
+  eq freshName(Ps) = freshName(getName(getFvs(Ps))) .
+
+  ---- TODO
+
+  ---- Substitution ----
 
   op subst : Pattern Pattern Pattern -> Pattern .
   op subst : PatternList Pattern Pattern -> PatternList .
+
+  var R : Pattern . var V : String .
+
+  eq subst(.PatternList, Q, R) = .PatternList .
+  eq subst((P, Ps), Q, R) = subst(P, Q, R), subst(Ps, Q, R) .
+
+  eq subst(R, Q, R) = Q .
+  eq subst(#and(P1, P2), Q, R) = #and(subst(P1, Q, R), subst(P2, Q, R)) .
+  eq subst(#or(P1, P2), Q, R) = #or(subst(P1, Q, R), subst(P2, Q, R)) .
+  eq subst(#not(P), Q, R) = #not(subst(P, Q, R)) .
+  eq subst(#top(S), Q, R) = #top(S) .
+  eq subst(#bottom(S), Q, R) = #bottom(S) .
+  eq subst(#implies(P1, P2), Q, R) 
+   = #implies(subst(P1, Q, R), subst(P2, Q, R)) .
+  eq subst(#iff(P1, P2), Q, R) = #iff(subst(P1, Q, R), subst(P2, Q, R)) .
+  ceq subst(#exists(X, S, P), Q, R)
+   = #exists(V, S, subst(subst(P, #variable(V, S), #variable(X, S)), Q, R))
+  if V := freshName(P, Q, R) .
+  ceq subst(#forall(X, S, P), Q, R)
+   = #forall(V, S, subst(subst(P, #variable(V, S), #variable(X, S)), Q, R))
+  if V := freshName(P, Q, R) .
+  eq subst(#application(Sigma:Symbol, Ps), Q, R)
+   = #application(Sigma:Symbol, subst(Ps, Q, R)) .
+  eq subst(#value(ValueRepresentation:String, S), Q, R)
+   = #value(ValueRepresentation:String, S) .
+  eq subst(P, Q, R) = P [owise] .
+
+endfm
+
+
+reduce subst(#exists("X",#sort("Bool"),
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+       #variable("Y", #sort("Bool")), #variable("X", #sort("Bool"))) .
+
+quit
+
+reduce subst(#exists("X",#sort("Bool"),
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+       #variable("X", #sort("Bool")), #variable("Y", #sort("Bool"))) .
+
+reduce subst(#exists("X",#sort("Bool"),
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
+       #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool"))), 
+       #variable("Y", #sort("Bool"))) .
+
+quit
 
   op _memOf_ : Pattern Pattern -> Bool .
   op _memOf_ : Pattern PatternSet -> Bool .
@@ -198,7 +314,7 @@ fmod ML is
    ----     #variable(Y, S))), P, #variable(X, S)) 
    ----  else #exists(Y, S, subst(P1, P, #variable(X, S))) fi .
 
-  eq subst((P,Ps), P1, P2) = subst(P, P1, P2), subst(Ps, P1, P2) .
+
 
 
   ---- Proof system ----
