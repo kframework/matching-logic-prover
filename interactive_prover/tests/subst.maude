@@ -1,10 +1,13 @@
 load ml .
-
 ---- tests for substitution part ----
 
-fmod SUBST is
+fmod TEST_SUBST is
 
   protecting STRING .
+  including ML .
+
+endfm
+
 
   reduce subst(#exists("X",#sort("Bool"),
          #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool")))), 
@@ -19,7 +22,5 @@ fmod SUBST is
          #and(#variable("X", #sort("Bool")),#variable("Y", #sort("Bool"))), 
          #variable("Y", #sort("Bool"))) .
 
-endfm
 
-
-
+quit
