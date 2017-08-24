@@ -181,8 +181,23 @@ fmod ML is
   eq cat(.StringList) = "" .
   eq cat(X) = X .
   eq cat(X,Strs) = X + cat(Strs) .
+  ---- Original fresh name
+  ---- eq freshName(Strs) = cat(Strs) .
 
-  eq freshName(Strs) = cat(Strs) .
+  ---- New way to build fresh name
+  op makeName : String -> String .
+  op getLetter : Nat -> Nat .
+
+  var c1 c2 : Char . var n : Nat .
+  eq getLetter(n) = if n < 141 and n > 132 then n + 6 else n fi .
+  eq makeName("") = "" .
+  eq makeName(c1) = c1 .
+  eq makeName(X) 
+   = cat(char((getLetter((ascii(substr(X,0,1)) * ascii(substr(X,0,1)) 
+     + ascii(substr(X,1,1)) * ascii(substr(X,1,1)))) rem 58) + 65),
+     makeName(substr(X,2,length(X)))) .
+
+  eq freshName(Strs) = makeName(cat(Strs)) .
 
   ---- Substitution ----
 
@@ -227,8 +242,5 @@ fmod ML is
   sort Tactic .
 
 endfm
-
-
-
 
 
