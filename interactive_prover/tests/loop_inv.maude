@@ -1,0 +1,114 @@
+load ml .
+
+fmod LOOP_INV is
+
+  protecting STRING .
+  including ML .
+  
+  sort Map . subsort Map < MLSort . 
+  sort NatSeq . subsort Nat < NatSeq . subsort NatSeq < MLSort . 
+  
+  op zero : -> Nat .
+
+endfm
+
+  reduce 
+  #forall("i", #sort("Nat"), 
+  #forall("j", #sort("Nat"), 
+  #forall("alpha0", #sort("NatSeq"), 
+          #implies(
+          #exists("alpha",#sort("NatSeq"),
+          #exists("beta",#sort("NatSeq"),
+              #and(
+              #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
+                    #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("i",#sort("Nat")),#variable("alpha",#sort("NatSeq"))),
+                    #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("j",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
+              #iff(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha0",#sort("NatSeq"))),
+                   #application(#symbol("append",(#sort("NatSeq"),#sort("NatSeq")),#sort("NatSeq")),#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha",#sort("NatSeq"))), #variable("beta",#sort("NatSeq")))),
+              #not(#iff(#variable("i",#sort("Nat")),#variable("zero",#sort("Nat"))))) 
+                           )),
+          #exists("k",#sort("Nat"),
+              #and(#application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
+                    #application(#symbol("mapsto",(#sort("Nat"),#sort("Nat")),#sort("Map")),
+                    #application(#symbol("succ", #sort("Nat"), #sort("Nat")),#variable("i",#sort("Nat"))),
+                    #variable("k",#sort("Nat"))),
+                    #top(#sort("Map"))
+                    ),
+                  #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")), 
+                  #exists("v",#sort("Nat"), 
+                          #application(#symbol("mapsto",(#sort("Nat"),#sort("Nat")),#sort("Map")),
+                               #application(#symbol("succ", #sort("Nat"), #sort("Nat")),#variable("i",#sort("Nat"))),
+                               #variable("v",#sort("Nat")))), 
+                  #exists("h3",#sort("Map"),
+                          #and(#variable("h3",#sort("Map")),
+                              #application(#symbol("floor",#sort("Pattern"),#sort("Pattern")),
+                                 #implies(#application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
+                                          #variable("h3",#sort("Map")),
+                                          #application(#symbol("mapsto",(#sort("Nat"),#sort("Nat")),#sort("Map")), 
+                                          #application(#symbol("succ", #sort("Nat"), #sort("Nat")),#variable("i",#sort("Nat"))),
+                                          #variable("j",#sort("Nat"))))
+                                 ,#exists("alpha",#sort("NatSeq"),
+                                  #exists("beta",#sort("NatSeq"),
+                                        #and(
+                                           #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
+                                           #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("k",#sort("Nat")),#variable("alpha",#sort("NatSeq"))),
+                                           #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("i",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
+                                           #iff(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha0",#sort("NatSeq"))),
+                                           #application(#symbol("append",(#sort("NatSeq"),#sort("NatSeq")),#sort("NatSeq")),#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha",#sort("NatSeq"))), #variable("beta",#sort("NatSeq"))))
+                                        )
+                                  ))
+                                 )
+                  ))))
+              ))
+          ) 
+  ))) . 
+
+quit
+
+
+
+(assert (not (floor
+  (forall ((i Nat) (j Nat) (alpha0 NatSeq))
+    (-> (exists ((alpha NatSeq) (beta NatSeq))
+          (and (merge (list i alpha) (list j beta))
+               (= (rev alpha0) (append (rev alpha) beta))
+               (not (= i zero))))
+        (exists ((k Nat)) 
+          (and (merge (mapsto (succ i) k) top)
+               (merge (exists ((v Nat)) (mapsto (succ i) v))
+                      (exists ((h3 Map))
+                        (and h3 
+                             (floor (-> (merge h3 (mapsto (succ i) j))
+                                        (exists ((alpha NatSeq) (beta NatSeq))
+                                          (and (merge (list k alpha) (list i beta))
+                                               (= (rev alpha0) (append (rev alpha) beta))))))))))))))))
+
+---- draft ------
+#exists("v",#sort("Nat"), 
+        #application(#symbol("mapsto",(#sort("Nat"),#sort("Nat")),#sort("Map")),
+           #application(#symbol("succ", #sort("Nat"), #sort("Nat")),#variable("i",#sort("Nat"))),
+           variable("v",#sort("Nat")))) .
+
+#exists("h3",#sort("Map"),
+        and(variable("h3",#sort("Map")),
+            #application(#symbol("floor",#sort("Pattern"),#sort("Pattern")),
+              #implies(#application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
+                       variable("h3",#sort("Map")),
+                       #application(#symbol("mapsto",(#sort("Nat"),#sort("Nat")),#sort("Map")), 
+                       #application(#symbol("succ", #sort("Nat"), #sort("Nat")),#variable("i",#sort("Nat"))),
+                       variable("j",#sort("Nat"))))
+              ,#exists("alpha",#sort("NatSeq"),
+               #exists("beta",#sort("NatSeq"),
+                  #and(
+                  #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
+                      ＃application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("k",#sort("Nat")),#variable("alpha",#sort("NatSeq")))，
+                      ＃application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("i",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
+                  #iff(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),variable("alpha0",#sort("NatSeq"))),
+                      #application(#symbol("append",(#sort("NatSeq"),#sort("NatSeq")),#sort("NatSeq")),#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),variable("alpha",#sort("NatSeq"))), #variable("beta",#sort("NatSeq")))),
+                  )
+               ))
+              )
+))) .
+
+
+
