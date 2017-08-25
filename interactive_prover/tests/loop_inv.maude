@@ -23,9 +23,9 @@ endfm
               #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
                     #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("i",#sort("Nat")),#variable("alpha",#sort("NatSeq"))),
                     #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("j",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
-              #iff(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha0",#sort("NatSeq"))),
+              #equals(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha0",#sort("NatSeq"))),
                    #application(#symbol("append",(#sort("NatSeq"),#sort("NatSeq")),#sort("NatSeq")),#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha",#sort("NatSeq"))), #variable("beta",#sort("NatSeq")))),
-              #not(#iff(#variable("i",#sort("Nat")),#variable("zero",#sort("Nat"))))) 
+              #not(#equals(#variable("i",#sort("Nat")),#variable("zero",#sort("Nat"))))) 
                            )),
           #exists("k",#sort("Nat"),
               #and(#application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
@@ -53,7 +53,7 @@ endfm
                                            #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
                                            #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("k",#sort("Nat")),#variable("alpha",#sort("NatSeq"))),
                                            #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("i",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
-                                           #iff(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha0",#sort("NatSeq"))),
+                                           #equals(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha0",#sort("NatSeq"))),
                                            #application(#symbol("append",(#sort("NatSeq"),#sort("NatSeq")),#sort("NatSeq")),#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha",#sort("NatSeq"))), #variable("beta",#sort("NatSeq"))))
                                         )
                                   ))
@@ -103,7 +103,7 @@ quit
                   #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
                       ＃application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("k",#sort("Nat")),#variable("alpha",#sort("NatSeq")))，
                       ＃application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("i",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
-                  #iff(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),variable("alpha0",#sort("NatSeq"))),
+                  #equals(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),variable("alpha0",#sort("NatSeq"))),
                       #application(#symbol("append",(#sort("NatSeq"),#sort("NatSeq")),#sort("NatSeq")),#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),variable("alpha",#sort("NatSeq"))), #variable("beta",#sort("NatSeq")))),
                   )
                ))
