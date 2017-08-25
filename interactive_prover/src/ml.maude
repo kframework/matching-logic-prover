@@ -62,6 +62,7 @@ fmod ML is
   op #forall : String MLSort Pattern -> Pattern [ctor] .
   op #application : Symbol PatternList -> Pattern [ctor] .
   op #value : String MLSort -> Pattern [ctor] .
+  op #equals : Pattern Pattern MLSort MLSort -> Pattern [ctor] .
 
   var P Q : Pattern . 
 
@@ -111,6 +112,8 @@ fmod ML is
    = getArgumentSorts(#symbol(X, Ss, S)) == getSortList(Ps) .
   eq wellFormed(#value(ValueRepresentation:String, S)) = true .
   eq wellFormed(P) = false [owise] .
+  eq wellFormed(#equals(P, P1, S, S1)) 
+   = if getSort(P) == S and getSort(P1) == S then true else false fi . 
 
   eq getSort(#variable(X, S)) = S .
   ceq getSort(#and(P1, P2)) = getSort(P1) if wellFormed(#and(P1, P2)) .
@@ -125,6 +128,8 @@ fmod ML is
   ceq getSort(#application(#symbol(X, Ss, S), Ps)) = S 
   if wellFormed(#application(#symbol(X, Ss, S), Ps)) .
   eq getSort(#value(ValueRepresentation:String, S)) = S .
+  ceq getSort(#equals(P, P1, S, S1)) 
+   = S1 if wellFormed(#equals(P, P1, S, S1)) .  
 
   ---- Free variables ----
 
@@ -146,6 +151,7 @@ fmod ML is
   eq getFvs(#forall(X, S, P)) = delete(#variable(X, S), getFvs(P)) .
   eq getFvs(#application(Sigma:Symbol, Ps)) = getFvs(Ps) .
   eq getFvs(#value(ValueRepresentation:String, S)) = .PatternList .
+  eq getFvs(#equals(P, P1, S, S1)) = deleteDuplicate(getFvs(P), getFvs(P1)) .
 
   ---- Fresh variable generation ----
 
@@ -228,6 +234,8 @@ fmod ML is
    = #application(Sigma:Symbol, subst(Ps, Q, R)) .
   eq subst(#value(ValueRepresentation:String, S), Q, R)
    = #value(ValueRepresentation:String, S) .
+  eq subst(#equals(P, P1, S, S1), Q, R) 
+   = #equals(subst(P, Q, R), subst(P1, Q, R), S, S1) .
   eq subst(P, Q, R) = P [owise] .
 
 
@@ -242,5 +250,7 @@ fmod ML is
   sort Tactic .
 
 endfm
+
+quit
 
 
