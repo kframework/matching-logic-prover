@@ -337,6 +337,11 @@ $\vdash \exists y . (Q = y) \to (\forall x . P \to P[Q/x]))$, if $y$ occurs free
 	To be continued.
 \end{proof}
 
+We shall also be able to do non-functional substitution, $P[Q/R]$, in which $Q$ and $R$ can be any patterns. This translation is highly useful in the implementation of the matching logic prover. The way we do it is as follows. 
+$$\vdash \exists v.( v \notin \fv(P, Q, R )) \to (\exists x. P[Q/R] \to \exists v.((P[v/x])[Q/R] )) $$
+$$\vdash \forall v.( v \notin \fv(P, Q, R )) \to (\forall x. P[Q/R] \to \forall v.((P[v/x])[Q/R] )) $$
+
+The reader can try to apply these to a quantified formula like $\exists x. \forall y. x \wedge y$ to get an intuitive understanding.
 
 \begin{prop} \label{prop:var1}
 $\vdash x \in \ceil*{y}$.
