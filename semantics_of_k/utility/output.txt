@@ -1,0 +1,23 @@
+#variable("E'",#sort("Pattern"))
+#and(#variable("X",#sort("Bool")),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList()))))
+#and(#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("Y",#sort("Bool")),#application(#symbol("true",#nilSortList(),#sort("Bool")),#nilPatternList()))),#variable("Y",#sort("Bool")))
+#application(#symbol("tripe_merge",#appendSortList(#sort("Bool"),#appendSortList(#sort("Bool"),#sort("Bool"))), #sort("Map")),#appendPatternList(#variable("X",#sort("Map")),#appendPatternList(#variable("Y",#sort("Map")),#variable("Z",#sort("Map")))))
+#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList()))))
+#not(#variable("X",#sort("Bool")))
+#not(#and(#variable("X",#sort("Nat")),#not(#variable("Y",#sort("Nat")))))
+#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList())))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),#sort("Float"))
+#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList())))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),#sort("Bool"))
+#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList())))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),#sort("NatSeq"))
+#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList())))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),#sort("Double"))
+#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList())))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),#sort("Map"))
+#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList())))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),#sort("Bool"))
+
+#application(#symbol("sun",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Double")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),#nilPatternList())))
+#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),#sort("Float"))
+#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),#sort("Bool"))
+#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),#sort("NatSeq"))
+#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),#sort("Double"))
+#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),#sort("Map"))
+#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),#sort("Bool"))
+
+(THISISNOTPATTERN) is not pattern
