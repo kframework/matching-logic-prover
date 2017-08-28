@@ -1,4 +1,4 @@
-load ml .
+load ../src/ml .
 ---- tests for fresh name part ----
 
 fmod FRESHNAME is

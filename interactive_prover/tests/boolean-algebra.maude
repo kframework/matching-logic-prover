@@ -1,0 +1,21 @@
+load nice-syntax-surface .
+
+fmod BOOLEAN-ALGEBRA is
+
+  protecting MATCHING-LOGIC .
+  protecting NICE-SYNTAX-SURFACE .
+  
+  op Bool : -> MLSort .
+  eq Bool = #sort("Bool") .
+  
+  ops trueBool falseBool : -> Symbol .
+  eq trueBool = #symbol("trueBool", .MLSortList, Bool) .
+  eq falseBool = #symbol("falseBool", .MLSortList, Bool) .
+  
+  ops andBool orBool notBool : -> Symbol .
+  eq andBool = #symbol("andBool", (Bool, Bool), Bool) .
+  eq orBool = #symbol("orBool", (Bool, Bool), Bool) .
+  eq notBool = #symbol("notBool", (Bool), Bool) .  
+  
+endfm
+

@@ -1,0 +1,20 @@
+load boolean-algebra .
+
+fmod PRESBURGER-ARITHMETIC is
+
+  protecting MATCHING-LOGIC .
+  protecting NICE-SYNTAX-SURFACE .
+  protecting BOOLEAN-ALGEBRA .
+  
+  op Nat : -> MLSort .
+  eq Nat = #sort("Nat") .
+  
+  op zero : -> Pattern .
+  eq zero = #symbol("zero", .MLSortList, Nat)() .
+  
+  ops succ plus : -> Symbol .
+  eq succ = #symbol("succ", Nat, Nat) .
+  eq plus = #symbol("plus", (Nat, Nat), Nat) .  
+  
+endfm
+

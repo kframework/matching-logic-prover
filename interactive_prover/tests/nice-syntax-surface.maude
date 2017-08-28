@@ -1,0 +1,35 @@
+---- This file provides a nice sytnax surface to work with MATCHING-LOGIC.
+
+load ../src/matching-logic .
+
+fmod NICE-SYNTAX-SURFACE is
+
+  protecting MATCHING-LOGIC .
+  
+  var Sigma : Symbol . 
+  vars P Q : Pattern . var Ps : PatternList .
+  
+  op _(_) : Symbol PatternList -> Pattern .
+  eq Sigma(Ps) = #application(Sigma, Ps) .
+  
+  op _() : Symbol -> Pattern .
+  eq Sigma() = #application(Sigma, .PatternList) .
+  
+  ops _/\_ _\/_ : Pattern Pattern -> Pattern [gather(E e)] . ---- left-assoc
+  op _->_ : Pattern Pattern -> Pattern [gather(e E)] . ---- right-assoc
+  
+  eq P /\ Q = #and(P, Q) .
+  eq P \/ Q = #or(P, Q) .
+  eq P -> Q = #implies(P, Q) .
+  
+  op not_ : Pattern -> Pattern .
+  eq not P = #not(P) .
+  
+  ops exists forall : VarPattern 
+                      Pattern -> Pattern .
+  eq exists(#variable(X:String, S:MLSort), P)
+   = #exists(X:String, S:MLSort, P) .
+  eq forall(#variable(X:String, S:MLSort), P)
+   = #forall(X:String, S:MLSort, P) .
+  
+endfm

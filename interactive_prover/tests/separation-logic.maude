@@ -1,11 +1,63 @@
-load ml .
+load finite-map .
+
+fmod SEPARATION-LOGIC is
+
+  protecting FINITE-MAP .
+  
+  ops alpha beta alpha0 i j k v : -> Pattern .
+  eq alpha = #variable("alpha", Seq) .
+  eq beta = #variable("beta", Seq) .
+  eq alpha0 = #variable("alpha0", Seq) .
+  eq i = #variable("i", Nat) .
+  eq j = #variable("j", Nat) .
+  eq k = #variable("k", Nat) .
+  eq v = #variable("v", Nat) .
+  
+  var P Q : Pattern . var S : MLSort .
+  
+  ---- abbreviation of P =^Map Q
+  op _=_ : Pattern Pattern -> [Pattern] .
+    
+  ceq (P = Q) = #equals(P, Q, getSort(P), Map)
+  if getSort(P) == getSort(Q) .
+  
+  ---- abbreviation of top^Map
+  op top : -> Pattern .
+  eq top = #top(Map) .
+
+  op loop-invariant : -> Pattern .
+  ops premise conclusion part : -> Pattern .
+  
+  eq loop-invariant = premise -> conclusion .
+  
+  eq premise
+   = exists(alpha, exists(beta, (list(i, alpha) * list(j, beta))
+                             /\ (rev(alpha0) = concat((rev(alpha)), [beta]))
+                             /\ (not (i = zero)))) .
+  
+  eq conclusion
+   = exists(k, ((succ(i) |-> k) * top)
+            /\ ((exists(v, succ(i) |-> v))
+                * ((succ(i) |-> j) -* part))) .
+                
+  eq part
+   = exists(alpha, exists(beta, (list(k, alpha) * list(i, beta))
+                             /\ (rev(alpha0) = concat((rev(alpha)), [beta])))) .
+
+endfm
+
+---- TODO
+reduce wellFormed(#application(#symbol("zero", .MLSortList, #sort("Nat")), .PatternList)) .
+
+quit
+
+endfm
 
 fmod LOOP_INV is
 
   protecting STRING .
   including ML .
   
-  sort Map . subsort Map < MLSort . 
   sort NatSeq . subsort Nat < NatSeq . subsort NatSeq < MLSort . 
   
   op zero : -> Nat .
@@ -22,7 +74,7 @@ endfm
               #and(
               #application(#symbol("merge",(#sort("Map"),#sort("Map")) ,#sort("Map")),
                     #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("i",#sort("Nat")),#variable("alpha",#sort("NatSeq"))),
-                    #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),#sort("Map")),#variable("j",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
+                    #application(#symbol("list",(#sort("Nat"),#sort("NatSeq")),Map),#variable("j",#sort("Nat")),#variable("beta",#sort("NatSeq")))), 
               #equals(#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha0",#sort("NatSeq"))),
                    #application(#symbol("append",(#sort("NatSeq"),#sort("NatSeq")),#sort("NatSeq")),#application(#symbol("rev",#sort("NatSeq"),#sort("NatSeq")),#variable("alpha",#sort("NatSeq"))), #variable("beta",#sort("NatSeq")))),
               #not(#equals(#variable("i",#sort("Nat")),#variable("zero",#sort("Nat"))))) 

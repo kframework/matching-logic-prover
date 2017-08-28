@@ -1,0 +1,31 @@
+load presburger-arithmetic .
+
+fmod FINITE-SEQUENCE is
+
+  protecting MATCHING-LOGIC .
+  protecting NICE-SYNTAX-SURFACE .
+  protecting PRESBURGER-ARITHMETIC .
+  
+  op Seq : -> MLSort .
+  eq Seq = #sort("Seq") .
+
+  op epsilon : -> Pattern .
+  eq epsilon = #symbol("epsilon", .MLSortList, Seq)() .
+  
+  ops SeqAsNat concat rev : -> Symbol .
+  eq SeqAsNat = #symbol("SeqAsNat", Nat, Seq) .
+  eq concat = #symbol("concat", (Seq, Seq), Seq) .
+  eq rev = #symbol("rev", Seq, Seq) .
+  
+  op [] : -> Pattern .
+  eq [] = epsilon .
+  
+  var P : Pattern . var Ps : PatternList .
+  
+  op [_] : PatternList -> Pattern .
+  eq [.PatternList] = [] .
+  eq [P] = SeqAsNat(P) .
+  eq [P, Ps] = concat(P, [Ps]) .
+  
+endfm
+
