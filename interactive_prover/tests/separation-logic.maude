@@ -16,7 +16,7 @@ fmod SEPARATION-LOGIC is
   var P Q : Pattern . var S : MLSort .
   
   ---- abbreviation of P =^Map Q
-  op _=_ : Pattern Pattern -> [Pattern] .
+  op _=_ : Pattern Pattern -> [Pattern] [format(r o r o)] .
     
   ceq (P = Q) = #equals(P, Q, getSort(P), Map)
   if getSort(P) == getSort(Q) .
@@ -32,7 +32,7 @@ fmod SEPARATION-LOGIC is
   
   eq premise
    = exists(alpha, exists(beta, (list(i, alpha) * list(j, beta))
-                             /\ (rev(alpha0) = concat((rev(alpha)), [beta]))
+                             /\ (rev(alpha0) = concat((rev(alpha)), beta))
                              /\ (not (i = zero)))) .
   
   eq conclusion
@@ -42,12 +42,13 @@ fmod SEPARATION-LOGIC is
                 
   eq part
    = exists(alpha, exists(beta, (list(k, alpha) * list(i, beta))
-                             /\ (rev(alpha0) = concat((rev(alpha)), [beta])))) .
+                             /\ (rev(alpha0) = concat((rev(alpha)), beta)))) .
 
 endfm
 
----- TODO
-reduce wellFormed(#application(#symbol("zero", .MLSortList, #sort("Nat")), .PatternList)) .
+set trace on .
+    
+reduce loop-invariant .
 
 quit
 

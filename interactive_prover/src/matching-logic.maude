@@ -92,6 +92,10 @@ fmod MATCHING-LOGIC is
   op wellFormed : PatternList -> Bool . ---- if all patterns are well-formed
   op getSort : Pattern -> [MLSort] .
   op getSortList : PatternList -> [MLSortList] .
+  
+  eq getSortList(.PatternList) = .MLSortList .
+  eq getSortList(P) = getSort(P) .
+  eq getSortList(P, Ps) = getSort(P), getSortList(Ps) .
 
   cmb getSort(P) : MLSort if wellFormed(P) .
 
