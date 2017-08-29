@@ -51,7 +51,7 @@ def getArgSort(str):
 	#print "res" + res
 	return res
 
-def getResSort(str):
+comment = """def getResSort(str):
 	res = ""
 	#res += str.replace("*",)
 	ls = dict_return.values()
@@ -61,7 +61,7 @@ def getResSort(str):
 	while lens >= 0 :
 		res += str.replace("*",ls[lens]) + "\n"
 		lens = lens -1
-	return res
+	return res"""
 
 def lift(str):
 	global FIRST 
@@ -120,25 +120,27 @@ def lift(str):
 		pos = tmp.index(",")
 		while 1 :
 			if tmp[0:pos].count('(') == tmp[0:pos].count(')'):
-				s1 = "#equals(" + \
+				s1 = "\\forall(s:#Sort," + \
+					"#equals(" + \
 				   	lift(tmp[0:pos]) + \
 				   	"," + \
 				   	lift(tmp[pos+1:len(tmp)]) + ",#sort(\"" + \
-				   	getArgSort(tmp[0:pos]) + "\"),#sort(\"*\"))"
-				return getResSort(s1)
+				   	getArgSort(tmp[0:pos]) + "\"),s:#Sort))"
+				return s1
 			else: 
 				pos = pos + tmp[pos+1:len(tmp)].index(",") + 1
 	elif p6.match(str):
 		x = (re.search("([a-zA-Z]\w*\'?)::([a-zA-Z]\w*\'?)",str).group(1))
 		s = (re.search("([a-zA-Z]\w*\'?)::([a-zA-Z]\w*\'?)",str).group(2))
-		s1 =  "#and(\"" + x + "\":#Pattern, #equals(#sort(\"" + s + "\")," + \
-				"#getSort(#Pattern),#sort(\"" + s + "\",#sort(\"*\"))"
-		return getResSort(s1)
+		s1 = "#and(" + x + ":#Pattern," + \
+				"\\forall(s:#Sort,#equals(#sort(\"" + s + "\")," + \
+				"#getSort(#Pattern),#sort(\"" + s + "\"),s:#Sort))"
+		return s1
 	elif p7.match(str):
 		#print str
 		FIRST = False
 		if str.count("(") == 0 :
-			return "(" + str + ") is not pattern"
+			return "[not pattern]: " + str
 		pos_paren = str.index("(")
 		key = str[0:pos_paren]
 		liftList = ""
@@ -178,7 +180,7 @@ def lift(str):
 			#print ls
 			lens = len(ls) -1
 			res = ""
-			iff = """while lens >= 1 :
+			comment = """while lens >= 1 :
 				res += "#application(#symbol(\"" + str[0:pos_paren] + \
 					"\"," + dict_arg[key] + ", #sort(\"" + dict_return[key]+"\"))," + \
 					ls[lens] + ")" + "\n"
@@ -191,16 +193,16 @@ def lift(str):
 					"\"," + dict_arg[key] + ", #sort(\"" + dict_return[key]+"\"))," + \
 					liftList + ")"
  	else :
- 		str = str.replace("\n","")
+ 		str = str.replace("\n","").replace("\t","")
  		if len(str) == 0 :
- 			return nilPs
+ 			return "\n"
 		else : 
-			return "(" + str + ") is not pattern"
+			return "[not pattern]: " + str
 dict_arg = {}
 dict_return = {}
 dict_return = {}
 result = ""
-file_object = open('input.txt')
+file_object = open('input.kore.txt')
 for line in file_object:
 	if line.count("syntax") > 0 :
 		if line.count("::=") == 0 : continue 
@@ -229,19 +231,27 @@ for line in file_object:
 		#print key + " " + value + " " + value_return
 		dict_arg[key] = value
 		dict_return[key] = value_return 
+file_object.close( )
 #print dict_return.values()
-file_object = open('input.txt')
+file_object = open('input.kore.txt')
 for line in file_object:
 	FIRST = True
+	if line.count("module") > 0 :
+		result += line + "\n"
+	if line.count("syntax") > 0 and line.count("#") > 0 :
+		result += line.replace("	","") + "\n\n"
 	if line.count("axiom") > 0 :
 		line = line.replace("axiom ","")
 		line = line.replace(" ","")
 		line = line.replace("	","")
 		print line
 		#print lift(line) 
-		result += lift(line) +"\n"
+		result += lift(line) +"\n\n"
 		print "------------"
-print result
+file_object.close( )
+file_object = open('output.kore.txt','w')
+file_object.write(result)
+file_object.close( )
 
 	
 

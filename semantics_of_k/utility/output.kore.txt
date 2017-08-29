@@ -1,0 +1,38 @@
+module TEST
+
+syntax #Meta ::= isLterm(#Pattern)
+
+
+#variable("E'",#sort("Pattern"))
+
+#and(#variable("X",#sort("Bool")),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),
+))))
+
+#and(#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("Y",#sort("Bool")),#application(#symbol("true",#nilSortList(),#sort("Bool")),
+))),#variable("Y",#sort("Bool")))
+
+#application(#symbol("tripe_merge",#appendSortList(#sort("Bool"),#appendSortList(#sort("Bool"),#sort("Bool"))), #sort("Map")),#appendPatternList(#variable("X",#sort("Map")),#appendPatternList(#variable("Y",#sort("Map")),#variable("Z",#sort("Map")))))
+
+#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),
+))))
+
+#not(#variable("X",#sort("Bool")))
+
+#not(#and(#variable("X",#sort("Nat")),#not(#variable("Y",#sort("Nat")))))
+
+\forall(s:#Sort,#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),
+)))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),s:#Sort))
+
+#application(#symbol("sun",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Double")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),
+)))
+
+\forall(s:#Sort,#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),s:#Sort))
+
+#and(metaVar:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort))
+
+#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#and(B1:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort)),#and(B2:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort))))
+
+[not pattern]: THISISNOTPATTERN
+
+
+endmodule
