@@ -70,27 +70,27 @@ fmod MATCHING-LOGIC is
 
   op _,_ : VarPatternList VarPatternList -> VarPatternList [ctor assoc] .
 
-  op #variable    : String      MLSort                    -> VarPattern [ctor] .
-  op #and         : Pattern     Pattern                   -> Pattern    [ctor] .
-  op #or          : Pattern     Pattern                   -> Pattern    [ctor] .
-  op #not         : Pattern                               -> Pattern    [ctor] .
-  op #top         : MLSort                                -> Pattern    [ctor] .
-  op #bottom      : MLSort                                -> Pattern    [ctor] .
-  op #implies     : Pattern     Pattern                   -> Pattern    [ctor] .
-  op #iff         : Pattern     Pattern                   -> Pattern    [ctor] .
-  op #exists      : VarPattern  Pattern                   -> Pattern    [ctor] .
-  op #forall      : VarPattern  Pattern                   -> Pattern    [ctor] .
-  op #application : Symbol      PatternList               -> Pattern    [ctor] .
-  op #value       : String      MLSort                    -> Pattern    [ctor] .
-  op #equals      : Pattern     Pattern     MLSort MLSort -> Pattern    [ctor] .
-  op #contains    : Pattern     Pattern     MLSort MLSort -> Pattern    [ctor] .
-
-quit
+  op #variable    : String     MLSort                    -> VarPattern [ctor] .
+  op #and         : Pattern    Pattern                   -> Pattern    [ctor] .
+  op #or          : Pattern    Pattern                   -> Pattern    [ctor] .
+  op #not         : Pattern                              -> Pattern    [ctor] .
+  op #top         : MLSort                               -> Pattern    [ctor] .
+  op #bottom      : MLSort                               -> Pattern    [ctor] .
+  op #implies     : Pattern    Pattern                   -> Pattern    [ctor] .
+  op #iff         : Pattern    Pattern                   -> Pattern    [ctor] .
+  op #exists      : VarPattern Pattern                   -> Pattern    [ctor] .
+  op #forall      : VarPattern Pattern                   -> Pattern    [ctor] .
+  op #application : Symbol     PatternList               -> Pattern    [ctor] .
+  op #value       : String     MLSort                    -> Pattern    [ctor] .
+  op #equals      : Pattern    Pattern     MLSort MLSort -> Pattern    [ctor] .
+  op #contains    : Pattern    Pattern     MLSort MLSort -> Pattern    [ctor] .
 
   var P Q : Pattern . 
 
-  ---- delete an element from a list
+  ---- Delete an element from a list
+
   op delete : Pattern PatternList -> PatternList .
+
   eq delete(P, .PatternList) = .PatternList .
   eq delete(P, Q) = if P == Q then .PatternList else Q fi .
   eq delete(P, (Q, Ps)) 
@@ -99,12 +99,48 @@ quit
      else Q, delete(P, Ps)
      fi .
   
-  ---- delete duplicate elements in a list.
-  ---- remain the one that appears the first in the list.
+  ---- Delete duplicate elements in a list.
+  ---- The one that appears the first will remain in the list.
+
   op deleteDuplicate : PatternList -> PatternList .
+
   eq deleteDuplicate(.PatternList) = .PatternList .
   eq deleteDuplicate(P) = P .
   eq deleteDuplicate(P, Ps) = P, deleteDuplicate(delete(P, Ps)) .
+
+  ---- Collect free variables that appear in a pattern. 
+
+  op getFvs : Pattern     -> VarPatternList . 
+
+  ---- Collect free variables that appear in a list of patterns.
+
+  op getFvs : PatternList -> VarPatternList . 
+  
+  var X : String . vars P1 P2 : Pattern .
+
+  eq getFvs(.PatternList) = .PatternList .
+  eq getFvs(P, Ps) = deleteDuplicate(getFvs(P), getFvs(Ps)) .
+
+  eq getFvs(#variable(X,S)) = #variable(X,S) .
+  eq getFvs(#and(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#or(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#not(P)) = getFvs(P) .
+  eq getFvs(#top(S)) = .PatternList .
+  eq getFvs(#bottom(S)) = .PatternList .
+  eq getFvs(#implies(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#iff(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#exists(X, S, P)) = delete(#variable(X, S), getFvs(P)) .
+  eq getFvs(#forall(X, S, P)) = delete(#variable(X, S), getFvs(P)) .
+  eq getFvs(#application(Sigma:Symbol, Ps)) = getFvs(Ps) .
+  eq getFvs(#value(ValueRepresentation:String, S)) = .PatternList .
+  eq getFvs(#equals(P1, P2, S1, S2)) 
+   = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+  eq getFvs(#contains(P1, P2, S1, S2)) 
+   = deleteDuplicate(getFvs(P1), getFvs(P2)) .
+
+endfm
+
+quit
 
   ---- Well-Formedness and getSort ----
 
@@ -119,7 +155,6 @@ quit
 
   cmb getSort(P) : MLSort if wellFormed(P) .
 
-  var X : String . vars P1 P2 : Pattern .
 
   eq wellFormed(#variable(X, S)) = true .
   eq wellFormed(#and(P1, P2))
@@ -162,30 +197,7 @@ quit
   ceq getSort(#contains(P1, P2, S1, S2)) 
    = S2 if wellFormed(#contains(P1, P2, S1, S2)) .  
 
-  ---- Free variables ----
 
-  op getFvs : Pattern -> VarPatternList . 
-  op getFvs : PatternList -> VarPatternList . 
-  
-  eq getFvs(.PatternList) = .PatternList .
-  eq getFvs(P, Ps) = deleteDuplicate(getFvs(P), getFvs(Ps)) .
-
-  eq getFvs(#variable(X,S)) = #variable(X,S) .
-  eq getFvs(#and(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
-  eq getFvs(#or(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
-  eq getFvs(#not(P)) = getFvs(P) .
-  eq getFvs(#top(S)) = .PatternList .
-  eq getFvs(#bottom(S)) = .PatternList .
-  eq getFvs(#implies(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
-  eq getFvs(#iff(P1, P2)) = deleteDuplicate(getFvs(P1), getFvs(P2)) .
-  eq getFvs(#exists(X, S, P)) = delete(#variable(X, S), getFvs(P)) .
-  eq getFvs(#forall(X, S, P)) = delete(#variable(X, S), getFvs(P)) .
-  eq getFvs(#application(Sigma:Symbol, Ps)) = getFvs(Ps) .
-  eq getFvs(#value(ValueRepresentation:String, S)) = .PatternList .
-  eq getFvs(#equals(P1, P2, S1, S2)) 
-   = deleteDuplicate(getFvs(P1), getFvs(P2)) .
-  eq getFvs(#contains(P1, P2, S1, S2)) 
-   = deleteDuplicate(getFvs(P1), getFvs(P2)) .
 
   ---- Fresh variable generation ----
 
