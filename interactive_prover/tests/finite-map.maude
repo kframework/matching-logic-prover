@@ -20,7 +20,7 @@ fmod FINITE-MAP is
   
   vars P Q : Pattern .
   
-  op _|->_ : Pattern Pattern -> Pattern .
+  op _|->_ : Pattern Pattern -> [Pattern] .
   eq P |-> Q
    = if getSort(Q) == Nat
      then mapsto(P, Q)

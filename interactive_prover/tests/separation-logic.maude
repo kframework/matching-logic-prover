@@ -4,7 +4,7 @@ fmod SEPARATION-LOGIC is
 
   protecting FINITE-MAP .
   
-  ops alpha beta alpha0 i j k v : -> Pattern .
+  ops alpha beta alpha0 i j k v : -> VarPattern .
   eq alpha = #variable("alpha", Seq) .
   eq beta = #variable("beta", Seq) .
   eq alpha0 = #variable("alpha0", Seq) .
@@ -16,7 +16,7 @@ fmod SEPARATION-LOGIC is
   var P Q : Pattern . var S : MLSort .
   
   ---- abbreviation of P =^Map Q
-  op _=_ : Pattern Pattern -> [Pattern] [format(r o r o)] .
+  op _=_ : Pattern Pattern -> [Pattern] .
     
   ceq (P = Q) = #equals(P, Q, getSort(P), Map)
   if getSort(P) == getSort(Q) .
@@ -43,12 +43,48 @@ fmod SEPARATION-LOGIC is
   eq part
    = exists(alpha, exists(beta, (list(k, alpha) * list(i, beta))
                              /\ (rev(alpha0) = concat((rev(alpha)), beta)))) .
+                             
+  ---- Axioms
+  
+  op axioms : -> PatternList .
+  
+  ops x y z : -> Pattern .
+  eq x = #variable("x", Nat) .
+  eq y = #variable("y", Nat) .
+  eq z = #variable("z", Nat) .
+  
+  eq axioms =
+  
+  ---- Nat
+  
+  (exists(x, #equals(zero, x, Nat, Nat)))
+  ,
+  (exists(x, #equals(zero, x, Nat, Seq)))
+  ,
+  (exists(x, #equals(zero, x, Nat, Map)))
+  ,
+  (forall(y, exists(x, #equals(succ(y), x, Nat, Nat))))
+  ,
+  (forall(y, exists(x, #equals(succ(y), x, Nat, Seq))))
+  ,
+  (forall(y, exists(x, #equals(succ(y), x, Nat, Map))))
+  ,
+  (forall(y, forall(z, exists(x, #equals(plus(y, z), x, Nat, Nat)))))
+  ,
+  (forall(y, forall(z, exists(x, #equals(plus(y, z), x, Nat, Seq)))))
+  ,
+  (forall(y, forall(z, exists(x, #equals(plus(y, z), x, Nat, Map)))))
+  ,
+  (forall(x, #equals(plus(zero, x), x, Nat, Nat)))
+  ,
+  (forall(x, #equals(plus(zero, x), x, Nat, Seq)))
+  ,
+  (forall(x, #equals(plus(zero, x), x, Nat, Map)))
+  .
 
 endfm
 
-set trace on .
-    
-reduce loop-invariant .
+reduce axioms .
 
 quit
 
