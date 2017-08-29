@@ -1,4 +1,7 @@
----- This file provides a calculus for matching logic.
+---- This file provides a calculus for matching logic, which contains
+---- meta-representations (abstract syntax trees) for EVERYTHING of
+---- matching logic, including sorts, symbols, patterns, signatures,
+---- theories, proof system, and inference rules.
 
 fmod MATCHING-LOGIC is
 
@@ -23,8 +26,11 @@ fmod MATCHING-LOGIC is
 
   ---- Matching logic symbols ----
 
-  sort Symbol .
+  sorts Symbol SymbolList . subsort Symbol < SymbolList .
   op #symbol : String MLSortList MLSort -> Symbol [ctor] .
+  op .SymbolList : -> SymbolList [ctor] .
+  op _,_ : SymbolList SymbolList -> SymbolList [ctor assoc] .
+  
   op getArgumentSorts : Symbol -> MLSortList .
   op getReturnSort : Symbol -> MLSort .
   op getArity : Symbol -> Nat .
@@ -253,6 +259,14 @@ fmod MATCHING-LOGIC is
   eq subst(#contains(P1, P2, S1, S2), Q, R) 
    = #equals(subst(P1, Q, R), subst(P2, Q, R), S1, S2) .
   eq subst(P, Q, R) = P [owise] .
+  
+  
+  ---- Matching logic theories
+  
+  sorts Signature Theory .
+  
+  op #signature : MLSortList SymbolList -> Signature [ctor] .
+  op #theory : Signature PatternList -> Theory [ctor] .
 
 
 ---- Proof system ----
