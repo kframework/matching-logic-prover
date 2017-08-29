@@ -6,7 +6,8 @@ p2 = re.compile("\A\\\\[a][n][d]\(.+\)$") #phi1 /\ phi2
 p3 = re.compile("\A\\\\[n][o][t]\(.+\)$") #not(phi)
 p4 = re.compile("\A\\\\[e][x][i][s][t][s]\(.+\)$") #exists x:s,phi
 p5 = re.compile("\A\\\\[e][q][u][a][l][s]\(.+\)$") #equals phi1, phi2, sort1, sort2
-p6 = re.compile("\A\\\\?[a-zA-Z]+(.+)$") #app(phi1,pih2,...,phin)
+p6 = re.compile("[a-zA-Z]\w*\'?::[a-zA-Z]\w*\'?$") #meta-level pattern
+p7 = re.compile("\A\\\\?[a-zA-Z]+(.+)$") #app(phi1,pih2,...,phin)
 FIRST = False
 #pattern = str(raw_input("Enter a pattern :"))
 
@@ -16,6 +17,7 @@ nilSs = "#nilSortList()"
 appendSs = "#appendSortList"
 
 def getArgSort(str):
+	print str
 	if p1.match(str) :
 		res = (re.search("([a-zA-Z]\w*\'?):([a-zA-Z]\w*\'?)",str).group(2))
 	elif p2.match(str):
@@ -40,6 +42,8 @@ def getArgSort(str):
 			else: 
 				pos = pos + tmp[pos+1:len(tmp)].index(",") + 1
 	elif p6.match(str):
+		res = (re.search("([a-zA-Z]*)::([a-zA-Z]*)",str).group(2))
+	elif p7.match(str):
 		pos_paren = str.index("(")
 		key = str[0:pos_paren]
 		res = dict_return[key]
@@ -51,6 +55,8 @@ def getResSort(str):
 	res = ""
 	#res += str.replace("*",)
 	ls = dict_return.values()
+	ls = list(set(ls))
+	#print ls
 	lens = len(ls) -1
 	while lens >= 0 :
 		res += str.replace("*",ls[lens]) + "\n"
@@ -123,7 +129,14 @@ def lift(str):
 			else: 
 				pos = pos + tmp[pos+1:len(tmp)].index(",") + 1
 	elif p6.match(str):
+		x = (re.search("([a-zA-Z]\w*\'?)::([a-zA-Z]\w*\'?)",str).group(1))
+		s = (re.search("([a-zA-Z]\w*\'?)::([a-zA-Z]\w*\'?)",str).group(2))
+		s1 =  "#and(\"" + x + "\":#Pattern, #equals(#sort(\"" + s + "\")," + \
+				"#getSort(#Pattern),#sort(\"" + s + "\",#sort(\"*\"))"
+		return getResSort(s1)
+	elif p7.match(str):
 		#print str
+		FIRST = False
 		if str.count("(") == 0 :
 			return "(" + str + ") is not pattern"
 		pos_paren = str.index("(")
@@ -160,11 +173,25 @@ def lift(str):
 					count_paren = count_paren -1
 				liftList = liftList[1:len(liftList)]
 				liftList = liftList.replace(".",",")
-			#print liftList
+			print liftList
+			ls = liftList.split('\n')
+			#print ls
+			lens = len(ls) -1
+			res = ""
+			iff = """while lens >= 1 :
+				res += "#application(#symbol(\"" + str[0:pos_paren] + \
+					"\"," + dict_arg[key] + ", #sort(\"" + dict_return[key]+"\"))," + \
+					ls[lens] + ")" + "\n"
+				lens = lens -1
+			
+			print "---------------------------------"
+			print res
+			return res"""
 			return "#application(#symbol(\"" + str[0:pos_paren] + \
 					"\"," + dict_arg[key] + ", #sort(\"" + dict_return[key]+"\"))," + \
 					liftList + ")"
  	else :
+ 		str = str.replace("\n","")
  		if len(str) == 0 :
  			return nilPs
 		else : 
@@ -176,6 +203,7 @@ result = ""
 file_object = open('input.txt')
 for line in file_object:
 	if line.count("syntax") > 0 :
+		if line.count("::=") == 0 : continue 
 		line = line.replace("syntax ","")
 		line = line.replace(" ","")
 		line = line.replace("	","")
