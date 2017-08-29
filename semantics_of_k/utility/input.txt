@@ -1,8 +1,14 @@
-syntax Bool ::= true 
-syntax Bool ::= false
-syntax NatSeq ::= test(Nat)
-syntax Float ::= hello(Bool,Bool)
-syntax Map ::= tripe_merge(Bool,Bool,Bool)
+module TEST
+	syntax Bool
+	syntax NatSeq
+	syntax Map
+	syntax Float
+	syntax Bool ::= true 
+	syntax Bool ::= false
+	syntax NatSeq ::= test(Nat)
+	syntax Float ::= hello(Bool,Bool)
+	syntax Map ::= tripe_merge(Bool,Bool,Bool)
+
 	axiom E':Pattern
 	axiom \and(X:Bool, hello(X:Bool, false()))
 	axiom \and(hello(Y:Bool, true()), Y:Bool)
@@ -11,7 +17,11 @@ syntax Map ::= tripe_merge(Bool,Bool,Bool)
 	axiom \not(X:Bool)
 	axiom \not(\and(X:Nat, \not(Y:Nat)))
 	axiom \equals(\exists(X:Bool, hello(X:Bool, false())), \and(Y:Bool, Z:Bool))
-syntax Double ::= sun(Bool,Bool)
+	syntax Double ::= sun(Bool,Bool)
 	axiom sun(X:Bool, false())
 	axiom \equals(\not(\and(Y:Bool, Z:Bool)), W:Bool)
+
+	axiom metaVar::Bool
+	axiom hello(B1::Bool, B2::Bool)
 	axiom THIS IS NOT PATTERN
+endmodule
