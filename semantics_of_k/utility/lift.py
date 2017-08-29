@@ -234,19 +234,31 @@ for line in file_object:
 file_object.close( )
 #print dict_return.values()
 file_object = open('input.kore.txt')
+dict_module = {}
+name = ""
 for line in file_object:
 	FIRST = True
-	if line.count("module") > 0 :
+	if line.count("module") > 0 and line.count("endmodule") == 0 :
 		result += line + "\n"
-	if line.count("syntax") > 0 and line.count("#") > 0 :
-		result += line.replace("	","") + "\n\n"
-	if line.count("axiom") > 0 :
+		name = (re.search("module ([a-zA-Z]\w*)",line).group(1))
+		dict_module[name] = ""
+	elif line.count("endmodule") > 0 :
+		result += line + "\n"
+	elif line.count("import") > 0 :
+		import_name = (re.search(" *import ([a-zA-Z]\w*)",line).group(1))
+		result += dict_module[import_name]
+	elif line.count("syntax") > 0 and line.count("#") > 0 :
+		result += line.replace("	","") + "\n"
+		dict_module[name] += line.replace("	","") + "\n\n"
+	elif line.count("axiom") > 0 :
 		line = line.replace("axiom ","")
 		line = line.replace(" ","")
 		line = line.replace("	","")
 		print line
 		#print lift(line) 
 		result += lift(line) +"\n\n"
+		#print dict_module.keys()
+		dict_module[name] += lift(line) +"\n\n"
 		print "------------"
 file_object.close( )
 file_object = open('output.kore.txt','w')

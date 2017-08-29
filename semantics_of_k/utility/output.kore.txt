@@ -1,7 +1,14 @@
+module CHAR
+
+#variable("c",#sort("Char"))
+
+endmodule
+
 module TEST
 
-syntax #Meta ::= isLterm(#Pattern)
+#variable("c",#sort("Char"))
 
+syntax #Meta ::= isLterm(#Pattern)
 
 #variable("E'",#sort("Pattern"))
 
