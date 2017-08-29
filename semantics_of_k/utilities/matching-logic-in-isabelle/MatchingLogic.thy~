@@ -1,0 +1,12 @@
+theory MatchingLogic
+imports Main
+begin
+datatype sort = Sort string
+datatype pattern = 
+    Variable string sort
+  | And pattern pattern
+  | Or pattern pattern
+  | Implies pattern pattern
+    
+end
+  

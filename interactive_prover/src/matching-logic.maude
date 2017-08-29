@@ -7,71 +7,85 @@ fmod MATCHING-LOGIC is
 
   protecting STRING .
 
-  ---- Matching logic sorts ----
+  ---- Matching logic sorts: their ASTs and utilities. ----
 
   sorts MLSort MLSortList . subsort MLSort < MLSortList .
+
   op #sort : String -> MLSort [ctor] .
-  op .MLSortList : -> MLSortList [ctor] .
-  op _,_ : MLSortList MLSortList 
-         -> MLSortList [ctor assoc] .
-  op length : MLSortList -> Nat .
+
+  op .MLSortList :                       -> MLSortList [ctor] .
+  op _,_         : MLSortList MLSortList -> MLSortList [ctor assoc] .
 
   vars S S1 S2 : MLSort . var Ss : MLSortList .
 
   eq .MLSortList, Ss = Ss .
   eq Ss, .MLSortList = Ss .
 
-  eq length(.MLSortList) = 0 .
-  eq length(S, Ss) = 1 + length(Ss) .
+  op length : MLSortList -> Nat .
 
-  ---- Matching logic symbols ----
+  eq length(.MLSortList) = 0 .
+  eq length(S, Ss)       = 1 + length(Ss) .
+
+  ---- Matching logic symbols: their ASTs and utilities. ----
 
   sorts Symbol SymbolList . subsort Symbol < SymbolList .
-  op #symbol : String MLSortList MLSort -> Symbol [ctor] .
-  op .SymbolList : -> SymbolList [ctor] .
-  op _,_ : SymbolList SymbolList -> SymbolList [ctor assoc] .
+
+  op #symbol : String              ---- the name of the symbol
+               MLSortList          ---- the argument sorts
+               MLSort              ---- the return sort
+               -> Symbol [ctor] .
+
+  op .SymbolList :                       -> SymbolList [ctor] .
+  op _,_         : SymbolList SymbolList -> SymbolList [ctor assoc] .
+
+  eq .SymbolList, Ss:SymbolList = Ss:SymbolList .
+  eq Ss:SymbolList, .SymbolList = Ss:SymbolList .
   
   op getArgumentSorts : Symbol -> MLSortList .
-  op getReturnSort : Symbol -> MLSort .
-  op getArity : Symbol -> Nat .
+  op getReturnSort    : Symbol -> MLSort .
+  op getArity         : Symbol -> Nat .
+
   eq getArgumentSorts(#symbol(F:String, Ss, S)) = Ss .
-  eq getReturnSort(#symbol(F:String, Ss, S)) = S .
-  eq getArity(#symbol(F:String, Ss, S)) = length(Ss) .
+  eq getReturnSort   (#symbol(F:String, Ss, S)) = S .
+  eq getArity        (#symbol(F:String, Ss, S)) = length(Ss) .
 
-  ---- Matching logic patterns ----
+  ---- Matching logic patterns: their ASTs and utilities. ----
   
-  sorts Pattern PatternList . 
-  subsort Pattern < PatternList .
+  sorts Pattern PatternList . subsort Pattern < PatternList .
 
-  op .PatternList : -> PatternList [ctor] .
-  op _,_ : PatternList PatternList -> PatternList [ctor assoc] .
+  op .PatternList :                         -> PatternList [ctor] .
+  op _,_          : PatternList PatternList -> PatternList [ctor assoc] .
 
   var Ps : PatternList .
   
   eq .PatternList, Ps = Ps .
   eq Ps, .PatternList = Ps .
 
-  sorts VarPattern VarPatternList .
-  subsort VarPattern < VarPatternList .
-  subsort VarPattern < Pattern .
+  ---- Variable patterns.
+
+  sorts VarPattern VarPatternList . subsort VarPattern < VarPatternList .
+
+  subsort VarPattern     < Pattern . 
   subsort VarPatternList < PatternList .
 
   op _,_ : VarPatternList VarPatternList -> VarPatternList [ctor assoc] .
 
-  op #variable : String MLSort -> VarPattern [ctor] .
-  op #and : Pattern Pattern -> Pattern [ctor] .
-  op #or : Pattern Pattern -> Pattern [ctor] .
-  op #not : Pattern -> Pattern [ctor] .
-  op #top : MLSort -> Pattern [ctor] .
-  op #bottom : MLSort -> Pattern [ctor] .
-  op #implies : Pattern Pattern -> Pattern [ctor] .
-  op #iff : Pattern Pattern -> Pattern [ctor] .
-  op #exists : String MLSort Pattern -> Pattern [ctor] .
-  op #forall : String MLSort Pattern -> Pattern [ctor] .
-  op #application : Symbol PatternList -> Pattern [ctor] .
-  op #value : String MLSort -> Pattern [ctor] .
-  op #equals : Pattern Pattern MLSort MLSort -> Pattern [ctor] .
-  op #contains : Pattern Pattern MLSort MLSort -> Pattern [ctor] .
+  op #variable    : String      MLSort                    -> VarPattern [ctor] .
+  op #and         : Pattern     Pattern                   -> Pattern    [ctor] .
+  op #or          : Pattern     Pattern                   -> Pattern    [ctor] .
+  op #not         : Pattern                               -> Pattern    [ctor] .
+  op #top         : MLSort                                -> Pattern    [ctor] .
+  op #bottom      : MLSort                                -> Pattern    [ctor] .
+  op #implies     : Pattern     Pattern                   -> Pattern    [ctor] .
+  op #iff         : Pattern     Pattern                   -> Pattern    [ctor] .
+  op #exists      : VarPattern  Pattern                   -> Pattern    [ctor] .
+  op #forall      : VarPattern  Pattern                   -> Pattern    [ctor] .
+  op #application : Symbol      PatternList               -> Pattern    [ctor] .
+  op #value       : String      MLSort                    -> Pattern    [ctor] .
+  op #equals      : Pattern     Pattern     MLSort MLSort -> Pattern    [ctor] .
+  op #contains    : Pattern     Pattern     MLSort MLSort -> Pattern    [ctor] .
+
+quit
 
   var P Q : Pattern . 
 
