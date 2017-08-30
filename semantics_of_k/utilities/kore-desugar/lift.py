@@ -9,6 +9,7 @@ p5 = re.compile("\A\\\\[e][q][u][a][l][s]\(.+\)$") #equals phi1, phi2, sort1, so
 p6 = re.compile("[a-zA-Z]\w*\'?::[a-zA-Z]\w*\'?$") #meta-level pattern
 p7 = re.compile("\A\\\\?[a-zA-Z]+(.+)$") #app(phi1,pih2,...,phin)
 FIRST = False
+ERROR = False
 #pattern = str(raw_input("Enter a pattern :"))
 
 nilPs = "#nilPatternList()"
@@ -65,6 +66,7 @@ comment = """def getResSort(str):
 
 def lift(str):
 	global FIRST 
+	global ERROR
 	if p1.match(str) :
 		FIRST = False
 		return "#variable(\"" + \
@@ -138,19 +140,21 @@ def lift(str):
 		return s1
 	elif p7.match(str):
 		#print str
-		FIRST = False
 		if str.count("(") == 0 :
 			return "[not pattern]: " + str
 		pos_paren = str.index("(")
 		key = str[0:pos_paren]
-		liftList = ""
-		tmp = str[pos_paren+1:len(str)-2]
+		if FIRST :
+			tmp = str[pos_paren+1:len(str)-2]
+		else :
+			tmp = str[pos_paren+1:len(str)-1]
+		FIRST = False
 		liftList = ""
 		if tmp.count(",") == 0 :
 			#print lift(str[pos_paren+1:len(str)-1])
 			return "#application(#symbol(\"" + str[0:pos_paren] + \
 				   "\"," + dict_arg[key] + ",#sort(\"" + \
-				    dict_return[key] + "\"))," + lift(str[pos_paren+1:len(str)-1]) + ")"
+				    dict_return[key] + "\"))," + lift(tmp) + ")"
 		else :
 			pos = tmp.index(",")
 			i = 0
@@ -198,11 +202,12 @@ def lift(str):
  			return "\n"
 		else : 
 			return "[not pattern]: " + str
+
 dict_arg = {}
-dict_return = {}
 dict_return = {}
 dict_module = {}
 result = ""
+#record syntax part 
 file_object = open('input.kore.txt')
 file_mid = open('mid.kore.txt','w')
 for line in file_object:
@@ -224,7 +229,7 @@ for line in file_object:
 		#print line
 		line_right = (re.search("(.*)::=(.*)", line).group(2))
 		lineList = line_right.split('|')
-		print lineList
+		#print lineList
 		num = len(lineList) -1
 		while num >= 0 :
 			group = lineList[num]
@@ -252,10 +257,31 @@ for line in file_object:
 		file_mid.write(line)
 		dict_module[name] += line.replace("	","") + "\n\n"
 	elif line.count("endmodule") > 0 :
-		file_mid.write(line)
+		file_mid.write(line) #dictionary need to be cleared here
 file_mid.close()
 file_object.close( )
-#print dict_return.values()
+##print dict_arg.keys()
+comment = """#easy error matching check
+file_object = open('input.kore.txt')
+for line in file_object:
+	if line.count("::=") == 0 or line.count("|") > 0 or line.count("#") :
+		continue
+	line = (re.search("(.*)::=(.*)", line).group(2))
+	if line.count("(") > 0 :
+		pos_paren = line.index("(")
+		name = line[0:pos_paren]
+		sorts = line[pos_paren+1:len(line)-1]
+		#print name + " " + sorts
+		sortList = sorts.split(",")
+		#print sortList
+		lens = len(sortList) - 1
+		while lens >=0 :
+			if sortList[lens] not in dict_arg[name.replace(" ","")] :
+				ERROR = True
+				break
+			lens = lens -1
+file_object.close( )"""
+# lift part
 file_object = open('mid.kore.txt')
 name = ""
 for line in file_object:
@@ -270,7 +296,7 @@ for line in file_object:
 	#	import_name = (re.search(" *import ([a-zA-Z]\w*)",line).group(1))
 	#	result += dict_module[import_name]
 	elif line.count("syntax") > 0 and line.count("#") > 0 :
-		result += line.replace("	","") + "\n"
+		result += line.replace("	","").replace("syntax ","") + "\n"
 		dict_module[name] += line.replace("	","") + "\n\n"
 	elif line.count("axiom") > 0 :
 		line = line.replace("axiom ","")
@@ -282,9 +308,12 @@ for line in file_object:
 		#print dict_module.keys()
 		dict_module[name] += lift(line) +"\n\n"
 file_object.close( )
-file_object = open('output.kore.txt','w')
-file_object.write(result)
-file_object.close( )
+if ERROR :
+	print "error of sort matching detected. No output file available."
+else :
+	file_object = open('output.kore.txt','w')
+	file_object.write(result)
+	file_object.close( )
 
 	
 
