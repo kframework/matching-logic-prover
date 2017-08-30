@@ -19,6 +19,7 @@ module TEST
 	syntax Float ::= hello(Bool,Bool)
 	syntax Map ::= tripe_merge(Bool,Bool,Bool)
 
+	axiom test(a:Nat)
 	axiom E':Pattern
 	axiom \equals(isChar(x:Char), isChar(v:Char))
 	axiom \equals(isNotChar(x:Char), y:Bool)

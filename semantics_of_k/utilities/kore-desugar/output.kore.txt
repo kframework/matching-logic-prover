@@ -8,7 +8,9 @@ module TEST
 
 #variable("c",#sort("Char"))
 
-syntax #Meta ::= isLterm(#Pattern)
+#Meta ::= isLterm(#Pattern)
+
+#application(#symbol("test",#sort("Nat"),#sort("NatSeq")),#variable("a",#sort("Nat")))
 
 #variable("E'",#sort("Pattern"))
 
