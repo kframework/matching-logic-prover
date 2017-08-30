@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import re
+import os
 
 p1 = re.compile("[a-zA-Z]\w*\'?:[a-zA-Z]\w*\'?$") #X:S
 p2 = re.compile("\A\\\\[a][n][d]\(.+\)$") #phi1 /\ phi2
@@ -184,15 +185,6 @@ def lift(str):
 			#print ls
 			lens = len(ls) -1
 			res = ""
-			comment = """while lens >= 1 :
-				res += "#application(#symbol(\"" + str[0:pos_paren] + \
-					"\"," + dict_arg[key] + ", #sort(\"" + dict_return[key]+"\"))," + \
-					ls[lens] + ")" + "\n"
-				lens = lens -1
-			
-			print "---------------------------------"
-			print res
-			return res"""
 			return "#application(#symbol(\"" + str[0:pos_paren] + \
 					"\"," + dict_arg[key] + ", #sort(\"" + dict_return[key]+"\"))," + \
 					liftList + ")"
@@ -314,6 +306,7 @@ else :
 	file_object = open('output.kore.txt','w')
 	file_object.write(result)
 	file_object.close( )
+os.remove('mid.kore.txt')
 
 	
 
