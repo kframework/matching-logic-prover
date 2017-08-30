@@ -1,4 +1,13 @@
+module CHAR
+	syntax Bool
+	syntax Char
+	syntax Bool ::= isChar(Char) | isNotChar(Char)
+	axiom c:Char
+endmodule
+
+
 module TEST
+    import CHAR
 	syntax Bool
 	syntax NatSeq
 	syntax Map
@@ -11,6 +20,8 @@ module TEST
 	syntax Map ::= tripe_merge(Bool,Bool,Bool)
 
 	axiom E':Pattern
+	axiom \equals(isChar(x:Char), isChar(v:Char))
+	axiom \equals(isNotChar(x:Char), y:Bool)
 	axiom \and(X:Bool, hello(X:Bool, false()))
 	axiom \and(hello(Y:Bool, true()), Y:Bool)
 	axiom tripe_merge(X:Map, Y:Map, Z:Map)

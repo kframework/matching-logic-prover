@@ -12,6 +12,10 @@ syntax #Meta ::= isLterm(#Pattern)
 
 #variable("E'",#sort("Pattern"))
 
+\forall(s:#Sort,#equals(#application(#symbol("isChar",#sort("Char"),#sort("Bool")),#variable("x",#sort("Char"))),#application(#symbol("isChar",#sort("Char"),#sort("Bool")),#variable("v",#sort("Char"))),#sort("Bool"),s:#Sort))
+
+\forall(s:#Sort,#equals(#application(#symbol("isNotChar",#sort("Char"),#sort("Bool")),#variable("x",#sort("Char"))),#variable("y",#sort("Bool")),#sort("Bool"),s:#Sort))
+
 #and(#variable("X",#sort("Bool")),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSortList(),#sort("Bool")),
 ))))
 
@@ -35,9 +39,9 @@ syntax #Meta ::= isLterm(#Pattern)
 
 \forall(s:#Sort,#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),s:#Sort))
 
-#and(metaVar:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort))
+#and(metaVar:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort)))
 
-#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#and(B1:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort)),#and(B2:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort))))
+#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#and(B1:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort))),#and(B2:#Pattern,\forall(s:#Sort,#equals(#sort("Bool"),#getSort(#Pattern),#sort("Bool"),s:#Sort)))))
 
 [not pattern]: THISISNOTPATTERN
 
