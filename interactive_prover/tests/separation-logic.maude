@@ -13,7 +13,7 @@ fmod SEPARATION-LOGIC is
   eq k = #variable("k", Nat) .
   eq v = #variable("v", Nat) .
   
-  var P Q : Pattern . var S : MLSort .
+  var P Q : Pattern . var S T : MLSort .
   
   ---- abbreviation of P =^Map Q
   op _=_ : Pattern Pattern -> [Pattern] .
@@ -52,6 +52,14 @@ fmod SEPARATION-LOGIC is
   eq x = #variable("x", Nat) .
   eq y = #variable("y", Nat) .
   eq z = #variable("z", Nat) .
+
+  var sym : Symbol .
+  var Ps : PatternList .
+  ---- op expand : Pattern -> PatternList .
+  ---- eq expand(sym(Ps,#equals(P, Q, S, T))) 
+  ----  = sym(Ps,#equals(P, Q, S, Nat)) ,
+  ----    sym(Ps,#equals(P, Q, S, Seq)) ,
+  ----    sym(Ps,#equals(P, Q, S, Map)) .
   
   eq axioms =
   
@@ -80,6 +88,23 @@ fmod SEPARATION-LOGIC is
   (forall(x, #equals(plus(zero, x), x, Nat, Seq)))
   ,
   (forall(x, #equals(plus(zero, x), x, Nat, Map)))
+  ,
+  (forall(x, forall(y, #equals(plus(x, succ(y)), succ(plus(y, x)), Nat, Nat))))
+  ,
+  (forall(x, forall(y, #equals(plus(x, succ(y)), succ(plus(y, x)), Nat, Seq))))
+  ,
+  (forall(x, forall(y, #equals(plus(x, succ(y)), succ(plus(y, x)), Nat, Map))))
+  ,
+  (forall(x, (not (succ(x) = zero))))
+  ,
+  (forall(x, forall(y, #equals(succ(y), succ(x), Nat, Nat) 
+                       -> #equals(x, y, Nat, Nat))))
+  ,
+  (forall(x, forall(y, #equals(succ(y), succ(x), Nat, Seq) 
+                       -> #equals(x, y, Nat, Seq))))
+  ,
+  (forall(x, forall(y, #equals(succ(y), succ(x), Nat, Map) 
+                       -> #equals(x, y, Nat, Map))))
   .
 
 endfm
