@@ -17,7 +17,7 @@ nilSs = "#nilSortList()"
 appendSs = "#appendSortList"
 
 def getArgSort(str):
-	print str
+	#print str
 	if p1.match(str) :
 		res = (re.search("([a-zA-Z]\w*\'?):([a-zA-Z]\w*\'?)",str).group(2))
 	elif p2.match(str):
@@ -134,7 +134,7 @@ def lift(str):
 		s = (re.search("([a-zA-Z]\w*\'?)::([a-zA-Z]\w*\'?)",str).group(2))
 		s1 = "#and(" + x + ":#Pattern," + \
 				"\\forall(s:#Sort,#equals(#sort(\"" + s + "\")," + \
-				"#getSort(#Pattern),#sort(\"" + s + "\"),s:#Sort))"
+				"#getSort(#Pattern),#sort(\"" + s + "\"),s:#Sort)))"
 		return s1
 	elif p7.match(str):
 		#print str
@@ -175,7 +175,7 @@ def lift(str):
 					count_paren = count_paren -1
 				liftList = liftList[1:len(liftList)]
 				liftList = liftList.replace(".",",")
-			print liftList
+			#print liftList
 			ls = liftList.split('\n')
 			#print ls
 			lens = len(ls) -1
@@ -201,40 +201,62 @@ def lift(str):
 dict_arg = {}
 dict_return = {}
 dict_return = {}
+dict_module = {}
 result = ""
 file_object = open('input.kore.txt')
+file_mid = open('mid.kore.txt','w')
 for line in file_object:
-	if line.count("syntax") > 0 :
+	if line.count("module") > 0 and line.count("endmodule") == 0 :
+		name = (re.search("module ([a-zA-Z]\w*)",line).group(1))
+		dict_module[name] = ""
+		file_mid.write(line)
+	elif line.count("import") > 0 :
+		import_name = (re.search(" *import ([a-zA-Z]\w*)",line).group(1))
+		file_mid.write(dict_module[import_name])
+	elif line.count("syntax") > 0 :
+		lineList = []
+		file_mid.write(line)
+		dict_module[name] += line.replace("	","") + "\n\n"
 		if line.count("::=") == 0 : continue 
 		line = line.replace("syntax ","")
 		line = line.replace(" ","")
 		line = line.replace("	","")
 		#print line
-		group = (re.search("(.*)::=([a-zA-Z]\w*\'?\(?.*\)?)", \
-			    line).group(2))
-		key = (re.search("([a-zA-Z]\w*\'?)\)?(.*)\)?",group).group(1))
-		value = (re.search("([a-zA-Z]\w*\'?)\)?(.*)\)?",group).group(2))
-		value = value.replace("(","\"").replace(")","\"")
-		value = value.replace(" ","").replace(",","\",\"").replace(",\"","),#sort(\"")
-		value = "#sort(" + value + ")"
-		if value == "#sort()" : value = nilSs
-		else :
-			count_paren = value.count(",")
-			value = "," + value
-			value = value.replace(",", ","+ appendSs+"(", count_paren)
-			while count_paren > 0 :
-				value = value + ")"
-				count_paren = count_paren -1
-			value = value[1:len(value)]
-		value_return = (re.search("(.*)::=([a-zA-Z]\w*\'?\(?.*\)?)", \
+		line_right = (re.search("(.*)::=(.*)", line).group(2))
+		lineList = line_right.split('|')
+		print lineList
+		num = len(lineList) -1
+		while num >= 0 :
+			group = lineList[num]
+			key = (re.search("([a-zA-Z]\w*\'?)\)?(.*)\)?",group).group(1))
+			value = (re.search("([a-zA-Z]\w*\'?)\)?(.*)\)?",group).group(2))
+			value = value.replace("(","\"").replace(")","\"")
+			value = value.replace(" ","").replace(",","\",\"").replace(",\"","),#sort(\"")
+			value = "#sort(" + value + ")"
+			if value == "#sort()" : value = nilSs
+			else :
+				count_paren = value.count(",")
+				value = "," + value
+				value = value.replace(",", ","+ appendSs+"(", count_paren)
+				while count_paren > 0 :
+					value = value + ")"
+					count_paren = count_paren -1
+				value = value[1:len(value)]
+			value_return = (re.search("(.*)::=([a-zA-Z]\w*\'?\(?.*\)?)", \
 			    	line).group(1))
 		#print key + " " + value + " " + value_return
-		dict_arg[key] = value
-		dict_return[key] = value_return 
+			dict_arg[key] = value
+			dict_return[key] = value_return 
+			num = num -1
+	elif line.count("axiom") > 0 :
+		file_mid.write(line)
+		dict_module[name] += line.replace("	","") + "\n\n"
+	elif line.count("endmodule") > 0 :
+		file_mid.write(line)
+file_mid.close()
 file_object.close( )
 #print dict_return.values()
-file_object = open('input.kore.txt')
-dict_module = {}
+file_object = open('mid.kore.txt')
 name = ""
 for line in file_object:
 	FIRST = True
@@ -244,9 +266,9 @@ for line in file_object:
 		dict_module[name] = ""
 	elif line.count("endmodule") > 0 :
 		result += line + "\n"
-	elif line.count("import") > 0 :
-		import_name = (re.search(" *import ([a-zA-Z]\w*)",line).group(1))
-		result += dict_module[import_name]
+	#elif line.count("import") > 0 :
+	#	import_name = (re.search(" *import ([a-zA-Z]\w*)",line).group(1))
+	#	result += dict_module[import_name]
 	elif line.count("syntax") > 0 and line.count("#") > 0 :
 		result += line.replace("	","") + "\n"
 		dict_module[name] += line.replace("	","") + "\n\n"
@@ -254,12 +276,11 @@ for line in file_object:
 		line = line.replace("axiom ","")
 		line = line.replace(" ","")
 		line = line.replace("	","")
-		print line
+		#print line
 		#print lift(line) 
 		result += lift(line) +"\n\n"
 		#print dict_module.keys()
 		dict_module[name] += lift(line) +"\n\n"
-		print "------------"
 file_object.close( )
 file_object = open('output.kore.txt','w')
 file_object.write(result)
