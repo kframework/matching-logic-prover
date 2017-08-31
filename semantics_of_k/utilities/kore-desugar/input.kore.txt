@@ -30,8 +30,8 @@ module TEST
 	axiom \not(X:Bool)
 	axiom \not(\and(X:Nat, \not(Y:Nat)))
 	axiom \equals(\exists(X:Bool, hello(X:Bool, false())), \and(Y:Bool, Z:Bool))
-	syntax Double ::= sun(Bool,Bool)
-	axiom sun(X:Bool, false())
+	syntax Double ::= sun(Bool,Bool,Nat)
+	axiom sun(X:Bool, Y:Bool, false())
 	axiom \equals(\not(\and(Y:Bool, Z:Bool)), W:Bool)
 
 	axiom metaVar::Bool
