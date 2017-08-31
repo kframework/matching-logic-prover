@@ -214,14 +214,22 @@ def lift(str):
 		else :
 			pos = tmp.index(",")
 			i = 0
+			num_pattern = 0
+			args = dict_arg[key]
+			args_ls = args.split(",")
 			while pos < len(tmp) - 1 :
 				if tmp[i:pos].count('(') == tmp[i:pos].count(')'):
-					#print liftList
+					if getArgSort(tmp[i:pos]) != "" and getArgSort(tmp[i:pos]) not in args_ls[num_pattern] :
+						print "sort not match in " + key
+					num_pattern = num_pattern +1
 					liftList += "." + lift(tmp[i:pos]) 
 					i = pos + 1
 				if pos + 1 >= len(tmp) :
 					break
 				if tmp[pos+1:len(tmp)].count(",") == 0 : 
+					if getArgSort(tmp[i:len(tmp)]) != "" and \
+					getArgSort(tmp[i:len(tmp)]) not in args_ls[len(args_ls)-1] :
+						print "sort not match in " + key
 					liftList += "." + lift(tmp[i:len(tmp)])
 					break 
 				pos = pos + tmp[i:len(tmp)].index(",") + 1
