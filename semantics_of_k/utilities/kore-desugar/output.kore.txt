@@ -32,7 +32,7 @@ axiom #not(#and(#variable("X",#sort("Nat")),#not(#variable("Y",#sort("Nat")))))
 
 axiom \forall(s:#Sort,#equals(#exists("X",#sort("Bool"),#application(#symbol("hello",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Float")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSort,#sort("Bool")),#nilPattern)))),#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool"))),#sort("Float"),s:#Sort))
 
-axiom #application(#symbol("sun",#appendSortList(#sort("Bool"),#sort("Bool")), #sort("Double")),#appendPatternList(#variable("X",#sort("Bool")),#application(#symbol("false",#nilSort,#sort("Bool")),#nilPattern)))
+axiom #application(#symbol("sun",#appendSortList(#sort("Bool"),#appendSortList(#sort("Bool"),#sort("Nat"))), #sort("Double")),#appendPatternList(#variable("X",#sort("Bool")),#appendPatternList(#variable("Y",#sort("Bool")),#application(#symbol("false",#nilSort,#sort("Bool")),#nilPattern))))
 
 axiom \forall(s:#Sort,#equals(#not(#and(#variable("Y",#sort("Bool")),#variable("Z",#sort("Bool")))),#variable("W",#sort("Bool")),#sort("Bool"),s:#Sort))
 
