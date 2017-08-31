@@ -10,7 +10,7 @@ axiom #variable("c",#sort("Char"))
 
 syntax #Meta ::= isLterm(#Pattern)
 
-axiom #application(#symbol("test",#sort("Nat"),#sort("NatSeq")),#variable("a",#sort("Nat")))
+axiom #application(#symbol("test",#sort("Nat"),#sort("NatSeq")),#variable("a",#sort("Bool")))
 
 axiom #variable("E'",#sort("Pattern"))
 
