@@ -38,3 +38,20 @@ module TEST
 	axiom hello(B1::Bool, B2::Bool)
 	axiom THIS IS NOT PATTERN
 endmodule
+
+module BOOL
+  syntax Bool
+  syntax Bool ::= true | false | notBool(Bool)| andBool(Bool, Bool) | orBool(Bool, Bool)
+  axiom \and(true(), false())
+  axiom \exists(X:Bool, \equals(X:Bool, true()))
+  axiom \equals(andBool(B1::Bool, B2::Bool), andBool(B2::Bool, B1::Bool))
+endmodule
+
+module LAMBDA
+  syntax Exp
+  syntax Bool ::= true 
+  syntax Exp ::= app(Exp, Exp) | lambda0(Exp, Exp)
+  syntax #Bool ::= isLTerm(#Pattern)
+
+  axiom \equals(isLTerm(#variable(X:String, #sort("Exp"))), true())
+endmodule
