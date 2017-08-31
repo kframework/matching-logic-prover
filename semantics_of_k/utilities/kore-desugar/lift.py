@@ -21,6 +21,8 @@ appendSs = "#appendSortList"
 
 def getArgSort(str):
 	#print str
+	if str.count("(") < str.count(")") :
+		str = str[0:len(str)-1]
 	if p1.match(str) :
 		res = (re.search("([a-zA-Z]\w*\'?):([a-zA-Z]\w*\'?)",str).group(2))
 	elif p2.match(str):
@@ -95,6 +97,8 @@ def lift(str):
 		pos = tmp.index(",")
 		while 1 :
 			if tmp[0:pos].count('(') == tmp[0:pos].count(')'):
+				if getArgSort(tmp[0:pos]) != getArgSort(tmp[pos+1:len(tmp)]):
+					print "not well formed in " + str
 				return "#and(" + \
 				   	lift(tmp[0:pos]) + \
 				   	"," + \
@@ -133,6 +137,8 @@ def lift(str):
 		pos = tmp.index(",")
 		while 1 :
 			if tmp[0:pos].count('(') == tmp[0:pos].count(')'):
+				if getArgSort(tmp[0:pos]) != getArgSort(tmp[pos+1:len(tmp)]):
+					print "not well formed in " + str
 				if getArgSort(tmp[0:pos]).count("#") ==0 :
 					s1 = "\\forall(s:#Sort," + \
 						"#equals(" + \
@@ -160,6 +166,8 @@ def lift(str):
 		pos = tmp.index(",")
 		while 1 :
 			if tmp[0:pos].count('(') == tmp[0:pos].count(')'):
+				if getArgSort(tmp[0:pos]) != getArgSort(tmp[pos+1:len(tmp)]):
+					print "not well formed in " + str
 				return "#or(" + \
 				   	lift(tmp[0:pos]) + \
 				   	"," + \
@@ -197,6 +205,9 @@ def lift(str):
 				    dict_return[key] + ")," + tmp + ")"
 		if tmp.count(",") == 0 :
 			#print lift(str[pos_paren+1:len(str)-1])
+			if getArgSort(tmp) != "" and getArgSort(tmp) not in dict_arg[key] :
+				print "sort not match in " + key
+			#print  getArgSort(tmp) + "<> " + dict_arg[key]
 			return "#application(#symbol(\"" + str[0:pos_paren] + \
 				   "\"," + dict_arg[key] + ",#sort(\"" + \
 				    dict_return[key] + "\"))," + lift(tmp) + ")"
@@ -213,9 +224,7 @@ def lift(str):
 				if tmp[pos+1:len(tmp)].count(",") == 0 : 
 					liftList += "." + lift(tmp[i:len(tmp)])
 					break 
-				#print tmp[pos+1:len(tmp)]
 				pos = pos + tmp[i:len(tmp)].index(",") + 1
-			#print liftList + "-----"
 			if liftList != nilPs  and liftList.count(".") > 0 :
 				count_paren = liftList.count(".") - 1
 				liftList = liftList.replace(".", ","+appendPs + "(", count_paren)
@@ -224,9 +233,7 @@ def lift(str):
 					count_paren = count_paren -1
 				liftList = liftList[1:len(liftList)]
 				liftList = liftList.replace(".",",")
-			#print liftList
 			ls = liftList.split('\n')
-			#print ls
 			lens = len(ls) -1
 			res = ""
 			return "#application(#symbol(\"" + str[0:pos_paren] + \
