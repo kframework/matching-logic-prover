@@ -7,15 +7,16 @@ p2 = re.compile("\A\\\\[a][n][d]\(.+\)$") #phi1 /\ phi2
 p3 = re.compile("\A\\\\[n][o][t]\(.+\)$") #not(phi)
 p4 = re.compile("\A\\\\[e][x][i][s][t][s]\(.+\)$") #exists x:s,phi
 p5 = re.compile("\A\\\\[e][q][u][a][l][s]\(.+\)$") #equals phi1, phi2, sort1, sort2
-p6 = re.compile("[a-zA-Z]\w*\'?::[a-zA-Z]\w*\'?$") #meta-level pattern
-p7 = re.compile("\A\\\\?[a-zA-Z]+(.+)$") #app(phi1,pih2,...,phin)
+p6 = re.compile("\A\\\\[o][r]\(.+\)$") #phi1 \/ phi2
+p7 = re.compile("[a-zA-Z]\w*\'?::[a-zA-Z]\w*\'?$") #meta-level pattern
+p8 = re.compile("\A\\\\?[a-zA-Z]+(.+)$") #app(phi1,pih2,...,phin)
 FIRST = False
 ERROR = False
 #pattern = str(raw_input("Enter a pattern :"))
 
-nilPs = "#nilPatternList()"
+nilPs = "#nilPattern"
 appendPs = "#appendPatternList"
-nilSs = "#nilSortList()"
+nilSs = "#nilSort"
 appendSs = "#appendSortList"
 
 def getArgSort(str):
@@ -44,8 +45,17 @@ def getArgSort(str):
 			else: 
 				pos = pos + tmp[pos+1:len(tmp)].index(",") + 1
 	elif p6.match(str):
-		res = (re.search("([a-zA-Z]*)::([a-zA-Z]*)",str).group(2))
+		tmp = str[4:len(str)-1] 
+		pos = tmp.index(",")
+		while 1 :
+			if tmp[0:pos].count('(') == tmp[0:pos].count(')'):
+				res =  getArgSort(tmp[0:pos])
+				break
+			else: 
+				pos = pos + tmp[pos+1:len(tmp)].index(",") + 1
 	elif p7.match(str):
+		res = (re.search("([a-zA-Z]*)::([a-zA-Z]*)",str).group(2))
+	elif p8.match(str):
 		pos_paren = str.index("(")
 		key = str[0:pos_paren]
 		res = dict_return[key]
@@ -123,23 +133,53 @@ def lift(str):
 		pos = tmp.index(",")
 		while 1 :
 			if tmp[0:pos].count('(') == tmp[0:pos].count(')'):
-				s1 = "\\forall(s:#Sort," + \
-					"#equals(" + \
-				   	lift(tmp[0:pos]) + \
-				   	"," + \
-				   	lift(tmp[pos+1:len(tmp)]) + ",#sort(\"" + \
-				   	getArgSort(tmp[0:pos]) + "\"),s:#Sort))"
+				if getArgSort(tmp[0:pos]).count("#") ==0 :
+					s1 = "\\forall(s:#Sort," + \
+						"#equals(" + \
+				   		lift(tmp[0:pos]) + \
+				   		"," + \
+				   		lift(tmp[pos+1:len(tmp)]) + ",#sort(\"" + \
+				   		getArgSort(tmp[0:pos]) + "\"),s:#Sort))"
+				else :
+					s1 = "\\forall(s:#Sort," + \
+						"#equals(" + \
+				   		lift(tmp[0:pos]) + \
+				   		"," + \
+				   		lift(tmp[pos+1:len(tmp)]) + "," + \
+				   		getArgSort(tmp[0:pos]) + ",s:#Sort))" 
 				return s1
 			else: 
 				pos = pos + tmp[pos+1:len(tmp)].index(",") + 1
 	elif p6.match(str):
+		if FIRST :
+			tmp = str[4:len(str)-2] 
+		else :
+			tmp = str[4:len(str)-1] 
+		#print FIRST
+		FIRST = False
+		pos = tmp.index(",")
+		while 1 :
+			if tmp[0:pos].count('(') == tmp[0:pos].count(')'):
+				return "#or(" + \
+				   	lift(tmp[0:pos]) + \
+				   	"," + \
+				   	lift(tmp[pos+1:len(tmp)]) + \
+				   	")"
+			else: 
+				pos = pos + tmp[pos+1:len(tmp)].index(",") + 1
+	elif p7.match(str):
 		x = (re.search("([a-zA-Z]\w*\'?)::([a-zA-Z]\w*\'?)",str).group(1))
 		s = (re.search("([a-zA-Z]\w*\'?)::([a-zA-Z]\w*\'?)",str).group(2))
-		s1 = "#and(" + x + ":#Pattern," + \
-				"\\forall(s:#Sort,#equals(#sort(\"" + s + "\")," + \
-				"#getSort(#Pattern),#sort(\"" + s + "\"),s:#Sort)))"
+		if s.count("#") == 0 :
+			s1 = "#and(" + x + ":#Pattern," + \
+					"\\forall(s:#Sort,#equals(#sort(\"" + s + "\")," + \
+					"#getSort(#Pattern),#sort(\"" + s + "\"),s:#Sort)))"
+		else :
+			s1 = "#and(" + x + ":#Pattern," + \
+					"\\forall(s:#Sort,#equals(#sort(\"" + s + "\")," + \
+					"#getSort(#Pattern)," + s + ",s:#Sort)))"
 		return s1
-	elif p7.match(str):
+	elif p8.match(str):
 		#print str
 		if str.count("(") == 0 :
 			return "[not pattern]: " + str
@@ -151,6 +191,10 @@ def lift(str):
 			tmp = str[pos_paren+1:len(str)-1]
 		FIRST = False
 		liftList = ""
+		if tmp.count("#") > 0 : #assume write true
+			return "#application(#symbol(\"" + str[0:pos_paren] + \
+				   "\"," + dict_arg[key] + "," + \
+				    dict_return[key] + ")," + tmp + ")"
 		if tmp.count(",") == 0 :
 			#print lift(str[pos_paren+1:len(str)-1])
 			return "#application(#symbol(\"" + str[0:pos_paren] + \
@@ -191,13 +235,14 @@ def lift(str):
  	else :
  		str = str.replace("\n","").replace("\t","")
  		if len(str) == 0 :
- 			return "\n"
+ 			return nilPs
 		else : 
 			return "[not pattern]: " + str
 
 dict_arg = {}
 dict_return = {}
 dict_module = {}
+list_meta = []
 result = ""
 #record syntax part 
 file_object = open('input.kore.txt')
@@ -225,25 +270,31 @@ for line in file_object:
 		num = len(lineList) -1
 		while num >= 0 :
 			group = lineList[num]
-			key = (re.search("([a-zA-Z]\w*\'?)\)?(.*)\)?",group).group(1))
-			value = (re.search("([a-zA-Z]\w*\'?)\)?(.*)\)?",group).group(2))
-			value = value.replace("(","\"").replace(")","\"")
-			value = value.replace(" ","").replace(",","\",\"").replace(",\"","),#sort(\"")
-			value = "#sort(" + value + ")"
-			if value == "#sort()" : value = nilSs
-			else :
-				count_paren = value.count(",")
-				value = "," + value
-				value = value.replace(",", ","+ appendSs+"(", count_paren)
-				while count_paren > 0 :
-					value = value + ")"
-					count_paren = count_paren -1
-				value = value[1:len(value)]
+			key = (re.search("([a-zA-Z]\w*\'?)(\(?.*\)?)",group).group(1))
+			value = (re.search("([a-zA-Z]\w*\'?)(\(?.*\)?)",group).group(2))
 			value_return = (re.search("(.*)::=([a-zA-Z]\w*\'?\(?.*\)?)", \
 			    	line).group(1))
-		#print key + " " + value + " " + value_return
-			dict_arg[key] = value
 			dict_return[key] = value_return 
+			if value.count("#") > 0 :
+				dict_arg[key] = value.replace("(","").replace(")","")
+			else :
+				value = value.replace("(","\"").replace(")","\"")
+				value = value.replace(" ","").replace(",","\",\"").replace(",\"","),#sort(\"")
+				value = "#sort(" + value + ")"
+				if value == "#sort()" : value = nilSs
+				else :
+					count_paren = value.count(",")
+					value = "," + value
+					value = value.replace(",", ","+ appendSs+"(", count_paren)
+					while count_paren > 0 :
+						value = value + ")"
+						count_paren = count_paren -1
+					value = value[1:len(value)]
+			#value_return = (re.search("(.*)::=([a-zA-Z]\w*\'?\(?.*\)?)", \
+			#    	line).group(1))
+				dict_arg[key] = value
+			#print key + " " + dict_arg[key] + " " + dict_return[key]
+			#dict_return[key] = value_return 
 			num = num -1
 	elif line.count("axiom") > 0 :
 		file_mid.write(line)
@@ -288,7 +339,9 @@ for line in file_object:
 	#	import_name = (re.search(" *import ([a-zA-Z]\w*)",line).group(1))
 	#	result += dict_module[import_name]
 	elif line.count("syntax") > 0 and line.count("#") > 0 :
-		result += line.replace("	","").replace("syntax ","") + "\n"
+		result += line.replace("	","") + "\n"
+		meta_name = (re.search("(.*)::= ?([a-zA-Z]+)\(.*\)", line).group(2))
+		list_meta.append(meta_name)
 		dict_module[name] += line.replace("	","") + "\n\n"
 	elif line.count("axiom") > 0 :
 		line = line.replace("axiom ","")
@@ -296,9 +349,9 @@ for line in file_object:
 		line = line.replace("	","")
 		#print line
 		#print lift(line) 
-		result += lift(line) +"\n\n"
+		result += "axiom " + lift(line) +"\n\n"
 		#print dict_module.keys()
-		dict_module[name] += lift(line) +"\n\n"
+		dict_module[name] += "axiom " + lift(line) +"\n\n"
 file_object.close( )
 if ERROR :
 	print "error of sort matching detected. No output file available."
