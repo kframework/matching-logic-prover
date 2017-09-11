@@ -1,67 +1,97 @@
----- This file provides a calculus for matching logic, which contains
----- meta-representations (abstract syntax trees) for EVERYTHING of
----- matching logic, including sorts, symbols, patterns, signatures,
----- theories, proof system, and inference rules.
-
-fmod MATCHING-LOGIC is
+fmod K is
 
   protecting STRING .
 
-  ---- Matching logic sorts: their ASTs and utilities. ----
+  ---- KSort is the sort of matching logic sorts ----
 
-  sorts MLSort MLSortList . subsort MLSort < MLSortList .
+  sorts   KSort   KSortList . 
+  subsort KSort < KSortList .
 
-  op #sort : String -> MLSort [ctor] .
+  op  Ksort      : String              -> KSort [ctor] .
+  op  .KSortList :                     -> KSortList .
+  op  _,_        : KSortList KSortList -> KSortList [assoc] .
 
-  op .MLSortList :                       -> MLSortList [ctor] .
-  op _,_         : MLSortList MLSortList -> MLSortList [ctor assoc] .
+  vars S S1 S2  : KSort .
+  var  Ss       : KSortList .
 
-  vars S S1 S2 : MLSort . var Ss : MLSortList .
+  ---- Eqs that make .KSortList the identity of _,_:  
+  eq  .KSortList, Ss = Ss .
+  eq  Ss, .KSortList = Ss . 
 
-  eq .MLSortList, Ss = Ss .
-  eq Ss, .MLSortList = Ss .
+  op  length : KSortList -> Nat .
+  eq  length(.KSortList) = 0 .
+  eq  length(S, Ss)      = 1 + length(Ss) .
 
-  op length : MLSortList -> Nat .
+  ---- KSymbol is the sort of matching logic symbols ----
 
-  eq length(.MLSortList) = 0 .
-  eq length(S, Ss)       = 1 + length(Ss) .
+  sorts   KSymbol   KSymbolList . 
+  subsort KSymbol < KSymbolList .
 
-  ---- Matching logic symbols: their ASTs and utilities. ----
+  op  Ksymbol      : String       ---- the name of the symbol
+                     KSortList    ---- the argument sorts
+                     KSort        ---- the return sort
+                     -> KSymbol .
 
-  sorts Symbol SymbolList . subsort Symbol < SymbolList .
+  op  .KSymbolList :                         -> KSymbolList .
+  op  _,_          : KSymbolList KSymbolList -> KSymbolList [assoc] .
 
-  op #symbol : String              ---- the name of the symbol
-               MLSortList          ---- the argument sorts
-               MLSort              ---- the return sort
-               -> Symbol [ctor] .
+  ---- Eqs that make .KSymbolList the identity of _,_:
+  eq  .KSymbolList, L:KSymbolList = L:KSymbolList .
+  eq  L:KSymbolList, .KSymbolList = L:KSymbolList .
 
-  op .SymbolList :                       -> SymbolList [ctor] .
-  op _,_         : SymbolList SymbolList -> SymbolList [ctor assoc] .
+  ---- Getters of KSymbol
+  op  getArgSorts : KSymbol -> KSortList .
+  op  getRntSort  : KSymbol -> KSort     .
+  op  getArity    : KSymbol -> Nat       .
 
-  eq .SymbolList, Ss:SymbolList = Ss:SymbolList .
-  eq Ss:SymbolList, .SymbolList = Ss:SymbolList .
+  var Str : String .
+
+  eq  getArgSorts(Ksymbol(Str, Ss, S)) = Ss         .
+  eq  getRntSort (Ksymbol(Str, Ss, S)) = S          .
+  eq  getArity   (Ksymbol(Str, Ss, S)) = length(Ss) .
+
+  ---- KPattern is the sort of matching logic patterns ----
+
+  sorts   KPattern   KPatternList .
+  subsort KPattern < KPatternList .
+
+  op  .KPatternList :                           -> KPatternList         .
+  op  _,_           : KPatternList KPatternList -> KPatternList [assoc] .
+
+  var Ps : KPatternList .
   
-  op getArgumentSorts : Symbol -> MLSortList .
-  op getReturnSort    : Symbol -> MLSort .
-  op getArity         : Symbol -> Nat .
+  eq  .KPatternList, Ps = Ps .
+  eq  Ps, .KPatternList = Ps .
 
-  eq getArgumentSorts(#symbol(F:String, Ss, S)) = Ss .
-  eq getReturnSort   (#symbol(F:String, Ss, S)) = S .
-  eq getArity        (#symbol(F:String, Ss, S)) = length(Ss) .
+  ---- KVariable is the sort of matching logic variables ----
 
-  ---- Matching logic patterns: their ASTs and utilities. ----
-  
-  sorts Pattern PatternList . subsort Pattern < PatternList .
+  sorts   KVariable       KVariableList .
+  subsort KVariable     < KVariableList .  
+  subsort KVariable     < KPattern .
+  subsort KVariableList < KPatternList .
 
-  op .PatternList :                         -> PatternList [ctor] .
-  op _,_          : PatternList PatternList -> PatternList [ctor assoc] .
+  op  .KVariableList :                             -> KVariableList .
+  op  _,_            : KVariableList KVariableList -> KVariableList [assoc] .
 
-  var Ps : PatternList .
-  
-  eq .PatternList, Ps = Ps .
-  eq Ps, .PatternList = Ps .
+  var Xs : KVariableList .
 
-  ---- Variable patterns.
+  ---- Eqs that make .KVariableList the identity of KVariableList:
+  eq  .KVariableList, Xs = Xs .
+  eq  Xs, .KVariableList = Xs .
+
+  ---- Constructors of KPattern:
+
+  op  Kvariable    : String    KSort              -> KVariable . 
+  op  Kapplication : KSymbol   KPatternList       -> KVariable .
+  op  Kand         : KPattern  KPattern     KSort -> KPattern  .
+  op  Knot         : KPattern  KPattern     KSort -> KPattern  .
+  op  Kexists      : KVariable KPattern     KSort -> KPattern  .
+endfm
+
+
+quit
+
+ ---- Variable patterns.
 
   sorts VarPattern VarPatternList . subsort VarPattern < VarPatternList .
 
