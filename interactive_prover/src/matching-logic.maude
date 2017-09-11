@@ -73,19 +73,91 @@ fmod K is
   op  .KVariableList :                             -> KVariableList .
   op  _,_            : KVariableList KVariableList -> KVariableList [assoc] .
 
+  vars P Q R : KPattern  .
+  var  X Y Z : KVariable .
+  var  Sigma : KSymbol   .
+
   var Xs : KVariableList .
 
   ---- Eqs that make .KVariableList the identity of KVariableList:
   eq  .KVariableList, Xs = Xs .
   eq  Xs, .KVariableList = Xs .
 
+  ---- Delete an element from a list.
+
+  op  delete : KVariable KVariableList -> KVariableList .
+
+  eq  delete(Y, .KVariableList) = .KVariableList        .
+  eq  delete(Y, (X, Xs))        = if   (Y == X)
+                                  then delete(Y, Xs)
+                                  else X, delete(Y, Xs)
+                                  fi                    .
+
   ---- Constructors of KPattern:
 
-  op  Kvariable    : String    KSort              -> KVariable . 
-  op  Kapplication : KSymbol   KPatternList       -> KVariable .
+  op  Kvariable    : String                 KSort -> KVariable . 
+  op  Kapplication : KSymbol   KPatternList       -> KPattern  .
   op  Kand         : KPattern  KPattern     KSort -> KPattern  .
-  op  Knot         : KPattern  KPattern     KSort -> KPattern  .
+  op  Knot         : KPattern               KSort -> KPattern  .
   op  Kexists      : KVariable KPattern     KSort -> KPattern  .
+
+  ---- Fresh Variable Generation and Substitution
+
+  op  KfreshName  : KPatternList                    -> String   .
+  op  Ksubstitute : KPattern KPattern KVariable     -> KPattern .
+  op  Ksubstitute : KPatternList KPattern KVariable -> KPatternList .
+
+  ---- Eqs that define Ksubstitute on KPatternList (map):
+  eq  Ksubstitute((P, Ps), R, Z)
+   =  Ksubstitute(P, R, Z), Ksubstitute(Ps, R, Z) .
+
+  ---- Eqs that define Ksubstitute (the one for Kexists is nontrivial):
+  
+  eq  Ksubstitute(X, R, Z) 
+   =  if (X == Z) 
+      then R 
+      else X 
+      fi .
+
+  eq  Ksubstitute(Kapplication(Sigma, Ps), R, Z)
+   =  Kapplication(Sigma, Ksubstitute(Ps, R, Z)) .
+
+  eq  Ksubstitute(Kand(P, Q, S), R, Z) 
+   =  Kand(Ksubstitute(P, R, Z),
+           Ksubstitute(Q, R, Z),
+           S) .
+
+  eq  Ksubstitute(Knot(P, S), R, Z)
+   =  Knot(Ksubstitute(P, R, Z), S) .
+
+
+  ----   Ksubst(Kexists(X, P), R, Z)
+  ---- = Kexists(Y, Ksubst(Ksubst(P, Y, X), R, Z))
+  ----   where Y is a fresh variable
+  ----   that has the same sort as X. 
+
+ ceq  Ksubstitute(Kexists(Kvariable(Name:String, S1), P, S2), R, Z)
+   =  Kexists(Kvariable(FN:String, S1), 
+              Ksubstitute(Ksubstitute(P, Kvariable(FN:String, S1), 
+                                         Kvariable(Name:String, S1)),
+                          R, Z),
+              S2)
+  if  FN:String := KfreshName(P, R, Z) . 
+
+  ---- Get all free variables that appear in a list of patterns.
+
+  op  KgetFvs : KPatternList -> KVariableList .
+
+  eq  KgetFvs(.KPatternList)           = .KVariableList          .
+  eq  KgetFvs(.KVariableList)          = .KVariableList          .
+  eq  KgetFvs(P, Ps)                   = KgetFvs(P), KgetFvs(Ps) .
+
+  eq  KgetFvs(X)                       = X                       .
+  eq  KgetFvs(Kapplication(Sigma, Ps)) = KgetFvs(Ps)             .
+  eq  KgetFvs(Kand(P, Q, S))           = KgetFvs(P, Q)           .
+  eq  KgetFvs(Knot(P,    S))           = KgetFvs(P)              .
+  eq  KgetFvs(Kexists(X, P, S))        = delete(X, KgetFvs(P))   .
+
 endfm
 
 
