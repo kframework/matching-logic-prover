@@ -1,47 +1,50 @@
 --- Module K
 --- ========
 
---- This is an implementation of the meta theory K of matching logic.
+--- This is a reference implementation of the matching logic theory $K$, which is a
+--- reflexive theory of matching logic.
 
-
----- This is a 
 
 fmod K is
-
   protecting STRING .
 
-  ---- KSort is the sort of matching logic sorts ----
 
-  sorts   KSort   KSortList . 
+
+  sort KString . subsort String < KString .
+
+
+--- Matching logic sorts become element of the sort `KSort`.
+
+
+  sorts   KSort   KSortList .
   subsort KSort < KSortList .
+  op .KSortList :                     -> KSortList         .
+  op _,_        : KSortList KSortList -> KSortList [assoc] .
+  op Ksort      : KString             -> KSort             .
 
-  op  Ksort      : String              -> KSort [ctor] .
-  op  .KSortList :                     -> KSortList .
-  op  _,_        : KSortList KSortList -> KSortList [assoc] .
 
-  vars S S1 S2  : KSort .
-  var  Ss       : KSortList .
 
-  ---- Eqs that make .KSortList the identity of _,_:
-  eq  .KSortList, Ss = Ss .
-  eq  Ss, .KSortList = Ss . 
+  var S S1 S2 : KSort     .
+  var Ss      : KSortList .
 
-  op  length : KSortList -> Nat .
-  eq  length(.KSortList) = 0 .
-  eq  length(S, Ss)      = 1 + length(Ss) .
 
-  ---- KSymbol is the sort of matching logic symbols ----
 
-  sorts   KSymbol   KSymbolList . 
+  eq .KSortList, Ss = Ss .
+  eq Ss, .KSortList = Ss .
+
+
+--- Matching logic symbols become element of the sort `KSymbol`. A matching logic
+--- symbol takes a string as its *name*, a list *argument sorts*, and a *return
+--- sort*.
+
+
+  sorts   KSymbol   KSymbolList .
   subsort KSymbol < KSymbolList .
-
-  op  Ksymbol      : String       ---- the name of the symbol
-                     KSortList    ---- the argument sorts
-                     KSort        ---- the return sort
-                     -> KSymbol .
-
-  op  .KSymbolList :                         -> KSymbolList .
+  op  .KSymbolList :                         -> KSymbolList         .
   op  _,_          : KSymbolList KSymbolList -> KSymbolList [assoc] .
+  op  Ksymbol      : String KSortList KSort  -> KSymbol             .
+
+
 
   ---- Eqs that make .KSymbolList the identity of _,_:
   eq  .KSymbolList, L:KSymbolList = L:KSymbolList .
@@ -67,7 +70,7 @@ fmod K is
   op  _,_           : KPatternList KPatternList -> KPatternList [assoc] .
 
   var Ps : KPatternList .
-  
+
   eq  .KPatternList, Ps = Ps .
   eq  Ps, .KPatternList = Ps .
 
@@ -120,7 +123,7 @@ fmod K is
    =  Ksubstitute(P, R, Z), Ksubstitute(Ps, R, Z) .
 
   ---- Eqs that define Ksubstitute (the one for Kexists is nontrivial):
-  
+
   eq  Ksubstitute(X, R, Z) 
    =  if (X == Z) 
       then R 
@@ -208,7 +211,7 @@ quit
      then delete(P, Ps)
      else Q, delete(P, Ps)
      fi .
-  
+
   ---- Delete duplicate elements in a list.
   ---- The one that appears the first will remain in the list.
 
@@ -225,7 +228,7 @@ quit
   ---- Collect free variables that appear in a list of patterns.
 
   op getFvs : PatternList -> VarPatternList . 
-  
+
   var X : String . vars P1 P2 : Pattern .
 
   eq getFvs(.PatternList) = .PatternList .
@@ -258,7 +261,7 @@ quit
   op wellFormed : PatternList -> Bool . ---- if all patterns are well-formed
   op getSort : Pattern -> [MLSort] .
   op getSortList : PatternList -> [MLSortList] .
-  
+
   eq getSortList(.PatternList) = .MLSortList .
   eq getSortList(P) = getSort(P) .
   eq getSortList(P, Ps) = getSort(P), getSortList(Ps) .
@@ -395,12 +398,12 @@ quit
   eq subst(#contains(P1, P2, S1, S2), Q, R) 
    = #equals(subst(P1, Q, R), subst(P2, Q, R), S1, S2) .
   eq subst(P, Q, R) = P [owise] .
-  
-  
+
+
   ---- Matching logic theories
-  
+
   sorts Signature Theory .
-  
+
   op #signature : MLSortList SymbolList -> Signature [ctor] .
   op #theory : Signature PatternList -> Theory [ctor] .
 
@@ -414,43 +417,5 @@ quit
   op _|-_ : PatternList Pattern -> Goal [ctor] .
 
   sort Tactic .
-
 endfm
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
