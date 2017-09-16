@@ -1,0 +1,13 @@
+--- Module K
+--- ========
+
+
+fmod K is
+  protecting STRING .
+
+
+--- Ends the module here.
+
+
+endfm
+
