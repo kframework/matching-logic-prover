@@ -4,6 +4,7 @@
 \usepackage{wasysym}
 \usepackage{mathtools}
 \usepackage{longtable}
+\usepackage{fullpage}
 
 
 % Define the implication symbol ->
@@ -20,6 +21,13 @@
 
 \begin{document}
 	\maketitle
+	
+The following inference rules are shown to constitute a sound and complete 
+proof system of matching logic.
+We conjecture that all rules marked with ``$*$'' are derivable from the 
+rest plus the axiom (\textsc{Definedness}).
+In other words, we conjecture that all rules that are \emph{not} marked with
+``$*$'' constitute a sound and complete proof system of matching logic.
 
 \bgroup
 \def\arraystretch{1.25}
@@ -37,7 +45,7 @@
      \textsc{Variable Substitution}
   &  $\forall x . \varphi \imp \varphi[y/x]$
   \\
-     \textsc{Distribution$_\forall$}
+     \textsc{$_\forall$}
   &  $\forall x . (\varphi_1 \imp \varphi_2) 
      \imp (\varphi_1 \imp \forall x . \varphi_2)$
   \\
@@ -64,7 +72,7 @@
   \in \sigma(\dots,y,\dots)$
   \\
     \textsc{*Membership $\neg$}
-  &  $x \in \neg \varphi_1 \imp \neg (x \in \varphi_1)$
+  &  $x \in \neg \varphi \imp \neg (x \in \varphi)$
   \\
     \textsc{*Membership $\exists$}
   &  $x \in \forall y . \varphi
