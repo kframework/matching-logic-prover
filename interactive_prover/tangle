@@ -1,0 +1,4 @@
+# To use pandoc-tangle,
+# check https://github.com/ehildenb/pandoc-tangle
+
+pandoc-tangle --from markdown --to code-maude --code k      k.md > src/k.maude
