@@ -57,6 +57,9 @@ In other words, we conjecture that all rules that are \emph{not} marked with
       \dimp
       \sigma(\dots,\varphi_1,\dots) \vee \sigma(\dots,\varphi_2,\dots)$
   \\
+     \textsc{N}
+　　&  $\neg \sigma(\bot)$
+　　\\
      \textsc{Barcan}
   &  $\sigma(\dots,\exists x . \varphi,\dots) \dimp \exists x . 
       \sigma(\dots, \varphi,\dots)$
@@ -84,9 +87,6 @@ In other words, we conjecture that all rules that are \emph{not} marked with
     \textsc{*Definedness}
   &  $\ceil{x}$
   \\
-     \textsc{N}
-  &  From $\varphi$ deduce $\neg \sigma(\neg \varphi)$
-  \\
      \textsc{Modus Ponens}
   &  From $\varphi_1$ and $\varphi_1 \imp \varphi_2$ deduce $\varphi_2$
   \\
@@ -96,10 +96,6 @@ In other words, we conjecture that all rules that are \emph{not} marked with
      \textsc{Equational Substitution}
   &  From $\varphi_1 \dimp \varphi_2$ deduce $\varphi_3[\varphi_1/x] \dimp 
   \varphi_3[\varphi_2/x]$
-  \\
-  \textsc{Framing}
-  &  From $\varphi_1 \imp \varphi_2$ deduce $\sigma(\varphi_1) \imp 
-  \sigma(\varphi_2)$
   \\
      \textsc{*Introduction$_\in$}
   &  From $\varphi$ deduce $x \in \varphi$
