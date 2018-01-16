@@ -8,6 +8,8 @@ fmod K is
 ```{.maude .k}
   sort KString . subsort String < KString .
 ```
+Matching logic sorts become element of the sort `KSort`.
+
 ```{.maude .k}
   sorts   KSort   KSortList .
   subsort KSort < KSortList .
@@ -23,37 +25,31 @@ fmod K is
   eq .KSortList, Ss = Ss .
   eq Ss, .KSortList = Ss .
 ```
-```{.maude .k}
-  op length : KSortList -> Nat           .
-  eq length(.KSortList) = 0              .
-  eq length(S, Ss)      = 1 + length(Ss) .
-```
-
-A matching logic symbol takes a string as its *name*, a list *argument sorts*, and a *return sort*.
+Matching logic symbols become element of the sort `KSymbol`. A matching logic symbol takes a string as its *name*, a list *argument sorts*, and a *return sort*.
 
 ```{.maude .k}
   sorts   KSymbol   KSymbolList .
   subsort KSymbol < KSymbolList .
   op  .KSymbolList :                         -> KSymbolList         .
   op  _,_          : KSymbolList KSymbolList -> KSymbolList [assoc] .
-  op  Ksymbol      : KString KSortList KSort -> KSymbol             .
+  op  Ksymbol      : String KSortList KSort  -> KSymbol             .
 ```
 
 ```{.maude .k}
-  ---- Eqs that make .KSymbolList the identity of _,_
+  ---- Eqs that make .KSymbolList the identity of _,_:
   eq  .KSymbolList, L:KSymbolList = L:KSymbolList .
   eq  L:KSymbolList, .KSymbolList = L:KSymbolList .
 
   ---- Getters of KSymbol
-  op  KgetArgumentSorts : KSymbol -> KSortList .
-  op  KgetReturnSort    : KSymbol -> KSort     .
-  op  KgetArity         : KSymbol -> Nat       .
+  op  getArgSorts : KSymbol -> KSortList .
+  op  getRntSort  : KSymbol -> KSort     .
+  op  getArity    : KSymbol -> Nat       .
 
   var Str : String .
 
-  eq  KgetArgumentSorts(Ksymbol(Str, Ss, S)) = Ss         .
-  eq  KgetReturnSort   (Ksymbol(Str, Ss, S)) = S          .
-  eq  KgetArity        (Ksymbol(Str, Ss, S)) = length(Ss) .
+  eq  getArgSorts(Ksymbol(Str, Ss, S)) = Ss         .
+  eq  getRntSort (Ksymbol(Str, Ss, S)) = S          .
+  eq  getArity   (Ksymbol(Str, Ss, S)) = length(Ss) .
 
   ---- KPattern is the sort of matching logic patterns ----
 
@@ -72,16 +68,17 @@ A matching logic symbol takes a string as its *name*, a list *argument sorts*, a
 
   sorts   KVariable       KVariableList .
   subsort KVariable     < KVariableList .  
-  subsort KVariable     < KPattern      .
-  subsort KVariableList < KPatternList  .
+  subsort KVariable     < KPattern .
+  subsort KVariableList < KPatternList .
 
-  op  .KVariableList :                             -> KVariableList         .
+  op  .KVariableList :                             -> KVariableList .
   op  _,_            : KVariableList KVariableList -> KVariableList [assoc] .
 
-  vars P Q R : KPattern      .
-  var  X Y Z : KVariable     .
-  var  Sigma : KSymbol       .
-  var  Xs    : KVariableList .
+  vars P Q R : KPattern  .
+  var  X Y Z : KVariable .
+  var  Sigma : KSymbol   .
+
+  var Xs : KVariableList .
 
   ---- Eqs that make .KVariableList the identity of KVariableList:
   eq  .KVariableList, Xs = Xs .
