@@ -1,4 +1,4 @@
-(declare-sort Nat)
+(declare-sort Nat ())
 (declare-sort NatSeq)
 (declare-sort Map)
 (declare-fun zero () Nat)
