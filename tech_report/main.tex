@@ -151,7 +151,9 @@ Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary p
 \item (M2) $x \in P \wedge Q = (x \in P) \wedge (x \in Q)$
 \item (M3) $x \in \neg P = \neg (x \in P)$
 \item (M4) $x \in \forall y . P = \forall y . x \in P$ where $x$ is distinct from $y$
-\item (M5) $x \in \sigma(\dots,P_i,\dots) = \exists y . y \in P_i \wedge x \in \sigma(\dots,y,\dots)$ where $y$ occurs free in the left hand side of the equation.
+\item (M5) $x \in \sigma(\dots,P_i,\dots) = \exists y . y \in P_i \wedge x \in 
+\sigma(\dots,y,\dots)$ where $y$ does not occur free in the left-hand side of 
+the equation.
 \end{itemize}
 
 \begin{rmk}
