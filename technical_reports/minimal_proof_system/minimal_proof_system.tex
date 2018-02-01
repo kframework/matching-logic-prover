@@ -5,6 +5,7 @@
 \usepackage{mathtools}
 \usepackage{longtable}
 \usepackage{fullpage}
+\usepackage{prftree}
 
 
 % Define the implication symbol ->
@@ -15,21 +16,21 @@
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
+\newcommand{\miniPS}{\mathcal{S}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{prop}{Proposition}
+
 
 \title{Minimal Proof System of Matching Logic}
 \author{Formal Systems Laboratory}
 
 \begin{document}
 	\maketitle
-	
-The following inference rules are shown to constitute a sound and complete 
-proof system of matching logic.
-We conjecture that all rules marked with ``$*$'' are derivable from the 
-rest plus the axiom (\textsc{Definedness}).
-In other words, we conjecture that all rules that are \emph{not} marked with
-``$*$'' constitute a sound and complete proof system of matching logic.
 
-\bgroup
+We conjecture that the following is a sound and complete proof system of 
+matching logic. 
+\begin{figure}[hbtp]
 \def\arraystretch{1.25}
 \begin{longtable}{ll}
 	 \textsc{Propositional$_1$}
@@ -67,48 +68,113 @@ In other words, we conjecture that all rules that are \emph{not} marked with
   &
      if $x$ does not occur free
   \\
-  &  in the left-hand side of the double implication
+    \textsc{Name}
+  & $\exists x . x$
   \\
-    \textsc{*Membership Symbol}
-  &  $x \in \sigma(\dots,\varphi_i,\dots) \imp \exists y . y \in 
-  \varphi_i \wedge x 
-  \in \sigma(\dots,y,\dots)$
-  \\
-    \textsc{*Membership $\neg$}
-  &  $x \in \neg \varphi \imp \neg (x \in \varphi)$
-  \\
-    \textsc{*Membership $\exists$}
-  &  $x \in \forall y . \varphi
-      \imp \forall y . (x \in \varphi)$
-  \\
-  &
-     where $x$ is distinct from $y$
-  \\
-    \textsc{*Definedness}
-  &  $\ceil{x}$
-  \\
-     \textsc{Modus Ponens}
+    \textsc{Modus Ponens}
   &  From $\varphi_1$ and $\varphi_1 \imp \varphi_2$ deduce $\varphi_2$
   \\
-     \textsc{Universal Generalization}
+    \textsc{Universal Generalization}
   &  From $\varphi$ deduce $\forall x . \varphi$
-  \\
-     \textsc{Equational Substitution}
-  &  From $\varphi_1 \dimp \varphi_2$ deduce $\varphi_3[\varphi_1/x] \dimp 
-  \varphi_3[\varphi_2/x]$
-  \\
-     \textsc{*Introduction$_\in$}
-  &  From $\varphi$ deduce $x \in \varphi$
-  \\
-  &
-     If $x$ does not occur free in $\varphi$
-  \\
-     \textsc{*Elimination$_\in$}
-  &  From $x \in \varphi$ deduce $\varphi$
-  \\
-  &
-     If $x$ does not occur free in $\varphi$
 \end{longtable}
-\egroup
+\caption{Minimal Proof System $\miniPS$}
+\end{figure}
 
+Matching logic is proved to have a complete proof system in the presence of 
+definedness symbols.
+Notice the above minimal proof system $\miniPS$ does not depend on definedness 
+symbols.
+In the following, we show how to establish all axioms and rules of the old 
+proof system using the new minimal proof system $\miniPS$ plus the 
+axiom $\forall x . \ceil{x}$ for definedness symbols.
+
+\begin{prop}
+	$\vdash \varphi = \varphi$
+\end{prop}
+\begin{proof}
+	content...
+\end{proof}
+
+
+%\bgroup
+%\def\arraystretch{1.25}
+%\begin{longtable}{ll}
+%	\textsc{Propositional$_1$}
+%	&  $\varphi_1 \imp (\varphi_2 \imp \varphi_1)$
+%	\\
+%	\textsc{Propositional$_2$}
+%	&  $(\varphi_1 \imp (\varphi_2 \imp \varphi_3)) 
+%	\imp ((\varphi_1 \imp \varphi_2) \imp (\varphi_1 \imp \varphi_3))$
+%	\\
+%	\textsc{Propositional$_3$}
+%	&  $(\neg \varphi_1 \imp \neg \varphi_2) \imp (\varphi_2 \imp \varphi_1)$
+%	\\
+%	\textsc{Variable Substitution}
+%	&  $\forall x . \varphi \imp \varphi[y/x]$
+%	\\
+%	\textsc{$_\forall$}
+%	&  $\forall x . (\varphi_1 \imp \varphi_2) 
+%	\imp (\varphi_1 \imp \forall x . \varphi_2)$
+%	\\
+%	&
+%	if $x$ does not occur free in $\varphi_1$
+%	\\
+%	\textsc{K}
+%	&  $\sigma(\dots,\varphi_1 \vee \varphi_2,\dots) 
+%	\dimp
+%	\sigma(\dots,\varphi_1,\dots) \vee \sigma(\dots,\varphi_2,\dots)$
+%	\\
+%	\textsc{N}
+%	&  $\neg \sigma(\bot)$
+%	\\
+%	\textsc{Barcan}
+%	&  $\sigma(\dots,\exists x . \varphi,\dots) \dimp \exists x . 
+%	\sigma(\dots, \varphi,\dots)$
+%	\\
+%	&
+%	if $x$ does not occur free
+%	\\
+%	&  in the left-hand side of the double implication
+%	\\
+%	\textsc{*Membership Symbol}
+%	&  $x \in \sigma(\dots,\varphi_i,\dots) \imp \exists y . y \in 
+%	\varphi_i \wedge x 
+%	\in \sigma(\dots,y,\dots)$
+%	\\
+%	\textsc{*Membership $\neg$}
+%	&  $x \in \neg \varphi \imp \neg (x \in \varphi)$
+%	\\
+%	\textsc{*Membership $\exists$}
+%	&  $x \in \forall y . \varphi
+%	\imp \forall y . (x \in \varphi)$
+%	\\
+%	&
+%	where $x$ is distinct from $y$
+%	\\
+%	\textsc{*Definedness}
+%	&  $\ceil{x}$
+%	\\
+%	\textsc{Modus Ponens}
+%	&  From $\varphi_1$ and $\varphi_1 \imp \varphi_2$ deduce $\varphi_2$
+%	\\
+%	\textsc{Universal Generalization}
+%	&  From $\varphi$ deduce $\forall x . \varphi$
+%	\\
+%	\textsc{Equational Substitution}
+%	&  From $\varphi_1 \dimp \varphi_2$ deduce $\varphi_3[\varphi_1/x] \dimp 
+%	\varphi_3[\varphi_2/x]$
+%	\\
+%	\textsc{*Introduction$_\in$}
+%	&  From $\varphi$ deduce $x \in \varphi$
+%	\\
+%	&
+%	If $x$ does not occur free in $\varphi$
+%	\\
+%	\textsc{*Elimination$_\in$}
+%	&  From $x \in \varphi$ deduce $\varphi$
+%	\\
+%	&
+%	If $x$ does not occur free in $\varphi$
+%\end{longtable}
+%\egroup
 \end{document}

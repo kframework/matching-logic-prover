@@ -1,0 +1,54 @@
+\documentclass{article}
+
+\title{Fixpoints in Matching Logic}
+\author{Formal Systems Laboratory}
+
+\begin{document}
+\maketitle
+
+Fixpoints are solutions to equations of the form
+$$
+X = F(X)
+$$
+where $X$ is the variable of the equation and $F(X)$ is an expression about $X$.
+Depending on what $X$ is, fixpoints are categorized as
+\begin{itemize}
+	\item element fixpoints, if $X$ ranges over elements;
+	\item relation fixpoints, if $X$ ranges over relations;
+	\item function fixpoints, if $X$ ranges over functions;
+\end{itemize}
+In addition, if there is a partial order $\leq$ on the domain where $X$ ranges, 
+we can define least fixpoints w.r.t. the order $\leq$ as follows
+\begin{center}
+	$X = F(X)$ and for any $Y$ such that $Y = F(Y)$, we have $X \leq Y$.
+\end{center}
+
+Element fixpoints are definable in first order logic.
+Given an equation
+$$
+x = f(x)
+$$
+where the right-hand side is a term in which the variable $x$ occurs free.
+The following formula
+$$
+\exists x . x = f(x)
+$$
+is true in precisely those models where the interpretation of $f$ has an
+fixpoint.
+The following formula
+$$
+\exists x . ( x = f(x) \wedge \forall y . y = f(y) \to x \le y )
+$$
+is true in precisely those models where the interpretation of $f$ has a least 
+fixpoint.
+Let $e$ be a constant symbol, the following formula
+$$
+ e = f(e) \wedge \forall y . y = f(y) \to e \le y 
+$$
+is true in precisely those models where the interpretation of $f$ has a least 
+fixpoint, which is the interpretation of $e$.
+
+Relation fixpoints are definable in first order logic.
+
+\end{document}
+ 

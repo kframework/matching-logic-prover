@@ -1,27 +1,27 @@
 \documentclass{article}
-\usepackage{amsmath}
-\usepackage{wasysym}
-\usepackage{amsthm}
-\usepackage{amssymb}
-\usepackage[utf8]{inputenc}
-\usepackage{proof}
+
+\usepackage{amsmath, amsthm, amssymb, mathtools}
+
 \usepackage{txfonts}
-\usepackage{mathtools}
+
+\usepackage{wasysym}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{proof, prftree}
+
 \usepackage{authblk}
+
 \usepackage{todonotes}
-\usepackage{comment}
-\usepackage[]{algorithm2e}
 \usepackage{comment}
 
 % Import packages for syntax highlight code.
 \usepackage{listings}
 \usepackage{xcolor}
 
+\usepackage[]{algorithm2e}
 
-\lstdefinestyle{smt}{
-    basicstyle=\footnotesize\ttfamily,
-    breaklines=true
-}
+\usepackage{longtable}
 
 \theoremstyle{plain}
 \newtheorem{thm}{Theorem}
@@ -32,10 +32,21 @@
 \newtheorem{rmk}[thm]{Remark}
 \newtheorem{lemma}[thm]{Lemma}
 
+% Define the implication symbol ->
+\newcommand{\imp}{\rightarrow}
+\newcommand{\dimp}{\leftrightarrow}
+
+% Define ceiling and flooring symbols.
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
-\def\imp{\rightarrow}
+\newcommand{\miniPS}{\mathcal{S}}
+
+\lstdefinestyle{smt}{
+    basicstyle=\footnotesize\ttfamily,
+    breaklines=true
+}
+
 \def\land{\mathbin\&}
 
 \def\I{\textsf{I}}
@@ -68,18 +79,27 @@
 % Rewriting
 \def\To1{\Rightarrow^{\forall}_1}
 
-
-
 % Label inference rules.
 \newcommand{\rl}[1]{\text{\scriptsize{(#1)}}}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 % Title and authors
 
-\title{Technical Report\\ 
-	   The Deduction System of Matching Logic}
+\title{Technical Report: Deduction in Matching Logic}
 \author[1]{Formal Systems Laboratory}
 \affil[1]{University of Illinois, Urbana-Champaign, USA}
-
 
 \begin{document}
 
@@ -87,7 +107,7 @@
 
 \begin{abstract}
 
-This paper proposes a sound and complete deductive system of matching logic, proves dozens of useful metatheorems about the deductive system, and shows its applications in (1) modeling transition systems; (2) symbolic executions; and (3) reasoning with contexts.
+This paper discusses deduction in matching logic.
 
 \end{abstract}
 
@@ -120,13 +140,13 @@ The formal language $\mathcal{L}$ is often extended with \emph{definedness} symb
 
 Definedness symbols carry specific intended semantics. For each definedness symbol $\ceil*{\_}_{s_1}^{s_2}$, we add the pattern $\ceil*{x}_{s_1}^{s_2}$ as an axiom to the deductive system, where $x$ is a variable who has sort $s_1$. It does not matter which variable we pick.
 
-With definedness symbols, we extends the formal language $\mathcal{L}$ with 
+With definedness symbols, we extend the formal language $\mathcal{L}$ with 
 \begin{align*}
 &\floor*{P}_{s_1}^{s_2} \coloneqq {\neg} \ceil*{\neg P}_{s_1}^{s_2} \\
 &P_1 =_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \leftrightarrow P_2}_{s_1}^{s_2} \\
 &P_1 \neq_{s_1}^{s_2} P_2 \coloneqq \neg (P_1 =_{s_1}^{s_2} P_2) \\
 &P_1 \subseteq_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \imp P_2}_{s_1}^{s_2} \\
-&x \in_{s_1}^{s_2} P \coloneqq x \subseteq_{s_1}^{s_2} P.
+&x \in_{s_1}^{s_2} P \coloneqq \ceil{x \wedge P}_{s_1}^{s_2}.
 \end{align*}
 
 \begin{rmk}
@@ -1146,6 +1166,188 @@ For any set of patterns $\Gamma$ and any pattern $P$, if $\Gamma \vDash P$ then 
 The case where $\Gamma$ is inconsistent is trivial, so let us suppose $\Gamma$ is consistent. Suppose there is a pattern $P$ such that $\Gamma \vDash P$ but $\Gamma \not \vdash P$. By Proposition~\ref{prop:consistent1}, $\Gamma \cup \{\neg P\}$ is consistent. Let $\Gamma'$ be the maximal consistent extension of $\Gamma \cup \{\neg P\}$, and $M$ be the canonical model of $\Gamma'$. Note that $\Gamma'$ is consistent, so $\Gamma' \not \vdash P$, and, by Proposition~\ref{prop:canonicalmodel}, $M \not \vDash P$. On the other hand, $M \vDash \Gamma'$, which implies that $M \vDash \Gamma$ because $\Gamma \subseteq \Gamma'$. This contradicts against the fact that $\Gamma \vDash P$, because we found a model $M$ which satisfies $\Gamma$ but does not entail $P$.
 \end{proof}
 
+\section{Minimal Proof System}
+Matching logic is proved to have a sound complete proof system in the presence 
+of definedness symbols.
+We aim at a sound and complete proof system that does not 
+rely on definedness symbols.
+We conjecture the following proof system~$\miniPS$ is such a proof system.
+\begingroup
+\renewcommand\arraystretch{1.3}
+	\begin{longtable}{ll}
+		\textsc{Propositional$_1$}
+		&  $\varphi_1 \imp (\varphi_2 \imp \varphi_1)$
+		\\
+		\textsc{Propositional$_2$}
+		&  $(\varphi_1 \imp (\varphi_2 \imp \varphi_3)) 
+		\imp ((\varphi_1 \imp \varphi_2) \imp (\varphi_1 \imp \varphi_3))$
+		\\
+		\textsc{Propositional$_3$}
+		&  $(\neg \varphi_1 \imp \neg \varphi_2) \imp (\varphi_2 \imp 
+		\varphi_1)$
+		\\
+		\textsc{Variable Substitution}
+		&  $\forall x . \varphi \imp \varphi[y/x]$
+		\\
+		\textsc{$_\forall$}
+		&  $\forall x . (\varphi_1 \imp \varphi_2) 
+		\imp (\varphi_1 \imp \forall x . \varphi_2)$
+		\\
+		&
+		if $x$ does not occur free in $\varphi_1$
+		\\
+		\textsc{K}
+		&  $\sigma(\dots,\varphi_1 \vee \varphi_2,\dots) 
+		\dimp
+		\sigma(\dots,\varphi_1,\dots) \vee \sigma(\dots,\varphi_2,\dots)$
+		\\
+		\textsc{$\wedge$}
+		&  $\sigma(\dots,\varphi_1 \wedge \varphi_2,\dots) 
+		\imp
+		\sigma(\dots,\varphi_1,\dots) \wedge \sigma(\dots,\varphi_2,\dots)$
+		\\
+		\textsc{N}
+		&  $\neg \sigma(\bot)$
+		\\
+		\textsc{Barcan}
+		&  $\sigma(\dots,\exists x . \varphi,\dots) \dimp \exists x . 
+		\sigma(\dots, \varphi,\dots)$
+		\\
+		&
+		if $x$ does not occur free
+		\\
+		\textsc{Name}
+		& $\exists x . x$
+		\\
+		\textsc{Modus Ponens}
+		&  From $\varphi_1$ and $\varphi_1 \imp \varphi_2$ deduce $\varphi_2$
+		\\
+		\textsc{Universal Generalization}
+		&  From $\varphi$ deduce $\forall x . \varphi$
+		\\
+		\textsc{Equational Substitution}
+		&  From $\varphi_1 \dimp \varphi_2$, deduce $\psi[\varphi_1 / x] \dimp 
+		\psi[\varphi_2 / x]$
+		\\
+		\textsc{Framing}
+		& From $\varphi_1 \imp \varphi_2$, deduce $\sigma(\dots, 
+		\varphi_1,\dots) \imp \sigma(\dots, \varphi_2, \dots)$
+		\\
+		\textsc{Implication Introduction}
+		& From $\varphi$ deduce $x \imp \varphi$, where $x$ does not occur free 
+		in $\varphi$
+		\\
+		\textsc{Implication Elimination}
+		& From $x \imp \varphi$ deduce $\varphi$, where $x$ does not occur free 
+		in $\varphi$
+		\\
+		\caption{A proof system without the presence of definedness symbols}
+		\end{longtable}
+\endgroup
+
+We confess the proof system $\miniPS$ shown above is not minimal yet.
+Many axioms seem to be derivable.
+However, for now we mainly focus on finding a proof system that is independent 
+of the definedness symbols.
+We will prove that $\miniPS$ is sound and complete, but before that, let us 
+establish some useful metatheorems of $\miniPS$.
+This shall give us some confidence that $\miniPS$ is indeed complete.
+
+\begin{prop}[Tautology] \label{prop:taut}
+	For any propositional tautology $\mathcal{A}(p_1,\dots,p_n)$ where 
+	$p_1,\dots,p_n$ are all propositional variables in $\mathcal{A}$, and for 
+	any patterns $\varphi_1,\dots,\varphi_n$ such that the pattern
+	$\mathcal{A}(\varphi_1,\dots,\varphi_n)$ is wellformed,
+	$$ \vdash 
+	\mathcal{A}(\varphi_1,\dots,\varphi_n).$$
+\end{prop}
+\begin{proof}
+	Simply mimic the proof in propositional logic.
+\end{proof}
+
+\begin{prop}
+	$\vdash \forall x . \varphi \imp \exists x . \varphi$.
+\end{prop}
+\begin{proof}
+	Mimic the proof in predicate logic.
+\end{proof}
+
+We say two patterns $\varphi_1$ and $\varphi_2$ are \emph{provably equivalent} 
+in $\Gamma$, if $\Gamma\vdash \varphi_1$ iff $\Gamma \vdash \varphi_2$.
+We often omit $\Gamma$ if it is clear from the context.
+We use $\varphi_1 \equiv \varphi_2$ to denote that $\varphi_1$ and $\varphi_2$ 
+are probably equivalent.
+One can easily verify that if $\Gamma \vdash \varphi_1 \dimp \varphi_2$, then 
+$\varphi_1 \equiv \varphi_2$ in $\Gamma$.
+The notation of probably equivalence is not essential, but it makes the proof 
+of many metatheorems more succinct and intuitive.
+
+
+\begin{prop}
+	In the presence of definedness symbols, 
+	$\vdash \varphi = \varphi$.
+\end{prop}
+\begin{proof}
+	By definition, 
+	$\varphi = \varphi \equiv \neg \ceil{\neg (\varphi \dimp \varphi)}$, which 
+	is provably equivalent to
+	$\neg \ceil{\neg \top} \equiv \neg \ceil{\bot}$.
+	By the (N) rule, $\neg \ceil{\bot} \equiv \neg \bot \equiv \top$.
+\end{proof}
+
+\begin{prop}
+	In the presence of definedness symbols,
+	$\vdash \varphi_1 \dimp \varphi_2$ iff $\vdash \varphi_1 = \varphi_2$.
+\end{prop}
+\begin{proof}
+	Use (Equational Substitution).
+\end{proof}
+
+
+The following transformation is often useful.
+\begin{align*}
+\varphi_1 = \varphi_2
+&\equiv \neg \ceil{\neg(\varphi_1 \dimp \varphi_2)} \\
+&\equiv \neg \ceil{(\varphi_1 \wedge \neg \varphi_2) \vee (\neg \varphi_1 
+\wedge \varphi_2)} \\
+&\equiv \neg \left( \ceil{\varphi_1 \wedge \neg \varphi_2}  \vee  \ceil{\neg 
+\varphi_1 \wedge \varphi_2} \right) \\
+&\equiv \neg \ceil{\varphi_1 \wedge \neg \varphi_2} \wedge \neg \ceil{\neg 
+	\varphi_1 \wedge \varphi_2}
+\end{align*} 
+
+\begin{prop}
+	In the presence of definedness symbols,
+	$\vdash (x \in y) = (x = y)$.
+\end{prop}
+\begin{proof}
+It suffices to prove
+\begin{itemize}
+	\item (Case 1). $\ceil{x \wedge y} \imp \neg \ceil{x \wedge \neg y} \wedge 
+	\neg \ceil{\neg x \wedge y}$
+	\item (Case 2). $\neg(\ceil{x \wedge \neg y} \vee \ceil{\neg x \wedge y}) 
+	\imp \ceil{x \wedge y}$
+\end{itemize}
+Notice that by the (N) rule and the axiom $\forall x . \ceil{x}$, we can prove 
+that
+\begin{align*}
+& \ceil{x \wedge y} \vee \ceil{x \wedge \neg y} \equiv \ceil{x} \equiv \top \\
+& \ceil{x \wedge y} \vee \ceil{\neg x \wedge y} \equiv \ceil{y} \equiv \top
+\end{align*}
+We leave the readers to verify that (Case 2) can be easily established.
+To prove (Case~1), notice its symmetric form, and we only need to prove
+\begin{align*}
+\ceil{x \wedge y} \imp \neg \ceil{x \wedge \neg y}
+&\equiv 
+\end{align*}
+\end{proof}
+
+\begin{prop}
+	$\vdash \varphi \imp \ceil{\varphi}$
+\end{prop}
+\begin{proof}
+	content...
+\end{proof}
 
 
 \section{Applications}
