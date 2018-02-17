@@ -53,22 +53,22 @@ matching logic.
   &
      if $x$ does not occur free in $\varphi_1$
   \\
-     \textsc{K}
+     \textsc{Propagate$_\vee$}
   &  $\sigma(\dots,\varphi_1 \vee \varphi_2,\dots) 
       \dimp
       \sigma(\dots,\varphi_1,\dots) \vee \sigma(\dots,\varphi_2,\dots)$
   \\
-     \textsc{N}
+     \textsc{Propagate$_\bot$}
 　　&  $\neg \sigma(\bot)$
 　　\\
-     \textsc{Barcan}
+     \textsc{Propagate$_\exists$}
   &  $\sigma(\dots,\exists x . \varphi,\dots) \dimp \exists x . 
       \sigma(\dots, \varphi,\dots)$
   \\
   &
      if $x$ does not occur free
   \\
-    \textsc{Name}
+    \textsc{Existence}
   & $\exists x . x$
   \\
     \textsc{Modus Ponens}
