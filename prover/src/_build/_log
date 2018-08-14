@@ -1,0 +1,20 @@
+### Starting build.
+# Target: main.ml.depends, tags: { bin_annot, extension:ml, file:main.ml, ocaml, ocamldep, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamldep.opt -modules main.ml > main.ml.depends # cached
+# Target: solver.ml.depends, tags: { bin_annot, extension:ml, file:solver.ml, ocaml, ocamldep, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamldep.opt -modules solver.ml > solver.ml.depends # cached
+# Target: obligation.ml.depends, tags: { bin_annot, extension:ml, file:obligation.ml, ocaml, ocamldep, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamldep.opt -modules obligation.ml > obligation.ml.depends # cached
+# Target: obligation.cmo, tags: { bin_annot, byte, compile, extension:cmo, extension:ml, file:obligation.cmo, file:obligation.ml, implem, ocaml, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamlc.opt -c -bin-annot -o obligation.cmo obligation.ml # cached
+# Target: rule.ml.depends, tags: { bin_annot, extension:ml, file:rule.ml, ocaml, ocamldep, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamldep.opt -modules rule.ml > rule.ml.depends # cached
+# Target: rule.cmo, tags: { bin_annot, byte, compile, extension:cmo, extension:ml, file:rule.cmo, file:rule.ml, implem, ocaml, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamlc.opt -c -bin-annot -o rule.cmo rule.ml # cached
+# Target: solver.cmo, tags: { bin_annot, byte, compile, extension:cmo, extension:ml, file:solver.cmo, file:solver.ml, implem, ocaml, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamlc.opt -c -bin-annot -o solver.cmo solver.ml # cached
+# Target: main.cmo, tags: { bin_annot, byte, compile, extension:cmo, extension:ml, file:main.cmo, file:main.ml, implem, ocaml, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamlc.opt -c -bin-annot -o main.cmo main.ml # cached
+# Target: main.byte, tags: { bin_annot, byte, dont_link_with, extension:byte, file:main.byte, link, ocaml, program, quiet }
+/home/hreada/.opam/4.03.0+k/bin/ocamlc.opt obligation.cmo rule.cmo solver.cmo main.cmo -o main.byte
+# Compilation successful.
