@@ -8,79 +8,165 @@ The target program is shown as follows.
 ```
 if list1 != 0 then
   tmp := list1;
-  while [tmp + 1] != 0 do   // think of [tmp + 1] as tmp->next
-    tmp := [tmp + 1];
+  while tmp -> next != 0 do
+    tmp := tmp -> next;
   od
   last := tmp;
-  [last + 1] := list2;
+  last -> next := list2;
   ret := list1;
 else
   ret := list2;
 fi
 ```
+
 Let `APPEND` denote the above program.
 Let `WHILE` denote the following program
+
 ```
-while [tmp + 1] != 0 do
-  tmp := [tmp + 1];
+while tmp -> next != 0 do
+  tmp := tmp -> next;
 od
 last := tmp;
-[last + 1] := list2;
+last -> next := list2;
 ret := list1;
 ```
 
-## The cliams
+## The theory of the underlying configuration
 
-We verify two RL claims.
+### Integers and pairs
 
-The first is about the whole program,
-while the second is about the while-loop,
-known as the invariant.
+Regard them as builtins.
+Pairs are constructed by `node(M, N)` where `M`, `N` are integers.
 
-### Matching logic symbols about nodes and maps
+### Language constructs
+
+They are constructors, also regarded as builtins.
+Notice that program variables are language constructs, too.
+
+### Maps
+
+Partial maps (also known as maps, heaps, or heaplets) are constructed from
+* `emp`, representing the empty map;
+* `L |-> node(M, N)`, representing a single binding;
+* `H1 * H2`, representing a separating conjunction.
+
+### User-defined symbols about maps
+
+In the following definition, we write `lhs ===lfp rhs` to mean
+that lhs is defined as a least fixpoint, using axiom schemas
+(FIX) and (LFP).
 
 ```
-symbol node(Nat, Nat) : Node
-
 symbol list(Nat) : Map{Nat,Node}
 
-// intended meaning: list(I) matches all partial maps
-// which contain a single linked list (null is 0).
+// intended meaning: list(I) matches all maps which represent
+// a single-linked list (nil is 0).
 
-axiom // (Fixpoint)
-list(I) = emp /\ I = 0
-          \/ exists V J . I |-> node(V, J) * list(J) /\ I =/= 0
+axiom list(I) ===lfp 
+      emp /\ I = 0
+   \/ exists X exists J . 
+      I |-> node(X, J) * list(J) /\ I =/= 0
+ 
+symbol lseg(Nat, Nat) : Map{Nat,Node}
 
-axiom // (LFP), but written as a Hilbert-style proof rule
-Gamma |- 
-  (emp /\ I = 0
-   \/ exists V J . I |-> node(V, J) * phi(J) /\ I =/= 0)
-  -> phi(I)
-implies
-Gamma |- list(I) -> phi(I)
-for any pattern phi(I) where I is a distinguished free variable.
+// intended meaning: lseg(I, N) matches all maps which represent
+// a segment of a single-linked list (null is N).
 
-
-symbol lseq(Nat, Nat) : Map{Nat,Node}
-
-// intended meaning: lseq(I, N) matches all partial maps
-// which contain a single linked list (null is N).
-
-axiom // (Fixpoint)
-lseq(I, N) = emp /\ I = N
-           \/ exists V J . I |-> node(V, J) * lseq(J, N) /\ I =/= N
-
-axiom // (LFP), but written as a Hilbert-style proof rule
-Gamma |-
-  (emp /\ I = N
-   \/ exists V J . I |-> V * I+1 |-> J * phi(J, N) /\ I =/= N)
-  -> phi(I, N)
-implies
-Gamma |- list(I, N) -> phi(I, N)
-for any pattern phi(I, N) where I and N are distinguished free variables.
+axiom lseg(I, N) ===lfp
+      emp /\ I = N
+   \/ exists X exists J .
+      I |-> node(X, J) * lseg(J, N) /\ I =/= 0 /\ I =/= N
 ```
 
-### First claim
+## The claims
+
+We aim to prove the following main claim.
+
+```
+/** Main claim **/
+exists L1 L2 Tmp Last Ret .
+k:     APPEND 
+state: list1 |-> L1   *
+       list2 |-> L2   *
+       tmp   |-> Tmp  *
+       last  |-> Last *
+       ret   |-> Ret
+heap:  list(L1) * list(L2)
+
+=>
+
+exists L1Fin L2Fin TmpFin LastFin RetFin .
+k:     .K
+state: list1 |-> L1Fin   *
+       list2 |-> L2Fin   *
+       tmp   |-> TmpFin  *
+       last  |-> LastFin *
+       ret   |-> RetFin
+heap:  list(RetFin)
+```
+
+In order to prove the main claim, we need the following
+invariant claim, provided by users.
+
+
+```
+exists L1 L2 Tmp Last Ret V J .
+k:     WHILE
+state: list1 |-> L1   *
+       list2 |-> L2   *
+       tmp   |-> Tmp  *
+       last  |-> Last *
+       ret   |-> Ret
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+/\ L1 =/= 0
+
+=>
+
+exists L1Fin L2Fin TmpFin LastFin RetFin .
+k:     .K
+state: list1 |-> L1Fin   *
+       list2 |-> L2Fin   *
+       tmp   |-> TmpFin  *
+       last  |-> LastFin *
+       ret   |-> RetFin
+heap:  list(RetFin)
+```
+
+## Static heap properties
+
+*Static heap property A*
+
+```
+list(L1) * list(L2) /\ L1 = 0 
+-> list(L2)
+```
+
+*Static heap property B*
+
+```
+list(L1) * list(L2) /\ L1 =/= 0
+-> exists V J . 
+   lseg(L1, L1) * L1 |-> node(V, J) * list(J) * list(L2)
+   /\ L1 =/= 0
+```
+
+*Static heap property C (induction required)*
+
+```
+lseg(L1, Tmp) * Tmp |-> node(V, L2) * list(J) * list(L2) /\ J = 0 /\ L1 =/= 0
+-> list(L1)
+```
+
+
+*Static heap property D*
+
+```
+lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2) /\ J =/= 0 /\ L1 =/= 0
+-> exists V' J' .
+   lseg(L1, J) * J |-> node(V', J') * list(J') * list(L2) /\ L1 =/= 0
+```
+
+### Proving the first claim (DO NOT READ)
 
 The first claim says that 
 if the whole program `APPEND`
@@ -124,7 +210,7 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 
 =>
@@ -246,7 +332,7 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 ```
 
@@ -260,7 +346,7 @@ heap:  list(L1) * list(L2)
 ->
 
 exists V J . 
-heap:  lseq(L1, L1) * L1 |-> node(V, J) * list(L1) * list(L2)
+lseg(L1, L1) * L1 |-> node(V, J) * list(L1) * list(L2)
 /\ L1 =/= 0
 ```
 
@@ -274,7 +360,7 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 ```
 
@@ -284,7 +370,7 @@ so that we can use it as axioms later.
 By (Abstraction)
 
 ```
-k:     while [tmp + 1] != 0 do
+k:     while tmp -> next != 0 do
          ...
        od
        ...
@@ -293,17 +379,17 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 ```
 
 By (Axiom) // rule while I do S od => if I then ... else skip fi
 
 ```
-k:     if [tmp + 1] != 0
+k:     if tmp -> next != 0
        then
-         tmp := [tmp + 1];
-         while [tmp + 1] != 0 do
+         tmp := tmp -> next;
+         while tmp -> next != 0 do
          ...
          od
        else
@@ -315,7 +401,7 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 ```
 
@@ -325,8 +411,8 @@ By (Axiom)+
 ```
 k:     if [Tmp +Int 1] != 0
        then
-         tmp := [tmp + 1];
-         while [tmp + 1] != 0 do
+         tmp := tmp -> next;
+         while tmp -> next != 0 do
          ...
          od
        else
@@ -338,7 +424,7 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 ```
 By (Axiom),
@@ -346,22 +432,22 @@ By (Axiom),
 ```
 k:     if J != 0
        then
-         tmp := [tmp + 1];
-         while [tmp + 1] != 0 do
+         tmp := tmp -> next;
+         while tmp -> next != 0 do
          ...
          od
        else
          skip
        fi
        last := tmp;
-       [last + 1] := list2;
+       last -> next := list2;
        ret := list1;
 state: list1 |-> L1   *
        list2 |-> L2   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 ```
 
@@ -371,22 +457,22 @@ By (Case Analysis) on `J = 0`
 ```
 k:     if J != 0
        then
-         tmp := [tmp + 1];
-         while [tmp + 1] != 0 do
+         tmp := tmp -> next;
+         while tmp -> next != 0 do
          ...
          od
        else
          skip
        fi
        last := tmp;
-       [last + 1] := list2;
+       last -> next := list2;
        ret := list1;
 state: list1 |-> L1   *
        list2 |-> L2   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J = 0
 ```
 
@@ -399,7 +485,7 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Tmp  *
        ret   |-> L1 
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, L2) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, L2) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J = 0
 ```
 
@@ -412,7 +498,7 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Tmp  *
        ret   |-> L1 
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, L2) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, L2) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J = 0
 
 ->
@@ -430,7 +516,7 @@ heap:  list(RetFin)
 By matching logic reasoning,
 
 ```
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, L2) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, L2) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J = 0
 
 ->
@@ -445,77 +531,77 @@ By (Case Analysis) on `J =/= 0`,
 ```
 k:     if J != 0
        then
-         tmp := [tmp + 1];
-         while [tmp + 1] != 0 do
+         tmp := tmp -> next;
+         while tmp -> next != 0 do
          ...
          od
        else
          skip
        fi
        last := tmp;
-       [last + 1] := list2;
+       last -> next := list2;
        ret := list1;
 state: list1 |-> L1   *
        list2 |-> L2   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J =/= 0
 ```
 
 By (Axiom)+,
 
 ```
-k:    tmp := [tmp + 1];
-      while [tmp + 1] != 0 do
+k:    tmp := tmp -> next;
+      while tmp -> next != 0 do
       ...
       od
       last := tmp;
-      [last + 1] := list2;
+      last -> next := list2;
       ret := list1;
 state: list1 |-> L1   *
        list2 |-> L2   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J =/= 0
 ```
 
 By (Axiom)+,
 
 ```
-k:    while [tmp + 1] != 0 do
+k:    while tmp -> next != 0 do
       ...
       od
       last := tmp;
-      [last + 1] := list2;
+      last -> next := list2;
       ret := list1;
 state: list1 |-> L1   *
        list2 |-> L2   *
        tmp   |-> J    *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J =/= 0
 ```
 
 By (Consequence) and the second rule,
 
 ```
-k:    while [tmp + 1] != 0 do
+k:    while tmp -> next != 0 do
       ...
       od
       last := tmp;
-      [last + 1] := list2;
+      last -> next := list2;
       ret := list1;
 state: list1 |-> L1   *
        list2 |-> L2   *
        tmp   |-> J    *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J =/= 0
 
 ->
@@ -527,20 +613,19 @@ state: list1 |-> L1   *
        tmp   |-> Tmp  *
        last  |-> Last *
        ret   |-> Ret
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+heap:  lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0
 ```
 By matching logic reasoning,
 
 ```
-heap:  lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
+lseg(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
 /\ L1 =/= 0 /\ J =/= 0
 
 ->
 
 exists V' J' .
-heap:  lseq(L1, J) * J |-> node(V', J') * list(J') * list(L2)
+lseg(L1, J) * J |-> node(V', J') * list(J') * list(L2)
 /\ L1 =/= 0
 ```
-
 
