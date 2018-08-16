@@ -1,8 +1,8 @@
-# Verifying `append.imph`
+# Verifying `APPEND`
 
 ## The language and the program
 
-The target language IMPH is defined in `imph/imph.k`.
+The target language IMPH is defined in `imph/imph.k` (needs updates).
 The target program is shown as follows.
 
 ```
