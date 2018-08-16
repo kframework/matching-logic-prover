@@ -6,7 +6,7 @@ open Obligation
 
 open Rule
 
-type solve_result =
+type prove_result =
   | Valid
   | Unknown
 

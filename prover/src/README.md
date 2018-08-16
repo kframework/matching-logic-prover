@@ -1,19 +1,17 @@
-# The highlevel design of the prover.
+# The prover: Proof of concept
 
-We use the following proof obligation as an example.
+We start with the four static heap properties that arise
+in verifying the `APPEND` program, as shown in
+`../proof-obligation-examples/append.md`.
+
+We first consider *Static heap property A*, the simplest one,
+as shown below
 
 ```
-lseq(L1, Tmp) * Tmp |-> node(V, J) * list(J) * list(L2)
-/\ L1 =/= 0 /\ J =/= 0
-
-->
-
-exists V' J' .
-lseq(L1, J) * J |-> node(V', J') * list(J') * list(L2)
-/\ L1 =/= 0
+list(L1) * list(L2) /\ L1 = 0 -> list(L2)
 ```
 
-We use shallow embedding for now.
+In this stage, we prefer shallow embedding.
 
 ## Modules
 
