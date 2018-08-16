@@ -110,6 +110,7 @@ invariant claim, provided by users.
 
 
 ```
+/** Invariant claim **/
 exists L1 L2 Tmp Last Ret V J .
 k:     WHILE
 state: list1 |-> L1   *
