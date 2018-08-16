@@ -13,7 +13,7 @@ lseq(L1, J) * J |-> node(V', J') * list(J') * list(L2)
 /\ L1 =/= 0
 ```
 
-We use soft embedding for now.
+We use shallow embedding for now.
 
 ## Modules
 
