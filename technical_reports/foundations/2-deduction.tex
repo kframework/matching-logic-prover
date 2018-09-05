@@ -1,0 +1,235 @@
+\section{Matching logic and its complete deduction}
+
+\subsection{The need for another logic}
+
+\subsection{Syntax and semantics}
+
+A signature is a triple
+$\sig = (\Var, S, \Sigma)$ where
+$\Var$ is
+a countably infinite set of variable names,
+$S$ is an nonempty countable (finite or infinite) sort set,
+and $\Sigma = \{ \Sigma_{s_1 \dots s_n ,s} \}_{s_1 \ddd s_n , s \in S}$
+is an $(S^* \times S)$-indexed countable (finite or infinite) symbol set.
+We write $\Sigma_{s_1 \dots s_n , s}$ as
+$\Sigma_{\lambda , s}$ if $n = 0$.
+When $\Var$ is clear from the context,
+we often omit it and just write the signature $\sig = (S, \Sigma)$.
+If $S$ is also clear, we refer to a signature
+by just $\Sigma$.
+The set of all $\sig$-patterns of sort $s$,
+denoted as $\Pattern_s(\sig)$ or just $\Pattern_s$ when the signature is clear
+from the context,
+is defined by the following grammar:
+\begin{center}
+\begin{tabular}{rcll}
+$\varphi_s$
+& $\Coloneqq$
+& $x \cln s$
+  with $x \in \Var$
+& \doubleslash Variable
+\\
+& $|$
+& $\sigma(\varphi_{s_1} \ddd \varphi_{s_n})$
+  with $\sigma \in \Sigma_{s_1 \dots s_n , s}$
+& \doubleslash Structure
+\\
+& $|$
+& $\neg \varphi_s$
+& \doubleslash Complement
+\\
+& $|$
+& $\varphi_s \wedge \varphi_s$
+& \doubleslash Intersection
+\\
+& $|$
+& $\exists x \cln s'. \varphi_s$
+  with $s' \in S$ (no need be the same as $s$)
+& \doubleslash Binding
+\end{tabular}
+\end{center}
+The set of all variables of sort $s$ is denoted as $\Var_s$.
+Let $\Var = \{ \Var_s \}_{s \in S}$ and $\Pattern = \{ \Pattern_s \}_{s \in S}$
+be the $S$-indexed family set of all variable and patterns.
+For simpler notation,
+we often blur the distinction between
+a family of sets and their union,
+and use $\Var$ and $\Pattern$
+to denote the set of all variables and patterns respectively.
+We write
+$\varphi \in \Pattern$ to mean that $\varphi$ is a pattern,
+and $\varphi_s \in \Pattern$ or $\varphi \in \Pattern_s$ to mean that
+it has sort~$s$.
+Similarly, $\sigma \in \Sigma$ means $\sigma$ is a symbol.
+If $\sigma \in \Sigma_{\lambda, s}$, we say $\sigma$
+is a constant symbol of sort $s$, and
+we write $\sigma$ instead of~$\sigma()$.
+We often drop the sort when writing variables, 
+so instead of $x \cln s$, we just write $x$.
+We can define the conventional notions of free variables and
+alpha-renaming as in first-order logic.
+We write $\varphi [\psi/x]$ for variable-capture-free substitution,
+in which alpha-renaming happens implicitly to prevent
+free variable capturing.
+
+A $\sig$-model (or simply a model) is a pair
+$\MM = (M, \interpM)$ 
+where $M = \{M_s\}_{s \in S}$ 
+is an $S$-indexed family of nonempty carrier sets
+and $\interpM = \{ \sigmaM \}_{\sigma \in \Sigma}$
+maps every symbol $\sigma \in \Sigma_{s_1 \ddd s_n , s}$
+to a function
+$\sigmaM \colon M_{s_1} \times \dots \times M_{s_n} \to \pset{M_s}$,
+where $2^{M_s}$ means the set of all subsets of $M_s$.
+In particular, each constant symbol
+$\sigma \in \Sigma_{\lambda,s}$ 
+maps to a subset $\sigmaM \subseteq M_s$.
+An $\MM$-valuation (or simply a valuation) is a mapping
+$\rho \colon \Var \to M$
+such that $\rho(x \cln s) \in M_s$ for every sort $s \in S$.
+Two valuations $\rho_1$ and $\rho_2$ are $x$-equivalent for some variable $x$,
+denoted as $\rho_1 \simx \rho_2$,
+if $\rho_1(y) = \rho_2(y)$ for every $y$ distinct from $x$.
+A valuation $\rho$ can be extended to a mapping
+$\barrho \colon \Pattern \to \pset{M}$
+such that $\barrho(\varphi_s) \subseteq M_s$,
+in the following inductive way:
+\begin{itemize}
+\item $\barrho(x) = \{ \rho(x) \}$, for every $x \in \Var_s$;
+\item $\barrho(\sigma(\varphi_1 \ddd \varphi_n))
+       = \sigmaM( \barrho(\varphi_1) \ddd \barrho(\varphi_n) )$,
+      for every $\sigma \in \Sigma_{s_1 \dots s_n , s}$
+      and appropriate $\varphi_1 \ddd \varphi_n$
+\item $\barrho(\neg \varphi) = M_s \setminus \barrho(\varphi)$,
+      for every $\varphi \in \Pattern_s$;
+\item $\barrho(\varphi_1 \wedge \varphi_2)
+       = \barrho(\varphi_1) \cap \barrho(\varphi_2)$,
+      for every $\varphi_1,\varphi_2$ of the same sort;
+\item $\barrho(\exists x . \varphi) 
+       = \bigcup \{ \barrhop(\varphi) 
+                    \mid \text{for every $\rhop \simx \rho$} \}$.
+\end{itemize}
+{
+We also need to give some intuition for "matching" 
+(the patterns are "matched" 
+by the values in their interpretation, 
+which becomes literal when the model contains terms.
+}
+Intuitively,
+$\barrho(\varphi)$ 
+is the set of elements that match the pattern $\varphi$.
+Derived constructs are defined as follows for convenience:
+\begin{center}
+\begin{tabular}{rclp{1cm}rcl}
+$\top_s$ & $\equiv$ & $\exists x \cln s . x \cln s$
+&&
+$\bot_s$ & $\equiv$ & $\neg \top_s$
+\\
+$\varphi_1 \vee \varphi_2$ & $\equiv$ & 
+$\neg (\neg \varphi_1 \wedge \neg \varphi_2)$
+&&
+$\varphi_1 \imp \varphi_2$ & $\equiv$ &
+$\neg \varphi_1 \vee \varphi_2$
+\\
+$\varphi_1 \dimp \varphi_2$ & $\equiv$ &
+$(\varphi_1 \imp \varphi_2) \wedge (\varphi_2 \imp \varphi_1)$
+&&
+$\forall x . \varphi$ & $\equiv$ &
+$\neg (\exists x . \neg \varphi)$
+\end{tabular}
+\end{center}
+Interested readers are encouraged to prove these derived constructs
+have the intended semantics,
+or refer to~\cite{bibid} for details.
+We often drop the sort subscripts when there is no confusion.
+
+Given a model $\MM$ and a valuation $\rho$,
+we say $\MM$ and $\rho$ satisfy a pattern $\varphi_s$,
+denoted as $\MM,\rho \vDash \varphi_s$,
+if $\barrho(\varphi) = M_s$.
+We say $\MM$ satisfies $\varphi_s$
+or $\varphi_s$ holds in $\MM$,
+denoted as $\MM \vDash \varphi_s$,
+if $\MM , \rho \vDash \varphi_s$ for every valuation $\rho$.
+We say $\varphi_s$ is valid if
+it holds in every model.
+Let $\Gamma$ be a pattern set.
+We say $\MM$ satisfies $\Gamma$, if
+$\MM \vDash \varphi$ for every $\varphi \in \Gamma$.
+We say $\Gamma$ semantically entails $\varphi$,
+denoted as $\Gamma \vDash \varphi$,
+if for every model $\MM$ such that $\MM \vDash \Gamma$,
+$\MM \vDash \varphi$.
+When $\Gamma$ is the empty set, we abbreviate
+$\emptyset \vDash \varphi$ as just $\vDash \varphi$,
+which is equivalent to say $\varphi$ is valid.
+
+{
+Say that we use mathcal fonts ${\MM}$, ${\II}$, \dots to denote models,
+and the corresponding $M$, $I$,\dots to denote carrier sets.
+Use capital Greek letters $\Gamma, \Delta, T, \dots$ to denote pattern set.
+In particular, use $\II$ to denote intended models and
+$\SSS$ to denote standard models.
+}
+
+Given a signature $\sig$, matching logic gives us all $\sig$-models.
+Sometimes, we are only interested in some models, instead of all models.
+There are typically two ways to restrict models.
+One way is to define a syntactic matching logic theory
+$(\sig, H)$ where $H$ is a set of patterns called axioms.
+A model $\MM$ belongs to the theory $(\sig, H)$ if $M \vDash H$.
+Syntactic theories are preferred if the models of interest can be
+axiomatized by a recursively enumerable set $H$.
+Most syntactic theories defined in this paper have finite axiom sets.
+Alternatively, we can define a semantic matching logic theory
+$(\sig, \CC)$ where $\CC$ is a collection of $\sig$-models.
+A model $\MM$ belongs to the theory $(\sig, \CC)$ if
+$\MM \vDash \varphi$ for all $\varphi$ that holds in all models in $\CC$.
+Usually, the collection $\CC$ is a singleton set containing exactly one model 
+$\II$,
+often referred as the intended model or the standard model,
+and we abbreviate $(\sig, \{ \II \})$ as $(\sig, \II)$.
+Semantic theories are preferred if the intended model is not axiomatized by any
+recursively enumerable set of axioms;
+this is often the case for 
+initial algebra semantics or domains which are defined by induction, such as
+natural numbers (with multiplication) and finite maps.
+We will see an example of semantic theories in 
+Section~\ref{sec_separation_logic}.
+
+Syntactic theories support a notion of proofs (see 
+Section~\ref{sec_pure_matching_logic})
+as they have an axiom set,
+but semantic theories offer arbitrary expressiveness.
+They both are means to restricting models,
+and we simply say ``theories'' when their distinction is not the emphasis.
+
+
+
+
+
+\subsection{Known results about matching logic expressiveness power}
+
+{
+I think it is also important to state that when all models are assumed, 
+then ML has been shown to have the same expressiveness as FOL=, 
+but like it is the case with capturing SL, 
+or in FOL with induction, 
+or in initial algebra semantics, 
+one can reduce the set of models and thus get arbitrary expressiveness.
+}
+
+
+
+A few important logics and calculus are shown to be definable 
+in matching logic, including
+propositional calculus, predicate logic,
+algebraic specification, first-order logic with equality,
+modal logic S5, and separation logic.
+In this section, we only discuss a few of them and refer interested readers
+to~\cite{bibid} for more details.
+
+\subsection{Useful symbols and notations}
+
+\subsection{Sound and complete deduction}
+
