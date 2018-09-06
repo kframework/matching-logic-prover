@@ -41,9 +41,17 @@ defining a binary relation on $\Lambda$, the set of all lambda terms.
 We are interested in those binary relations on $\Lambda$
 that are congruence relations with respect to
 function abstraction and application.
-We call them \emph{lambda theories}.
+We call them \emph{lambda theories}, if these congruence relations
+contain all instances of \eqref{eq:beta}.
+The set of all lambda theories is $\lambdaT$.
+It is a nonempty set, 
+as the total relation $\Lambda^2$ is a trivial lambda theory.
+We call it an inconsistent one, because it makes any two lambda terms equal.
+Any lambda theories that are not $\Lambda^2$ are called consistent theories.
 One can show that the intersection of arbitrarily many lambda theories
 is also a lambda theory.
+Denote the intersection of all lambda theories, i.e. the smallest lambda theory,
+as $\lambdabeta$.
 
 A lambda theory is a congruence on $\Lambda$,
 with respect to application and function abstraction,
