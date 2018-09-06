@@ -43,19 +43,15 @@ that are congruence relations with respect to
 function abstraction and application.
 We call them \emph{lambda theories}, if these congruence relations
 contain all instances of \eqref{eq:beta}.
-The set of all lambda theories is $\lambdaT$.
-It is a nonempty set, 
-as the total relation $\Lambda^2$ is a trivial lambda theory.
-We call it an inconsistent one, because it makes any two lambda terms equal.
+The set of all lambda theories is $\lambdaT$,
+which is a nonempty set, 
+as the total relation $\Lambda^2$, a trivial lambda theory, is in it.
+We call $\Lambda^2$
+an inconsistent lambda theory, because it makes any two lambda terms equal.
 Any lambda theories that are not $\Lambda^2$ are called consistent theories.
 One can show that the intersection of arbitrarily many lambda theories
 is also a lambda theory.
 Denote the intersection of all lambda theories, i.e. the smallest lambda theory,
 as $\lambdabeta$.
 
-A lambda theory is a congruence on $\Lambda$,
-with respect to application and function abstraction,
-that contains all instances of \eqref{eq:beta}.
-The smallest lambda theory is $\lambdabeta$.
-The set of all lambda theories is denoted as $\lambdaT$.
-
+The set of all lambda theories $\lambdaT$ forms a complete lattice.
