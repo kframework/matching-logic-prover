@@ -1006,6 +1006,8 @@ left_unfold_aux(_Level, _NonUnfoldableGAtoms,
 left_unfold_aux(Level, NonUnfoldableGAtoms, 
   HeadUnfoldableGAtoms, [OneAtom|TailUnfoldableGAtoms],
         GConstraints, CurrentGList, GList) :-
+  printf("!!!HOTSPOT!!!\n", []),
+  prettyprint(Level),
   UnfoldLevel < X, unfolddepthbound(X),
   
   OneAtom = atm(UnfoldLevel, _ILevel, GPureAtom),

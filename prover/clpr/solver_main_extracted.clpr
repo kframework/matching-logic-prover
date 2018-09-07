@@ -1,0 +1,22 @@
+left_unfold_aux(Level, NonUnfoldableGAtoms, 
+  HeadUnfoldableGAtoms, [OneAtom|TailUnfoldableGAtoms],
+        GConstraints, CurrentGList, GList) :-
+  UnfoldLevel < X, unfolddepthbound(X),
+  
+  OneAtom = atm(UnfoldLevel, _ILevel, GPureAtom),
+
+  unfold(GPureAtom, BodyList),
+
+  append(HeadUnfoldableGAtoms, TailUnfoldableGAtoms, UnfoldableGAtoms),
+
+  addtoallbodies(UnfoldLevel+1, Level+1,
+                       NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
+                       BodyList, OneGList),
+
+          
+  NewGList = [OneGList | CurrentGList],
+  append(HeadUnfoldableGAtoms, [OneAtom], NewHeadUnfoldableGAtoms),
+  left_unfold_aux(Level, NonUnfoldableGAtoms, 
+                  NewHeadUnfoldableGAtoms, TailUnfoldableGAtoms,
+      GConstraints, NewGList, GList).
+
