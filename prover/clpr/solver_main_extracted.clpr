@@ -1,3 +1,6 @@
+
+
+
 left_unfold_aux(Level, NonUnfoldableGAtoms, 
   HeadUnfoldableGAtoms, [OneAtom|TailUnfoldableGAtoms],
         GConstraints, CurrentGList, GList) :-
