@@ -1,0 +1,167 @@
+inductionlimit(0).
+unfolddepthbound(10).
+
+traceleftbound(10).
+tracerightbound(3).
+
+
+declare_unification_type(reach, 
+  [arreq, eq, arreq, arreq, eq, arreq, arreq]).
+declare_unification_type(step, 
+  [eq, eq, eq, arreq, arreq, arreq, arreq]).
+
+
+unfold(reach(P, I1, S1, H1, I2, S2, H2),
+  [
+  body([], 
+       [eq(I1, I2), 
+        eq(S1, S2), 
+        eq(H1, H2)]),
+  body([reach(P, I3, S3, H3, I2, S2, H2),
+        step(Type, V1, V2, S1, H1, S3, H3)],
+       [gt(I2, I1),
+        eq(I3, plus(I1, 3)),
+        eq(Type, ref(P, I1)),
+        eq(V1, ref(P, plus(I1,1))),
+        eq(V2, ref(P, plus(I1,2)))])
+  ]).
+
+% We cannot have array of arrays.
+% We have to flatten [Type, Args] into explicit arguments.
+unfold(step(Type, V1, V2, S1, H1, S2, H2),
+  [
+  body([], 
+       [eq(Type, 0),
+        eq(S1, S2), 
+        eq(H1, H2)]),  
+  body([], 
+       [eq(Type, 1),
+        arrassign(S3, upd(S1, V1, V2)),
+        eq(S2, S3),
+        eq(H2, H1)])
+  ]).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Program verification examples
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+test_arr_1 :-
+  z3_check_sat_from_list(
+  [arrassign(A2, upd(A1, X1, Y1)),
+   eq(Z, 0),
+   eq(ref(A0, 1), X),
+   eq(ref(A0, 2), 3),
+   eq(ref(A0, plus(Z, 1)), X1),
+   eq(ref(A0, plus(Z, 2)), Y1),
+   eq(A2, A3),                   % CAUTION: arreq(A2, A3) doesn't work. See test_arr_3.
+   z3_not(eq(ref(A3, X), 3))],
+   Res),
+  printf("Arr1 result: ", []),
+  print_solver_result(Res),
+  true.
+  
+
+
+test_arr_2 :-
+  z3_check_sat_from_list(
+  [arrassign(A2, upd(A1, X1, Y1)),
+   eq(A2, A3),
+   arrassign(A4, upd(A3, X2, Y2)),
+   eq(Z, 0),
+   eq(ref(A0, 1), X),
+   eq(ref(A0, 2), 3),
+   eq(ref(A0, 4), Y),
+   eq(ref(A0, 5), 5),
+   z3_not(eq(X, Y)),
+   eq(ref(A0, plus(Z, 1)), X1),
+   eq(ref(A0, plus(Z, 2)), Y1),
+   eq(ref(A0, plus(Z, 4)), X2),
+   eq(ref(A0, plus(Z, 5)), Y2),
+   eq(A4, A5),
+   z3_not(eq(ref(A5, X), 3))],
+   Res),
+  printf("Arr2 result: ", []),
+  print_solver_result(Res),
+  true.
+  
+test_arr_3 :-
+ z3_check_sat_from_list(
+ [arrassign(A2, upd(A1, X1, Y1)),
+  eq(Z, 0),
+  eq(ref(A0, 1), X),
+  eq(ref(A0, 2), 3),
+  eq(ref(A0, plus(Z, 1)), X1),
+  eq(ref(A0, plus(Z, 2)), Y1),
+  arreq(A2, A3),
+  z3_not(eq(ref(A3, X), 3))],
+  Res),
+ printf("Arr3 result: ", []),
+ print_solver_result(Res),
+ true.
+
+run_ex_1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [reach(Stmt1, I, S, H, I_Final, S_Final, H_Final)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(ref(Stmt1, 0), 1),
+          eq(ref(Stmt1, 1), X),
+          eq(ref(Stmt1, 2), 3),
+          eq(I, 0),
+          eq(I_Final, 3)],
+         [], UnfoldableHAtoms, 
+         [eq(ref(S_Final, X), 3), 
+          eq(H_Final, H)],
+         []),
+  !,
+  show_counters,
+  printf("Ex1 is verified.\n", []).
+
+run_ex_2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [reach(Stmt2, I, S, H, I_Final, S_Final, H_Final)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(ref(Stmt2, 0), 1),
+          eq(ref(Stmt2, 1), X),
+          eq(ref(Stmt2, 2), 3),
+          eq(ref(Stmt2, 3), 1),
+          eq(ref(Stmt2, 4), Y),
+          eq(ref(Stmt2, 5), 5),
+          z3_not(eq(X, Y)),
+          eq(I, 0),
+          eq(I_Final, 6)],
+         [], UnfoldableHAtoms, 
+         [eq(ref(S_Final, X), 3),
+          eq(ref(S_Final, Y), 5), 
+          eq(H_Final, H)],
+         []),
+  !,
+  show_counters,
+  printf("Ex2 is verified.\n", []).
+  
+run :-
+% test_arr_1,
+% test_arr_2,
+% test_arr_3,
+% run_ex_1,
+  run_ex_2,
+  !.
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.
+
+
+
+
+
+

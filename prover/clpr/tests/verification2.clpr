@@ -1,0 +1,216 @@
+inductionlimit(3).
+unfolddepthbound(5).
+
+traceleftbound(5).
+tracerightbound(5).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Program verification on a bytecode-ish language.
+% The configuration consists of three components.
+%   P: an array that stores opcodes and their arguments.
+%   PC: the PC counter pointing to position in P
+%   Reg: the registers
+% 
+% List of opcodes (opcode / number of arguments / meaning and semantics)
+%  0 / 0 / skip, do nothing and go to the next opcode
+%  1 / 2 / save, Reg[arg1] := arg2
+%  2 / 1 / inc , Reg[arg1] := Reg[arg1] + 1
+%  3 / 2 / add , Reg[arg1] := Reg[arg1] + Reg[arg2]
+%  4 / 2 / jump, if Reg[arg2] > 0, goto PC == arg1; otherwise, skip
+%  5 / 1 / goto, goto PC == arg1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% step(P, PC0, Reg0, PC1, Reg1)
+% 
+% reach(P, PC0, Reg0, PC1, Reg1, Step)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+declare_unification_type(step, 
+  [arreq, eq, arreq, eq, arreq]).
+
+declare_unification_type(reach, 
+  [arreq, eq, arreq, eq, arreq, eq]).
+
+
+unfold(step(P, PC0, Reg0, PC1, Reg1),
+  [
+  body([], 
+       [eq(Opcode, ref(P, PC0)),
+        eq(Opcode, 0), % skip
+        eq(PC1, plus(PC0, 1)),
+        eq(Reg1, Reg0)]),  
+  body([], 
+       [eq(Opcode, ref(P, PC0)),
+        eq(Opcode, 1), % save arg1 arg2 means Reg0[arg1] := arg2
+        eq(Arg1, ref(P, plus(PC0, 1))),
+        eq(Arg2, ref(P, plus(PC0, 2))),
+        eq(PC1, plus(PC0, 3)),
+        arrassign(NewReg, upd(Reg0, Arg1, Arg2)),
+        eq(Reg1, NewReg)]),
+  body([],
+       [eq(Opcode, ref(P, PC0)),
+        eq(Opcode, 2), % inc arg1 means Reg0[arg1] := Reg0[arg1] + 1
+        eq(Arg1, ref(P, plus(PC0, 1))),
+        eq(PC1, plus(PC0, 2)),
+        arrassign(NewReg, upd(Reg0, Arg1, plus(ref(Reg0, Arg1), 1))),
+        eq(Reg1, NewReg)]),
+  body([],
+       [eq(Opcode, ref(P, PC0)),
+        eq(Opcode, 3), % add arg1 arg2 means Reg0[arg1] := Reg0[arg1] + Reg0[arg2]
+        eq(Arg1, ref(P, plus(PC0, 1))),
+        eq(Arg2, ref(P, plus(PC0, 2))),
+        eq(PC1, plus(PC0, 3)),
+        arrassign(NewReg, upd(Reg0, Arg1, plus(ref(Reg0, Arg1), ref(Reg0, Arg2)))),
+        eq(Reg1, NewReg)]),
+   body([],
+       [eq(Opcode, ref(P, PC0)),
+        eq(Opcode, 4), % jump arg1 arg2 means jump to arg1 if Reg0[arg2] > 0
+        eq(Arg1, ref(P, plus(PC0, 1))),
+        eq(Arg2, ref(P, plus(PC0, 2))),
+        gt(ref(Reg0, Arg2), 0),
+        eq(PC1, Arg1),
+        eq(Reg1, Reg0)]),
+   body([],
+       [eq(Opcode, ref(P, PC0)),
+        eq(Opcode, 4), % jump arg1 arg2 means skip if Reg0[arg2] = 0
+        eq(Arg1, ref(P, plus(PC0, 1))),
+        eq(Arg2, ref(P, plus(PC0, 2))),
+        eq(ref(Reg0, Arg2), 0),
+        eq(PC1, plus(PC0, 3)), % skip "jump arg1 arg2" to the next opcode
+        eq(Reg1, Reg0)]),
+    body([],
+       [eq(Opcode, ref(P, PC0)),
+        eq(Opcode, 5), % goto arg1
+        eq(Arg1, ref(P, plus(PC0, 1))),
+        eq(PC1, Arg1), 
+        eq(Reg1, Reg0)]) 
+  ]).
+
+unfold(reach(P, PC0, Reg0, PC1, Reg1, Step),
+  [
+  body([], 
+       [eq(Step, 0),
+        eq(PC0, PC1), 
+        eq(Reg0, Reg1)]),
+  body([reach(P, PC2, Reg2, PC1, Reg1, NewStep),
+        step(P, PC0, Reg0, PC2, Reg2)],
+       [gt(Step, 0),
+        eq(plus(NewStep, 1), Step)])
+  ]).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Example 1: 
+%    Base case, when PC0 = PC1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+run_ex_1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [reach(P, PC0, Reg0, PC1, Reg1, 0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(ref(P, 0), 1),       % save
+          eq(ref(P, 1), X),       % X
+          eq(ref(P, 2), 3),       % 3
+          eq(ref(P, 3), 1),       % save 
+          eq(ref(P, 4), Y),       % Y
+          eq(ref(P, 5), 5),       % 5
+          eq(PC0, 4),
+          eq(PC1, 4)],
+         [], UnfoldableHAtoms, 
+         [eq(Reg0, Reg1)],
+         []),
+  !,
+  show_counters,
+  printf("Ex1 is VERIFIED.\n", []).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Example 2: 
+%    skip, when PC1 = PC0 + 1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+run_ex_2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [reach(P, PC0, Reg0, PC1, Reg1, Step)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(ref(P, 0), 0),       % skip
+          eq(PC0, 0),
+          eq(PC1, 5)
+         ],
+         [], UnfoldableHAtoms, 
+         [eq(Reg0, Reg1)],
+         []),
+  !,
+  show_counters,
+  printf("Ex2 is VERIFIED.\n", []).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Example 3 (loop invariant):
+%    jump Loop(5) N
+%    goto End(12)
+%    add S N
+%    inc N
+%    goto Jump(0)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+run_ex_3 :-
+  init_counters,
+  addunfoldlevel(0, 0, [reach(P, PC0, Reg0, PC1, Reg1, Step)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(ref(P, 0), 4),       % jump
+          eq(ref(P, 1), Loop),    % Loop(5)
+          eq(ref(P, 2), N),       % N
+          eq(ref(P, 3), 5),       % goto
+          eq(ref(P, 4), End),     % End(12) 
+          eq(ref(P, 5), 3),       % add
+          eq(ref(P, 6), S),       % S
+          eq(ref(P, 7), N),       % N
+          eq(ref(P, 8), 2),       % inc
+          eq(ref(P, 9), N),       % N
+          eq(ref(P, 10), 5),      % goto
+          eq(ref(P, 11), Jump),   % Jump(0)
+          eq(Loop, 5),
+          eq(End, 12),
+          eq(Jump, 0),
+          eq(PC0, 0),
+          eq(PC1, 12),
+          eq(PartialSum, ref(Reg0, S)),
+          eq(Increment,  ref(Reg0, N))
+         ],
+         [], UnfoldableHAtoms, 
+         [eq(FinalSum, ref(Reg1, S)),
+          eq(FinalIncrement, ref(Reg1, N)),
+          eq(Redex, (Increment * (Increment + 1)) / 2),
+          eq(FinalSum, plus(PartialSum, Redex)),
+          eq(FinalIncrement, 0)
+         ],
+         []),
+  !,
+  show_counters,
+  printf("Ex2 is VERIFIED.\n", []).
+
+
+  
+run :-
+% run_ex_1,
+  run_ex_2,
+% run_ex_3,
+  !.
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.

@@ -1,0 +1,197 @@
+inductionlimit(2).
+unfolddepthbound(3).
+
+traceleftbound(3).
+tracerightbound(3).
+
+declare_unification_type(list_seg, [arreq,eq,eq,eqset]).
+declare_unification_type(list, [arreq,eq,eqset]).
+declare_unification_type(list_last, [arreq,eq,eq,eqset]).
+declare_unification_type(list_append, [arreq,eq,eq,eq,eqset]).
+
+
+unfold(list_seg(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([list_seg(H,T,Y,F1)],
+       [gt(X, 0),
+        eq(T, ref(H, plus(X, 1))),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+unfold(list(H,X,F),
+  [
+  body([], [eq(X,0), eqset(F,emptyset)]),
+  body([list(H,T,F1)],
+       [gt(X,0), 
+        eq(T, ref(H, plus(X,1))),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+%(((oldx l= nil) => (ret l= nil)) &
+%((~ (oldx l= nil)) => (lseg^(oldx, ret) * ((ret |-> loc next: temp; int key: kx) & (temp l= nil)))))
+unfold(list_last(H,X,LAST,F),
+  [
+  body([], [eq(X,0), eq(LAST,0), eqset(F,emptyset)]),
+  body([list_seg(H,X,LAST,F1)],
+       [gt(X,0),
+        eq(ref(H, plus(LAST, 1)), 0),
+        z3_not(mem(LAST,F1)),
+        eqset(F, add(F1,LAST))])
+  ]).
+
+
+% (((oldx l= nil) => (((ret l= newx) & (ret |-> loc next: tmp; int key: d)) & (tmp l= nil))) &
+%	((~ (oldx l= nil)) => (lseg^(ret, newx) * ((newx |-> loc next: tmp; int key: d) & (tmp l= nil))))));
+unfold(list_append(H,OLDX,RET,NEWX,F),
+  [
+  body([], [eq(OLDX,0), 
+            eq(RET,NEWX), 
+            eq(ref(H, plus(RET, 1)), 0),
+            eqset(F,singleton(NEWX))]),
+  body([list_seg(H,RET,NEWX,F1)],
+       [gt(OLDX,0),
+        eq(ref(H, plus(NEWX, 1)), 0),
+        z3_not(mem(NEWX,F1)),
+        eqset(F, add(F1,NEWX))])
+  ]).
+
+%  bb append-nil:
+%  pre: (list^(x) & (x l= oldx));
+%  post: (list^(ret) & (((oldx l= nil) => (((ret l= newx) & (ret |-> loc next: tmp; int key: d)) & (tmp l= nil))) &
+%										 ((~ (oldx l= nil)) => (lseg^(ret, newx) * ((newx |-> loc next: tmp; int key: d) & (tmp l= nil))))));
+%  {
+%	  malloc newx;
+%	  int newx.key := d;
+%	  loc tmp := nil;
+%	  loc newx.next := tmp;
+%	  assume (x l== nil);
+%	  loc ret := newx; 
+%  }
+run_append_nil :-
+  init_counters,
+  addunfoldlevel(0, 0, [list(H0, X, F0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_append(H1, X, RET, NEWX, F1)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(NEWX,0),
+          z3_not(mem(NEWX,F0)),
+          
+          eq(X, 0),
+          arrassign(H1, upd(H0, plus(NEWX, 1), 0)),
+          eq(RET, NEWX)],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("APPEND_NIL PROVED.\n", []).
+
+%  bb append-non-nil-last-pre:
+%  pre: ((list^(x) & (x l= oldx)) & (kk s= keys^(x)));
+%  post: (true * list^(x));
+%  {
+%	  malloc newx;
+%	  int newx.key := d;
+%	  loc tmp := nil;
+%	  loc newx.next := tmp;
+%	  assume (! (x l== nil));
+%  }
+run_append_non_nil_last_pre :-
+  init_counters,
+  addunfoldlevel(0, 0, [list(H0, X, F0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list(H1, X, F0)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(NEWX,0),
+          z3_not(mem(NEWX,F0)),
+          
+          gt(X, 0),
+          arrassign(H1, upd(H0, plus(NEWX, 1), 0))],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("APPEND_NON_NIL_LAST_PRE PROVED.\n", []).
+
+%  method gslistlast(loc xt)
+%  requires: ((list^(xt) & (kk s= keys^(xt))) & (oldx l= xt));
+%  ensures: (((kk s= keys^(xt)) & (xt l= oldx)) & (((oldx l= nil) => (ret l= nil)) &
+%           ((~ (oldx l= nil)) => (lseg^(xt, ret) * ((ret |-> loc next: temp; int key: kx) & (temp l= nil))))));
+
+%  bb append-non-nil:
+%  pre: ((list^(x) & (x l= oldx)) & (kk s= keys^(x)));
+%  post: (list^(ret) & (((oldx l= nil) => (((ret l= newx) & (ret |-> loc next: tmp; int key: d)) & (tmp l= nil))) &
+%												    ((~ (oldx l= nil)) => (lseg^(ret, newx) * ((newx |-> loc next: tmp; int key: d) & (tmp l= nil))))));
+%  {
+%	  malloc newx;
+%	  int newx.key := d;
+%	  loc tmp := nil;
+%	  loc newx.next := tmp;
+%	  assume (! (x l== nil));
+%	
+%	  loc last := gslistlast(x);
+%	  loc last.next := newx;
+%	  loc ret := oldx;
+%  }
+run_append_non_nil :-
+  init_counters,
+  addunfoldlevel(0, 0, [list_seg(H0, X, LAST, F1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_seg(H1, X, NEWX, F3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(NEWX,0),
+          z3_not(mem(NEWX,F1)),
+          eq(ref(H0, plus(NEWX, 1)), 0),
+          
+          gt(X,0),
+          gt(LAST,0),
+          eq(ref(H0, plus(LAST, 1)), 0),
+          
+          arrassign(H1, upd(H0, plus(LAST,1), NEWX)),
+          eqset(F3, add(F1, LAST))
+          ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("APPEND_NON_NIL PROVED.\n", []).
+
+run_append_test :-
+  init_counters,
+  addunfoldlevel(0, 0, [],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list(H, X, F)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(X,0),
+          eq(ref(H, plus(X, 1)), 0),
+          eqset(F1, emptyset),
+          eqset(F, add(F1, X))
+          ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("APPEND_TESTTEST PROVED.\n", []).
+
+run :-
+  run_append_test,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.
