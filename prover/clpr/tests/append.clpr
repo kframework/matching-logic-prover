@@ -1,8 +1,8 @@
-inductionlimit(2).
-unfolddepthbound(3).
+inductionlimit(4).
+unfolddepthbound(4).
 
-traceleftbound(3).
-tracerightbound(3).
+traceleftbound(4).
+tracerightbound(4).
 
 declare_unification_type(list_seg, [arreq,eq,eq,eqset]).
 declare_unification_type(list, [arreq,eq,eqset]).
@@ -206,6 +206,21 @@ run_ll_lr :-
   !,
   show_counters,
   printf("LL implies LR PROVED.\n", []).
+
+run_lseg_test :-
+  init_counters,
+  addunfoldlevel(0, 0, [lseg(H, X, Y, F)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list(H, X, F)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(Y, 0)],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("LIST SEGMENT PROVED.\n", []).
 
 run :-
   run_ll_lr,
