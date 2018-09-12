@@ -9,6 +9,34 @@ declare_unification_type(list, [arreq,eq,eqset]).
 declare_unification_type(list_last, [arreq,eq,eq,eqset]).
 declare_unification_type(list_append, [arreq,eq,eq,eq,eqset]).
 
+declare_unification_type(ll, [arreq,eq,eq,eqset]).
+declare_unification_type(lr, [arreq,eq,eq,eqset]).
+
+% list_seg_left (recursively defined from the left).
+unfold(ll(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([ll(H,T,Y,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(T, ref(H, plus(X, 1))),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+% list_seg_right (recursively defined from the right).
+unfold(lr(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([lr(H,X,T,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(Y, ref(H, plus(T, 1))),
+        z3_not(mem(Y, F1)),
+        eqset(F, add(F1, Y))])
+  ]).
+
+
 
 unfold(list_seg(H,X,Y,F),
   [
@@ -164,27 +192,23 @@ run_append_non_nil :-
   show_counters,
   printf("APPEND_NON_NIL PROVED.\n", []).
 
-run_append_test :-
+run_ll_lr :-
   init_counters,
-  addunfoldlevel(0, 0, [],
+  addunfoldlevel(0, 0, [ll(H, X, Y, F)],
                  UnfoldableGAtoms),
-  addunfoldlevel(0, 0, [list(H, X, F)],
+  addunfoldlevel(0, 0, [lr(H, X, Y, F)],
                  UnfoldableHAtoms),
   lprove(0, 0, 0,
          [], UnfoldableGAtoms,
-         [gt(X,0),
-          eq(ref(H, plus(X, 1)), 0),
-          eqset(F1, emptyset),
-          eqset(F, add(F1, X))
-          ],
+         [],
          [], UnfoldableHAtoms, 
          [], []),
   !,
   show_counters,
-  printf("APPEND_TESTTEST PROVED.\n", []).
+  printf("LL implies LR PROVED.\n", []).
 
 run :-
-  run_append_test,
+  run_ll_lr,
   !,
   printf("PROOF SUCCEED.\n", []).
 
