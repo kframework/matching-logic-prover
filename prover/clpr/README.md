@@ -39,7 +39,46 @@ apply(RU, case=1) on (G-1).
 
 apply (DP) on (G-1-1).
 
-wip
+done
+
+apply (KT) on (G-2).
+
+/* this might be wrong. double-check! */
+
+(G-2-1). x|->t * (emp /\ t=y) /\ x!=0 /\ x!=y -> lr(x,y)
+(G-2-2). x|->t * (lr(t,t') * t'|->y /\ t!=0 /\ t!=y) /\ x!=0 /\ x!=y -> lr(x,y)
+
+apply (Simplification) on (G-2-1).
+
+(G-2-1-1). x|->t /\ t=y /\ x!=0 /\ x!=y -> lr(x,y)
+
+apply (RU, case=2) on (G-2-1-1).
+
+(G-2-1-2). x|->t /\ t=y /\ x!=0 /\ x!=y -> lr(x,t') * t'|->y /\ x!=0 /\ x!=y
+
+apply (RU, case=1) on (G-2-1-2).
+
+(G-2-1-3). x|->t /\ t=y /\ x!=0 /\ x!=y -> (emp /\ x=t') * t'|->y /\ x!=0 /\ x!=y
+
+apply (Simplification) on (G-2-1-3).
+
+(G-2-1-4). x|->t /\ t=y /\ x!=0 /\ x!=y -> emp * t'|->y /\ x!=0 /\ x!=y /\ x=t'
+
+apply (DP) on (G-2-1-4).
+
+done
+
+apply (Simplification) on (G-2-2).
+
+(G-2-2-1). x|->t * lr(t,t') * t'|->y /\ t!=0 /\ t!=y /\ x!=0 /\ x!=y -> lr(x,y)
+
+apply (RU, case=2) on (G-2-2-1).
+
+(G-2-2-1). x|->t * lr(t,t') * t'|->y /\ t!=0 /\ t!=y /\ x!=0 /\ x!=y -> lr(x,t'') * t''|->y /\ x!=0 /\ x!=y
+
+apply (RU
+
+
 
 ```
 
