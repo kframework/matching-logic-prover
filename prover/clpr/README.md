@@ -1,11 +1,11 @@
 # The fixpoint prover.
 
 ## Todos
-- [ ] Define the fragment of ML
-- [ ] Finish the example `ll(x,y) -> lr(x,y)`
-- [ ] Finish the general KT rule (how to deal with free variables?)
-- [ ] Collect other proof rules (for the fragment)
-- [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story)
+- [ ] Define the fragment of ML;
+- [ ] Finish the example `ll(x,y) -> lr(x,y)` using explicit (Plugin) and (Plugout) rule;
+- [ ] Finish the general KT rule (how to deal with free variables?);
+- [ ] Collect other proof rules (for the fragment);
+- [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
 
 # Instruction
 
