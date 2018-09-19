@@ -7,7 +7,7 @@
 - [ ] Collect other proof rules (for the fragment);
 - [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
 
-# Instruction
+## Instruction
 
 To use clpr, add the following to your `~/.bashrc` and
 re-open the terminal.
@@ -21,9 +21,9 @@ export CLPRLIB={current_path}/clpr
 export CLPR_BASE_PATH={current_path}/clpr
 ```
 
-# An example: `ll(x,y) -> lr(x,y)`
+## An example: `ll(x,y) -> lr(x,y)`
 
-## Purpose
+### Purpose
 
 Demonstrate a set of proof rules that power fixpoint reasoning.
 Eluminate strategies in how to apply these proof rules.
@@ -35,7 +35,7 @@ Roughly speaking the fragment considers implication of the form
 where `t` and `t'` are terms (or partial terms) and
 `Ci`,`C'i` are predicate patterns.
 
-## Fixpoint definitions.
+### Fixpoint definitions.
 
 ```
 ll(x,y) =lfp emp /\ x=y \/ exists t . x|->t * ll(t,y) /\ x!=0 /\ x!=y
@@ -45,13 +45,13 @@ lr(x,y) =lfp emp /\ x=y \/ exists t . lr(x,t) * t|->y /\ x!=0 /\ x!=y
 The notation `lhs =lfp =rhs` is just a compact way to declare a symbol
 and define two axioms for it, (Fix) and (KT).
 
-## Proof obligation.
+### Proof obligation.
 
 ```
 ll(x,y) -> lr(x,y)
 ```
 
-## Proof.
+### Proof.
 
 ```
 (G). ll(x,y) -> lr(x,y)
