@@ -25,10 +25,10 @@ export CLPR_BASE_PATH={current_path}/clpr
 
 ### Purpose
 
-Demonstrate a set of proof rules that power fixpoint reasoning.
-Eluminate strategies in how to apply these proof rules.
-Identify a fragment that is rich enough to express interesting
-properties, while simple enough to implement proof rules on them.
+* Demonstrate a set of proof rules that power fixpoint reasoning.
+* Eluminate strategies in how to apply these proof rules.
+* Identify a fragment that is rich enough to express interesting
+  properties, while simple enough to implement proof rules on them.
 
 Roughly speaking the fragment considers implication of the form
 ```t /\ C1 /\ ... /\ Cn -> t' /\ C'1 /\ ... /\ C'n```
