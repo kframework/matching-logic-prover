@@ -1,6 +1,13 @@
-The fixpoint prover.
+# The fixpoint prover.
 
-Instruction
+## Todos
+- [ ] Define the fragment of ML
+- [ ] Finish the example `ll(x,y) -> lr(x,y)`
+- [ ] Finish the general KT rule (how to deal with free variables?)
+- [ ] Collect other proof rules (for the fragment)
+- [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story)
+
+# Instruction
 
 To use clpr, add the following to your `~/.bashrc` and
 re-open the terminal.
@@ -14,7 +21,7 @@ export CLPRLIB={current_path}/clpr
 export CLPR_BASE_PATH={current_path}/clpr
 ```
 
-An example: `ll(x,y) -> lr(x,y)`
+# An example: `ll(x,y) -> lr(x,y)`
 
 Recursive definitions.
 
