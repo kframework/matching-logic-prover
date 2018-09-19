@@ -23,14 +23,35 @@ export CLPR_BASE_PATH={current_path}/clpr
 
 # An example: `ll(x,y) -> lr(x,y)`
 
-Recursive definitions.
+## Purpose
+
+Demonstrate a set of proof rules that power fixpoint reasoning.
+Eluminate strategies in how to apply these proof rules.
+Identify a fragment that is rich enough to express interesting
+properties, while simple enough to implement proof rules on them.
+
+Roughly speaking the fragment considers implication of the form
+```t /\ C1 /\ ... /\ Cn -> t' /\ C'1 /\ ... /\ C'n```
+where `t` and `t'` are terms (or partial terms) and
+`Ci`,`C'i` are predicate patterns.
+
+## Fixpoint definitions.
 
 ```
 ll(x,y) =lfp emp /\ x=y \/ exists t . x|->t * ll(t,y) /\ x!=0 /\ x!=y
 lr(x,y) =lfp emp /\ x=y \/ exists t . lr(x,t) * t|->y /\ x!=0 /\ x!=y
 ```
 
-Proof.
+The notation `lhs =lfp =rhs` is just a compact way to declare a symbol
+and define two axioms for it, (Fix) and (KT).
+
+## Proof obligation.
+
+```
+ll(x,y) -> lr(x,y)
+```
+
+## Proof.
 
 ```
 (G). ll(x,y) -> lr(x,y)
@@ -40,52 +61,72 @@ apply (KT) on (G).
 (G-1). emp /\ x=y -> lr(x,y)
 (G-2). x|->t * lr(t,y) /\ x!=0 /\ x!=y -> lr(x,y)
 
-apply(RU, case=1) on (G-1).
+apply (RU, case=1) on (G-1).
 
 (G-1-1). emp /\ x=y -> emp /\ x=y
 
-apply (DP) on (G-1-1).
+apply (DP) on (G-1-1). /* direct proof. or in general any simplification rules. */
 
-done
+done on (G-1-1).
 
-apply (KT) on (G-2).
+/* lr(t,y) is in a context. First plug it out. */
 
-/* this might be wrong. double-check! */
+apply (Plugout) on (G-2).
 
-(G-2-1). x|->t * (emp /\ t=y) /\ x!=0 /\ x!=y -> lr(x,y)
-(G-2-2). x|->t * (lr(t,t') * t'|->y /\ t!=0 /\ t!=y) /\ x!=0 /\ x!=y -> lr(x,y)
+(G-3). lr(t,y) -> exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=y -> lr(x,y))
 
-apply (Simplification) on (G-2-1).
+apply (KT) on (G-3). /* notice how we substitute t' for y in the premise according to (KT). */
 
-(G-2-1-1). x|->t /\ t=y /\ x!=0 /\ x!=y -> lr(x,y)
+(G-3-1). emp /\ t=y -> exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=y -> lr(x,y))
+(G-3-2). exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 
+      -> exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=y -> lr(x,y))
 
-apply (RU, case=2) on (G-2-1-1).
+/* proving (G-3-1) ... done. */
 
-(G-2-1-2). x|->t /\ t=y /\ x!=0 /\ x!=y -> lr(x,t') * t'|->y /\ x!=0 /\ x!=y
+apply (Plugin) on (G-3-2).
 
-apply (RU, case=1) on (G-2-1-2).
+(G-3-2). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y 
+      -> lr(x,y)
 
-(G-2-1-3). x|->t /\ t=y /\ x!=0 /\ x!=y -> (emp /\ x=t') * t'|->y /\ x!=0 /\ x!=y
+apply (UnfoldRight) on (G-3-2).
 
-apply (Simplification) on (G-2-1-3).
+(G-3-3). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y
+      -> exists t'' . lr(x,t'') * t''|->y /\ x!=y /\ x!=0
 
-(G-2-1-4). x|->t /\ t=y /\ x!=0 /\ x!=y -> emp * t'|->y /\ x!=0 /\ x!=y /\ x=t'
+/* By unification(magic), we instantiate t'' to be t'. */
 
-apply (DP) on (G-2-1-4).
+apply (Inst, t''=t') on (G-3-3).
 
-done
+(G-3-4). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y
+      -> lr(x,t') * t'|->y /\ x!=y /\ x!=0
 
-apply (Simplification) on (G-2-2).
+apply (Simp) on (G-3-4). /* get rid of x!=y and x!=0 in the last */
 
-(G-2-2-1). x|->t * lr(t,t') * t'|->y /\ t!=0 /\ t!=y /\ x!=0 /\ x!=y -> lr(x,y)
+(G-3-4). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y
+      -> lr(x,t') * t'|->y
 
-apply (RU, case=2) on (G-2-2-1).
+/* the following step may look like magic, but be patient and see how it is needed.
+ * we must make it less magical to make implementation even possible.
+ */
+apply (CaseAnalysis, x=t') on (G-3-4). 
 
-(G-2-2-1). x|->t * lr(t,t') * t'|->y /\ t!=0 /\ t!=y /\ x!=0 /\ x!=y -> lr(x,t'') * t''|->y /\ x!=0 /\ x!=y
+(G-3-4-1). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y /\ x=t'
+        -> lr(x,t') * t'|->y
+(G-3-4-2). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y /\ x!=t'
+        -> lr(x,t') * t'|->y
 
-apply (RU
+/* x|->t * t'|->y /\ t!=y /\ x=t' are inconsistent, so we have unsat lhs. */
 
+apply (UnsatL) on (G-3-4-1).
 
+done.
+
+apply (Framing) on (G-3-4-2). /* get rid of t'|->y on both sides. */
+
+(G-3-4-2). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y /\ x!=t'
+        -> lr(x,t')
+
+apply (DP) on (G-3-4-2).
 
 ```
 
