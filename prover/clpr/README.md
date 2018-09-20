@@ -147,7 +147,7 @@ Notice that (KT) is not applicable here, as `ll` occurs in a context.
 One attempt is to apply (Framing) rules twice and prove `ll -> lr`,
 but I failed on that approach.
 
-Here I'm introducing a general and systematic approach to deal with
+Here I'm introducing a _general and systematic_ approach to deal with
 the above situation, i.e., lfp occurs on the lhs within some context `C`.
 
 Assume we have an implication `C[phi] -> psi`. 
@@ -186,7 +186,7 @@ The purpose is two-fold:
 (1) to demonstrate (Plugin) and (Plugout);
 and (2) to eluminate good proving strategy.
 
-Again, we emphasize that proving `ll -> lr` will not work.
+Again, we emphasize that proving `ll -> lr` **will not work**.
 (Or, let me know if you prove me wrong).
 
 Proof.
@@ -223,7 +223,7 @@ apply (UG) on (G-5). /* universal generalization */
 (G-5) lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
    -> F
 
-apply (Plugin) on (G-5). /* !!!HOT SPOT!!! */
+apply (Plugin) on (G-5). /* !!!HOT SPOT!!! you may want to go back to (G-1) and check what F is */
 
 (G-6) (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0) 
    -> lr@(x,y)
@@ -329,7 +329,7 @@ apply (LeftUnsat) on (G-6-13-7-1).
 
 done
 
-apply (Collapse) on (G-6-13-7-2).
+apply (Collapse) on (G-6-13-7-2). /* thanks to CaseAnalysis, we have x!=t' in the context, so Collaspe can be applied */
 
 (G-6-13-7-2) lr@(x,t') * t'|->y /\ t!=y /\ t!=0 /\ x!=y /\ x!=0
           -> lr@(x,t') * t'|->y /\ x!=y /\ x!=0
