@@ -82,7 +82,7 @@ which is unsound in the intended interpretation.
 More hints: consider `mu x . x` and `mu x . (x /\ c)` where
 `c` is any constant functional symbol.
 
-We do not intended to answer this fundenmental question in the PLDI paper.
+We do not intend to answer this fundenmental question in the PLDI paper.
 In fact, we focus on _axioms and proofs_, leaving _semantics and models_ aside,
 just for now.
 
