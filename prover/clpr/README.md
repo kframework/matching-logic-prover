@@ -172,7 +172,13 @@ Using this new notation of implication context, we have
                  <---(Plugin)-----
 ```
 
+### The full example: `ll@(x,y) -> lr@(x,y)`
 
+We work out the example `ll@(x,y) -> lr@(x,y)` and present
+the entire proof here.
+The purpose is two-fold: 
+(1) to demonstrate (Plugin) and (Plugout);
+and (2) to eluminate good proving strategy.
 
 
 
