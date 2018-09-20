@@ -170,6 +170,12 @@ Using this new notation of implication context, we have
                  ----(Plugout)--->
 |- C[phi] -> psi   if and only if  |- phi -> C'[psi]          /* if C is extensional */
                  <---(Plugin)-----
+
+As a special case,
+
+|- C[C'[psi]]    ----(Collapse)--> |- psi                     /* if C is extensional */
+
+|- D[C[C'[psi]]] ----(Collapse)--> |- D[psi]                  /* if C and D are extensional */
 ```
 
 ### The full example: `ll@(x,y) -> lr@(x,y)`
@@ -180,116 +186,158 @@ The purpose is two-fold:
 (1) to demonstrate (Plugin) and (Plugout);
 and (2) to eluminate good proving strategy.
 
+Again, we emphasize that proving `ll -> lr` will not work.
+(Or, let me know if you prove me wrong).
 
-
-
-
-## An example: `ll(x,y) -> lr(x,y)`
-
-### Purpose
-
-* Demonstrate a set of proof rules that power fixpoint reasoning.
-* Eluminate strategies in how to apply these proof rules.
-* Identify a fragment that is rich enough to express interesting
-  properties, while simple enough to implement proof rules on them.
-
-Roughly speaking the fragment considers implication of the form
-```t /\ C1 /\ ... /\ Cn -> t' /\ C'1 /\ ... /\ C'n```
-where `t` and `t'` are terms (or partial terms) and
-`Ci`,`C'i` are predicate patterns.
-
-### Fixpoint definitions.
+Proof.
 
 ```
-ll(x,y) =lfp emp /\ x=y \/ exists t . x|->t * ll(t,y) /\ x!=0 /\ x!=y
-lr(x,y) =lfp emp /\ x=y \/ exists t . lr(x,t) * t|->y /\ x!=0 /\ x!=y
-```
+Fixpoint definitions.
+ll = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
+lr = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=0 /\ x!=y)
 
-The notation `lhs =lfp =rhs` is just a compact way to declare a symbol
-and define two axioms for it, (Fix) and (KT).
+Proof obligation.
+(G) ll@(x,y) -> lr@(x,y)
 
-### Proof obligation.
+Proof.
 
-```
-ll(x,y) -> lr(x,y)
-```
+apply (Plugout) on (G). /* !!!HOT SPOT!!! */
 
-### Proof.
+(G-1) ll -> exists f . (f /\ floor(f@(x,y) -> lr@(x,y)))
 
-```
-(G). ll(x,y) -> lr(x,y)
+let F === exists f . (f /\ floor(f@(x,y) -> lr@(x,y))) in (G-1).
 
-apply (KT) on (G).
+(G-2) ll -> F
 
-(G-1). emp /\ x=y -> lr(x,y)
-(G-2). x|->t * lr(t,y) /\ x!=0 /\ x!=y -> lr(x,y)
+apply (Forall) on (G-2). /* |- A -> forall x . B implies |- A -> B */
 
-apply (RU, case=1) on (G-1).
+(G-3) ll -> forall x y . F
 
-(G-1-1). emp /\ x=y -> emp /\ x=y
+apply (KT) on (G-3).
 
-apply (DP) on (G-1-1). /* direct proof. or in general any simplification rules. */
+(G-4) lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+   -> forall x y . F
 
-done on (G-1-1).
+apply (UG) on (G-5). /* universal generalization */
 
-/* lr(t,y) is in a context. First plug it out. */
+(G-5) lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+   -> F
 
-apply (Plugout) on (G-2).
+apply (Plugin) on (G-5). /* !!!HOT SPOT!!! */
 
-(G-3). lr(t,y) -> exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=y -> lr(x,y))
+(G-6) (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0) 
+   -> lr@(x,y)
 
-apply (KT) on (G-3). /* notice how we substitute t' for y in the premise according to (KT). */
+apply (SplitLeft) on (G-6).
 
-(G-3-1). emp /\ t=y -> exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=y -> lr(x,y))
-(G-3-2). exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 
-      -> exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=y -> lr(x,y))
+(G-6-1) emp /\ x=y -> lr@(x,y) /* whose proof we omit (for now) */
 
-/* proving (G-3-1) ... done. */
+(G-6-2) exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0) -> lr@(x,y)
 
-apply (Plugin) on (G-3-2).
+apply (Exists) on (G-6-2). /* |- A(t) -> B implies |- (exists t . A(t)) -> B if t not in FV(B) */
 
-(G-3-2). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y 
-      -> lr(x,y)
+(G-6-3) x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0 -> lr@(x,y)
 
-apply (UnfoldRight) on (G-3-2).
+apply (Inst, (forall x y . F), x=t, y=y) on (G-6-3).
 
-(G-3-3). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y
-      -> exists t'' . lr(x,t'') * t''|->y /\ x!=y /\ x!=0
+(G-6-4) x|->t * (F[t/x][y/y])@(t,y) /\ x!=y /\ x!=0 -> lr@(x,y)
 
-/* By unification(magic), we instantiate t'' to be t'. */
+expand F[t/x][y/y] in (G-6-4).
 
-apply (Inst, t''=t') on (G-3-3).
+(G-6-5) x|->t * (exists f . f /\ floor(f@(t,y) -> lr@(t,y)))@(t,y) /\ x!=y /\ x!=0 -> lr@(x,y)
 
-(G-3-4). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y
-      -> lr(x,t') * t'|->y /\ x!=y /\ x!=0
+apply (Collapse) on (G-6-5). /* !!!HOT SPOT!!! */
 
-apply (Simp) on (G-3-4). /* get rid of x!=y and x!=0 in the last */
+(G-6-6) x|->t * lr@(t,y) /\ x!=y /\ x!=0 -> lr@(x,y)
 
-(G-3-4). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y
-      -> lr(x,t') * t'|->y
+apply (Plugout) on (G-6-6).
 
-/* the following step may look like magic, but be patient and see how it is needed.
- * we must make it less magical to make implementation even possible.
- */
-apply (CaseAnalysis, x=t') on (G-3-4). 
+(G-6-7) lr -> exists f . (f /\ floor(x|->t * f@(t,y) /\ x!=y /\ x!=0 -> lr@(x,y)))
 
-(G-3-4-1). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y /\ x=t'
-        -> lr(x,t') * t'|->y
-(G-3-4-2). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) * t'|-> y /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y /\ x!=t'
-        -> lr(x,t') * t'|->y
+let G = exists f . (f /\ floor(x|->t * f@(t,y) /\ x!=y /\ x!=0 -> lr@(x,y))) in (G-6-7).
 
-/* x|->t * t'|->y /\ t!=y /\ x=t' are inconsistent, so we have unsat lhs. */
+(G-6-8) lr -> G
 
-apply (UnsatL) on (G-3-4-1).
+apply (Forall) on (G-6-8).
 
-done.
+(G-6-9) lr -> forall x y t . G
 
-apply (Framing) on (G-3-4-2). /* get rid of t'|->y on both sides. */
+apply (KT) on (G-6-10).
 
-(G-3-4-2). x|->t * exists h . h /\ floor(x|->t * h /\ x!=0 /\ x!=t' -> lr(x,t')) /\ t!=y /\ t!=0 /\ x!=0 /\ x!=y /\ x!=t'
-        -> lr(x,t')
+(G-6-10) lambda x lambda y . (emp /\ x=y) \/ exists t' . ((forall x y t . G)@(x,t') * t'|->y /\ x!=y /\ x!=0)
+      -> forall x y t . G
 
-apply (DP) on (G-3-4-2).
+apply (UG) on (G-6-10).
 
+(G-6-11) lambda x lambda y . (emp /\ x=y) \/ exists t' . ((forall x y t . G)@(x,t') * t'|->y /\ x!=y /\ x!=0)
+      -> G
+
+apply (Plugin) on (G-6-11).
+
+(G-6-12) x|->t * (emp /\ t=y \/ exists t' . ((forall x y t . G)@(t,t') * t'|-> y /\ t!=y /\ t!=0)) /\ x!=y /\ x!=0 
+      -> lr@(x,y)
+
+apply (Propataion) on (G-6-12).
+
+(G-6-13) x|->t * emp /\ t=y /\ x!=y /\ x!=0
+      \/ x|->t * exists t' . ((forall x y t . G)@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+      -> lr@(x,y)
+
+apply (SplitLeft) on (G-6-13).
+
+(G-6-13-1) x|->t * emp /\ t=y /\ x!=y /\ x!=0 -> lr@(x,y) /* whose proof we omit (for now) */
+
+(G-6-13-2) x|->t * exists t' . ((forall x y t . G)@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+        -> lr@(x,y)
+
+apply (Exists) on (G-6-13-2).
+
+(G-6-13-3) x|->t * ((forall x y t . G)@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+        -> lr@(x,y)
+
+apply (RightUnfold,case=2) on (G-6-13-3).
+
+(G-6-13-4) x|->t * ((forall x y t . G)@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+        -> exists t'' . lr@(x,t'') * t''|->y /\ x!=y /\ x!=0
+
+apply (Inst, t''=t') on (G-6-13-4).
+
+(G-6-13-5) x|->t * ((forall x y t . G)@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+        -> lr@(x,t') * t'|->y /\ x!=y /\ x!=0
+
+apply (Inst, (forall x y t . G), x=x,y=t',t=t) on (G-6-13-5).
+
+(G-6-13-6) x|->t * ((G[x/x][t'/y][t/t])@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+        -> lr@(x,t') * t'|->y /\ x!=y /\ x!=0
+
+expand G[x/x][t'/y][t/t] on (G-6-13-6).
+
+(G-6-13-7) x|->t * ((exists f . (f /\ floor(x|->t * f@(t,t') /\ x!=t' /\ x!=0 -> lr@(x,t'))))@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+        -> lr@(x,t') * t'|->y /\ x!=y /\ x!=0
+
+apply (CaseAnalysis, x=t') on (G-6-13-7). /* this may look like magic. why case analysis here? see later. */
+
+(G-6-13-7-1) x|->t * ((exists f . (f /\ floor(x|->t * f@(t,t') /\ x!=t' /\ x!=0 -> lr@(x,t'))))@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+          /\ x=t'
+          -> lr@(x,t') * t'|->y /\ x!=y /\ x!=0 /* notice that lhs is unsat: x|->t * ... * t'|->y /\ x=t' /\ t!=y /\ ... */
+
+(G-6-13-7-2) x|->t * ((exists f . (f /\ floor(x|->t * f@(t,t') /\ x!=t' /\ x!=0 -> lr@(x,t'))))@(t,t') * t'|-> y /\ t!=y /\ t!=0) /\ x!=y /\ x!=0
+          /\ x!=t'
+          -> lr@(x,t') * t'|->y /\ x!=y /\ x!=0
+
+apply (LeftUnsat) on (G-6-13-7-1).
+
+done
+
+apply (Collapse) on (G-6-13-7-2).
+
+(G-6-13-7-2) lr@(x,t') * t'|->y /\ t!=y /\ t!=0 /\ x!=y /\ x!=0
+          -> lr@(x,t') * t'|->y /\ x!=y /\ x!=0
+
+apply (DirectProof) on (G-6-13-7-2).
+
+done
+
+qed.
 ```
 
