@@ -65,6 +65,7 @@ relation).
 By the famous Knaster-Tarski theorem, `Fe` admits a unique lfp,
 denoted as `mu Fe`, which we define as the _intended interpretation_
 of the pattern `mu x . e`.
+In other words, `\barrho[mu x . e] = mu Fe`.
 
 One can easily check that the two axioms `(Fix)` and `(KT)` are sound
 wrt the intended interpretation of lfp.
