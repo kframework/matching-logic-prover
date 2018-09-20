@@ -121,7 +121,7 @@ we need only two axioms
 (beta)  app((lambda x . e), e') = e[e'/x]
 ```
 
-### `mu` + `lambda`
+### `mu` meets `lambda`
 
 `mu` and `lambda` give us full power of induction and recursion.
 Back to `ll`, we can now define it as
@@ -131,6 +131,42 @@ ll = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * app(app(f,t),y
 Notice `ll` is a _constant symbol_ taking no argument,
 and `ll(x,y)` is written as `app(app(ll,x),y)`.
 To easy our notation, we abbreviate `app(app(ll,x),y)` as `ll@(x,y)`.
+
+### Least fixpoints in a context: (Plugin) and (Plugout)
+
+Let's look at the following example.
+Define `ll` and `lr` be two lfp:
+```
+ll = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
+lr = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=0 /\ x!=y)
+```
+How can we prove `ll@(x,y) -> lr@(x,y)`?
+To be clear, how to prove `app(app(ll,x),y) -> app(app(lr,x),y)`?
+
+Notice that (KT) is not applicable here, as `ll` occurs in a context.
+One attempt is to apply (Framing) rules twice and prove `ll -> lr`,
+but I failed on that approach.
+
+Here I'm introducing a general and systematic approach to deal with
+the above situation, i.e., lfp occurs on the lhs within some context `C`.
+
+Assume we have an implication `C[phi] -> psi`. 
+If `C` is an _extensional_ context, which means
+```
+|- C[bottom] -> bottom
+|- C[phi1 \/ phi2] -> C[phi1] \/ C[phi2]
+|- C[exists x . phi] -> exists x . C[phi]
+```
+then one can prove that
+```
+|- C[phi] -> psi if and only if |- phi -> exists x . x /\ floor(C[x] -> psi)
+```
+
+Let `C'[HOLE] === exists x . x /\ floor(C[x] -> HOLE)`, called the _implication context_
+of `C`, then `|- C[phi] -> psi` if and only if `|- phi -> C'[psi]`.
+In particular, `|- C[C'[psi]] -> psi`.
+
+
 
 ## An example: `ll(x,y) -> lr(x,y)`
 
