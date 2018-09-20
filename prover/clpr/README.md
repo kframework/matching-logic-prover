@@ -165,6 +165,16 @@ then one can prove that
 Let `C'[HOLE] === exists x . x /\ floor(C[x] -> HOLE)`, called the _implication context_
 of `C`, then `|- C[phi] -> psi` if and only if `|- phi -> C'[psi]`.
 In particular, `|- C[C'[psi]] -> psi`.
+Using this new notation of implication context, we have
+```
+                 ----(Plugout)--->
+|- C[phi] -> psi   if and only if  |- phi -> C'[psi]          /* if C is extensional */
+                 <---(Plugin)-----
+```
+
+
+
+
 
 
 
