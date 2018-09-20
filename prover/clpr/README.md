@@ -4,9 +4,9 @@
 - [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
 - [X] Finish the example `ll(x,y) -> lr(x,y)` using explicit (Plugin) and (Plugout) rule, no lambda form;
 - [X] Try lambda + mu;
-- [ ] Finish the general KT rule (how to deal with free variables?);
+- [ ] Identify a nice fragment of ML (for implementation convenience);
+- [ ] Define the general KT rule (lfp in a context; question: how to deal with free variables?);
 - [ ] Collect other proof rules (for the fragment);
-- [ ] Define the fragment of ML;
 
 ## Instruction
 
