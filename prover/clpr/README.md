@@ -193,8 +193,8 @@ Proof.
 
 ```
 Fixpoint definitions.
-ll = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
-lr = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=0 /\ x!=y)
+ll = mu f lambda x y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
+lr = mu f lambda x y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=0 /\ x!=y)
 
 Proof obligation.
 (G) ll@(x,y) -> lr@(x,y)
@@ -215,12 +215,12 @@ apply (Forall) on (G-2). /* |- A -> forall x . B implies |- A -> B */
 
 apply (KT) on (G-3).
 
-(G-4) lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+(G-4) lambda x y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
    -> forall x y . F
 
 apply (UG) on (G-5). /* universal generalization */
 
-(G-5) lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+(G-5) lambda x y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
    -> F
 
 apply (Plugin) on (G-5). /* !!!HOT SPOT!!! you may want to go back to (G-1) and check what F is */
@@ -264,12 +264,12 @@ apply (Forall) on (G-6-8).
 
 apply (KT) on (G-6-10).
 
-(G-6-10) lambda x lambda y . (emp /\ x=y) \/ exists t' . ((forall x y t . G)@(x,t') * t'|->y /\ x!=y /\ x!=0)
+(G-6-10) lambda x y . (emp /\ x=y) \/ exists t' . ((forall x y t . G)@(x,t') * t'|->y /\ x!=y /\ x!=0)
       -> forall x y t . G
 
 apply (UG) on (G-6-10).
 
-(G-6-11) lambda x lambda y . (emp /\ x=y) \/ exists t' . ((forall x y t . G)@(x,t') * t'|->y /\ x!=y /\ x!=0)
+(G-6-11) lambda x y . (emp /\ x=y) \/ exists t' . ((forall x y t . G)@(x,t') * t'|->y /\ x!=y /\ x!=0)
       -> G
 
 apply (Plugin) on (G-6-11).
