@@ -341,3 +341,81 @@ done
 qed.
 ```
 
+## More examples
+
+### (LTL Ind) `[] (P -> o P) /\ P -> [] P`
+
+This is the famous induction proof rule in LTL.
+It is valid and can be proved with (KT) in matching logic.
+To do that, we need to define LTL in matching logic.
+
+It is known how to define LTL in matching logic.
+Here shows the definition.
+We let `*` be a unary matching logic symbol, called "strong next".
+Let `o P = not * not P` called "weak next".
+Let `[] P` be a greatest fixpoint defined as
+```
+[] P =gfp P /\ o [] P
+```
+We need two axioms to capture LTL.
+They are
+```
+(Lin) * P -> o P for any pattern P
+(Inf) * T
+```
+
+The following axiom schema is provable from the above two axioms.
+```
+(Propagation o) o(P /\ Q) = o P /\ o Q
+```
+
+_Proof tree_
+
+```
+(G) [] (P -> o P) /\ P -> [] P
+
+apply (KT) on (G).  /* we don't need (Plugin) and (Plugout) */
+
+(G-1) [] (P -> o P) /\ P -> [] (P -> o P) /\ P /\ o ([] (P -> o P) /\ P)
+
+apply (Split) on (G-1).
+
+(G-2-1) [] (P -> o P) /\ P -> [] (P -> o P)
+(G-2-2) [] (P -> o P) /\ P -> P
+(G-2-3) [] (P -> o P) /\ P -> o ([] (P -> o P) /\ P)
+
+apply (DP) on (G-2-1). 
+
+done
+
+apply (DP) on (G-2-2).
+
+done
+
+apply (Propagation o) on (G-2-3).
+
+(G-2-4) [] (P -> o P) /\ P -> o [] (P -> o P) /\ o P
+
+apply (Split) on (G-2-4)
+
+(G-2-5-1) [] (P -> o P) /\ P -> o [] (P -> o P)
+(G-2-5-2) [] (P -> o P) /\ P -> o P
+
+apply (Fix) on (G-2-5-1)
+
+(G-2-5-1-1) (P -> o P) /\ o [] (P -> o P) /\ P -> o [] (P -> o P)
+
+apply (DP) on (G-2-5-1-1).
+
+done
+
+apply (Fix) on (G-2-5-2).
+
+(G-2-5-2-1) (P -> o P) /\ o [] (P -> o P) /\ P -> o P
+
+apply (DP) on (G-2-5-2-1).
+
+done
+
+
+
