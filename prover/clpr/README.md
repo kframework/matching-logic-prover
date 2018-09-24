@@ -1,6 +1,7 @@
 # The fixpoint prover.
 
 ## Todos (in priority)
+- [ ] Implement `[](P -> o P) /\ P -> [] P` (as a user story);
 - [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
 - [X] Finish the example `ll(x,y) -> lr(x,y)` using explicit (Plugin) and (Plugout) rule, no lambda form;
 - [X] Try lambda + mu;
@@ -416,6 +417,30 @@ apply (Fix) on (G-2-5-2).
 apply (DP) on (G-2-5-2-1).
 
 done
+```
+
+## Proof rules
+
+### The fragment (not sure)
+
+### Proof rules
+
+```
+P -> P1  P -> P2  ...  P -> Pn
+------------------------------- (/\-IntroR)
+P -> P1 /\ P2 /\ ... /\ Pn
+
+P -> Pi
+-------------------------------- (\/-IntroR)
+P -> P1 \/ P2 \/ ... \/ Pn
+
+P1 -> P ... Pn -> P
+-------------------------------- (\/-IntroL)
+P1 \/ ... \/ Pn -> P
 
 
+Pi -> P
+-------------------------------- (/\-IntroL)
+P1 /\ ... /\ Pn -> P
 
+```
