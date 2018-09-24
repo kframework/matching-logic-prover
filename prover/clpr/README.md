@@ -423,9 +423,19 @@ done
 
 ### The fragment (not sure)
 
+The following proof rules use very rich matching logic syntax.
+We may want to find a fragment (of the syntax) so that the
+implementation may be simpler and more efficient.
+
+Unfortunately, the (Plugin) and (Plugout) rules seem to use
+a lot of matching logic syntax, including "forall" and
+"floor". 
+
 ### Proof rules
 
 ```
+/* Basic Propositional reasoning */
+
 P -> P1  P -> P2  ...  P -> Pn
 ------------------------------- (/\-IntroR)
 P -> P1 /\ P2 /\ ... /\ Pn
@@ -442,5 +452,60 @@ P1 \/ ... \/ Pn -> P
 Pi -> P
 -------------------------------- (/\-IntroL)
 P1 /\ ... /\ Pn -> P
+
+/* Basic FOL reasoning */
+
+P -> Q                 if x not in FV(P)
+---------------------- (UG) // universal generalization
+P -> forall x . Q
+
+P -> Q[t/x]            if x not in FV(P) and t is a term
+---------------------- (exists-IntroR) // t is often obtained from unifying P and Q
+P -> exists x . Q
+
+forall x . P /\ P[t/x] -> Q   if t is a term
+----------------------------  (forall-InstL) // instantiate forall x . P
+forall x . P -> Q
+
+/* Equations */
+
+An equation lhs = rhs means that one can substitute lhs
+for rhs in any context. 
+
+(Fix-LFP) mu x . e = e[mu x . e / x]  // least fixpoint
+
+(Fix-GFP) nu x . e = e[nu x . e / x]  // greatest fixpoint
+
+e[e'/x] -> e'
+--------------- (KT-LFP)
+mu x . e -> e'
+
+e' -> e[e'/x]
+--------------- (KT-GFP)
+e' -> nu x . e
+
+P -> C'[Q]   where C'[Q] === exists x . x /\ floor(C[x] -> Q)
+-------------(PlugoutL)
+C[P] -> Q
+
+C[P] -> Q    where C'[Q] === exists x . x /\ floor(C[x] -> Q)
+-------------(PluginL)
+P -> C'[Q]
+
+C[C'[P]] -> Q where C'[Q] === exists x . x /\ floor(C[x] -> Q)
+------------- (CollapseL)
+P -> Q
+
+C'[P] -> Q   where C'[P] === exists x . x /\ floor(P -> C[x])
+-------------(PlugoutR)
+P -> C[Q]
+
+P -> C[Q]    where C'[P] === exists x . x /\ floor(P -> C[x])
+-------------(PluginR)
+C'[P] -> Q
+
+P -> C[C'[Q]] where C'[P] === exists x . x /\ floor(P -> C[x])
+------------- (CollapseR)
+P -> Q
 
 ```
