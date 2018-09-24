@@ -3,7 +3,8 @@
 %\includeonly{}
 
 % Use new TX fonts for texts and maths.
-% \usepackage{newtxtext}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
 
 \usepackage{amssymb, mathtools}
 
@@ -32,6 +33,7 @@
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{example}[theorem]{Example}
+\newtheorem{notation}[theorem]{Notation}
 \newtheorem{xca}[theorem]{Exercise}
 
 \theoremstyle{remark}
@@ -98,7 +100,7 @@ content...
 \backmatter
 %    Bibliography styles amsplain or harvard are also acceptable.
 \bibliographystyle{amsalpha}
-\bibliography{}
+\bibliography{xc}
 %    See note above about multiple indexes.
 \printindex
 
