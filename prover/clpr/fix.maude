@@ -1,0 +1,195 @@
+mod FIX is
+
+  including NAT .
+
+  ---- The fragment, the syntax.
+  sort Variable Variables Pattern Patterns Goal Goals .
+  subsort Variable < Pattern Variables .
+  subsort Pattern < Patterns .
+  subsort Goal < Goals .
+
+  vars F G X Y Z : Variable . vars P Q R R' : Pattern .
+
+  ops x y z w u v f g t : -> Variable .
+  ops p q r : -> Pattern .
+
+  op [newvar_] : Nat -> Variable . ---- lots of fresh variable.
+
+  op __ : Variables Variables -> Variables [assoc] .
+
+  ---- basic matching logic syntax
+  ops top bottom : -> Pattern .
+  op _/\_ : Pattern Pattern -> Pattern [prec 68 assoc comm] .
+  op _\/_ : Pattern Pattern -> Pattern [prec 69 assoc comm] .
+  op _->_ : Pattern Pattern -> Pattern [prec 70] .
+  op !_ : Pattern -> Pattern [prec 65] . ---- negation
+  op _==_ : Pattern Pattern -> Pattern [prec 66] .
+  op _!=_ : Pattern Pattern -> Pattern [prec 66] .
+  op forall_._ : Variables Pattern -> Pattern [prec 72] .
+  op exists_._ : Variables Pattern -> Pattern [prec 72] .
+  
+  ---- fixpoint syntax: lfp and gfp
+  op mu_._ : Variable Pattern -> Pattern [prec 72] .
+  op nu_._ : Variable Pattern -> Pattern [prec 72] .
+
+  ---- lambda calculus syntax: abstraction and application
+  op lambda_._ : Variables Pattern -> Pattern [prec 72] .
+  op _@`(_`) : Pattern Patterns -> Pattern [prec 59 format(d s s d d d)] .
+
+  op _,_ : Patterns Patterns -> Patterns [prec 75 assoc] .
+
+  ---- proof goals
+  op |-_ : Pattern -> Goal [prec 80] .
+  op done : -> Goals .  ---- done means all proof goals are discharged.
+  op _and_ : Goals Goals -> Goals [prec 82 assoc comm id: done format(d n n d)] .
+
+  ---- substitution, free variables, etc. (TODO)
+  op fv : Pattern -> Variables .
+  op _[_/_] : Pattern Pattern Variable -> Pattern .
+
+  eq X [R / X] = R .
+ ceq Y [R / X] = R if X =/= Y .
+  eq p [R / F] = p . eq q [R / F] = q . eq r [R / F] = r . 
+  eq (P -> Q)[R / F] = (P[R / F]) -> (Q[R / F]) .
+  eq (P /\ Q)[R / F] = (P[R / F]) /\ (Q[R / F]) .
+  eq (P \/ Q)[R / F] = (P[R / F]) \/ (Q[R / F]) .
+  eq (! P)[R / F] = ! (P[R / F]) .
+
+
+  ---- proof rules.
+
+
+  ----    done
+  ----    ------------------------ (DP)
+  ----    |- P -> P
+
+  eq |- P -> P = done .
+
+
+
+
+  ----    |- P -> Q and |- P -> R
+  ----    ------------------------ (/\-IntroR)
+  ----    |- P -> (Q /\ R)
+
+  eq |- P -> Q /\ R  = |- P -> Q and |- P -> R .
+
+
+
+  ----    done
+  ----    ------------------------ (DP)
+  ----    |- P /\ Q -> P 
+
+  eq |- P /\ Q -> P = done .
+
+
+
+
+
+  ----    |- Q /\ R -> R'
+  ----    --------------------------- (MP, sort of)
+  ----    |- P /\ (P -> Q) /\ R -> R'
+
+  eq |- P /\ (P -> Q) /\ R -> R' = |- Q /\ R -> R' .
+
+
+
+
+
+  ----    |- P[Q / F] -> Q
+  ----    ------------------------ (KT for LFP)
+  ----    |- (mu F . P) -> Q
+
+  eq |- (mu F . P) -> Q = |- P[Q / F] -> Q .
+
+
+
+
+
+  ----    |- Q -> P[Q / F]
+  ----    ------------------------ (KT for GFP)
+  ----    |- Q -> nu f . P 
+
+  eq |- Q -> (nu F . P) = |- Q -> (P[Q / F]) .
+
+
+
+  ----    |- ... P[(mu F . P) / F] ...
+  ----    ---------------------------- (Fix for LFP, sort of unfold)
+  ----    |- ... mu F . P ...
+
+  ----    the keyword "rl" means it's a rule, and thus its application
+  ----    is lazy: it is applied only if no equations (keyword "eq")
+  ----    can be applied.
+
+  rl mu F . P => P[(mu F . P) / F] .
+
+
+
+
+
+  ----    |- ... P[(nu F . P) / F] ...
+  ----    ---------------------------- (Fix for GFP, sort of unfold)
+  ----    |- ... nu F . P ...
+
+  rl nu F . P => P[(nu F . P) / F] .
+
+
+endm
+
+mod LTL is
+
+  ---- some LTL syntax and equations.
+
+  including FIX .
+
+  vars F G X Y Z : Variable . vars P Q R : Pattern .
+
+  op o_ : Pattern -> Pattern [prec 60] . ---- next
+  op []_ : Pattern -> Pattern [prec 60] . ---- always
+
+  ---- define substitution for next
+  eq (o P)[R / F] = o (P[R / F]) .
+
+  ---- "always" is defined as a gfp.
+  eq []P = nu f . (P /\ o f) .
+
+  ---- some domain knowledge about LTL.
+  eq o (P /\ Q) = o P /\ o Q .
+  
+endm
+
+
+mod SL is
+
+  ---- some SL syntax and equations.
+
+  ---- rename integer multiplication to avoid a conflict with
+  ---- the separating conjunction.
+  including FIX * (op _*_ : Nat Nat -> Nat to _times_) .
+
+  subsort Nat < Pattern .
+
+  vars F G X Y Z : Variable . vars P Q R : Pattern .
+
+  op emp : -> Pattern .
+  op _|->_ : Pattern Pattern -> Pattern [prec 60] .
+  op _*_ : Pattern Pattern -> Pattern [prec 61 assoc comm id: emp] .
+  ops ll lr : -> Pattern .
+
+  eq ll = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . x |-> t * f @ (t,y))) .
+  eq lr = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . f @ (x,t) * t |-> y)) .
+
+endm
+
+---- set trace on .
+
+
+---- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
+rewrite [2] in LTL :
+|- (([](p -> o p)) /\ p) -> []p .
+
+rewrite [1] in SL :
+|- (ll @ (x,y)) -> (lr @ (x,y)) .
+
+q .
