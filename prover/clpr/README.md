@@ -421,15 +421,39 @@ done
 
 ## Proof rules
 
-### The fragment (not sure)
+### The fragment, the syntax
 
-The following proof rules use very rich matching logic syntax.
-We may want to find a fragment (of the syntax) so that the
-implementation may be simpler and more efficient.
+The following syntax is chosen so that a very wide range of
+interesting problems, including `ll@(x,y) -> lr@(x,y)` and
+`[] (P -> o P) /\ P -> [] P`, can be encoded using the syntax.
 
-Unfortunately, the (Plugin) and (Plugout) rules seem to use
-a lot of matching logic syntax, including "forall" and
-"floor". 
+```
+Variable ::= x | y | z | ...
+Pattern  ::= Variable
+           | Pattern "/\" Pattern
+           | Pattern "\/" Pattern
+           | Pattern "->" Pattern
+           | "not" Pattern
+           | forall VariableList "." Pattern
+           | exists VariableList "." Pattern
+           | lambda VariableList "." Pattern     /* lambda abstraction */
+           | Pattern "@" "(" PatternList ")"     /* function application */
+           | mu Variable "." Pattern             /* lfp */
+           | nu Variable "." Pattern             /* gfp */
+           | floor "(" Pattern ")"               /* totality */
+           /* extendable user-defined domain specific syntax (known as the shallow embedding) */
+           /* for infinite-trace LTL */
+           | "o" Pattern         /* next */
+           | "[]" Pattern        /* always */
+           | "<>" Pattern        /* eventually */
+           | Pattern "U" Pattern /* until */
+           /* for separation logic */
+           | "emp"
+           | Pattern "|->" Pattern
+           | Pattern "*" Pattern
+           | "ll"
+           | "lr"
+```
 
 ### Proof rules
 
