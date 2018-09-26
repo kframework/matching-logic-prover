@@ -1,6 +1,7 @@
 # The fixpoint prover.
 
 ## Todos (in priority)
+- [ ] Implement `[](P -> o P) /\ P -> [] P` (as a user story);
 - [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
 - [X] Finish the example `ll(x,y) -> lr(x,y)` using explicit (Plugin) and (Plugout) rule, no lambda form;
 - [X] Try lambda + mu;
@@ -341,3 +342,170 @@ done
 qed.
 ```
 
+## More examples
+
+### (LTL Ind) `[] (P -> o P) /\ P -> [] P`
+
+This is the famous induction proof rule in LTL.
+It is valid and can be proved with (KT) in matching logic.
+To do that, we need to define LTL in matching logic.
+
+It is known how to define LTL in matching logic.
+Here shows the definition.
+We let `*` be a unary matching logic symbol, called "strong next".
+Let `o P = not * not P` called "weak next".
+Let `[] P` be a greatest fixpoint defined as
+```
+[] P =gfp P /\ o [] P
+```
+We need two axioms to capture LTL.
+They are
+```
+(Lin) * P -> o P for any pattern P
+(Inf) * T
+```
+
+The following axiom schema is provable from the above two axioms.
+```
+(Propagation o) o(P /\ Q) = o P /\ o Q
+```
+
+_Proof tree_
+
+```
+(G) [] (P -> o P) /\ P -> [] P
+
+apply (KT) on (G).  /* we don't need (Plugin) and (Plugout) */
+
+(G-1) [] (P -> o P) /\ P -> [] (P -> o P) /\ P /\ o ([] (P -> o P) /\ P)
+
+apply (Split) on (G-1).
+
+(G-2-1) [] (P -> o P) /\ P -> [] (P -> o P)
+(G-2-2) [] (P -> o P) /\ P -> P
+(G-2-3) [] (P -> o P) /\ P -> o ([] (P -> o P) /\ P)
+
+apply (DP) on (G-2-1). 
+
+done
+
+apply (DP) on (G-2-2).
+
+done
+
+apply (Propagation o) on (G-2-3).
+
+(G-2-4) [] (P -> o P) /\ P -> o [] (P -> o P) /\ o P
+
+apply (Split) on (G-2-4)
+
+(G-2-5-1) [] (P -> o P) /\ P -> o [] (P -> o P)
+(G-2-5-2) [] (P -> o P) /\ P -> o P
+
+apply (Fix) on (G-2-5-1)
+
+(G-2-5-1-1) (P -> o P) /\ o [] (P -> o P) /\ P -> o [] (P -> o P)
+
+apply (DP) on (G-2-5-1-1).
+
+done
+
+apply (Fix) on (G-2-5-2).
+
+(G-2-5-2-1) (P -> o P) /\ o [] (P -> o P) /\ P -> o P
+
+apply (DP) on (G-2-5-2-1).
+
+done
+```
+
+## Proof rules
+
+### The fragment (not sure)
+
+The following proof rules use very rich matching logic syntax.
+We may want to find a fragment (of the syntax) so that the
+implementation may be simpler and more efficient.
+
+Unfortunately, the (Plugin) and (Plugout) rules seem to use
+a lot of matching logic syntax, including "forall" and
+"floor". 
+
+### Proof rules
+
+```
+/* Basic Propositional reasoning */
+
+P -> P1  P -> P2  ...  P -> Pn
+------------------------------- (/\-IntroR)
+P -> P1 /\ P2 /\ ... /\ Pn
+
+P -> Pi
+-------------------------------- (\/-IntroR)
+P -> P1 \/ P2 \/ ... \/ Pn
+
+P1 -> P ... Pn -> P
+-------------------------------- (\/-IntroL)
+P1 \/ ... \/ Pn -> P
+
+
+Pi -> P
+-------------------------------- (/\-IntroL)
+P1 /\ ... /\ Pn -> P
+
+/* Basic FOL reasoning */
+
+P -> Q                 if x not in FV(P)
+---------------------- (UG) // universal generalization
+P -> forall x . Q
+
+P -> Q[t/x]            if x not in FV(P) and t is a term
+---------------------- (exists-IntroR) // t is often obtained from unifying P and Q
+P -> exists x . Q
+
+forall x . P /\ P[t/x] -> Q   if t is a term
+----------------------------  (forall-InstL) // instantiate forall x . P
+forall x . P -> Q
+
+/* Equations */
+
+An equation lhs = rhs means that one can substitute lhs
+for rhs in any context. 
+
+(Fix-LFP) mu x . e = e[mu x . e / x]  // least fixpoint
+
+(Fix-GFP) nu x . e = e[nu x . e / x]  // greatest fixpoint
+
+e[e'/x] -> e'
+--------------- (KT-LFP)
+mu x . e -> e'
+
+e' -> e[e'/x]
+--------------- (KT-GFP)
+e' -> nu x . e
+
+P -> C'[Q]   where C'[Q] === exists x . x /\ floor(C[x] -> Q)
+-------------(PlugoutL)
+C[P] -> Q
+
+C[P] -> Q    where C'[Q] === exists x . x /\ floor(C[x] -> Q)
+-------------(PluginL)
+P -> C'[Q]
+
+C[C'[P]] -> Q where C'[Q] === exists x . x /\ floor(C[x] -> Q)
+------------- (CollapseL)
+P -> Q
+
+C'[P] -> Q   where C'[P] === exists x . x /\ floor(P -> C[x])
+-------------(PlugoutR)
+P -> C[Q]
+
+P -> C[Q]    where C'[P] === exists x . x /\ floor(P -> C[x])
+-------------(PluginR)
+C'[P] -> Q
+
+P -> C[C'[Q]] where C'[P] === exists x . x /\ floor(P -> C[x])
+------------- (CollapseR)
+P -> Q
+
+```
