@@ -8,14 +8,17 @@ mod FIX is
   subsort Pattern < Patterns .
   subsort Goal < Goals .
 
-  vars F G X Y Z : Variable . vars P Q R R' : Pattern .
+  vars F G X Y Z V : Variable . vars P Q R R' : Pattern .
+  vars Vs Vs' : Variables . vars Ps Qs Rs : Patterns .
 
   ops x y z w u v f g t : -> Variable .
   ops p q r : -> Pattern .
 
   op [newvar_] : Nat -> Variable . ---- lots of fresh variable.
 
+  op empty : -> Variables .
   op __ : Variables Variables -> Variables [assoc] .
+  op _\_ : Variables Variables -> Variables . ---- set minus
 
   ---- basic matching logic syntax
   ops top bottom : -> Pattern .
@@ -43,9 +46,29 @@ mod FIX is
   op done : -> Goals .  ---- done means all proof goals are discharged.
   op _and_ : Goals Goals -> Goals [prec 82 assoc comm id: done format(d n n d)] .
 
+  ---- set minus
+  eq Vs \ empty = Vs .
+  eq (Vs V Vs') \ V = Vs Vs' .
+  eq Vs \ (V Vs') = (Vs \ V) \ Vs' .
+
   ---- substitution, free variables, etc. (TODO)
-  op fv : Pattern -> Variables .
+  op fv : Patterns -> Variables . ---- collect fvs from patterns
   op _[_/_] : Pattern Pattern Variable -> Pattern .
+
+  eq fv(X) = X .
+  eq fv(P /\ Q) = fv(P) fv(Q) .
+  eq fv(P \/ Q) = fv(P) fv(Q) .
+  eq fv(P -> Q) = fv(P) fv(Q) .
+  eq fv(! P) = fv(P) .
+  eq fv(P == Q) = fv(P) fv(Q) .
+  eq fv(P != Q) = fv(P) fv(Q) .
+  eq fv(exists Vs . P) = fv(P) \ Vs .
+  eq fv(forall Vs . P) = fv(P) \ Vs .
+  eq fv(mu V . P) = fv(P) \ V .
+  eq fv(nu V . P) = fv(P) \ V .
+  eq fv(lambda Vs . P) = fv(P) \ Vs .
+  eq fv(P @ (Qs)) = fv(P) fv(Qs) .
+  eq fv(Q, Qs) = fv(Q) fv(Qs) .
 
   eq X [R / X] = R .
  ceq Y [R / X] = R if X =/= Y .
@@ -148,8 +171,10 @@ mod LTL is
   op o_ : Pattern -> Pattern [prec 60] . ---- next
   op []_ : Pattern -> Pattern [prec 60] . ---- always
 
-  ---- define substitution for next
+  ---- define fv and substitution for next
+  eq fv(o P) = fv(P) .
   eq (o P)[R / F] = o (P[R / F]) .
+
 
   ---- "always" is defined as a gfp.
   eq []P = nu f . (P /\ o f) .
@@ -176,6 +201,11 @@ mod SL is
   op _|->_ : Pattern Pattern -> Pattern [prec 60] .
   op _*_ : Pattern Pattern -> Pattern [prec 61 assoc comm id: emp] .
   ops ll lr : -> Pattern .
+
+  ---- define fv and substitution for SL constructs 
+  eq fv(emp) = empty .
+  eq fv(P |-> Q) = fv(P) fv(Q) .
+  eq fv(P * Q) = fv(P) fv(Q) .
 
   eq ll = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . x |-> t * f @ (t,y))) .
   eq lr = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . f @ (x,t) * t |-> y)) .
