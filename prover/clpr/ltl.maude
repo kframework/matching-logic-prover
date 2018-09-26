@@ -1,0 +1,33 @@
+mod LTL is
+
+  sort Form Forms .
+
+  subsort Form < Forms .
+  op done : -> Forms .
+  op _and_ : Forms Forms -> Forms [assoc comm id: done] .
+
+  op p : -> Form .
+  op _->_ : Form Form -> Form .
+  op _/\_ : Form Form -> Form [assoc comm] .
+  op o_ : Form -> Form .
+  op []_ : Form -> Form .
+
+  vars P Q R : Form .
+
+  rl P -> []Q => P -> Q /\ o P .
+  rl P -> Q /\ R => (P -> Q) and (P -> R) .
+  rl ((P /\ Q) -> P) => done .
+  rl o (P /\ Q) => (o P) /\ (o Q) .
+  ---- rl []P -> P /\ o[]P .
+
+  ---- p /\ (p -> o p) /\ o[](p -> o p)
+
+  ---- o p /\ o [] (p -> o p)
+
+
+endm
+
+
+rewrite (([](p -> o p)) /\ p) -> []p .
+
+q .
