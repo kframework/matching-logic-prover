@@ -1,33 +1,71 @@
 mod LTL is
 
-  sort Form Forms .
+  ---- Form: the category of all LTL formulas.
+  ---- Goal: the category of proof goals, of the form |- P where P is an LTL formula
+  ---- Gaols: the category of sets of proof goals, separated using the keyword "and".
+  sort Form Goal Goals .
 
-  subsort Form < Forms .
-  op done : -> Forms .
-  op _and_ : Forms Forms -> Forms [assoc comm id: done] .
+  op |-_ : Form -> Goal [prec 80] .
 
-  op p : -> Form .
-  op _->_ : Form Form -> Form .
-  op _/\_ : Form Form -> Form [assoc comm] .
-  op o_ : Form -> Form .
-  op []_ : Form -> Form .
+  subsort Goal < Goals .
+  op done : -> Goals .  ---- done means all proof goals are discharged.
+  op _and_ : Goals Goals -> Goals [prec 82 assoc comm id: done] .
 
-  vars P Q R : Form .
+  op p q r : -> Form . ---- some LTL propositions
+  op _->_ : Form Form -> Form [prec 70] . ---- implication
+  op _/\_ : Form Form -> Form [prec 68 assoc comm] . ---- conjunction
+  op o_ : Form -> Form [prec 66] . ---- next
+  op []_ : Form -> Form [prec 66] . ---- always
 
-  rl P -> []Q => P -> Q /\ o P .
-  rl P -> Q /\ R => (P -> Q) and (P -> R) .
-  rl ((P /\ Q) -> P) => done .
-  rl o (P /\ Q) => (o P) /\ (o Q) .
-  ---- rl []P -> P /\ o[]P .
+  vars P Q R : Form . ---- variables of formulas (\varphi, \psi, etc.)
 
-  ---- p /\ (p -> o p) /\ o[](p -> o p)
+  ----    |- P -> Q and |- P -> R
+  ----    ------------------------ (/\-IntroR)
+  ----    |- P -> (Q /\ R)
+  eq |- P -> Q /\ R 
+   = |- P -> Q and |- P -> R .
 
-  ---- o p /\ o [] (p -> o p)
 
+  ----    done
+  ----    ------------------------ (DP)
+  ----    |- P /\ Q -> P 
+  eq |- P /\ Q -> P 
+   = done .
+
+  
+  ----    This rule is needed for LTL. 
+  ----    Think of it as a propagation rule that
+  ----    canonicalize LTL formulas.
+  ----    This rule substitutes any occurrences of
+  ----    o(P /\ Q) by o P /\ o Q.
+
+  ----    |- C[o P /\ o Q]
+  ----    ------------------------ (Propagation o)
+  ----    |- C[o(P /\ Q)]
+
+  eq o (P /\ Q) 
+   = o P /\ o Q .
+
+  ----    The (Modus Ponens) rule.
+  eq P /\ (P -> Q) = Q .
+
+
+  ----    |- P -> (Q /\ o P)
+  ----    ------------------------ (KT)
+  ----    |- P -> []Q
+  eq |- P -> []Q 
+   = |- P -> Q /\ o P .
+
+  ----    |- C[P /\ o[]P]
+  ----    ------------------------ (Fix)
+  ----    |- C[[]P]
+  rl []P => P /\ o[]P .
 
 endm
 
+---- set trace on .
 
-rewrite (([](p -> o p)) /\ p) -> []p .
+rewrite 
+|- (([](p -> o p)) /\ p) -> []p .
 
 q .
