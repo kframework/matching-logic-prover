@@ -456,48 +456,149 @@ We **may** need a few propositional rules (i.e., (DP)), to canonicalize the patt
 ```
 (DeMorgen) !(P \/ Q) = !P /\ !Q
 (DeMorgen) !(P /\ Q) = !P \/ !Q
+
+      Q -> R           /* more generally it should be (P -> Q) /\ P /\ Q -> R
+(MP) ------------------------
+     (P -> Q) /\ P -> R
+
+           P /\ Q -> R
+(NegCase) --------------
+           P -> (!Q \/ R)
 ```
 
 The above rules will help make the proof _human readable_.
 But in the following I want to avoid using them as long as I can.
 Maybe these rules are not really necessary!
 
-#### (CTL6) `AG(R -> (!Q /\ * R)) -> (R -> !(P AU Q))`
+#### (CTL6) `AG(R -> (!Q /\ * R)) /\ R -> !(P AU Q)`
 
 _Proof._
 
 ```
-(G) AG(R -> (!Q /\ * P)) -> (R -> !(P AU Q))
+(G) AG(R -> (!Q /\ * R)) /\ R -> !(P AU Q)
+
+by definition of P AU Q, this is the same as
+
+(G) AG(R -> (!Q /\ * R)) /\ R -> !(mu f . (Q \/ (P /\ o f)))
 
 apply (NegLFP) on (G).
 
-(G-1) AG(R -> (!Q /\ * P)) -> (R -> nu f . (Q \/ (P /\ ! o ! f)))
+(G-1) AG(R -> (!Q /\ * R)) /\ R -> nu f . !(Q \/ (P /\ o ! f))
 
-apply (DualWNext) on (G-1).
+apply (DeMongen) on (G-1).
 
-(G-2) AG(R -> (!Q /\ * P)) -> (R -> nu f . (Q \/ (P /\ * f)))
+(G-2) AG(R -> (!Q /\ * R)) /\ R -> nu f . (!Q /\ (!P \/ ! o ! f))
 
-/* I could have moved R to the lhs to avoid using (Plugin)&(Plugout).
- * I didn't do that in order to be less adhoc.
- */
-apply (Plugout) on (G-2).
+apply (DualWNext) on (G-2).
 
-(G-3) exists h . h /\ floor(AG(R -> (!Q /\ * P)) -> (R -> h))
-   -> nu f . (Q \/ (P /\ * f))
+(G-3) AG(R -> (!Q /\ * R)) /\ R -> nu f . (!Q /\ (!P \/ * f))
 
 apply (KT) on (G-3).
 
-(G-4) exists h . h /\ floor(AG(R -> (!Q /\ * P)) -> (R -> h))
-   -> Q \/ (P /\ * (exists h . h /\ floor(AG(R -> (!Q /\ EX P)) -> (R -> h))))
+(G-4) AG(R -> (!Q /\ * R)) /\ R
+   -> !Q /\ (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
    
-apply (Plugin) on (G-4).
+apply (Split) on (G-4).
 
-(G-5) AG(R -> (!Q /\ * P)) -> (R -> (Q \/ (P /\ * (exists h . h /\ floor(AG(R -> (!Q /\ * P)) -> (R -> h))))))
+(G-4-1) AG(R -> (!Q /\ * R)) /\ R -> !Q
+(G-4-2) AG(R -> (!Q /\ * R)) /\ R -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
 
-apply (Fix) on (G-5).
+apply (Fix) on (G-4-1).
 
-(G-6) (R -> (!Q /\ * P)) TODO here
+(G-4-1-1) (R -> (!Q /\ *R)) /\ (o AG(R -> (!Q /\ * R))) /\ R -> !Q
+
+apply (DP) on (G-4-1-1).
+
+done
+
+apply (Fix) on (G-4-2).
+
+(G-4-2-1) (R -> (!Q /\ *R)) /\ (o AG(R -> (!Q /\ * R))) /\ R -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+
+apply (MP) on (G-4-2-1).
+
+(G-4-2-2) !Q /\ *R /\ (o AG(R -> (!Q /\ * R))) -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+
+apply (Next) on (G-4-2-2).
+
+(G-4-2-3) * (R /\ AG(R -> (!Q /\ * R))) -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+
+apply (DP) on (G-4-2-3).
+
+done
 ```
+
+#### (CTL7) `AG(R -> (!Q /\ (P -> o R))) /\ R -> !(P EU Q)`
+
+_Proof_.
+
+```
+(G) AG(R -> (!Q /\ (P -> o R))) /\ R -> !(P EU Q)
+
+(G) AG(R -> (!Q /\ (P -> o R))) /\ R -> !(mu f . (Q \/ (P /\ * f)))
+
+apply (NegLFP) on (G).
+
+(G-1) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> nu f . !(Q \/ (P /\ * ! f))
+   
+apply (DeMongen) on (G-1).
+
+(G-2) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> nu f . (!Q /\ (!P \/ ! * ! f)))
+   
+apply (NegSNext) on (G-2).
+
+(G-3) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> nu f . (!Q /\ (!P \/ o f)))
+   
+apply (KT) on (G-1).
+
+(G-2) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> !Q /\ (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+
+apply (Split) on (G-2).
+
+(G-2-1) AG(R -> (!Q /\ (P -> o R))) /\ R -> !Q
+(G-2-2) AG(R -> (!Q /\ (P -> o R))) /\ R -> (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+
+apply (Fix) on (G-2-1).
+
+(G-2-1-1) (R -> (!Q /\ (P -> o R))) /\ (o AG(R -> (!Q /\ (P -> o R)))) /\ R -> !Q
+
+apply (DP) on (G-2-1-1).
+
+done
+
+apply (Fix) on (G-2-2).
+
+(G-2-2-1) (R -> (!Q /\ (P -> o R))) /\ (o AG(R -> (!Q /\ (P -> o R)))) /\ R
+       -> (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+       
+apply (MP) on (G-2-2-1).
+
+(G-2-2-2) !Q /\ (P -> o R) /\ (o AG(R -> (!Q /\ (P -> o R))))
+       -> (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+
+apply (NegCase) on (G-2-2-2).
+(G-2-2-3) !Q /\ (P -> o R) /\ (o AG(R -> (!Q /\ (P -> o R)))) /\ P
+       -> o(AG(R -> (!Q /\ (P -> o R))) /\ R)
+
+apply (MP) on (G-2-2-3).
+
+(G-2-2-4) !Q /\ o R /\ (o AG(R -> (!Q /\ (P -> o R))))
+       -> o(AG(R -> (!Q /\ (P -> o R))) /\ R)
+       
+apply (Propagation o) on (G-2-2-4).
+
+(G-2-2-5) !Q /\ o R /\ (o AG(R -> (!Q /\ (P -> o R))))
+       -> o(AG(R -> (!Q /\ (P -> o R)))) /\ o R
+       
+apply (DP).
+
+done
+```
+
 
 ## Proof rules
 
