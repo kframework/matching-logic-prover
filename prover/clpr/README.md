@@ -1,13 +1,13 @@
 # The fixpoint prover.
 
 ## Todos (in priority)
-- [ ] Implement `[](P -> o P) /\ P -> [] P` (as a user story);
+- [X] Implement `[](P -> o P) /\ P -> [] P` (as a user story);
 - [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
 - [X] Finish the example `ll(x,y) -> lr(x,y)` using explicit (Plugin) and (Plugout) rule, no lambda form;
 - [X] Try lambda + mu;
-- [ ] Identify a nice fragment of ML (for implementation convenience);
-- [ ] Define the general KT rule (lfp in a context; question: how to deal with free variables?);
-- [ ] Collect other proof rules (for the fragment);
+- [X] ~~Identify a nice fragment of ML (for implementation convenience);~~
+- [X] Define the general KT rule (lfp in a context; question: how to deal with free variables?);
+- [X] Collect other proof rules (for the fragment);
 
 ## Instruction
 
@@ -362,7 +362,7 @@ We need two axioms to capture LTL.
 They are
 ```
 (Lin) * P -> o P for any pattern P
-(Inf) * T
+(Inf) * top
 ```
 
 The following axiom schema is provable from the above two axioms.
@@ -419,6 +419,86 @@ apply (DP) on (G-2-5-2-1).
 done
 ```
 
+### CTL and its proof rules.
+
+The key CTL operators are defined in matching logic as:
+```
+AX P === o P // strong next
+EX P === * P // weak next
+P AU Q === mu f . (Q \/ (P /\ o f)) // all-path until
+P EU Q === mu f . (Q \/ (P /\ * f)) // one-path until
+EF P === mu f . P \/ * f // one-path eventually
+AG P === nu f . P /\ o f // all-path always
+AF P === mu f . P \/ o f // all-path eventually
+EG P === nu f . P \/ * f // one-path always
+```
+
+CTL assumes infinite traces, and thus requires the following domain specific axiom
+```
+(Inf) * top
+```
+
+We **may** need a few domain specific axioms to help the prover.
+For example,
+```
+(DualWNext) ! * ! P = o P
+(DualSNext) ! o ! P = * P
+(Next) o P /\ * Q -> *(P /\ Q)
+```
+
+We **may** need two duality rules for fixpoints.
+```
+(NegLFP) ! (mu f . P) = nu f . ! P [!f / f]
+(NegGFP) ! (nu f . P) = mu f . ! P [!f / f]
+```
+
+We **may** need a few propositional rules (i.e., (DP)), to canonicalize the patterns. 
+```
+(DeMorgen) !(P \/ Q) = !P /\ !Q
+(DeMorgen) !(P /\ Q) = !P \/ !Q
+```
+
+The above rules will help make the proof _human readable_.
+But in the following I want to avoid using them as long as I can.
+Maybe these rules are not really necessary!
+
+#### (CTL6) `AG(R -> (!Q /\ * R)) -> (R -> !(P AU Q))`
+
+_Proof._
+
+```
+(G) AG(R -> (!Q /\ * P)) -> (R -> !(P AU Q))
+
+apply (NegLFP) on (G).
+
+(G-1) AG(R -> (!Q /\ * P)) -> (R -> nu f . (Q \/ (P /\ ! o ! f)))
+
+apply (DualWNext) on (G-1).
+
+(G-2) AG(R -> (!Q /\ * P)) -> (R -> nu f . (Q \/ (P /\ * f)))
+
+/* I could have moved R to the lhs to avoid using (Plugin)&(Plugout).
+ * I didn't do that in order to be less adhoc.
+ */
+apply (Plugout) on (G-2).
+
+(G-3) exists h . h /\ floor(AG(R -> (!Q /\ * P)) -> (R -> h))
+   -> nu f . (Q \/ (P /\ * f))
+
+apply (KT) on (G-3).
+
+(G-4) exists h . h /\ floor(AG(R -> (!Q /\ * P)) -> (R -> h))
+   -> Q \/ (P /\ * (exists h . h /\ floor(AG(R -> (!Q /\ EX P)) -> (R -> h))))
+   
+apply (Plugin) on (G-4).
+
+(G-5) AG(R -> (!Q /\ * P)) -> (R -> (Q \/ (P /\ * (exists h . h /\ floor(AG(R -> (!Q /\ * P)) -> (R -> h))))))
+
+apply (Fix) on (G-5).
+
+(G-6) (R -> (!Q /\ * P)) TODO here
+```
+
 ## Proof rules
 
 ### The fragment, the syntax
@@ -426,6 +506,8 @@ done
 The following syntax is chosen so that a very wide range of
 interesting problems, including `ll@(x,y) -> lr@(x,y)` and
 `[] (P -> o P) /\ P -> [] P`, can be encoded using the syntax.
+
+**Please see `fix.maude` for all definitions.**
 
 ```
 Variable ::= x | y | z | ...
