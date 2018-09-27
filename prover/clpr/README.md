@@ -736,12 +736,12 @@ Given LHS |= RHS
 Given P(y1,yn) ≡ B \/ ∃z1,zn: P(z1,zn)/\...
                ≡ B \/ R (for short)
 foreach recursive predicate P on the lhs:
-    (WRAP)             to have P |= ∃F:  F & floor(LHS[P/F] => RHS)
+    (WRAP)             to have P |= ∃F:  F & floor(LHS[F/P] => RHS)
                                P |= G (for short)                                    
     (RIGHT-STRENGTHEN) to have P |= forall x1,xn: G   // Choose such x1,xn that after (QE) we have G
-    (KT)               to have B \/ R[P/forall x1,xn: G] |= forall x1,xn: G
-    (QE)               to have B \/ R[P/forall x1,xn: G] |= G
-    (UNWRAP)           to have LHS[P/B \/ R[P/forall x1,xn: G]] |= RHS
+    (KT)               to have B \/ R[forall x1,xn: G / P] |= forall x1,xn: G
+    (QE)               to have B \/ R[forall x1,xn: G / P] |= G
+    (UNWRAP)           to have LHS[B \/ R[forall x1,xn: G / P] /P] |= RHS
     
     prove for all disjuncts on the lhs
 ```
