@@ -467,8 +467,8 @@ We **may** need a few propositional rules (i.e., (DP)), to canonicalize the patt
 ```
 
 The above rules will help make the proof _human readable_.
-But in the following I want to avoid using them as long as I can.
-Maybe these rules are not really necessary!
+But maybe they are not really necessary. 
+I used them in my proof, though.
 
 #### (CTL6) `AG(R -> (!Q /\ * R)) /\ R -> !(P AU Q)`
 
@@ -599,7 +599,6 @@ apply (DP).
 done
 ```
 
-
 ## Proof rules
 
 ### The fragment, the syntax
@@ -715,4 +714,34 @@ P -> C[C'[Q]] where C'[P] === exists x . x /\ floor(P -> C[x])
 ------------- (CollapseR)
 P -> Q
 
+```
+
+### Main rules: (WRAP), (KT), (UNWRAP)
+
+```
+========   All proof rules for LFP (flag=false) =======
+ (QE) Quantifier elimination
+ (DP) Direct proof
+ (PM) Pattern matching
+(FIX) Right unfold only
+(LFP) A compound rule
+========   All proof rules for GFP (flag=true) =========
+ (QE) Quantifier elimination
+ (DP) Direct proof
+ (PM) Pattern matching
+(FIX) Left unfold only
+(GFP) A compound rule
+========== An application of LFP rule in the search tree =========
+Given LHS |= RHS
+Given P(y1,yn) ≡ B \/ ∃z1,zn: P(z1,zn)/\...
+               ≡ B \/ R (for short)
+foreach recursive predicate P on the lhs:
+    (WRAP)             to have P |= ∃F:  F & floor(LHS[P/F] => RHS)
+                               P |= G (for short)                                    
+    (RIGHT-STRENGTHEN) to have P |= forall x1,xn: G   // Choose such x1,xn that after (QE) we have G
+    (KT)               to have B \/ R[P/forall x1,xn: G] |= forall x1,xn: G
+    (QE)               to have B \/ R[P/forall x1,xn: G] |= G
+    (UNWRAP)           to have LHS[P/B \/ R[P/forall x1,xn: G]] |= RHS
+    
+    prove for all disjuncts on the lhs
 ```
