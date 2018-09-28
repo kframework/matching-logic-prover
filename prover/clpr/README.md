@@ -604,8 +604,14 @@ done
 _Definitions._
 
 ```
-ll = mu f . lambda x y . (emp /\ x=y) \/ exists t . (x|->t * ll(t,y) /\ x!=y /\ x!=0)
-list = mu f . lambda x . (emp /\ x=0) \/ exists t . (x|->t * list(t) /\ x!=0)
+ll = mu f . lambda x y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
+list = mu f . lambda x . (emp /\ x=0) \/ exists t . (x|->t * f@(t) /\ x!=0)
+```
+
+_Propagation rules._
+
+```
+(P \/ Q) * H = P * H \/ Q * H, where * is the merge
 ```
 
 _Proof._
@@ -614,11 +620,60 @@ _Proof._
 
 apply (Plugout) on (G).
 
-(G-1) ll@(x,y) -> exists h . h /\ floor(h * list@(y) -> list@(x))
+(G-1) ll -> exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+
+let F === exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+
+apply (Forall) on (G-1).
+
+(G-2) ll -> forall x y . F
 
 apply (KT) on (G-1).
 
-(G-2) TODO
+(G-2) lambda x y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+   -> forall x y . exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+   
+apply (UG) on (G-2).
+
+(G-3) lambda x y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+   -> exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+
+apply (Plugin) on (G-3).
+
+(G-4) ((emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)) * list@(y) -> list@(x)
+
+apply (Propagation) on (G-4).
+
+(G-5) ((emp /\ x=y) * list@(y)) \/ (exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)) * list@(y) -> list@(x)
+
+apply (Split) on (G-5).
+
+(G-5-1) list@(y) /\ x=y -> list@(x)
+(G-5-2) (exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)) * list@(y) -> list@(x)
+
+apply (DP) on (G-5-1).
+
+done
+
+apply (Exists) on (G-5-2).
+
+(G-5-3) x|->t * (forall x y . F)@(t,y) * list@(y) /\ x!=y /\ x!=0  -> list@(x)
+
+apply (Inst, forall x y . F, x=t, y=y) on (G-5-3).
+
+(G-5-4) x|->t * (F[t/x][y/y])@(t,y) * list@(y) /\ x!=y /\ x!=0  -> list@(x)
+
+expand F.
+
+(G-5-4) x|->t * (exists h . h /\ floor(h@(t,y) * list@(y) -> list@(t)))@(t,y) * list@(y) /\ x!=y /\ x!=0  -> list@(x)
+
+apply (Collapse) on (G-5-4).
+
+(G-5-5) x|->t * list@(t) /\ x!=y /\ x!=0 -> list@(x)
+
+apply (Fix) on (G-5-5). 
+
+...
 ```
 
 ## Proof rules
