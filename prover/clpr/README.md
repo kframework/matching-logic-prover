@@ -599,6 +599,28 @@ apply (DP).
 done
 ```
 
+### SL `ll@(x,y) * list@(y) -> list@(x)`
+
+_Definitions._
+
+```
+ll = mu f . lambda x y . (emp /\ x=y) \/ exists t . (x|->t * ll(t,y) /\ x!=y /\ x!=0)
+list = mu f . lambda x . (emp /\ x=0) \/ exists t . (x|->t * list(t) /\ x!=0)
+```
+
+_Proof._
+```
+(G) ll@(x,y) * list@(y) -> list@(x)
+
+apply (Plugout) on (G).
+
+(G-1) ll@(x,y) -> exists h . h /\ floor(h * list@(y) -> list@(x))
+
+apply (KT) on (G-1).
+
+(G-2) TODO
+```
+
 ## Proof rules
 
 ### The fragment, the syntax
