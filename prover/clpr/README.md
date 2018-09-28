@@ -676,6 +676,14 @@ apply (Fix) on (G-5-5).
 ...
 ```
 
+## Some coinduction examples
+
+_TODO._
+
+## Some program verification examples
+
+_TODO._
+
 ## Proof rules
 
 ### The fragment, the syntax
