@@ -270,7 +270,7 @@ mod CTL is
   eq P AU Q = mu g . (Q \/ (P /\ o g)) .
   eq P EU Q = mu g . (Q \/ (P /\ * g)) .
 
-  ---- some domain knowledge about LTL.
+  ---- some domain knowledge about CTL.
   eq o (P /\ Q) = o P /\ o Q .
   eq ! o (! P) = * P .
   eq ! * (! P) = o P .
