@@ -120,7 +120,6 @@ mod FIX is
 
   ops x y z w u v f g t : -> Variable0 .
 
-  eq fresh(x
 
 
   ---- proof rules.
@@ -160,8 +159,19 @@ mod FIX is
   eq |- P /\ (P -> Q) /\ R -> R' = |- Q /\ R -> R' .
 
 
+  ----    simplification rules.
+
+  ---- De Mongen rules.
+  eq ! (P /\ Q) = ! P \/ ! Q .
+  eq ! (P \/ Q) = ! P /\ ! Q .
+  ----
+  eq P -> (! Q \/ R) = P /\ Q -> R .
+  ---- duality of lfp and gfp.
+  eq ! (mu F . P) = nu F . (! (P[! F / F])) .
+  eq ! (nu F . P) = mu F . (! (P[! F / F])) .
 
 
+  ----    KT rules.
 
   ----    |- P[Q / F] -> Q
   ----    ------------------------ (KT for LFP)
@@ -179,6 +189,12 @@ mod FIX is
 
   eq |- Q -> (nu F . P) = |- Q -> (P[Q / F]) .
 
+
+
+
+
+
+  ----    unfolding.
 
 
   ----    |- ... P[(mu F . P) / F] ...
@@ -228,6 +244,46 @@ mod LTL is
   
 endm
 
+mod CTL is
+
+  ---- some CTL syntax and equations.
+
+  including FIX .
+
+  vars F G X Y Z : Variable . vars P Q R R' : Pattern .
+
+  op o_ : Pattern -> Pattern [prec 60] . ---- weak next
+  op *_ : Pattern -> Pattern [prec 60] . ---- strong next
+  op AG_ : Pattern -> Pattern [prec 60] . ---- all-path always
+  op _AU_ : Pattern Pattern -> Pattern [prec 60] . ---- all-path until
+  op _EU_ : Pattern Pattern -> Pattern [prec 60] . ---- one-path until
+
+  ---- define fv and substitution for next
+  eq fv(o P) = fv(P) .
+  eq fv(* P) = fv(P) .
+  eq (o P)[R / F] = o (P[R / F]) .
+  eq (* P)[R / F] = * (P[R / F]) .
+
+
+  ---- CTL modalities defined as fixpoints
+  eq AG P = nu f . (P /\ o f) .
+  eq P AU Q = mu g . (Q \/ (P /\ o g)) .
+  eq P EU Q = mu g . (Q \/ (P /\ * g)) .
+
+  ---- some domain knowledge about LTL.
+  eq o (P /\ Q) = o P /\ o Q .
+  eq ! o (! P) = * P .
+  eq ! * (! P) = o P .
+
+  ----    |- * (P /\ Q) /\ R -> R'
+  ----    ---------------------------
+  ----    |- o P /\ * (Q) /\ R -> R'
+
+  eq |- (o P) /\ (* Q) /\ R -> R' = |- (* (P /\ Q)) /\ R -> R' .
+ 
+endm
+
+
 
 mod SL is
 
@@ -263,6 +319,15 @@ endm
 rewrite [2] in LTL :
 |- (([](p -> o p)) /\ p) -> []p .
 
+---- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
+rewrite [2] in CTL :
+|- (AG(r -> (! q /\ * r))) /\ r -> !(p AU q) .
+
+---- prove it, using at most 3 times of (Fix) rule (i.e., unfolding).
+rewrite [3] in CTL :
+|- (AG(r -> (! q /\ (p -> o r)))) /\ r -> !(p EU q) .
+
+---- prove it, using at most 1 times of (Fix) rule (i.e., unfolding).
 rewrite [1] in SL :
 |- (ll @ (x,y)) -> (lr @ (x,y)) .
 
