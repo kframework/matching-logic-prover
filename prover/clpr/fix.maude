@@ -3,18 +3,34 @@ mod FIX is
   including NAT .
 
   ---- The fragment, the syntax.
-  sort Variable Variables Pattern Patterns Goal Goals .
+  sorts Variable0 Variable1 Variable2 Variable3 Variable Variables .
+  sorts Pattern Patterns Goal Goals .
+  subsort Variable0 Variable1 Variable2 Variable3 < Variable .
   subsort Variable < Pattern Variables .
   subsort Pattern < Patterns .
   subsort Goal < Goals .
 
-  vars F G X Y Z V : Variable . vars P Q R R' : Pattern .
-  vars Vs Vs' : Variables . vars Ps Qs Rs : Patterns .
+  vars VC : Nat .
+  vars F G X Y Z V V' : Variable . vars P Q R R' : Pattern .
+  vars Vs Vs' Vs'' Vs''' FV : Variables . vars Ps Qs Rs : Patterns .
 
-  ops x y z w u v f g t : -> Variable .
+  ops x y z w u v f g t : -> Variable0 .
+  ops x' y' z' w' u' v' f' g' t' : -> Variable1 .
+  ops x'' y'' z'' w'' u'' v'' f'' g'' t'' : -> Variable2 .
+  ops x''' y''' z''' w''' u''' v''' f''' g''' t''' : -> Variable3 .
   ops p q r : -> Pattern .
 
-  op [newvar_] : Nat -> Variable . ---- lots of fresh variable.
+  ---- lots of fresh copies for variables x y z ...
+  op [newvar__] : Variable0 Nat -> Variable [format(g d d d d o)] .
+  eq [newvar x 0] = x .
+  eq [newvar y 0] = y .
+  eq [newvar z 0] = z .
+  eq [newvar w 0] = w .
+  eq [newvar u 0] = u .
+  eq [newvar v 0] = v .
+  eq [newvar f 0] = f .
+  eq [newvar g 0] = g .
+  eq [newvar t 0] = t .
 
   op empty : -> Variables .
   op __ : Variables Variables -> Variables [assoc] .
@@ -54,6 +70,9 @@ mod FIX is
   ---- substitution, free variables, etc. (TODO)
   op fv : Patterns -> Variables . ---- collect fvs from patterns
   op _[_/_] : Pattern Pattern Variable -> Pattern .
+  op _[_/_] : Pattern Variables Variables -> Pattern . ---- variable renaming
+  op get-vc : Variables -> Nat . ---- get the maximum variable counter
+  op fresh : Variables Nat -> Variables . ---- fresh copies
 
   eq fv(X) = X .
   eq fv(P /\ Q) = fv(P) fv(Q) .
@@ -77,6 +96,31 @@ mod FIX is
   eq (P /\ Q)[R / F] = (P[R / F]) /\ (Q[R / F]) .
   eq (P \/ Q)[R / F] = (P[R / F]) \/ (Q[R / F]) .
   eq (! P)[R / F] = ! (P[R / F]) .
+  eq (P == Q)[R / F] = (P[R / F]) == (Q[R / F]) .
+  eq (P != Q)[R / F] = (P[R / F]) != (Q[R / F]) .
+
+ ceq (forall Vs . P)[R / F] 
+   = forall Vs' Vs''' . (P[Vs'' / Vs'][R / F]) 
+  if FV := fv(P) fv(R)     ---- all fvs in P and R, 
+                           ---- needed to compute fresh copies
+  /\ VC := get-vc(FV)      ---- get the max variable counter
+  /\ Vs' := Vs \ fv(R)     ---- ok variables
+  /\ Vs'' := Vs \ (Vs')    ---- captured variables
+  /\ Vs''' := fresh(Vs'', VC + 1)---- fresh copies of captured variables
+  .
+
+  eq P [(V Vs) / (V' Vs')] = P[V / V'][V' / Vs'] .
+
+  eq get-vc(V:Variable0) = 0 .
+  eq get-vc(V:Variable1) = 1 .
+  eq get-vc(V:Variable2) = 2 .
+  eq get-vc(V:Variable3) = 3 .
+ ceq get-vc([newvar V:Variable0 VC]) = VC if VC >= 4 .
+  eq get-vc(V Vs) = max(get-vc(V), get-vc(Vs)) .
+
+  ops x y z w u v f g t : -> Variable0 .
+
+  eq fresh(x
 
 
   ---- proof rules.
