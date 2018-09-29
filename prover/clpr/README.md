@@ -1,13 +1,13 @@
 # The fixpoint prover.
 
 ## Todos (in priority)
-- [ ] Implement `[](P -> o P) /\ P -> [] P` (as a user story);
+- [X] Implement `[](P -> o P) /\ P -> [] P` (as a user story);
 - [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
 - [X] Finish the example `ll(x,y) -> lr(x,y)` using explicit (Plugin) and (Plugout) rule, no lambda form;
 - [X] Try lambda + mu;
-- [ ] Identify a nice fragment of ML (for implementation convenience);
-- [ ] Define the general KT rule (lfp in a context; question: how to deal with free variables?);
-- [ ] Collect other proof rules (for the fragment);
+- [X] ~~Identify a nice fragment of ML (for implementation convenience);~~
+- [X] Define the general KT rule (lfp in a context; question: how to deal with free variables?);
+- [X] Collect other proof rules (for the fragment);
 
 ## Instruction
 
@@ -362,7 +362,7 @@ We need two axioms to capture LTL.
 They are
 ```
 (Lin) * P -> o P for any pattern P
-(Inf) * T
+(Inf) * top
 ```
 
 The following axiom schema is provable from the above two axioms.
@@ -419,6 +419,271 @@ apply (DP) on (G-2-5-2-1).
 done
 ```
 
+### CTL and its proof rules.
+
+The key CTL operators are defined in matching logic as:
+```
+AX P === o P // strong next
+EX P === * P // weak next
+P AU Q === mu f . (Q \/ (P /\ o f)) // all-path until
+P EU Q === mu f . (Q \/ (P /\ * f)) // one-path until
+EF P === mu f . P \/ * f // one-path eventually
+AG P === nu f . P /\ o f // all-path always
+AF P === mu f . P \/ o f // all-path eventually
+EG P === nu f . P \/ * f // one-path always
+```
+
+CTL assumes infinite traces, and thus requires the following domain specific axiom
+```
+(Inf) * top
+```
+
+We **may** need a few domain specific axioms to help the prover.
+For example,
+```
+(DualWNext) ! * ! P = o P
+(DualSNext) ! o ! P = * P
+(Next) o P /\ * Q -> *(P /\ Q)
+```
+
+We **may** need two duality rules for fixpoints.
+```
+(NegLFP) ! (mu f . P) = nu f . ! P [!f / f]
+(NegGFP) ! (nu f . P) = mu f . ! P [!f / f]
+```
+
+We **may** need a few propositional rules (i.e., (DP)), to canonicalize the patterns. 
+```
+(DeMorgen) !(P \/ Q) = !P /\ !Q
+(DeMorgen) !(P /\ Q) = !P \/ !Q
+
+      Q -> R           /* more generally it should be (P -> Q) /\ P /\ Q -> R
+(MP) ------------------------
+     (P -> Q) /\ P -> R
+
+           P /\ Q -> R
+(NegCase) --------------
+           P -> (!Q \/ R)
+```
+
+The above rules will help make the proof _human readable_.
+But maybe they are not really necessary. 
+I used them in my proof, though.
+
+#### (CTL6) `AG(R -> (!Q /\ * R)) /\ R -> !(P AU Q)`
+
+_Proof._
+
+```
+(G) AG(R -> (!Q /\ * R)) /\ R -> !(P AU Q)
+
+by definition of P AU Q, this is the same as
+
+(G) AG(R -> (!Q /\ * R)) /\ R -> !(mu f . (Q \/ (P /\ o f)))
+
+apply (NegLFP) on (G).
+
+(G-1) AG(R -> (!Q /\ * R)) /\ R -> nu f . !(Q \/ (P /\ o ! f))
+
+apply (DeMongen) on (G-1).
+
+(G-2) AG(R -> (!Q /\ * R)) /\ R -> nu f . (!Q /\ (!P \/ ! o ! f))
+
+apply (DualWNext) on (G-2).
+
+(G-3) AG(R -> (!Q /\ * R)) /\ R -> nu f . (!Q /\ (!P \/ * f))
+
+apply (KT) on (G-3).
+
+(G-4) AG(R -> (!Q /\ * R)) /\ R
+   -> !Q /\ (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+   
+apply (Split) on (G-4).
+
+(G-4-1) AG(R -> (!Q /\ * R)) /\ R -> !Q
+(G-4-2) AG(R -> (!Q /\ * R)) /\ R -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+
+apply (Fix) on (G-4-1).
+
+(G-4-1-1) (R -> (!Q /\ *R)) /\ (o AG(R -> (!Q /\ * R))) /\ R -> !Q
+
+apply (DP) on (G-4-1-1).
+
+done
+
+apply (Fix) on (G-4-2).
+
+(G-4-2-1) (R -> (!Q /\ *R)) /\ (o AG(R -> (!Q /\ * R))) /\ R -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+
+apply (MP) on (G-4-2-1).
+
+(G-4-2-2) !Q /\ *R /\ (o AG(R -> (!Q /\ * R))) -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+
+apply (Next) on (G-4-2-2).
+
+(G-4-2-3) * (R /\ AG(R -> (!Q /\ * R))) -> (!P \/ * (AG(R -> (!Q /\ * R)) /\ R)))
+
+apply (DP) on (G-4-2-3).
+
+done
+```
+
+#### (CTL7) `AG(R -> (!Q /\ (P -> o R))) /\ R -> !(P EU Q)`
+
+_Proof_.
+
+```
+(G) AG(R -> (!Q /\ (P -> o R))) /\ R -> !(P EU Q)
+
+(G) AG(R -> (!Q /\ (P -> o R))) /\ R -> !(mu f . (Q \/ (P /\ * f)))
+
+apply (NegLFP) on (G).
+
+(G-1) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> nu f . !(Q \/ (P /\ * ! f))
+   
+apply (DeMongen) on (G-1).
+
+(G-2) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> nu f . (!Q /\ (!P \/ ! * ! f)))
+   
+apply (NegSNext) on (G-2).
+
+(G-3) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> nu f . (!Q /\ (!P \/ o f)))
+   
+apply (KT) on (G-1).
+
+(G-2) AG(R -> (!Q /\ (P -> o R))) /\ R
+   -> !Q /\ (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+
+apply (Split) on (G-2).
+
+(G-2-1) AG(R -> (!Q /\ (P -> o R))) /\ R -> !Q
+(G-2-2) AG(R -> (!Q /\ (P -> o R))) /\ R -> (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+
+apply (Fix) on (G-2-1).
+
+(G-2-1-1) (R -> (!Q /\ (P -> o R))) /\ (o AG(R -> (!Q /\ (P -> o R)))) /\ R -> !Q
+
+apply (DP) on (G-2-1-1).
+
+done
+
+apply (Fix) on (G-2-2).
+
+(G-2-2-1) (R -> (!Q /\ (P -> o R))) /\ (o AG(R -> (!Q /\ (P -> o R)))) /\ R
+       -> (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+       
+apply (MP) on (G-2-2-1).
+
+(G-2-2-2) !Q /\ (P -> o R) /\ (o AG(R -> (!Q /\ (P -> o R))))
+       -> (!P \/ o(AG(R -> (!Q /\ (P -> o R))) /\ R))
+
+apply (NegCase) on (G-2-2-2).
+(G-2-2-3) !Q /\ (P -> o R) /\ (o AG(R -> (!Q /\ (P -> o R)))) /\ P
+       -> o(AG(R -> (!Q /\ (P -> o R))) /\ R)
+
+apply (MP) on (G-2-2-3).
+
+(G-2-2-4) !Q /\ o R /\ (o AG(R -> (!Q /\ (P -> o R))))
+       -> o(AG(R -> (!Q /\ (P -> o R))) /\ R)
+       
+apply (Propagation o) on (G-2-2-4).
+
+(G-2-2-5) !Q /\ o R /\ (o AG(R -> (!Q /\ (P -> o R))))
+       -> o(AG(R -> (!Q /\ (P -> o R)))) /\ o R
+       
+apply (DP).
+
+done
+```
+
+### SL `ll@(x,y) * list@(y) -> list@(x)`
+
+_Definitions._
+
+```
+ll = mu f . lambda x y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
+list = mu f . lambda x . (emp /\ x=0) \/ exists t . (x|->t * f@(t) /\ x!=0)
+```
+
+_Propagation rules._
+
+```
+(P \/ Q) * H = P * H \/ Q * H, where * is the merge
+```
+
+_Proof._
+```
+(G) ll@(x,y) * list@(y) -> list@(x)
+
+apply (Plugout) on (G).
+
+(G-1) ll -> exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+
+let F === exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+
+apply (Forall) on (G-1).
+
+(G-2) ll -> forall x y . F
+
+apply (KT) on (G-1).
+
+(G-2) lambda x y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+   -> forall x y . exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+   
+apply (UG) on (G-2).
+
+(G-3) lambda x y . (emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)
+   -> exists h . h /\ floor(h@(x,y) * list@(y) -> list@(x))
+
+apply (Plugin) on (G-3).
+
+(G-4) ((emp /\ x=y) \/ exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)) * list@(y) -> list@(x)
+
+apply (Propagation) on (G-4).
+
+(G-5) ((emp /\ x=y) * list@(y)) \/ (exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)) * list@(y) -> list@(x)
+
+apply (Split) on (G-5).
+
+(G-5-1) list@(y) /\ x=y -> list@(x)
+(G-5-2) (exists t . (x|->t * (forall x y . F)@(t,y) /\ x!=y /\ x!=0)) * list@(y) -> list@(x)
+
+apply (DP) on (G-5-1).
+
+done
+
+apply (Exists) on (G-5-2).
+
+(G-5-3) x|->t * (forall x y . F)@(t,y) * list@(y) /\ x!=y /\ x!=0  -> list@(x)
+
+apply (Inst, forall x y . F, x=t, y=y) on (G-5-3).
+
+(G-5-4) x|->t * (F[t/x][y/y])@(t,y) * list@(y) /\ x!=y /\ x!=0  -> list@(x)
+
+expand F.
+
+(G-5-4) x|->t * (exists h . h /\ floor(h@(t,y) * list@(y) -> list@(t)))@(t,y) * list@(y) /\ x!=y /\ x!=0  -> list@(x)
+
+apply (Collapse) on (G-5-4).
+
+(G-5-5) x|->t * list@(t) /\ x!=y /\ x!=0 -> list@(x)
+
+apply (Fix) on (G-5-5). 
+
+...
+```
+
+## Some coinduction examples
+
+_TODO._
+
+## Some program verification examples
+
+_TODO._
+
 ## Proof rules
 
 ### The fragment, the syntax
@@ -426,6 +691,8 @@ done
 The following syntax is chosen so that a very wide range of
 interesting problems, including `ll@(x,y) -> lr@(x,y)` and
 `[] (P -> o P) /\ P -> [] P`, can be encoded using the syntax.
+
+**Please see `fix.maude` for all definitions.**
 
 ```
 Variable ::= x | y | z | ...
@@ -532,4 +799,34 @@ P -> C[C'[Q]] where C'[P] === exists x . x /\ floor(P -> C[x])
 ------------- (CollapseR)
 P -> Q
 
+```
+
+### Main rules: (WRAP), (KT), (UNWRAP)
+
+```
+========   All proof rules for LFP (flag=false) =======
+ (QE) Quantifier elimination
+ (DP) Direct proof
+ (PM) Pattern matching
+(FIX) Right unfold only
+(LFP) A compound rule
+========   All proof rules for GFP (flag=true) =========
+ (QE) Quantifier elimination
+ (DP) Direct proof
+ (PM) Pattern matching
+(FIX) Left unfold only
+(GFP) A compound rule
+========== An application of LFP rule in the search tree =========
+Given LHS |= RHS
+Given P(y1,yn) ≡ B \/ ∃z1,zn: P(z1,zn)/\...
+               ≡ B \/ R (for short)
+foreach recursive predicate P on the lhs:
+    (WRAP)             to have P |= ∃F:  F & floor(LHS[F/P] => RHS)
+                               P |= G (for short)                                    
+    (RIGHT-STRENGTHEN) to have P |= forall x1,xn: G   // Choose such x1,xn that after (QE) we have G
+    (KT)               to have B \/ R[forall x1,xn: G / P] |= forall x1,xn: G
+    (QE)               to have B \/ R[forall x1,xn: G / P] |= G
+    (UNWRAP)           to have LHS[B \/ R[forall x1,xn: G / P] /P] |= RHS
+    
+    prove for all disjuncts on the lhs
 ```
