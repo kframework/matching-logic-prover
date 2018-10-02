@@ -3,9 +3,9 @@ mod FIX is
   including NAT .
 
   ---- The fragment, the syntax.
-  sorts Variable0 Variable1 Variable2 Variable3 Variable Variables .
+  sorts Variable0 Variable Variables .
   sorts Pattern Patterns Goal Goals .
-  subsort Variable0 Variable1 Variable2 Variable3 < Variable .
+  subsort Variable0 < Variable .
   subsort Variable < Pattern Variables .
   subsort Pattern < Patterns .
   subsort Goal < Goals .
@@ -15,26 +15,23 @@ mod FIX is
   vars Vs Vs' Vs'' Vs''' FV : Variables . vars Ps Qs Rs : Patterns .
 
   ops x y z w u v f g t : -> Variable0 .
-  ops x' y' z' w' u' v' f' g' t' : -> Variable1 .
-  ops x'' y'' z'' w'' u'' v'' f'' g'' t'' : -> Variable2 .
-  ops x''' y''' z''' w''' u''' v''' f''' g''' t''' : -> Variable3 .
+  ---- lots of fresh copies for variables x y z ...
+  op [__] : Variable0 Nat -> Variable [format(g d d d o)] .
+
   ops p q r : -> Pattern .
 
-  ---- lots of fresh copies for variables x y z ...
-  op [newvar__] : Variable0 Nat -> Variable [format(g d d d d o)] .
-  eq [newvar x 0] = x .
-  eq [newvar y 0] = y .
-  eq [newvar z 0] = z .
-  eq [newvar w 0] = w .
-  eq [newvar u 0] = u .
-  eq [newvar v 0] = v .
-  eq [newvar f 0] = f .
-  eq [newvar g 0] = g .
-  eq [newvar t 0] = t .
-
+  ---- variable lists
   op empty : -> Variables .
   op __ : Variables Variables -> Variables [assoc] .
-  op _\_ : Variables Variables -> Variables . ---- set minus
+  op _\_ : Variables Variables -> Variables .  ---- list minus
+  eq V V = V .
+  eq empty Vs = Vs .
+  eq Vs \ empty = Vs .
+  eq V \ V = empty .
+  eq empty \ Vs = empty .
+  eq Vs \ empty = Vs .
+  eq (V Vs) \ V = Vs .
+  eq Vs \ (V Vs') = (Vs \ V) \ Vs' .
 
   ---- basic matching logic syntax
   ops top bottom : -> Pattern .
@@ -42,6 +39,7 @@ mod FIX is
   op _\/_ : Pattern Pattern -> Pattern [prec 69 assoc comm] .
   op _->_ : Pattern Pattern -> Pattern [prec 70] .
   op !_ : Pattern -> Pattern [prec 65] . ---- negation
+  op floor`(_`) : Pattern -> Pattern .
   op _==_ : Pattern Pattern -> Pattern [prec 66] .
   op _!=_ : Pattern Pattern -> Pattern [prec 66] .
   op forall_._ : Variables Pattern -> Pattern [prec 72] .
@@ -54,6 +52,10 @@ mod FIX is
   ---- lambda calculus syntax: abstraction and application
   op lambda_._ : Variables Pattern -> Pattern [prec 72] .
   op _@`(_`) : Pattern Patterns -> Pattern [prec 59 format(d s s d d d)] .
+  eq (lambda V . P) @ (Q) = P[Q / V] .
+  eq (lambda V Vs . P) @ (Q) = (lambda Vs . P)[Q / V] .
+  eq (lambda V . P) @ (Q, Qs) = P[Q / V] @ (Qs) .
+  eq (lambda V Vs . P) @ (Q, Qs) = (lambda Vs . (P[Q / V])) @ (Qs)  .
 
   op _,_ : Patterns Patterns -> Patterns [prec 75 assoc] .
 
@@ -62,23 +64,20 @@ mod FIX is
   op done : -> Goals .  ---- done means all proof goals are discharged.
   op _and_ : Goals Goals -> Goals [prec 82 assoc comm id: done format(d n n d)] .
 
-  ---- set minus
-  eq Vs \ empty = Vs .
-  eq (Vs V Vs') \ V = Vs Vs' .
-  eq Vs \ (V Vs') = (Vs \ V) \ Vs' .
-
-  ---- substitution, free variables, etc. (TODO)
+  ---- substitution, free variables, etc. 
   op fv : Patterns -> Variables . ---- collect fvs from patterns
-  op _[_/_] : Pattern Pattern Variable -> Pattern .
+  op _[_/_] : Patterns Pattern Variable -> Pattern .
   op _[_/_] : Pattern Variables Variables -> Pattern . ---- variable renaming
   op get-vc : Variables -> Nat . ---- get the maximum variable counter
-  op fresh : Variables Nat -> Variables . ---- fresh copies
+  op freshcopy : Variables Nat Variables -> Variables . ---- fresh copies
+  op inFV : Variable0 Variables -> Bool .
 
   eq fv(X) = X .
   eq fv(P /\ Q) = fv(P) fv(Q) .
   eq fv(P \/ Q) = fv(P) fv(Q) .
   eq fv(P -> Q) = fv(P) fv(Q) .
   eq fv(! P) = fv(P) .
+  eq fv(floor(P)) = fv(P) .
   eq fv(P == Q) = fv(P) fv(Q) .
   eq fv(P != Q) = fv(P) fv(Q) .
   eq fv(exists Vs . P) = fv(P) \ Vs .
@@ -90,35 +89,71 @@ mod FIX is
   eq fv(Q, Qs) = fv(Q) fv(Qs) .
 
   eq X [R / X] = R .
- ceq Y [R / X] = R if X =/= Y .
-  eq p [R / F] = p . eq q [R / F] = q . eq r [R / F] = r . 
-  eq (P -> Q)[R / F] = (P[R / F]) -> (Q[R / F]) .
-  eq (P /\ Q)[R / F] = (P[R / F]) /\ (Q[R / F]) .
-  eq (P \/ Q)[R / F] = (P[R / F]) \/ (Q[R / F]) .
-  eq (! P)[R / F] = ! (P[R / F]) .
-  eq (P == Q)[R / F] = (P[R / F]) == (Q[R / F]) .
-  eq (P != Q)[R / F] = (P[R / F]) != (Q[R / F]) .
-
- ceq (forall Vs . P)[R / F] 
-   = forall Vs' Vs''' . (P[Vs'' / Vs'][R / F]) 
-  if FV := fv(P) fv(R)     ---- all fvs in P and R, 
-                           ---- needed to compute fresh copies
-  /\ VC := get-vc(FV)      ---- get the max variable counter
-  /\ Vs' := Vs \ fv(R)     ---- ok variables
-  /\ Vs'' := Vs \ (Vs')    ---- captured variables
-  /\ Vs''' := fresh(Vs'', VC + 1)---- fresh copies of captured variables
+ ceq Y [R / X] = Y if X =/= Y .
+  eq p [R / X] = p . eq q [R / X] = q . eq r [R / X] = r . 
+  eq (P -> Q)[R / X] = (P[R / X]) -> (Q[R / X]) .
+  eq (P /\ Q)[R / X] = (P[R / X]) /\ (Q[R / X]) .
+  eq (P \/ Q)[R / X] = (P[R / X]) \/ (Q[R / X]) .
+  eq (! P)[R / X] = ! (P[R / X]) .
+  eq (floor(P))[R / X] = floor(P[R / X]) .
+  eq (P == Q)[R / X] = (P[R / X]) == (Q[R / X]) .
+  eq (P != Q)[R / X] = (P[R / X]) != (Q[R / X]) .
+ ceq (forall Vs . P)[R / X] 
+   = forall Vs' . (P[Vs' / Vs][R / X])
+  if VC := get-vc(fv(P) fv(R))  ---- get the max variable counter
+  /\ Vs' := freshcopy(Vs, VC + 1, fv(R)) ---- get fresh copies
   .
-
-  eq P [(V Vs) / (V' Vs')] = P[V / V'][V' / Vs'] .
+ ceq (exists Vs . P)[R / X] 
+   = exists Vs' . (P[Vs' / Vs][R / X])
+  if VC := get-vc(fv(P) fv(R))  ---- get the max variable counter
+  /\ Vs' := freshcopy(Vs, VC + 1, fv(R)) ---- get fresh copies .
+  .
+ ceq (mu V . P)[R / X] 
+   = mu V . (P[V' / V][R / X])
+  if VC := get-vc(fv(P) fv(R))  ---- get the max variable counter
+  /\ V' := freshcopy(V, VC + 1, fv(R)) ---- get fresh copies .
+  .
+ ceq (nu V . P)[R / X] 
+   = nu V . (P[V' / V][R / X])
+  if VC := get-vc(fv(P) fv(R))  ---- get the max variable counter
+  /\ V' := freshcopy(V, VC + 1, fv(R)) ---- get fresh copies .
+  .
+ ceq (lambda Vs . P)[R / X] 
+   = lambda Vs' . (P[Vs' / Vs][R / X])
+  if VC := get-vc(fv(P) fv(R))  ---- get the max variable counter
+  /\ Vs' := freshcopy(Vs, VC + 1, fv(R)) ---- get fresh copies .
+  .
+  eq (P @ (Qs))[R / X]
+   = P[R / X] @ (Qs[R / X]) . 
+  eq (P, Ps) [R / X] = P[R / X], Ps[R / X] .
+  eq P [(V Vs) / (V' Vs')] = P[V / V'][Vs / Vs'] .
 
   eq get-vc(V:Variable0) = 0 .
-  eq get-vc(V:Variable1) = 1 .
-  eq get-vc(V:Variable2) = 2 .
-  eq get-vc(V:Variable3) = 3 .
- ceq get-vc([newvar V:Variable0 VC]) = VC if VC >= 4 .
+  eq get-vc([V VC]) = VC .
   eq get-vc(V Vs) = max(get-vc(V), get-vc(Vs)) .
 
-  ops x y z w u v f g t : -> Variable0 .
+  ---- ops x y z w u v f g t : -> Variable0 .
+  
+  eq freshcopy(V:Variable0, VC, FV)
+   = if inFV(V:Variable0, FV)
+     then [V:Variable0 VC]
+     else V:Variable0
+     fi .
+  eq freshcopy([V VC0:Nat], VC, FV)
+   = if inFV(V, FV)
+     then [V VC]
+     else [V VC0:Nat]
+     fi .
+  eq freshcopy((V Vs), VC, FV) = freshcopy(V, VC, FV) freshcopy(Vs, VC, FV) .
+  eq inFV(V, V) = true .
+ ceq inFV(V, V':Variable0) = false if V =/= V':Variable0 .
+  eq inFV(V, [V VC]) = true .
+ ceq inFV(V, [V' VC]) = false if V =/= V' .
+  eq inFV(V, (V' Vs)) 
+   = if inFV(V, V')
+     then true
+     else inFV(V, Vs)
+     fi .
 
 
 
@@ -295,7 +330,7 @@ mod SL is
 
   subsort Nat < Pattern .
 
-  vars F G X Y Z : Variable . vars P Q R : Pattern .
+  vars F G X Y Z : Variable . vars P Q R : Pattern . vars Ps : Patterns .
 
   op emp : -> Pattern .
   op _|->_ : Pattern Pattern -> Pattern [prec 60] .
@@ -310,25 +345,54 @@ mod SL is
   eq ll = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . x |-> t * f @ (t,y))) .
   eq lr = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . f @ (x,t) * t |-> y)) .
 
+  ---- special (Plugin) and (Plugout) rules.
+  ---- should be more general. maybe go to the meta-level?
+
+ ceq |- (mu F . P) @ (Ps) -> R
+   = |- (mu F . P) -> (exists G . (G /\ floor(G @ (Ps) -> R)))
+  if G := freshcopy(g, 10, (f x y t)) .
+
+  
+
 endm
 
----- set trace on .
 
+----    ---- substitution tests.
+----    reduce in FIX :
+----    (forall x . (x /\ y)) [x / y] .
+----    reduce in FIX :
+----    (forall x y z . (x /\ y /\ z /\ t)) [x \/ y \/ z \/ t / t] .
+----    
+----    ---- free variables tests.
+reduce in SL : 
+(lambda x y . emp /\ x == y \/ (exists t . f @ (t,y) * x |-> t))[
+    exists g . g /\ floor(g @ (x,y) -> (mu f . lambda x y . emp /\ x == y \/ (
+    exists t . f @ (x,t) * t |-> y)) @ (x,y)) / f] -> (exists g . g /\ floor(g @ (
+    x,y) -> (mu f . lambda x y . emp /\ x == y \/ (exists t . f @ (x,t) * t |->
+    y)) @ (x,y))) .
 
----- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
-rewrite [2] in LTL :
-|- (([](p -> o p)) /\ p) -> []p .
-
----- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
-rewrite [2] in CTL :
-|- (AG(r -> (! q /\ * r))) /\ r -> !(p AU q) .
-
----- prove it, using at most 3 times of (Fix) rule (i.e., unfolding).
-rewrite [3] in CTL :
-|- (AG(r -> (! q /\ (p -> o r)))) /\ r -> !(p EU q) .
+----    ---- lambda calculus tests.
+----    reduce in FIX :
+----    (lambda x . x) @ (y) . ---- expect to return y
+----    reduce in FIX :
+----    (lambda x . (x @ (y))) @ (y) . ---- expect to return y @ (y)
+----    reduce in FIX :
+----    (lambda x y z . ((x @ (y)) @ (x @ (z)))) @ (x, u, v) .
+----    
+----    ---- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
+----    rewrite [2] in LTL :
+----    |- (([](p -> o p)) /\ p) -> []p .
+----    
+----    ---- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
+----    rewrite [2] in CTL :
+----    |- (AG(r -> (! q /\ * r))) /\ r -> !(p AU q) .
+----    
+----    ---- prove it, using at most 3 times of (Fix) rule (i.e., unfolding).
+----    rewrite [3] in CTL :
+----    |- (AG(r -> (! q /\ (p -> o r)))) /\ r -> !(p EU q) .
 
 ---- prove it, using at most 1 times of (Fix) rule (i.e., unfolding).
-rewrite [1] in SL :
+reduce in SL :
 |- (ll @ (x,y)) -> (lr @ (x,y)) .
 
 q .
