@@ -22,10 +22,12 @@ mod FIX is
 
   ---- variable lists
   op empty : -> Variables .
-  op __ : Variables Variables -> Variables [assoc] .
+  ---- list of variables.
+  ---- order matters! (in lambda abstraction)
+  op __ : Variables Variables -> Variables [assoc] . 
   op _\_ : Variables Variables -> Variables .  ---- list minus
-  eq empty V = V .
-  eq V empty = V .
+  eq empty Vs = Vs .
+  eq Vs empty = Vs .
   eq Vs \ empty = Vs .
   eq empty \ Z = empty .
   eq Z \ Z = empty .
@@ -48,6 +50,9 @@ mod FIX is
   op _!=_ : Pattern Pattern -> Pattern [prec 66] .
   op forall_._ : Variables Pattern -> Pattern [prec 72] .
   op exists_._ : Variables Pattern -> Pattern [prec 72] .
+
+  eq forall empty . P = P .
+  eq exists empty . P = P .
   
   ---- fixpoint syntax: lfp and gfp
   op mu_._ : Variable Pattern -> Pattern [prec 72] .
@@ -70,27 +75,35 @@ mod FIX is
 
   ---- substitution, free variables, etc. 
   op fv : Patterns -> Variables . ---- collect fvs from patterns
-  op _[_/_] : Patterns Pattern Variable -> Pattern .
-  op _[_/_] : Pattern Variables Variables -> Pattern . ---- variable renaming
+  op _[_/_] : Patterns Pattern Variable -> Patterns .
+  op _[_/_] : Patterns Variables Variables -> Patterns . ---- variable renaming
   op get-vc : Variables -> Nat . ---- get the maximum variable counter
   op freshcopy : Variables Nat Variables -> Variables . ---- fresh copies
   op inFV : Variable0 Variables -> Bool .
+  op delete-duplicates : Variables -> Variables . ---- delete duplicates in lists
 
   eq fv(X) = X .
-  eq fv(P /\ Q) = fv(P) fv(Q) .
-  eq fv(P \/ Q) = fv(P) fv(Q) .
-  eq fv(P -> Q) = fv(P) fv(Q) .
+  eq fv(p) = empty .
+  eq fv(q) = empty .
+  eq fv(r) = empty .
+  eq fv(P /\ Q) = delete-duplicates(fv(P) fv(Q)) .
+  eq fv(P \/ Q) = delete-duplicates(fv(P) fv(Q)) .
+  eq fv(P -> Q) = delete-duplicates(fv(P) fv(Q)) .
   eq fv(! P) = fv(P) .
   eq fv(floor(P)) = fv(P) .
-  eq fv(P == Q) = fv(P) fv(Q) .
-  eq fv(P != Q) = fv(P) fv(Q) .
-  eq fv(exists Vs . P) = fv(P) \ Vs .
-  eq fv(forall Vs . P) = fv(P) \ Vs .
-  eq fv(mu V . P) = fv(P) \ V .
-  eq fv(nu V . P) = fv(P) \ V .
-  eq fv(lambda Vs . P) = fv(P) \ Vs .
-  eq fv(P @ (Qs)) = fv(P) fv(Qs) .
-  eq fv(Q, Qs) = fv(Q) fv(Qs) .
+  eq fv(P == Q) = delete-duplicates(fv(P) fv(Q)) .
+  eq fv(P != Q) = delete-duplicates(fv(P) fv(Q)) .
+  eq fv(exists Vs . P) = delete-duplicates(fv(P) \ Vs) .
+  eq fv(forall Vs . P) = delete-duplicates(fv(P) \ Vs) .
+  eq fv(mu V . P) = delete-duplicates(fv(P) \ V) .
+  eq fv(nu V . P) = delete-duplicates(fv(P) \ V) .
+  eq fv(lambda Vs . P) = delete-duplicates(fv(P) \ Vs) .
+  eq fv(P @ (Qs)) = delete-duplicates(fv(P) fv(Qs)) .
+  eq fv(Q, Qs) = delete-duplicates(fv(Q) fv(Qs)) .
+
+  eq delete-duplicates(empty) = empty .
+  eq delete-duplicates(V) = V .
+  eq delete-duplicates(V Vs) = V delete-duplicates(Vs \ V) .
 
   eq X [R / X] = R .
  ceq Y [R / X] = Y if X =/= Y .
@@ -130,7 +143,9 @@ mod FIX is
   eq (P @ (Qs))[R / X]
    = P[R / X] @ (Qs[R / X]) . 
   eq (P, Ps) [R / X] = P[R / X], Ps[R / X] .
+
   eq P [(V Vs) / (V' Vs')] = P[V / V'][Vs / Vs'] .
+  eq (P, Ps) [Vs / Vs'] = P[Vs / Vs'], Ps[Vs / Vs'] .
 
   eq get-vc(V:Variable0) = 0 .
   eq get-vc([V VC]) = VC .
@@ -147,6 +162,8 @@ mod FIX is
      else [V VC0:Nat]
      fi .
   eq freshcopy((V Vs), VC, FV) = freshcopy(V, VC, FV) freshcopy(Vs, VC, FV) .
+
+  eq inFV(V, empty) = false .
   eq inFV(V, V) = true .
  ceq inFV(V, V':Variable0) = false if V =/= V':Variable0 .
   eq inFV(V, [V VC]) = true .
@@ -209,12 +226,12 @@ mod FIX is
 
 
   ----    KT rules.
-
+  ----
   ----    |- P[Q / F] -> Q
   ----    ------------------------ (KT for LFP)
   ----    |- (mu F . P) -> Q
 
-  eq |- (mu F . P) -> Q = |- P[Q / F] -> Q [label KT] .
+  ---- eq |- (mu F . P) -> Q = |- P[Q / F] -> Q [label KT] .
 
 
 
@@ -224,7 +241,7 @@ mod FIX is
   ----    ------------------------ (KT for GFP)
   ----    |- Q -> nu f . P 
 
-  eq |- Q -> (nu F . P) = |- Q -> (P[Q / F]) [label KT] .
+  ---- eq |- Q -> (nu F . P) = |- Q -> (P[Q / F]) [label KT] .
 
 
 
@@ -332,8 +349,8 @@ mod SL is
 
   subsort Nat < Pattern .
 
-  vars F G X Y Z : Variable . vars FV : Variables . 
-  vars P Q R : Pattern . vars Ps : Patterns .
+  vars F G X Y Z : Variable . vars FV Vs Vs' : Variables . 
+  vars P Q R R' : Pattern . vars Ps : Patterns .
 
   op emp : -> Pattern .
   op _|->_ : Pattern Pattern -> Pattern [prec 60] .
@@ -349,16 +366,41 @@ mod SL is
   eq (P * Q)[R / X] = P[R / X] * (Q[R / X]) .
 
   eq ll = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . x |-> t * f @ (t,y))) .
-  eq lr = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . f @ (x,t) * t |-> y)) .
+  ---- eq lr = mu f . lambda x y . ((emp /\ x == y) \/ (exists t . f @ (x,t) * t |-> y)) .
+  ---- for debugging purposes
+  eq fv(lr) = empty .
+  eq lr[R / X] = lr .
+
+
+  ---- NOTE!!!
+  ---- Be careful about the orders that rules apply.
+  ---- In particular, we want the following order:
+  ---- (Plugout) + (Forall) + (KT) + (UG) + (Plugin)
 
   ---- special (Plugin) and (Plugout) rules.
   ---- should be more general. maybe go to the meta-level?
 
+
+  ---- (Plugout) + (Forall)
  ceq |- (mu F . P) @ (Ps) -> R
-   = |- (mu F . P) -> (exists G . (G /\ floor(G @ (Ps) -> R)))
+   = |- (mu F . P) -> (forall fv(R') . R') 
   if FV := fv(Ps, R)
   /\ G := freshcopy(g, get-vc(FV), FV) 
+  /\ R' := (exists G . (G /\ floor((G @ (Ps)) -> R)))
  [label plugout] .
+
+
+  ---- (KT) should be applied here.
+
+  eq |- (mu F . P) -> Q = |- P[Q / F] -> Q [label KT] .
+
+  ---- (UG) + (Plugin)
+ ceq |- P -> (forall Vs . exists G . G /\ floor(G @ (Ps) -> R))
+   = |- P @ (Ps[Vs' / Vs]) -> R[Vs' / Vs]
+  if FV := fv(P)
+  /\ Vs' := freshcopy(Vs, get-vc(FV), FV)
+  [label plugin] .
+ 
 
 endm
 
@@ -394,7 +436,7 @@ endm
 
 set trace on .
 set trace select on .
-trace select KT plugout fix .
+trace select KT plugout fix plugin .
 
 ---- prove it, using at most 1 times of (Fix) rule (i.e., unfolding).
 reduce in SL :
