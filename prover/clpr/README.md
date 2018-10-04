@@ -11,6 +11,13 @@
 
 ## Instruction
 
+All is in `fix.maude`. 
+To run it, do
+```
+sudo apt install maude
+maude fix.maude
+```
+
 Before using `clpr`, add the following to your `~/.bashrc`:
 ```
 PATH={current_path}/clpr:{current_path}/clpr/z3/bin/:$PATH
