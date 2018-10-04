@@ -1,8 +1,13 @@
 mod FIX is
 
+  ---- This is the main module where the prover
+  ---- is implemented. It includes a syntax for
+  ---- the logic and definitions of general purpose
+  ---- proof rules, including (Plugin), (Plugout),
+  ---- (KT), and (Collapse).
+
   including NAT .
 
-  ---- The fragment, the syntax.
   sorts Variable0 Variable Variables .
   sorts Pattern Patterns Goal Goals .
   subsort Variable0 < Variable .
@@ -20,10 +25,8 @@ mod FIX is
 
   ops p q r : -> Pattern .
 
-  ---- variable lists
+  ---- variable lists. order matters! (e.g. in lambda abstraction).
   op empty : -> Variables .
-  ---- list of variables.
-  ---- order matters! (in lambda abstraction)
   op __ : Variables Variables -> Variables [assoc] . 
   op _\_ : Variables Variables -> Variables .  ---- list minus
   eq empty Vs = Vs .
@@ -34,12 +37,10 @@ mod FIX is
  ceq V \ Z = V if V =/= Z .
   eq (V Vs) \ Z = (V \ Z) (Vs \ Z) .
   eq Vs \ (Z Zs) = (Vs \ Z) \ Zs .
-  
-   
   eq Vs \ empty = Vs .
   eq empty \ Vs = empty .
 
-  ---- basic matching logic syntax
+  ---- matching logic syntax
   ops top bottom : -> Pattern .
   op _/\_ : Pattern Pattern -> Pattern [prec 68 assoc comm] .
   op _\/_ : Pattern Pattern -> Pattern [prec 69 assoc comm] .
@@ -50,17 +51,16 @@ mod FIX is
   op _!=_ : Pattern Pattern -> Pattern [prec 66] .
   op forall_._ : Variables Pattern -> Pattern [prec 72] .
   op exists_._ : Variables Pattern -> Pattern [prec 72] .
-
+  ---- some simplification rules just in case.
   eq forall empty . P = P .
   eq exists empty . P = P .
-  
   ---- fixpoint syntax: lfp and gfp
   op mu_._ : Variable Pattern -> Pattern [prec 72] .
   op nu_._ : Variable Pattern -> Pattern [prec 72] .
-
   ---- lambda calculus syntax: abstraction and application
   op lambda_._ : Variables Pattern -> Pattern [prec 72] .
   op _@`(_`) : Pattern Patterns -> Pattern [prec 59 format(d s s d d d)] .
+  ---- some rules for beta-reduction.
   eq (lambda V . P) @ (Q) = P[Q / V] .
   eq (lambda V Vs . P) @ (Q) = (lambda Vs . P)[Q / V] .
   eq (lambda V . P) @ (Q, Qs) = P[Q / V] @ (Qs) .
@@ -176,15 +176,19 @@ mod FIX is
 
 
 
-  ---- proof rules.
 
-  ---- In terms of the paper, we have the freedom to include also the minimal proof system of matching logic. 
+
+
+
+
+
+  ---- Proof rules.
+
   ----    done
   ----    ------------------------ (DP)
   ----    |- P -> P
 
   eq |- P -> P = done .
-
 
 
 
@@ -201,8 +205,6 @@ mod FIX is
   ----    |- P /\ Q -> P 
 
   eq |- P /\ Q -> P = done .
-
-
 
 
 
