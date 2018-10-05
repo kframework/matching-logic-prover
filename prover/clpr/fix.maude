@@ -427,14 +427,15 @@ endm
 ----    rewrite [2] in LTL :
 ----    |- (([](p -> o p)) /\ p) -> []p .
 ----    
-----    ---- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
-----    rewrite [2] in CTL :
-----    |- (AG(r -> (! q /\ * r))) /\ r -> !(p AU q) .
-----    
-----    ---- prove it, using at most 3 times of (Fix) rule (i.e., unfolding).
-----    rewrite [3] in CTL :
-----    |- (AG(r -> (! q /\ (p -> o r)))) /\ r -> !(p EU q) .
+---- prove it, using at most 2 times of (Fix) rule (i.e., unfolding).
+rewrite [2] in CTL :
+|- (AG(r -> (! q /\ * r))) /\ r -> !(p AU q) .
 
+---- prove it, using at most 3 times of (Fix) rule (i.e., unfolding).
+rewrite [3] in CTL :
+|- (AG(r -> (! q /\ (p -> o r)))) /\ r -> !(p EU q) .
+
+eof .
 
 set trace on .
 set trace select on .
