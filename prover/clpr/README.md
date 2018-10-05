@@ -18,22 +18,10 @@ sudo apt install maude
 maude fix.maude
 ```
 
-Before using `clpr`, add the following to your `~/.bashrc`:
-```
-PATH={current_path}/clpr:{current_path}/clpr/z3/bin/:$PATH
-export PATH
-LD_LIBRARY_PATH={current_path}/clpr/z3/lib/:/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
-export CLPRLIB={current_path}/clpr
-export CLPR_BASE_PATH={current_path}/clpr
-```
+To run `clpr` files:
 
-To use `clpr`:
 ```
-mkdir tests
-cd tests
-/* prepare your test files here */
-../clpr test.clpr
+./run-clpr test.clpr
 ```
 
 ## A bit(e) of theory
