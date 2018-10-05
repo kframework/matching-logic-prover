@@ -34,6 +34,6 @@ run :-
   run_test,
   !.
 
-:- consult('../solver_main.clpr').
+:- consult('solver_main.clpr').
 
 :- run, halt.

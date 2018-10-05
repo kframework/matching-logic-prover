@@ -2,6 +2,6 @@
 
 run :- test_1.
 
-:- consult('../solver_main.clpr').
+:- consult('solver_main.clpr').
 
 :- run, halt.

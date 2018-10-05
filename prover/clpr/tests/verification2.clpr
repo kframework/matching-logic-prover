@@ -211,6 +211,6 @@ run :-
 % run_ex_3,
   !.
 
-:- consult('../solver_main.clpr').
+:- consult('solver_main.clpr').
 
 :- run, halt.

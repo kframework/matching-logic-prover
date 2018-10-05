@@ -87,7 +87,7 @@ show_counters :-
 load_solver :-
   warning(warning_off), fail.
 load_solver :-
-  consult('../z3_wrapper.clpr'),
+  consult('z3_wrapper.clpr'),
   warning(warning_on).
 
 load_solver :-
