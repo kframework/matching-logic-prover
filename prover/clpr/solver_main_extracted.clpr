@@ -1,9 +1,182 @@
-prove(UnfoldableGAtoms, GConstraints, [], []).
+%--------------------------------------------------------------------
+% This file tries to exact from the solver_main.clpr functions and
+% code that are needed for the implementation of (KT) and related
+% rules. I'll go throught the code and select what in my view are
+% needed.
+%--------------------------------------------------------------------
 
-prove(UnfoldableGAtoms, GConstraints, UnfoldableHAtoms, HConstraints).
+%--------------------------------------------------------------------
+% set_default ignored.
+% counters related functions ignored.
+% load_solver ignored.
+% set_equalities ignored.
+%--------------------------------------------------------------------
 
 
-% special (KT) rule for when there is only one unfoldbale atom on the left.
-kt([UnfoldableGAtom], GConstraints, UnfoldableHAtoms, HConstraints, Result) :-
-  
-  
+%--------------------------------------------------------------------
+% remove_atm not needed: no need to keep track of the levels.
+%--------------------------------------------------------------------
+
+
+%--------------------------------------------------------------------
+% pretty printing needed. the following is copied blindly.
+%--------------------------------------------------------------------
+
+prettyprint_aux(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
+            NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints) :-
+  assert(refresh_variables(t(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
+                                   NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints))),
+  retract(refresh_variables(t(NonUnfoldableG, UnfoldableG, G,
+                                   NonUnfoldableH, UnfoldableH, H))),
+  prettyprint(NonUnfoldableG, UnfoldableG, G,
+                     NonUnfoldableH, UnfoldableH, H).
+
+prettyprint(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
+            NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints) :- !,
+  set_counter(variable_number, 0),
+  append(NonUnfoldableGAtoms, UnfoldableGAtoms, GAtoms),
+  append(NonUnfoldableHAtoms, UnfoldableHAtoms, HAtoms),
+  remove_atm(GAtoms, GAtoms1),
+  remove_atm(HAtoms, HAtoms1),
+  prettyprintlist(" , ", GAtoms1),
+  printf(",", []),
+  prettyprintlist(" , ", GConstraints),
+  printf("\n\t|=\n", []),
+  prettyprintlist(" , ", HAtoms1),
+  printf(",", []),
+  prettyprintlist(" , ", HConstraints),
+  printf("\n", []).
+
+prettyprint(A) :-
+  var(A), counter_value(variable_number, N),
+  printf_to_atom(A, "v%", [N]), printf("%", [A]),
+        add_counter(variable_number, 1), !.
+prettyprint(emptyset) :-
+  printf("{", []),
+  printf("}", []), !.
+prettyprint(A) :-
+  atomic(A), printf("%", [A]), !.
+prettyprint(singleton(A)) :-
+  printf("{", []),
+  prettyprint(A),
+  printf("}", []), !.
+prettyprint(ref(A,B)) :-
+  prettyprint(A), printf("[", []), prettyprint(B), printf("]", []), !.
+prettyprint(eqset(A,B)) :-
+  prettyprint(A), printf("=", []), prettyprint(B), !.
+prettyprint(arreq(A,B)) :-
+  prettyprint(A), printf(" =a= ", []), prettyprint(B), !.
+prettyprint(eq(A,B)) :-
+  prettyprint(A), printf("=", []), prettyprint(B), !.
+prettyprint(plus(A,B)) :-
+  printf("(", []),
+  prettyprint(A), printf("+", []), prettyprint(B),
+  printf(")", []), !.
+prettyprint(minus(A,B)) :-
+  printf("(", []),
+  prettyprint(A), printf("-", []), prettyprint(B),
+  printf(")", []), !.
+prettyprint(geq(A,B)) :-
+  prettyprint(A), printf(">=", []), prettyprint(B), !.
+prettyprint(gt(A,B)) :-
+  prettyprint(A), printf(">", []), prettyprint(B), !.
+%prettyprint(union(L)) :- prettyprintlist("U", L), !.
+%prettyprint(inter(L)) :- prettyprintlist("^", L), !.
+%prettyprint(disjoint(L)) :- prettyprintlist("(X)", L), !.
+%prettyprint(multiset(L)) :-
+% printf("{", []),
+% prettyprintlist(",", L),
+% printf("}", []), !.
+prettyprint(upd(A,B,C)) :-
+  printf("<", []), prettyprint(A),
+  printf(",", []), prettyprint(B),
+  printf(",", []), prettyprint(C),
+  printf(">", []), !.
+prettyprint(A) :-
+  A =.. [X|L],
+  printf("%(", [X]),
+        prettyprintlist(",", L),
+        printf(")", []), !.
+
+prettyprintlist(_Op, []) :- !.
+prettyprintlist(_Op, [X]) :-
+  prettyprint(X), !.
+prettyprintlist(Op, [X,Y|R]) :-
+  prettyprint(X), printf("%", [Op]),
+        prettyprintlist(Op, [Y|R]), !.
+
+%--------------------------------------------------------------------
+% some aux functions: can be added later.
+%--------------------------------------------------------------------
+
+%--------------------------------------------------------------------
+% lprove needed, but parameters are different.
+%--------------------------------------------------------------------
+
+lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
+  printf("\n----consider a new obligation----\n", []),
+  printf("% % |= % %\n",
+    [GAtoms, GConstraints, HAtoms, HConstraints]),
+  fail.
+
+% try all possible rules and collect a set of obligation sets OrSet.
+% prove one obligation set in OrSet and we are done.
+lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
+  lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet),
+  prove_one(OrSet),
+  !, true.
+ 
+% % collect OrSet by trying all possible rules.
+lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :-
+  lprove_aux_kt(GAtoms, GConstraints, HAtoms, HConstraints, [], OrSetKT),
+  OrSet = OrSetKT,
+  prove_one(OrSet).
+
+%--------------------------------------------------------------------
+% prove_one needed. the structure of the original code is kept.
+% prove_all needed. the structure of the original code is kept.
+%--------------------------------------------------------------------
+prove_one([]) :- !, fail. % fail to prove.
+
+prove_one(OrSet) :- 
+  printf("\n----consider an orset----\n", []),
+  prove_one_set(OrSet) .
+
+prove_one_set(OrSet) :- prove_one_set_aux(OrSet).
+
+prove_one_set_aux([]) :- !, fail. % fail to prove.
+
+prove_one_set_aux([Obs | _]) :- prove_all(Obs),
+  !, true.
+
+prove_one_set_aux([_ | R]) :- prove_one_set_aux(R).
+
+prove_all([]) :- !, true. % succeed to prove.
+
+prove_all([Ob | R]) :-
+  Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints),
+  lprove(GAtoms, GConstraints, HAtoms, HConstraints),
+  !,
+  prove_all(R).
+
+prove_all(_) :- fail. % not reachable.
+
+
+
+%--------------------------------------------------------------------
+% lprove_aux_kt: try (KT) rule.
+%--------------------------------------------------------------------
+
+% the case when there's no unfoldable GAtom.
+lprove_aux_kt([], _GConstraints, _HAtoms, _HConstraints, 
+              _InOrSet, _InOrSet) :-
+  !.
+
+% the case when there's one unfoldable GAtom.
+lprove_aux_kt([GAtom], GConstraints, HAtoms, HConstraints,
+              InOrSet, OutOrSet) :-
+  printf("\n----try KT----\n", []),
+  unfold(GAtom, Bodies),
+  printf("Bodies=%\n", [Bodies]),
+  % we need substitution.
+  true.

@@ -14,13 +14,21 @@ unfold(even(X),
   body([even(Y)],
        [gt(X, 0), eq(X, plus(Y, 2))])
   ]).
+
+%--------------------------------------------------------------------
+% setup the prover
+%--------------------------------------------------------------------
+
+
   
 
 run_example :-
-  prove(UnfoldableGAtoms,
-        [],
-        UnfoldableHAtoms, 
-        []),
+  GAtoms = [mul4(X)],
+  HAtoms = [even(X)],
+  lprove(GAtoms,
+         [],
+         HAtoms, 
+         []),
   !,
   printf("Example mult4 proved.\n", []).
 
