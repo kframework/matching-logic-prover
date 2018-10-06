@@ -38,6 +38,20 @@ run_example :-
   show_counters,
   printf("MUL4 EXAMPLE PROVED.\n", []).
 
+
+run :-
+    addunfoldlevel(0, 0, [mul4(X)], UnfoldableGAtoms)
+  , addunfoldlevel(0, 0, [even(X)], UnfoldableHAtoms)
+  , applyKT(X, UnfoldableGAtoms, UnfoldableHAtoms)
+  , printf("Done.\n", [])
+  , false %% Change to true to enable this
+  .
+
+applyKT(X, E, EPrime) :- 
+    substitute_terms([eq(X, EPrime)], E, Out)
+  , printf("applyKT: mu % % -> % === % .\n", [X, E, EPrime, Out])
+  .
+
 run :-
   run_example,
   !,

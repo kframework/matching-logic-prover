@@ -2979,7 +2979,7 @@ simplify_by_existential_equalities(InHAtoms, InHConstraints, InEV,
 %          [ExtUnif, InHAtoms]),
 %   substitute_until_fixpoint(ExtUnif, InHAtoms, OutHAtoms),
   substitute_terms(ExtUnif, InHAtoms, OutHAtoms),
-% printf("substitute_terms(%,%,OutHConstraints)\n", [ExtUnif,HConstraints1]),
+%  printf("substitute_terms(%,%,OutHConstraints)\n", [ExtUnif,InHAtoms], OutHAtoms),
 %   printf("B substitute_until_fixpoint(%,%,OutHConstraints)\n",
 %          [ExtUnif, HConstraints1]),
 %   substitute_until_fixpoint(ExtUnif, HConstraints1, OutHConstraints).
@@ -3314,12 +3314,12 @@ inductive(IndLevel,
   %reverse_unifier(Unifier, RevUnifier),
 
   %printf("RevUnifier = %\n", [RevUnifier]),
-  %printf("Before subtitute_terms:\nUnifier = %\nGConstraints1 = %\n",
-        %          [Unifier, GConstraints1]),
+  % printf("Before substitute_terms:\nUnifier = %\nGConstraints1 = %\n",
+  %                 [Unifier, GConstraints1]),
   % Perform subsitutions (G' theta)
   substitute_terms(Unifier, GConstraints1, GConstraints2),  
-  %printf("After subtitute_term(%,%,%)\n", 
-  %       [Unifier, GConstraints1, GConstraints2]),
+  % printf("After substitute_terms(%,%,%)\n", 
+  %        [Unifier, GConstraints1, GConstraints2]),
   %----------------------------------------------------------------------
   % Add equality constraints generated from unifier
   % This is best explained using example:
