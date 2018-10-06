@@ -25,7 +25,7 @@ unfold(list_seg(H, X, Y, F),
         eqset(F, add(F1, X))])
   ]).
 
-:- consult('../solver_main_extracted.clpr').
+:- consult('solver_main_extracted.clpr').
 
 :- kt_1(list(H, X, F12)), halt.
 

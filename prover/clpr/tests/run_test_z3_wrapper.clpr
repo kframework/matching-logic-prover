@@ -2,6 +2,6 @@
 
 run :- test_arr_0.
 
-:- consult('../z3_wrapper.clpr').
+:- consult('z3_wrapper.clpr').
 
 :- run, halt.
