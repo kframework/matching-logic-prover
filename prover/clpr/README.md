@@ -808,7 +808,7 @@ P -> Q
 
 ```
 
-### Main rules: (WRAP), (KT), (UNWRAP)
+## Main rules: (WRAP), (KT), (UNWRAP)
 
 ```
 ========   All proof rules for LFP (flag=false) =======
@@ -836,4 +836,57 @@ foreach recursive predicate P on the lhs:
     (UNWRAP)           to have LHS[B \/ R[forall x1,xn: G / P] /P] |= RHS
     
     prove for all disjuncts on the lhs
+```
+
+
+## Some examples of using the clpr syntax
+
+### `mul4(X) -> even(X)`
+
+_Definitions._
+
+```
+unfold(mul4(X),
+  [
+  body([], [eq(X, 0)]),
+  body([mul4(Y)],
+       [gt(X, 0), eq(X, plus(Y, 4))])
+  ]).
+
+unfold(even(X),
+  [
+  body([], [eq(X, 0)]),
+  body([even(Y)],
+       [gt(X, 0), eq(X, plus(Y, 2))])
+  ]).
+```
+
+_Proof._
+
+```
+
+(1) mul4(X) -> even(X)
+
+apply (KT) on (1) /* no need for (Plugin) and (Plugout) for this example */
+
+proof rule (KT) is
+  goto the definition of mult4
+  for every body B in the definition of mult4:
+    let B' = substitute mult4(Y) for even(Y) in B
+    generate a new obligation B' -> even(X)
+
+(2-1) X=0 -> even(X)
+(2-2) even(Y) /\ X>0 /\ X=Y+4 -> even(X)
+
+apply (RU) on (2-1). done.
+
+apply (RU) on (2-2).
+
+(3) even(Y) /\ X>0 /\ X=Y+4 -> even(Y') /\ X>0 /\ X=Y'+2
+
+apply (RU) on (3).
+
+(4) even(Y) /\ X>0 /\ X=Y+4 -> even(Y'') /\ Y'>0 /\ Y''=Y'+2 /\ X>0 /\ X=Y'+2
+
+apply (DP) on (4).
 ```

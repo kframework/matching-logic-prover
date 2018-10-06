@@ -1,41 +1,9 @@
-%--------------------------------------------------------------------
-% A proof goal consists of a list of recursive atoms 
-% and a list of constraints.
-% goal(RecursiveAtoms, Constraints)
-%--------------------------------------------------------------------
+prove(UnfoldableGAtoms, GConstraints, [], []).
+
+prove(UnfoldableGAtoms, GConstraints, UnfoldableHAtoms, HConstraints).
 
 
-%--------------------------------------------------------------------
-% kt_1 takes a recursive atom and unfold it.
-%--------------------------------------------------------------------
-kt_1(RecursiveAtom) :-
-  unfold(RecursiveAtom, BodyList),
-  printf("%\n", [BodyList]).
-
-
-% kt(NonRecursiveGAtoms, HeadRecursiveGAtoms, 
-%   [OneAtom|TailRecursiveGAtoms], GConstraints, CurrentGList, GList) :-
-
-left_unfold_aux(Level, NonUnfoldableGAtoms, 
-  HeadUnfoldableGAtoms, [OneAtom|TailUnfoldableGAtoms],
-        GConstraints, CurrentGList, GList) :-
-  UnfoldLevel < X, unfolddepthbound(X),
+% special (KT) rule for when there is only one unfoldbale atom on the left.
+kt([UnfoldableGAtom], GConstraints, UnfoldableHAtoms, HConstraints, Result) :-
   
-  OneAtom = atm(UnfoldLevel, _ILevel, GPureAtom),
-
-  unfold(GPureAtom, BodyList),
-
-  append(HeadUnfoldableGAtoms, TailUnfoldableGAtoms, UnfoldableGAtoms),
-
-  addtoallbodies(UnfoldLevel+1, Level+1,
-                       NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
-                       BodyList, OneGList),
-
-          
-  NewGList = [OneGList | CurrentGList],
-  append(HeadUnfoldableGAtoms, [OneAtom], NewHeadUnfoldableGAtoms),
-  left_unfold_aux(Level, NonUnfoldableGAtoms, 
-                  NewHeadUnfoldableGAtoms, TailUnfoldableGAtoms,
-      GConstraints, NewGList, GList).
-
-
+  

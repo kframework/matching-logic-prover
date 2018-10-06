@@ -1,0 +1,38 @@
+declare_unification_type(mul4, [eq]).
+declare_unification_type(even, [eq]).
+
+unfold(mul4(X),
+  [
+  body([], [eq(X, 0)]),
+  body([mul4(Y)],
+       [gt(X, 0), eq(X, plus(Y, 4))])
+  ]).
+
+unfold(even(X),
+  [
+  body([], [eq(X, 0)]),
+  body([even(Y)],
+       [gt(X, 0), eq(X, plus(Y, 2))])
+  ]).
+  
+
+run_example :-
+  prove(UnfoldableGAtoms,
+        [],
+        UnfoldableHAtoms, 
+        []),
+  !,
+  printf("Example mult4 proved.\n", []).
+
+run :-
+  run_example,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('../solver_main_extracted.clpr').
+
+:- run, halt.

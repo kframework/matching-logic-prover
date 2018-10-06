@@ -1,0 +1,61 @@
+inductionlimit(4).
+unfolddepthbound(4).
+
+traceleftbound(4).
+tracerightbound(4).
+
+declare_unification_type(ll, [arreq,eq,eq,eqset]).
+declare_unification_type(lr, [arreq,eq,eq,eqset]).
+
+% list segment recursively defined from the left
+unfold(ll(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([ll(H,T,Y,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(T, ref(H, plus(X, 1))),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+% list segment recursively defined from the right
+unfold(lr(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([lr(H,X,T,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(Y, ref(H, plus(T, 1))),
+        z3_not(mem(Y, F1)),
+        eqset(F, add(F1, Y))])
+  ]).
+
+
+run_ll_lr :-
+  init_counters,
+  addunfoldlevel(0, 0, [ll(H, X, Y, F)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [lr(H, X, Y, F)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("LL-LR is PROVED.\n", []).
+
+run :-
+  run_ll_lr,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.

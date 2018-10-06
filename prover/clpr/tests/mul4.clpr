@@ -26,9 +26,9 @@ unfold(even(X),
 
 run_example :-
   init_counters,
-  addunfoldlevel(0, 0, [even(X)],
-                 UnfoldableGAtoms),
   addunfoldlevel(0, 0, [mul4(X)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [even(X)],
                  UnfoldableHAtoms),
   lprove(0, 0, 0,
          [], UnfoldableGAtoms,
