@@ -23,7 +23,7 @@ unfold(lr(H,X,Y,F),
   [
   body([], [eq(X,Y), eqset(F,emptyset)]),
   body([lr(H,X,T,F1)],
-       [gt(T, 0),
+       [gt(X, 0),
         z3_not(eq(X, Y)),
         eq(Y, ref(H, plus(T, 1))),
         z3_not(mem(T, F1)),
