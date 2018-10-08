@@ -113,6 +113,36 @@ append([], B, B).
 append([X|A], B, [X|C]) :- append(A, B, C).
 
 %--------------------------------------------------------------------
+% get_unifier(LHS, RHS, Unifier)
+% LHS: List of terms; TODO: This can only be of the form `Ctor(X1, X2, ...)`
+%      Where Xi is a variable.
+% RHS: List of terms
+% Unifier: List of eq(A,B), where A is variable
+% Finds a substitution that when applied to the LHS unifies it with the RHS.
+% Note that this is *NOT* full unification.
+%--------------------------------------------------------------------
+
+get_unifier([L], [R], Out) :- true
+  , printf("1: L = %: R = %\n", [L, R])
+  , L =.. [Ctor|Args1]
+  , printf("2: Ctor = %: Args1 = %\n", [Ctor, Args1])
+  , R =.. [Ctor|Args2]
+  , printf("2: Ctor = %: Args1 = %\n", [Ctor, Args2])
+  , get_unifier_subterms(Args1, Args2, Out)
+  .
+get_unifier_subterms([L], [R], [eq(L,R)]) :- true
+  , var(L)
+  .
+get_unifier_subterms([L|LS], [R|RS], US) :- true
+  , printf("z: LS = %: RS = %\n", [LS, RS])
+  , get_unifier_subterms([L],  [R],  U1)
+  , get_unifier_subterms(LS, RS, U2)
+  , append(U1, U2, US)
+  , printf("5: L = %: R = %, US = %\n", [L, R, US])
+  .
+get_unifier_subterms([], [], []).
+
+%--------------------------------------------------------------------
 % lprove needed, but parameters are different.
 %--------------------------------------------------------------------
 
