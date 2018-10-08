@@ -281,16 +281,20 @@ prove_all(_) :- fail. % not reachable.
 % lprove_aux_kt: try (KT) rule.
 %--------------------------------------------------------------------
 
+
 % the case when there's no unfoldable GAtom.
-lprove_aux_kt([], _GConstraints, _HAtoms, _HConstraints, 
+lprove_aux_kt([], _GConstraints, _HAtoms, _HConstraints,
               _InOrSet, _InOrSet) :-
   !.
 
 % the case when there's one unfoldable GAtom.
-lprove_aux_kt([GAtom], GConstraints, HAtoms, HConstraints,
+lprove_aux_kt([GAtom], GConstraints, [HAtom], HConstraints,
               InOrSet, OutOrSet) :-
-  printf("\n----try KT----\n", []),
-  unfold(GAtom, Bodies),
-  printf("Bodies=%\n", [Bodies]),
-  % we need substitution.
+  printf("\n----try KT---- InOrSet = % \n", [InOrSet]),
+  unfold(GAtom, GBodies),
+  printf("GBodies=%\n", [GBodies]),
+  rewrite_step([eq(GAtom, HAtom)], GBodies, NewGAtoms),
+  Ob = obligation(NewGAtoms, GConstraints, HAtoms, HConstraints),
+  OutOrSet = [ Ob | InOrSet ],
+  printf("OutOrSet=%\n", [OutOrSet]),
   true.
