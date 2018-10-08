@@ -122,13 +122,20 @@ append([X|A], B, [X|C]) :- append(A, B, C).
 % Note that this is *NOT* full unification.
 %--------------------------------------------------------------------
 
+get_unifier([L], [R], [eq(L,R)]) :- true
+  , var(L)
+  .
 get_unifier([L], [R], Out) :- true
-  , printf("1: L = %: R = %\n", [L, R])
   , L =.. [Ctor|Args1]
-  , printf("2: Ctor = %: Args1 = %\n", [Ctor, Args1])
   , R =.. [Ctor|Args2]
-  , printf("2: Ctor = %: Args1 = %\n", [Ctor, Args2])
-  , get_unifier_subterms(Args1, Args2, Out)
+  , get_unifier(Args1, Args2, Out)
+  .
+get_unifier([L|LS], [R|RS], US) :- true
+  , get_unifier([L],  [R],  U1)
+  , get_unifier(LS, RS, U2)
+  , append(U1, U2, US)
+  .
+get_unifier([], [], [])
   .
 get_unifier_subterms([L], [R], [eq(L,R)]) :- true
   , var(L)

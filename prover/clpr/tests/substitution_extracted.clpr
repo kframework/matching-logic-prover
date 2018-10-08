@@ -30,7 +30,7 @@ test_substitution(Unifier, Input, Expected) :-
 
 :-  consult('solver_main_extracted.clpr').
 :-  printf("\n==== get_unifier\n", []).
-% :- test_get_unifier([Y],    [a(X)],    [eq(Y, a(X))]) .
+:- test_get_unifier([Y],    [a(X)],    [eq(Y, a(X))]) .
 :- test_get_unifier([a(X)], [a(Y)],    [eq(X, Y)]) .
 :- test_get_unifier([a(X)], [a(b(1))], [eq(X, b(1))]) .
 :- test_get_unifier([ll(H, X, Y, F)], [ll(H1, X1, Y1, F1)],
