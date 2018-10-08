@@ -294,7 +294,7 @@ lprove_aux_kt([GAtom], GConstraints, [HAtom], HConstraints,
   unfold(GAtom, GBodies),
   printf("GBodies=%\n", [GBodies]),
   rewrite_step([eq(GAtom, HAtom)], GBodies, NewGAtoms),
-  Ob = obligation(NewGAtoms, GConstraints, HAtoms, HConstraints),
+  Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
   OutOrSet = [ Ob | InOrSet ],
   printf("OutOrSet=%\n", [OutOrSet]),
   true.
