@@ -41,6 +41,6 @@ run :-
   printf("PROOF FAILED\n", []).
 
 
-:- consult('../solver_main_extracted.clpr').
+:- consult('solver_main_extracted.clpr').
 
 :- run, halt.
