@@ -109,6 +109,9 @@ prettyprintlist(Op, [X,Y|R]) :-
 % some aux functions: can be added later.
 %--------------------------------------------------------------------
 
+append([], B, B).
+append([X|A], B, [X|C]) :- append(A, B, C).
+
 %--------------------------------------------------------------------
 % lprove needed, but parameters are different.
 %--------------------------------------------------------------------
