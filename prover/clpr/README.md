@@ -134,7 +134,7 @@ Let's look at the following example.
 Define `ll` and `lr` be two lfp:
 ```
 ll = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
-lr = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=0 /\ x!=y)
+lr = mu f lambda x lambda y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=y /\ x!=0)
 ```
 How can we prove `ll@(x,y) -> lr@(x,y)`?
 To be clear, how to prove `app(app(ll,x),y) -> app(app(lr,x),y)`?
@@ -190,7 +190,7 @@ Proof.
 ```
 Fixpoint definitions.
 ll = mu f lambda x y . (emp /\ x=y) \/ exists t . (x|->t * f@(t,y) /\ x!=y /\ x!=0)
-lr = mu f lambda x y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=0 /\ x!=y)
+lr = mu f lambda x y . (emp /\ x=y) \/ exists t . (f@(x,t) * t|->y /\ x!=y /\ x!=0)
 
 Proof obligation.
 (G) ll@(x,y) -> lr@(x,y)
