@@ -9,7 +9,7 @@ do_test(Actual, Expected) :-
     Actual = Expected,
     printf("Passed?\n\n", []),
     true.
-do_test(Actual, Expected) :-
+do_test(Actual, _Expected) :-
     printf("Failed\n\n", [Actual]),
     true.
 
@@ -19,9 +19,15 @@ test_get_unifier(LHS, RHS, Expected) :-
     do_test(Out, Expected),
     true.
 
-test_substitution(Unifier, Input, Expected) :-
-    printf("test_substitution(%, %, %)\n", [Unifier, Input, Expected]),
-    substitute_terms(Unifier, Input, Out),
+test_substitute(Assignment, Input, Expected) :-
+    printf("test_substitute(%, %, %)\n", [Assignment, Input, Expected]),
+    substitute(Assignment, Input, Out),
+    do_test(Out, Expected),
+    true.
+
+test_rewrite_step(Rules, Input, Expected) :-
+    printf("test_rewrite_step(%, %, %)\n", [Rules, Input, Expected]),
+    rewrite_step(Rules, Input, Out),
     do_test(Out, Expected),
     true.
 
@@ -32,7 +38,28 @@ test_substitution(Unifier, Input, Expected) :-
 :-  printf("\n==== get_unifier\n", []).
 :- test_get_unifier([Y],    [a(X)],    [eq(Y, a(X))]) .
 :- test_get_unifier([a(X)], [a(Y)],    [eq(X, Y)]) .
+:- test_get_unifier([a(X)], [a(a(Y))], [eq(X, a(Y))]) .
 :- test_get_unifier([a(X)], [a(b(1))], [eq(X, b(1))]) .
+% :- test_get_unifier([a(X)], [body(a(X))], _) .
+% :- test_get_unifier([a(X)], [X], _) .
 :- test_get_unifier([ll(H, X, Y, F)], [ll(H1, X1, Y1, F1)],
                     [eq(H, H1), eq(X, X1), eq(Y, Y1), eq(F, F1)]) .
+
+:- printf("\n==== substitute\n", []).
+:- test_substitute([eq(X,a(b(Y)))], [c(X)], [c(a(b(Y)))]) .
+:- test_substitute([eq(X,b(X))], [a(X)], [a(b(X))]) .
+:- test_substitute([eq(X,b(X))], [a(X, X)], [a(b(X), b(X))]) .
+
+:-  printf("\n==== rewrite\n", []).
+:- test_rewrite_step([eq(a(X),b(X))], [a(X)], [b(X)]) .
+:- test_rewrite_step([eq(a(X),b(X))], [body(a(X))], [body(b(X))]) .
+:- test_rewrite_step([eq(a(X),b(X))],    [a(a(X))], [b(a(X))]) .
+:- test_rewrite_step([eq(a(X),b(Y))],    [a(a(X))], [b(Y)]) .
+:- test_rewrite_step([eq(a(X),b(1, X))], [a(a(X))], [b(1, a(X))]) .
+:- test_rewrite_step( [eq(mul4(X), even(X))]
+                    , [ body([], [eq(X, 0)]), body([mul4(N)]
+                      , [gt(X, 0), eq(X, plus(N, 4))])]
+                    , [ body([], [eq(X, 0)]), body([even(N)]
+                      , [gt(X, 0), eq(X, plus(N, 4))])]
+                    ) .
 :- halt .

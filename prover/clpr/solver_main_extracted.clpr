@@ -114,40 +114,114 @@ append([X|A], B, [X|C]) :- append(A, B, C).
 
 %--------------------------------------------------------------------
 % get_unifier(LHS, RHS, Unifier)
-% LHS: List of terms; TODO: This can only be of the form `Ctor(X1, X2, ...)`
-%      Where Xi is a variable.
+% LHS: List of terms
 % RHS: List of terms
 % Unifier: List of eq(A,B), where A is variable
 % Finds a substitution that when applied to the LHS unifies it with the RHS.
 % Note that this is *NOT* full unification.
 %--------------------------------------------------------------------
 
-get_unifier([L], [R], [eq(L,R)]) :- true
-  , var(L)
+get_unifier(L, R, _) :- true
+  , printf("GET_UNIFIER: L = % ; R = %\n", [L, R])
+  , 0 == 1
   .
-get_unifier([L], [R], Out) :- true
+get_unifier([L|LS], [R|RS], [eq(L,R)|US]) :- true
+  , var(L)
+  , get_unifier(LS, RS, US)
+  .
+get_unifier([L|LS], [R|RS], Out) :- true
   , L =.. [Ctor|Args1]
+  , not(var(R))
   , R =.. [Ctor|Args2]
-  , get_unifier(Args1, Args2, Out)
+  , get_unifier(Args1, Args2, Out1)
+  , get_unifier(LS, RS, Out2)
+  , append(Out1, Out2, Out)
   .
-get_unifier([L|LS], [R|RS], US) :- true
-  , get_unifier([L],  [R],  U1)
-  , get_unifier(LS, RS, U2)
-  , append(U1, U2, US)
+get_unifier([], [], []).
+
+%------------------------------------------------------------------------------
+% substitute(Subst, Terms, Modified)
+% Subst: List of eq(A,B), where A is variable.
+% Terms: The list of terms where A is to be replaced with B
+% Modified: The modified list of terms
+%------------------------------------------------------------------------------
+
+substitute(Assign, Term, Out) :- true
+  , printf("SUBSTITUTE: Assign = % ; Term = % ; Out = % \n", [Assign, Term, Out])
+  , 0 == 1
   .
-get_unifier([], [], [])
-  .
-get_unifier_subterms([L], [R], [eq(L,R)]) :- true
+substitute([eq(L, R)], [T], [R]) :- true
   , var(L)
+  , L == T
   .
-get_unifier_subterms([L|LS], [R|RS], US) :- true
-  , printf("z: LS = %: RS = %\n", [LS, RS])
-  , get_unifier_subterms([L],  [R],  U1)
-  , get_unifier_subterms(LS, RS, U2)
-  , append(U1, U2, US)
-  , printf("5: L = %: R = %, US = %\n", [L, R, US])
+substitute([eq(L, _R)], [T], [T]) :- true
+  , var(L)
+  , var(T)
   .
-get_unifier_subterms([], [], []).
+substitute([eq(L, R)], [Term], [Out]) :- true
+  , var(L)
+  , Term =.. [Ctor|Args]
+  , substitute([eq(L, R)], Args, OutArgs)
+  , Out =.. [Ctor|OutArgs]
+  .
+substitute([eq(L, R)], [T|TS], Out) :- true
+  , var(L)
+  , substitute([eq(L, R)], [T], Out1)
+  , substitute([eq(L, R)], TS,  Out2)
+  , append(Out1, Out2, Out)
+  .
+substitute(_Assignment, Term, Term) .
+
+%------------------------------------------------------------------------------
+% rewrite(Subst, In, Out)
+% Subst: List of eq(L, R) where L and R are terms
+% In: List of terms to rewrite
+% Out: List of output terms
+%------------------------------------------------------------------------------
+
+%rewrite(Rule, In, Out) :- true
+%  , printf("REWRITE: Rule = % ; In = %\n", [Rule, In])
+%  , 0 == 1
+%  .
+%rewrite(Rule, In, Out) :- true
+%  , rewrite_step(Rule, In, Out)
+%  , printf("REWRITE.1: Rule = % ; In = %; Out= %\n", [Rule, Int, Out])
+%  , In == Out
+%  .
+%% TODO:BRoken
+%rewrite(Rule, In, Out) :- true
+%  , rewrite_step(Rule, In, Out1)
+%  , printf("REWRITE.2: Rule = % ; In = %; Out= %\n", [Rule, Int, Out1])
+%  , Out1 = Out
+%  , rewrite(Rule, Out1, Out)
+%  .
+
+rewrite_step(Rule, In, _Out) :- true
+  , printf("REWRITE: Rule = % ; In = %\n", [Rule, In])
+  , 0 == 1
+  .
+% Unifies
+rewrite_step([eq(L, R)], [T], [Out]) :- true
+  , get_unifier([L], [T], Unif)
+  , substitute(Unif, [R], [Out])
+  , printf("0: Out = %\n", [Out])
+  .
+% Variable
+rewrite_step(_Rule, [A], [A]) :- true
+  , var(A)
+  , !
+  .
+% Visit arguments
+rewrite_step(Rule, [A], [B]) :- true
+  , A =.. [Name|M], !
+  , rewrite_step(Rule, M, N)
+  , B =.. [Name|N]
+  .
+rewrite_step(Rule, [A|AS], [B|BS]) :- true
+  , rewrite_step(Rule, [A], [B])
+  , rewrite_step(Rule, AS, BS)
+  .
+rewrite_step(_Rule, [], []).
 
 %--------------------------------------------------------------------
 % lprove needed, but parameters are different.
