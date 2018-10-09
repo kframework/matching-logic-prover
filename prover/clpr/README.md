@@ -881,8 +881,11 @@ The effect of the axiom forall y . (C(z,y) -> psi(z,y)) is that
 whenever we see C(z,y0) on the lhs, for some y0,
 we can strengthen the lhs by adding psi(z,y0) to it.
 
-@Thai: How similar is this to the LU+Ind rules? And is the above
-idea reasonably implementable?
+@Thai: How similar is this to the LU+Ind rules? Notice that here
+we don't need to keep track of anything. Instead we need an extra
+axiom set, which is empty initially.
+
+Is the above idea reasonably implementable?
 ```
 
 
