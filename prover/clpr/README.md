@@ -831,36 +831,48 @@ foreach recursive predicate P on the lhs:
 ## How to apply (KT) in clpr syntax?
 
 ```
-Given LHS -> RHS.
-
-Given a recursive predicate P.
+Given a proof obligation p(x) /\ C(x,y) -> psi(x,y).
+Here x and y are vectors of variables
+and p is a recursive predicate.
 
 Given the definition of P:
-  P(X1,...,Xn) ≡ Case1 \/ Case2 \/ ... \/ Case_k.
+  p(x) ≡ ... \/ exists z . D(x,z) /\ p(z) \/ ....
+Here z is a vector of variables. Notice that x and z 
+may not be disjoint. 
 
-Let m be the number of occurrences of P in LHS.
+Here's how we apply KT in matching logic.
 
-Procedure (KT) is
+(1) p(x) /\ C(x,y) -> psi(x,y)
 
-(1) Unfold in LHS all occurrences of P and obtain LHS'.
+(2) p(x) -> forall y . (C(x,y) -> psi(x,y))
 
-(2) Transform LHS' to DNF: LHS' ≡ LHS'1 \/ LHS'2 \/ ... LHS'_km.
-    If there are m occurrences of P in LHS, we should obtain
-    km cases.
-(3) For each i = 1 .. km:
-(3-1) If there is no occurrence of P in LHS'_i,
-      then output the new proof obligation LHS'_i -> RHS.
-      Otherwise, go to (3-2).
-(3-2) For each occurrence of P in LHS'_i:
-(3-2-1) Assume P(t1,...,tn) appears in LHS'_i.
-(3-2-2) Construct the following substitution
-        sigma ≡ { (X1, t1), ... , (Xn, tn) }.
+/* apply KT */
 
-Foreach i = 1 .. k:
-  Foreach occurrence of P in Case_i:
-    
+(3) ... \/ exists z . D(x,z) /\ forall y . (C(z,y) -> psi(z,y)) \/ ...
+  -> forall y . (C(x,y) -> psi(x,y))
+  
+/* this is just one case */
 
-Given LHS ≡ LHS1 /\ P(t1,...,tn) /\ LHS2
+(4) exists z . D(x,z) /\ forall y . (C(z,y) -> psi(z,y))
+  -> forall y . (C(x,y) -> psi(x,y))
+
+/* some FOL reasoning */
+
+(5) D(x,z) /\ forall y . (C(z,y) -> psi(z,y)) /\ C(x,y) -> psi(x,y)
+
+QUESTION: HOW TO DEAL WITH (5)?
+
+IDEA: move forall y . (C(z,y) -> psi(z,y)) to the axiom set:
+
+(6) { forall y . (C(z,y) -> psi(z,y)) }
+    |- D(x,z) /\ C(x,y) -> psi(x,y)
+
+The effect of the axiom forall y . (C(z,y) -> psi(z,y)) is that
+whenever we see C(z,y0) on the lhs, for some y0,
+we can strengthen the lhs by adding psi(z,y0) to it.
+
+@Thai: How similar is this to the LU+Ind rules? And is the above
+idea reasonably implementable?
 ```
 
 
