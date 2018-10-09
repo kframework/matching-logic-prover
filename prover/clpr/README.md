@@ -834,6 +834,14 @@ foreach recursive predicate P on the lhs:
 Given a proof obligation p(x) /\ C(x,y) -> psi(x,y).
 Here x and y are vectors of variables
 and p is a recursive predicate.
+C(x,y) is whatever left on the lhs, and psi(x,y) is the rhs.
+
+What's important is that here all formulas are in fact FOL formulas
+(either true or false).
+In other words, they are predicate patterns in matching logic
+(either the empty set or the total set).
+This greatly simplifies the application of KT.
+In particular, it simplifies (Plugin) and (Plugout) A LOT.
 
 Given the definition of P:
   p(x) ≡ ... \/ exists z . D(x,z) /\ p(z) \/ ....
@@ -843,6 +851,8 @@ may not be disjoint.
 Here's how we apply KT in matching logic.
 
 (1) p(x) /\ C(x,y) -> psi(x,y)
+
+/* (Plugout) and (Forall) */
 
 (2) p(x) -> forall y . (C(x,y) -> psi(x,y))
 
@@ -856,7 +866,7 @@ Here's how we apply KT in matching logic.
 (4) exists z . D(x,z) /\ forall y . (C(z,y) -> psi(z,y))
   -> forall y . (C(x,y) -> psi(x,y))
 
-/* some FOL reasoning */
+/* (Plugin) and (UG) */
 
 (5) D(x,z) /\ forall y . (C(z,y) -> psi(z,y)) /\ C(x,y) -> psi(x,y)
 
