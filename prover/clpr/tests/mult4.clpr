@@ -24,7 +24,7 @@ unfold(even(X),
   ]).
   
 
-run_example :-
+run_example_1 :-
   init_counters,
   addunfoldlevel(0, 0, [mul4(X)],
                  UnfoldableGAtoms),
@@ -36,7 +36,23 @@ run_example :-
          []),
   !,
   show_counters,
+  printf("MUL4 EXAMPLE1 PROVED.\n", []).
+
+run_example_2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [even(X)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [mul4(Y)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms, [eq(Y, plus(X, X))], % G
+         [], UnfoldableHAtoms, [], % H
+         []),
+  !,
+  show_counters,
   printf("MUL4 EXAMPLE PROVED.\n", []).
+
+
 
 
 run :-
@@ -53,7 +69,8 @@ applyKT(X, E, EPrime) :-
   .
 
 run :-
-  run_example,
+  % run_example_1,
+  run_example_2,
   !,
   printf("PROOF SUCCEED.\n", []).
 

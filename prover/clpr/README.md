@@ -796,6 +796,8 @@ P -> Q
 
 ```
 
+# All in CLPR
+
 ## Main rules: (WRAP), (KT), (UNWRAP)
 
 ```
@@ -824,6 +826,41 @@ foreach recursive predicate P on the lhs:
     (UNWRAP)           to have LHS[B \/ R[forall x1,xn: G / P] /P] |= RHS
     
     prove for all disjuncts on the lhs
+```
+
+## How to apply (KT) in clpr syntax?
+
+```
+Given LHS -> RHS.
+
+Given a recursive predicate P.
+
+Given the definition of P:
+  P(X1,...,Xn) ≡ Case1 \/ Case2 \/ ... \/ Case_k.
+
+Let m be the number of occurrences of P in LHS.
+
+Procedure (KT) is
+
+(1) Unfold in LHS all occurrences of P and obtain LHS'.
+
+(2) Transform LHS' to DNF: LHS' ≡ LHS'1 \/ LHS'2 \/ ... LHS'_km.
+    If there are m occurrences of P in LHS, we should obtain
+    km cases.
+(3) For each i = 1 .. km:
+(3-1) If there is no occurrence of P in LHS'_i,
+      then output the new proof obligation LHS'_i -> RHS.
+      Otherwise, go to (3-2).
+(3-2) For each occurrence of P in LHS'_i:
+(3-2-1) Assume P(t1,...,tn) appears in LHS'_i.
+(3-2-2) Construct the following substitution
+        sigma ≡ { (X1, t1), ... , (Xn, tn) }.
+
+Foreach i = 1 .. k:
+  Foreach occurrence of P in Case_i:
+    
+
+Given LHS ≡ LHS1 /\ P(t1,...,tn) /\ LHS2
 ```
 
 
@@ -877,4 +914,100 @@ apply (RU) on (3).
 (4) even(Y) /\ X>0 /\ X=Y+4 -> even(Y'') /\ Y'>0 /\ Y''=Y'+2 /\ X>0 /\ X=Y'+2
 
 apply (DP) on (4).
+```
+
+
+### `ll(H,X,Y,F) -> lr(H,X,Y,F)`
+
+_Definitions._
+```
+unfold(ll(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([ll(H,T,Y,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(T, ref(H, X)),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+% list segment recursively defined from the right
+unfold(lr(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([lr(H,X,T,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(Y, ref(H, T)),
+        z3_not(mem(T, F1)),
+        eqset(F, add(F1, T))])
+  ]).
+```
+
+_Proof._
+```
+(1) ll(H,X,Y,F) -> lr(H,X,Y,F)
+
+/* apply KT */
+
+KT Step 1. Identify the unfoldable on the LHS.
+  In this case, it's ll(H,X,Y,F).
+KT Step 2. Unfold it.
+  In this case, we obtain two bodies.
+  body A. X=Y /\ F=emptyset
+  body B. ll(H,T,Y,F1) /\ X!=0 /\ X!=Y /\ T=H[X] /\ F1=F\{X}
+  Notice that in body B, T and F1 must be fresh.
+KT Step 3. If a body contains no ll, generate a new proof obligation.
+  In this case, we obtain a new proof obligation for body A.
+  X=Y /\ F=emptyset -> lr(H,X,Y,F)
+KT Step 4. If a body contains ll, carry out substitution.
+  Identify the ll formula in the body. In this case, it's ll(H,T,Y,F1).
+  Construct the substitution
+    sigma = { (H,H), (X,T), (Y,Y), (F,F1) }.
+  Apply sigma on the RHS. We obtain
+    lr(H,T,Y,F1).
+  Generate proof obligation
+    lr(H,T,Y,F1) /\ X!=0 /\ X!=Y /\ T=H[X] /\ F1=F\{X} -> lr(H,X,Y,F) 
+
+/* KT application finished. */
+
+(2) X=Y /\ F=emptyset -> lr(H,X,Y,F)  /* can be proved by RU */
+
+(3) lr(H,T,Y,F1) /\ X!=0 /\ X!=Y /\ T=H[X] /\ F1=F\{X} -> lr(H,X,Y,F) 
+
+apply RU on (3).
+
+(4) lr(H,T,Y,F1) /\ X!=0 /\ X!=Y /\ T=H[X] /\ F1=F\{X} 
+ -> lr(H,X,T',F1') /\ X!=0 /\ X!=Y /\ Y=H[T'] /\ F1'=F\{T}
+
+simplify (4).
+
+(5) lr(H,T,Y,F1) /\ X!=0 /\ X!=Y /\ T=H[X] /\ F1=F\{X} 
+ -> lr(H,X,T',F1') /\ Y=H[T'] /\ F1'=F\{T}
+
+/* apply KT */
+
+KT Step 1. Identify the unfoldable on the LHS.
+  In this case, it's lr(H,T,Y,F1).
+KT Step 2. Unfold it.
+  In this case, we obtain two bodies.
+  body A. T=Y /\ F1=emptyset
+  body B. lr(H,T,T'',F1'') /\ T!=0 /\ T!=Y /\ Y=H[T''] /\ F1''=F1\{T''}
+  Notice that in body B, T'' and F1'' must be fresh.
+KT Step 3. If a body contains no ll, generate a new proof obligation.
+  In this case, we obtain a new proof obligation for body A.
+  T=Y /\ F1=emptyset /\ X!=0 /\ X!=Y /\ T=H[X] /\ F1=F\{X}
+  -> lr(H,X,T',F1') /\ Y=H[T'] /\ F1'=F\{T}
+KT Step 4. If a body contains ll, carry out substitution.
+  Identify the ll formula in the body. In this case, it's ll(H,T,Y,F1).
+  Construct the substitution
+    sigma = { (H,H), (X,T), (Y,Y), (F,F1) }.
+  Apply sigma on the RHS. We obtain
+    lr(H,T,Y,F1).
+  Generate proof obligation
+    lr(H,T,Y,F1) /\ X!=0 /\ X!=Y /\ T=H[X] /\ F1=F\{X} -> lr(H,X,Y,F) 
+
+
+
 ```
