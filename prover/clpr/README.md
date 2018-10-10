@@ -891,12 +891,193 @@ Otherwise, prove both of the following two:
 
 (6b) D(x,z) /\ C(x,y) /\ psi(z,y) -> psi(x,y)
 (6c) D(x,z) /\ C(x,y) -> C(z,y)
+```
 
+Let's summarize and see how to apply (KT) in CLPR syntax.
+
+```
+Given the definition of P:
+  p(x) ≡ ... \/ exists z . D(x,z) /\ p(z) \/ ....
+Here z is a vector of variables. Notice that x and z 
+may not be disjoint. 
+
+(1) p(x) /\ C(x,y) -> psi(x,y)
+
+/* apply KT */
+
+Either prove:
+(6a) D(x,z) /\ C(x,y) -> psi(x,y)
+
+Or prove both:
+(6b) D(x,z) /\ C(x,y) /\ psi(z,y) -> psi(x,y)
+(6c) D(x,z) /\ C(x,y) -> C(z,y)
+
+Another way to write it.
+
+unfold(p(x),
+  [
+  ...
+  body([p(z) | UNFOLDABLEBODY], NONUNFOLDABLEBODY) /* x and z may not be disjoint */
+  ...
+  ]).
+
+append(UNFOLDABLEBODY, NONUNFOLDABLEBODY, BODY).
+
+(1) p(x) /\ LHS -> RHS
+
+/* apply KT */
+
+Either prove:
+(6a) BODY /\ LHS -> RHS
+
+Or prove both:
+(6b) BODY /\ LHS /\ RHS[z/x] -> RHS
+(6c) BODY /\ LHS -> LHS[z/x]
 
 ```
 
-
 ## Some examples of using the clpr syntax
+
+### `ll(H,X,Y,F) -> lr(H,X,Y,F)`
+
+```
+Definitions.
+
+unfold(ll(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([ll(H,T,Y,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(T, ref(H, X)),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+% list segment recursively defined from the right
+unfold(lr(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([lr(H,X,T,F1)],
+       [gt(X, 0),
+        z3_not(eq(X, Y)),
+        eq(Y, ref(H, T)),
+        z3_not(mem(T, F1)),
+        eqset(F, add(F1, T))])
+  ]).
+  
+Definition (in human friendly form).
+  
+ll(H,X,Y,F) ≡
+   X=Y /\ F=emptyset
+\/ ll(H,T,Y,F1) /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+
+lr(H,X,Y,F) ≡
+   X=Y /\ F=emptyset
+\/ lr(H,X,T,F1) /\ X>0 /\ X!=Y /\ Y=H[T] /\ T notin F1 /\ F=F1+{T}
+
+Proof.
+
+(1) ll(H,X,Y,F) -> lr(H,X,Y,F)
+
+/* apply KT on p(x) /\ LHS -> RHS
+ * Either prove:
+ * (a) BODY /\ LHS -> RHS
+ *
+ * Or prove both:
+ * (b) BODY /\ LHS /\ RHS[z/x] -> RHS
+ * (c) BODY /\ LHS -> LHS[z/x]
+ */
+
+/* apply KT */
+
+/* ll has two cases. */
+
+/* The first case is ll(H,X,Y,F) :- X=Y /\ F=emptyset
+ * BODY is X=Y /\ F=emptyset (no occurrence of ll)
+ * Simply unfold.
+ */
+
+(2)  X=Y /\ F=emptyset -> lr(H,X,Y,F) /* can be proved by a RightUnfold */
+
+/* The second case is ll(H,X,Y,F) :- ll(H,T,Y,F1) /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+ * BODY is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} (ll occurs)
+ * LHS is nothing
+ * Renaming [z/x] is [T/X,F1/F] 
+ */
+
+First try to prove BODY /\ LHS -> RHS
+(3a) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} -> lr(H,X,Y,F) /* give up */
+
+Then try to prove both:
+
+BODY /\ LHS /\ RHS[z/x] -> RHS
+(3b) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
+
+BODY /\ LHS -> LHS[z/x]
+(3c) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} -> true
+
+(3c) is proved immediately. Let's see (3b).
+
+Restate 3b
+
+(3b) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
+
+apply KT on lr(H,T,Y,F1).
+
+Two cases.
+
+First case is lr(H,T,Y,F1) :- T=Y /\ F1=emptyset. Simple.
+
+Second case is lr(H,T,Y,F1) :- lr(H,T,T1,F2) /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+
+BODY is T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+LHS is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+RHS is lr(H,X,Y,F)
+[z/x] is [T1/Y,F2/F1]
+RHS[z/x] is lr(H,X,T1,F)
+
+
+
+
+
+/* apply RightUnfold */
+
+(4) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1)
+ -> lr(H,X,T1,F2) /\ X>0 /\ X!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}
+ 
+ /* remove obvious constraints on the rhs */
+ 
+(5) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1)
+ -> lr(H,X,T1,F2) /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}
+
+/* apply KT on lr(H,T,Y,F1). New variables (z) is H, T, T2, F3. */
+
+First try to prove
+(6a) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}     /* BODY */
+     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}      /* LHS */
+  -> lr(H,X,T1,F2) /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}    /* RHS */
+
+/* (6a) cannot be proved. Give up. */
+  
+Then try to prove both:
+(6b) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}      /* BODY */
+     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}       /* LHS */
+     /\ lr(H,X,T1,F2) /\ T2=H[T1] /\ T1 notin F2 /\ F=F2+{T1} /* RHS[T2/Y, F3/F1] */
+  -> lr(H,X,T1,F2) /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}     /* RHS */
+  
+(6c) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}      /* BODY */
+     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}       /* LHS */
+  -> X>0 /\ X!=T2 /\ T=H[X] /\ X notin F3 /\ F=F3+{X}         /* LHS[T2/Y, F3/F1] */
+
+/* remove obvious constraints from (6b) */
+
+(7) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}      
+    /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}     
+    /\ lr(H,X,T1,F2) /\ T2=H[T1] /\ T1 notin F2 /\ F=F2+{T1} 
+ -> Y=H[T1]
+
+```
 
 ### `mul4(X) -> even(X)`
 
