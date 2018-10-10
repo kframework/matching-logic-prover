@@ -872,20 +872,27 @@ Here's how we apply KT in matching logic.
 
 QUESTION: HOW TO DEAL WITH (5)?
 
-IDEA: move forall y . (C(z,y) -> psi(z,y)) to the axiom set:
+SOLUTION: Use heuristics and instantiate forall y with just y (the one
+that occurs on the rhs).
 
-(6) { forall y . (C(z,y) -> psi(z,y)) }
-    |- D(x,z) /\ C(x,y) -> psi(x,y)
+Notice that this is NOT COMPLETE. 
 
-The effect of the axiom forall y . (C(z,y) -> psi(z,y)) is that
-whenever we see C(z,y0) on the lhs, for some y0,
-we can strengthen the lhs by adding psi(z,y0) to it.
+(6) D(x,z) /\ (C(z,y) -> psi(z,y)) /\ C(x,y) -> psi(x,y)
 
-@Thai: How similar is this to the LU+Ind rules? Notice that here
-we don't need to keep track of anything. Instead we need an extra
-axiom set, which is empty initially.
+/* simple propositional reasoning */
 
-Is the above idea reasonably implementable?
+To prove (6), first try prove
+
+(6a) D(x,z) /\ C(x,y) -> psi(x,y)
+
+If succeeds, then (6) is proved.
+
+Otherwise, prove both of the following two:
+
+(6b) D(x,z) /\ C(x,y) /\ psi(z,y) -> psi(x,y)
+(6c) D(x,z) /\ C(x,y) -> C(z,y)
+
+
 ```
 
 
