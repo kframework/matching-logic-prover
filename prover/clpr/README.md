@@ -69,8 +69,10 @@ In other words, they are predicate patterns in matching logic (either the empty 
 This greatly simplifies the application of KT. In particular, it simplifies (Plugin) and (Plugout) A LOT.
 
 Given the definition of p:
-  p(x) ≡ ... \/ (exists z . D(x,z) /\ p(z)) \/ ....
-Here z is a vector of all free variables that occur in p on the right-hand side.
+  p(x) ≡ ... \/ (exists z . BODY(x,z) /\ p(z)) \/ ....
+Here z is a vector of all free variables that occur in p on the right-hand side,
+and BODY is the body of a case of the recursive definitino of p,
+excluding the recursive occurrence of p itself.
 Notice that x and z may not be disjoint. Also we assume p occurs at most once
 in each case, but this assumption might not be important. 
 The case where there is no occurrence of p is known as a base case. And applying
@@ -86,119 +88,90 @@ Here's how we apply KT rule in matching logic.
 
 (2) p(x) -> forall y . (LHS(x,y) -> RHS(x,y))
 
-/* apply KT */
+/* apply KT. */
 
-(3) ... \/ exists z . D(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y)) \/ ...
+(3) ... \/ exists z . BODY(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y)) \/ ...
   -> forall y . (LHS(x,y) -> RHS(x,y))
   
 /* this is just one case */
 
-(4) exists z . D(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y))
+(4) exists z . BODY(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y))
   -> forall y . (LHS(x,y) -> RHS(x,y))
 
-/* (Plugin) and (UG) */
+/* (Plugin) and (UG).  We must pick a fresh z in the following. */
 
-(5) D(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y)) /\ LHS(x,y) -> RHS(x,y)
+(5) BODY(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y)) /\ LHS(x,y) -> RHS(x,y)
+
+/* Let's rename the bound variable y to a fresh name t, to avoid confusion. */
+
+(5) BODY(x,z) /\ forall t . (LHS(z,t) -> RHS(z,t)) /\ LHS(x,y) -> RHS(x,y)
 ```
 
-**QUESTION: HOW TO DEAL WITH (5)?**
+### QUESTION: HOW TO DEAL WITH (5)?
 
-The formula `forall y . (LHS(z,y) -> RHS(z,y))` in the above (5) is annoying.
+The formula `forall t . (LHS(z,t) -> RHS(z,t))` in the above (5) is annoying.
 Can we instead prove the following (6)?
 Notice that if (6) holds, (5) must hold. But not vice versa.
+Basically, we instantiate the `forall t` in (5) with a guess, the variable `y`,
+which already occurs on LHS and RHS.
 
 ```
-(6) D(x,z) /\ (LHS(z,y) -> RHS(z,y)) /\ LHS(x,y) -> RHS(x,y)
-
-/* simple propositional reasoning */
-
-To prove (6), first try prove
-
-(6a) D(x,z) /\ C(x,y) -> psi(x,y)
-
-If succeeds, then (6) is proved.
-
-Otherwise, prove both of the following two:
-
-(6b) D(x,z) /\ C(x,y) /\ psi(z,y) -> psi(x,y)
-(6c) D(x,z) /\ C(x,y) -> C(z,y)
+(6) BODY(x,z) /\ (LHS(z,y) -> RHS(z,y)) /\ LHS(x,y) -> RHS(x,y)
 ```
 
-Let's summarize and see how to apply (KT) in CLPR syntax.
+By simple propositional reasoning, we know that in order to prove (6), 
+one should first try to prove
+```
+(6a) BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+```
+If (6a) is proved, then (6) must hold.
+However, in many cases (my experience) (6a) is not provable. 
+
+Then one should try to prove both:
+```
+(6b) BODY(x,z) /\ LHS(x,y) /\ RHS(z,y) -> RHS(x,y)
+(6c) BODY(x,z) /\ LHS(x,y) -> LHS(z,y)
+```
+
+Let's summarize the above.
 
 ```
-Given the definition of P:
-  p(x) ≡ ... \/ exists z . D(x,z) /\ p(z) \/ ....
-Here z is a vector of variables. Notice that x and z 
-may not be disjoint. 
-
-(1) p(x) /\ C(x,y) -> psi(x,y)
-
-/* apply KT */
-
-Either prove:
-(6a) D(x,z) /\ C(x,y) -> psi(x,y)
-
-Or prove both:
-(6b) D(x,z) /\ C(x,y) /\ psi(z,y) -> psi(x,y)
-(6c) D(x,z) /\ C(x,y) -> C(z,y)
-
-Another way to write it.
-
 unfold(p(x),
   [
   ...
-  body([p(z) | UNFOLDABLEBODY], NONUNFOLDABLEBODY) /* x and z may not be disjoint */
+  /* variable vectors x and z may not be disjoint.
+   * but new variables in z must be fresh.
+   */
+  body([p(z) | UNFOLDABLEBODY], NONUNFOLDABLEBODY) 
   ...
   ]).
 
 append(UNFOLDABLEBODY, NONUNFOLDABLEBODY, BODY).
 
+Here's our proof obligation.
+
 (1) p(x) /\ LHS -> RHS
 
-/* apply KT */
+Applying KT on (1) means the follows.
 
 Either prove:
-(6a) BODY /\ LHS -> RHS
+(a) BODY /\ LHS -> RHS
 
 Or prove both:
-(6b) BODY /\ LHS /\ RHS[z/x] -> RHS
-(6c) BODY /\ LHS -> LHS[z/x]
-
+(b) BODY /\ LHS /\ RHS[z/x] -> RHS
+(c) BODY /\ LHS -> LHS[z/x]
 ```
 
-## Some examples of using the clpr syntax
 
-### `ll(H,X,Y,F) -> lr(H,X,Y,F)`
+### Does it work?
+
+No.
+
+Let's take a look at the example `ll -> lr`.
 
 ```
-Definitions.
+Definition.
 
-unfold(ll(H,X,Y,F),
-  [
-  body([], [eq(X,Y), eqset(F,emptyset)]),
-  body([ll(H,T,Y,F1)],
-       [gt(X, 0),
-        z3_not(eq(X, Y)),
-        eq(T, ref(H, X)),
-        z3_not(mem(X, F1)),
-        eqset(F, add(F1, X))])
-  ]).
-
-% list segment recursively defined from the right
-unfold(lr(H,X,Y,F),
-  [
-  body([], [eq(X,Y), eqset(F,emptyset)]),
-  body([lr(H,X,T,F1)],
-       [gt(X, 0),
-        z3_not(eq(X, Y)),
-        eq(Y, ref(H, T)),
-        z3_not(mem(T, F1)),
-        eqset(F, add(F1, T))])
-  ]).
-  
-Definition (in human friendly form).
-  
 ll(H,X,Y,F) ≡
    X=Y /\ F=emptyset
 \/ ll(H,T,Y,F1) /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
@@ -211,95 +184,180 @@ Proof.
 
 (1) ll(H,X,Y,F) -> lr(H,X,Y,F)
 
-/* apply KT on p(x) /\ LHS -> RHS
- * Either prove:
- * (a) BODY /\ LHS -> RHS
- *
- * Or prove both:
- * (b) BODY /\ LHS /\ RHS[z/x] -> RHS
- * (c) BODY /\ LHS -> LHS[z/x]
- */
+/* apply KT on ll(H,X,Y,F) */
 
-/* apply KT */
+/* ll has two cases. The base case is easy and omitted. Consider inductive case. */
 
-/* ll has two cases. */
-
-/* The first case is ll(H,X,Y,F) :- X=Y /\ F=emptyset
- * BODY is X=Y /\ F=emptyset (no occurrence of ll)
- * Simply unfold.
- */
-
-(2)  X=Y /\ F=emptyset -> lr(H,X,Y,F) /* can be proved by a RightUnfold */
-
-/* The second case is ll(H,X,Y,F) :- ll(H,T,Y,F1) /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
- * BODY is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} (ll occurs)
+/* Case is ll(H,X,Y,F) :- ll(H,T,Y,F1) /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+ * variable vector x is H X Y F
+ * variable vector z is H T Y F1
+ * BODY is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
  * LHS is nothing
- * Renaming [z/x] is [T/X,F1/F] 
+ * RHS is lr(H,X,Y,F)
+ * The renaming [z/x] is [T/X,F1/F]
+ * LHS[z/x] is nothing
+ * RHS[z/x] is lr(H,T,Y,F1)
  */
 
-First try to prove BODY /\ LHS -> RHS
-(3a) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} -> lr(H,X,Y,F) /* give up */
-
-Then try to prove both:
+Let's try to prove both
 
 BODY /\ LHS /\ RHS[z/x] -> RHS
-(3b) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
+(1b) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
 
 BODY /\ LHS -> LHS[z/x]
-(3c) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} -> true
+(1c) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} -> true
 
-(3c) is proved immediately. Let's see (3b).
+(1c) is proved immediately. Let's see (1b).
 
-Restate 3b
+Restate (1b).
 
-(3b) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
+(1b) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
 
-apply KT on lr(H,T,Y,F1).
+/* apply KT on lr(H,T,Y,F1) */
 
-Two cases.
+/* lr has two cases. The base case is easy and omitted. Consider inductive case. */
 
-First case is lr(H,T,Y,F1) :- T=Y /\ F1=emptyset. Simple.
+/* Case is lr(H,T,Y,F1) :- lr(H,T,T1,F2) /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+ * variable vector x is H,T,Y,F1
+ * variable vector z is H,T,T1,F2
+ * BODY is T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+ * LHS is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+ * RHS is lr(H,X,Y,F)
+ * The renaming [z/x] is [T1/Y,F2/F1]
+ * LHS[z/x] is X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F=F2+{X}
+ * RHS[z/x] is lr(H,X,T1,F)
+ */
 
-Second case is lr(H,T,Y,F1) :- lr(H,T,T1,F2) /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+/* CAUTION!!! RHS[z/x] is unexpected and wrong, because F is the wrong footprint. Here's why.
+ * (1b) basically says that 
+ *   X|->T /\ lr(T,Y) -> lr(X,Y)
+ * And lr(X,Y) has footprint F = F1 + {X}, and lr(T,Y) has footprint F1.
+ * Applying (KT) we should get a new proof obligation
+ *   X|->T /\ lr(X,T1) /\ T1|->T -> lr(X,Y)
+ * which should be provable. 
+ * Unfortunately, the footprint of lr(X,T1) is wrong. It's not F, but F\{T1} = F2+{X}.
+ * The reason we get this wrong footprint is because we drop the "forall t" from (5). 
+ * One can confirm that the above are not provable.
+ * /
+ 
+```
 
-BODY is T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
-LHS is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
-RHS is lr(H,X,Y,F)
-[z/x] is [T1/Y,F2/F1]
-RHS[z/x] is lr(H,X,T1,F)   /* this is unexpected. F is the wrong footprint. Should be F2+{X}.
-                            * this is because we drop the forall y.
-                            */
-LHS[z/x] is X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F=F2+{X}
+### Use an axiom set
 
-First try to prove BODY /\ LHS -> RHS:
-(4a) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
-     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
-  -> lr(H,X,Y,F)
+We can use an axiom set to help us remember that
+```
+(5) BODY(x,z) /\ forall t . (LHS(z,t) -> RHS(z,t)) /\ LHS(x,y) -> RHS(x,y)
+```
 
-Cannot prove.
+Here's how.
 
-Then try to prove both:
+```
+(1) p(x) /\ LHS -> RHS
 
-BODY /\ LHS /\ RHS[z/x] -> RHS
-(4b) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
-     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
-     /\ lr(H,X,T1,F)
-  -> lr(H,X,Y,F)
+apply KT.
 
-BODY /\ LHS -> LHS[z/x]
-(4c) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
-     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
-  -> X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F=F2+{X}
+add LHS[z/x,t/y] -> RHS[z/x,t/y] to the axiom set, where t is fresh (placeholder).
+What's important is to remember the occurrence of z in LHS.
 
-Do a RightUnfold on (4b)
+Then, with an axiom being added, we prove
 
-(5) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+(2) { AXIOMS } |- BODY /\ LHS -> RHS
+```
+
+Here's the example `ll->lr`.
+
+```
+Proof.
+
+(1) ll(H,X,Y,F) -> lr(H,X,Y,F)
+
+/* apply KT on ll(H,X,Y,F) */
+
+/* ll has two cases. The base case is easy and omitted. Consider inductive case. */
+
+/* Case is ll(H,X,Y,F) :- ll(H,T,Y,F1) /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+ * variable vector x is H X Y F
+ * variable vector y is nothing
+ * variable vector z is H T Y F1
+ * variable vector t is nothing because y is nothing
+ * the renaming [z/x,t/y] is [T/X,F1/F]
+ * BODY is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+ * LHS is nothing
+ * RHS is lr(H,X,Y,F)
+ * LHS[z/x,t/y] is nothing
+ * RHS[z/x,t/y] is lr(H,T,Y,F1)
+ * the new axiom is true -> lr(H,T,Y,F1).
+ */
+
+{ AXIOMS } |- BODY /\ LHS -> RHS
+(2) { true -> lr(H,T,Y,F1) } |-
+    X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} -> lr(H,X,Y,F)
+ 
+The axiom has no fresh variable (see above, t is nothing). In other words,
+the universal quantification "forall t" has no effect, and the axiom has exactly
+one instance: true -> lr(H,T,Y,F1).
+
+This means that we can remove it from the axiom set, and just add it to the premise.
+
+(3) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ (true -> lr(H,T,Y,F1)) -> lr(H,X,Y,F)
+
+By simple propositional reasoning, this is just
+
+(4) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
+
+Now apply KT again. This time on lr(H,T,Y,F1). We care only about the inductive case.
+
+/* Case is lr(H,T,Y,F1) :- lr(H,T,T1,F2) /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+ * variable vector x is H,T,Y,F1
+ * variable vector y is X,F
+ * variable vector z is H,T,T1,F2
+ * variable vector t is X',F' because y is X,F
+ * the renaming [z/x,t/y] is [T1/Y,F2/F1,X'/X,F'/F]
+ * BODY is T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+ * LHS is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+ * RHS is lr(H,X,Y,F)
+ * LHS[z/x,t/y] is X'>0 /\ X'!=T1 /\ T=H[X'] /\ X' notin F2 /\ F'=F2+{X'}
+ * RHS[z/x,t/y] is lr(H,X',T1,F')
+ * the new axiom is X'>0 /\ X'!=T1 /\ T=H[X'] /\ X' notin F2 /\ F'=F2+{X'} -> lr(H,X',T1,F')
+ */
+
+{ AXIOMS } |- BODY /\ LHS -> RHS
+(5) { X'>0 /\ X'!=T1 /\ T=H[X'] /\ X' notin F2 /\ F'=F2+{X'} -> lr(H,X',T1,F') } |-
+    T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1} 
     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
-    /\ lr(H,X,T1,F)        /* F is the wrong footprint! should be F2+{X}, i.e., F\{T1} */
- -> lr(H,X,T3,F3) /\ X>0 /\ X!=Y /\ Y=H[T3] /\ T3 notin F3 /\ F=F3+{T3}
+ -> lr(H,X,Y,F)
+ 
+Match! X' := X and F' := F2+{X} (HOW DO I KNOW?!?!)
+Rename in AXIOMS X' to X'' and F' to F''.
+Add X' and F' to the proof obligation, and two equations X'=X, F'=F2+{X}.
 
-This cannot be proved. 
+(6*){ X''>0 /\ X''!=T1 /\ T=H[X''] /\ X'' notin F2 /\ F''=F2+{X''} -> lr(H,X'',T1,F'') } |-
+    T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1} 
+    /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+    /\ X'=X /\ F'=F2+{X}
+    /\ (X'>0 /\ X'!=T1 /\ T=H[X'] /\ X' notin F2 /\ F'=F2+{X'} -> lr(H,X',T1,F')) /* axiom instance */
+ -> lr(H,X,Y,F)
 
+(6*) is not in CLPR syntax. Let's do some propositional reasoning and get rid of the implication.
+
+(6*) has the form L /\ (AL -> AR) -> R, where AL -> AR is the axiom instance.
+To prove (6*), it suffices to prove L -> AL and L /\ AR -> R.
+This leads us to prove both:
+
+(6a){ AXIOMS } |-
+    T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1} 
+    /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+    /\ X'=X /\ F'=F2+{X}
+ -> X'>0 /\ X'!=T1 /\ T=H[X'] /\ X' notin F2 /\ F'=F2+{X'}
+
+(6b){ AXIOMS } |-
+    T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1} 
+    /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+    /\ X'=X /\ F'=F2+{X}
+    /\ lr(H,X',T1,F')
+ -> lr(H,X,Y,F)
+
+Now, (6a) is proved by a (DIRECT PROOF). (6b) is proved by a (RIGHT UNFOLD).
 ```
 
 ### `mul4(X) -> even(X)`
