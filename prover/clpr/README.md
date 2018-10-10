@@ -360,7 +360,7 @@ This leads us to prove both:
 Now, (6a) is proved by a (DIRECT PROOF). (6b) is proved by a (RIGHT UNFOLD).
 ```
 
-### `mul4(X) -> even(X)`
+### `mul4(X) -> even(X)` (DO NOT READ)
 
 _Definitions._
 
