@@ -1035,47 +1035,39 @@ BODY is T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
 LHS is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
 RHS is lr(H,X,Y,F)
 [z/x] is [T1/Y,F2/F1]
-RHS[z/x] is lr(H,X,T1,F)
+RHS[z/x] is lr(H,X,T1,F)   /* this is unexpected. F is the wrong footprint. Should be F2+{X}.
+                            * this is because we drop the forall y.
+                            */
+LHS[z/x] is X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F=F2+{X}
 
+First try to prove BODY /\ LHS -> RHS:
+(4a) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+  -> lr(H,X,Y,F)
 
+Cannot prove.
 
-
-
-/* apply RightUnfold */
-
-(4) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1)
- -> lr(H,X,T1,F2) /\ X>0 /\ X!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}
- 
- /* remove obvious constraints on the rhs */
- 
-(5) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1)
- -> lr(H,X,T1,F2) /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}
-
-/* apply KT on lr(H,T,Y,F1). New variables (z) is H, T, T2, F3. */
-
-First try to prove
-(6a) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}     /* BODY */
-     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}      /* LHS */
-  -> lr(H,X,T1,F2) /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}    /* RHS */
-
-/* (6a) cannot be proved. Give up. */
-  
 Then try to prove both:
-(6b) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}      /* BODY */
-     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}       /* LHS */
-     /\ lr(H,X,T1,F2) /\ T2=H[T1] /\ T1 notin F2 /\ F=F2+{T1} /* RHS[T2/Y, F3/F1] */
-  -> lr(H,X,T1,F2) /\ Y=H[T1] /\ T1 notin F2 /\ F=F2+{T1}     /* RHS */
-  
-(6c) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}      /* BODY */
-     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}       /* LHS */
-  -> X>0 /\ X!=T2 /\ T=H[X] /\ X notin F3 /\ F=F3+{X}         /* LHS[T2/Y, F3/F1] */
 
-/* remove obvious constraints from (6b) */
+BODY /\ LHS /\ RHS[z/x] -> RHS
+(4b) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+     /\ lr(H,X,T1,F)
+  -> lr(H,X,Y,F)
 
-(7) T>0 /\ T!=Y /\ Y=H[T2] /\ T2 notin F3 /\ F1=F3+{T2}      
-    /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}     
-    /\ lr(H,X,T1,F2) /\ T2=H[T1] /\ T1 notin F2 /\ F=F2+{T1} 
- -> Y=H[T1]
+BODY /\ LHS -> LHS[z/x]
+(4c) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+  -> X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F=F2+{X}
+
+Do a RightUnfold on (4b)
+
+(5) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+    /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+    /\ lr(H,X,T1,F)        /* F is the wrong footprint! should be F2+{X}, i.e., F\{T1} */
+ -> lr(H,X,T3,F3) /\ X>0 /\ X!=Y /\ Y=H[T3] /\ T3 notin F3 /\ F=F3+{T3}
+
+This cannot be proved. 
 
 ```
 
