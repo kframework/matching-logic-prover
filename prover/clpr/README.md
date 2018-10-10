@@ -56,56 +56,59 @@ foreach recursive predicate P on the lhs:
     prove for all disjuncts on the lhs
 ```
 
-## How to apply (KT) in clpr syntax?
+## How to apply (KT) in CLPR syntax?
 
 ```
-Given a proof obligation p(x) /\ C(x,y) -> psi(x,y).
-Here x and y are vectors of variables
-and p is a recursive predicate.
-C(x,y) is whatever left on the lhs, and psi(x,y) is the rhs.
+Given a proof obligation p(x) /\ LHS(x,y) -> RHS(x,y).
+Here x and y are vectors of all free variables that appear in p and LHS.
+We have p is a recursive predicate, and LHS is the rest of the left-hand side.
+LHS might be empty, in which case it's considered as a "true". 
 
-What's important is that here all formulas are in fact FOL formulas
-(either true or false).
-In other words, they are predicate patterns in matching logic
-(either the empty set or the total set).
-This greatly simplifies the application of KT.
-In particular, it simplifies (Plugin) and (Plugout) A LOT.
+What's important is that here all formulas are in fact FOL formulas (either true or false).
+In other words, they are predicate patterns in matching logic (either the empty set or the total set).
+This greatly simplifies the application of KT. In particular, it simplifies (Plugin) and (Plugout) A LOT.
 
-Given the definition of P:
-  p(x) ≡ ... \/ exists z . D(x,z) /\ p(z) \/ ....
-Here z is a vector of variables. Notice that x and z 
-may not be disjoint. 
+Given the definition of p:
+  p(x) ≡ ... \/ (exists z . D(x,z) /\ p(z)) \/ ....
+Here z is a vector of all free variables that occur in p on the right-hand side.
+Notice that x and z may not be disjoint. Also we assume p occurs at most once
+in each case, but this assumption might not be important. 
+The case where there is no occurrence of p is known as a base case. And applying
+KT rule with those base cases are simple. Simply unfold. Done.
 
-Here's how we apply KT in matching logic.
+We focus on the non-base cases.
 
-(1) p(x) /\ C(x,y) -> psi(x,y)
+Here's how we apply KT rule in matching logic.
+
+(1) p(x) /\ LHS(x,y) -> RHS(x,y)
 
 /* (Plugout) and (Forall) */
 
-(2) p(x) -> forall y . (C(x,y) -> psi(x,y))
+(2) p(x) -> forall y . (LHS(x,y) -> RHS(x,y))
 
 /* apply KT */
 
-(3) ... \/ exists z . D(x,z) /\ forall y . (C(z,y) -> psi(z,y)) \/ ...
-  -> forall y . (C(x,y) -> psi(x,y))
+(3) ... \/ exists z . D(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y)) \/ ...
+  -> forall y . (LHS(x,y) -> RHS(x,y))
   
 /* this is just one case */
 
-(4) exists z . D(x,z) /\ forall y . (C(z,y) -> psi(z,y))
-  -> forall y . (C(x,y) -> psi(x,y))
+(4) exists z . D(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y))
+  -> forall y . (LHS(x,y) -> RHS(x,y))
 
 /* (Plugin) and (UG) */
 
-(5) D(x,z) /\ forall y . (C(z,y) -> psi(z,y)) /\ C(x,y) -> psi(x,y)
+(5) D(x,z) /\ forall y . (LHS(z,y) -> RHS(z,y)) /\ LHS(x,y) -> RHS(x,y)
+```
 
-QUESTION: HOW TO DEAL WITH (5)?
+**QUESTION: HOW TO DEAL WITH (5)?**
 
-SOLUTION: Use heuristics and instantiate forall y with just y (the one
-that occurs on the rhs).
+The formula `forall y . (LHS(z,y) -> RHS(z,y))` in the above (5) is annoying.
+Can we instead prove the following (6)?
+Notice that if (6) holds, (5) must hold. But not vice versa.
 
-Notice that this is NOT COMPLETE. 
-
-(6) D(x,z) /\ (C(z,y) -> psi(z,y)) /\ C(x,y) -> psi(x,y)
+```
+(6) D(x,z) /\ (LHS(z,y) -> RHS(z,y)) /\ LHS(x,y) -> RHS(x,y)
 
 /* simple propositional reasoning */
 
