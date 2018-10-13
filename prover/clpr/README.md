@@ -360,6 +360,183 @@ This leads us to prove both:
 Now, (6a) is proved by a (DIRECT PROOF). (6b) is proved by a (RIGHT UNFOLD).
 ```
 
+### Avoid an axiom set
+
+Using axiom sets makes implementation more complex. To avoid that,
+we here introduce a heuristic about how to instantiate the universally
+quantified variables that appear in (5).
+Heuristics are, of course, sound, but in general incomplete. 
+We trade off completeness for simpler proof rules.
+
+Again, let's look at (1) and (5).
+
+```
+(1) p(x)                                           /\ LHS(x,y) -> RHS(x,y)
+(5) forall t . (LHS(z,t) -> RHS(z,t)) /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+```
+
+The purpose of this section is to identity a partition of `t = t1 U t2`,
+and instantiate the `forall t` by letting `t1` be fresh variables
+and `t2` be `y2` (the subset of `y` corresponding to the subset `t1`).
+The former is equivalent to change `forall t1` to `exists t1`, or simply
+drop the `forall`. 
+The reason why that works is `t1` is fully determined by the choice of `t2`
+and other variables. Or at least we hope so.
+So once we let `t2` be `y2`, the values of `t1` are fixed. 
+Letting them be some fresh and free variables doesn't do any harm.
+SMT solvers will find out their intended values.
+
+We need to be more precise about variables. To be consistent, I'll stick to
+the variables `x`, `y`, and `z` as above. 
+Let's consider a case of the recursive definition.
+```
+p(x) === ... \/ exists z . p(z) /\ BODY(x,z)
+```
+As we point out, `x` and `z` may not be disjoint.
+When we unfold `p(x)` according to one case,
+we obtain `p(z)`, by changing variables in some positions to fresh variables,
+and keep the rest unchanged. 
+Let's call the positions where variables change the _critical positions_,
+and the rest positions the _noncritical positions_. 
+Therefore, `x` and `z` are only different on the critical positions of `p`,
+and are the same on the noncritical positions.
+
+Notice that critical positions may be different for different cases.
+
+Let's consider the proof obligation
+
+```
+(1) p(x) /\ LHS(x,y) -> RHS(x,y)
+```
+
+Let's assume that `p` also occurs in `RHS(x,y)`, exactly once.
+And let `y1` be the set of variables that are in `y` and also appear
+on the critical positions of the recursive predicate `p` that occurs in `RHS(x,y)`.
+Let `y2` be the set of remaining variables in `y`.
+We obtain a partition: `y = y1 U y2`. 
+
+Notice that the assumption that `p` occurs exactly once on `RHS(x,y)`
+can be relaxed to that `p` occurs at most once.
+Indeed, if `p` doesn't occur on `RHS(x,y)`, we let `y1` be empty and `y2` be
+equal to `y`.
+
+Now we state (5)
+
+```
+(5) forall t . (LHS(z,t) -> RHS(z,t)) /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+```
+
+and we instantiate `forall t` by letting `t1` free and `t2` be `y2`.
+And we get
+
+```
+(6) (LHS(z,t) -> RHS(z,t))[y2/t2] /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+
+Or equivalently,
+
+(6') (LHS(z,y) -> RHS(z,y))[t1/y1] /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+```
+
+Notice that `(LHS(z,y) -> RHS(z,y))[t1/y1]` is the result of
+* Grab `LHS(x,y) -> RHS(x,y)`.
+* Consider every variable `yi` in the set of variables `y`.
+* If `yi` occurs in a critical position of `p` on `RHS(x,y)`, then rename it to a fresh variable `ti`.
+* If `yi` occurs in a noncritical position of `p` on `RHS(x,y)`, or doesn't occur at all, then keep it.
+
+Finally, by simple propositional reasoning, (6') is equivalent to
+proving 
+
+```
+(6''), equivalent to (6').
+
+PROVE BOTH:
+(6a) BODY(x,z) /\ LHS(x,y) -> LHS(z,y)[t1/y1] \/ RHS(x,y)
+(6b) RHS(z,y)[t1/y1] /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+```
+
+(6a) has disjunction on the rhs. By simple propositional reasoning, 
+we can show that in order to prove (6''), it is _sufficient_ to prove the following: 
+```
+EITHER
+  (6a1) BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+OR BOTH
+  (6b) RHS(z,y)[t1/y1] /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+  (6a2) BODY(x,z) /\ LHS(x,y) -> LHS(z,y)[t1/y1]
+```
+
+We end this section by a summary.
+
+```
+Proof obligation is
+(1) p(x) /\ LHS -> RHS
+
+(One case of) the definition is
+p(x) === ... \/ exists z . p(z) /\ BODY(x,z)
+
+Here's how to apply a KT.
+
+First, unfold p(x) according to the definition (about one case).
+In the meantime, obtain the substitution [z/x]
+
+(1a) p(z) /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+
+Calculate LHS' === LHS(
+
+TODO
+
+
+
+```
+
+
+
+where `u` is the set of variables that _keep_ after unfolding,
+while `v` is the set of variables that _change_ to `w` after unfolding.
+We assume, (without loss generality), that every variable in `p(u,v)`
+either keeps or change to a fresh variable. In other words, they
+do not move from one position to the other.
+
+Notice that different cases may have different `u` and `v`. 
+
+Now let's restate (1).
+Notice that this time, we separate RHS as well.
+We assume that p also occurs on the RHS.
+
+```
+(1) p(u0,u1,v0,v1) /\ LHS(u0,u1,v0,v1,w,y) -> p(u0,u1,w0,w1) /\ RHS(u0,u1,v0,v1,w,y)
+
+IDEA: By unfolding, you know which positions need to change.
+Then check RHS. If they cannot change, (meaning that they are not y),
+don't change. Otherwise, change them to fresh variables, and hope
+that have exactly one solution. 
+
+In short, u is the set of variables in p that agree on both sides;
+v and w is the set of variables that differ between both sides.
+y is the rest variables that don't appear in recursive predicates.
+
+Assume u,v,w,y are all disjoint.
+
+
+
+Unfold.
+
+(2a) p(u,w) /\ BODY(u,v,w) /\ LHS(u,v,y) -> RHS(u,v,y)
+
+Apply KT, and we get
+
+(5) forall t . (LHS(u,v,t) -> RHS(u,v,t)) /\ BODY(u,v,w) /\ LHS(u,v,y) -> RHS(u,v,y)
+
+
+
+Then, 
+
+
+```
+
+
+
+
+
 ### `mul4(X) -> even(X)` (DO NOT READ)
 
 _Definitions._
