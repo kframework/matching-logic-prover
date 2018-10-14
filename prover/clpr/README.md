@@ -438,10 +438,10 @@ Or equivalently,
 ```
 
 Notice that `(LHS(z,y) -> RHS(z,y))[t1/y1]` is the result of
-* Grab `LHS(x,y) -> RHS(x,y)`.
+* Grab `LHS(z,y) -> RHS(z,y)`.
 * Consider every variable `yi` in the set of variables `y`.
-* If `yi` occurs in a critical position of `p` on `RHS(x,y)`, then rename it to a fresh variable `ti`.
-* If `yi` occurs in a noncritical position of `p` on `RHS(x,y)`, or doesn't occur at all, then keep it.
+* If `yi` occurs in a critical position of `p` on `RHS(z,y)`, then rename it to a fresh variable `ti`.
+* If `yi` occurs in a noncritical position of `p` on `RHS(z,y)`, or doesn't occur at all, then keep it.
 
 Finally, by simple propositional reasoning, (6') is equivalent to
 proving 
@@ -456,13 +456,21 @@ PROVE BOTH:
 
 (6a) has disjunction on the rhs. By simple propositional reasoning, 
 we can show that in order to prove (6''), it is _sufficient_ to prove the following: 
+
 ```
-EITHER
-  (6a1) BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
-OR BOTH
-  (6b) RHS(z,y)[t1/y1] /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+EITHER BOTH
   (6a2) BODY(x,z) /\ LHS(x,y) -> LHS(z,y)[t1/y1]
+  (6b) LHS(z,y)[t1/y1] /\ RHS(z,y)[t1/y1] /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+OR JUST
+  (6a1) BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
 ```
+
+Notice that tactically, we want to prove (6a2) first and know 
+what values t1 should have.
+In other words, by solving (6a2), we know what the (existential quantified)
+variables t1 should be, and then we use that values to solve (6b).
+This is reflected by the fact in (6b), we also have `LHS(z,y)[t1/y1]` on the lhs. 
+Also, we may first try (6a2)+(6b), before (6a1). 
 
 We end this section by a summary.
 
@@ -471,70 +479,107 @@ Proof obligation is
 (1) p(x) /\ LHS -> RHS
 
 (One case of) the definition is
-p(x) === ... \/ exists z . p(z) /\ BODY(x,z)
+p(x) === ... \/ exists z . p(z) /\ BODY
 
 Here's how to apply a KT.
 
 First, unfold p(x) according to the definition (about one case).
 In the meantime, obtain the substitution [z/x]
 
-(1a) p(z) /\ BODY(x,z) /\ LHS(x,y) -> RHS(x,y)
+(1a) p(z) /\ BODY /\ LHS -> RHS
 
-Calculate LHS' === LHS(
+Calculate LHS' === LHS[z/x] and RHS' === RHS[z/x]
 
-TODO
+If RHS' has p:
+  For every variable yi in FV(LHS,RHS) \ x,
+    if yi occurs in a critical position in the p in RHS'
+    rename it to a fresh variable ti
 
+Denote the final substitution [t1/y1]. 
 
+Calculate LHS'' === LHS'[t1/y1] and RHS'' === RHS[t2/t2]
 
+Prove
+
+EITHER BOTH
+  (6a2) BODY /\ LHS -> LHS''
+  (6b) LHS'' /\ RHS'' /\ BODY /\ LHS -> RHS
+OR JUST
+  (6a1) BODY /\ LHS -> RHS           // this is unlikely to prove
+
+  
 ```
 
+### `ll(H,X,Y,F) -> lr(H,X,Y,F)`
 
-
-where `u` is the set of variables that _keep_ after unfolding,
-while `v` is the set of variables that _change_ to `w` after unfolding.
-We assume, (without loss generality), that every variable in `p(u,v)`
-either keeps or change to a fresh variable. In other words, they
-do not move from one position to the other.
-
-Notice that different cases may have different `u` and `v`. 
-
-Now let's restate (1).
-Notice that this time, we separate RHS as well.
-We assume that p also occurs on the RHS.
+We start the proof in the middle.
 
 ```
-(1) p(u0,u1,v0,v1) /\ LHS(u0,u1,v0,v1,w,y) -> p(u0,u1,w0,w1) /\ RHS(u0,u1,v0,v1,w,y)
+(4) X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X} /\ lr(H,T,Y,F1) -> lr(H,X,Y,F)
 
-IDEA: By unfolding, you know which positions need to change.
-Then check RHS. If they cannot change, (meaning that they are not y),
-don't change. Otherwise, change them to fresh variables, and hope
-that have exactly one solution. 
+apply KT
 
-In short, u is the set of variables in p that agree on both sides;
-v and w is the set of variables that differ between both sides.
-y is the rest variables that don't appear in recursive predicates.
+Consider the nonbasic case.
 
-Assume u,v,w,y are all disjoint.
+/* variable vector x is H,T,Y,F1
+ * variable vector y is X,F
+ * p(x) is lr(H,T,Y,F1)
+ * LHS is X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}
+ * RHS is lr(H,X,Y,F)
+ * p(z) is lr(H,T,T1,F2)
+ * substitution [z/x] is [T1/Y,F2/F1]
+ * BODY is T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+ * critical positions are 3,4, because lr(H,T,Y,F1) ---unfold---> lr(H,T,T1,F2)
+ * noncritical positions are 1,2
+ * LHS' === LHS[z/x] is X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F=F2+{X}
+ * RHS' === RHS[z/x] is lr(H,X,T1,F)
+ * RHS' has lr, and T1,F are in critical positions
+ * variable vector y1 is F
+ * variable vector t1 is F3, a fresh copy of y1
+ * substitution [t1/y1] is [F3/F]
+ * LHS'' === LHS'[t1/y1] is X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}
+ * RHS'' === RHS'[t1/y1] is lr(H,X,T1,F3)
+ */
 
+prove BOTH
+(4a2) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}    // BODY
+      /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}     // LHS
+   -> X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}      // LHS''
+(4b) X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}       // LHS''
+     /\ lr(H,X,T1,F3)                                        // RHS''
+     /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}  // BODY
+     /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}      // LHS
+  -> lr(H,X,Y,F)                                             // RHS
 
+remove simple constraints from (4a2)
+(4a2-1) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}    // BODY
+        /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}     // LHS
+     -> /\ X!=T1 /\ X notin F2 /\ F3=F2+{X}
 
-Unfold.
+proved by (DP).
 
-(2a) p(u,w) /\ BODY(u,v,w) /\ LHS(u,v,y) -> RHS(u,v,y)
+(Right Unfold) on (4b)
+(4b-1) X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}       // LHS''
+       /\ lr(H,X,T1,F3)                                        // RHS''
+       /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}  // BODY
+       /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}      // LHS
+    -> lr(H,X,T2,F4) /\ X>0 /\ X!=Y /\ Y=H[T2] /\ T2 notin F4 /\ F=F4+{T2}
+    
+prove by (DP).
 
-Apply KT, and we get
+QED.
 
-(5) forall t . (LHS(u,v,t) -> RHS(u,v,t)) /\ BODY(u,v,w) /\ LHS(u,v,y) -> RHS(u,v,y)
+To see why (4b-1) can be proved by (DP), notice that    
+if we let T2 = T1 and F4 = F3 and remove simple constraints, we get
+(4b-1) X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}       // LHS''
+       /\ lr(H,X,T1,F3)                                        // RHS''
+       /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}  // BODY
+       /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}      // LHS
+    -> T1 notin F3 /\ F=F3+{T1}
 
-
-
-Then, 
-
-
+T1 notin F3, because T1 notin F2, and F3=F2+{X}, and X!=T1
+F=F3+{T1}, because F=F1+{X}=F2+{T1}+{X}=F3+{T1}.
 ```
-
-
-
 
 
 ### `mul4(X) -> even(X)` (DO NOT READ)
