@@ -1,13 +1,11 @@
 # The fixpoint prover.
 
 # Todos (in priority)
-- [X] Implement `[](P -> o P) /\ P -> [] P` (as a user story);
-- [ ] Implement `ll(x,y) -> lr(x,y)` (as a user story);
-- [X] Finish the example `ll(x,y) -> lr(x,y)` using explicit (Plugin) and (Plugout) rule, no lambda form;
-- [X] Try lambda + mu;
-- [X] ~~Identify a nice fragment of ML (for implementation convenience);~~
-- [X] Define the general KT rule (lfp in a context; question: how to deal with free variables?);
-- [X] Collect other proof rules (for the fragment);
+- [ ] finish `lr -> ll` example on paper.
+- [ ] finish `ll * list -> list` example on paper.
+- [ ] implement KT.
+- [ ] make `ll -> lr` work.
+
 
 # Instruction
 
