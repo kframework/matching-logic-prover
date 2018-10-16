@@ -270,14 +270,14 @@ lprove(LDepth, RDepth, IndLevel,
   printf("\n---------------------Considering a new proof obligation----------------\n\n",[]),
   printf("LDepth = % RDepth = % Induction Level = %\n", 
                 [LDepth, RDepth, IndLevel]),
-         printf("% % % |= % % %\n", [NonUnfoldableGAtoms, UnfoldableGAtoms,
-                                     GConstraints,
-            NonUnfoldableHAtoms, UnfoldableHAtoms,
-            HConstraints]),
+%        printf("% % % |= % % %\n", [NonUnfoldableGAtoms, UnfoldableGAtoms,
+%                                    GConstraints,
+%           NonUnfoldableHAtoms, UnfoldableHAtoms,
+%           HConstraints]),
         prettyprint(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
                     NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints),
-  printf("% % % % % %\n", 
-                [Depth, GAtoms, GConstraints, HAtoms, HConstraints, Table]),
+% printf("% % % % % %\n", 
+%               [Depth, GAtoms, GConstraints, HAtoms, HConstraints, Table]),
 %       read(_),
   fail.
 
@@ -354,18 +354,18 @@ lprove_aux(LDepth, RDepth, IndLevel,
           [], RightUnfolds),
 
         order_right_unfolds(RightUnfolds, RightUnfolds1),
-  printf("After right unfold RightUnfolds= %\n", [RightUnfolds1]),
+% printf("After right unfold RightUnfolds= %\n", [RightUnfolds1]),
   
         lprove_aux_left(LDepth, RDepth, IndLevel,
             NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
             NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints, Table,
             [], LeftUnfolds),
 
-  printf("After left unfold LeftUnfolds= %\n", [LeftUnfolds]),
+% printf("After left unfold LeftUnfolds= %\n", [LeftUnfolds]),
         order_left_unfolds(LeftUnfolds, LeftUnfolds1),
 
         append(LeftUnfolds1, RightUnfolds1, Out2),
-  printf("After left unfold Out2 = %\n", [Out2]),
+% printf("After left unfold Out2 = %\n", [Out2]),
   
 
         lprove_aux_induction1(LDepth, RDepth, IndLevel,
@@ -373,14 +373,14 @@ lprove_aux(LDepth, RDepth, IndLevel,
       NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints, Table,
       Out2, Out3),
         
-  printf("After induction1 Out3 = %\n", [Out3]),
+% printf("After induction1 Out3 = %\n", [Out3]),
 
         lprove_aux_induction2(LDepth, RDepth, IndLevel,
             NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
       NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints, Table,
       Out3, OrSet),
       
-  printf("Before Ordering: OrSet = %\n", [OrSet]),
+% printf("Before Ordering: OrSet = %\n", [OrSet]),
         true.
 
 
@@ -810,17 +810,17 @@ lprove_aux_left(LDepth, RDepth, IndLevel,
   NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints, Table, In, Out) :-
 
   % PRINTME
-  printf("\n\n!!! HOTSPOT1 : lprove_aux_left !!!\n", []),
-  printf("NonUnfoldableGAtoms=%\n", [NonUnfoldableGAtoms]), 
-  printf("UnfoldableGAtoms=%\n", [UnfoldableGAtoms]), 
-  printf("GConstraints=%\n", [GConstraints]), 
-  printf("NonUnfoldableHAtoms=%\n", [NonUnfoldableHAtoms]), 
-  printf("UnfoldableHAtoms=%\n", [UnfoldableHAtoms]), 
-  printf("HConstraints=%\n", [HConstraints]), 
-  printf("Table=%\n", [Table]),
-  printf("In=%\n", [In]),
-  printf("Out=%\n", [Out]),
-  printf("\n", []),
+% printf("\n\n!!! HOTSPOT1 : lprove_aux_left !!!\n", []),
+% printf("NonUnfoldableGAtoms=%\n", [NonUnfoldableGAtoms]), 
+% printf("UnfoldableGAtoms=%\n", [UnfoldableGAtoms]), 
+% printf("GConstraints=%\n", [GConstraints]), 
+% printf("NonUnfoldableHAtoms=%\n", [NonUnfoldableHAtoms]), 
+% printf("UnfoldableHAtoms=%\n", [UnfoldableHAtoms]), 
+% printf("HConstraints=%\n", [HConstraints]), 
+% printf("Table=%\n", [Table]),
+% printf("In=%\n", [In]),
+% printf("Out=%\n", [Out]),
+% printf("\n", []),
 
   printf("Attempting left unfold at level LDepth = % RDepth = %\n", 
     [LDepth, RDepth]),
@@ -836,14 +836,14 @@ lprove_aux_left(LDepth, RDepth, IndLevel,
    GConstraints,
    GList),
 
-  printf("left_unfold returned.\n", []),
+% printf("left_unfold returned.\n", []),
 
-  printf("GList=%\n", [GList]), 
-  printf("UnfoldableGAtoms=%\n", [UnfoldableGAtoms]), 
-  printf("GConstraints=%\n", [GConstraints]), 
-  printf("NonUnfoldableHAtoms=%\n", [NonUnfoldableHAtoms]), 
-  printf("UnfoldableHAtoms=%\n", [UnfoldableHAtoms]), 
-  printf("HConstraints=%\n", [HConstraints]), 
+% printf("GList=%\n", [GList]), 
+% printf("UnfoldableGAtoms=%\n", [UnfoldableGAtoms]), 
+% printf("GConstraints=%\n", [GConstraints]), 
+% printf("NonUnfoldableHAtoms=%\n", [NonUnfoldableHAtoms]), 
+% printf("UnfoldableHAtoms=%\n", [UnfoldableHAtoms]), 
+% printf("HConstraints=%\n", [HConstraints]), 
 
 
   make_obs_from_left_unfold(LDepth+1, RDepth, IndLevel, GList, 
@@ -852,9 +852,6 @@ lprove_aux_left(LDepth, RDepth, IndLevel,
                           NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints)|
                Table], OrSet),
   append(OrSet, In, Out),
-  printf("lprove_aux_left is about to return.\n", []),
-  printf("Out=%\n", [Out]),
-  printf("lprove_aux_left returned.\n", []),
   !.
 
 
@@ -943,7 +940,7 @@ make_obs_from_left_unfold(LDepth, RDepth, IndLevel, [_OneGoalSet | R],
 make_obs_from_left_unfold_aux(_LDepth, _RDepth, _IndLevel, [], 
                     _NonUnfoldableHAtoms, _UnfoldableHAtoms, _HConstraints,
         _Table, []) :- 
-  printf("\n\n!!!HOTSPOT: make_obs_from_left_unfold_aux (D) !!!\n\n", []),
+% printf("\n\n!!!HOTSPOT: make_obs_from_left_unfold_aux (D) !!!\n\n", []),
   !, true.
 
 
@@ -952,7 +949,7 @@ make_obs_from_left_unfold_aux(LDepth, RDepth, IndLevel,
                     [goal(_NonUnfoldableGAtoms, _UnfoldableGAtoms, GConstraints) | R], 
                     NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints,
         Table, S) :-
-  printf("\n\n!!!HOTSPOT: make_obs_from_left_unfold_aux (A) !!!\n\n", []),
+% printf("\n\n!!!HOTSPOT: make_obs_from_left_unfold_aux (A) !!!\n\n", []),
   % Skip a trivial obligation
   unsatisfiable(GConstraints), !,
   make_obs_from_left_unfold_aux(LDepth, RDepth, IndLevel, R, 
@@ -964,7 +961,7 @@ make_obs_from_left_unfold_aux(_LDepth, _RDepth, _IndLevel,
                     _NonUnfoldableHAtoms, _UnfoldableHAtoms, HConstraints,
         _Table, _S) :-
 
-  printf("\n\n!!!HOTSPOT: make_obs_from_left_unfold_aux (B) !!!\n\n", []),
+% printf("\n\n!!!HOTSPOT: make_obs_from_left_unfold_aux (B) !!!\n\n", []),
   % Fail to skip the whole set of obligations
   append(GConstraints, HConstraints, TotalConstraints),
   unsatisfiable(TotalConstraints), !,
@@ -975,7 +972,6 @@ make_obs_from_left_unfold_aux(_LDepth, _RDepth, _IndLevel,
 make_obs_from_left_unfold_aux(LDepth, RDepth, IndLevel, [goal(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints) | R], 
                     NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints,
         Table, [Ob | S]) :- 
-  printf("\n\n!!!HOTSPOT: make_obs_from_left_unfold_aux (C) !!!\n\n", []),
   Ob = obligation(LDepth, RDepth, IndLevel, 
                   NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
                   NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints,
@@ -1035,13 +1031,12 @@ left_unfold(Level, NonUnfoldableGAtoms,
 left_unfold_aux(_Level, _NonUnfoldableGAtoms,                                         
                 _, [],
     _GConstraints, [], _GList) :- 
-  printf("\n\n!!! HOTSPOT5: left_unfold_aux !!!\n", []),
   !, fail.
 
 left_unfold_aux(_Level, _NonUnfoldableGAtoms,                                         
             _, [],
-    _GConstraints, GList, GList) :-
-  printf("\n\n!!! HOTSPOT4: left_unfold_aux !!!\n", []).
+    _GConstraints, GList, GList).
+% printf("\n\n!!! HOTSPOT4: left_unfold_aux !!!\n", []).
 
 left_unfold_aux(
   Level, 
@@ -1051,17 +1046,6 @@ left_unfold_aux(
   GConstraints, 
   CurrentGList, 
   GList) :-
-
-  printf("\n\n!!! HOTSPOT2: left_unfold_aux !!!\n", []),
-  printf("Level = %\n", [Level]),
-  printf("NonUnfoldableGAtoms= %\n", [NonunfoldableGAtoms]),
-  printf("HeadUnfoldableGAtoms= %\n", [HeadUnfoldableGAtoms]),
-  printf("OneAtom = %\n", [OneAtom]),
-  printf("TailUnfoldableGAtoms = %\n", [TailUnfoldableGAtoms]),
-  printf("GConstraitns = %\n", [GConstraints]),
-  printf("CurrentGList = %\n", [CurrentGList]),
-  printf("GList = %\n", [GList]),
-  printf("\n\n", []),
 
   UnfoldLevel < X, unfolddepthbound(X),
   
@@ -1085,8 +1069,6 @@ left_unfold_aux(
 
 left_unfold_aux(Level, NonUnfoldableGAtoms, HeadUnfoldableGAtoms, [GAtom|TailUnfoldableGAtoms], 
         GConstraints, CurrentGList, GList) :-
-
-  printf("\n\n!!! HOTSPOT3: left_unfold_aux !!!\n", []),
 
   left_unfold_aux(Level, [GAtom|NonUnfoldableGAtoms], HeadUnfoldableGAtoms, TailUnfoldableGAtoms, 
                         GConstraints, CurrentGList, GList).
