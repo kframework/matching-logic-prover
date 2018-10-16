@@ -593,7 +593,26 @@ TODO.
 
 ## `ll(H,X,Y,F) /\ list(H,Y,G) /\ disjoint(F,G) /\ K=F+G -> list(H,X,K)`
 
-TODO.
+```
+Defintions.
+
+ll(H,X,Y,F) ===
+  (case A) X=Y /\ F=emptyset
+  (case B) ll(H,X1,Y,F1) /\ X>0 /\ X!=Y /\ X1=H[X] /\ X notin F /\ F=F1+{X}
+
+list(H,X,F) ===
+  (case A) X=0 /\ F=emptyset
+  (case B) list(H,X1,F1) /\ X>0 /\ X1=H[X] /\ X notin F /\ F=F1+{X}
+  
+(1) ll(H,X,Y,F) /\ list(H,Y,G) /\ disjoint(F,G) /\ K=F+G -> list(H,X,K)
+
+apply KT.
+
+Two cases.
+
+TODO
+
+```
 
 ### `mul4(X) -> even(X)` (DO NOT READ)
 
