@@ -1,6 +1,6 @@
 # The fixpoint prover.
 
-# Todos (in priority)
+# Todos
 - [ ] finish `lr -> ll` example on paper.
 - [ ] finish `ll * list -> list` example on paper.
 - [ ] implement KT.
