@@ -581,6 +581,19 @@ T1 notin F3, because T1 notin F2, and F3=F2+{X}, and X!=T1
 F=F3+{T1}, because F=F1+{X}=F2+{T1}+{X}=F3+{T1}.
 ```
 
+# Examples from Separation Logic
+
+## `ll(H,X,Y,F) -> lr(H,X,Y,F)`
+
+We proved it in the previous section.
+
+## `lr(H,X,Y,F) -> ll(H,X,Y,F)`
+
+TODO.
+
+## `ll(H,X,Y,F) /\ list(H,Y,G) /\ disjoint(F,G) /\ K=F+G -> list(H,X,K)`
+
+TODO.
 
 ### `mul4(X) -> even(X)` (DO NOT READ)
 
