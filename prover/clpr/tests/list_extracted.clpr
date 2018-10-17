@@ -1,0 +1,124 @@
+declare_unification_type(ll, [arreq,eq,eq,eqset]).
+declare_unification_type(lr, [arreq,eq,eq,eqset]).
+declare_unification_type(list, [arreq,eq,eqset]).
+
+% list segment recursively defined from the left
+unfold(ll(H,X,Y,F),
+  [
+  body([],                            % list of critical positions
+       [],                            % recursive predicates
+       [eq(X,Y), eqset(F,emptyset)]), % constraints
+  body([2,4],
+       [ll(H,T,Y,F1)],
+       [gt(X, 0),
+%       z3_not(eq(X, Y)),    % this is strange but the prover cannot handle it.
+        eq(T, ref(H, X)),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+% list segment recursively defined from the right
+unfold(lr(H,X,Y,F),
+  [
+  body([],                            % list of critical positions
+       [],                            % recursive predicates
+       [eq(X,Y), eqset(F,emptyset)]), % constraints
+  body([3,4],                         % list of critical positions
+       [lr(H,X,T,F1)],
+       [gt(T, 0),          % this is correct, not gt(X,0).
+%       z3_not(eq(X, Y)),  % this is strange but the prover cannot hanle it.
+        eq(Y, ref(H, T)),
+        z3_not(mem(T, F1)),
+        eqset(F, add(F1, T))])
+  ]).
+
+% list (recursively defined from the left)
+% unfold(list(H,X,F),
+%   [
+%   body([],[], [eq(X,0), eqset(F,emptyset)]),
+%   body([2,3],
+%        [list(H,X1,F1)],
+%        [gt(X, 0),
+%         eq(X1, ref(H, X)),
+%         z3_not(mem(X, F1)),
+%         eqset(F, add(F1, X))])
+%   ]).
+
+
+run_ll_lr :-
+  GAtoms = [ll(H,X,Y,F)],
+  HAtoms = [lr(H,X,Y,F)],
+  lprove(GAtoms, [], HAtoms, []),
+  !,
+  printf("LL-LR is PROVED.\n", []).
+
+run_lr_ll :-
+  GAtoms = [lr(H,X,Y,F)],
+  HAtoms = [ll(H,X,Y,F)],
+  lprove(GAtoms, [], HAtoms, []),
+  !,
+  printf("LR-LL is PROVED.\n", []).
+
+% run_ll_zero_list :-
+%   init_counters,
+%   addunfoldlevel(0, 0, [ll(H, X, Y, F)],
+%                  UnfoldableGAtoms),
+%   addunfoldlevel(0, 0, [list(H, X, F)],
+%                  UnfoldableHAtoms),
+%   lprove(0, 0, 0,
+%          [], UnfoldableGAtoms,
+%          [eq(Y,0)],
+%          [], UnfoldableHAtoms, 
+%          [], []),
+%   !,
+%   show_counters,
+%   printf("LL-ZERO-LIST is PROVED.\n", []).
+% 
+% run_ll_list_list :-
+%   init_counters,
+%   addunfoldlevel(0, 0, [ll(H, X, Y, F),
+%                         list(H, Y, G)],
+%                  UnfoldableGAtoms),
+%   addunfoldlevel(0, 0, [list(H, X, K)],
+%                  UnfoldableHAtoms),
+%   lprove(0, 0, 0,
+%          [], UnfoldableGAtoms,
+%          [eqset(inter(F,G), emptyset),
+%           eqset(K, union(F,G))],
+%          [], UnfoldableHAtoms, 
+%          [], []),
+%   !,
+%   show_counters,
+%   printf("LL-LIST-LIST is PROVED.\n", []).
+% 
+% % can this be proved?
+% run_lr_list_list :-
+%   init_counters,
+%   addunfoldlevel(0, 0, [lr(H, X, Y, F),
+%                         list(H, Y, G)],
+%                  UnfoldableGAtoms),
+%   addunfoldlevel(0, 0, [list(H, X, K)],
+%                  UnfoldableHAtoms),
+%   lprove(0, 0, 0,
+%          [], UnfoldableGAtoms,
+%          [eqset(inter(F,G), emptyset),
+%           eqset(K, union(F,G))],
+%          [], UnfoldableHAtoms, 
+%          [], []),
+%   !,
+%   show_counters,
+%   printf("LR-LIST-LIST is PROVED.\n", []).
+
+run :-
+  run_ll_lr,
+% run_lr_ll,
+% run_ll_zero_list,
+% run_ll_list_list,
+% run_lr_list_list,    % I doubt this can be proved
+  !,
+  printf("PROOF SUCCEED.\n", []).
+run :-
+  printf("PROOF FAILED\n", []).
+
+:- consult('solver_main_extracted.clpr').
+:- run, halt.
