@@ -235,6 +235,7 @@ lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
 
 % try all possible rules and collect a set of obligation sets OrSet.
 % prove one obligation set in OrSet and we are done.
+% In other words, OrSet is a disjunction of conjunctions. 
 lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
   lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet),
   prove_one(OrSet),
@@ -287,7 +288,7 @@ lprove_aux_kt([], _GConstraints, _HAtoms, _HConstraints,
               _InOrSet, _InOrSet) :-
   !.
 
-% the case when there's one unfoldable GAtom.
+% the case when there's exactly one unfoldable GAtom.
 lprove_aux_kt([GAtom], GConstraints, [HAtom], HConstraints,
               InOrSet, OutOrSet) :-
   printf("\n----try KT---- InOrSet = % \n", [InOrSet]),
@@ -298,3 +299,18 @@ lprove_aux_kt([GAtom], GConstraints, [HAtom], HConstraints,
   OutOrSet = [ Ob | InOrSet ],
   printf("OutOrSet=%\n", [OutOrSet]),
   true.
+
+% the case when there's exactly one unfoldable GAtom.
+% apply KT according to just one case in the recursive definition
+% the case is given in the argument Body.
+lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
+              Body,
+              InOrSet, OutOrSet) :-
+  printf("\n----try KT one case ---- \n", []),
+  % TODO here
+  % rewrite_step([eq(GAtom, HAtom)], GBodies, NewGAtoms),
+  % Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
+  % OutOrSet = [ Ob | InOrSet ],
+  printf("OutOrSet=%\n", [OutOrSet]),
+  true.
+
