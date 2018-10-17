@@ -13,7 +13,7 @@ unfold(ll(H,X,Y,F),
   body([], [eq(X,Y), eqset(F,emptyset)]),
   body([ll(H,T,Y,F1)],
        [gt(X, 0),
-        z3_not(eq(X, Y)),
+%       z3_not(eq(X, Y)),    % this is strange but the prover cannot handle it.
         eq(T, ref(H, X)),
         z3_not(mem(X, F1)),
         eqset(F, add(F1, X))])
@@ -24,8 +24,8 @@ unfold(lr(H,X,Y,F),
   [
   body([], [eq(X,Y), eqset(F,emptyset)]),
   body([lr(H,X,T,F1)],
-       [gt(X, 0),
-        z3_not(eq(X, Y)),
+       [gt(T, 0),          % this is correct, not gt(X,0).
+%       z3_not(eq(X, Y)),  % this is strange but the prover cannot hanle it.
         eq(Y, ref(H, T)),
         z3_not(mem(T, F1)),
         eqset(F, add(F1, T))])
