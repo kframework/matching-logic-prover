@@ -294,11 +294,25 @@ lprove_aux_kt([GAtom], GConstraints, [HAtom], HConstraints,
   printf("\n----try KT---- InOrSet = % \n", [InOrSet]),
   unfold(GAtom, GBodies),
   printf("GBodies=%\n", [GBodies]),
-  rewrite_step([eq(GAtom, HAtom)], GBodies, NewGAtoms),
-  Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
-  OutOrSet = [ Ob | InOrSet ],
-  printf("OutOrSet=%\n", [OutOrSet]),
+  % go through all the bodies and collect proof obligations
+  lprove_aux_kt_try_all_cases(
+    [GAtom], GConstraints, [HAtom], HConstraints, GBodies,
+    InOrSet, OutOrSet),
   true.
+
+% Go through all the bodies and collect proof obligations
+% Just return InOrSet when GBodies is empty.
+lprove_aux_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints, 
+  [], InOrSet, InOrSet).
+
+% Go through all the bodies and collect proof obligations
+lprove_aux_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints, 
+  [Body | GBodies], InOrSet, OutOrSet) :-
+  lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
+                Body, InOrSet, IntermediateOutOrSet),
+  lprove_aux_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints, 
+    [GBodies], IntermediateOutOrSet, OutOrSet).
+
 
 % the case when there's exactly one unfoldable GAtom.
 % apply KT according to just one case in the recursive definition
@@ -308,9 +322,9 @@ lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
               InOrSet, OutOrSet) :-
   printf("\n----try KT one case ---- \n", []),
   % TODO here
-  % rewrite_step([eq(GAtom, HAtom)], GBodies, NewGAtoms),
-  % Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
-  % OutOrSet = [ Ob | InOrSet ],
+  rewrite_step([eq(GAtom, HAtom)], GBodies, NewGAtoms),
+  Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
+  OutOrSet = [ Ob | InOrSet ],
   printf("OutOrSet=%\n", [OutOrSet]),
   true.
 
