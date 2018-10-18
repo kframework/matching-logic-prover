@@ -321,6 +321,7 @@ lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
               body(CP, [Atom], Constraints),
               InOrSet, OutOrSet) :- true
  , printf("\n----try KT one case (body has recursive atom) ---- \n", [])
+ , printf("GAtom (original) = %\nGAtom (body)     = %\n", [GAtom, Atom])
  , get_unifier([GAtom], [Atom], Substitution)
  , substitute(Substitution, GConstraints, GConstraints1)
  , printf("Subst: % ;\n GConstraints: %;\n GConstraints1: %\n", [Substitution, GConstraints, GConstraints1])
