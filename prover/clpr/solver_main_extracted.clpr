@@ -318,11 +318,10 @@ lprove_aux_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints,
 % the case is given in the argument Body.
 lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
               Body,
-              InOrSet, OutOrSet) :-
-  printf("\n----try KT one case ---- \n", []),
-  % TODO here
-  rewrite_step([eq(GAtom, HAtom)], [Body], NewGAtoms),
-  Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
-  OutOrSet = [ [Ob] | InOrSet ],
-  true.
+              InOrSet, OutOrSet) :- true
+ , printf("\n----try KT one case ---- \n", [])
+ , rewrite_step([eq(GAtom, HAtom)], [Body], NewGAtoms)
+ , Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints)
+ , OutOrSet = [ [Ob] | InOrSet ]
+ .
 
