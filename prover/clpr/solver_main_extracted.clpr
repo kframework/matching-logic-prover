@@ -323,7 +323,6 @@ lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
   % TODO here
   rewrite_step([eq(GAtom, HAtom)], [Body], NewGAtoms),
   Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
-  OutOrSet = [ Ob | InOrSet ],
-  printf("OutOrSet=%\n", [OutOrSet]),
+  OutOrSet = [ [Ob] | InOrSet ],
   true.
 
