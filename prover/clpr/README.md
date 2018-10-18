@@ -513,6 +513,12 @@ OR JUST
 GAtom,GConstraints -> HAtom,HConstraints  /* HAtom and GAtom contains the same recursive predicate */
 body(CP, Atom, Constraints)    /* Atom and GAtom contains the same recursive predicate */
 
+Variables in GAtom are called active variables.
+Variables in GConstraints,HAtom,HConstraints but not in GAtom are called passive variables.
+
+ActiveVars = ...
+PassiveVars = ...
+
 // BODY is Constraints
 // LHS is GConstraints
 // RHS is HAtom,HConstraints
@@ -529,15 +535,14 @@ variables are renamed to something fresh.
 
 // Subst1 is [z/x]
 get_unifier([GAtom],[Atom],Subst1)
-// Notice that the domain of Subst1 is all variables in GAtom
 substitute(Subst1, GConstraints, GConstraints1)
 substitute(Subst1, HAtom, HAtom1)
 substitute(Subst1, HConstraints, HConstraints1)
 
 // Subst2 is [t1/y1]
 * collect all critical variables in HAtom, say, HAtomCriticalVars
-* remove from HAtomCriticalVars the domains of Subst1 and get, say, HAtomCriticalVarsRemained
-* construct the substitution Subst2 = [HAtomCriticalVarsRemained --> FreshCopyHAtomCriticalVarsRemained]
+* calculate the intersection of HAtomCriticalVars and PassiveVars, and denote the result HAtomPassiveCriticalVars
+* construct the substitution Subst2 = [HAtomPassiveCriticalVars --> FreshCopyHAtomPassiveCriticalVars]
 substitute(Subst2, GConstraints1, GConstraints2)
 substitute(Subst2, HAtom1, HAtom2)
 substitute(Subst2, HConstraints1, HConstraints2)
