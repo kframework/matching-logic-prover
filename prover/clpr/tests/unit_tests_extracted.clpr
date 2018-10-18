@@ -4,14 +4,14 @@
 % that equals expected).
 %
 do_test(Actual, Expected) :-
-    printf("Actual = %\n", [Actual]),
-    printf("Expected = %\n", [Expected]),
+%    printf("Actual = %\n", [Actual]),
+%    printf("Expected = %\n", [Expected]),
     Actual = Expected,
-    printf("Passed?\n\n", []),
-    true.
+%    printf("Passed?\n\n", []),
+    true .
 do_test(Actual, _Expected) :-
-    printf("Failed\n\n", [Actual]),
-    true.
+    printf("Failed: actual = %\n\n", [Actual]),
+    fail .
 
 test_get_unifier(LHS, RHS, Expected) :-
     printf("test_get_unifier(%, %, %)?\n", [LHS, RHS, Expected]),

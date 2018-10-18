@@ -121,10 +121,10 @@ append([X|A], B, [X|C]) :- append(A, B, C).
 % Note that this is *NOT* full unification.
 %--------------------------------------------------------------------
 
-get_unifier(L, R, _) :- true
-  , printf("GET_UNIFIER: L = % ; R = %\n", [L, R])
-  , 0 == 1
-  .
+% get_unifier(L, R, _) :- true
+%   , printf("GET_UNIFIER: L = % ; R = %\n", [L, R])
+%   , 0 == 1
+%   .
 get_unifier([L|LS], [R|RS], [eq(L,R)|US]) :- true
   , var(L)
   , get_unifier(LS, RS, US)
@@ -146,10 +146,10 @@ get_unifier([], [], []).
 % Modified: The modified list of terms
 %------------------------------------------------------------------------------
 
-substitute(Assign, Term, Out) :- true
-  , printf("SUBSTITUTE: Assign = % ; Term = % ; Out = % \n", [Assign, Term, Out])
-  , 0 == 1
-  .
+% substitute(Assign, Term, Out) :- true
+%   , printf("SUBSTITUTE: Assign = % ; Term = % ; Out = % \n", [Assign, Term, Out])
+%   , 0 == 1
+%   .
 substitute([eq(L, R)], [T], [R]) :- true
   , var(L)
   , L == T
@@ -196,15 +196,14 @@ substitute(_Assignment, Term, Term) .
 %  , rewrite(Rule, Out1, Out)
 %  .
 
-rewrite_step(Rule, In, _Out) :- true
-  , printf("REWRITE: Rule = % ; In = %\n", [Rule, In])
-  , 0 == 1
-  .
+% rewrite_step(Rule, In, _Out) :- true
+%   , printf("REWRITE: Rule = % ; In = %\n", [Rule, In])
+%   , 0 == 1
+%   .
 % Unifies
 rewrite_step([eq(L, R)], [T], [Out]) :- true
   , get_unifier([L], [T], Unif)
   , substitute(Unif, [R], [Out])
-  , printf("0: Out = %\n", [Out])
   .
 % Variable
 rewrite_step(_Rule, [A], [A]) :- true
