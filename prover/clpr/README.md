@@ -6,7 +6,6 @@
 - [ ] implement KT.
 - [ ] make `ll -> lr` work.
 
-
 # Instruction
 
 All is in `fix.maude`. 
@@ -506,6 +505,45 @@ OR JUST
   (6a1) BODY /\ LHS -> RHS           // this is unlikely to prove
 
   
+```
+
+### Implementation of KT
+
+```
+GAtom,GConstraints -> HAtom,HConstraints  /* HAtom and GAtom contains the same recursive predicate */
+body(CP, Atom, Constraints)    /* Atom and GAtom contains the same recursive predicate */
+
+// BODY is Constraints
+// LHS is GConstraints
+// RHS is HAtom,HConstraints
+
+The key here is that every critical variables in HAtom must be renamed.
+
+We do that in two steps.
+
+First, Subst1 is applied according to the unfold.
+Some critical variables might be renamed (even renaming to themselves is OK ... ), 
+while some are not.
+Then we apply Subst2, and make sure all those remaining critical
+variables are renamed to something fresh.
+
+// Subst1 is [z/x]
+get_unifier([GAtom],[Atom],Subst1)
+// Notice that the domain of Subst1 is all variables in GAtom
+substitute(Subst1, GConstraints, GConstraints1)
+substitute(Subst1, HAtom, HAtom1)
+substitute(Subst1, HConstraints, HConstraints1)
+
+// Subst2 is [t1/y1]
+* collect all critical variables in HAtom, say, HAtomCriticalVars
+* remove from HAtomCriticalVars the domains of Subst1 and get, say, HAtomCriticalVarsRemained
+* construct the substitution Subst2 = [HAtomCriticalVarsRemained --> FreshCopyHAtomCriticalVarsRemained]
+substitute(Subst2, GConstraints1, GConstraints2)
+substitute(Subst2, HAtom1, HAtom2)
+substitute(Subst2, HConstraints1, HConstraints2)
+
+(6a2) Constraints,GConstraints -> GConstraints2
+(6b)  HAtom2,GConstraints2,HConstraints2,Constraints,GConstraints -> HAtom,HConstraints
 ```
 
 ### `ll(H,X,Y,F) -> lr(H,X,Y,F)`
