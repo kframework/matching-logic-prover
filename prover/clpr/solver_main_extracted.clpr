@@ -310,7 +310,7 @@ lprove_aux_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints,
   lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
                 Body, InOrSet, IntermediateOutOrSet),
   lprove_aux_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints, 
-    [GBodies], IntermediateOutOrSet, OutOrSet).
+    GBodies, IntermediateOutOrSet, OutOrSet).
 
 
 % the case when there's exactly one unfoldable GAtom.
@@ -321,7 +321,7 @@ lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
               InOrSet, OutOrSet) :-
   printf("\n----try KT one case ---- \n", []),
   % TODO here
-  rewrite_step([eq(GAtom, HAtom)], GBodies, NewGAtoms),
+  rewrite_step([eq(GAtom, HAtom)], [Body], NewGAtoms),
   Ob = obligation(NewGAtoms, GConstraints, [HAtom], HConstraints),
   OutOrSet = [ Ob | InOrSet ],
   printf("OutOrSet=%\n", [OutOrSet]),
