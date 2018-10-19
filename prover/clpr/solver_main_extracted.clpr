@@ -173,6 +173,28 @@ substitute([eq(L, R)], [T|TS], Out) :- true
 substitute(_Assignment, Term, Term) .
 
 %------------------------------------------------------------------------------
+% collect_variables(Terms, OutTerms)
+%------------------------------------------------------------------------------
+
+collect_variables([], []) :- true
+  , !
+  .
+collect_variables([V], [V]) :- true
+  , var(V)
+  , !
+  .
+collect_variables([Term], Out) :- true
+  , Term =.. [Ctor|Args]
+  , !
+  , collect_variables(Args, Out)
+  .
+collect_variables([Term | Terms], [Out | Outs]) :- true
+  , !
+  , collect_variables([Term], [Out])
+  , collect_variables(Terms, Outs)
+  .
+
+%------------------------------------------------------------------------------
 % rewrite(Subst, In, Out)
 % Subst: List of eq(L, R) where L and R are terms
 % In: List of terms to rewrite

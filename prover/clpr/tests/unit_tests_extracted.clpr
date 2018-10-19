@@ -31,6 +31,12 @@ test_rewrite_step(Rules, Input, Expected) :-
     do_test(Out, Expected),
     true.
 
+test_collect_variables(Input, Expected) :-
+    printf("test_collect_variables(%, %)\n", [Input, Expected]),
+    collect_variables(Input, Out),
+    do_test(Out, Expected),
+    true.
+
 % Tests
 % =====
 
@@ -62,4 +68,9 @@ test_rewrite_step(Rules, Input, Expected) :-
                     , [ body([], [eq(X, 0)]), body([even(N)]
                       , [gt(X, 0), eq(X, plus(N, 4))])]
                     ) .
+
+:-  printf("\n==== rewrite\n", []).
+:- test_collect_variables([body(X, Y, ll(Z))], [X, Y, Z]) .
+:- test_collect_variables([x],                 []       ) .
+
 :- halt .
