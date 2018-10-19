@@ -120,8 +120,9 @@ prettyprintlist(Op, [X,Y|R]) :-
 % some aux functions: can be added later.
 %--------------------------------------------------------------------
 
-append([], B, B).
-append([X|A], B, [X|C]) :- append(A, B, C).
+% append is defined in z3_wrapper.clpr.
+% append([], B, B).
+% append([X|A], B, [X|C]) :- append(A, B, C).
 
 %--------------------------------------------------------------------
 % get_unifier(LHS, RHS, Unifier)
@@ -347,60 +348,107 @@ prove_all(_) :- fail. % not reachable.
 
 
 
-%--------------------------------------------------------------------
-% lprove_kt: try (KT) rule.
-%--------------------------------------------------------------------
+%------------------------------------------------------------------------------
+% lprove_kt/6
+% lprove_kt(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +InOrSet,-OutOrSet)
+%
+% GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (KT) on every recursive predicates in GAtoms. For every recursive
+% predicate p(X1,..,Xn) in GAtoms, a list of proof obligations is generated
+% and is added as a single conjunction to InOrSet.
+% If there are k recursive predicates in GAtoms, |OutOrSet| = |InOrSet| + k.
+%------------------------------------------------------------------------------
+
+lprove_kt([],_GConstraints,_HAtoms,_HConstraints,
+  _InOrSet,_InOrSet) :- true
+  , !
+  .
+
+% TODO:: Finish lprove_kt/6 using lprove_kt/7.
 
 
-% the case when there's no unfoldable GAtom.
-lprove_kt([], _GConstraints, _HAtoms, _HConstraints,
-              _InOrSet, _InOrSet) :-
-  !.
+%------------------------------------------------------------------------------
+% lprove_kt/7
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +InOrSet,-OutOrSet)
+%
+% GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (KT) on GAtom. A list KTSet of proof obligations is generated
+% and is added as a single conjunction to InOrSet.
+%------------------------------------------------------------------------------
 
-% the case when there's exactly one unfoldable GAtom.
-lprove_kt([GAtom], GConstraints, [HAtom], HConstraints,
-              InOrSet, OutOrSet) :-
-  printf("\n----try KT---- InOrSet = % \n", [InOrSet]),
-  unfold(GAtom, GBodies),
-  printf("GBodies=%\n", [GBodies]),
-  % go through all the bodies and collect proof obligations
-  lprove_kt_try_all_cases(
-    [GAtom], GConstraints, [HAtom], HConstraints, GBodies,
-    InOrSet, OutOrSet),
-  true.
+lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
+  InOrSet,[KTSet|InOrSet]) :- true
+  , printf("\n---try KT on---\n", [])
+  , flatten([GAtoms,GConstraints],LHS)
+  , flatten([HAtoms,HConstraints],RHS)
+  , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
+  , unfold(GAtom, GBodies)
+  , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
+    GBodies, [], KTSet)
+  , !
+  .
 
-% Go through all the bodies and collect proof obligations
-% Just return InOrSet when GBodies is empty.
-lprove_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints, 
-  [], InOrSet, InOrSet).
 
-% Go through all the bodies and collect proof obligations
-lprove_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints, 
-  [Body | GBodies], InOrSet, OutOrSet) :-
-  lprove_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
-                Body, InOrSet, IntermediateOutOrSet),
-  lprove_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints, 
-    GBodies, IntermediateOutOrSet, OutOrSet).
+%------------------------------------------------------------------------------
+% lprove_kt_try_all_cases/8
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +GBodies, +KTSetIn, -KTSetOut)
+%
+% GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Accumulates the results of applying (KT) according to GBodies.
+% Apply (KT) on GAtom, whose bodies is given in GBodies.
+% Append the results upon KTSetIn and return KTSetOut, 
+% a conjunction of proof obligation.
+%------------------------------------------------------------------------------
 
-% the two cases when there's exactly one unfoldable GAtom.
-% apply KT according to just one case in the recursive definition
-% the case is given in the argument Body.
+% No bodies, no new obligations.
+lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
+  [], KTSet, KTSet) :- !.
 
-% case one: Body of unfold has an unfoldable atom
-lprove_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
-              body(CP, [Atom], Constraints),
-              InOrSet, OutOrSet) :- true
- , printf("\n----try KT one case (body has recursive atom) ---- \n", [])
- , printf("GAtom (original) = %\nGAtom (body) = %\n", [GAtom, Atom])
+lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
+  [Body|RestGBodies], KTSetIn, KTSetOut) :- true
+  , lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
+      Body, KTSetBody)
+  , append(KTSetBody,KTSetIn,NewKTSetIn)
+  , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
+      RestGBodies, NewKTSetIn, KTSetOut)
+  , !
+  .
 
- % sanity check: GAtom and Atom is about the same recursive predicate.
- % TODO
+%------------------------------------------------------------------------------
+% lprove_kt_try_one_case/7
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +Body, -KTSetBody)
+%
+% GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (KT) according to Body and return KTSetBody.
+%------------------------------------------------------------------------------
 
- % sanity check: GAtom and HAtom is about the same recursive predicate.
- , GAtom =.. [GAtomHead|_]
- , HAtom =.. [HAtomHead|_]
- , GAtomHead = HAtomHead
- , printf("sanity check: GAtom and HAtom have the same head %\n", [GAtomHead])
+% Just return true (the empty conjunction []) when body contains new atoms.
+lprove_kt_try_one_case(GAtom,[],GConstraints,HAtoms,HConstraints,
+  body(CP, [], BConstraints), []) :- true
+  , !
+  .
+
+% TODO:: Extend this function to support more general cases.
+% Current assumptions
+%   body contains exactly one atom, BAtom
+%   HAtoms contains exactly one atom, HAtom
+%   GAtoms is empty
+%   GAtom,HAtom,BAtom have the same head
+lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
+  body(CP, [BAtom], BConstraints), KTSetBody) :- true
+ , printf("\n---try KT (one case) on---\n", [])
+ , flatten([HAtom,HConstraints],RHS)
+ , printf("%\n%\n  ->\n%\n", [GAtom,GConstraints,RHS]) 
+ , printf("---case is---\n", [])
+ , printf("%\n%\n", [BAtom, BConstraints])
 
  % Variables in GAtom are called active variables.
  % Variables in GConstraints,HAtom,HConstraints but not in GAtom 
@@ -416,7 +464,7 @@ lprove_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
 
  % Subst1
- , get_unifier([GAtom], [Atom], Subst1)
+ , get_unifier([GAtom], [BAtom], Subst1)
  , substitute(Subst1, GConstraints, GConstraints1)
  , substitute(Subst1, HAtom,        HAtom1       )
  , substitute(Subst1, HConstraints, HConstraints1)
@@ -431,23 +479,17 @@ lprove_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
  , substitute(Subst2, HAtom1, HAtom2)
  , substitute(Subst2, HConstraints1, HConstraints2) 
 
- , append(Constraints, GConstraints, GConstraints6a2)
+ , append(BConstraints, GConstraints, GConstraints6a2)
 
  , Ob6a2 = obligation([], GConstraints6a2, [], GConstraints2)
 
  , append(GConstraints6a2, GConstraints2, NotYetGConstraints6b)
  , append(NotYetGConstraints6b, HConstraints2, GConstraints6b)
 
- , Ob6b = obligation([HAtom2], GConstraints6b, [HAtom], HConstraints)
+ , Ob6b = obligation([HAtom2], GConstraints6b, [BHAtom], HConstraints)
 
- , OutOrSet = [ [Ob6a2] | InOrSet ]
+ , KTSetBody = [Ob6a2|[ob6b]]
+ , !
  .
 
-% case two: Body of unfold has no unfoldable atom
-lprove_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
-              body(CP, [], Constraints),
-              InOrSet, OutOrSet) :- true
- , printf("\n----try KT one case (no recursive atom) ---- \n", [])
- % TODO
- , OutOrSet = InOrSet
- .
+
