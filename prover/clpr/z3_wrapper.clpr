@@ -1412,8 +1412,8 @@ select(E, [X|Es], [X|L]) :- select(E, Es, L).
 %------------------------------------------------------------------------------
 % member/2
 %------------------------------------------------------------------------------
-%member(X,[X|_]).
-%member(X,[_|T]):- member(X,T).
+member(X,[X|_]).
+member(X,[_|T]):- member(X,T).
 
 %------------------------------------------------------------------------------
 % insert_if_not_member/3
@@ -1547,6 +1547,19 @@ unord_setunion([X|Xs],Vs,Ws) :-
 	unord_setunion(Xs,Vs,Ws).
 unord_setunion([X|Xs],Vs,[X|Ws]) :-
 	unord_setunion(Xs,Vs,Ws).
+
+
+%------------------------------------------------------------------------------
+% list to set
+%------------------------------------------------------------------------------
+
+list_to_set([], []).
+
+list_to_set([X | L], S) :- true
+  , list_to_set(L, S1)
+  , unord_setunion([X], S1, S)
+  .
+
 
 % Term operations
 :- dynamic(copy_term_memo, 1).

@@ -37,6 +37,12 @@ test_collect_variables(Input, Expected) :-
     do_test(Out, Expected),
     true.
 
+test_collect_variables_by_position(Term, Positions, Expected) :-
+  printf("collect_variables_by_position(%, %, %)\n", [Term, Positions, Expected]),
+  collect_variables_by_position(Term, Positions, Out),
+  do_test(Out, Expected).
+  true.
+
 % Tests
 % =====
 
@@ -69,8 +75,16 @@ test_collect_variables(Input, Expected) :-
                       , [gt(X, 0), eq(X, plus(N, 4))])]
                     ) .
 
-:-  printf("\n==== rewrite\n", []).
+:-  printf("\n==== collect variables\n", []).
 :- test_collect_variables([body(X, Y, ll(Z))], [X, Y, Z]) .
+:- test_collect_variables([ll(H,X,Y,F)],[H,X,Y,F]) .
+:- test_collect_variables([ll(H,X,Y,F), lr(H,X,Y,F)],[H,X,Y,F]) .
+:- test_collect_variables([ll(H,X,Y,F), eq(X,0), eqset(F, emptyset)],[H,X,Y,F]) .
 :- test_collect_variables([x],                 []       ) .
+
+:-  printf("\n==== collect variables by positions\n", []).
+:- test_collect_variables_by_position(ll(H,X,Y,F), [1,3], [H, Y]) .
+:- test_collect_variables_by_position(ll(H,X,Y,F), [], []) .
+
 
 :- halt .

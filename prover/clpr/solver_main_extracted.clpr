@@ -8,10 +8,21 @@
 %--------------------------------------------------------------------
 % set_default ignored.
 % counters related functions ignored.
-% load_solver ignored.
-% set_equalities ignored.
 %--------------------------------------------------------------------
 
+
+
+
+%==============================================================================
+% Load the solver to do constraint proof
+%==============================================================================\
+% Hiep: Using z3, no need for custom solver
+
+:- consult('z3_wrapper.clpr').
+
+%--------------------------------------------------------------------
+% set_equalities ignored.
+%--------------------------------------------------------------------
 
 %--------------------------------------------------------------------
 % remove_atm not needed: no need to keep track of the levels.
@@ -173,6 +184,22 @@ substitute([eq(L, R)], [T|TS], Out) :- true
 substitute(_Assignment, Term, Term) .
 
 %------------------------------------------------------------------------------
+% Lists
+%------------------------------------------------------------------------------
+
+% Select/insert element at index. 
+% True when Elem is the N'th (0-based) element of List 
+% and Rest is the remainder (as in by select/3) of List.
+
+nth1(1, [X | R], X, R) :- true
+  .
+
+nth1(I, [X | R], E, [X | R1]) :- true
+  , I >= 2
+  , nth1(I-1, [R], E, R1)
+  .
+
+%------------------------------------------------------------------------------
 % collect_variables(Terms, OutTerms)
 %------------------------------------------------------------------------------
 
@@ -192,6 +219,27 @@ collect_variables([Term | Terms], [Out | Outs]) :- true
   , !
   , collect_variables([Term], [Out])
   , collect_variables(Terms, Outs)
+  .
+
+
+%------------------------------------------------------------------------------
+% collect_variables_by_positions(Term, Positions, OutTerms)
+% Assume that all arguments in Term are variables.
+%------------------------------------------------------------------------------
+
+collect_variables_by_position(Term, Is, Outs) :- true
+  , Term =.. [Ctor|Args]
+  , !
+  , pick_by_position(Args, Is, Outs)
+  .
+
+pick_by_position(Args, [], []) :- true
+  , !
+  .
+
+pick_by_position(Args, [I | Is], [Out | Outs]) :- true
+  , nth1(I, Args, Out, _)
+  , pick_by_position(Args, Is, Outs)
   .
 
 %------------------------------------------------------------------------------
@@ -340,21 +388,57 @@ lprove_aux_kt_try_all_cases([GAtom], GConstraints, [HAtom], HConstraints,
 
 % case one: Body of unfold has an unfoldable atom
 lprove_aux_kt_one_case([GAtom], GConstraints, [HAtom], HConstraints,
-              body(_CP, [Atom], Constraints),
+              body(CP, [Atom], Constraints),
               InOrSet, OutOrSet) :- true
  , printf("\n----try KT one case (body has recursive atom) ---- \n", [])
  , printf("GAtom (original) = %\nGAtom (body) = %\n", [GAtom, Atom])
 
+ % sanity check: GAtom and Atom is about the same recursive predicate.
+ % TODO
+
+ % sanity check: GAtom and HAtom is about the same recursive predicate.
+ , GAtom =.. [GAtomHead|_]
+ , HAtom =.. [HAtomHead|_]
+ , GAtomHead = HAtomHead
+ , printf("sanity check: GAtom and HAtom have the same head %\n", [GAtomHead])
+
+ % Variables in GAtom are called active variables.
+ % Variables in GConstraints,HAtom,HConstraints but not in GAtom 
+ % are called passive variables.
+ % We assume that GAtom have distinct variables, so ActiveVars is a set.
+
+ % FIXME!!! collect_variables fail
+ , collect_variables([GAtom,GConstraints,HAtom,HConstraints], OriginalVarList)
+ , collect_variables([GAtom], ActiveVars) % already a set
+ , list_to_set(OriginalVarList, OriginalVars)
+ , unord_setdiff(OriginalVarList,ActiveVars,PassiveVars)
+
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+
+ % Subst1
  , get_unifier([GAtom], [Atom], Subst1)
  , substitute(Subst1, GConstraints, GConstraints1)
  , substitute(Subst1, HAtom,        HAtom1       )
  , substitute(Subst1, HConstraints, HConstraints1)
 
- % TODO Subst2
- , GConstraints2 = GConstraints1
+ % Subst2
+ , collect_variables_by_position(HAtom, CP, HAtomCriticalVars)
+ , unord_setintersection(HAtomCriticalVars, PassiveVars, HAtomPassiveCriticalVars)
+ , freshcopy(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars)
+ , make_substitution(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars, Subst2)
+
+ , substitute(Subst2, GConstraints1, GConstraints2)
+ , substitute(Subst2, HAtom1, HAtom2)
+ , substitute(Subst2, HConstraints1, HConstraints2) 
 
  , append(Constraints, GConstraints, GConstraints6a2)
+
  , Ob6a2 = obligation([], GConstraints6a2, [], GConstraints2)
+
+ , append(GConstraints6a2, GConstraints2, NotYetGConstraints6b)
+ , append(NotYetGConstraints6b, HConstraints2, GConstraints6b)
+
+ , Ob6b = obligation([HAtom2], GConstraints6b, [HAtom], HConstraints)
 
  , OutOrSet = [ [Ob6a2] | InOrSet ]
  .
