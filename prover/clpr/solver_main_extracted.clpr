@@ -216,11 +216,35 @@ collect_variables([Term], Out) :- true
   , !
   , collect_variables(Args, Out)
   .
-collect_variables([Term | Terms], [Out | Outs]) :- true
+collect_variables([Term | Terms], Outs) :- true
   , !
-  , collect_variables([Term], [Out])
-  , collect_variables(Terms, Outs)
+  , collect_variables([Term], Outs0)
+  , collect_variables(Terms, Outs1)
+  , delete_var(Outs1, Outs0, Outs2)
+  , append(Outs0, Outs2, Outs)
   .
+
+delete_var([], _, []) :- true
+%  , printf("Base\n", [])
+  , !
+  .
+delete_var([A | AS], [B], Outs) :- true
+%  , printf("Matched? [% | %], [%]\n", [A, AS, B])
+  , A == B
+%  , printf("Matched. [% | %], [%]\n", [A, AS, B])
+  , !
+  , delete_var(AS, [B], Outs)
+  .
+delete_var([A | AS], [B], [ A | Out]) :- true
+%  , printf("Matched failed. [% | %], [%]\n", [A, AS, B])
+  , !
+  , delete_var(AS, [A], Out)
+  .
+delete_var(AS, [B | BS], Outs) :- true
+  , delete_var(AS, [B], Outs1)
+  , delete_var(Outs1, BS, Outs)
+  .
+
 
 
 %------------------------------------------------------------------------------
