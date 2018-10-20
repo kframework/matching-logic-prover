@@ -511,7 +511,7 @@ OR JUST
 
 ```
 GAtom,GConstraints -> HAtom,HConstraints  /* HAtom and GAtom contains the same recursive predicate */
-body(CP, Atom, Constraints)    /* Atom and GAtom contains the same recursive predicate */
+body(CP, BAtom, BConstraints)    /* BAtom and GAtom contains the same recursive predicate */
 
 Variables in GAtom are called active variables.
 Variables in GConstraints,HAtom,HConstraints but not in GAtom are called passive variables.
@@ -519,7 +519,7 @@ Variables in GConstraints,HAtom,HConstraints but not in GAtom are called passive
 ActiveVars = ...
 PassiveVars = ...
 
-// BODY is Constraints
+// BODY is BConstraints
 // LHS is GConstraints
 // RHS is HAtom,HConstraints
 
@@ -534,7 +534,7 @@ Then we apply Subst2, and make sure all those remaining critical
 variables are renamed to something fresh.
 
 // Subst1 is [z/x]
-get_unifier([GAtom],[Atom],Subst1)
+get_unifier([GAtom],[BAtom],Subst1)
 substitute(Subst1, GConstraints, GConstraints1)
 substitute(Subst1, HAtom, HAtom1)
 substitute(Subst1, HConstraints, HConstraints1)
@@ -547,8 +547,8 @@ substitute(Subst2, GConstraints1, GConstraints2)
 substitute(Subst2, HAtom1, HAtom2)
 substitute(Subst2, HConstraints1, HConstraints2)
 
-(6a2) Constraints,GConstraints -> GConstraints2
-(6b)  HAtom2,GConstraints2,HConstraints2,Constraints,GConstraints -> HAtom,HConstraints
+(6a2) BConstraints,GConstraints -> GConstraints2
+(6b)  HAtom2,GConstraints2,HConstraints2,BConstraints,GConstraints -> HAtom,HConstraints
 ```
 
 ### `ll(H,X,Y,F) -> lr(H,X,Y,F)`
