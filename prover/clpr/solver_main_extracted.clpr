@@ -414,15 +414,10 @@ prove_all(_) :- fail. % not reachable.
 
 %------------------------------------------------------------------------------
 % lprove_right_unfold/5
-% lprove_kt(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
+% lprove_right_unfold(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
 %   -OrSet)
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
-%
-% Apply (KT) on every recursive predicates in GAtoms. For every recursive
-% predicate p(X1,..,Xn) in GAtoms, a list of proof obligations is generated
-% and is added as a single conjunction to OrSet.
-% If there are k recursive predicates in GAtoms, |OrSet| = k.
 %------------------------------------------------------------------------------
 
 

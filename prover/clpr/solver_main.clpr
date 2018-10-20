@@ -1132,10 +1132,11 @@ right_unfold_aux(Level, NonUnfoldableHAtoms, HeadUnfoldableHAtoms, [HAtom|TailUn
 %==============================================================================
 % Direct Proof
 %==============================================================================
+
 directproof(GAtoms1, GAtoms2, GConstraints,
         HAtoms1, HAtoms2, HConstraints) :-      
-%       prettyprint(GAtoms1, GAtoms2, GConstraints,
-%                   HAtoms1, HAtoms2, HConstraints),
+       printf("======G=\n1 %\n2 %\nc %\n", [GAtoms1, GAtoms2, GConstraints]),
+       printf("======H=\n1 %\n2 %\nc %\n", [HAtoms1, HAtoms2, HConstraints]),
   fail.
 
 %----------------------------------------------------------------------
