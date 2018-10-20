@@ -65,9 +65,12 @@ test_collect_variables_by_position(Term, Positions, Expected) :-
                     [eq(H, H1), eq(X, X1), eq(Y, Y1), eq(F, F1)]) .
 
 :- printf("\n==== substitute\n", []).
+:- test_substitute([eq(X,z)], [c(b)], [c(b)]) .
 :- test_substitute([eq(X,a(b(Y)))], [c(X)], [c(a(b(Y)))]) .
 :- test_substitute([eq(X,b(X))], [a(X)], [a(b(X))]) .
 :- test_substitute([eq(X,b(X))], [a(X, X)], [a(b(X), b(X))]) .
+:- test_substitute([eq(X,b(X))], [a(X, Y)], [a(b(X), Y)]) .
+:- test_substitute([eq(X,b(X)), eq(Y,x)], [a(X, Y)], [a(b(X), x)]) .
 
 :-  printf("\n==== rewrite\n", []).
 :- test_rewrite_step([eq(a(X),b(X))], [a(X)], [b(X)]) .

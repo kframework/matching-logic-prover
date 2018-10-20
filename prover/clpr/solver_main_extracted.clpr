@@ -185,24 +185,39 @@ get_unifier([], [], []).
 substitute([eq(L, R)], [T], [R]) :- true
   , var(L)
   , L == T
+  , !
   .
 substitute([eq(L, _R)], [T], [T]) :- true
   , var(L)
   , var(T)
+  , !
   .
 substitute([eq(L, R)], [Term], [Out]) :- true
   , var(L)
   , Term =.. [Ctor|Args]
+  , !
   , substitute([eq(L, R)], Args, OutArgs)
   , Out =.. [Ctor|OutArgs]
   .
 substitute([eq(L, R)], [T|TS], Out) :- true
   , var(L)
+  , !
   , substitute([eq(L, R)], [T], Out1)
   , substitute([eq(L, R)], TS,  Out2)
   , append(Out1, Out2, Out)
   .
-substitute(_Assignment, Term, Term) .
+substitute(_Assign, [], []) :- true
+  .
+substitute([EQ | EQS], [TS], Out) :- true
+  , !
+  , substitute([EQ], [TS], Out1)
+  , substitute(EQS,  Out1, Out)
+  .
+substitute([], Term, Term) .
+substitute(EQS, Term, Out) :- true
+  , printf("BAD SUBSTITUTION: %, %\n", [EQS, Term])
+  , halt
+  .
 
 %------------------------------------------------------------------------------
 % Lists
@@ -529,12 +544,11 @@ lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
  , printf("BConstraints = %\n", [BConstraints])
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
 
-
  % Subst1
  , get_unifier([GAtom], [BAtom], Subst1)
- , substitute(Subst1, GConstraints, GConstraints1)
- , substitute(Subst1, HAtom,        HAtom1       )
- , substitute(Subst1, HConstraints, HConstraints1)
+ , substitute(Subst1, [GConstraints], [GConstraints1])
+ , substitute(Subst1, [HAtom],        [HAtom1])
+ , substitute(Subst1, [HConstraints], [HConstraints1])
 
  , printf("\n---after Subst1---\n", [])
  , printf("Subst1 = %\n", [Subst1])
@@ -547,9 +561,9 @@ lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
  , freshcopy(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars)
  , get_unifier(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars, Subst2)
 
- , substitute(Subst2, GConstraints1, GConstraints2)
- , substitute(Subst2, HAtom1, HAtom2)
- , substitute(Subst2, HConstraints1, HConstraints2) 
+ , substitute(Subst2, [GConstraints1],  [GConstraints2])
+ , substitute(Subst2, [HAtom1],  [HAtom2])
+ , substitute(Subst2, [HConstraints1],  [HConstraints2])
 
  , printf("\n---after Subst2---\n", [])
  , printf("HAtom = %\n", [HAtom])
