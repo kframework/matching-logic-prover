@@ -48,6 +48,13 @@ test_collect_variables_by_position(Term, Positions, Expected) :-
 
 :-  consult('solver_main_extracted.clpr').
 :-  printf("\n==== get_unifier\n", []).
+
+
+:- freshcopy([X], L),
+   printf("freshcopy of % is %\n", [X|L]).
+:- freshcopy([X,Y,Z],L),
+   printf("freshcopy of %,%,% is %,%,%\n", [X|[Y|[Z|L]]]).
+
 :- test_get_unifier([Y],    [a(X)],    [eq(Y, a(X))]) .
 :- test_get_unifier([a(X)], [a(Y)],    [eq(X, Y)]) .
 :- test_get_unifier([a(X)], [a(a(Y))], [eq(X, a(Y))]) .

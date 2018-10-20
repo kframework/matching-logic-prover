@@ -125,6 +125,26 @@ prettyprintlist(Op, [X,Y|R]) :-
 % append([X|A], B, [X|C]) :- append(A, B, C).
 
 %--------------------------------------------------------------------
+% freshcopy/2
+% freshcopy(Vars,FreshVars)
+% Assumptions: 
+%   Vars is a list of distinct variables.
+%--------------------------------------------------------------------
+
+freshcopy([], []) :- !.
+
+freshcopy([X],[Y]) :- true
+  , var(X)
+  , !
+  , Y = Z
+  .
+
+freshcopy([X|Xs],[Y|Ys]) :- true
+  , freshcopy([X],[Y])
+  , freshcopy(Xs,Ys)
+  .
+
+%--------------------------------------------------------------------
 % get_unifier(LHS, RHS, Unifier)
 % LHS: List of terms
 % RHS: List of terms
@@ -188,16 +208,16 @@ substitute(_Assignment, Term, Term) .
 % Lists
 %------------------------------------------------------------------------------
 
-% Select/insert element at index. 
-% True when Elem is the N'th (0-based) element of List 
-% and Rest is the remainder (as in by select/3) of List.
+% True when E is the N'th (1-based) element of List 
 
-nth1(1, [X | R], X, R) :- true
+nth1(1, [X | R], X) :- true
+  , !
   .
 
-nth1(I, [X | R], E, [X | R1]) :- true
+nth1(I, [X | R], E) :- true
   , I >= 2
-  , nth1(I-1, [R], E, R1)
+  , !
+  , nth1(I-1, R, E)
   .
 
 %------------------------------------------------------------------------------
@@ -248,23 +268,28 @@ delete_var(AS, [B | BS], Outs) :- true
 
 
 %------------------------------------------------------------------------------
-% collect_variables_by_positions(Term, Positions, OutTerms)
+% collect_variables_by_positions(+Term, +Positions, -Vars)
 % Assume that all arguments in Term are variables.
 %------------------------------------------------------------------------------
 
-collect_variables_by_position(Term, Is, Outs) :- true
-  , Term =.. [Ctor|Args]
+collect_variables_by_position(T, Ps, Vs) :- true
+% , printf("\n---collect_variables_by_position---\n",[])
+% , printf("T = %\nPs = %\n", [T,Ps])
+  , T =.. [_|AllVs]
+% , printf("AllVs = %\n", [AllVs])
   , !
-  , pick_by_position(Args, Is, Outs)
+  , pick_by_position(AllVs, Ps, Vs)
   .
 
-pick_by_position(Args, [], []) :- true
+pick_by_position(AllVs, [], []) :- true
   , !
   .
 
-pick_by_position(Args, [I | Is], [Out | Outs]) :- true
-  , nth1(I, Args, Out, _)
-  , pick_by_position(Args, Is, Outs)
+pick_by_position(AllVs, [P|Ps], [V|Vs]) :- true
+% , printf("\n---pick_by_position---\n",[])
+  , nth1(P, AllVs, V)
+% , printf("P = %\nV = %\n", [P,V])
+  , pick_by_position(AllVs, Ps, Vs)
   .
 
 %------------------------------------------------------------------------------
@@ -335,7 +360,7 @@ lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
   prove_one(OrSet),
   !, true.
  
-% % collect OrSet by trying all possible rules.
+% collect OrSet by trying all possible rules.
 lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :-
   lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, [], OrSetKT),
   OrSet = OrSetKT,
@@ -375,37 +400,34 @@ prove_all(_) :- fail. % not reachable.
 %------------------------------------------------------------------------------
 % lprove_kt/6
 % lprove_kt(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
-%   +InOrSet,-OutOrSet)
+%   -OrSet)
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %
 % Apply (KT) on every recursive predicates in GAtoms. For every recursive
 % predicate p(X1,..,Xn) in GAtoms, a list of proof obligations is generated
-% and is added as a single conjunction to InOrSet.
-% If there are k recursive predicates in GAtoms, |OutOrSet| = |InOrSet| + k.
+% and is added as a single conjunction to OrSet.
+% If there are k recursive predicates in GAtoms, |OrSet| = k.
 %------------------------------------------------------------------------------
 
-lprove_kt([],_GConstraints,_HAtoms,_HConstraints,
-  _InOrSet,_InOrSet) :- true
+lprove_kt([],_GConstraints,_HAtoms,_HConstraints, []) :- true
   , !
   .
 
-% TODO:: Finish lprove_kt/6 using lprove_kt/7.
+% TODO:: Finish lprove_kt/5 using lprove_kt/6.
 
 
 %------------------------------------------------------------------------------
-% lprove_kt/7
-% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
-%   +InOrSet,-OutOrSet)
+% lprove_kt/6
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,-OrSet)
 %
 % GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
 %
 % Apply (KT) on GAtom. A list KTSet of proof obligations is generated
-% and is added as a single conjunction to InOrSet.
+% and is added as a single conjunction to OrSet; |OrSet| = 1.
 %------------------------------------------------------------------------------
 
-lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
-  InOrSet,[KTSet|InOrSet]) :- true
+lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, [KTSet]) :- true
   , printf("\n---try KT on---\n", [])
   , flatten([GAtoms,GConstraints],LHS)
   , flatten([HAtoms,HConstraints],RHS)
@@ -479,13 +501,20 @@ lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
  % are called passive variables.
  % We assume that GAtom have distinct variables, so ActiveVars is a set.
 
- % FIXME!!! collect_variables fail
  , collect_variables([GAtom,GConstraints,HAtom,HConstraints], OriginalVarList)
  , collect_variables([GAtom], ActiveVars) % already a set
  , list_to_set(OriginalVarList, OriginalVars)
- , unord_setdiff(OriginalVarList,ActiveVars,PassiveVars)
+ , unord_setdiff(OriginalVars,ActiveVars,PassiveVars)
 
+ , printf("\n---after variable collection---\n",[])
+ , printf("GAtom = %\n", [GAtom])
+ , printf("GConstraints = %\n", [GConstraints])
+ , printf("HAtom = %\n", [HAtom])
+ , printf("HConstraints = %\n", [HConstraints])
+ , printf("BAtom = %\n", [BAtom])
+ , printf("BConstraints = %\n", [BConstraints])
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+
 
  % Subst1
  , get_unifier([GAtom], [BAtom], Subst1)
@@ -493,15 +522,28 @@ lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
  , substitute(Subst1, HAtom,        HAtom1       )
  , substitute(Subst1, HConstraints, HConstraints1)
 
+ , printf("\n---after Subst1---\n", [])
+ , printf("Subst1 = %\n", [Subst1])
+ , printf("GConstraints = %\n", [GConstraints])
+ , printf("GConstraints1 = %\n", [GConstraints1])
+
  % Subst2
  , collect_variables_by_position(HAtom, CP, HAtomCriticalVars)
  , unord_setintersection(HAtomCriticalVars, PassiveVars, HAtomPassiveCriticalVars)
  , freshcopy(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars)
- , make_substitution(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars, Subst2)
+ , get_unifier(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars, Subst2)
 
  , substitute(Subst2, GConstraints1, GConstraints2)
  , substitute(Subst2, HAtom1, HAtom2)
  , substitute(Subst2, HConstraints1, HConstraints2) 
+
+ , printf("\n---after Subst2---\n", [])
+ , printf("HAtom = %\n", [HAtom])
+ , printf("CP = %\n", [CP])
+ , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
+ , printf("HAtomPassiveCriticalVars = %\n", [HAtomPassiveCriticalVars])
+ , printf("FreshCopyHAtomPassiveCriticalVars = %\n", [FreshCopyHAtomPassiveCriticalVars])
+ , printf("Subst2 = %\n", [Subst2])
 
  , append(BConstraints, GConstraints, GConstraints6a2)
 
@@ -510,9 +552,29 @@ lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
  , append(GConstraints6a2, GConstraints2, NotYetGConstraints6b)
  , append(NotYetGConstraints6b, HConstraints2, GConstraints6b)
 
- , Ob6b = obligation([HAtom2], GConstraints6b, [BHAtom], HConstraints)
+ , Ob6b = obligation([HAtom2], GConstraints6b, [HAtom], HConstraints)
 
- , KTSetBody = [Ob6a2|[ob6b]]
+ , printf("\n---final check---\n",[])
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+ , printf("GAtom = %\n", [GAtom])
+ , printf("GConstraints = %\n", [GConstraints])
+ , printf("HAtom = %\n", [HAtom])
+ , printf("HConstraints = %\n", [HConstraints])
+ , printf("BAtom = %\n", [BAtom])
+ , printf("Subst1 = %\n", [Subst1])
+ , printf("BConstraints = %\n", [BConstraints])
+ , printf("CP = %\n", [CP])
+ , printf("GConstraints1 = %\n", [GConstraints1])
+ , printf("HAtom1 = %\n", [HAtom1])
+ , printf("HConstraints1 = %\n", [HConstraints1])
+ , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
+ , printf("GConstraints2 = %\n", [GConstraints2])
+ , printf("HAtom2 = %\n", [HAtom2])
+ , printf("HConstraints2 = %\n", [HConstraints2])
+ , printf("\n",[])
+
+
+ , KTSetBody = [Ob6a2,Ob6b]
  , !
  .
 
