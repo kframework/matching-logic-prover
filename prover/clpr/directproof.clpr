@@ -1,18 +1,143 @@
+%------------------------------------------------------------------------------
+find_existential_unifier(V, [Atom|R], R, ExtUnif) :-
+  printf("xxx %\n", [Atom]),
+  Atom =.. [S,X,Y], equality(S),
+  printf("y\n", []),
+  not S == arreq, X==V, !, ExtUnif =.. [S,X,Y].
+find_existential_unifier(V, [Atom|R], R, ExtUnif) :-
+  Atom =.. [S,Y,X], equality(S), 
+  not S == arreq, X==V, !, ExtUnif =.. [S,X,Y].
+find_existential_unifier(V, [C|R], [C|S], ExtUnif) :-
+  find_existential_unifier(V, R, S, ExtUnif).
 
-directproof(GAtoms1, GAtoms2, GConstraints,
-                  HAtoms1, HAtoms2, HConstraints) :- true
+
+%------------------------------------------------------------------------------
+% find_existential_variables
+%------------------------------------------------------------------------------
+
+:- dynamic(refresh_variables, 1). % Not sure what this does
+
+find_existential_variables(GAtoms, GConstraints,
+                     HAtoms, HConstraints, EV) :-
+  assert(refresh_variables(t(GAtoms, GConstraints,
+                                      HAtoms, HConstraints))),
+  retract(refresh_variables(t(GAtoms1, GConstraints1,
+                                       HAtoms1, HConstraints1))),
+  label_variables(0, GAtoms1, N),
+  label_variables(N, GConstraints1, _),
+  gather_variable(HAtoms1, HAtoms, V1, V2),
+  gather_variable(HConstraints1, HConstraints, V3, V4),
+  append(V1, V3, V5),
+  append(V2, V4, V6),
+  label_variables(0, V5, _),
+  once(remove_multiple_occurrence(V5, V6, EV)).
+
+remove_multiple_occurrence([], [], []).
+remove_multiple_occurrence([A|R], [B|S], [B|T]) :-
+  not in(A, R),
+  remove_multiple_occurrence(R, S, T).
+remove_multiple_occurrence([_|R], [_|S], T) :-
+  remove_multiple_occurrence(R, S, T).
+
+in(A, [A|_]) :- !.
+in(A, [_|R]) :- in(A, R).
+
+%------------------------------------------------------------------------------
+% unsatisfiable/1: Testing unsatisfiability of list of constraints
+%------------------------------------------------------------------------------
+
+unsatisfiable(ConstrainList) :- true
+ , satisfiable_negation(ConstrainList, [ff]), !
  , fail
  .
+unsatisfiable(_CL) .
+
+% This should be called only when all the existential variables
+% in the RHS have been removed
+satisfiable_negation(GConstraints, HConstraints) :- true
+ , satisfiable_negation_aux(GConstraints, HConstraints)
+ , !
+ , true
+ .
+
+% If fails, GConstraints |= Hconstraints
+satisfiable_negation_aux(_GConstraints, []) :-
+  %----------------------------------------------------------------------
+  % [] means "true", so its trivially holds
+  %----------------------------------------------------------------------
+  !, fail.
+
+
+% If fails, GConstraints |= Hconstraints
+satisfiable_negation_aux(GConstraints, HConstraints) :-
+  %----------------------------------------------------------------------
+  % Symbolic
+  %----------------------------------------------------------------------
+  %printf("about to negate list\n", []),
+
+        negate_list(HConstraints, NegHConstraints),
+  %printf("calling sat_disjunct LHS = %, RHS = %\n", 
+        %        [GConstraints, NegHConstraints]),
+  satisfiable_disjunct(GConstraints, NegHConstraints), !.
+
+satisfiable_disjunct(_G, []):- !, fail.
+
+satisfiable_disjunct(G, [C | _Rest]):-
+  z3_check_sat_from_list([C | G], Res),
+  Res > 0, % SATISFIABLE or UNKNOWN
+  !.
+
+satisfiable_disjunct(G, [_ | Rest]):-
+  satisfiable_disjunct(G, Rest).
+
+%------------------------------------------------------------------------------
+% negate_list
+% Negate constraints except array equalities
+%------------------------------------------------------------------------------
+
+negate_list([], []).
+negate_list([z3_not(A)|R], [A|S]) :-
+  !, negate_list(R, S).
+negate_list([eq(A,B)|R], [z3_not(eq(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([assign(A,B)|R], [z3_not(eq(A,B))|S]) :-
+  !, negate_list(R, S).
+
+negate_list([arrassign(A,B)|R], [z3_not(arrassign(A,B))|S]) :-
+  !, negate_list(R, S).
+%negate_list([arreq(A,B)|R], [z3_not(arreq(A,B))|S]) :-
+% !, negate_list(R, S).
+
+% Hiep: to check
+negate_list([arreq(_A,_B)|R], S) :-
+  !, negate_list(R, S).
+
+
+negate_list([eqset(A,B)|R], [z3_not(eqset(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([subset(A,B)|R], [z3_not(subset(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([mem(A,B)|R], [z3_not(mem(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([emptyset(A)|R], [z3_not(emptyset(A))|S]) :-
+  !, negate_list(R, S).
+
+
+negate_list([gt(A,B)|R], [geq(B,A)|S]) :-
+  !, negate_list(R, S).
+negate_list([geq(A,B)|R], [gt(B,A)|S]) :-
+  !, negate_list(R, S).
+negate_list([tt|R], [ff|S]) :- !, negate_list(R, S).
+negate_list([_|R], [tt|S]) :- negate_list(R, S).
 
 %----------------------------------------------------------------------
 % If the LHS constraint is unsatisfiable, succeed immediately
 %----------------------------------------------------------------------
+
 directproof(_GAtoms1, _GAtoms2, GConstraints,
   _HAtoms1, _HAtoms2, _HConstraints) :-
   unsatisfiable(GConstraints), !,
   printf("LHS UNSATISFIABLE: PROOF OK\n", []).
-
-
 
 %----------------------------------------------------------------------
 % Else, Repetitively perform substitutions to discharge
@@ -201,20 +326,9 @@ directproof_aux(GConstraints, HConstraints, Unifier, Lhs_Vars, ExtVar) :-
 %==============================================================================\
 % Hiep: Using z3, no need for custom solver
 
-load_solver :-
-  warning(warning_off), fail.
-load_solver :-
-  consult('z3_wrapper.clpr'),
-  warning(warning_on).
-
-load_solver :-
-  warning(warning_on),
-  %----------------------------------------------------------------------
-  % By default, use human brain to solve it
-  %----------------------------------------------------------------------
-  printf("You'd need to help me by answering some questions ...\n", []),
-  consult('solver_ask.clpr').
-
+load_solver :- true
+ , consult('z3_wrapper.clpr')
+ .
 
 set_equalities :-
   dynamic(equality, 1),
@@ -298,48 +412,6 @@ gather_variable(A, B, [], []) :-
 gather_variable(A, B, V1, V2) :-
   A =.. [_|A1], B =.. [_|B1],
   gather_variable(A1, B1, V1, V2).
-
-%------------------------------------------------------------------------------
-find_existential_unifier(V, [Atom|R], R, ExtUnif) :-
-  Atom =.. [S,X,Y], equality(S),
-  not S == arreq, X==V, !, ExtUnif =.. [S,X,Y].
-find_existential_unifier(V, [Atom|R], R, ExtUnif) :-
-  Atom =.. [S,Y,X], equality(S), 
-  not S == arreq, X==V, !, ExtUnif =.. [S,X,Y].
-find_existential_unifier(V, [C|R], [C|S], ExtUnif) :-
-  find_existential_unifier(V, R, S, ExtUnif).
-
-
-%------------------------------------------------------------------------------
-% find_existential_variables
-%------------------------------------------------------------------------------
-
-:- dynamic(refresh_variables, 1). % Not sure what this does
-
-find_existential_variables(GAtoms, GConstraints,
-                     HAtoms, HConstraints, EV) :-
-  assert(refresh_variables(t(GAtoms, GConstraints,
-                                      HAtoms, HConstraints))),
-  retract(refresh_variables(t(GAtoms1, GConstraints1,
-                                       HAtoms1, HConstraints1))),
-  label_variables(0, GAtoms1, N),
-  label_variables(N, GConstraints1, _),
-  gather_variable(HAtoms1, HAtoms, V1, V2),
-  gather_variable(HConstraints1, HConstraints, V3, V4),
-  append(V1, V3, V5),
-  append(V2, V4, V6),
-  label_variables(0, V5, _),
-  once(remove_multiple_occurrence(V5, V6, EV)).
-
-remove_multiple_occurrence([], [], []).
-remove_multiple_occurrence([A|R], [B|S], [B|T]) :-
-  not in(A, R),
-  remove_multiple_occurrence(R, S, T).
-remove_multiple_occurrence([_|R], [_|S], T) :-
-  remove_multiple_occurrence(R, S, T).
-
-in(A, [A|_]) :- !.
-in(A, [_|R]) :- in(A, R).
 
 %------------------------------------------------------------------------------
 % simplify_by_existential_equalities/6:
@@ -597,94 +669,4 @@ find_existential_variables(GAtoms, GConstraints,
   append(V2, V4, V6),
   label_variables(0, V5, _),
   once(remove_multiple_occurrence(V5, V6, EV)).
-
-
-%------------------------------------------------------------------------------
-% unsatisfiable/1: Testing unsatisfiability of list of constraints
-%------------------------------------------------------------------------------
-
-unsatisfiable(ConstrainList) :- true
- , satisfiable_negation(ConstrainList, [ff]), !
- , fail
- .
-unsatisfiable(_CL) .
-
-% This should be called only when all the existential variables
-% in the RHS have been removed
-satisfiable_negation(GConstraints, HConstraints) :- true
- , satisfiable_negation_aux(GConstraints, HConstraints)
- , !
- , true
- .
-
-% If fails, GConstraints |= Hconstraints
-satisfiable_negation_aux(_GConstraints, []) :-
-  %----------------------------------------------------------------------
-  % [] means "true", so its trivially holds
-  %----------------------------------------------------------------------
-  !, fail.
-
-
-% If fails, GConstraints |= Hconstraints
-satisfiable_negation_aux(GConstraints, HConstraints) :-
-  %----------------------------------------------------------------------
-  % Symbolic
-  %----------------------------------------------------------------------
-  %printf("about to negate list\n", []),
-
-        negate_list(HConstraints, NegHConstraints),
-  %printf("calling sat_disjunct LHS = %, RHS = %\n", 
-        %        [GConstraints, NegHConstraints]),
-  satisfiable_disjunct(GConstraints, NegHConstraints), !.
-
-satisfiable_disjunct(_G, []):- !, fail.
-
-satisfiable_disjunct(G, [C | _Rest]):-
-  z3_check_sat_from_list([C | G], Res),
-  Res > 0, % SATISFIABLE or UNKNOWN
-  !.
-
-satisfiable_disjunct(G, [_ | Rest]):-
-  satisfiable_disjunct(G, Rest).
-
-%------------------------------------------------------------------------------
-% negate_list
-% Negate constraints except array equalities
-%------------------------------------------------------------------------------
-
-negate_list([], []).
-negate_list([z3_not(A)|R], [A|S]) :-
-  !, negate_list(R, S).
-negate_list([eq(A,B)|R], [z3_not(eq(A,B))|S]) :-
-  !, negate_list(R, S).
-negate_list([assign(A,B)|R], [z3_not(eq(A,B))|S]) :-
-  !, negate_list(R, S).
-
-negate_list([arrassign(A,B)|R], [z3_not(arrassign(A,B))|S]) :-
-  !, negate_list(R, S).
-%negate_list([arreq(A,B)|R], [z3_not(arreq(A,B))|S]) :-
-% !, negate_list(R, S).
-
-% Hiep: to check
-negate_list([arreq(_A,_B)|R], S) :-
-  !, negate_list(R, S).
-
-
-negate_list([eqset(A,B)|R], [z3_not(eqset(A,B))|S]) :-
-  !, negate_list(R, S).
-negate_list([subset(A,B)|R], [z3_not(subset(A,B))|S]) :-
-  !, negate_list(R, S).
-negate_list([mem(A,B)|R], [z3_not(mem(A,B))|S]) :-
-  !, negate_list(R, S).
-negate_list([emptyset(A)|R], [z3_not(emptyset(A))|S]) :-
-  !, negate_list(R, S).
-
-
-negate_list([gt(A,B)|R], [geq(B,A)|S]) :-
-  !, negate_list(R, S).
-negate_list([geq(A,B)|R], [gt(B,A)|S]) :-
-  !, negate_list(R, S).
-negate_list([tt|R], [ff|S]) :- !, negate_list(R, S).
-negate_list([_|R], [tt|S]) :- negate_list(R, S).
-
 

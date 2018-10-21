@@ -214,7 +214,7 @@ substitute([EQ | EQS], [TS], Out) :- true
   , substitute(EQS,  Out1, Out)
   .
 substitute([], Term, Term) .
-substitute(EQS, Term, Out) :- true
+substitute(EQS, Term, _) :- true
   , printf("BAD SUBSTITUTION: %, %\n", [EQS, Term])
   , halt
   .
