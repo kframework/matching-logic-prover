@@ -264,7 +264,7 @@ collect_variables([V], [V]) :- true
   , !
   .
 collect_variables([Term], Out) :- true
-  , Term =.. [Ctor|Args]
+  , Term =.. [_Ctor|Args]
   , !
   , collect_variables(Args, Out)
   .
@@ -439,10 +439,13 @@ prove_all(_) :- fail. % not reachable.
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %------------------------------------------------------------------------------
-% :- consult('directproof.clpr') .
-lprove_direct(GAtoms, GConstraints, HAtoms, HConstrains) :- true
- , directproof([], UnfoldableGAtoms, GConstraints,
-               [], UnfoldableHAtoms, HConstraints)
+:- consult('directproof.clpr') .
+lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+ , GNonUnfoldable = []
+ , HNonUnfoldable = []
+ , trace
+ , directproof(GNonUnfoldable, GAtoms, GConstraints,
+               HNonUnfoldable, HAtoms, HConstraints)
  .
 
 
