@@ -413,6 +413,18 @@ prove_all(_) :- fail. % not reachable.
 
 
 %------------------------------------------------------------------------------
+% lprove_direct/4
+% lprove_direct(+GAtoms,+GConstraints,+HAtoms,+HConstraints)
+%
+% GAtoms,GConstraints -> HAtoms,HConstraints
+%------------------------------------------------------------------------------
+:- consult('directproof.clpr') .
+lprove_direct(GAtoms, GConstraints, HAtoms, HConstrains) :- true
+ , directproof([], UnfoldableGAtoms, GConstraints,
+               [], UnfoldableHAtoms, HConstraints)
+ .
+
+%------------------------------------------------------------------------------
 % lprove_right_unfold/5
 % lprove_right_unfold(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
 %   -OrSet)

@@ -96,5 +96,128 @@ test_collect_variables_by_position(Term, Positions, Expected) :-
 :- test_collect_variables_by_position(ll(H,X,Y,F), [1,3], [H, Y]) .
 :- test_collect_variables_by_position(ll(H,X,Y,F), [], []) .
 
+% Direct Proof
+% ============
+
+% These are tests extracted from solver_main.
+
+:-
+  lprove_direct([],
+              [gt(V0, 0), gt(V1, 0), gt(V2, 0),
+                   z3_not(mem(V1, V3)), z3_not(eq(V0, V2)),
+       z3_not(eq(V1, V2)), z3_not(eq(V2, plus(V0,1))),
+       eq(V4,V2), z3_not(eq(V1,V0)),
+       eq(V4, ref(V5, plus(V0,1))), z3_not(eq(V1, plus(V0,1))),
+       eq(V2, ref(V5, plus(V0,2))), arrassign(V6, upd(V5, plus(V1,1),0)),
+       eq(0, ref(V5, plus(V2,1))), arrassign(V7, upd(V6, plus(V2, 1), V1)),
+       eqset(V3, singleton(V4)),
+       arrassign(V8, upd(V7, plus(V0,2), V1)),
+       eqset(V9, add(V3, V1)),
+       eq(V10, ref(V8, plus(V0,1))), eq(V11, ref(V8, plus(V0,2)))
+         ],
+         [],
+         [   %gt(V11, 0), z3_not(eq(V0, V11)), gt(V10, 0), z3_not(eq(V11, plus(V0,1))),
+             %z3_not(eq(V0,V11)),
+       %eq(V12, V11), eq(V12, ref(V13, plus(V0,1))),
+       %z3_not(eq(V10, V11)), eq(V12, V11),
+       %eq(V12, ref(V13, plus(V0,1))),
+             %z3_not(eq(V0, V10)),
+       %eq(V11, ref(V13, plus(V0,2))),
+       %z3_not(eq(V10, plus(V0, 1))),
+       eq(V10, ref(V8, plus(V0,1))),
+       %eq(0, ref(V13, plus(V11,1))),
+       %eq(V11, ref(V8, plus(V0,2))),
+       eqset(V14, singleton(V12)),
+       eq(V12, ref(V8, plus(V10,1))),
+       %eq(0, ref(V8, plus(V11, 1))),
+       arrassign(V13, upd(V8, plus(V0,1), V12)),
+       eqset(V9, add(V14, V10)), z3_not(mem(V0, V9)),
+       tt
+            ]).
+
+test_3 :-
+  lprove_direct([],
+              [gt(V0, 0), gt(V1, 0), gt(V2, 0),
+                   z3_not(mem(V1, V3)), z3_not(eq(V0, V2)),
+       z3_not(eq(V1, V2)), z3_not(eq(V2, plus(V0,1))),
+       eq(V4,V2), z3_not(eq(V1,V0)),
+       eq(V4, ref(V5, plus(V0,1))), z3_not(eq(V1, plus(V0,1))),
+       eq(V2, ref(V5, plus(V0,2))), arrassign(V6, upd(V5, plus(V1,1),0)),
+       eq(0, ref(V5, plus(V2,1))), arrassign(V7, upd(V6, plus(V2, 1), V1)),
+       eqset(V3, singleton(V4)),
+       arrassign(V8, upd(V7, plus(V0,2), V1)),
+       eqset(V9, add(V3, V1)),
+       arrassign(V13, upd(V8, plus(V0,1), V12)),
+       eq(V10, ref(V8, plus(V0,1))), eq(V11, ref(V8, plus(V0,2)))
+         ],
+         [],
+         [   gt(V11, 0), z3_not(eq(V0, V11)), gt(V10, 0), z3_not(eq(V11, plus(V0,1))),
+             z3_not(eq(V0,V11)),
+       z3_not(eq(V10, V11)),
+       eq(V12, V11),
+       %eq(V12, ref(V13, plus(V0,1))),
+             z3_not(eq(V0, V10)),
+       %eq(V11, ref(V13, plus(V0,2))),
+       z3_not(eq(V10, plus(V0, 1))),
+       eq(V10, ref(V8, plus(V0,1))),
+       %eq(0, ref(V13, plus(V11,1))),
+       eq(V11, ref(V8, plus(V0,2))),
+       %eqset(V14, singleton(V12)),
+       eq(V12, ref(V8, plus(V10,1))),
+       eq(0, ref(V8, plus(V11, 1))),
+       %arrassign(V13, upd(V8, plus(V0,1), V12)),
+       %eqset(V9, add(V14, V10)), z3_not(mem(V0, V9)),
+       tt
+            ]).
+
+
+
+
+test_4 :-
+  lprove_direct([],
+              [gt(V0, 0), gt(V1, 0), gt(V2, 0),
+                   z3_not(mem(V1, V3)), z3_not(eq(V0, V2)),
+       z3_not(eq(V1, V2)), z3_not(eq(V2, plus(V0,1))),
+       z3_not(eq(V1,V0)),
+       eq(V4,V2),
+       z3_not(eq(V1, plus(V0,1))),
+       eq(V4, ref(V5, plus(V0,1))),
+       gt(V4, 0),
+       eq(V2, ref(V5, plus(V0,2))),
+       arrassign(V6, upd(V5, plus(V1,1),V4)),
+       eq(0, ref(V5, plus(V2,1))),
+       arrassign(V7, upd(V6, plus(V0, 1), V1)),
+       eqset(V3, singleton(V4)),
+       eqset(V8, add(V3, V1)),
+       eq(V9, ref(V7, plus(V0,1))),
+       eq(V10, ref(V7, plus(V0,2)))
+         ],
+         [],
+         [gt(V0, 0), gt(V10, 0),
+             z3_not(eq(V0, V11)),
+       gt(V10, 0),
+       z3_not(eq(V0,V10)),
+       gt(V9, 0),
+       z3_not(eq(V10, plus(V0,1))),
+             eq(V11, V10),
+       %eq(V11, ref(V12, plus(V0,1))),
+             z3_not(eq(V0, V9)),
+       %eq(V10, ref(V12, plus(V0,2))),
+       z3_not(eq(V9, plus(V0, 1))),
+       %eq(0, ref(V12, plus(V10,1))),
+       z3_not(eq(V9, V10)),
+       arrassign(V12, upd(V7, plus(V0,1), V11)),
+       eqset(V13, singleton(V11)),
+       eq(V9, ref(V7, plus(V0,1))),
+       eq(V10, ref(V7, plus(V0,2))),
+
+       eq(V11, ref(V7, plus(V9,1))),
+       eq(0, ref(V7, plus(V10, 1))),
+       %arrassign(V12, upd(V7, plus(V0,1), V11)),
+       eqset(V8, add(V13, V9)),
+       z3_not(mem(V0, V8)),
+       tt
+            ]).
+
 
 :- halt .
