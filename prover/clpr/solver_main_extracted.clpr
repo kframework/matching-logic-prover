@@ -124,6 +124,11 @@ prettyprintlist(Op, [X,Y|R]) :-
 % append([], B, B).
 % append([X|A], B, [X|C]) :- append(A, B, C).
 
+length([], 0).
+length([_], 1) :- !.
+length([_, _], 2) :- !.
+length([_|R], N+1) :- length(R, N).
+
 %--------------------------------------------------------------------
 % freshcopy/2
 % freshcopy(Vars,FreshVars)
@@ -233,6 +238,18 @@ nth1(I, [X | R], E) :- true
   , I >= 2
   , !
   , nth1(I-1, R, E)
+  .
+
+% Same as nth1/3 but also returns the remaining list.
+
+nth1(1, [X | R], X, R) :- true
+  , !
+  .
+
+nth1(I, [X | R], E, [X | R1]) :- true
+  , I >= 2
+  , !
+  , nth1(I-1, R, E, R1)
   .
 
 %------------------------------------------------------------------------------
@@ -367,6 +384,10 @@ lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
     [GAtoms, GConstraints, HAtoms, HConstraints]),
   fail.
 
+% try direct proof first
+% lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
+%   lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints).
+
 % try all possible rules and collect a set of obligation sets OrSet.
 % prove one obligation set in OrSet and we are done.
 % In other words, OrSet is a disjunction of conjunctions. 
@@ -418,11 +439,32 @@ prove_all(_) :- fail. % not reachable.
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %------------------------------------------------------------------------------
-:- consult('directproof.clpr') .
+% :- consult('directproof.clpr') .
 lprove_direct(GAtoms, GConstraints, HAtoms, HConstrains) :- true
  , directproof([], UnfoldableGAtoms, GConstraints,
                [], UnfoldableHAtoms, HConstraints)
  .
+
+
+%------------------------------------------------------------------------------
+% lprove_direct_by_user/4
+% lprove_direct(+GAtoms,+GConstraints,+HAtoms,+HConstraints)
+%
+% GAtoms,GConstraints -> HAtoms,HConstraints
+%------------------------------------------------------------------------------
+
+lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
+  , printf("\n---help me decide---\n", [])
+  , printf("%\n%\n   ->\n%\n%\n", [GAtoms,GConstraints,HAtoms,HConstraints])
+  , printf("\n---valid or not? (y/n)---\n", [])
+  , read(Ans)
+  , !
+  , check_answer(Ans)
+  .
+
+check_answer(y).
+check_answer(n) :- fail.
+
 
 %------------------------------------------------------------------------------
 % lprove_right_unfold/5
@@ -430,8 +472,67 @@ lprove_direct(GAtoms, GConstraints, HAtoms, HConstrains) :- true
 %   -OrSet)
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (Right Unfold) on every recursive predicates in HAtoms.
+% For every recursive predicate p(X1,...,Xn) in HAtoms, a disjunction
+% is generated and added to OrSet.
 %------------------------------------------------------------------------------
 
+% TODO
+
+%------------------------------------------------------------------------------
+% lprove_right_unfold/6
+% lprove_right_unfold(+GAtoms,+GConstraints,+HAtom,+HAtoms,+HConstraints,
+%   -OrSet)
+%
+% GAtoms,GConstraints -> HAtom,HAtoms,HConstraints
+%
+% Apply (Right Unfold) on HAtom.
+% For every recursive predicate p(X1,...,Xn) in HAtoms, a disjunction
+% is generated and added to OrSet.
+%------------------------------------------------------------------------------
+
+lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,
+  OrSet) :- true
+  , printf("\n---try Right Unfold on---\n",[])
+  , printf("HATom = %\n", [HAtom])
+  , unfold(HAtom,HBodies)
+  , printf("HBodies = %\n", [HBodies])
+  , lprove_right_unfold_collect_all_cases(
+      GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
+      [],OrSet)
+  .
+
+%------------------------------------------------------------------------------
+% lprove_right_unfold_collect_all_cases
+% GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
+% +InOrSet,-OutOrSet)
+% 
+% Go over every body in HBodies and add the new OrSet to InOrSet.
+%------------------------------------------------------------------------------
+
+% The case when HBodies is empty.
+lprove_right_unfold_collect_all_cases(
+  GAtoms,GConstraints,HAtom,HAtoms,HConstraints,[],
+  InOrSet,InOrSet) :- true
+  , printf("\n---all cases collected---\n", [])
+  , !
+  .
+
+lprove_right_unfold_collect_all_cases(
+  GAtoms,GConstraints,HAtom,HAtoms,HConstraints,[HBody|HBodies],
+  InOrSet,OutOrSet) :- true
+  , printf("\n---collect case---\n", [])
+  , body(_, BAtoms, BConstraints) = HBody
+  , printf("HBody = %\n", [HBody])
+  , append(HAtoms,BAtoms,NewHAtoms)
+  , append(HConstraints,BConstraints,NewHConstraints)
+  , Ob = obligation(GAtoms,GConstraints,NewHAtoms,NewHConstraints)
+  , NewInOrSet = [Ob|InOrSet]
+  , lprove_right_unfold_collect_all_cases(
+      GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
+      NewInOrSet,OutOrSet)
+  .
 
 %------------------------------------------------------------------------------
 % lprove_kt/5
@@ -440,34 +541,45 @@ lprove_direct(GAtoms, GConstraints, HAtoms, HConstrains) :- true
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %
-% Apply (KT) on every recursive predicates in GAtoms. For every recursive
-% predicate p(X1,..,Xn) in GAtoms, a list of proof obligations is generated
-% and is added as a single conjunction to OrSet.
+% Apply (KT) on every recursive predicates in GAtoms. For each of them,
+% a conjunction is generated and added to OrSet.
 % If there are k recursive predicates in GAtoms, |OrSet| = k.
+%
+% lprove_kt_try_all_atoms(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +N,+InOrSet,-OutOrSet)
+% An auxillary function for lprove_kt/5. It calls lprove_kt/6 on
+% every atom in GAtoms[N..].
 %------------------------------------------------------------------------------
 
-lprove_kt([],_GConstraints,_HAtoms,_HConstraints, []) :- true
-  , !
+lprove_kt(GAtoms,GConstraints,HAtoms,HConstraints,OrSet) :- true
+  , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      1, [], OrSet)
   .
 
-% TODO:: Finish lprove_kt/5 using lprove_kt/6.
-
+lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+  N,InOrSet,OutOrSet) :- true
+  , nth1(N, GAtoms, GAtom, RestGAtoms)
+  , lprove_kt(GAtom,RestGAtoms,GConstraints,HAtoms,HConstraints,KTSet)
+  , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      N+1,[KTSet|InOrSet], OutOrSet)
+  .
 
 %------------------------------------------------------------------------------
 % lprove_kt/6
-% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,-OrSet)
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,-KTSet)
 %
 % GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
 %
-% Apply (KT) on GAtom. A list KTSet of proof obligations is generated
-% and is added as a single conjunction to OrSet; |OrSet| = 1.
+% Apply (KT) on GAtom. A conjunction KTSet is generated.
+% If GAtom is m cases in the definition, |KTSet| = 2m, two conjunctions
+% for each case.
 %------------------------------------------------------------------------------
 
-lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, [KTSet]) :- true
-  , printf("\n---try KT on---\n", [])
-  , flatten([GAtoms,GConstraints],LHS)
-  , flatten([HAtoms,HConstraints],RHS)
-  , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
+lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, KTSet) :- true
+% , printf("\n---try KT on---\n", [])
+% , flatten([GAtoms,GConstraints],LHS)
+% , flatten([HAtoms,HConstraints],RHS)
+% , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
   , unfold(GAtom, GBodies)
   , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
     GBodies, [], KTSet)
@@ -482,10 +594,7 @@ lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, [KTSet]) :- true
 %
 % GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
 %
-% Accumulates the results of applying (KT) according to GBodies.
-% Apply (KT) on GAtom, whose bodies is given in GBodies.
-% Append the results upon KTSetIn and return KTSetOut, 
-% a conjunction of proof obligation.
+% Accumulates the results of applying (KT) on GBodies.
 %------------------------------------------------------------------------------
 
 % No bodies, no new obligations.
@@ -504,43 +613,100 @@ lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
 
 %------------------------------------------------------------------------------
 % lprove_kt_try_one_case/7
-% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
-%   +Body, -KTSetBody)
+% lprove_kt_try_one_case(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +Body, -KTSet)
 %
 % GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
 %
-% Apply (KT) according to Body and return KTSetBody.
+% Apply (KT) according to Body and return KTSet.
+%
+% This is the key function. And we implement it incrementally, and
+% support only fragments.
+% Let's assume GAtom is about the recursive predicate p.
+% We consider cases depending on how many times p occurs in Body.
+% For now, we implement the case when p doesn't occur (the base case)
+% and when it occurs exactly once.
+% The number is calculated by number_of_occurrences(GAtom,BAtoms,Answer)
 %------------------------------------------------------------------------------
 
-% Just return true (the empty conjunction []) when body contains new atoms.
-lprove_kt_try_one_case(GAtom,[],GConstraints,HAtoms,HConstraints,
-  body(CP, [], BConstraints), []) :- true
+number_of_occurrences(GAtom,[],0).
+
+% GAtom and BAtom have the same head.
+number_of_occurrences(GAtom,[BAtom|BAtoms],Answer) :- true
+  , GAtom =.. [Head|_]
+  , BAtom =.. [Head|_]
+  , !
+  , number_of_occurrences(GAtom, BAtoms, Answer1)
+  , Answer = Answer1 + 1
+  .
+
+% GAtom and BAtom have different heads.
+number_of_occurrences(GAtom,[BAtom|BAtoms],Answer) :- true
+  , !
+  , number_of_occurrences(GAtom,BAtoms,Answer)
+  .
+
+get_the_first_atom_with_the_same_head(
+  GAtom,[BAtom|BAtoms],BAtom,BAtoms) :- true
+  , GAtom =.. [Head|_]
+  , BAtom =.. [Head|_]
   , !
   .
 
-% TODO:: Extend this function to support more general cases.
-% Current assumptions
-%   body contains exactly one atom, BAtom
-%   HAtoms contains exactly one atom, HAtom
-%   GAtoms is empty
-%   GAtom,HAtom,BAtom have the same head
-lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
-  body(CP, [BAtom], BConstraints), KTSetBody) :- true
- , printf("\n---try KT (one case) on---\n", [])
- , flatten([HAtom,HConstraints],RHS)
- , printf("%\n%\n  ->\n%\n", [GAtom,GConstraints,RHS]) 
+get_the_first_atom_with_the_same_head(
+  GAtom,[BAtom|BAtoms],OutAtom,[BAtom|OutAtoms]) :- true
+  , get_the_first_atom_with_the_same_head(GAtom,BAtoms,OutAtom,OutAtoms)
+  .
+  
+
+% The case when BAtoms are all distinct from GAtom.
+% In this case, KT is just left unfolding.
+lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
+  body(CP, BAtoms, BConstraints), KTSet) :- true
+  , number_of_occurrences(GAtom,BAtoms,0)
+  , !
+  % replace GAtom for BAtoms,BConstraints
+  , append(GAtoms,BAtoms,NewGAtoms)
+  , append(GConstraints,BConstraints,NewGConstraints)
+  , Ob = obligation(NewGAtoms,NewGConstraints,HAtoms,HConstraints)
+  , KTSet = [Ob]
+  .
+
+% The case when BAtoms have exactly one atom with the same head as GAtom,
+% and HAtoms all different from GAtom.
+
+%TODO.
+
+% The case when BAtoms have exactly one atom with the same head as GAtom,
+% and HAtoms have exactly one atom with the same head as GAtom, too.
+
+lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
+  body(CP, AllBAtoms, BConstraints), KTSet) :- true
+ , number_of_occurrences(GAtom,AllHAtoms,1)
+ , number_of_occurrences(GAtom,AllBAtoms,1)
+ , get_the_first_atom_with_the_same_head(GAtom,AllHAtoms,HAtom,HAtoms)
+ , get_the_first_atom_with_the_same_head(GAtom,AllBAtoms,BAtom,BAtoms)
+ , printf("\n---try KT(1:1) on---\n", [])
+ , flatten([GAtoms,GConstraints],LHS)
+ , flatten([AllHAtoms,HConstraints],RHS)
+ , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS]) 
  , printf("---case is---\n", [])
- , printf("%\n%\n", [BAtom, BConstraints])
+ , printf("%\n%\n%\n", [BAtom, BAtoms,BConstraints])
 
  % Variables in GAtom are called active variables.
- % Variables in GConstraints,HAtom,HConstraints but not in GAtom 
+ % Variables in GAtoms,GConstraints,AllHAtoms,HConstraints but not in GAtom 
  % are called passive variables.
  % We assume that GAtom have distinct variables, so ActiveVars is a set.
 
- , collect_variables([GAtom,GConstraints,HAtom,HConstraints], OriginalVarList)
+ , flatten([[GAtom], GAtoms, GConstraints,AllHAtoms,HConstraints],
+     AllOriginalTerms)
+ , collect_variables(AllOriginalTerms, OriginalVarList)
  , collect_variables([GAtom], ActiveVars) % already a set
  , list_to_set(OriginalVarList, OriginalVars)
  , unord_setdiff(OriginalVars,ActiveVars,PassiveVars)
+
+  %%% TODO HERE
+  %%% I need to propagate AllHAtoms, etc, to the following code.
 
  , printf("\n---after variable collection---\n",[])
  , printf("GAtom = %\n", [GAtom])
@@ -609,7 +775,7 @@ lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
  , printf("\n",[])
 
 
- , KTSetBody = [Ob6a2,Ob6b]
+ , KTSet= [Ob6a2,Ob6b]
  , !
  .
 
