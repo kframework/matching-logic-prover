@@ -579,11 +579,13 @@ lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
 %------------------------------------------------------------------------------
 
 lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, KTSet) :- true
-% , printf("\n---try KT on---\n", [])
-% , flatten([GAtoms,GConstraints],LHS)
-% , flatten([HAtoms,HConstraints],RHS)
-% , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
+  , printf("\n---apply KT on---\n", [])
+  , flatten([GAtoms,GConstraints],LHS)
+  , flatten([HAtoms,HConstraints],RHS)
+  , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
   , unfold(GAtom, GBodies)
+  , printf("\n---unfold---\n",[])
+  , printf("GBodies =\n%\n", [GBodies])
   , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
     GBodies, [], KTSet)
   , !
@@ -666,27 +668,133 @@ get_the_first_atom_with_the_same_head(
 % In this case, KT is just left unfolding.
 lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
   body(CP, BAtoms, BConstraints), KTSet) :- true
-  , number_of_occurrences(GAtom,BAtoms,0)
+  , number_of_occurrences(GAtom,BAtoms,N)
+  , N = 0
   , !
+  , printf("\n---KT(0:_) begins---\n",[])
   % replace GAtom for BAtoms,BConstraints
   , append(GAtoms,BAtoms,NewGAtoms)
   , append(GConstraints,BConstraints,NewGConstraints)
   , Ob = obligation(NewGAtoms,NewGConstraints,HAtoms,HConstraints)
   , KTSet = [Ob]
+  , printf("Ob=%\n", [Ob])
+  , printf("---KT(0:_) ends---\n",[])
   .
 
 % The case when BAtoms have exactly one atom with the same head as GAtom,
 % and HAtoms all different from GAtom.
+lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
+  body(CP, AllBAtoms, BConstraints), KTSet) :- true
+ , number_of_occurrences(GAtom,AllBAtoms,N1)
+ , number_of_occurrences(GAtom,AllHAtoms,N2)
+ , N1 = 1
+ , N2 = 0
+ , !
+ , printf("\n---KT(1:0) begins---\n",[])
+ , get_the_first_atom_with_the_same_head(GAtom,AllBAtoms,BAtom,BAtoms)
+ , flatten([GAtoms,GConstraints],LHS)
+ , flatten([AllHAtoms,HConstraints],RHS)
 
-%TODO.
+ , printf("\n---apply KT on---\n", [])
+ , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS]) 
+ , printf("---case is---\n", [])
+ , printf("%\n%\n%\n", [BAtom, BAtoms,BConstraints])
 
+ % Variables in GAtom are called active variables.
+ % Variables in GAtoms,GConstraints,AllHAtoms,HConstraints but not in GAtom 
+ % are called passive variables.
+ % We assume that GAtom have distinct variables, so ActiveVars is a set.
+
+ , flatten([[GAtom], GAtoms, GConstraints,AllHAtoms,HConstraints],
+     AllOriginalTerms)
+ , collect_variables(AllOriginalTerms, OriginalVarList)
+ , collect_variables([GAtom], ActiveVars) % already a set
+ , list_to_set(OriginalVarList, OriginalVars)
+ , unord_setdiff(OriginalVars,ActiveVars,PassiveVars)
+
+ , printf("\n---after variable collection---\n",[])
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+
+ % Subst1
+ , get_unifier([GAtom], [BAtom], Subst1)
+ , substitute(Subst1, [GAtoms],        [GAtoms1])
+ , substitute(Subst1, [GConstraints], [GConstraints1])
+ , substitute(Subst1, [HAtom],        [HAtom1])
+ , substitute(Subst1, [HAtoms],        [HAtoms1])
+ , substitute(Subst1, [HConstraints], [HConstraints1])
+
+ % printf("\n---after Subst1---\n", [])
+ % printf("Subst1 = %\n", [Subst1])
+ % printf("GConstraints = %\n", [GConstraints])
+ % printf("GConstraints1 = %\n", [GConstraints1])
+
+ % Construct proof obligations (6a2) and (6b)
+ % TODO:: Find better names.
+
+ % [BAtoms,BConstraints,GAtoms,GConstraints] is LHS6a2
+ %  ------------------  -------------------
+ %        BODY                 LHS
+
+ % [GAtoms1,GConstraints1] is RHS6a2
+ %  -----------------------
+ %           LHS'
+
+ , flatten([BAtoms,GAtoms], GAtoms6a2)
+ , flatten([BConstraints,GConstraints], GConstraints6a2)
+
+ , Ob6a2 = obligation(GAtoms6a2, GConstraints6a2, GAtoms1, GConstraints1)
+
+ % [HAtom1 HAtoms1 HConstraints1] is RHS'
+
+ % LHS', RHS', BODY, LHS -> RHS
+
+ , flatten([GAtoms1,HAtom1,HAtoms1,BAtoms,GAtoms], GAtoms6b)
+ , flatten([GConstraints1,HConstraints1,BConstraints,GConstraints], GConstraints6b)
+
+ , Ob6b = obligation(GAtoms6b, GConstraints6b, AllHAtoms, HConstraints)
+
+ , printf("\n---final check---\n",[])
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+ , printf("GAtom = %\n", [GAtom])
+ , printf("GConstraints = %\n", [GConstraints])
+ , printf("HAtom = %\n", [HAtom])
+ , printf("HConstraints = %\n", [HConstraints])
+ , printf("BAtom = %\n", [BAtom])
+ , printf("Subst1 = %\n", [Subst1])
+ , printf("BConstraints = %\n", [BConstraints])
+ , printf("GConstraints1 = %\n", [GConstraints1])
+ , printf("HAtom1 = %\n", [HAtom1])
+ , printf("HConstraints1 = %\n", [HConstraints1])
+ , printf("\n",[])
+
+ , KTSet= [Ob6a2,Ob6b]
+ , !
+ .
+
+
+%------------------------------------------------------------------------------
 % The case when BAtoms have exactly one atom with the same head as GAtom,
 % and HAtoms have exactly one atom with the same head as GAtom, too.
+% Proof obligation: GAtom,GAtoms,GConstraints -> HAtom,HAtoms,HConstraints
+%                                                ------------
+%                                                  AllHAtoms
+%
+% Recursive definition GAtom = ... \/ BAtom,BAtoms,BConstraints \/ ...
+%                                     ------------
+%                                      AllBAtoms
+%
+% where GAtom,HAtom,BAtom have the same head and HAtoms,BAtoms don't have.
+%------------------------------------------------------------------------------
 
 lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
   body(CP, AllBAtoms, BConstraints), KTSet) :- true
- , number_of_occurrences(GAtom,AllHAtoms,1)
- , number_of_occurrences(GAtom,AllBAtoms,1)
+ , number_of_occurrences(GAtom,AllBAtoms,N1)
+ , number_of_occurrences(GAtom,AllHAtoms,N2)
+ , printf("N1=%,N2=%\n",[N1,N2])
+ , N1 = 1
+ , N2 = 1
+ , !
+ , printf("\n---KT(1:1)---\n",[])
  , get_the_first_atom_with_the_same_head(GAtom,AllHAtoms,HAtom,HAtoms)
  , get_the_first_atom_with_the_same_head(GAtom,AllBAtoms,BAtom,BAtoms)
  , flatten([GAtoms,GConstraints],LHS)
@@ -709,22 +817,21 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , list_to_set(OriginalVarList, OriginalVars)
  , unord_setdiff(OriginalVars,ActiveVars,PassiveVars)
 
-  %%% TODO HERE
-  %%% I need to propagate AllHAtoms, etc, to the following code.
-
  , printf("\n---after variable collection---\n",[])
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
 
  % Subst1
  , get_unifier([GAtom], [BAtom], Subst1)
+ , substitute(Subst1, [GAtoms],        [GAtoms1])
  , substitute(Subst1, [GConstraints], [GConstraints1])
  , substitute(Subst1, [HAtom],        [HAtom1])
+ , substitute(Subst1, [HAtoms],        [HAtoms1])
  , substitute(Subst1, [HConstraints], [HConstraints1])
 
- , printf("\n---after Subst1---\n", [])
- , printf("Subst1 = %\n", [Subst1])
- , printf("GConstraints = %\n", [GConstraints])
- , printf("GConstraints1 = %\n", [GConstraints1])
+ % printf("\n---after Subst1---\n", [])
+ % printf("Subst1 = %\n", [Subst1])
+ % printf("GConstraints = %\n", [GConstraints])
+ % printf("GConstraints1 = %\n", [GConstraints1])
 
  % Subst2
  , collect_variables_by_position(HAtom, CP, HAtomCriticalVars)
@@ -732,8 +839,10 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , freshcopy(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars)
  , get_unifier(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars, Subst2)
 
+ , substitute(Subst2, [GAtoms1],  [GAtoms2])
  , substitute(Subst2, [GConstraints1],  [GConstraints2])
  , substitute(Subst2, [HAtom1],  [HAtom2])
+ , substitute(Subst2, [HAtoms1],  [HAtoms2])
  , substitute(Subst2, [HConstraints1],  [HConstraints2])
 
  , printf("\n---after Subst2---\n", [])
@@ -744,14 +853,30 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , printf("FreshCopyHAtomPassiveCriticalVars = %\n", [FreshCopyHAtomPassiveCriticalVars])
  , printf("Subst2 = %\n", [Subst2])
 
- , append(BConstraints, GConstraints, GConstraints6a2)
+ % Construct proof obligations (6a2) and (6b)
+ % TODO:: Find better names.
 
- , Ob6a2 = obligation([], GConstraints6a2, [], GConstraints2)
+ % [BAtoms,BConstraints,GAtoms,GConstraints] is LHS6a2
+ %  ------------------  -------------------
+ %        BODY                 LHS
 
- , append(GConstraints6a2, GConstraints2, NotYetGConstraints6b)
- , append(NotYetGConstraints6b, HConstraints2, GConstraints6b)
+ % [GAtoms2,GConstraints2] is RHS6a2
+ %  -----------------------
+ %           LHS''
 
- , Ob6b = obligation([HAtom2], GConstraints6b, [HAtom], HConstraints)
+ , flatten([BAtoms,GAtoms], GAtoms6a2)
+ , flatten([BConstraints,GConstraints], GConstraints6a2)
+
+ , Ob6a2 = obligation(GAtoms6a2, GConstraints6a2, GAtoms2, GConstraints2)
+
+ % [HAtom2 HAtoms2 HConstraints2] is RHS''
+
+ % LHS'', RHS'', BODY, LHS -> RHS
+
+ , flatten([GAtoms2,HAtom2,HAtoms2,BAtoms,GAtoms], GAtoms6b)
+ , flatten([GConstraints2,HConstraints2,BConstraints,GConstraints], GConstraints6b)
+
+ , Ob6b = obligation(GAtoms6b, GConstraints6b, AllHAtoms, HConstraints)
 
  , printf("\n---final check---\n",[])
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])

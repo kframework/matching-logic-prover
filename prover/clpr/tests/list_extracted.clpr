@@ -84,6 +84,19 @@ run_ll_lr_aux_1 :- true
   , printf("OrSetRU:\n%\n", [OrSetRU])
   .
 
+% run ll_lr from the beginning, apply KT
+run_ll_lr_aux_2 :- true
+  , printf("\n---begin---\n",[])
+  , GAtom = ll(H,X,Y,F)
+  , GAtoms = []
+  , GConstraints = []
+  , HAtoms = [lr(H,X,Y,F)]
+  , HConstraints = []
+  , lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,KTSet)
+  , !
+  , printf("KTSet:\n%\n", [KTSet])
+  .
+
 
 % run_ll_zero_list :-
 %   init_counters,
@@ -136,7 +149,8 @@ run_ll_lr_aux_1 :- true
 %   printf("LR-LIST-LIST is PROVED.\n", []).
 
 run :-
-  run_ll_lr_aux_1,
+% run_ll_lr_aux_1,
+  run_ll_lr_aux_2,
 % run_ll_lr,
 % run_lr_ll,
 % run_ll_zero_list,
