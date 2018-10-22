@@ -379,29 +379,34 @@ rewrite_step(_Rule, [], []).
 %--------------------------------------------------------------------
 
 lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-  printf("\n----consider a new obligation----\n", []),
-  printf("% % |= % %\n",
+  printf("\n----new proof obligation----\n", []),
+  printf("% %\n  ->\n% %\n",
     [GAtoms, GConstraints, HAtoms, HConstraints]),
   fail.
 
-% try direct proof first
-% lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-%   lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints).
+% Try (Direct Proof) first.
+lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
+  lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints).
 
-% try all possible rules and collect a set of obligation sets OrSet.
+% Breadth-first search on proof trees.
+% Try all possible rules and collect a set of obligation sets OrSet.
 % prove one obligation set in OrSet and we are done.
 % In other words, OrSet is a disjunction of conjunctions. 
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-  lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet),
-  prove_one(OrSet),
-  !, true.
+lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+  , printf("\n---collecting all possible conjunctions---\n",[])
+  , lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet)
+  , length(OrSet, L)
+  , printf("\n---% conjunctions collected---\n", L)
+  , prove_one(OrSet)
+  , !
+  , true.
  
 % collect OrSet by trying all possible rules.
-lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :-
-  lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT),
-  lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU),
-  flatten([OrSetKT,OrSetRU],OrSet),
-  prove_one(OrSet).
+lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
+  , lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT)
+  , lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU)
+  , flatten([OrSetKT,OrSetRU],OrSet)
+  .
 
 %--------------------------------------------------------------------
 % prove_one needed. the structure of the original code is kept.
@@ -459,14 +464,13 @@ lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
 lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
   , printf("\n---help me decide---\n", [])
   , printf("%\n%\n   ->\n%\n%\n", [GAtoms,GConstraints,HAtoms,HConstraints])
-  , printf("\n---valid or not? (y/n)---\n", [])
+  , printf("\n---valid or not? ('y.' for yes and 'n.' for no)---\n", [])
   , read(Ans)
   , !
   , check_answer(Ans)
   .
 
-check_answer(y).
-check_answer(n) :- fail.
+check_answer(y) :- !.
 
 
 %------------------------------------------------------------------------------
@@ -555,14 +559,18 @@ lprove_right_unfold_collect_all_cases(
 %------------------------------------------------------------------------------
 
 lprove_kt(GAtoms,GConstraints,HAtoms,HConstraints,OrSet) :- true
+  , printf("\n---KT begins---\n", [])
   , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
       1, [], OrSet)
+  , length(OrSet,L)
+  , printf("\n---KT ends, % disjunctions collected---\n", [L])
   .
 
 lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
   N,InOrSet,OutOrSet) :- true
   , nth1(N, GAtoms, GAtom, RestGAtoms)
   , lprove_kt(GAtom,RestGAtoms,GConstraints,HAtoms,HConstraints,KTSet)
+  , printf("here\n", [])
   , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
       N+1,[KTSet|InOrSet], OutOrSet)
   .
@@ -584,10 +592,13 @@ lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, KTSet) :- true
   , flatten([HAtoms,HConstraints],RHS)
   , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
   , unfold(GAtom, GBodies)
-  , printf("\n---unfold---\n",[])
+  , length(GBodies,L)
+  , printf("\n---unfold % case(s)---\n",[L])
   , printf("GBodies =\n%\n", [GBodies])
   , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
     GBodies, [], KTSet)
+  , length(KTSet,M)
+  , printf("\n---KT (one case) ends, % conjunctions collected.---\n",[M])
   , !
   .
 
@@ -604,7 +615,9 @@ lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, KTSet) :- true
 
 % No bodies, no new obligations.
 lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
-  [], KTSet, KTSet) :- !.
+  [], KTSet, KTSet) :- true
+  , !
+  .
 
 lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
   [Body|RestGBodies], KTSetIn, KTSetOut) :- true
@@ -768,6 +781,7 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , printf("\n",[])
 
  , KTSet= [Ob6a2,Ob6b]
+ , printf("\n---KT(1:0) ends---\n",[])
  , !
  .
 
@@ -794,7 +808,7 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , N1 = 1
  , N2 = 1
  , !
- , printf("\n---KT(1:1)---\n",[])
+ , printf("\n---KT(1:1) begins---\n",[])
  , get_the_first_atom_with_the_same_head(GAtom,AllHAtoms,HAtom,HAtoms)
  , get_the_first_atom_with_the_same_head(GAtom,AllBAtoms,BAtom,BAtoms)
  , flatten([GAtoms,GConstraints],LHS)
@@ -899,7 +913,13 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
 
 
  , KTSet= [Ob6a2,Ob6b]
+ , printf("\n---KT(1:1) ends---\n",[])
  , !
  .
 
-
+% Otherwise case
+lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
+  Body, KTSet) :- true
+  , printf("\n---KT: uncovered case---\n", [])
+  , fail
+  .

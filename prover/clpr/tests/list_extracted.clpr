@@ -150,8 +150,8 @@ run_ll_lr_aux_2 :- true
 
 run :-
 % run_ll_lr_aux_1,
-  run_ll_lr_aux_2,
-% run_ll_lr,
+% run_ll_lr_aux_2,
+  run_ll_lr,
 % run_lr_ll,
 % run_ll_zero_list,
 % run_ll_list_list,
