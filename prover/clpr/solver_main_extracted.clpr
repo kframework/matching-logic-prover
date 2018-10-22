@@ -689,9 +689,10 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , number_of_occurrences(GAtom,AllBAtoms,1)
  , get_the_first_atom_with_the_same_head(GAtom,AllHAtoms,HAtom,HAtoms)
  , get_the_first_atom_with_the_same_head(GAtom,AllBAtoms,BAtom,BAtoms)
- , printf("\n---try KT(1:1) on---\n", [])
  , flatten([GAtoms,GConstraints],LHS)
  , flatten([AllHAtoms,HConstraints],RHS)
+
+ , printf("\n---apply KT on---\n", [])
  , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS]) 
  , printf("---case is---\n", [])
  , printf("%\n%\n%\n", [BAtom, BAtoms,BConstraints])
@@ -712,12 +713,6 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
   %%% I need to propagate AllHAtoms, etc, to the following code.
 
  , printf("\n---after variable collection---\n",[])
- , printf("GAtom = %\n", [GAtom])
- , printf("GConstraints = %\n", [GConstraints])
- , printf("HAtom = %\n", [HAtom])
- , printf("HConstraints = %\n", [HConstraints])
- , printf("BAtom = %\n", [BAtom])
- , printf("BConstraints = %\n", [BConstraints])
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
 
  % Subst1
