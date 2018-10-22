@@ -134,8 +134,8 @@ remove_atm([atm(_,_,X)|R], [X|S]) :- remove_atm(R, S).
 
 collect_unifying_constraints([], []) :- !.
 collect_unifying_constraints([Atom | Rest], [Atom | ERest]) :- true
- , Atom =..[S,X,Y], equality(S),
- , %not S == arreq
+ , Atom =..[S,X,Y]
+ , equality(S)
  , var(X), var(Y), !
  , collect_unifying_constraints(Rest, ERest)
  .
@@ -232,6 +232,24 @@ remove_dangling_constraints_fix_point(_InHConstraints, _InVar,
   remove_dangling_constraints(OutHConstraints, OutVar,
                               OutHConstraints1, OutVar1).
 
+% -------------------------------------------------------------
+
+get_constraints_from_var(_, [], []) :- !.
+get_constraints_from_var(Var, [C | S], [C | T]) :-
+  contains_variable(Var, C), !,
+  get_constraints_from_var(Var, S, T).
+get_constraints_from_var(Var, [_C | S],  T) :-
+  get_constraints_from_var(Var, S, T).
+
+% -------------------------------------------------------------
+
+remove_constraints_from_var(_, [], []) :- !.
+remove_constraints_from_var(Var, [C | S],  T) :-
+  same_variable(Var, C), !,
+  remove_constraints_from_var(Var, S, T).
+remove_constraints_from_var(Var, [C | S],  [C | T]) :-
+  remove_constraints_from_var(Var, S, T).
+
 
 % -------------------------------------------------------------
 
@@ -298,9 +316,7 @@ assign_type(assign).
 entailment_check(GConstraints, HConstraints, [], _) :- true
  , !
  , prettyprint_aux([], [], GConstraints, [], [], HConstraints)
- , printf("entailment_check 1\n", [])
  , remove_redundant_constraints(HConstraints, NewH)
- , printf("entailment_check 2\n", [])
  , z3_check_implies(GConstraints, NewH, Res)
  , Res == 0
  .
@@ -319,69 +335,48 @@ entailment_check(GConstraints, HConstraints, EVs, EqualityIn) :- true
  .
 
 self_unification(ExtUnif) :- true
- , printf("self_unification 1\n", [])
  , ExtUnif =.. [S, X, Y]
- , printf("self_unification 2 S = %\n", [S])
  , equality(S)
- , printf("self_unification 3\n", [])
  , !
  , X == Y
  .
 
-% TODO: This has been stubbed
-remove_redundant_constraints(X, X) :- true
+remove_redundant_constraints([], []) :- true
+ , !
+ .
+remove_redundant_constraints([C | Rest], NewUnifier) :- true
+ , self_unification(C)
+ , !
+ , remove_redundant_constraints(Rest, NewUnifier)
+ .
+remove_redundant_constraints([C | Rest], NewUnifier) :- true
+ , memberGndchk(C, Rest)
+ , !
+ , remove_redundant_constraints(Rest, NewUnifier)
+ .
+remove_redundant_constraints([C | Rest], NewUnifier) :- true
+ , C =.. [Type, A, B]
+ , C1 =.. [Type, A1, B1]
+ , equality(Type)
+ , member(C1, Rest)
+ , A == B1, B == A1
+ , !
+ , remove_redundant_constraints(Rest, NewUnifier)
+ .
+remove_redundant_constraints([C | Rest], [C | Rest1]) :- true
+ , remove_redundant_constraints(Rest, Rest1)
  .
 
-% remove_redundant_constraints([], []) :- true
-%  , printf("remove_redundant_constraints 1\n", [])
-%  , !
-%  .
-% remove_redundant_constraints([C | Rest], NewUnifier) :- true
-%  , printf("remove_redundant_constraints 2\n", [])
-%  , self_unification(C)
-%  , printf("remove_redundant_constraints 2 a\n", [])
-%  , !
-%  , remove_redundant_constraints(Rest, NewUnifier)
-%  .
-% remove_redundant_constraints([C | Rest], NewUnifier) :- true
-%  , printf("remove_redundant_constraints 3\n", [])
-%  , memberGndchk(C, Rest)
-%  , !
-%  , remove_redundant_constraints(Rest, NewUnifier)
-%  .
-% remove_redundant_constraints([C | Rest], NewUnifier) :- true
-%  , printf("remove_redundant_constraints 4\n", [])
-%  , C =.. [Type, A, B]
-%  , C1 =.. [Type, A1, B1]
-%  , equality(Type)
-%  , member(C1, Rest)
-%  , A == B1, B == A1
-%  , !
-%  , remove_redundant_constraints(Rest, NewUnifier)
-%  .
-% remove_redundant_constraints([C | Rest], [C | Rest1]) :- true
-%  , printf("remove_redundant_constraints 5\n", [])
-%  , remove_redundant_constraints(Rest, Rest1)
-%  .
-
 remove_redundant_unifier([], NonExtUnifier, NonExtUnifier) :- true
- , printf("remove_redundant_constraints 6\n", [])
  , !
  .
 remove_redundant_unifier([A | T], NonExtUnifier, FinalNonExtUnifier) :- true
- , printf("remove_redundant_constraints 7\n", [])
  , remove_constraints_from_var(A, NonExtUnifier, NonExtUnifier1)
  , remove_redundant_unifier(T, NonExtUnifier1, FinalNonExtUnifier)
  .
 
 % Direct Proof
 % ============
-
-directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- true
- , printf("GA1 = %;\nGA2 = %;\nGC = %\n", [GAtoms1, GAtoms2, GConstraints])
- , printf("HA1 = %;\nHA2 = %;\nHC = %\n", [HAtoms1, HAtoms2, HConstraints])
- , fail
- .
 
 % If the LHS constraint is unsatisfiable, succeed immediately
 directproof(_GAtoms1, _GAtoms2, GConstraints, _HAtoms1, _HAtoms2, _HConstraints) :- true
@@ -421,8 +416,6 @@ directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- t
  .
 
 directproof_aux(GConstraints, HConstraints, Unifier, Lhs_Vars, ExtVar) :- true
- , printf("direct_proof_aux: 1\n", [])
-
  , assert(refresh_variables(t(GConstraints, HConstraints, Unifier, Lhs_Vars, ExtVar)))
  , retract(refresh_variables(t(GConstraints1, HConstraints1, Unifier1, Lhs_Vars1, ExtVar1)))
 
@@ -442,7 +435,6 @@ directproof_aux(GConstraints, HConstraints, Unifier, Lhs_Vars, ExtVar) :- true
  , further_remove_existential_variable(Lhs_Vars1, EqualityIn, ExtVar1, EqualityOut, ExtVar2)
 
  , collect_unifying_constraints(EqualityOut, Unifier2)
- , printf("direct_proof_aux: 1z: % % % %\n", [GConstraints2, FinalHConstraints1, FinalEVs, EqualityOut])
  , append(Unifier1, Unifier2, FinalUnifier)
 
  % We try to find out which are the unifiers of existential variables.
@@ -470,7 +462,6 @@ directproof_aux(GConstraints, HConstraints, Unifier, Lhs_Vars, ExtVar) :- true
  , move_assign_to_lhs(GConstraints1, FinalHConstraints, GConstraints2, FinalHConstraints1)
 
  , find_existential_variables([], GConstraints2, [], FinalHConstraints1, FinalEVs)
- , printf("direct_proof_aux: 2: % % % %\n", [GConstraints2, FinalHConstraints1, FinalEVs, EqualityOut])
  , entailment_check(GConstraints2, FinalHConstraints1, FinalEVs, EqualityOut)
 
  % These equations should contains no Existential Variables
@@ -1007,6 +998,13 @@ length([_], 1) :- !.
 length([_, _], 2) :- !.
 length([_|R], N+1) :- length(R, N).
 
+%%------------------------------------------------------------------------------  
+
+add_ext_unifier(Unifier, [], Unifier) :- !.
+add_ext_unifier(Unifier, ExtUnif, Unifier) :-
+    memberGndchk(ExtUnif, Unifier), !.
+add_ext_unifier(Unifier, ExtUnif, [ExtUnif | Unifier]).
+
 compute_equality_closure(Vars, Unifier1, Unifier3) :-
   once(compute_equality_closure_aux(Vars, Vars, Unifier1, Unifier2)),
   compute_equality_closure_fix_point(Vars, Unifier1, Unifier2, Unifier3).
@@ -1108,20 +1106,9 @@ further_remove_existential_variable_aux(Lhs_Vars, Unifier1, [Var|Rest1], Unifier
 %==============================================================================\
 % Hiep: Using z3, no need for custom solver
 
-set_equalities :-
-  dynamic(equality, 1),
-  assert(equality(eq)), % We have "eq" as default equality
-  assert(equality(eqset)),
-  assert(equality(arreq)),
-  warning(warning_off),
-  declare_equality(Eq),
-  assert(equality(Eq)),
-  fail.
-set_equalities :-
-  warning(warning_on).
-
-:- set_equalities.    % Read equality declarations
-
+equality(eq).
+equality(eqset) .
+equality(arreq) .
 
 collect_equality_constraints([], []) :- !.
 collect_equality_constraints([Atom | Rest], [Atom | ERest]) :-
@@ -1265,6 +1252,30 @@ split_by_existential_equalities_aux([V|InExtVar], InHConstraints,
 substitute_until_fixpoint_or_cycle(InUnifiers, OutUnifiers, OutEV) :-
   apply_unifier_to_others_once(InUnifiers, [], Unifiers1),
   fixpoint_test(InUnifiers, Unifiers1, OutUnifiers, OutEV).
+
+%------------------------------------------------------------------------------
+% get_cyclic_unifiers/4(+U, -CU, -OU, -CV):
+% Given a set of unifiers U, output those that are circular in CU, and
+% the rest in OU, and the circular unifiers's variables in CV
+%------------------------------------------------------------------------------
+get_cyclic_unifiers([], [], [], []).
+get_cyclic_unifiers([Unifier|R], [Unifier|S], T, [Lhs|U]) :-
+  Unifier =.. [_,Lhs,Rhs],
+  find_variable_in_term(Lhs,Rhs), !,
+  get_cyclic_unifiers(R, S, T, U).
+get_cyclic_unifiers([Unifier|R], S, [Unifier|T], U) :-
+  get_cyclic_unifiers(R, S, T, U).
+
+find_variable_in_term(_, []) :- !, fail.
+find_variable_in_term(V, [A|_]) :- V==A, !.
+find_variable_in_term(V, [A|_]) :-
+  find_variable_in_term(V, A), !.
+find_variable_in_term(V, [_|R]) :- !,
+  find_variable_in_term(V, R).
+find_variable_in_term(V, Term) :-
+  Term =.. [_|R],
+  find_variable_in_term(V, R).
+
 
 fixpoint_test(PrevUnifiers, Unifiers, Unifiers, []) :-
   PrevUnifiers==Unifiers, !.
