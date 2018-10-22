@@ -571,6 +571,7 @@ lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
   , nth1(N, GAtoms, GAtom, RestGAtoms)
   , lprove_kt(GAtom,RestGAtoms,GConstraints,HAtoms,HConstraints,KTSet)
   , printf("here\n", [])
+  % TODO:: DEBUGGING HERE
   , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
       N+1,[KTSet|InOrSet], OutOrSet)
   .
