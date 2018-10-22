@@ -406,10 +406,7 @@ lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
 lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
   , lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT)
   , lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU)
-  , flatten([OrSetKT,OrSetRU],OrSet)
-  , printf("OrSetKT =\n%\n", [OrSetKT])
-  , printf("OrSetRU =\n%\n", [OrSetRU])
-  , printf("OrSet =\n%\n", [OrSet])
+  , append(OrSetKT,OrSetRU,OrSet)
   .
 
 %--------------------------------------------------------------------
@@ -418,9 +415,12 @@ lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
 %--------------------------------------------------------------------
 prove_one([]) :- !, fail. % fail to prove.
 
-prove_one(OrSet) :- 
-  printf("\n----consider an orset----\n", []),
-  prove_one_set(OrSet) .
+prove_one(OrSet) :- true
+  , length(OrSet,L)
+  , printf("\n----consider an orset of size %----\n", [L])
+  , printf("OrSet =\n%\n", [OrSet])
+  , prove_one_set(OrSet)
+  .
 
 prove_one_set(OrSet) :- prove_one_set_aux(OrSet).
 
@@ -436,13 +436,11 @@ prove_one_set_aux([Obs | _]) :- true
 prove_one_set_aux([_ | R]) :- prove_one_set_aux(R).
 
 prove_all([]) :- true
-  , printf("here2\n", [])
   , !
   , true  % succeed to prove.
   . 
 
 prove_all([Ob | R]) :- true
-  , printf("here3\n", [])
   , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
   , lprove(GAtoms, GConstraints, HAtoms, HConstraints)
   , !
@@ -450,7 +448,6 @@ prove_all([Ob | R]) :- true
   .
 
 prove_all(_) :- true
-  , printf("here4\n",[])
   , fail
   . % not reachable.
 
@@ -574,7 +571,7 @@ lprove_right_unfold_collect_all_cases(
   , append(HAtoms,BAtoms,NewHAtoms)
   , append(HConstraints,BConstraints,NewHConstraints)
   , Ob = obligation(GAtoms,GConstraints,NewHAtoms,NewHConstraints)
-  , NewInOrSet = [Ob|InOrSet]
+  , NewInOrSet = [[Ob]|InOrSet]
   , lprove_right_unfold_collect_all_cases(
       GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
       NewInOrSet,OutOrSet)
