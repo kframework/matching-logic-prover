@@ -396,7 +396,8 @@ lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
   , printf("\n---collecting all possible conjunctions---\n",[])
   , lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet)
   , length(OrSet, L)
-  , printf("\n---% conjunctions collected---\n", L)
+  , printf("\n---% disjunctions collected---\n", [L])
+  , printf("OrSet =\n%\n", [OrSet])
   , prove_one(OrSet)
   , !
   , true.
@@ -406,6 +407,9 @@ lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
   , lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT)
   , lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU)
   , flatten([OrSetKT,OrSetRU],OrSet)
+  , printf("OrSetKT =\n%\n", [OrSetKT])
+  , printf("OrSetRU =\n%\n", [OrSetRU])
+  , printf("OrSet =\n%\n", [OrSet])
   .
 
 %--------------------------------------------------------------------
@@ -422,20 +426,33 @@ prove_one_set(OrSet) :- prove_one_set_aux(OrSet).
 
 prove_one_set_aux([]) :- !, fail. % fail to prove.
 
-prove_one_set_aux([Obs | _]) :- prove_all(Obs),
-  !, true.
+prove_one_set_aux([Obs | _]) :- true
+  , printf("here\n", [])
+  , prove_all(Obs)
+  , !
+  , true
+  .
 
 prove_one_set_aux([_ | R]) :- prove_one_set_aux(R).
 
-prove_all([]) :- !, true. % succeed to prove.
+prove_all([]) :- true
+  , printf("here2\n", [])
+  , !
+  , true  % succeed to prove.
+  . 
 
-prove_all([Ob | R]) :-
-  Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints),
-  lprove(GAtoms, GConstraints, HAtoms, HConstraints),
-  !,
-  prove_all(R).
+prove_all([Ob | R]) :- true
+  , printf("here3\n", [])
+  , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
+  , lprove(GAtoms, GConstraints, HAtoms, HConstraints)
+  , !
+  , prove_all(R)
+  .
 
-prove_all(_) :- fail. % not reachable.
+prove_all(_) :- true
+  , printf("here4\n",[])
+  , fail
+  . % not reachable.
 
 
 %------------------------------------------------------------------------------
@@ -485,7 +502,30 @@ check_answer(y) :- !.
 % is generated and added to OrSet.
 %------------------------------------------------------------------------------
 
-% TODO
+lprove_right_unfold(GAtoms,GConstraints,HAtoms,HConstraints,OrSet) :- true
+  , printf("\n---right unfold begins---\n",[])
+  , lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      1,[], OrSet)
+  , length(OrSet,L)
+  , printf("\n---right unfold ends, % disjunctions collected---\n", [L])
+  .
+
+lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+  N,InOrSet,OutOrSet) :- true
+  % The following claim fails if N > |HAtoms|
+  , nth1(N,HAtoms,HAtom,RestHAtoms)
+  , !
+  , lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,OrSetRU)
+  , append(OrSetRU,InOrSet,NewInOrSet)
+  , lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      N+1, NewInOrSet,OutOrSet)
+  .
+
+% The otherwise case when N > |HAtoms|.
+lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+  N,OrSet,OrSet) :- true
+  , !
+  .
 
 %------------------------------------------------------------------------------
 % lprove_right_unfold/6
@@ -501,10 +541,9 @@ check_answer(y) :- !.
 
 lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,
   OrSet) :- true
-  , printf("\n---try Right Unfold on---\n",[])
-  , printf("HATom = %\n", [HAtom])
   , unfold(HAtom,HBodies)
-  , printf("HBodies = %\n", [HBodies])
+  , length(HBodies,L)
+  , printf("\n---right unfold (one atom) begins, % cases to collect---\n",[L])
   , lprove_right_unfold_collect_all_cases(
       GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
       [],OrSet)
@@ -522,7 +561,7 @@ lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,
 lprove_right_unfold_collect_all_cases(
   GAtoms,GConstraints,HAtom,HAtoms,HConstraints,[],
   InOrSet,InOrSet) :- true
-  , printf("\n---all cases collected---\n", [])
+  , printf("\n---all cases collected.---\n", [])
   , !
   .
 
@@ -568,12 +607,18 @@ lprove_kt(GAtoms,GConstraints,HAtoms,HConstraints,OrSet) :- true
 
 lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
   N,InOrSet,OutOrSet) :- true
+  % The following claim fails if N > |GAtoms|
   , nth1(N, GAtoms, GAtom, RestGAtoms)
+  , !
   , lprove_kt(GAtom,RestGAtoms,GConstraints,HAtoms,HConstraints,KTSet)
-  , printf("here\n", [])
-  % TODO:: DEBUGGING HERE
   , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
       N+1,[KTSet|InOrSet], OutOrSet)
+  .
+
+% The otherwise case.
+lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+  N,OrSet,OrSet) :- true
+  , !
   .
 
 %------------------------------------------------------------------------------
@@ -588,7 +633,7 @@ lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
 %------------------------------------------------------------------------------
 
 lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, KTSet) :- true
-  , printf("\n---apply KT on---\n", [])
+  , printf("\n---KT (one case) begins---\n", [])
   , flatten([GAtoms,GConstraints],LHS)
   , flatten([HAtoms,HConstraints],RHS)
   , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
