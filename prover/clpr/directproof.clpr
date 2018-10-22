@@ -945,7 +945,6 @@ functionally_unifiable_non_ev(Lhs_Vars, Unifier, Var, ExtUnif) :-
 functionally_unifiable_non_ev_aux(_Lhs_Vars, [], _, _Var, _) :- !, fail.
 
 functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
-  printf("functionally_unifiable_non_ev_aux a 1\n", []),
   Atom = eqset(A, X), var(X),
   memberGndchk(X, Lhs_Vars),
 
@@ -957,21 +956,15 @@ functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUni
   !, ExtUnif = eqset(X,Z).
 
 functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
-  printf("functionally_unifiable_non_ev_aux b 1\n", []),
   Atom = eqset(X, A), var(X),
   memberGndchk(X, Lhs_Vars),
-  printf("functionally_unifiable_non_ev_aux b 2\n", []),
   member(Atom2, Unifier),
-  printf("functionally_unifiable_non_ev_aux b 3\n", []),
   Atom2 = eqset(B, Z),
   same_variable(Var, Z), % Z contains existential Var in it
-  printf("functionally_unifiable_non_ev_aux b 5\n", []),
   set_unified_directly(A, B, Unifier),
-  printf("functionally_unifiable_non_ev_aux b 6\n", []),
   !, ExtUnif = eqset(X,Z).
 
 functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
-  printf("functionally_unifiable_non_ev_aux c 1\n", []),
   Atom = eqset(A, X), var(X),
   memberGndchk(X, Lhs_Vars),
   member(Atom2, Unifier),
@@ -981,7 +974,6 @@ functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUni
   !, ExtUnif = eqset(X,Z).
 
 functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
-  printf("functionally_unifiable_non_ev_aux d 1\n", []),
   Atom = eqset(X, A), var(X),
   memberGndchk(X, Lhs_Vars),
   member(Atom2, Unifier),
@@ -990,7 +982,6 @@ functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUni
   set_unified_directly(A, B, Unifier),
   !, ExtUnif = eqset(X,Z).
 functionally_unifiable_non_ev_aux(Lhs_Vars, [_Atom | Rest], Unifier, Var, ExtUnif) :-
-  printf("functionally_unifiable_non_ev_aux e 1\n", []),
   functionally_unifiable_non_ev_aux(Lhs_Vars, Rest, Unifier, Var, ExtUnif).
 
 length([], 0).
@@ -1073,18 +1064,14 @@ further_remove_existential_variable_aux(_, Unifier1, [], Unifier1, []) :- true
 further_remove_existential_variable_aux(Lhs_Vars, Unifier1, [Var|Rest1], Unifier2, Rest2) :- true
  % There exists a nonexistential variable Var1 which can be unified with Var
  % add eq(Var,Var1) into the Unifier, remove Var from the output list
- , printf("further_remove_existential_variable_aux 1\n", [])
  , functionally_unifiable(Lhs_Vars, Unifier1, Var, ExtUnif)
- , printf("further_remove_existential_variable_aux 2\n", [])
  , !
  , add_ext_unifier(Unifier1, ExtUnif, NewUnifier)
  , further_remove_existential_variable_aux(Lhs_Vars, NewUnifier, Rest1, Unifier2, Rest2)
  .
 further_remove_existential_variable_aux(Lhs_Vars, Unifier1, ExtVar, Unifier2, Rest2) :- true
- , printf("further_remove_existential_variable_aux b 1\n", [])
  , ExtVar = [Var | _]
  % A possibly useful unifier should be added
- , printf("further_remove_existential_variable_aux b 2\n", [])
  , functionally_unifiable_non_ev(Lhs_Vars, Unifier1, Var, ExtUnif)
  , printf("might cause infinite loop !\n", [])
  , add_counter(pass, 1)
@@ -1096,9 +1083,7 @@ further_remove_existential_variable_aux(Lhs_Vars, Unifier1, ExtVar, Unifier2, Re
  , further_remove_existential_variable_aux(Lhs_Vars, NewUnifier, ExtVar, Unifier2, Rest2)
  .
 further_remove_existential_variable_aux(Lhs_Vars, Unifier1, [Var|Rest1], Unifier2, [Var|Rest2]) :- true
- , printf("further_remove_existential_variable_aux c 1\n", [])
  , further_remove_existential_variable_aux(Lhs_Vars, Unifier1, Rest1, Unifier2, Rest2)
- , printf("further_remove_existential_variable_aux c 2\n", [])
  .
 
 %==============================================================================
@@ -1116,12 +1101,9 @@ collect_equality_constraints([Atom | Rest], [Atom | ERest]) :-
   %not cyclic(Atom),
   !,
   collect_equality_constraints(Rest, ERest).
-
-
 collect_equality_constraints([Atom | Rest], [Atom | ERest]) :-
   Atom =..[S,_,_], S = arrassign, !,
   collect_equality_constraints(Rest, ERest).
-
 collect_equality_constraints([_Atom | Rest], ERest) :-
   collect_equality_constraints(Rest, ERest).
 
