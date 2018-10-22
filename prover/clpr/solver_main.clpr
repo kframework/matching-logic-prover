@@ -1777,31 +1777,20 @@ get_constraints_from_var(Var, [_C | S],  T) :-
 % -------------------------------------------------------------
 
 remove_constraints_from_var(_, [], []) :- !.
-
 remove_constraints_from_var(Var, [C | S],  T) :-
   same_variable(Var, C), !,
   remove_constraints_from_var(Var, S, T).
-
 remove_constraints_from_var(Var, [C | S],  [C | T]) :-
   remove_constraints_from_var(Var, S, T).
 
-
-
 % -------------------------------------------------------------
 
-
-
-
 contains_variable(_, []) :- !, fail.
-
 contains_variable(A, [B | _S]) :-
   same_variable(A, B), !.
-
 contains_variable(A, [_B | S]) :-
   contains_variable(A, S).
-
 contains_variable(_A, _B) :- !, fail.
-
 
 same_variable(_A, B) :-
   ground(B), !,

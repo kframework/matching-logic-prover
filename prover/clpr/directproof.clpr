@@ -984,11 +984,6 @@ functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUni
 functionally_unifiable_non_ev_aux(Lhs_Vars, [_Atom | Rest], Unifier, Var, ExtUnif) :-
   functionally_unifiable_non_ev_aux(Lhs_Vars, Rest, Unifier, Var, ExtUnif).
 
-length([], 0).
-length([_], 1) :- !.
-length([_, _], 2) :- !.
-length([_|R], N+1) :- length(R, N).
-
 %%------------------------------------------------------------------------------  
 
 add_ext_unifier(Unifier, [], Unifier) :- !.
