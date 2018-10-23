@@ -48,14 +48,14 @@ unfold(lr(H,X,Y,F),
 run_ll_lr :-
   GAtoms = [ll(H,X,Y,F)],
   HAtoms = [lr(H,X,Y,F)],
-  lprove(GAtoms, [], HAtoms, []),
+  lprove(4, GAtoms, [], HAtoms, []),
   !,
   printf("LL-LR is PROVED.\n", []).
 
 run_lr_ll :-
   GAtoms = [lr(H,X,Y,F)],
   HAtoms = [ll(H,X,Y,F)],
-  lprove(GAtoms, [], HAtoms, []),
+  lprove(5, GAtoms, [], HAtoms, []),
   !,
   printf("LR-LL is PROVED.\n", []).
 
@@ -104,7 +104,7 @@ run_ll_lr_aux_2 :- true
 %                  UnfoldableGAtoms),
 %   addunfoldlevel(0, 0, [list(H, X, F)],
 %                  UnfoldableHAtoms),
-%   lprove(0, 0, 0,
+%   lprove(5, 0, 0, 0,
 %          [], UnfoldableGAtoms,
 %          [eq(Y,0)],
 %          [], UnfoldableHAtoms, 
@@ -120,7 +120,7 @@ run_ll_lr_aux_2 :- true
 %                  UnfoldableGAtoms),
 %   addunfoldlevel(0, 0, [list(H, X, K)],
 %                  UnfoldableHAtoms),
-%   lprove(0, 0, 0,
+%   lprove(5, 0, 0, 0,
 %          [], UnfoldableGAtoms,
 %          [eqset(inter(F,G), emptyset),
 %           eqset(K, union(F,G))],
@@ -138,7 +138,7 @@ run_ll_lr_aux_2 :- true
 %                  UnfoldableGAtoms),
 %   addunfoldlevel(0, 0, [list(H, X, K)],
 %                  UnfoldableHAtoms),
-%   lprove(0, 0, 0,
+%   lprove(5, 0, 0, 0,
 %          [], UnfoldableGAtoms,
 %          [eqset(inter(F,G), emptyset),
 %           eqset(K, union(F,G))],

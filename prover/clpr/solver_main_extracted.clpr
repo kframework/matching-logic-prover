@@ -377,17 +377,17 @@ rewrite_step(_Rule, [], []).
 % lprove needed, but parameters are different.
 %--------------------------------------------------------------------
 
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-  printf("\n----new proof obligation----\n", []),
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :-
+  printf("\n----new proof obligation (Level = %)----\n", [Level]),
   printf("% %\n  ->\n% %\n",
     [GAtoms, GConstraints, HAtoms, HConstraints]),
   fail.
 
 % Try (Direct Proof) first.
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
- , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
- .
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+% lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+%  , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
+%  .
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
  , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
  .
 
@@ -395,13 +395,13 @@ lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
 % Try all possible rules and collect a set of obligation sets OrSet.
 % prove one obligation set in OrSet and we are done.
 % In other words, OrSet is a disjunction of conjunctions. 
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
   , printf("\n---collecting all possible conjunctions---\n",[])
   , lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet)
   , length(OrSet, L)
   , printf("\n---% disjunctions collected---\n", [L])
   , printf("OrSet =\n%\n", [OrSet])
-  , prove_one(OrSet)
+  , prove_one(Level, OrSet)
   , !
   , true.
  
@@ -416,41 +416,42 @@ lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
 % prove_one needed. the structure of the original code is kept.
 % prove_all needed. the structure of the original code is kept.
 %--------------------------------------------------------------------
-prove_one([]) :- !, fail. % fail to prove.
+prove_one(Level, []) :- !, fail. % fail to prove.
 
-prove_one(OrSet) :- true
+prove_one(Level, OrSet) :- true
   , length(OrSet,L)
   , printf("\n----consider an orset of size %----\n", [L])
   , printf("OrSet =\n%\n", [OrSet])
-  , prove_one_set(OrSet)
+  , prove_one_set(Level, OrSet)
   .
 
-prove_one_set(OrSet) :- prove_one_set_aux(OrSet).
+prove_one_set(Level, OrSet) :- prove_one_set_aux(Level, OrSet).
 
-prove_one_set_aux([]) :- !, fail. % fail to prove.
+prove_one_set_aux(Level, []) :- !, fail. % fail to prove.
 
-prove_one_set_aux([Obs | _]) :- true
+prove_one_set_aux(Level, [Obs | _]) :- true
   , printf("here\n", [])
-  , prove_all(Obs)
+  , prove_all(Level, Obs)
   , !
   , true
   .
 
-prove_one_set_aux([_ | R]) :- prove_one_set_aux(R).
+prove_one_set_aux(Level, [_ | R]) :- prove_one_set_aux(Level, R).
 
-prove_all([]) :- true
+prove_all(Level, []) :- true
   , !
   , true  % succeed to prove.
   . 
 
-prove_all([Ob | R]) :- true
+prove_all(Level, [Ob | R]) :- true
+  , Level > 0
   , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
-  , lprove(GAtoms, GConstraints, HAtoms, HConstraints)
+  , lprove(Level - 1, GAtoms, GConstraints, HAtoms, HConstraints)
   , !
-  , prove_all(R)
+  , prove_all(Level, R)
   .
 
-prove_all(_) :- true
+prove_all(Level, _) :- true
   , fail
   . % not reachable.
 
@@ -465,7 +466,6 @@ prove_all(_) :- true
 lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
  , GNonUnfoldable = []
  , HNonUnfoldable = []
- , trace
  , directproof(GNonUnfoldable, GAtoms, GConstraints,
                HNonUnfoldable, HAtoms, HConstraints)
  .
@@ -478,17 +478,7 @@ lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %------------------------------------------------------------------------------
 
-lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
-  , printf("\n---help me decide---\n", [])
-  , printf("%\n%\n   ->\n%\n%\n", [GAtoms,GConstraints,HAtoms,HConstraints])
-  , printf("\n---valid or not? ('y.' for yes and 'n.' for no)---\n", [])
-  , read(Ans)
-  , !
-  , check_answer(Ans)
-  .
-
-check_answer(y) :- !.
-
+:- consult('directproof_by_user.clpr') .
 
 %------------------------------------------------------------------------------
 % lprove_right_unfold/5

@@ -1,0 +1,55 @@
+lprove_direct_by_user(_GAtoms,_GConstraints,HAtoms,HConstraints) :- true
+  , printf("%% ========================\n, GAtoms = %\n, GConstraints = %\n, HAtoms = %\n, HConstraints = %\n.\n", [GAtoms,GConstraints,HAtoms,HConstraints])
+  , fail
+  .
+
+% Should be provable?
+% ===================
+
+% H is empty. Must be true
+lprove_direct_by_user(_GAtoms,_GConstraints,HAtoms,HConstraints) :- true
+  , HAtoms = []
+  , HConstraints = []
+  , !
+  .
+
+lprove_direct_by_user(_GAtoms,GConstraints,HAtoms,HConstraints) :- true
+  % TODO: Are we sure that unsatisfiable works as expected?
+  , unsatisfiable(GConstraints)
+  , !
+  .
+
+% Known unprovable by direct
+% ==========================
+
+% We know that: `GConstraints` can't be proved satisfiable
+% Since directproof doesn't do any unfolding and `lr` is on the RHS only,
+% direct cannot prove these.
+lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
+  , GAtoms = []
+  , HAtoms = [lr(A, B, C, D) | REST]
+  , !
+  , fail
+  .
+lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
+  , GAtoms = [ll(A, B, C, D)]
+  , HAtoms = [lr(A, B, C, D) | REST]
+  , !
+  , fail
+  .
+
+
+% Don't know. Ask User.
+% =====================
+
+lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
+  , printf("\n---help me decide---\n", [])
+  , printf("\n---valid or not? ('y.' for yes and 'n.' for no)---\n", [])
+  , read(Ans)
+  , !
+  , check_answer(Ans)
+  .
+
+check_answer(y) :- !.
+
+
