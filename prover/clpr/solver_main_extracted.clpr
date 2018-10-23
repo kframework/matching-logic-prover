@@ -137,13 +137,12 @@ length([_|R], N+1) :- length(R, N).
 %--------------------------------------------------------------------
 
 freshcopy([], []) :- !.
-
 freshcopy([X],[Y]) :- true
   , var(X)
   , !
   , Y = Z
+  , Z = Z % Suppress warning
   .
-
 freshcopy([X|Xs],[Y|Ys]) :- true
   , freshcopy([X],[Y])
   , freshcopy(Xs,Ys)
@@ -230,11 +229,11 @@ substitute(EQS, Term, _) :- true
 
 % True when E is the N'th (1-based) element of List 
 
-nth1(1, [X | R], X) :- true
+nth1(1, [X | _R], X) :- true
   , !
   .
 
-nth1(I, [X | R], E) :- true
+nth1(I, [_X | R], E) :- true
   , I >= 2
   , !
   , nth1(I-1, R, E)
@@ -287,8 +286,8 @@ delete_var([A | AS], [B], Outs) :- true
   , !
   , delete_var(AS, [B], Outs)
   .
-delete_var([A | AS], [B], [ A | Out]) :- true
-%  , printf("Matched failed. [% | %], [%]\n", [A, AS, B])
+delete_var([A | AS], [_B], [ A | Out]) :- true
+%  , printf("Matched failed. [% | %], [%]\n", [A, AS, _B])
   , !
   , delete_var(AS, [A], Out)
   .
@@ -313,7 +312,7 @@ collect_variables_by_position(T, Ps, Vs) :- true
   , pick_by_position(AllVs, Ps, Vs)
   .
 
-pick_by_position(AllVs, [], []) :- true
+pick_by_position(_AllVs, [], []) :- true
   , !
   .
 
