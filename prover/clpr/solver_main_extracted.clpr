@@ -768,8 +768,7 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , get_unifier([GAtom], [BAtom], Subst1)
  , substitute(Subst1, [GAtoms],        [GAtoms1])
  , substitute(Subst1, [GConstraints], [GConstraints1])
- , substitute(Subst1, [HAtom],        [HAtom1])
- , substitute(Subst1, [HAtoms],        [HAtoms1])
+ , substitute(Subst1, [AllHAtoms],    [AllHAtoms1])
  , substitute(Subst1, [HConstraints], [HConstraints1])
 
  % printf("\n---after Subst1---\n", [])
@@ -793,11 +792,11 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
 
  , Ob6a2 = obligation(GAtoms6a2, GConstraints6a2, GAtoms1, GConstraints1)
 
- % [HAtom1 HAtoms1 HConstraints1] is RHS'
+ % [AllHAtoms1, HConstraints1] is RHS'
 
  % LHS', RHS', BODY, LHS -> RHS
 
- , flatten([GAtoms1,HAtom1,HAtoms1,BAtoms,GAtoms], GAtoms6b)
+ , flatten([GAtoms1,AllHAtoms1,BAtoms,GAtoms], GAtoms6b)
  , flatten([GConstraints1,HConstraints1,BConstraints,GConstraints], GConstraints6b)
 
  , Ob6b = obligation(GAtoms6b, GConstraints6b, AllHAtoms, HConstraints)
@@ -806,13 +805,13 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  % printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
  % printf("GAtom = %\n", [GAtom])
  % printf("GConstraints = %\n", [GConstraints])
- % printf("HAtom = %\n", [HAtom])
+ % printf("AllHAtoms = %\n", [AllHAtom])
  % printf("HConstraints = %\n", [HConstraints])
  % printf("BAtom = %\n", [BAtom])
  % printf("Subst1 = %\n", [Subst1])
  % printf("BConstraints = %\n", [BConstraints])
  % printf("GConstraints1 = %\n", [GConstraints1])
- % printf("HAtom1 = %\n", [HAtom1])
+ % printf("AllHAtom1 = %\n", [AllHAtom1])
  % printf("HConstraints1 = %\n", [HConstraints1])
  % printf("\n",[])
 
