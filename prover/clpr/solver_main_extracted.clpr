@@ -378,7 +378,7 @@ rewrite_step(_Rule, [], []).
 %--------------------------------------------------------------------
 
 lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :-
-  printf("\n----new proof obligation (Level = %)----\n", [Level]),
+  printf("\n----new proof obligation (level = %)----\n", [Level]),
   printf("% %\n  ->\n% %\n",
     [GAtoms, GConstraints, HAtoms, HConstraints]),
   fail.
@@ -391,7 +391,7 @@ lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
  , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
  .
 
-% Breadth-first search on proof trees.
+% Depth-first search on proof trees.
 % Try all possible rules and collect a set of obligation sets OrSet.
 % prove one obligation set in OrSet and we are done.
 % In other words, OrSet is a disjunction of conjunctions. 
@@ -420,8 +420,9 @@ prove_one(Level, []) :- !, fail. % fail to prove.
 
 prove_one(Level, OrSet) :- true
   , length(OrSet,L)
-  , printf("\n----consider an orset of size %----\n", [L])
-  , printf("OrSet =\n%\n", [OrSet])
+  , printf("\n----consider an orset of size % and level %----\n", 
+      [L,Level])
+  % printf("OrSet =\n%\n", [OrSet])
   , prove_one_set(Level, OrSet)
   .
 
@@ -430,7 +431,6 @@ prove_one_set(Level, OrSet) :- prove_one_set_aux(Level, OrSet).
 prove_one_set_aux(Level, []) :- !, fail. % fail to prove.
 
 prove_one_set_aux(Level, [Obs | _]) :- true
-  , printf("here\n", [])
   , prove_all(Level, Obs)
   , !
   , true
@@ -447,8 +447,8 @@ prove_all(Level, [Ob | R]) :- true
   , Level > 0
   , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
   , lprove(Level - 1, GAtoms, GConstraints, HAtoms, HConstraints)
-  , !
   , prove_all(Level, R)
+  , !
   .
 
 prove_all(Level, _) :- true
@@ -802,19 +802,19 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
 
  , Ob6b = obligation(GAtoms6b, GConstraints6b, AllHAtoms, HConstraints)
 
- , printf("\n---final check---\n",[])
- , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
- , printf("GAtom = %\n", [GAtom])
- , printf("GConstraints = %\n", [GConstraints])
- , printf("HAtom = %\n", [HAtom])
- , printf("HConstraints = %\n", [HConstraints])
- , printf("BAtom = %\n", [BAtom])
- , printf("Subst1 = %\n", [Subst1])
- , printf("BConstraints = %\n", [BConstraints])
- , printf("GConstraints1 = %\n", [GConstraints1])
- , printf("HAtom1 = %\n", [HAtom1])
- , printf("HConstraints1 = %\n", [HConstraints1])
- , printf("\n",[])
+ % printf("\n---final check---\n",[])
+ % printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+ % printf("GAtom = %\n", [GAtom])
+ % printf("GConstraints = %\n", [GConstraints])
+ % printf("HAtom = %\n", [HAtom])
+ % printf("HConstraints = %\n", [HConstraints])
+ % printf("BAtom = %\n", [BAtom])
+ % printf("Subst1 = %\n", [Subst1])
+ % printf("BConstraints = %\n", [BConstraints])
+ % printf("GConstraints1 = %\n", [GConstraints1])
+ % printf("HAtom1 = %\n", [HAtom1])
+ % printf("HConstraints1 = %\n", [HConstraints1])
+ % printf("\n",[])
 
  , KTSet= [Ob6a2,Ob6b]
  , printf("\n---KT(1:0) ends---\n",[])

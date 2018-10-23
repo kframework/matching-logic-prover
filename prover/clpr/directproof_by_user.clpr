@@ -1,5 +1,7 @@
 lprove_direct_by_user(_GAtoms,_GConstraints,HAtoms,HConstraints) :- true
-  , printf("%% ========================\n, GAtoms = %\n, GConstraints = %\n, HAtoms = %\n, HConstraints = %\n.\n", [GAtoms,GConstraints,HAtoms,HConstraints])
+  , printf("%% ========================\n", [])
+  , printf("GAtoms = %\nGConstraints = %\nHAtoms = %\nHConstraints = %\n\n", 
+    [GAtoms,GConstraints,HAtoms,HConstraints])
   , fail
   .
 
@@ -11,12 +13,14 @@ lprove_direct_by_user(_GAtoms,_GConstraints,HAtoms,HConstraints) :- true
   , HAtoms = []
   , HConstraints = []
   , !
+  , printf("\n---DP succeeds---\n", [])
   .
 
 lprove_direct_by_user(_GAtoms,GConstraints,HAtoms,HConstraints) :- true
   % TODO: Are we sure that unsatisfiable works as expected?
   , unsatisfiable(GConstraints)
   , !
+  , printf("\n---DP succeeds---\n", [])
   .
 
 % Known unprovable by direct
@@ -29,12 +33,14 @@ lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
   , GAtoms = []
   , HAtoms = [lr(A, B, C, D) | REST]
   , !
+  , printf("\n---DP fails---\n", [])
   , fail
   .
 lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
   , GAtoms = [ll(A, B, C, D)]
   , HAtoms = [lr(A, B, C, D) | REST]
   , !
+  , printf("\n---DP fails---\n", [])
   , fail
   .
 

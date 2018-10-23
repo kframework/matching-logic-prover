@@ -48,7 +48,7 @@ unfold(lr(H,X,Y,F),
 run_ll_lr :-
   GAtoms = [ll(H,X,Y,F)],
   HAtoms = [lr(H,X,Y,F)],
-  lprove(4, GAtoms, [], HAtoms, []),
+  lprove(3, GAtoms, [], HAtoms, []),
   !,
   printf("LL-LR is PROVED.\n", []).
 
