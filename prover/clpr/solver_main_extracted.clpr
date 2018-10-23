@@ -445,6 +445,14 @@ prove_all(Level, []) :- true
 
 prove_all(Level, [Ob | R]) :- true
   , Level > 0
+  , printf("\n---help me decide---\n", [])
+  , printf(
+      "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
+  , printf("%\n", [[Ob | R]])
+  , read(Ans)
+  , !
+  , check_answer(Ans)
+  , printf("\n---ok. I'll continue.---\n", [])
   , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
   , lprove(Level - 1, GAtoms, GConstraints, HAtoms, HConstraints)
   , prove_all(Level, R)
@@ -936,11 +944,14 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , printf("BAtom = %\n", [BAtom])
  , printf("Subst1 = %\n", [Subst1])
  , printf("BConstraints = %\n", [BConstraints])
- , printf("CP = %\n", [CP])
+ , printf("GAtoms1 = %\n", [GAtoms1])
  , printf("GConstraints1 = %\n", [GConstraints1])
  , printf("HAtom1 = %\n", [HAtom1])
  , printf("HConstraints1 = %\n", [HConstraints1])
+ , printf("CP = %\n", [CP])
  , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
+ , printf("Subst2 = %\n", [Subst2])
+ , printf("GAtoms2 = %\n", [GAtoms2])
  , printf("GConstraints2 = %\n", [GConstraints2])
  , printf("HAtom2 = %\n", [HAtom2])
  , printf("HConstraints2 = %\n", [HConstraints2])
@@ -948,6 +959,7 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
 
 
  , KTSet= [Ob6a2,Ob6b]
+ , printf("KTSet = %\n", [KTSet])
  , printf("\n---KT(1:1) ends---\n",[])
  , !
  .
