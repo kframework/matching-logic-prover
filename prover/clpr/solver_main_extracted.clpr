@@ -513,7 +513,7 @@ lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
   % The following claim fails if N > |HAtoms|
   , nth1(N,HAtoms,HAtom,RestHAtoms)
   , !
-  , lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,OrSetRU)
+  , lprove_right_unfold(GAtoms,GConstraints,HAtom,RestHAtoms,HConstraints,OrSetRU)
   , append(OrSetRU,InOrSet,NewInOrSet)
   , lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
       N+1, NewInOrSet,OutOrSet)
