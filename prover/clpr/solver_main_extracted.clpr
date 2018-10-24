@@ -410,6 +410,7 @@ lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
   , printf("OrSetKT =\n%\n", [OrSetKT])
   , printf("OrSetRU =\n%\n", [OrSetRU])
   , printf("OrSet =\n%\n", [OrSet])
+  , flatten([[1,2],[2,3],[4,5]],[1,3],[4,5,6]
   .
 
 %--------------------------------------------------------------------
