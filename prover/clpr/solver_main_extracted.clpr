@@ -137,13 +137,12 @@ length([_|R], N+1) :- length(R, N).
 %--------------------------------------------------------------------
 
 freshcopy([], []) :- !.
-
 freshcopy([X],[Y]) :- true
   , var(X)
   , !
   , Y = Z
+  , Z = Z % Suppress warning
   .
-
 freshcopy([X|Xs],[Y|Ys]) :- true
   , freshcopy([X],[Y])
   , freshcopy(Xs,Ys)
@@ -230,11 +229,11 @@ substitute(EQS, Term, _) :- true
 
 % True when E is the N'th (1-based) element of List 
 
-nth1(1, [X | R], X) :- true
+nth1(1, [X | _R], X) :- true
   , !
   .
 
-nth1(I, [X | R], E) :- true
+nth1(I, [_X | R], E) :- true
   , I >= 2
   , !
   , nth1(I-1, R, E)
@@ -287,8 +286,8 @@ delete_var([A | AS], [B], Outs) :- true
   , !
   , delete_var(AS, [B], Outs)
   .
-delete_var([A | AS], [B], [ A | Out]) :- true
-%  , printf("Matched failed. [% | %], [%]\n", [A, AS, B])
+delete_var([A | AS], [_B], [ A | Out]) :- true
+%  , printf("Matched failed. [% | %], [%]\n", [A, AS, _B])
   , !
   , delete_var(AS, [A], Out)
   .
@@ -313,7 +312,7 @@ collect_variables_by_position(T, Ps, Vs) :- true
   , pick_by_position(AllVs, Ps, Vs)
   .
 
-pick_by_position(AllVs, [], []) :- true
+pick_by_position(_AllVs, [], []) :- true
   , !
   .
 
@@ -378,27 +377,31 @@ rewrite_step(_Rule, [], []).
 % lprove needed, but parameters are different.
 %--------------------------------------------------------------------
 
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-  printf("\n----new proof obligation----\n", []),
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :-
+  printf("\n----new proof obligation (level = %)----\n", [Level]),
   printf("% %\n  ->\n% %\n",
     [GAtoms, GConstraints, HAtoms, HConstraints]),
   fail.
 
 % Try (Direct Proof) first.
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-  lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints).
+% lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+%  , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
+%  .
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+ , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
+ .
 
-% Breadth-first search on proof trees.
+% Depth-first search on proof trees.
 % Try all possible rules and collect a set of obligation sets OrSet.
 % prove one obligation set in OrSet and we are done.
 % In other words, OrSet is a disjunction of conjunctions. 
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
   , printf("\n---collecting all possible conjunctions---\n",[])
   , lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet)
   , length(OrSet, L)
   , printf("\n---% disjunctions collected---\n", [L])
   , printf("OrSet =\n%\n", [OrSet])
-  , prove_one(OrSet)
+  , prove_one(Level, OrSet)
   , !
   , true.
  
@@ -406,52 +409,57 @@ lprove(GAtoms, GConstraints, HAtoms, HConstraints) :- true
 lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
   , lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT)
   , lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU)
-  , flatten([OrSetKT,OrSetRU],OrSet)
-  , printf("OrSetKT =\n%\n", [OrSetKT])
-  , printf("OrSetRU =\n%\n", [OrSetRU])
-  , printf("OrSet =\n%\n", [OrSet])
-  , flatten([[1,2],[2,3],[4,5]],[1,3],[4,5,6]
+  , append(OrSetKT,OrSetRU,OrSet)
   .
 
 %--------------------------------------------------------------------
 % prove_one needed. the structure of the original code is kept.
 % prove_all needed. the structure of the original code is kept.
 %--------------------------------------------------------------------
-prove_one([]) :- !, fail. % fail to prove.
+prove_one(Level, []) :- !, fail. % fail to prove.
 
-prove_one(OrSet) :- 
-  printf("\n----consider an orset----\n", []),
-  prove_one_set(OrSet) .
+prove_one(Level, OrSet) :- true
+  , length(OrSet,L)
+  , printf("\n----consider an orset of size % and level %----\n", 
+      [L,Level])
+  % printf("OrSet =\n%\n", [OrSet])
+  , prove_one_set(Level, OrSet)
+  .
 
-prove_one_set(OrSet) :- prove_one_set_aux(OrSet).
+prove_one_set(Level, OrSet) :- prove_one_set_aux(Level, OrSet).
 
-prove_one_set_aux([]) :- !, fail. % fail to prove.
+prove_one_set_aux(Level, []) :- !, fail. % fail to prove.
 
-prove_one_set_aux([Obs | _]) :- true
-  , printf("here\n", [])
-  , prove_all(Obs)
+prove_one_set_aux(Level, [Obs | _]) :- true
+  , prove_all(Level, Obs)
   , !
   , true
   .
 
-prove_one_set_aux([_ | R]) :- prove_one_set_aux(R).
+prove_one_set_aux(Level, [_ | R]) :- prove_one_set_aux(Level, R).
 
-prove_all([]) :- true
-  , printf("here2\n", [])
+prove_all(Level, []) :- true
   , !
   , true  % succeed to prove.
   . 
 
-prove_all([Ob | R]) :- true
-  , printf("here3\n", [])
-  , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
-  , lprove(GAtoms, GConstraints, HAtoms, HConstraints)
+prove_all(Level, [Ob | R]) :- true
+  , Level > 0
+  , printf("\n---help me decide---\n", [])
+  , printf(
+      "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
+  , printf("%\n", [[Ob | R]])
+  , read(Ans)
   , !
-  , prove_all(R)
+  , check_answer(Ans)
+  , printf("\n---ok. I'll continue.---\n", [])
+  , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
+  , lprove(Level - 1, GAtoms, GConstraints, HAtoms, HConstraints)
+  , prove_all(Level, R)
+  , !
   .
 
-prove_all(_) :- true
-  , printf("here4\n",[])
+prove_all(Level, _) :- true
   , fail
   . % not reachable.
 
@@ -466,7 +474,6 @@ prove_all(_) :- true
 lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
  , GNonUnfoldable = []
  , HNonUnfoldable = []
- , trace
  , directproof(GNonUnfoldable, GAtoms, GConstraints,
                HNonUnfoldable, HAtoms, HConstraints)
  .
@@ -479,17 +486,7 @@ lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %------------------------------------------------------------------------------
 
-lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
-  , printf("\n---help me decide---\n", [])
-  , printf("%\n%\n   ->\n%\n%\n", [GAtoms,GConstraints,HAtoms,HConstraints])
-  , printf("\n---valid or not? ('y.' for yes and 'n.' for no)---\n", [])
-  , read(Ans)
-  , !
-  , check_answer(Ans)
-  .
-
-check_answer(y) :- !.
-
+:- consult('directproof_by_user.clpr') .
 
 %------------------------------------------------------------------------------
 % lprove_right_unfold/5
@@ -516,7 +513,7 @@ lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
   % The following claim fails if N > |HAtoms|
   , nth1(N,HAtoms,HAtom,RestHAtoms)
   , !
-  , lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,OrSetRU)
+  , lprove_right_unfold(GAtoms,GConstraints,HAtom,RestHAtoms,HConstraints,OrSetRU)
   , append(OrSetRU,InOrSet,NewInOrSet)
   , lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
       N+1, NewInOrSet,OutOrSet)
@@ -575,7 +572,7 @@ lprove_right_unfold_collect_all_cases(
   , append(HAtoms,BAtoms,NewHAtoms)
   , append(HConstraints,BConstraints,NewHConstraints)
   , Ob = obligation(GAtoms,GConstraints,NewHAtoms,NewHConstraints)
-  , NewInOrSet = [Ob|InOrSet]
+  , NewInOrSet = [[Ob]|InOrSet]
   , lprove_right_unfold_collect_all_cases(
       GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
       NewInOrSet,OutOrSet)
@@ -779,8 +776,7 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , get_unifier([GAtom], [BAtom], Subst1)
  , substitute(Subst1, [GAtoms],        [GAtoms1])
  , substitute(Subst1, [GConstraints], [GConstraints1])
- , substitute(Subst1, [HAtom],        [HAtom1])
- , substitute(Subst1, [HAtoms],        [HAtoms1])
+ , substitute(Subst1, [AllHAtoms],    [AllHAtoms1])
  , substitute(Subst1, [HConstraints], [HConstraints1])
 
  % printf("\n---after Subst1---\n", [])
@@ -804,28 +800,28 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
 
  , Ob6a2 = obligation(GAtoms6a2, GConstraints6a2, GAtoms1, GConstraints1)
 
- % [HAtom1 HAtoms1 HConstraints1] is RHS'
+ % [AllHAtoms1, HConstraints1] is RHS'
 
  % LHS', RHS', BODY, LHS -> RHS
 
- , flatten([GAtoms1,HAtom1,HAtoms1,BAtoms,GAtoms], GAtoms6b)
+ , flatten([GAtoms1,AllHAtoms1,BAtoms,GAtoms], GAtoms6b)
  , flatten([GConstraints1,HConstraints1,BConstraints,GConstraints], GConstraints6b)
 
  , Ob6b = obligation(GAtoms6b, GConstraints6b, AllHAtoms, HConstraints)
 
- , printf("\n---final check---\n",[])
- , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
- , printf("GAtom = %\n", [GAtom])
- , printf("GConstraints = %\n", [GConstraints])
- , printf("HAtom = %\n", [HAtom])
- , printf("HConstraints = %\n", [HConstraints])
- , printf("BAtom = %\n", [BAtom])
- , printf("Subst1 = %\n", [Subst1])
- , printf("BConstraints = %\n", [BConstraints])
- , printf("GConstraints1 = %\n", [GConstraints1])
- , printf("HAtom1 = %\n", [HAtom1])
- , printf("HConstraints1 = %\n", [HConstraints1])
- , printf("\n",[])
+ % printf("\n---final check---\n",[])
+ % printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+ % printf("GAtom = %\n", [GAtom])
+ % printf("GConstraints = %\n", [GConstraints])
+ % printf("AllHAtoms = %\n", [AllHAtom])
+ % printf("HConstraints = %\n", [HConstraints])
+ % printf("BAtom = %\n", [BAtom])
+ % printf("Subst1 = %\n", [Subst1])
+ % printf("BConstraints = %\n", [BConstraints])
+ % printf("GConstraints1 = %\n", [GConstraints1])
+ % printf("AllHAtom1 = %\n", [AllHAtom1])
+ % printf("HConstraints1 = %\n", [HConstraints1])
+ % printf("\n",[])
 
  , KTSet= [Ob6a2,Ob6b]
  , printf("\n---KT(1:0) ends---\n",[])
@@ -948,11 +944,14 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
  , printf("BAtom = %\n", [BAtom])
  , printf("Subst1 = %\n", [Subst1])
  , printf("BConstraints = %\n", [BConstraints])
- , printf("CP = %\n", [CP])
+ , printf("GAtoms1 = %\n", [GAtoms1])
  , printf("GConstraints1 = %\n", [GConstraints1])
  , printf("HAtom1 = %\n", [HAtom1])
  , printf("HConstraints1 = %\n", [HConstraints1])
+ , printf("CP = %\n", [CP])
  , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
+ , printf("Subst2 = %\n", [Subst2])
+ , printf("GAtoms2 = %\n", [GAtoms2])
  , printf("GConstraints2 = %\n", [GConstraints2])
  , printf("HAtom2 = %\n", [HAtom2])
  , printf("HConstraints2 = %\n", [HConstraints2])
@@ -960,6 +959,7 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
 
 
  , KTSet= [Ob6a2,Ob6b]
+ , printf("KTSet = %\n", [KTSet])
  , printf("\n---KT(1:1) ends---\n",[])
  , !
  .
