@@ -384,12 +384,12 @@ lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :-
   fail.
 
 % Try (Direct Proof) first.
-% lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
-%  , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
-%  .
 lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
- , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
+ , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
  .
+% lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+%  , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
+%  .
 
 % Depth-first search on proof trees.
 % Try all possible rules and collect a set of obligation sets OrSet.
