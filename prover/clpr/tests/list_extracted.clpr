@@ -48,7 +48,7 @@ unfold(lr(H,X,Y,F),
 run_ll_lr :-
   GAtoms = [ll(H,X,Y,F)],
   HAtoms = [lr(H,X,Y,F)],
-  lprove(3, GAtoms, [], HAtoms, []),
+  lprove(4, GAtoms, [], HAtoms, []),
   !,
   printf("LL-LR is PROVED.\n", []).
 
@@ -96,6 +96,17 @@ run_ll_lr_aux_2 :- true
   , printf("KTSet:\n%\n", [KTSet])
   .
 
+% run ll_lr, last step, apply right_unfold
+run_ll_lr_aux_3 :- true
+  , printf("\n---begin---\n",[])
+  , GAtoms = []
+  , GConstraints = [eq(X,Y),eqset(F,emptyset)]
+  , HAtoms = [lr(H,X,Y,F)]
+  , HConstraints = []
+  , lprove_right_unfold(GAtoms,GConstraints,HAtoms,HConstraints,OrSetRU)
+  , !
+  , printf("OrSetRU:\n%\n", [OrSetRU])
+  .
 
 % run_ll_zero_list :-
 %   init_counters,
@@ -150,6 +161,7 @@ run_ll_lr_aux_2 :- true
 run :-
 % run_ll_lr_aux_1,
 % run_ll_lr_aux_2,
+% run_ll_lr_aux_3,
   run_ll_lr,
 % run_lr_ll,
 % run_ll_zero_list,

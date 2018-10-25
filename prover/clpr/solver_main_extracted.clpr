@@ -445,7 +445,8 @@ prove_all(Level, []) :- true
 
 prove_all(Level, [Ob | R]) :- true
   , Level > 0
-  , printf("\n---help me decide---\n", [])
+  , length([Ob|R],L)
+  , printf("\n---help me decide (size %, level %)---\n", [L,Level])
   , printf(
       "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
   , printf("%\n", [[Ob | R]])
@@ -460,8 +461,9 @@ prove_all(Level, [Ob | R]) :- true
   .
 
 prove_all(Level, _) :- true
+  , printf("\n---prove_all gives up; reaches level 0---\n", [])
   , fail
-  . % not reachable.
+  .
 
 
 %------------------------------------------------------------------------------
