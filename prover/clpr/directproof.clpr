@@ -747,6 +747,11 @@ set_unified_directly(A, B, Unifier) :- true
  , !
  , can_be_unified_directly(A, B, Unifier, eqset)
  .
+set_unified_directly(B, A, Unifier) :- true
+ , myvar(A)
+ , !
+ , can_be_unified_directly(A, B, Unifier, eqset)
+ .
 set_unified_directly(A, B, Unifier) :- true
  , A =.. [add, S1, V1]
  , B =.. [add, S2, V2], !
