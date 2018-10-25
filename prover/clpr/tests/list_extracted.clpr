@@ -55,7 +55,7 @@ run_ll_lr :-
 run_lr_ll :-
   GAtoms = [lr(H,X,Y,F)],
   HAtoms = [ll(H,X,Y,F)],
-  lprove(5, GAtoms, [], HAtoms, []),
+  lprove(4, GAtoms, [], HAtoms, []),
   !,
   printf("LR-LL is PROVED.\n", []).
 
@@ -163,7 +163,7 @@ run :-
 % run_ll_lr_aux_2,
 % run_ll_lr_aux_3,
   run_ll_lr,
-% run_lr_ll,
+  run_lr_ll,
 % run_ll_zero_list,
 % run_ll_list_list,
 % run_lr_list_list,    % I doubt this can be proved
