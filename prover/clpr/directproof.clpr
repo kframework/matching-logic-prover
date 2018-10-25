@@ -512,8 +512,6 @@ weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif)
 
   !, ExtUnif = eq(Var,Y1).
 
-
-
 weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
   Atom = eqset(X,union(Y, Z)),  var(X), var(Z),
   Y==Var,
@@ -618,20 +616,16 @@ directproof(_GAtoms1, _GAtoms2, GConstraints, _HAtoms1, _HAtoms2, _HConstraints)
 directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- true
  % First we test that the rhs atoms signatures is the subset of
  % the lhs atom signatures.
- , printf("==== 1\n", [])
  , append_signature(GAtoms1, GAtoms2, GAtoms, GSig)
  , printf("append_signature(%, %, %, %)\n", [GAtoms1, GAtoms2, GAtoms, GSig])
- , printf("==== 1.\n", [])
  , append_signature(HAtoms1, HAtoms2, HAtoms, HSig)
 
  % If HSig is not a subset of GSig, no point trying
  % In other words, no substitution available
  , subset(HSig, GSig)
- , printf("==== 2\n", [])
 
  % Find existentially quantified variables (appearing in rhs but not
  % in lhs).
- , printf("--------------------------: %\n", [EV])
  , find_existential_variables(GAtoms, GConstraints, HAtoms, HConstraints, EV)
  , printf("find_existential_variables: HAtoms = %, \nHC = %\n, EV = %\n", [HAtoms, HConstraints, EV])
 
@@ -742,7 +736,6 @@ can_be_unified_directly(A, B, Unifier, Type) :-
   A == A1, B == B1.
 
 set_unified_directly(A, B, _Unifier) :- true
- , printf("set_unified_directly: % %\n", [A, B])
  , fail
  .
 set_unified_directly(A, B, _Unifier) :- true
