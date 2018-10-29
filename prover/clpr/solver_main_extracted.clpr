@@ -384,12 +384,12 @@ lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :-
   fail.
 
 % Try (Direct Proof) first.
-% lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
-%  , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
-%  .
 lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
- , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
+ , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
  .
+% lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+%  , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
+%  .
 
 % Depth-first search on proof trees.
 % Try all possible rules and collect a set of obligation sets OrSet.
@@ -445,14 +445,11 @@ prove_all(Level, []) :- true
 
 prove_all(Level, [Ob | R]) :- true
   , Level > 0
-  , printf("\n---help me decide---\n", [])
+  , length([Ob|R],L)
+  , printf("\n---help me decide (size %, level %)---\n", [L,Level])
   , printf(
       "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
   , printf("%\n", [[Ob | R]])
-  , read(Ans)
-  , !
-  , check_answer(Ans)
-  , printf("\n---ok. I'll continue.---\n", [])
   , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
   , lprove(Level - 1, GAtoms, GConstraints, HAtoms, HConstraints)
   , prove_all(Level, R)
@@ -460,8 +457,9 @@ prove_all(Level, [Ob | R]) :- true
   .
 
 prove_all(Level, _) :- true
+  , printf("\n---prove_all gives up; reaches level 0---\n", [])
   , fail
-  . % not reachable.
+  .
 
 
 %------------------------------------------------------------------------------
@@ -474,10 +472,16 @@ prove_all(Level, _) :- true
 lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
  , GNonUnfoldable = []
  , HNonUnfoldable = []
- , directproof(GNonUnfoldable, GAtoms, GConstraints,
-               HNonUnfoldable, HAtoms, HConstraints)
+ , addunfoldlevel(0, Level, GAtoms, UnfoldableGAtoms)
+ , addunfoldlevel(0, Level, HAtoms, UnfoldableHAtoms)
+ , directproof(GNonUnfoldable, UnfoldableGAtoms, GConstraints,
+               HNonUnfoldable, UnfoldableHAtoms, HConstraints)
+ , !
  .
-
+lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+ , printf("DIRECT PROOF FAILED FOR:\n\t% %\n->\t% %", [GAtoms, GConstraints, HAtoms, HConstraints])
+ , fail
+ .
 
 %------------------------------------------------------------------------------
 % lprove_direct_by_user/4

@@ -1,0 +1,78 @@
+declare_unification_type(list, [arreq,eq,eqset]).
+declare_unification_type(list, [arreq,eq,eqset,eq]).
+
+% list(Heap, address of head, addresses in heaplet)
+% ------------------------------------------------------
+unfold(list(Memory,Head,Heaplet), [ BaseCase, RecursiveCase ]) :- true
+  , !
+
+% Each list is either:
+%
+% * an empty list
+  , BaseCase = body( [], % Critical positions
+                     [], % Atoms
+                     [eq(Head,0), eqset(Heaplet,emptyset)]
+                   )
+% * or:
+%   (0) list(Memory, Next, Heaplet1)
+%   (1) A non-null head address
+%   (2) A next pointer stored at the head address
+%   (3) A value stored stored at the adjacent address
+%   (4) Heaplet is the disjoint union of Heaplet1 and { Head, Head + 1 }
+  , RecursiveCase = body( [ 2, 3 ] % Critical Positions
+                        , [ list(Memory,Next,Heaplet1) ]     % (0)
+                        , [ gt(Head, 0)                      % (1)
+                          , eq(Next,  ref(Memory, Head))     % (2)
+                          , eq(Value, ref(Memory, Head + 1)) % (3)
+
+                            % (4)
+                          , z3_not(mem(Head,     Heaplet1))
+                          , eqset(Heaplet, add(Heaplet1, Head))
+                          ]
+                        )
+  .
+
+% sorted_list(Heap, address of head, addresses in heaplet, lower bound)
+% --------------------------------------------------------
+
+unfold(sorted_list(Memory,Head,Heaplet, LowerBound), [ BaseCase, RecursiveCase ]) :- true
+  , !
+
+% Each sorted_list is either:
+%
+% * an empty sorted_list
+  , BaseCase = body( [], % Critical positions
+                     [], % Atoms
+                     [eq(Head,0), eqset(Heaplet,emptyset)]
+                   )
+% * or:
+%   (0) sorted_list(Memory, Next, Heaplet1, Value)
+%   (1) A non-null head address
+%   (2) A next pointer stored at the head address
+%   (3) A value stored stored at the adjacent address
+%   (4) Value > LowerBound
+%   (5) Heaplet is the disjoint union of Heaplet1 and { Head, Head + 1 }
+  , RecursiveCase = body( [ 2, 3, 4 ] % Critical Positions
+                        , [ sorted_list(Memory,Next,Heaplet1,Value) ] % (0)
+                        , [ gt(Head, 0)                      % (1)
+                          , eq(Next,  ref(Memory, Head))     % (2)
+                        % , eq(Value, ref(Memory, Head + 1)) % (3)
+                        % , leq(LowerBound, Value)           % (4)
+
+                            % (5)
+                          , z3_not(mem(Head,     Heaplet1))
+                          , z3_not(mem(Head + 1, Heaplet1))
+                          , eqset(Heaplet, add(Heaplet1, Head))
+                        % , eqset(Heaplet, add(add(Heaplet1, Head), Head + 1))
+                          ]
+                        )
+  .
+:- consult('solver_main_extracted.clpr').
+:- GAtoms = [ sorted_list(Memory, Head, Heaplet, LowerBound) ]
+ , GConstraints = []
+ , HAtoms = [        list(Memory, Head, Heaplet            ) ]
+ , HConstraints = []
+ , lprove(4, GAtoms, GConstraints, HAtoms, HConstraints)
+ , printf("sorted_list -> list is PROVED.\n", [])
+ .
+:- halt .
