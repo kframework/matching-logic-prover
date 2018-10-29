@@ -1,0 +1,474 @@
+inductionlimit(1).
+unfolddepthbound(1).
+
+traceleftbound(1).
+tracerightbound(1).
+
+declare_unification_type(vma, [arreq,eq,eqset,eqset,eq,eq]).
+declare_unification_type(vma2, [arreq,eq,eqset,eqset,eq,eq]).
+declare_unification_type(vma_with_hole, [arreq,eq,eq,eqset,eqset,eq,eq,eq,eq]).
+declare_unification_type(vma_with_hole_left, [arreq,eq,eq,eqset,eqset,eq,eq,eq,eq]).
+
+unfold(vma(H,X,F,ADDR,MIN,MAX),
+  [
+  body([], [eq(X,0), eqset(F,emptyset), eqset(ADDR,emptyset)]),
+  body([],
+       [gt(X,0), 
+        eq(0, ref(H, plus(X,1))),
+        eq(0, ref(H, plus(X,2))),
+        eq(S, ref(H, plus(X,3))),
+        eq(E, ref(H, plus(X,4))),
+        geq(E,S),
+        eq(S,MIN),
+        eq(E,MAX),
+        eqset(F,singleton(X)),
+        eqset(ADDR, union(singleton(S),singleton(E)))]),
+  body([vma(H,L,F1,ADDR1,MIN1,MAX1),
+        vma(H,R,F2,ADDR2,MIN2,MAX2)],
+       [gt(X,0), 
+        eq(L, ref(H, plus(X,1))),
+        eq(R, ref(H, plus(X,2))),
+        eq(S, ref(H, plus(X,3))),
+        eq(E, ref(H, plus(X,4))),
+        geq(E,S),
+        gt(S,MAX1),
+        gt(MIN2,E),
+        eq(MIN,MIN1),
+        eq(MAX,MAX2),
+        z3_not(mem(X,F1)),
+        eqset(F3,add(F1,X)),
+        eqset(emptyset,inter(F3,F2)),
+        eqset(F,union(F3,F2)),
+        eqset(ADDR3, union(ADDR1,ADDR2)),
+        eqset(ADDR4, union(singleton(S),singleton(E))),
+        eqset(ADDR, union(ADDR3,ADDR4))])
+  ]).
+
+
+unfold(vma2(H,X,F,ADDR,MIN,MAX),
+  [
+  body([], [eq(X,0), eqset(F,emptyset), eqset(ADDR,emptyset)]),
+  body([],
+       [gt(X,0), 
+        eq(0, ref(H, plus(X,1))),
+        eq(0, ref(H, plus(X,2))),
+        eq(S, ref(H, plus(X,3))),
+        eq(E, ref(H, plus(X,4))),
+        geq(E,S),
+        eq(S,MIN),
+        eq(E,MAX),
+        eqset(F,singleton(X)),
+        eqset(ADDR, union(singleton(S),singleton(E)))]),
+  body([vma2(H,L,F1,ADDR1,MIN1,MAX1),
+        vma2(H,R,F2,ADDR2,MIN2,MAX2)],
+       [])
+  ]).
+
+unfold(vma_with_hole_left(H,X,HOLE,F,ADDR,MIN,MAX,VMED,VMST),
+  [
+  body([], [eq(X,HOLE), eqset(F,emptyset), eqset(ADDR,emptyset)]),
+  body([vma_with_hole_left(H,L,HOLE,F1,ADDR1,MIN1,MAX1,VMED,VMST),
+        vma2(H,R,F2,ADDR2,MIN2,MAX2)],
+       [gt(X,0), 
+        eq(L, ref(H, plus(X,1))),
+        eq(R, ref(H, plus(X,2))),
+        eq(S, ref(H, plus(X,3))),
+        eq(E, ref(H, plus(X,4))),
+        geq(E,S),
+        gt(S,VMED),
+        gt(S,MAX1),
+        gt(MIN2,E),
+        z3_not(mem(X,F1)),
+        eqset(F3,add(F1,X)),
+        eqset(emptyset,inter(F3,F2)),
+        eqset(F,union(F3,F2))]),
+  body([vma2(H,L,F1,ADDR1,MIN1,MAX1),
+        vma_with_hole_left(H,R,HOLE,F2,ADDR2,MIN2,MAX2,VMED,VMST)],
+       [gt(X,0), 
+        eq(L, ref(H, plus(X,1))),
+        eq(R, ref(H, plus(X,2))),
+        eq(S, ref(H, plus(X,3))),
+        eq(E, ref(H, plus(X,4))),
+        geq(E,S),
+        gt(VMST,E),
+        gt(S,MAX1),
+        gt(MIN2,E),
+        z3_not(mem(X,F1)),
+        eqset(F3,add(F1,X)),
+        eqset(emptyset,inter(F3,F2)),
+        eqset(F,union(F3,F2))])
+  ]).
+
+unfold(vma_with_hole(H,X,HOLE,F,ADDR,MIN,MAX,VMED,VMST),
+  [
+  body([], [eq(X,HOLE), eqset(F,emptyset), eqset(ADDR,emptyset)]),
+  body([vma_with_hole(H,X,PARENT,F1,ADDR1,MIN1,MAX1,VMED,VMST),
+        vma(H,R,F2,ADDR2,MIN2,MAX2)],
+       [gt(PARENT,0), 
+        eq(HOLE, ref(H, plus(PARENT,1))),
+        eq(R, ref(H, plus(PARENT,2))),
+        eq(S, ref(H, plus(PARENT,3))),
+        eq(E, ref(H, plus(PARENT,4))),
+        geq(E,S),
+        gt(S,VMED),
+        eq(S,MIN)
+       ]),
+  body([vma(H,L,F1,ADDR1,MIN1,MAX1),
+        vma_with_hole(H,X,PARENT,F2,ADDR2,MIN2,MAX2,VMED,VMST)],
+       [gt(PARENT,0), 
+        eq(L, ref(H, plus(PARENT,1))),
+        eq(HOLE, ref(H, plus(PARENT,2))),
+        eq(S, ref(H, plus(PARENT,3))),
+        eq(E, ref(H, plus(PARENT,4))),
+        geq(E,S),
+        gt(VMST,E),
+        eq(MAX,E)
+       ])
+  ]).
+
+
+%bb vma-insert-nil:
+%pre: ((vma^(root) & (vmst <= vmed)) & ((addrs^(root) s= raddrs) & ((overlaped i= 0) <=> overlap^(root)))) ;
+%post: (vma^(ret) & 
+%       ( ((~ (overlaped i= 0)) & (addrs^(ret) s= (((singleton vmst) union (singleton vmed)) union raddrs))) |
+%       ((overlaped i= 0) & ((ret l= root) & (addrs^(ret) s= raddrs))) ) ) ;
+%{
+%	assume (root l== nil);
+%	malloc y;
+%	int y.start := vmst;
+%	int y.end := vmed;
+%	loc ret := y;
+%}
+run_nil :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma(H0, X, F0, ADDR0, MIN0, MAX0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma(H0, Y, F1, ADDR1, MIN1, MAX1)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(X,0),
+          gt(Y,0),
+          z3_not(mem(Y,F0)),
+          eq(0, ref(H0, plus(Y,1))),
+          eq(0, ref(H0, plus(Y,2))),
+          eq(S, ref(H0, plus(Y,3))),
+          eq(E, ref(H0, plus(Y,4))),
+          geq(E,S),
+          eq(S,MIN1),
+          eq(E,MAX2),
+          eqset(F1,singleton(Y)),
+          eqset(ADDR2, union(singleton(S),singleton(E)))],
+         [], UnfoldableHAtoms, 
+         [eqset(ADDR1,union(ADDR0,ADDR2))], []),
+  !,
+  show_counters,
+  printf("NIL PROVED.\n", []).
+
+%bb vma-insert-error:
+%pre: ((vma^(root) & (vmst <= vmed)) & ((addrs^(root) s= raddrs) & ((overlaped i= 0) <=> overlap^(root)))) ;
+%post: (vma^(ret) & 
+%       ( ((~ (overlaped i= 0)) & (addrs^(ret) s= (((singleton vmst) union (singleton vmed)) union raddrs))) |
+%       ((overlaped i= 0) & ((ret l= root) & (addrs^(ret) s= raddrs))) ) ) ;
+%{
+%	assume (! (root l== nil));
+%	int rst := root.start;
+%	int red := root.end;
+%	assume (! (vmed < rst));
+%	assume (! (red < vmst));
+%	loc ret := root;
+%}
+run_error :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma(H0, X, F0, ADDR0, MIN0, MAX0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma(H0, RET, F0, ADDR0, MIN0, MAX0)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(RET,X),
+          gt(X,0)],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("ERROR PROVED.\n", []).
+
+%bb vma-insert-before-loop1:
+%pre: ((vma^(root) & (vmst <= vmed)) & ((addrs^(root) s= raddrs) & ((overlaped i= 0) <=> overlap^(root)))) ;
+%post: ( (((vma-with-hole^(root, parent) & ((addrs-lt^(root, parent) set-lt vmst) 
+%& (vmed lt-set addrs-gt^(root, parent)))) * vma^(parent)) & (((addrs-lt^(root, parent) lt addrs^(parent)) 
+%& (addrs^(parent) lt addrs-gt^(root, parent))) & ((addrs^(parent) union addrs-with-hole^(root, parent)) s= raddrs))) &
+%	(((((parent |-> loc left: hole; int start: rst) * (vmed < rst)) | ((parent |-> loc right: hole; int end: red) * (red < vmst))) 
+%	& (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%{
+%	assume (! (root l== nil));
+%	int rst := root.start;
+%	int red := root.end;
+%	assume (vmed < rst);
+%	loc parent := root;
+%	loc hole := root.left;
+%}
+run_before_loop1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma(H0, X, F0, ADDR0, MIN0, MAX0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma(H0, PARENT, F0, ADDR0, MIN0, MAX0)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(PARENT,X),
+          gt(X,0)],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("BEFORE LOOP 1 PROVED.\n", []).
+
+%bb vma-insert-before-loop2:
+%pre: ((vma^(root) & (vmst <= vmed)) & ((addrs^(root) s= raddrs) & ((overlaped i= 0) <=> overlap^(root)))) ;
+%post: ( (((vma-with-hole^(root, parent) & ((addrs-lt^(root, parent) set-lt vmst) 
+%& (vmed lt-set addrs-gt^(root, parent)))) * vma^(parent)) & (((addrs-lt^(root, parent) lt addrs^(parent)) 
+%& (addrs^(parent) lt addrs-gt^(root, parent))) & ((addrs^(parent) union addrs-with-hole^(root, parent)) s= raddrs))) &
+%	(((((parent |-> loc left: hole; int start: rst) * (vmed < rst)) | ((parent |-> loc right: hole; int end: red) * (red < vmst))) & (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%{
+%	assume (! (root l== nil));
+%	int rst := root.start;
+%	int red := root.end;
+%	assume (! (vmed < rst));
+%	assume (red < vmst);
+%	loc parent := root;
+%	loc hole := root.right;
+%}
+run_before_loop2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma(H0, X, F0, ADDR0, MIN0, MAX0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma(H0, PARENT, F0, ADDR0, MIN0, MAX0)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(PARENT,X),
+          gt(X,0)],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("BEFORE LOOP 2 PROVED.\n", []).
+
+
+%bb vma-insert-in-loop1:
+%pre: ( (((vma-with-hole^(root, parent) & ((addrs-lt^(root, parent) set-lt vmst) 
+%& (vmed lt-set addrs-gt^(root, parent)))) * vma^(parent)) & (((addrs-lt^(root, parent) lt addrs^(parent)) 
+%& (addrs^(parent) lt addrs-gt^(root, parent))) & ((addrs^(parent) union addrs-with-hole^(root, parent)) s= raddrs))) &
+%	(((((parent |-> loc left: hole; int start: pst) * (vmed < pst)) 
+%| ((parent |-> loc right: hole; int end: ped) * (ped < vmst))) 
+%& (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%post: ( (((vma-with-hole^(root, parent1) & ((addrs-lt^(root, parent1) set-lt vmst) 
+%& (vmed lt-set addrs-gt^(root, parent1)))) * vma^(parent1)) & (((addrs-lt^(root, parent1) lt addrs^(parent1)) 
+%& (addrs^(parent1) lt addrs-gt^(root, parent1))) & ((addrs^(parent1) union addrs-with-hole^(root, parent1)) s= raddrs))) &
+%	(((((parent1 |-> loc left: hole1; int start: pst1) * (vmed < pst1)) | ((parent1 |-> loc right: hole1; int end: ped1) 
+%* (ped1 < vmst))) & (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%{
+%	loc pl := parent.left;
+%	loc pr := parent.right;
+%	assume (! (hole l== nil));
+%	int pst1 := hole.start;
+%	int ped1 := hole.end;
+%	assume (vmed < pst1);
+%	loc parent1 := hole;
+%	loc hole1 := hole.left;
+%}
+run_in_loop1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma_with_hole(H0, X, PARENT, F0, ADDR0, MIN0, MAX0, VMED, VMST),
+                        vma(H0, PARENT, F1, ADDR1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma_with_hole(H0, X, PARENT1, F2, ADDR2, MIN2, MAX2, VMED, VMST),
+                        vma(H0, PARENT1, F3, ADDR3, MIN3, MAX3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(PARENT,0),
+          gt(PARENT1,0),
+          eq(PARENT1,ref(H0,plus(PARENT,1))),
+          eq(S,ref(H0,plus(PARENT,3))),
+          gt(S,VMED),
+          eq(S,MIN2)
+         ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("IN LOOP 1 PROVED.\n", []).
+
+
+%bb vma-insert-in-loop2:
+%pre: ( (((vma-with-hole^(root, parent) & ((addrs-lt^(root, parent) set-lt vmst) & (vmed lt-set addrs-gt^(root, parent)))) * vma^(parent)) & (((addrs-lt^(root, parent) lt addrs^(parent)) & (addrs^(parent) lt addrs-gt^(root, parent))) & ((addrs^(parent) union addrs-with-hole^(root, parent)) s= raddrs))) &
+%	(((((parent |-> loc left: hole; int start: pst) * (vmed < pst)) | ((parent |-> loc right: hole; int end: ped) * (ped < vmst))) & (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%post: ( (((vma-with-hole^(root, parent1) & ((addrs-lt^(root, parent1) set-lt vmst) & (vmed lt-set addrs-gt^(root, parent1)))) * vma^(parent1)) & (((addrs-lt^(root, parent1) lt addrs^(parent1)) & (addrs^(parent1) lt addrs-gt^(root, parent1))) & ((addrs^(parent1) union addrs-with-hole^(root, parent1)) s= raddrs))) &
+%	(((((parent1 |-> loc left: hole1; int start: pst1) * (vmed < pst1)) | ((parent1 |-> loc right: hole1; int end: ped1) * (ped1 < vmst))) & (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%{
+%	loc pl := parent.left;
+%	loc pr := parent.right;
+%	assume (! (hole l== nil));
+%	int pst1 := hole.start;
+%	int ped1 := hole.end;
+%	assume (! (vmed < pst1));
+%	assume (ped1 < vmst);
+%	loc parent1 := hole;
+%	loc hole1 := hole.right;
+%}
+run_in_loop2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma_with_hole(H0, X, PARENT, F0, ADDR0, MIN0, MAX0, VMED, VMST),
+                        vma(H0, PARENT, F1, ADDR1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma_with_hole(H0, X, PARENT1, F2, ADDR2, MIN2, MAX2, VMED, VMST),
+                        vma(H0, PARENT1, F3, ADDR3, MIN3, MAX3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(PARENT,0),
+          gt(PARENT1,0),
+          eq(PARENT1,ref(H0,plus(PARENT,2))),
+          eq(E,ref(H0,plus(PARENT,4))),
+          gt(VMST,E),
+          eq(MAX2,E)
+         ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("IN LOOP 2 PROVED.\n", []).
+
+
+%bb vma-insert-after-loop1:
+%pre: ( (((vma-with-hole^(root, parent) & ((addrs-lt^(root, parent) set-lt vmst) 
+%& (vmed lt-set addrs-gt^(root, parent)))) * vma^(parent)) & (((addrs-lt^(root, parent) lt addrs^(parent)) 
+%& (addrs^(parent) lt addrs-gt^(root, parent))) & ((addrs^(parent) union addrs-with-hole^(root, parent)) s= raddrs))) &
+%	(((((parent |-> loc left: hole; int start: pst) * (vmed < pst)) | ((parent |-> loc right: hole; int end: ped) 
+%* (ped < vmst))) & (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%post: (vma^(ret) & 
+%       ( ((~ (overlaped i= 0)) & (addrs^(ret) s= (((singleton vmst) union (singleton vmed)) union raddrs))) |
+%       ((overlaped i= 0) & ((ret l= root) & (addrs^(ret) s= raddrs))) ) ) ;
+%{
+%	assume (hole l== nil);
+%	int pst := parent.start;
+%	int ped := parent.end;
+%	assume (vmed < pst);
+%	malloc y;
+%	int y.start := vmst;
+%	int y.end := vmed;
+%	loc parent.left := y;
+%}
+run_after_loop1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma_with_hole_left(H0, X, PARENT, F0, ADDR0, MIN0, MAX0, VMED, VMST),
+                        vma2(H0, PARENT, F1, ADDR1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma2(H1, X, F2, ADDR2, MIN2, MAX2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(Y,0),
+          z3_not(mem(Y,F0)),
+          z3_not(mem(Y,F1)),
+          eq(VMST,ref(H0,plus(Y,3))),
+          eq(VMED,ref(H0,plus(Y,4))),
+          arrassign(H1, upd(H0, plus(PARENT, 1), Y))],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER LOOP 1 PROVED.\n", []).
+
+%bb vma-insert-after-loop2:
+%pre: ( (((vma-with-hole^(root, parent) & ((addrs-lt^(root, parent) set-lt vmst) & (vmed lt-set addrs-gt^(root, parent)))) * vma^(parent)) & (((addrs-lt^(root, parent) lt addrs^(parent)) & (addrs^(parent) lt addrs-gt^(root, parent))) & ((addrs^(parent) union addrs-with-hole^(root, parent)) s= raddrs))) &
+%	(((((parent |-> loc left: hole; int start: pst) * (vmed < pst)) | ((parent |-> loc right: hole; int end: ped) * (ped < vmst))) & (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%post: (vma^(ret) & 
+%       ( ((~ (overlaped i= 0)) & (addrs^(ret) s= (((singleton vmst) union (singleton vmed)) union raddrs))) |
+%       ((overlaped i= 0) & ((ret l= root) & (addrs^(ret) s= raddrs))) ) ) ;
+%{
+%	assume (hole l== nil);
+%	int pst := parent.start;
+%	int ped := parent.end;
+%	assume (! (vmed < pst));
+%	assume (ped < vmst);
+%	malloc y;
+%	int y.start := vmst;
+%	int y.end := vmed;
+%	loc parent.right := y;
+%}
+run_after_loop2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma_with_hole_left(H0, X, PARENT, F0, ADDR0, MIN0, MAX0, VMED, VMST),
+                        vma2(H0, PARENT, F1, ADDR1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma2(H1, X, F2, ADDR2, MIN2, MAX2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(Y,0),
+          z3_not(mem(Y,F0)),
+          z3_not(mem(Y,F1)),
+          eq(VMST,ref(H0,plus(Y,3))),
+          eq(VMED,ref(H0,plus(Y,4))),
+          arrassign(H1, upd(H0, plus(PARENT, 2), Y))],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER LOOP 2 PROVED.\n", []).
+
+%bb vma-insert-after-loop3:
+%pre: ( (((vma-with-hole^(root, parent) & ((addrs-lt^(root, parent) set-lt vmst) & (vmed lt-set addrs-gt^(root, parent)))) * vma^(parent)) & (((addrs-lt^(root, parent) lt addrs^(parent)) & (addrs^(parent) lt addrs-gt^(root, parent))) & ((addrs^(parent) union addrs-with-hole^(root, parent)) s= raddrs))) &
+%	(((((parent |-> loc left: hole; int start: pst) * (vmed < pst)) | ((parent |-> loc right: hole; int end: ped) * (ped < vmst))) & (vmst <= vmed)) & ((overlaped i= 0) <=> overlap^(root))) ) ;
+%post: (vma^(ret) & 
+%       ( ((~ (overlaped i= 0)) & (addrs^(ret) s= (((singleton vmst) union (singleton vmed)) union raddrs))) |
+%       ((overlaped i= 0) & ((ret l= root) & (addrs^(ret) s= raddrs))) ) ) ;
+%{
+%	assume (hole l== nil);
+%	int pst := parent.start;
+%	int ped := parent.end;
+%	assume (! (vmed < pst));
+%	assume (! (ped < vmst));
+%	loc ret := root;
+%}
+run_after_loop3 :-
+  init_counters,
+  addunfoldlevel(0, 0, [vma_with_hole_left(H0, X, PARENT, F0, ADDR0, MIN0, MAX0, VMED, VMST),
+                        vma2(H0, PARENT, F1, ADDR1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [vma2(H0, X, F2, ADDR2, MIN2, MAX2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER LOOP 3 PROVED.\n", []).
+
+
+run :-
+  run_nil,
+  run_error,
+  run_before_loop1,
+  run_before_loop2,
+  run_in_loop1,
+  run_in_loop2,
+  run_after_loop1,
+  run_after_loop2,
+  run_after_loop3,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.

@@ -1,0 +1,48 @@
+inductionlimit(2).
+unfolddepthbound(3).
+
+traceleftbound(2).
+tracerightbound(2).
+
+
+declare_unification_type(simpleq, [arreq,eq,eq,eqset]).
+
+unfold(simpleq(H,Fst,Lst,F),
+  [
+  body([],
+	     [eq(Fst, Lst),
+	      eqset(F, emptyset)]),
+	body([simpleq(H,Fst1,Lst,F1)],
+	     [gt(Fst, 0),
+	      eq(Fst1, ref(H, plus(Fst, 1))),
+	      z3_not(mem(Fst, F1)),
+	      eqset(F, add(F1, Fst))])
+  ]).
+
+% we are at the last element
+run_nil :-
+	init_counters,
+ 	addunfoldlevel(0, 0, [simpleq(H,Fst,Lst,F)],
+		       UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [simpleq(H_F,Fst,Elm,F_F)],
+ 		       UnfoldableHAtoms),
+	lprove(0, 0, 0,
+	       [], UnfoldableGAtoms,
+	       [gt(Elm, 0), 
+	        gt(Lst, 0),
+	        z3_not(mem(Elm, F)),
+	        arrassign(H_F, upd(H, plus(Lst, 1), Elm)),
+	        eqset(F_F, add(F, Lst))],
+	       [], UnfoldableHAtoms, 
+	       [], []),
+	show_counters, !,
+  printf("PROOF SUCCEEDED.\n", []).
+
+
+run_nil :-
+	printf("Proof Failed\n", []),
+	show_counters.
+
+:- consult('../solver_main.clpr').
+
+:- run_nil, halt.
