@@ -1126,12 +1126,20 @@ right_unfold_aux(Level, NonUnfoldableHAtoms,
 right_unfold_aux(Level, NonUnfoldableHAtoms, HeadUnfoldableHAtoms, [HAtom|TailUnfoldableHAtoms], 
         HConstraints, CurrentHList, HList) :-
   right_unfold_aux(Level, [HAtom|NonUnfoldableHAtoms], HeadUnfoldableHAtoms, TailUnfoldableHAtoms, 
+                        HConstraints, CurrentHList, HList).
+
+
+%==============================================================================
 % Direct Proof
 %==============================================================================
 
 directproof(GAtoms1, GAtoms2, GConstraints,
         HAtoms1, HAtoms2, HConstraints) :-      
        printf("======G=\n1 %\n2 %\nc %\n", [GAtoms1, GAtoms2, GConstraints]),
+       printf("======H=\n1 %\n2 %\nc %\n", [HAtoms1, HAtoms2, HConstraints]),
+  fail.
+
+%----------------------------------------------------------------------
 % If the LHS constraint is unsatisfiable, succeed immediately
 %----------------------------------------------------------------------
 directproof(_GAtoms1, _GAtoms2, GConstraints,
@@ -1187,8 +1195,23 @@ directproof(GAtoms1, GAtoms2, GConstraints,
   simplify_by_existential_equalities(HAtoms, HConstraints, EV,
              HAtomsX, HConstraintsX, EVX),
 
+  signature_subset(HSig, GSig, HAtomsX, GAtoms, _, Unifier, _),
+        
+  %EVX = EV,
+  %HConstraintsX = HConstraints,
+
+  %signature_subset(HSig, GSig, HAtoms, GAtoms, _, Unifier, _),
+  
+  reverse_unifier(Unifier, RevUnifier),
+
+  get_lhs_vars(GAtoms, GConstraints, Lhs_Vars),
   
   directproof_aux(GConstraints, HConstraintsX, RevUnifier, Lhs_Vars, EVX),
+
+  true.
+             
+% Hiep: note, we no longer call directproof_classes().
+
 
 move_assign_to_lhs(GConstraints, [], GConstraints, []) :- !.
 
@@ -1777,20 +1800,31 @@ get_constraints_from_var(Var, [_C | S],  T) :-
 % -------------------------------------------------------------
 
 remove_constraints_from_var(_, [], []) :- !.
+
 remove_constraints_from_var(Var, [C | S],  T) :-
   same_variable(Var, C), !,
   remove_constraints_from_var(Var, S, T).
+
 remove_constraints_from_var(Var, [C | S],  [C | T]) :-
   remove_constraints_from_var(Var, S, T).
 
+
+
 % -------------------------------------------------------------
 
+
+
+
 contains_variable(_, []) :- !, fail.
+
 contains_variable(A, [B | _S]) :-
   same_variable(A, B), !.
+
 contains_variable(A, [_B | S]) :-
   contains_variable(A, S).
+
 contains_variable(_A, _B) :- !, fail.
+
 
 same_variable(_A, B) :-
   ground(B), !,
@@ -3392,6 +3426,11 @@ inductive(IndLevel,
         [], FinalUnfoldableHAtoms, HConstraints,
         [hypothesis([], AncGAtoms1, AncGConstraints,
         [], AncHAtoms1, AncHConstraints)]).
+
+
+
+
+
 
 inductive2(IndLevel, Level,
       GAtoms1, GAtoms2, GConstraints,
