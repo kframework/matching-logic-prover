@@ -25,9 +25,9 @@ obligation([], [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1,
 
 ======= valid =========
 
-[] [gt(_h5506, 0), eq(_h4745, ref(_h5478, _h5506)), z3_not(mem(_h5506, _h5379)), eqset(_h4450, add(_h5379, _h5506)), gt(_h5492, 0), eq(_h5156, ref(_h5478, _h5492)), z3_not(mem(_h5492, _h4450)), eqset(_h5349, add(_h4450, _h5492))]
+[] [gt(_h5501, 0), eq(_h4740, ref(_h5473, _h5501)), z3_not(mem(_h5501, _h5374)), eqset(_h4445, add(_h5374, _h5501)), gt(_h5487, 0), eq(_h5151, ref(_h5473, _h5487)), z3_not(mem(_h5487, _h4445)), eqset(_h5344, add(_h4445, _h5487))]
   ->
-[] [gt(_h5492, 0), eq(_h5156, ref(_h5478, _h5492)), z3_not(mem(_h5492, _h5379)), eqset(_h5003, add(_h5379, _h5492))]
+[] [gt(_h5487, 0), eq(_h5151, ref(_h5473, _h5487)), z3_not(mem(_h5487, _h5374)), eqset(_h4998, add(_h5374, _h5487))]
 
 
 [], [gt(T1, 0), eq(Y, ref(H, T1)), z3_not(mem(T1, F2)), eqset(F1, add(F2, T1)), gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X))]
@@ -37,7 +37,21 @@ obligation([], [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1,
 
 ======= valid =========
 
-[obligation([lr(_h17514, _h17528, _h12540, _h13469)], [gt(_h17528, 0), eq(_h17055, ref(_h17514, _h17528)), z3_not(mem(_h17528, _h16898)), eqset(_h13469, add(_h16898, _h17528)), gt(_h12540, 0), eq(_h17467, ref(_h17514, _h12540)), z3_not(mem(_h12540, _h16898)), eqset(_h17278, add(_h16898, _h12540)), gt(_h17528, 0), eq(_h17055, ref(_h17514, _h17528)), z3_not(mem(_h17528, _h17278)), eqset(_h17248, add(_h17278, _h17528))], [lr(_h17514, _h17528, _h18039, _h18040)], [gt(_h18039, 0), eq(_h17467, ref(_h17514, _h18039)), z3_not(mem(_h18039, _h18040)), eqset(_h17248, add(_h18040, _h18039))])]
+[lr(_h17504, _h17518, _h12530, _h13459)] [gt(_h17518, 0), eq(_h17045, ref(_h17504, _h17518)), z3_not(mem(_h17518, _h16888)), eqset(_h13459, add(_h16888, _h17518)), gt(_h12530, 0), eq(_h17457, ref(_h17504, _h12530)), z3_not(mem(_h12530, _h16888)), eqset(_h17268, add(_h16888, _h12530)), gt(_h17518, 0), eq(_h17045, ref(_h17504, _h17518)), z3_not(mem(_h17518, _h17268)), eqset(_h17238, add(_h17268, _h17518))]
+  ->
+[lr(_h17504, _h17518, _h18028, _h18029)] [gt(_h18028, 0), eq(_h17457, ref(_h17504, _h18028)), z3_not(mem(_h18028, _h18029)), eqset(_h17238, add(_h18029, _h18028))]
 
-obligation([lr(H, X, T1, F3)], [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F2)), eqset(F3, add(F2, X)), gt(T1, 0), eq(Y, ref(H, T1)), z3_not(mem(T1, F2)), eqset(F1, add(F2, T1)), gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X))], [lr(H, X, T2, F4)], [gt(T2, 0), eq(Y, ref(H, T2)), z3_not(mem(T2, F4)), eqset(F, add(F4, T2))])
+
+[lr(H, X, T1, F3)] [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F2)), eqset(F3, add(F2, X)), gt(T1, 0), eq(Y, ref(H, T1)), z3_not(mem(T1, F2)), eqset(F1, add(F2, T1)), gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X))]
+  ->
+[lr(H, X, T2, F4)] [gt(T2, 0), eq(Y, ref(H, T2)), z3_not(mem(T2, F4)), eqset(F, add(F4, T2))]
+
+
+========= valid ========
+
+[] [gt(_h17518, 0), eq(_h17045, ref(_h17504, _h17518)), z3_not(mem(_h17518, _h17268)), eqset(_h17238, add(_h17268, _h17518)), eq(_h17045, _h17457), eqset(_h17268, emptyset)]
+  ->
+[] [eq(_h17518, _h17457), eqset(_h17238, emptyset)]
+
+
 

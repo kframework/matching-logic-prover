@@ -572,6 +572,8 @@ lprove_right_unfold_collect_all_cases(
   , append(HAtoms,BAtoms,NewHAtoms)
   , append(HConstraints,BConstraints,NewHConstraints)
   , Ob = obligation(GAtoms,GConstraints,NewHAtoms,NewHConstraints)
+  , printf("\n---right unfold ends---\n", [])
+  , printf("Ob = %\n", [Ob])
   , NewInOrSet = [[Ob]|InOrSet]
   , lprove_right_unfold_collect_all_cases(
       GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
