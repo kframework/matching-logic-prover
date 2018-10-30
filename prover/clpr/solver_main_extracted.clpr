@@ -972,7 +972,9 @@ lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,AllHAtoms,HConstraints,
 
 % Otherwise case
 lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
-  Body, KTSet) :- true
+  body(CP, AllBAtoms, BConstraints), KTSet) :- true
   , printf("\n---KT: uncovered case---\n", [])
+  , number_of_occurrences(GAtom,AllBAtoms,N1)
+  , printf("number of occurrences=%\n",[N1])
   , fail
   .
