@@ -311,9 +311,10 @@ find_positions_of_diff(Xs, Ys, CP) :- true
 
 find_positions_of_diff_aux([], [], [], _Offset).
 
-find_positions_of_diff_aux([X|P], [X|Q], CP, Offset) :- true
-  , !
-  , find_positions_of_diff(P, Q, CP_Rest, (Offset + 1))
+find_positions_of_diff_aux([X|P], [Y|Q], CP, Offset) :- true
+  , var(X), var(Y)
+  , not(X == Y)
+  , find_positions_of_diff_aux(P, Q, CP_Rest, (Offset + 1))
   , CP = [(Offset + 1) | CP_Rest]
   .
 
