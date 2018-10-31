@@ -21,16 +21,7 @@
 :- consult('z3_wrapper.clpr').
 
 %--------------------------------------------------------------------
-% set_equalities ignored.
-%--------------------------------------------------------------------
-
-%--------------------------------------------------------------------
-% remove_atm not needed: no need to keep track of the levels.
-%--------------------------------------------------------------------
-
-
-%--------------------------------------------------------------------
-% pretty printing needed. the following is copied blindly.
+% pretty printing is copied blindly.
 %--------------------------------------------------------------------
 
 prettyprint_aux(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
@@ -297,6 +288,40 @@ delete_var(AS, [B | BS], Outs) :- true
   .
 
 
+%------------------------------------------------------------------------------
+% find_critical_positions(+P, +Q, -CP)
+% find_positions_of_diff(+Xs, +Ys, -CP)
+%------------------------------------------------------------------------------
+
+find_critical_positions(P, Q, CP) :- true
+  , P =.. [H|Xs]
+  , Q =.. [H|Ys]
+  , !
+  , find_positions_of_diff(Xs, Ys, CP)
+  .
+
+% The otherwise case.
+find_critical_positions(_P, _Q, _CP) :- true
+  , fail
+  .
+
+find_positions_of_diff(Xs, Ys, CP) :- true
+  , find_positions_of_diff_aux(Xs, Ys, CP, 0)
+  .
+
+find_positions_of_diff_aux([], [], [], _Offset).
+
+find_positions_of_diff_aux([X|P], [X|Q], CP, Offset) :- true
+  , !
+  , find_positions_of_diff(P, Q, CP_Rest, (Offset + 1))
+  , CP = [(Offset + 1) | CP_Rest]
+  .
+
+% The otherwise case
+find_positions_of_diff_aux([_X|P], [_Y|Q], CP, Offset) :- true
+  , find_positions_of_diff_aux(P, Q, CP, (Offset + 1))
+  .
+
 
 %------------------------------------------------------------------------------
 % collect_variables_by_positions(+Term, +Positions, -Vars)
@@ -416,7 +441,7 @@ lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
 % prove_one needed. the structure of the original code is kept.
 % prove_all needed. the structure of the original code is kept.
 %--------------------------------------------------------------------
-prove_one(Level, []) :- !, fail. % fail to prove.
+prove_one(_Level, []) :- !, fail. % fail to prove.
 
 prove_one(Level, OrSet) :- true
   , length(OrSet,L)
@@ -428,7 +453,7 @@ prove_one(Level, OrSet) :- true
 
 prove_one_set(Level, OrSet) :- prove_one_set_aux(Level, OrSet).
 
-prove_one_set_aux(Level, []) :- !, fail. % fail to prove.
+prove_one_set_aux(_Level, []) :- !, fail. % fail to prove.
 
 prove_one_set_aux(Level, [Obs | _]) :- true
   , prove_all(Level, Obs)
@@ -438,7 +463,7 @@ prove_one_set_aux(Level, [Obs | _]) :- true
 
 prove_one_set_aux(Level, [_ | R]) :- prove_one_set_aux(Level, R).
 
-prove_all(Level, []) :- true
+prove_all(_Level, []) :- true
   , !
   , true  % succeed to prove.
   . 
@@ -456,7 +481,7 @@ prove_all(Level, [Ob | R]) :- true
   , !
   .
 
-prove_all(Level, _) :- true
+prove_all(_Level, _) :- true
   , printf("\n---prove_all gives up; reaches level 0---\n", [])
   , fail
   .
@@ -524,8 +549,8 @@ lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
   .
 
 % The otherwise case when N > |HAtoms|.
-lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
-  N,OrSet,OrSet) :- true
+lprove_right_unfold_try_all_atoms(_GAtoms,_GConstraints,_HAtoms,_HConstraints,
+  _N,_OrSet,_OrSet) :- true
   , !
   .
 
@@ -561,8 +586,8 @@ lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,
 
 % The case when HBodies is empty.
 lprove_right_unfold_collect_all_cases(
-  GAtoms,GConstraints,HAtom,HAtoms,HConstraints,[],
-  InOrSet,InOrSet) :- true
+  _GAtoms,_GConstraints,_HAtom,_HAtoms,_HConstraints,[],
+  _InOrSet,_InOrSet) :- true
   , printf("\n---all cases collected.---\n", [])
   , !
   .
