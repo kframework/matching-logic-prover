@@ -45,12 +45,21 @@ unfold(bst(H,X,F,MIN,MAX),
 run_bst_bt :-
   GAtoms =[bst(H, X, F, MIN, MAX)],
   HAtoms =[bt(H, X, F)],
-  lprove(4,GAtoms,[],HAtoms,[]),
+  lprove(5,GAtoms,[],HAtoms,[]),
   !,
   printf("BST-BT PROVED.\n", []).
 
+% this is a negative test.
+run_bt_bst :-
+  GAtoms =[bst(H, X, F, MIN, MAX)],
+  HAtoms =[bt(H, X, F)],
+  lprove(5,HAtoms,[],GAtoms,[]),
+  !,
+  printf("BT-BST PROVED. WRONG!\n", []).
+
 run :-
   run_bst_bt,
+% run_bt_bst,
   !,
   printf("PROOF SUCCEED.\n", []).
 

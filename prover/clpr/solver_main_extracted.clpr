@@ -12,6 +12,8 @@
 
 
 
+:- consult('directproof.clpr') .
+:- consult('directproof_by_user.clpr') .
 
 %==============================================================================
 % Load the solver to do constraint proof
@@ -415,6 +417,7 @@ lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :-
 
 % Try (Direct Proof) first.
 lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+%, lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
  , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
  .
 % lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
@@ -479,7 +482,11 @@ prove_all(Level, [Ob | R]) :- true
   , printf("\n---help me decide (size %, level %)---\n", [L,Level])
   , printf(
       "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
-  , printf("%\n", [[Ob | R]])
+  , printf("%\n", [[Ob|R]])
+% , read(Ans)
+% , !
+% , check_answer(Ans)
+% , printf("---ok I'll continue.\n---", [])
   , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
   , lprove(Level - 1, GAtoms, GConstraints, HAtoms, HConstraints)
   , prove_all(Level, R)
@@ -498,7 +505,6 @@ prove_all(_Level, _) :- true
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %------------------------------------------------------------------------------
-:- consult('directproof.clpr') .
 lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
  , GNonUnfoldable = []
  , HNonUnfoldable = []
@@ -520,7 +526,6 @@ lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %------------------------------------------------------------------------------
 
-:- consult('directproof_by_user.clpr') .
 
 %------------------------------------------------------------------------------
 % lprove_right_unfold/5
@@ -1026,7 +1031,40 @@ lprove_kt_try_one_case(
 
   , get_the_first_atom_with_the_same_head(LRP, BRPs_all, BRP_1, BRPs_yet)
   , get_the_first_atom_with_the_same_head(LRP, BRPs_yet, BRP_2, BRPs_rest)
-  , KTSet = [fffff]
+
+  , get_unifier([LRP], [BRP_1], BSubst_1)
+  , get_unifier([LRP], [BRP_2], BSubst_2)
+
+  , printf("BSubst_1 = %\nBSubst_2 = %\n", [BSubst_1, BSubst_2])
+
+  , substitute(BSubst_1, LRPs, LRPs_1)
+
+ 
+  , substitute(BSubst_1, [LCPs], [LCPs_1])
+  , substitute(BSubst_1, [RRPs], [RRPs_1])
+  , substitute(BSubst_1, [RCPs], [RCPs_1])
+  , substitute(BSubst_2, [LRPs], [LRPs_2])
+  , substitute(BSubst_2, [LCPs], [LCPs_2])
+  , substitute(BSubst_2, [RRPs], [RRPs_2])
+  , substitute(BSubst_2, [RCPs], [RCPs_2])
+
+  % (L_1 -> R_1), (L_2 -> R_2), B, L -> R
+  %   turns to
+  % B, L -> L1
+  % B, L -> L2
+  % B, L, L1, L2, R1, R2 -> R
+  
+  , flatten([BRPs, LRPs], BLRPs)
+  , flatten([BCPs, LCPs], BLCPs)
+
+  , Ob1 = obligation(BLRPs, BLCPs, LRPs_1, LCPs_1)
+  , Ob2 = obligation(BLRPs, BLCPs, LRPs_2, LCPs_2)
+
+  , flatten([BLRPs, LRPs_1, LRPs_2, RRPs_1, RRPs_2], Main_LRPs)
+  , flatten([BLRPs, LRPs_1, LRPs_2, RRPs_1, RRPs_2], Main_LCPs)
+
+  , Main_Ob = obligation(Main_LRPs, Main_LCPs, RRPs, RCPs)
+  , KTSet = [Ob1, Ob2, Main_Ob]
   .
 
 
