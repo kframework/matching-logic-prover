@@ -41,9 +41,9 @@ unfold(bst(H,X,F,MIN,MAX),
         eq(MIN,MIN1),
         eq(MAX,MAX2),
         z3_not(mem(X,F1)),
-        eqset(F3,add(F1,X)),
-        eqset(emptyset,inter(F3,F2)),
-        eqset(F,union(F3,F2))])
+        z3_not(mem(X,F2)),
+        eqset(emptyset,inter(F1,F2)),
+        eqset(F,add(union(F1,F2), X))])
   ]).
 
 run_bst_bt :-
