@@ -1024,8 +1024,9 @@ lprove_kt_try_one_case(
   , !
   , printf("\n---KT(2:0) begins---\n",[])
 
-  , get_the_first_atom_with_the_same_head(LRP, BRPs_all, BRP_1, BRP_yet)
-  , get_the_first_atom_with_the_same_head(LRP, BRPs_yet, BRP_2, BRP_rest)
+  , get_the_first_atom_with_the_same_head(LRP, BRPs_all, BRP_1, BRPs_yet)
+  , get_the_first_atom_with_the_same_head(LRP, BRPs_yet, BRP_2, BRPs_rest)
+  , KTSet = [fffff]
   .
 
 
@@ -1038,7 +1039,7 @@ lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonre
   , printf("\n---KT: uncovered case---\n", [])
   , number_of_occurrences(Left_Recursive_Pattern,AllBody_Recursive_Patterns,N1)
   , printf("number of occurrences=%\n",[N1])
-  , fail
+  , KTSet = [failure]  % something dummy that fails the future proof.
   .
 
 
