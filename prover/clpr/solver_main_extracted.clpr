@@ -934,6 +934,7 @@ lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonre
 
  % Subst1
  , get_unifier([Left_Recursive_Pattern], [Body_Recursive_Pattern], Subst1)
+ , !
  , substitute(Subst1, [Left_Recursive_Patterns],        [Left_Recursive_Patterns1])
  , substitute(Subst1, [Left_Nonrecursive_Patterns], [Left_Nonrecursive_Patterns1])
  , substitute(Subst1, [Right_Recursive_Pattern],        [Right_Recursive_Pattern1])
