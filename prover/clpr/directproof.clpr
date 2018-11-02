@@ -1340,9 +1340,7 @@ append_signature([], [A|GAtoms2], GAtoms, GSig) :- true
  , append_signature([A|GAtoms2], [], GAtoms, GSig)
  .
 append_signature([A|GAtoms1], GAtoms2, [B|GAtoms], [sig(S,N)|GSig]) :- true
- , printf("xxxxx 1: %, %\n", [A, B])
  , A = atm(_,_,B)
- , printf("xxxxx 1\n", [])
  , B =.. [S|Args]
  , length(Args, N)
  , append_signature(GAtoms1, GAtoms2, GAtoms, GSig)

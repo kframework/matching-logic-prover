@@ -156,6 +156,7 @@ freshcopy([X|Xs],[Y|Ys]) :- true
 %   .
 get_unifier([L|LS], [R|RS], [eq(L,R)|US]) :- true
   , var(L)
+  , !
   , get_unifier(LS, RS, US)
   .
 get_unifier([L|LS], [R|RS], Out) :- true
@@ -204,13 +205,16 @@ substitute([eq(L, R)], [T|TS], Out) :- true
   , append(Out1, Out2, Out)
   .
 substitute(_Assign, [], []) :- true
+  , !
   .
 substitute([EQ | EQS], [TS], Out) :- true
   , !
   , substitute([EQ], [TS], Out1)
   , substitute(EQS,  Out1, Out)
   .
-substitute([], Term, Term) .
+substitute([], Term, Term) :- true
+  , !
+  .
 substitute(EQS, Term, _) :- true
   , printf("BAD SUBSTITUTION: %, %\n", [EQS, Term])
   , halt
@@ -269,8 +273,8 @@ collect_variables([Term | Terms], Outs) :- true
   .
 
 delete_var([], _, []) :- true
-%  , printf("Base\n", [])
-  , !
+  .
+delete_var(A, [], A) :- true
   .
 delete_var([A | AS], [B], Outs) :- true
 %  , printf("Matched? [% | %], [%]\n", [A, AS, B])
@@ -279,10 +283,9 @@ delete_var([A | AS], [B], Outs) :- true
   , !
   , delete_var(AS, [B], Outs)
   .
-delete_var([A | AS], [_B], [ A | Out]) :- true
-%  , printf("Matched failed. [% | %], [%]\n", [A, AS, _B])
-  , !
-  , delete_var(AS, [A], Out)
+delete_var([A | AS], [B], [ A | Out]) :- true
+%  , printf("Matched failed. [% | %], [%]\n", [A, AS, B])
+  , delete_var(AS, [B], Out)
   .
 delete_var(AS, [B | BS], Outs) :- true
   , delete_var(AS, [B], Outs1)
@@ -931,6 +934,7 @@ lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonre
 
  % Subst1
  , get_unifier([Left_Recursive_Pattern], [Body_Recursive_Pattern], Subst1)
+ , !
  , substitute(Subst1, [Left_Recursive_Patterns],        [Left_Recursive_Patterns1])
  , substitute(Subst1, [Left_Nonrecursive_Patterns], [Left_Nonrecursive_Patterns1])
  , substitute(Subst1, [Right_Recursive_Pattern],        [Right_Recursive_Pattern1])
