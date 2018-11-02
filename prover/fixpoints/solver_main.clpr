@@ -153,6 +153,21 @@ get_unifier([L|LS], [R|RS], Out) :- true
   .
 get_unifier([], [], []).
 
+
+
+% unify_one_to_more(+L, +Rs, -Substs)
+% L: a term
+% Rs: a list of terms [R1,...,Rk]
+% Substs: a list of substs [Subst1,...,Substk]
+% such that get_unifier([L], [Ri], Substi)
+
+unify_one_to_more(L, [], []).
+
+unify_one_to_more(L, [R|Rs], [Subst|Substs]) :- true
+, get_unifier([L], [R], Subst)
+, unify_one_to_more(L, Rs, Substs)
+.
+
 %------------------------------------------------------------------------------
 % substitute(Subst, Terms, Modified)
 % Subst: List of eq(A,B), where A is variable.
@@ -203,6 +218,12 @@ substitute(EQS, Term, _) :- true
   , printf("BAD SUBSTITUTION: %, %\n", [EQS, Term])
   , halt
   .
+
+
+
+% Apply multiple substitutions at once
+
+% apply_multiple_substitutions(Substs, Ps, Qs)
 
 %------------------------------------------------------------------------------
 % Lists
@@ -410,24 +431,23 @@ lprove(_Level, LRPs, LCPs, RRPs, RCPs) :- true
 %  .
 
 % Depth-first search on proof trees.
-% Try all possible rules and collect a set of obligation sets OrSet.
-% prove one obligation set in OrSet and we are done.
-% In other words, OrSet is a disjunction of conjunctions. 
+% Try all possible rules and collect a set of obligation sets DNF.
+% prove one obligation set in DNF and we are done.
+% In other words, DNF is a disjunction of conjunctions. 
 lprove(Level, LRPs, LCPs, RRPs, RCPs) :- true
-  , printf("\n---collecting all possible conjunctions---\n",[])
-  , lprove_aux(LRPs, LCPs, RRPs, RCPs, OrSet)
-  , length(OrSet, L)
+  , lprove_aux(LRPs, LCPs, RRPs, RCPs, DNF)
+  , length(DNF, L)
   , printf("\n---% disjunctions collected---\n", [L])
-  , printf("OrSet =\n%\n", [OrSet])
-  , prove_one(Level, OrSet)
+  , printf("DNF =\n%\n", [DNF])
+  , prove_one(Level, DNF)
   , !
   , true.
  
-% collect OrSet by trying all possible rules.
-lprove_aux(LRPs, LCPs, RRPs, RCPs, OrSet) :- true
-  , lprove_kt(LRPs, LCPs, RRPs, RCPs, OrSetKT)
-  , lprove_ru(LRPs, LCPs, RRPs, RCPs, OrSetRU)
-  , append(OrSetKT,OrSetRU,OrSet)
+% collect DNF by trying all possible rules.
+lprove_aux(LRPs, LCPs, RRPs, RCPs, DNF) :- true
+  , lprove_kt(LRPs, LCPs, RRPs, RCPs, DNFKT)
+  , lprove_ru(LRPs, LCPs, RRPs, RCPs, DNFRU)
+  , append(DNFKT,DNFRU,DNF)
   .
 
 %--------------------------------------------------------------------
@@ -436,15 +456,15 @@ lprove_aux(LRPs, LCPs, RRPs, RCPs, OrSet) :- true
 %--------------------------------------------------------------------
 prove_one(_Level, []) :- !, fail. % fail to prove.
 
-prove_one(Level, OrSet) :- true
-  , length(OrSet,L)
+prove_one(Level, DNF) :- true
+  , length(DNF,L)
   , printf("\n----consider an orset of size % and level %----\n", 
       [L,Level])
-  % printf("OrSet =\n%\n", [OrSet])
-  , prove_one_set(Level, OrSet)
+  % printf("DNF =\n%\n", [DNF])
+  , prove_one_set(Level, DNF)
   .
 
-prove_one_set(Level, OrSet) :- prove_one_set_aux(Level, OrSet).
+prove_one_set(Level, DNF) :- prove_one_set_aux(Level, DNF).
 
 prove_one_set_aux(_Level, []) :- !, fail. % fail to prove.
 
@@ -463,14 +483,14 @@ prove_all(_Level, []) :- true
 
 prove_all(Level, [Ob | R]) :- true
   , Level > 0
-  , length([Ob|R],L)
-  , printf("\n---help me decide (size %, level %)---\n", [L,Level])
-  , printf(
-      "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
-  , printf("%\n", [[Ob|R]])
-  , read(Ans)
-  , !
-  , check_answer(Ans)
+  % length([Ob|R],L)
+  % printf("\n---help me decide (size %, level %)---\n", [L,Level])
+  % printf(
+  %   "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
+  % printf("%\n", [[Ob|R]])
+  % read(Ans)
+  % !
+  % check_answer(Ans)
   , printf("---ok I'll continue.\n---", [])
   , Ob = obligation(LRPs, LCPs, RRPs, RCPs)
   , lprove(Level - 1, LRPs, LCPs, RRPs, RCPs)
@@ -509,97 +529,83 @@ lprove_direct(_LRPs, _LCPs, _RRPs, _RCPs) :- true
 
 %------------------------------------------------------------------------------
 % lprove_ru/5
-% lprove_ru(+LRPs,+LCPs,+RRPs,+RCPs,
-%   -OrSet)
-%
-% LRPs,LCPs -> RRPs,RCPs
-%
-% Apply (Right Unfold) on every recursive predicates in RRPs.
-% For every recursive predicate p(X1,...,Xn) in RRPs, a disjunction
-% is generated and added to OrSet.
+% lprove_ru(+LRPs,+LCPs,+RRPs,+RCPs,-DNF)
 %------------------------------------------------------------------------------
 
-lprove_ru(LRPs,LCPs,RRPs,RCPs,OrSet) :- true
-  , printf("\n---right unfold begins---\n",[])
-  , lprove_ru_try_all_atoms(LRPs,LCPs,RRPs,RCPs,
-      1,[], OrSet)
-  , length(OrSet,L)
-  , printf("\n---right unfold ends, % disjunctions collected---\n", [L])
+lprove_ru(LRPs,LCPs,RRPs,RCPs,DNF) :- true
+  , length(RRPs, RRPs_len)
+  , printf("\n---RU begins, % RRP(s) in total.---\n",[RRPs_len])
+  , lprove_ru_aux(LRPs,LCPs,RRPs,RCPs, 1, [], DNF)
+  , length(DNF, DNF_len)
+  , printf("\n---RU ends, % disjunctions collected---\n", [DNF_len])
+  , printf("DNF(RU) = %\n", [DNF])
   .
 
-lprove_ru_try_all_atoms(LRPs,LCPs,RRPs,RCPs,
-  N,InOrSet,OutOrSet) :- true
+lprove_ru_aux(LRPs,LCPs,RRPs,RCPs,
+  N,InDNF,OutDNF) :- true
   % The following claim fails if N > |RRPs|
   , nth1(N,RRPs,RRP,RestRRPs)
   , !
-  , lprove_ru(LRPs,LCPs,RRP,RestRRPs,RCPs,OrSetRU)
-  , append(OrSetRU,InOrSet,NewInOrSet)
-  , lprove_ru_try_all_atoms(LRPs,LCPs,RRPs,RCPs,
-      N+1, NewInOrSet,OutOrSet)
+  , printf("\n---RU on the %th recursive pattern.---\n", [N])
+  , lprove_ru(LRPs,LCPs,RRP,RestRRPs,RCPs,DNFRU)
+  , append(DNFRU,InDNF,NewInDNF)
+  , lprove_ru_aux(LRPs,LCPs,RRPs,RCPs,
+      N+1, NewInDNF,OutDNF)
   .
 
-% The otherwise case when N > |RRPs|.
-lprove_ru_try_all_atoms(_LRPs,_LCPs,_RRPs,_RCPs,
-  _N,_OrSet,_OrSet) :- true
+% N > |RRPs|.
+lprove_ru_aux(_LRPs,_LCPs,_RRPs,_RCPs,
+  _N,_DNF,_DNF) :- true
   , !
   .
 
 %------------------------------------------------------------------------------
 % lprove_ru/6
 % lprove_ru(+LRPs,+LCPs,+RRP,+RRPs,+RCPs,
-%   -OrSet)
-%
-% LRPs,LCPs -> RRP,RRPs,RCPs
-%
-% Apply (Right Unfold) on RRP.
-% For every recursive predicate p(X1,...,Xn) in RRPs, a disjunction
-% is generated and added to OrSet.
+%   -DNF)
 %------------------------------------------------------------------------------
 
 lprove_ru(LRPs,LCPs,RRP,RRPs,RCPs,
-  OrSet) :- true
-  , printf("\n---RU (one case) begins---\n", [])
-  , printf("RRP=%\n", [RRP])
+  DNF) :- true
   , unfold(RRP,HBodies)
-  , length(HBodies,L)
-  , printf("\n---right unfold (one atom) begins, % cases to collect---\n",[L])
+  % length(HBodies,L)
+  % printf("\n---right unfold (one atom) begins, % cases to collect---\n",[L])
   , lprove_ru_collect_all_cases(
       LRPs,LCPs,RRP,RRPs,RCPs,HBodies,
-      [],OrSet)
-  , printf("\n---RU (one case) ends---\n", [])
+      [],DNF)
   .
 
 %------------------------------------------------------------------------------
 % lprove_ru_collect_all_cases
 % LRPs,LCPs,RRP,RRPs,RCPs,HBodies,
-% +InOrSet,-OutOrSet)
+% +InDNF,-OutDNF)
 % 
-% Go over every body in HBodies and add the new OrSet to InOrSet.
+% Go over every body in HBodies and add the new DNF to InDNF.
 %------------------------------------------------------------------------------
 
 % The case when HBodies is empty.
 lprove_ru_collect_all_cases(
   _LRPs,_LCPs,_RRP,_RRPs,_RCPs,[],
-  _InOrSet,_InOrSet) :- true
+  _InDNF,_InDNF) :- true
   , printf("\n---all cases collected.---\n", [])
   , !
   .
 
 lprove_ru_collect_all_cases(
   LRPs,LCPs,RRP,RRPs,RCPs,[HBody|HBodies],
-  InOrSet,OutOrSet) :- true
-  , printf("\n---collect case---\n", [])
+  InDNF,OutDNF) :- true
+  % printf("\n---collect case---\n", [])
   , body(BAtoms, BConstraints) = HBody
-  , printf("HBody = %\n", [HBody])
+  % printf("HBody = %\n", [HBody])
   , append(RRPs,BAtoms,NewRRPs)
   , append(RCPs,BConstraints,NewRCPs)
   , Ob = obligation(LRPs,LCPs,NewRRPs,NewRCPs)
-  , printf("\n---right unfold ends---\n", [])
-  , printf("Ob = %\n", [Ob])
-  , NewInOrSet = [[Ob]|InOrSet]
+  % printf("\n---right unfold ends---\n", [])
+  % printf("Ob = %\n", [Ob])
+  , NewInDNF = [[Ob]|InDNF]
   , lprove_ru_collect_all_cases(
       LRPs,LCPs,RRP,RRPs,RCPs,HBodies,
-      NewInOrSet,OutOrSet)
+      NewInDNF,OutDNF)
   .
 
 %------------------------------------------------------------------------------
@@ -628,7 +634,7 @@ lprove_kt(LRPs, LCPs, RRPs, RCPs, DNF) :- true
   , lprove_kt_aux(LRPs, LCPs, RRPs, RCPs, 1, [], DNF)
   , length(DNF, DNF_len)
   , printf("\n---KT ends, % disjunctions collected---\n", [DNF_len])
-  , printf("DNF = %\n", [DNF])
+  , printf("DNF(KT) = %\n", [DNF])
   .
 
 % Apply (KT) on the Nth pattern in LRPs, where 1 <= N <= |LRPs|,
@@ -687,9 +693,82 @@ lprove_kt_all_bodies_aux(_LRP, _LRPs, _LCPs, _RRPs, _RCPs,
 % lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, -CNF)
 %------------------------------------------------------------------------------
 
-lprove_kt_one_body(_LRP, _LRPs, _LCPs, _RRPs, _RCPs, _Body, []) :- true
-  , !
+%%%% todo %%%%
+
+lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
+
+  , LRP =.. [H|_]
+  , body(BRPs, BCPs) = Body
+  , gather_by_head(H, BRPs, BRPs_samehead, BRPs_diffhead)
+
+  , length(BRPs_samehead, BRPs_samehead_len)
+  , printf("\n---head occurs % time(s) in body---\n", [BRPs_samehead_len])
+
+  , unify_one_to_more(LRP, BRPs_samehead, USubsts)
+  , printf("USubsts=\n%\n", [USubsts])
+
+  % apply all substitutions in USubsts to LRPs, LCPs, RRPs, RCPs
+
+  , flatten([[LRP],LRPs,LCPs,RRPs,RCPs], Ps)
+  , fv(Ps, Vs)
+  , flatten([[LRP], LRPs, LCPs], Ps_left)
+  , fv(Ps_left, Vs_left)
+  , flatten([RRPs, RCPs], Ps_right)
+  , fv(Ps_right, Vs_right)
+  , UVs = Vs_left                    % implicitly universally quantified.
+  , unord_setdiff(Vs, UVs, EVs)      % implicitly existential quantified
+  , fv([LRP], ActVs)                 % active variables
+  , unord_setdiff(UVs, ActVs, PasVs) % passive variables
   .
+
+
+
+%------------------------------------------------------------------------------
+% Auxilliary functions about patterns.
+%
+% fv(Ps, Vs)
+% gather_by_head(H, Ps, Ps_samehead, Ps_diffhead)
+%
+%------------------------------------------------------------------------------
+
+fv([], []).
+
+fv([P|Ps], Vs) :- true
+  , P =.. [_|VarList_P]
+  , list_to_set(VarList_P, Vs_P)
+  , fv(Ps, Vs_Ps)
+  , unord_setunion(Vs_P, Vs_Ps, Vs)
+  .
+
+gather_by_head(_H, [], [], []).
+
+gather_by_head(H, [P|Ps], [P|Ps_samehead], Ps_diffhead) :- true
+, P =.. [H|_]
+, !
+, gather_by_head(H, Ps, Ps_samehead, Ps_diffhead)
+.
+
+% P doesn't have head H
+gather_by_head(H, [P|Ps], Ps_samehead, [P|Ps_diffhead]) :- true
+, gather_by_head(H, Ps, Ps_samehead, Ps_diffhead)
+.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 number_of_occurrences(_LRP,[],0).
 
@@ -1032,6 +1111,30 @@ lprove_kt_one_body(LRP,_LRPs,_LCPs,_RRPs,_RCPs,
   .
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %------------------------------------------------------------------------------
 % Auxilliary functions about lists.
 %
@@ -1061,23 +1164,6 @@ part_aux([_E|Es], [N|Ns], Fs, Offset) :- true
   , part_aux(Es, [N|Ns], Fs, Offset + 1)
   .
 
-%------------------------------------------------------------------------------
-% Auxilliary functions about patterns.
-%
-% find_critical_variables(
-%   +RPatterns,
-%   +Head,
-%   +CPs,
-%   -CVars)
-%
-% find_critical_substitution(
-%   +RPatterns,
-%   +Head,
-%   +CPs,
-%   -CSubst)
-%
-% count_occurrences_of_head(H, Ps, N)
-%------------------------------------------------------------------------------
 
 % find_critical_variables([], H, CPs, []).
 % 

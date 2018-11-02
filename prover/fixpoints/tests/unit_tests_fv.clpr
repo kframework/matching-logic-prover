@@ -1,0 +1,24 @@
+:- consult('solver_main.clpr').
+
+run_unit_test_fv_1 :- true
+, fv([p(H,X,Y,F)], Vs)
+, Vs == [H,X,Y,F]
+, printf("unit_test_fv_1 passes.\n", [])
+.
+
+run_unit_test_fv_2 :- true
+, fv([p(H,X,Y,X)], Vs)
+, Vs == [H,Y,X]
+, printf("unit_test_fv_2 passes.\n", [])
+.
+
+run_unit_test_fv_3 :- true
+, fv([p(H,X,Y,X), p(H,Z,Y,Y), f(Z,B,H,B)], Vs)
+, Vs == [X,Y,Z,H,B]
+, printf("unit_test_fv_3 passes.\n", [])
+.
+
+:- run_unit_test_fv_1.
+:- run_unit_test_fv_2.
+:- run_unit_test_fv_3.
+:- halt.
