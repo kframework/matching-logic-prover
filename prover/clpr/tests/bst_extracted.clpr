@@ -45,7 +45,7 @@ unfold(bst(H,X,F,MIN,MAX),
 run_bst_bt :-
   GAtoms =[bst(H, X, F, MIN, MAX)],
   HAtoms =[bt(H, X, F)],
-  lprove(5,GAtoms,[],HAtoms,[]),
+  lprove(4,GAtoms,[],HAtoms,[]),
   !,
   printf("BST-BT PROVED.\n", []).
 
@@ -53,13 +53,21 @@ run_bst_bt :-
 run_bt_bst :-
   GAtoms =[bst(H, X, F, MIN, MAX)],
   HAtoms =[bt(H, X, F)],
-  lprove(5,HAtoms,[],GAtoms,[]),
+  lprove(4,HAtoms,[],GAtoms,[]),
   !,
   printf("BT-BST PROVED. WRONG!\n", []).
+
+run_bst_bt_first_KT :-
+  GAtoms =[bst(H, X, F, MIN, MAX)],
+  HAtoms =[bt(H, X, F)],
+  lprove_kt(GAtoms,[],HAtoms,[], OrSet),
+  !,
+  printf("BST-BT first KT\n OrSet = %\n", [OrSet]).
 
 run :-
   run_bst_bt,
 % run_bt_bst,
+% run_bst_bt_first_KT,
   !,
   printf("PROOF SUCCEED.\n", []).
 

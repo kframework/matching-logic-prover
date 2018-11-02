@@ -1018,55 +1018,57 @@ lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonre
 
 %------------------------------------------------------------------------------
 
-% lprove_kt_try_one_case(
-%   LRP,LRPs,LCPs,RRPs,RCPs,Body,KTSet) :- true
-%   , body(CPs, BRPs_all, BCPs) = Body
-%   , LRP =.. [H|_]
-%   , count_occurrences_of_head(H, BRPs_all, HeadOccurTimesInBody)
-%   , count_occurrences_of_head(H, RRPs, HeadOccurTimesInRightHandSide)
-%   , HeadOccurTimesInBody = 2
-%   , HeadOccurTimesInRightHandSide = 0
-%   , !
-%   , printf("\n---KT(2:0) begins---\n",[])
-% 
-%   , get_the_first_atom_with_the_same_head(LRP, BRPs_all, BRP_1, BRPs_yet)
-%   , get_the_first_atom_with_the_same_head(LRP, BRPs_yet, BRP_2, BRPs_rest)
-% 
-%   , get_unifier([LRP], [BRP_1], BSubst_1)
-%   , get_unifier([LRP], [BRP_2], BSubst_2)
-% 
-%   , printf("BSubst_1 = %\nBSubst_2 = %\n", [BSubst_1, BSubst_2])
-% 
-%   , substitute(BSubst_1, LRPs, LRPs_1)
-% 
-%  
-%   , substitute(BSubst_1, [LCPs], [LCPs_1])
-%   , substitute(BSubst_1, [RRPs], [RRPs_1])
-%   , substitute(BSubst_1, [RCPs], [RCPs_1])
-%   , substitute(BSubst_2, [LRPs], [LRPs_2])
-%   , substitute(BSubst_2, [LCPs], [LCPs_2])
-%   , substitute(BSubst_2, [RRPs], [RRPs_2])
-%   , substitute(BSubst_2, [RCPs], [RCPs_2])
-% 
-%   % (L_1 -> R_1), (L_2 -> R_2), B, L -> R
-%   %   turns to
-%   % B, L -> L1
-%   % B, L -> L2
-%   % B, L, L1, L2, R1, R2 -> R
-%   
-%   , flatten([BRPs, LRPs], BLRPs)
-%   , flatten([BCPs, LCPs], BLCPs)
-% 
-%   , Ob1 = obligation(BLRPs, BLCPs, LRPs_1, LCPs_1)
-%   , Ob2 = obligation(BLRPs, BLCPs, LRPs_2, LCPs_2)
-% 
-%   , flatten([BLRPs, LRPs_1, LRPs_2, RRPs_1, RRPs_2], Main_LRPs)
-%   , flatten([BLRPs, LRPs_1, LRPs_2, RRPs_1, RRPs_2], Main_LCPs)
-% 
-%   , Main_Ob = obligation(Main_LRPs, Main_LCPs, RRPs, RCPs)
-%   , KTSet = [Ob1, Ob2, Main_Ob]
-%   .
-% 
+lprove_kt_try_one_case(
+  LRP,LRPs,LCPs,RRPs,RCPs,Body,KTSet) :- true
+  , body(CPs, BRPs_all, BCPs) = Body
+  , LRP =.. [H|_]
+  , count_occurrences_of_head(H, BRPs_all, HeadOccurTimesInBody)
+  , count_occurrences_of_head(H, RRPs, HeadOccurTimesInRightHandSide)
+  , HeadOccurTimesInBody = 2
+  , HeadOccurTimesInRightHandSide = 0
+  , !
+  , printf("\n---KT(2:0) begins---\n",[])
+
+  , get_the_first_atom_with_the_same_head(LRP, BRPs_all, BRP_1, BRPs_yet)
+  , get_the_first_atom_with_the_same_head(LRP, BRPs_yet, BRP_2, BRPs_rest)
+
+  , get_unifier([LRP], [BRP_1], BSubst_1)
+  , get_unifier([LRP], [BRP_2], BSubst_2)
+
+  , printf("BSubst_1 = %\nBSubst_2 = %\n", [BSubst_1, BSubst_2])
+
+  , substitute(BSubst_1, LRPs, LRPs_1)
+
+ 
+  , substitute(BSubst_1, [LCPs], [LCPs_1])
+  , substitute(BSubst_1, [RRPs], [RRPs_1])
+  , substitute(BSubst_1, [RCPs], [RCPs_1])
+  , substitute(BSubst_2, [LRPs], [LRPs_2])
+  , substitute(BSubst_2, [LCPs], [LCPs_2])
+  , substitute(BSubst_2, [RRPs], [RRPs_2])
+  , substitute(BSubst_2, [RCPs], [RCPs_2])
+
+  % (L_1 -> R_1), (L_2 -> R_2), B, L -> R
+  %   turns to
+  % B, L -> L1
+  % B, L -> L2
+  % B, L, L1, L2, R1, R2 -> R
+  
+  , flatten([BRPs, LRPs], BLRPs)
+  , flatten([BCPs, LCPs], BLCPs)
+
+  , Ob1 = obligation(BLRPs, BLCPs, LRPs_1, LCPs_1)
+  , Ob2 = obligation(BLRPs, BLCPs, LRPs_2, LCPs_2)
+
+  , flatten([BLRPs, LRPs_1, LRPs_2, RRPs_1, RRPs_2], Main_LRPs)
+  , flatten([BLCPs, LCPs_1, LCPs_2, RCPs_1, RCPs_2], Main_LCPs)
+
+  , Main_Ob = obligation(Main_LRPs, Main_LCPs, RRPs, RCPs)
+  , KTSet = [Ob1, Ob2, Main_Ob]
+  , printf("Ob1=%\nOb2=%\nMain_Ob=%\n", KTSet)
+  , printf("\n---KT(2:0) ends---\n",[])
+  .
+
 
 
 
