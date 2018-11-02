@@ -156,6 +156,7 @@ freshcopy([X|Xs],[Y|Ys]) :- true
 %   .
 get_unifier([L|LS], [R|RS], [eq(L,R)|US]) :- true
   , var(L)
+  , !
   , get_unifier(LS, RS, US)
   .
 get_unifier([L|LS], [R|RS], Out) :- true
@@ -204,13 +205,16 @@ substitute([eq(L, R)], [T|TS], Out) :- true
   , append(Out1, Out2, Out)
   .
 substitute(_Assign, [], []) :- true
+  , !
   .
 substitute([EQ | EQS], [TS], Out) :- true
   , !
   , substitute([EQ], [TS], Out1)
   , substitute(EQS,  Out1, Out)
   .
-substitute([], Term, Term) .
+substitute([], Term, Term) :- true
+  , !
+  .
 substitute(EQS, Term, _) :- true
   , printf("BAD SUBSTITUTION: %, %\n", [EQS, Term])
   , halt
