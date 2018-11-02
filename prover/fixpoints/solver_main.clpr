@@ -1,16 +1,3 @@
-%--------------------------------------------------------------------
-% This file tries to exact from the solver_main.clpr functions and
-% code that are needed for the implementation of (KT) and related
-% rules. I'll go throught the code and select what in my view are
-% needed.
-%--------------------------------------------------------------------
-
-%--------------------------------------------------------------------
-% set_default ignored.
-% counters related functions ignored.
-%--------------------------------------------------------------------
-
-
 
 :- consult('directproof.clpr') .
 :- consult('directproof_by_user.clpr') .
