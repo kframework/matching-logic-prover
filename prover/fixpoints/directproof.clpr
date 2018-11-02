@@ -599,10 +599,9 @@ weak_functionally_unifiable_aux(Lhs_Vars, [_Atom | Rest], Unifier, Var, ExtUnif)
 % Direct Proof
 % ============
 
-directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- true
- , printf("DIRECT PROOF: % % % -> % % %\n", [GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints])
- , fail
- .
+% directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- true
+%  , fail
+%  .
 
 % If the LHS constraint is unsatisfiable, succeed immediately
 directproof(_GAtoms1, _GAtoms2, GConstraints, _HAtoms1, _HAtoms2, _HConstraints) :- true
@@ -617,7 +616,7 @@ directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- t
  % First we test that the rhs atoms signatures is the subset of
  % the lhs atom signatures.
  , append_signature(GAtoms1, GAtoms2, GAtoms, GSig)
- , printf("append_signature(%, %, %, %)\n", [GAtoms1, GAtoms2, GAtoms, GSig])
+ % printf("append_signature(%, %, %, %)\n", [GAtoms1, GAtoms2, GAtoms, GSig])
  , append_signature(HAtoms1, HAtoms2, HAtoms, HSig)
 
  % If HSig is not a subset of GSig, no point trying
@@ -735,7 +734,7 @@ can_be_unified_directly(A, B, Unifier, Type) :-
   member(Atom, Unifier),
   A == A1, B == B1.
 
-set_unified_directly(A, B, _Unifier) :- true
+set_unified_directly(_A, _B, _Unifier) :- true
  , fail
  .
 set_unified_directly(A, B, _Unifier) :- true

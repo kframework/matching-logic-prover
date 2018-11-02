@@ -118,16 +118,16 @@ run_ll_lr_aux_2 :- true
   .
 
 % run ll_lr, last step, apply right_unfold
-run_ll_lr_aux_3 :- true
-  , printf("\n---begin---\n",[])
-  , GAtoms = []
-  , GConstraints = [eq(X,Y),eqset(F,emptyset)]
-  , HAtoms = [lr(H,X,Y,F)]
-  , HConstraints = []
-  , lprove_right_unfold(GAtoms,GConstraints,HAtoms,HConstraints,OrSetRU)
-  , !
-  , printf("OrSetRU:\n%\n", [OrSetRU])
-  .
+% run_ll_lr_aux_3 :- true
+%   , printf("\n---begin---\n",[])
+%   , GAtoms = []
+%   , GConstraints = [eq(X,Y),eqset(F,emptyset)]
+%   , HAtoms = [lr(H,X,Y,F)]
+%   , HConstraints = []
+%   , lprove_right_unfold(GAtoms,GConstraints,HAtoms,HConstraints,OrSetRU)
+%   , !
+%   , printf("OrSetRU:\n%\n", [OrSetRU])
+%   .
 
 run :-
 
@@ -143,7 +143,6 @@ run :-
 % aux tests for debugging purposes.
 % run_ll_lr_aux_1,
 % run_ll_lr_aux_2,
-% run_ll_lr_aux_3,
 
   !,
 

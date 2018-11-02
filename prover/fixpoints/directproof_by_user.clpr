@@ -1,4 +1,4 @@
-lprove_direct_by_user(_GAtoms,_GConstraints,HAtoms,HConstraints) :- true
+lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
   , printf("%% ========================\n", [])
   , printf("GAtoms = %\nGConstraints = %\nHAtoms = %\nHConstraints = %\n\n", 
     [GAtoms,GConstraints,HAtoms,HConstraints])
@@ -29,14 +29,14 @@ lprove_direct_by_user(_GAtoms,_GConstraints,HAtoms,HConstraints) :- true
 % We know that: `GConstraints` can't be proved satisfiable
 % Since directproof doesn't do any unfolding and `lr` is on the RHS only,
 % direct cannot prove these.
-% lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
+% lprove_direct_by_user(GAtoms,_GConstraints,HAtoms,_HConstraints) :- true
 %   , GAtoms = []
 %   , HAtoms = [lr(A, B, C, D) | REST]
 %   , !
 %   , printf("\n---DP fails---\n", [])
 %   , fail
 %   .
-% lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
+% lprove_direct_by_user(GAtoms,_GConstraints,HAtoms,_HConstraints) :- true
 %   , GAtoms = [ll(A, B, C, D)]
 %   , HAtoms = [lr(A, B, C, D) | REST]
 %   , !
@@ -48,7 +48,7 @@ lprove_direct_by_user(_GAtoms,_GConstraints,HAtoms,HConstraints) :- true
 % Don't know. Ask User.
 % =====================
 
-lprove_direct_by_user(GAtoms,GConstraints,HAtoms,HConstraints) :- true
+lprove_direct_by_user(_GAtoms,_GConstraints,_HAtoms,_HConstraints) :- true
   , printf("\n---help me decide---\n", [])
   , printf("\n---valid or not? ('y.' for yes and 'n.' for no)---\n", [])
   , read(Ans)
