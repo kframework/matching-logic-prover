@@ -703,21 +703,9 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , length(BRPs_samehead, BRPs_samehead_len)
   , printf("\n---head occurs % time(s) in body---\n", [BRPs_samehead_len])
 
-  , unify_one_to_more(LRP, BRPs_samehead, USubsts)
-  , printf("USubsts=\n%\n", [USubsts])
-
-
-  % apply all substitutions in USubsts to LRPs, LCPs, RRPs, RCPs
-
-  % Modulo identity substitutions, codomain of each USubsts_i is CritActVars_i
-  % AffectedPasVs are PasVs that "depend on"  ActVs.
-
-  % "depends_on": Assume SSA. This means:
-  %
-  % * Assume eq, eqset... have LHS a unconstrained variable
-  % * Since gt and other predicates are implicitly equivalent to: B = p(X, Y, ...); eq(B, true)
-  %   these generate no new dependencies.
-
+  % Calculate important variable sets.
+  % Go to z3_wrapper.clpr and search for "unord" for more functions about
+  % sets.
   , flatten([[LRP],LRPs,LCPs,RRPs,RCPs], Ps)
   , fv(Ps, Vs)
   , flatten([[LRP], LRPs, LCPs], Ps_left)
@@ -728,7 +716,95 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , unord_setdiff(Vs, UVs, EVs)      % implicitly existential quantified
   , fv([LRP], ActVs)                 % active variables
   , unord_setdiff(UVs, ActVs, PasVs) % passive variables
+
+  % Unfolding
+  , unify_one_to_more(LRP, BRPs_samehead, USubsts)
+  , printf("USubsts=\n%\n", [USubsts])
+
+
+  % apply all substitutions in USubsts to LRPs, LCPs, RRPs, RCPs
+
+  % TODO
+  % apply_multiple_substitutions(USubsts, LRPs, LRPs_U_list)
+  % apply_multiple_substitutions(USubsts, LCPs, LCPs_U_list)
+  % apply_multiple_substitutions(USubsts, RRPs, RRPs_U_list)
+  % apply_multiple_substitutions(USubsts, RCPs, RCPs_U_list)
+  % Here, LRPs_U_list = [LRPs_U_1 , ... , LRPs_U_k].
+  % where LRPs_U_i is the result of applying USubst_i upon the 
+  % list of patterns LRPs.
+
+  % Modulo identity substitutions, codomain (CORRECTION: should be "domain") of each USubsts_i is CritActVars_i
+
+  % TODO
+  % get_CritActVars_list(LRP, BRPs_samehead, CritActVars_list)
+
+  % AffectedPasVs are PasVs that "depend on"  ActVs.
+  % NOTE1: AffectedPasVs_i, for i = 1 ... k where k = BRPs_samehead_len
+  % This is because different BRP_samehead rename variables differently,
+  % and thus the affected passive variables might also be different.  
+  % NOTE2: AffectedPasVs_i depend on CritActVs_i. This is because
+  % NonCritActVs_i, which is ActVs_i \ CritActVs_i, do not change
+  % by definition. Therefore, even if a passive variable depends on
+  % an active variable, as long as the active variable is not changed
+  % by the unfolding substitution USubst_i, then the passive variable
+  % should keep the same. 
+
+  % TODO
+  % find_affected_variables(LCPs, CritActVars_list, PasVs, AffectedPasVs_list)
+
+  % NOTE: AfffectedPasVs depend only on CritActVars.
+
+  % "depends_on": Assume SSA. This means:
+  %
+  % * Assume eq, eqset... have LHS a unconstrained variable
+  % * Since gt and other predicates are implicitly equivalent to: B = p(X, Y, ...); eq(B, true)
+  %   these generate no new dependencies.
+
+
+  % Affection substitutions AffectedSubst_i. The domain (do not modulo identity
+  % substitution) contains exactly all variables PasVs. Now, all variables
+  % in AffectedPasVs_i are renamed to something fresh, and keep the rest
+  % untouched. In other words, the domain (modulo identity substitition) is
+  % AffectedPasVs_i.
+
+  % get_ASubsts(AffectedPasVs_list, ASubsts)
+
+
+  % apply USubst_i and ASubst_i, in order, on
+  % LRPs,LCPs -> (exists EVs .) RRPs,RCPs
+  % make sure the following does work! Here LRPs_U_list is one more level nested than
+  % just LRPs! It's a list of lists.
+  % apply_multiple_substitutions(ASubsts, LRPs_U_list, LRPs_UA_list)
+  % apply_multiple_substitutions(ASubsts, LCPs_U_list, LCPs_UA_list)
+  % apply_multiple_substitutions(ASubsts, RRPs_U_list, RRPs_UA_list)
+  % apply_multiple_substitutions(ASubsts, RCPs_U_list, RCPs_UA_list)
+
+
+  % Construct k (Premise) proof obligations. They have the form
+  % LRPs,LCPs,BRPs,BCPs -> (exists EVs .) LRPs_UA_i,LCPs_UA_i, i = 1 ... k
+  % These proof obligations are called (Premise) because
+  % They try to establish the left-hand side after substitutions.
+  % Even though we can merge these k (Premise) proof obligations into
+  % a big one, we may not want to do that, because that makes the proof
+  % more complicated.
+
+  % make_KT_premise_obligations(LRPs, LCPs, BRPs, BCPs, LRPs_UA_list, LCPs_UA_list, PremiseOBs)
+
+  % Construct the (Conclusion) proof obligation. It has the form
+  % LRPs,LCP,BRPs,BCPs,LRPs_UA_i,LCPs_UA_i,RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]
+  % -> RRPs, RCPs.
+
+  % generate k fresh copies of EVs
+  % get_multiple_fresh_copies(BRPs_samehead_len, EVs, FreshEVs_list)
+
+  % make_KT_conclusion_obligation(LRPs,LCPs,BRPs,BCPs,LRPs_UA_list,LCPs_UA_list, FreshEVs_list, RRPs,RCPs, ConcOB)
+
+  % CNF = [ConcOb|PremiseOBs]
+
+
+
   .
+
 
 
 
