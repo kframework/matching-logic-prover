@@ -696,7 +696,6 @@ lprove_kt_all_bodies_aux(_LRP, _LRPs, _LCPs, _RRPs, _RCPs,
 %%%% todo %%%%
 
 lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
-
   , LRP =.. [H|_]
   , body(BRPs, BCPs) = Body
   , gather_by_head(H, BRPs, BRPs_samehead, BRPs_diffhead)
@@ -707,7 +706,17 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , unify_one_to_more(LRP, BRPs_samehead, USubsts)
   , printf("USubsts=\n%\n", [USubsts])
 
+
   % apply all substitutions in USubsts to LRPs, LCPs, RRPs, RCPs
+
+  % Modulo identity substitutions, codomain of each USubsts_i is CritActVars_i
+  % AffectedPasVs are PasVs that "depend on"  ActVs.
+
+  % "depends_on": Assume SSA. This means:
+  %
+  % * Assume eq, eqset... have LHS a unconstrained variable
+  % * Since gt and other predicates are implicitly equivalent to: B = p(X, Y, ...); eq(B, true)
+  %   these generate no new dependencies.
 
   , flatten([[LRP],LRPs,LCPs,RRPs,RCPs], Ps)
   , fv(Ps, Vs)
