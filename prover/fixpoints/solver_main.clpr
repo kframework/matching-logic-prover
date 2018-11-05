@@ -216,6 +216,8 @@ substitute(_Assign, [], []) :- true
   , !
   .
 substitute([EQ | EQS], [TS], Out) :- true
+  , EQ = eq(L, R) % This forces the "BAD SUBSTITUTION" case when EQ is not an equation
+  , var(L)
   , !
   , substitute([EQ], [TS], Out1)
   , substitute(EQS,  Out1, Out)
