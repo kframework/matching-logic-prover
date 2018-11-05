@@ -129,6 +129,27 @@ run_ll_lr_aux_2 :- true
 %   , printf("OrSetRU:\n%\n", [OrSetRU])
 %   .
 
+% run ll_lr from the beginning, apply KT
+run_ll_lr_aux_4 :- true
+  , printf("\n---begin---\n",[])
+  , LRP = ll(H,X,Y,F)
+  , LRPs = []
+  , LCPs = []
+  , RRPs = [lr(H,X,Y,F)]
+  , RCPs = []
+  , Body = body( [ll(H,X1,Y,F1)]
+               , [ gt(X, 0)
+                 , eq(X1, ref(H, X))
+                 , z3_not(mem(X1, F1))
+                 , eqset(F, add(F1, X1))
+                 ]
+               )
+  , lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, Out )
+  , !
+  , printf("Out:\n%\n", [Out])
+  .
+
+
 run :-
 
 % main tests
@@ -142,7 +163,8 @@ run :-
 
 % aux tests for debugging purposes.
 % run_ll_lr_aux_1,
-  run_ll_lr_aux_2,
+% run_ll_lr_aux_2,
+  run_ll_lr_aux_4,
 
   !,
 
