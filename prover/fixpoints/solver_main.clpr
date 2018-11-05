@@ -125,6 +125,9 @@ freshcopy([X|Xs],[Y|Ys]) :- true
   , freshcopy(Xs,Ys)
   .
 
+% Substitutions and Unfiers
+% =========================
+
 %--------------------------------------------------------------------
 % get_unifier(LHS, RHS, Unifier)
 % LHS: List of terms
@@ -241,6 +244,43 @@ apply_multiple_substitutions(X1, X2, _) :- true
  , printf("==== apply_multiple_substitutions failed! % %\n", [X1, X2])
  , fail
  .
+
+% Get the list of domains from a list of substitutions.
+% This ignores trivial equations `eq(X, X)`
+
+% substitutions_get_domains(Ss, _) :- true
+%  , printf("substitutions_get_domains: %\n", [Ss])
+%  , fail
+%  .
+substitutions_get_domains([], []) :- true
+ , !
+ .
+substitutions_get_domains([Subst0], []) :- true
+ , Subst0 = [eq(L, R)]
+ , var(L)
+ , L == R
+ , !
+ .
+substitutions_get_domains([Subst0], [[L]]) :- true
+ , Subst0 = [eq(L, R)]
+ , var(L)
+ , !
+ .
+substitutions_get_domains([Subst0], [Domain0]) :- true
+ , Subst0 = [EQ | EQs]
+ , EQ = eq(L, R)
+ , !
+ , substitutions_get_domains([[EQ]], [D1])
+ , substitutions_get_domains([ EQs], [D2])
+ , unord_setunion(D1, D2, Domain0)
+ .
+substitutions_get_domains([Subst0 | Substs], [Domain0 | Domains]) :- true
+ , Subst0 = [EQ | EQS]
+ , !
+ , substitutions_get_domains([Subst0], [Domain0])
+ , substitutions_get_domains( Substs ,  Domains )
+ .
+
 
 %------------------------------------------------------------------------------
 % Lists
@@ -746,12 +786,14 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , apply_multiple_substitutions(USubsts, RCPs, RCPs_U_list)
   % Here, LRPs_U_list = [LRPs_U_1 , ... , LRPs_U_k].
   % where LRPs_U_i is the result of applying USubst_i upon the 
+
   % list of patterns LRPs.
 
-  % Modulo identity substitutions, codomain (CORRECTION: should be "domain") of each USubsts_i is CritActVars_i
-
-  % TODO
-  % get_CritActVars_list(LRP, BRPs_samehead, CritActVars_list)
+  % TODO: This depends on get_unifier()  Since
+  % domain of each USubsts_i is CritActVars_i
+  , substitutions_get_domains(USubsts, CritActVars_list)
+  , printf("CritActVars_list = % \n", [CritActVars_list])
+  % Note that some variables may have been renamed at this point (and thats OK.)
 
   % AffectedPasVs are PasVs that "depend on"  ActVs.
   % NOTE1: AffectedPasVs_i, for i = 1 ... k where k = BRPs_samehead_len
@@ -779,7 +821,7 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   % Affection substitutions AffectedSubst_i. The domain (do not modulo identity
   % substitution) contains exactly all variables PasVs. Now, all variables
   % in AffectedPasVs_i are renamed to something fresh, and keep the rest
-  % untouched. In other words, the domain (modulo identity substitition) is
+  % untouched. In other words, the domain (modulo identity substitution) is
   % AffectedPasVs_i.
 
   % get_ASubsts(AffectedPasVs_list, ASubsts)
