@@ -219,7 +219,7 @@ substitute(_Assign, [], []) :- true
   , !
   .
 substitute([EQ | EQS], [TS], Out) :- true
-  , EQ = eq(L, R) % This forces the "BAD SUBSTITUTION" case when EQ is not an equation
+  , EQ = eq(L, _R) % This forces the "BAD SUBSTITUTION" case when EQ is not an equation
   , var(L)
   , !
   , substitute([EQ], [TS], Out1)
@@ -234,15 +234,21 @@ substitute(EQS, Term, _) :- true
   .
 
 % Apply multiple substitutions at once
-apply_multiple_substitutions([Subst0 | Substs], Ps, [Ps_Subst0 | Ps_Substs]) :- true
- , substitute(Subst0, Ps, Ps_Subst0)
- , apply_multiple_substitutions(Substs, Ps, Ps_Substs)
- .
 apply_multiple_substitutions([], _, []) :- true
+ , !
+ .
+apply_multiple_substitutions([Subst], Ps, [Ps_Substs]) :- true
+ , !
+ , substitute(Subst, Ps, Ps_Substs)
+ .
+apply_multiple_substitutions([Subst | Substs], Ps, [Ps_Subst0 | Ps_Substs]) :- true
+ , apply_multiple_substitutions([Subst], Ps, Ps_Substs)
+ , apply_multiple_substitutions( Substs, Ps, Ps_Substs)
+ , !
  .
 apply_multiple_substitutions(X1, X2, _) :- true
  , printf("==== apply_multiple_substitutions failed! % %\n", [X1, X2])
- , fail
+ , halt
  .
 
 % Get the list of domains from a list of substitutions.
@@ -262,20 +268,20 @@ substitutions_get_domains([Subst0], []) :- true
  , !
  .
 substitutions_get_domains([Subst0], [[L]]) :- true
- , Subst0 = [eq(L, R)]
+ , Subst0 = [eq(L, _R)]
  , var(L)
  , !
  .
 substitutions_get_domains([Subst0], [Domain0]) :- true
  , Subst0 = [EQ | EQs]
- , EQ = eq(L, R)
+ , EQ = eq(_L, _R)
  , !
  , substitutions_get_domains([[EQ]], [D1])
  , substitutions_get_domains([ EQs], [D2])
  , unord_setunion(D1, D2, Domain0)
  .
 substitutions_get_domains([Subst0 | Substs], [Domain0 | Domains]) :- true
- , Subst0 = [EQ | EQS]
+ , Subst0 = [_EQ | _EQS]
  , !
  , substitutions_get_domains([Subst0], [Domain0])
  , substitutions_get_domains( Substs ,  Domains )
@@ -332,6 +338,10 @@ collect_variables([Term | Terms], Outs) :- true
   , collect_variables(Terms, Outs1)
   , delete_var(Outs1, Outs0, Outs2)
   , append(Outs0, Outs2, Outs)
+  .
+collect_variables(In, []) :- true
+  , printf("collect_variables: Got %; Requires List\n", [In])
+  , halt
   .
 
 delete_var([], _, []) :- true
@@ -418,6 +428,100 @@ pick_by_position(AllVs, [P|Ps], [V|Vs]) :- true
   , nth1(P, AllVs, V)
 % , printf("P = %\nV = %\n", [P,V])
   , pick_by_position(AllVs, Ps, Vs)
+  .
+
+
+% dependent_variables(InitialVs, Constraints, DependentVs)
+% ----------------------------------------------------------------------
+%
+% InitialVs: List of Variables
+% Constraints: List of Constraints
+% 
+% Return the minimal set of variables such that contains the set of variables
+% the transitively "depend on" the InitialVs.
+%
+% A variable `D` depends on `V` iff there is an equality `equality(D, T)`
+% and `V` is one of the free variables of `T`, where `equality` is a constructor
+% accepted by `dependent_variables__is_equality`
+%
+
+% Calculate fixed point of dependent_variables_aux
+dependent_variables(IVs, Constraints, DependentVs) :- true
+  , dependent_variables_aux(IVs, Constraints, DVs1)
+  , dependent_variables_1(IVs, DVs1, Constraints, DependentVs)
+  , !
+  .
+dependent_variables_1(IVs, DVs1, _Constraints, DependentVs) :- true
+  , IVs == DVs1
+  , !
+  , DependentVs = DVs1
+  , !
+  .
+dependent_variables_1(_IVs, DVs1, Constraints, DependentVs) :- true
+  , !
+  , dependent_variables(DVs1, Constraints, DependentVs)
+  .
+
+dependent_variables__is_equality(eq) .
+dependent_variables__is_equality(eqset) .
+
+dependent_variables__is_other_predicate(gt) .
+dependent_variables__is_other_predicate(mem) .
+dependent_variables__is_other_predicate(add) .
+
+dependent_variables__append_if_member_special(IV, L, RVs, DependentVs) :- true
+  , member_special(IV, RVs)
+  , !
+  , list_to_set([IV, L], DependentVs)
+  .
+dependent_variables__append_if_member_special(IV, _L, _RVs, DependentVs) :- true
+  , DependentVs = [IV]
+  .
+
+% Base cases
+dependent_variables_aux([], _Constraints, []) :- true
+  .
+dependent_variables_aux(InitialVs, [], InitialVs) :- true
+  .
+dependent_variables_aux([IV], [T], DependentVs) :- true
+  , var(IV)
+  , T =.. [Ctor, L, R]
+  , dependent_variables__is_equality(Ctor)
+  , var(L)
+  , !
+  , collect_variables([R], RVs)
+  , dependent_variables__append_if_member_special(IV, L, RVs, DependentVs)
+  .
+dependent_variables_aux([IV], [T], [IV]) :- true
+  , var(IV)
+  , T =.. [Ctor | _Args]
+  , dependent_variables__is_other_predicate(Ctor)
+  , !
+  .
+dependent_variables_aux([IV], [z3_not(P)], [IV]) :- true
+  , !
+  , dependent_variables_aux([IV], [P], [IV])
+  .
+dependent_variables_aux([IV], [C], _DependentVs) :- true
+  , var(IV)
+  , !
+  , printf("dependent_variables_aux: Unimplemented base case! %\n", [C])
+  , halt
+  .
+
+% Recursive cases
+dependent_variables_aux([IV], [C | Cs], DependentVs) :- true
+  , var(IV)
+  , !
+  , dependent_variables_aux([IV], [C], DependentVs1)
+  , dependent_variables_aux([IV],  Cs, DependentVs2)
+  , unord_setunion(DependentVs1, DependentVs2, DependentVs)
+  .
+dependent_variables_aux([IV | IVs], Constraints, DependentVs) :- true
+  , !
+  , dependent_variables_aux([IV], Constraints, DependentVs1)
+  , dependent_variables_aux( IVs, Constraints, DependentVs2)
+  , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
 
 %------------------------------------------------------------------------------
@@ -806,17 +910,16 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   % by the unfolding substitution USubst_i, then the passive variable
   % should keep the same. 
 
-  % TODO
+  , CritActVars_list = [CritActVars_0]
+  , !
+  , dependent_variables(CritActVars_0, BCPs, AffectedPasVs_0)
+  , printf("BCPs %\n", [BCPs])
+  , printf("dependent_variables: % => %\n", [CritActVars_0, AffectedPasVs_0])
+  , !
   % find_affected_variables(LCPs, CritActVars_list, PasVs, AffectedPasVs_list)
 
+
   % NOTE: AfffectedPasVs depend only on CritActVars.
-
-  % "depends_on": Assume SSA. This means:
-  %
-  % * Assume eq, eqset... have LHS a unconstrained variable
-  % * Since gt and other predicates are implicitly equivalent to: B = p(X, Y, ...); eq(B, true)
-  %   these generate no new dependencies.
-
 
   % Affection substitutions AffectedSubst_i. The domain (do not modulo identity
   % substitution) contains exactly all variables PasVs. Now, all variables
