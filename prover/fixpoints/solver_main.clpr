@@ -138,6 +138,15 @@ freshcopy([X|Xs],[Y|Ys]) :- true
 %   , printf("GET_UNIFIER: L = % ; R = %\n", [L, R])
 %   , 0 == 1
 %   .
+
+% Don't include `eq(X, X)`
+get_unifier([L|LS], [R|RS], US) :- true
+  , var(L)
+  , var(R)
+  , L == R
+  , !
+  , get_unifier(LS, RS, US)
+  .
 get_unifier([L|LS], [R|RS], [eq(L,R)|US]) :- true
   , var(L)
   , !
