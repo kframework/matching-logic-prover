@@ -230,11 +230,17 @@ substitute(EQS, Term, _) :- true
   , halt
   .
 
-
-
 % Apply multiple substitutions at once
-
-% apply_multiple_substitutions(Substs, Ps, Qs)
+apply_multiple_substitutions([Subst0 | Substs], Ps, [Ps_Subst0 | Ps_Substs]) :- true
+ , substitute(Subst0, Ps, Ps_Subst0)
+ , apply_multiple_substitutions(Substs, Ps, Ps_Substs)
+ .
+apply_multiple_substitutions([], _, []) :- true
+ .
+apply_multiple_substitutions(X1, X2, _) :- true
+ , printf("==== apply_multiple_substitutions failed! % %\n", [X1, X2])
+ , fail
+ .
 
 %------------------------------------------------------------------------------
 % Lists
@@ -732,14 +738,12 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , unify_one_to_more(LRP, BRPs_samehead, USubsts)
   , printf("USubsts=\n%\n", [USubsts])
 
-
   % apply all substitutions in USubsts to LRPs, LCPs, RRPs, RCPs
-
-  % TODO
-  % apply_multiple_substitutions(USubsts, LRPs, LRPs_U_list)
-  % apply_multiple_substitutions(USubsts, LCPs, LCPs_U_list)
-  % apply_multiple_substitutions(USubsts, RRPs, RRPs_U_list)
-  % apply_multiple_substitutions(USubsts, RCPs, RCPs_U_list)
+  , !
+  , apply_multiple_substitutions(USubsts, LRPs, LRPs_U_list)
+  , apply_multiple_substitutions(USubsts, LCPs, LCPs_U_list)
+  , apply_multiple_substitutions(USubsts, RRPs, RRPs_U_list)
+  , apply_multiple_substitutions(USubsts, RCPs, RCPs_U_list)
   % Here, LRPs_U_list = [LRPs_U_1 , ... , LRPs_U_k].
   % where LRPs_U_i is the result of applying USubst_i upon the 
   % list of patterns LRPs.
