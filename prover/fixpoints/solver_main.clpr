@@ -208,13 +208,6 @@ substitute([eq(L, R)], [Term], [Out]) :- true
   , substitute([eq(L, R)], Args, OutArgs)
   , Out =.. [Ctor|OutArgs]
   .
-substitute([eq(L, R)], [T|TS], Out) :- true
-  , var(L)
-  , !
-  , substitute([eq(L, R)], [T], Out1)
-  , substitute([eq(L, R)], TS,  Out2)
-  , append(Out1, Out2, Out)
-  .
 substitute(_Assign, [], []) :- true
   , !
   .
@@ -224,6 +217,11 @@ substitute([EQ | EQS], [TS], Out) :- true
   , !
   , substitute([EQ], [TS], Out1)
   , substitute(EQS,  Out1, Out)
+  .
+substitute(EQs, [T|TS], Out) :- true
+  , substitute(EQs, [T], Out1)
+  , substitute(EQs,  TS, Out2)
+  , append(Out1, Out2, Out)
   .
 substitute([], Term, Term) :- true
   , !
