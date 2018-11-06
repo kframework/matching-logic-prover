@@ -431,96 +431,96 @@ pick_by_position(AllVs, [P|Ps], [V|Vs]) :- true
   .
 
 
-% dependent_variables(InitialVs, Constraints, DependentVs)
+% find_affected_variables(CritActVs, Constraints, DependentVs)
 % ----------------------------------------------------------------------
 %
-% InitialVs: List of Variables
+% CritActVs: List of Variables
 % Constraints: List of Constraints
 % 
 % Return the minimal set of variables such that contains the set of variables
-% the transitively "depend on" the InitialVs.
+% the transitively "depend on" the CritActVs.
 %
 % A variable `D` depends on `V` iff there is an equality `equality(D, T)`
 % and `V` is one of the free variables of `T`, where `equality` is a constructor
-% accepted by `dependent_variables__is_equality`
+% accepted by `find_affected_variables__is_equality`
 %
 
-% Calculate fixed point of dependent_variables_aux
-dependent_variables(IVs, Constraints, DependentVs) :- true
-  , dependent_variables_aux(IVs, Constraints, DVs1)
-  , dependent_variables_1(IVs, DVs1, Constraints, DependentVs)
+% Calculate fixed point of find_affected_variables_aux
+find_affected_variables(CritActVs, Constraints, DependentVs) :- true
+  , find_affected_variables_aux(CritActVs, Constraints, DVs1)
+  , find_affected_variables_1(CritActVs, DVs1, Constraints, DependentVs)
   , !
   .
-dependent_variables_1(IVs, DVs1, _Constraints, DependentVs) :- true
-  , IVs == DVs1
+find_affected_variables_1(CritActVs, DVs1, _Constraints, DependentVs) :- true
+  , CritActVs == DVs1
   , !
   , DependentVs = DVs1
   , !
   .
-dependent_variables_1(_IVs, DVs1, Constraints, DependentVs) :- true
+find_affected_variables_1(_IVs, DVs1, Constraints, DependentVs) :- true
   , !
-  , dependent_variables(DVs1, Constraints, DependentVs)
+  , find_affected_variables(DVs1, Constraints, DependentVs)
   .
 
-dependent_variables__is_equality(eq) .
-dependent_variables__is_equality(eqset) .
+find_affected_variables__is_equality(eq) .
+find_affected_variables__is_equality(eqset) .
 
-dependent_variables__is_other_predicate(gt) .
-dependent_variables__is_other_predicate(mem) .
-dependent_variables__is_other_predicate(add) .
+find_affected_variables__is_other_predicate(gt) .
+find_affected_variables__is_other_predicate(mem) .
+find_affected_variables__is_other_predicate(add) .
 
-dependent_variables__append_if_member_special(IV, L, RVs, DependentVs) :- true
-  , member_special(IV, RVs)
+find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs) :- true
+  , member_special(CritActV, RVs)
   , !
-  , list_to_set([IV, L], DependentVs)
+  , list_to_set([CritActV, L], DependentVs)
   .
-dependent_variables__append_if_member_special(IV, _L, _RVs, DependentVs) :- true
-  , DependentVs = [IV]
+find_affected_variables__append_if_member_special(CritActV, _L, _RVs, DependentVs) :- true
+  , DependentVs = [CritActV]
   .
 
 % Base cases
-dependent_variables_aux([], _Constraints, []) :- true
+find_affected_variables_aux([], _Constraints, []) :- true
   .
-dependent_variables_aux(InitialVs, [], InitialVs) :- true
+find_affected_variables_aux(CritActVs, [], CritActVs) :- true
   .
-dependent_variables_aux([IV], [T], DependentVs) :- true
-  , var(IV)
+find_affected_variables_aux([CritActV], [T], DependentVs) :- true
+  , var(CritActV)
   , T =.. [Ctor, L, R]
-  , dependent_variables__is_equality(Ctor)
+  , find_affected_variables__is_equality(Ctor)
   , var(L)
   , !
   , collect_variables([R], RVs)
-  , dependent_variables__append_if_member_special(IV, L, RVs, DependentVs)
+  , find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs)
   .
-dependent_variables_aux([IV], [T], [IV]) :- true
-  , var(IV)
+find_affected_variables_aux([CritActV], [T], [CritActV]) :- true
+  , var(CritActV)
   , T =.. [Ctor | _Args]
-  , dependent_variables__is_other_predicate(Ctor)
+  , find_affected_variables__is_other_predicate(Ctor)
   , !
   .
-dependent_variables_aux([IV], [z3_not(P)], [IV]) :- true
+find_affected_variables_aux([CritActV], [z3_not(P)], [CritActV]) :- true
   , !
-  , dependent_variables_aux([IV], [P], [IV])
+  , find_affected_variables_aux([CritActV], [P], [CritActV])
   .
-dependent_variables_aux([IV], [C], _DependentVs) :- true
-  , var(IV)
+find_affected_variables_aux([CritActV], [C], _DependentVs) :- true
+  , var(CritActV)
   , !
-  , printf("dependent_variables_aux: Unimplemented base case! %\n", [C])
+  , printf("find_affected_variables_aux: Unimplemented base case! %\n", [C])
   , halt
   .
 
 % Recursive cases
-dependent_variables_aux([IV], [C | Cs], DependentVs) :- true
-  , var(IV)
+find_affected_variables_aux([CritActV], [C | Cs], DependentVs) :- true
+  , var(CritActV)
   , !
-  , dependent_variables_aux([IV], [C], DependentVs1)
-  , dependent_variables_aux([IV],  Cs, DependentVs2)
+  , find_affected_variables_aux([CritActV], [C], DependentVs1)
+  , find_affected_variables_aux([CritActV],  Cs, DependentVs2)
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
-dependent_variables_aux([IV | IVs], Constraints, DependentVs) :- true
+find_affected_variables_aux([CritActV | CritActVs], Constraints, DependentVs) :- true
   , !
-  , dependent_variables_aux([IV], Constraints, DependentVs1)
-  , dependent_variables_aux( IVs, Constraints, DependentVs2)
+  , find_affected_variables_aux([CritActV], Constraints, DependentVs1)
+  , find_affected_variables_aux( CritActVs, Constraints, DependentVs2)
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
 
@@ -894,9 +894,9 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   % list of patterns LRPs.
 
   % TODO: This depends on get_unifier()  Since
-  % domain of each USubsts_i is CritActVars_i
-  , substitutions_get_domains(USubsts, CritActVars_list)
-  , printf("CritActVars_list = % \n", [CritActVars_list])
+  % domain of each USubsts_i is CritActVs_i
+  , substitutions_get_domains(USubsts, CritActVs_list)
+  , printf("CritActVs_list = % \n", [CritActVs_list])
   % Note that some variables may have been renamed at this point (and thats OK.)
 
   % AffectedPasVs are PasVs that "depend on"  ActVs.
@@ -910,16 +910,16 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   % by the unfolding substitution USubst_i, then the passive variable
   % should keep the same. 
 
-  , CritActVars_list = [CritActVars_0]
+  , CritActVs_list = [CritActVs_0]
   , !
-  , dependent_variables(CritActVars_0, BCPs, AffectedPasVs_0)
+  , find_affected_variables(CritActVs_0, BCPs, AffectedPasVs_0)
   , printf("BCPs %\n", [BCPs])
-  , printf("dependent_variables: % => %\n", [CritActVars_0, AffectedPasVs_0])
+  , printf("find_affected_variables: % => %\n", [CritActVs_0, AffectedPasVs_0])
   , !
-  % find_affected_variables(LCPs, CritActVars_list, PasVs, AffectedPasVs_list)
+  % find_affected_variables(LCPs, CritActVs_list, PasVs, AffectedPasVs_list)
 
 
-  % NOTE: AfffectedPasVs depend only on CritActVars.
+  % NOTE: AfffectedPasVs depend only on CritActVs.
 
   % Affection substitutions AffectedSubst_i. The domain (do not modulo identity
   % substitution) contains exactly all variables PasVs. Now, all variables
