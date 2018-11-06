@@ -429,7 +429,7 @@ pick_by_position(AllVs, [P|Ps], [V|Vs]) :- true
   .
 
 
-% find_affected_variables(CritActVs, Constraints, DependentVs)
+% find_affected_variables(CritActVs, NonCritActVs_i, Constraints, DependentVs)
 % ----------------------------------------------------------------------
 %
 % CritActVs: List of Variables
@@ -444,20 +444,20 @@ pick_by_position(AllVs, [P|Ps], [V|Vs]) :- true
 %
 
 % Calculate fixed point of find_affected_variables_aux
-find_affected_variables(CritActVs, Constraints, DependentVs) :- true
-  , find_affected_variables_aux(CritActVs, Constraints, DVs1)
-  , find_affected_variables_1(CritActVs, DVs1, Constraints, DependentVs)
+find_affected_variables(InitialVaraibles, NonCritActVs, Constraints, DependentVs) :- true
+  , find_affected_variables_aux(InitialVaraibles, Constraints, DVs1)
+  , unord_setdiff(DVs1, NonCritActVs, DVs2)
+  , find_affected_variables_1(InitialVaraibles, NonCritActVs, DVs2, Constraints, DependentVs)
   , !
   .
-find_affected_variables_1(CritActVs, DVs1, _Constraints, DependentVs) :- true
-  , CritActVs == DVs1
+find_affected_variables_1(InitialVaraibles, NonCritActVs, DVs1, _Constraints, AffectedPasVs) :- true
+  , InitialVaraibles == DVs1
   , !
-  , DependentVs = DVs1
-  , !
+  , unord_setdiff(DVs1, NonCritActVs, AffectedPasVs)
   .
-find_affected_variables_1(_IVs, DVs1, Constraints, DependentVs) :- true
+find_affected_variables_1(_IVs, NonCritActVs, DVs1, Constraints, DependentVs) :- true
   , !
-  , find_affected_variables(DVs1, Constraints, DependentVs)
+  , find_affected_variables(DVs1, NonCritActVs, Constraints, DependentVs)
   .
 
 find_affected_variables__is_equality(eq) .
@@ -479,8 +479,9 @@ find_affected_variables__append_if_member_special(CritActV, _L, _RVs, DependentV
 % Base cases
 find_affected_variables_aux([], _Constraints, []) :- true
   .
-find_affected_variables_aux(CritActVs, [], CritActVs) :- true
+find_affected_variables_aux(InitialVaraibles, [], InitialVaraibles) :- true
   .
+
 find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , var(CritActV)
   , T =.. [Ctor, L, R]
@@ -496,9 +497,11 @@ find_affected_variables_aux([CritActV], [T], [CritActV]) :- true
   , find_affected_variables__is_other_predicate(Ctor)
   , !
   .
-find_affected_variables_aux([CritActV], [z3_not(P)], [CritActV]) :- true
+find_affected_variables_aux([CritActV], [eqset(emptyset, _R)], [CritActV]) :- true
+  .
+find_affected_variables_aux([CritActV], [z3_not(P)], DependentVs) :- true
   , !
-  , find_affected_variables_aux([CritActV], [P], [CritActV])
+  , find_affected_variables_aux([CritActV], [P], DependentVs)
   .
 find_affected_variables_aux([CritActV], [C], _DependentVs) :- true
   , var(CritActV)
@@ -515,10 +518,10 @@ find_affected_variables_aux([CritActV], [C | Cs], DependentVs) :- true
   , find_affected_variables_aux([CritActV],  Cs, DependentVs2)
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
-find_affected_variables_aux([CritActV | CritActVs], Constraints, DependentVs) :- true
+find_affected_variables_aux([CritActV | InitialVaraibles], Constraints, DependentVs) :- true
   , !
   , find_affected_variables_aux([CritActV], Constraints, DependentVs1)
-  , find_affected_variables_aux( CritActVs, Constraints, DependentVs2)
+  , find_affected_variables_aux( InitialVaraibles, Constraints, DependentVs2)
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
 
@@ -878,10 +881,10 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
 
   , BRPs_samehead = [BRP_samehead_0]
   , !
-  , lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, BRP_samehead_0, CNF)
+  , lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRP_samehead_0, CNF)
   .
 
-lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, BRP_samehead_i, CNF) :- true
+lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRP_samehead_i, CNF) :- true
   % Unfolding
   , get_unifier([LRP], [BRP_samehead_i], USubst_i)
   , printf("USubst_i = %\n", [USubst_i])
@@ -907,17 +910,16 @@ lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, BRP_samehead_i, CNF) :- tru
   % This is because different BRP_samehead rename variables differently,
   % and thus the affected passive variables might also be different.  
   % NOTE2: AffectedPasVs_i depend on CritActVs_i. This is because
-  % NonCritActVs_i, which is ActVs_i \ CritActVs_i, do not change
+  % NonCritActVs_i, which is ActVs \ CritActVs_i, do not change
   % by definition. Therefore, even if a passive variable depends on
   % an active variable, as long as the active variable is not changed
   % by the unfolding substitution USubst_i, then the passive variable
   % should keep the same. 
 
-  , !
-  , find_affected_variables(CritActVs_i, BCPs, AffectedPasVs_i)
-  , printf("BCPs %\n", [BCPs])
+  , unord_setdiff(ActVs, CritActVs_i, NonCritActVs_i)
+  , find_affected_variables(CritActVs_i, NonCritActVs_i, LCPs, AffectedPasVs_i)
+  , printf("LCPs %\n", [LCPs])
   , printf("find_affected_variables: % => %\n", [CritActVs_i, AffectedPasVs_i])
-  , !
   % find_affected_variables(LCPs, CritActVs_list, PasVs, AffectedPasVs_list)
 
 
