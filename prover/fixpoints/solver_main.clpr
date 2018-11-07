@@ -165,6 +165,13 @@ get_unifier([L|LS], [R|RS], Out) :- true
   .
 get_unifier([], [], []).
 
+% Given a list of variables create a substitution that replaces them with fresh variables
+make_subst_with_fresh([V], [eq(V, _)]) :- true
+  .
+make_subst_with_fresh([V | Vs], [EQ | EQs]) :- true
+  , make_subst_with_fresh([V], [EQ])
+  , make_subst_with_fresh( Vs,  EQs)
+  .
 
 
 % unify_one_to_more(+L, +Rs, -Substs)
@@ -879,12 +886,55 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , fv([LRP], ActVs)                 % active variables
   , unord_setdiff(UVs, ActVs, PasVs) % passive variables
 
-  , BRPs_samehead = [BRP_samehead_0]
   , !
-  , lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRP_samehead_0, CNF)
+  , lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRPs_samehead
+                      , PremiseOb_list, ConcLRFragment_list, ConcLCFragment_list
+                      )
+
+  % Construct the (Conclusion) proof obligation. It has the form
+  % LRPs,LCP,BRPs,BCPs,LRPs_UA_i,LCPs_UA_i,RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]
+  % -> RRPs, RCPs.
+  % ConcLRFragment_i contains: LRPs_UA_i,RRPs_UA_i[FreshEVs_i/EVs]
+  % ConcLCFragment_i contains: LCPs_UA_i,RCPs_UA_i[FreshEVs_i/EVs]
+
+  , append(LRPs, BRPs, NewLRPs1), append(NewLRPs1, ConcLRFragment_list, NewLRPs)
+  , append(LCPs, BRPs, NewLCPs1), append(NewLCPs1, ConcLCFragment_list, NewLCPs)
+  , ConcOb = obligation(NewLRPs, NewLCPs, RRPs, RCPs)
+  , CNF = [ConcOb|PremiseOb_list]
   .
 
-lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRP_samehead_i, CNF) :- true
+lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
+                  , [BRP_samehead_1 | BRP_samehead_rest]
+                  % Input params
+
+                  , [PremiseOb_1 | PremiseOb_rest]
+                  , ConcLRFragment_list
+                  , ConcLCFragment_list
+                  % Output params
+                  ) :- true
+  , !
+  , lprove_kt_one_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
+                     , BRP_samehead_1
+                     , PremiseOb_1
+                     , ConcLRFragment_1
+                     , ConcLCFragment_1
+                     )
+  , lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
+                      , BRP_samehead_rest
+                      , PremiseOb_rest
+                      , ConcLRFragment_rest
+                      , ConcLCFragment_rest
+                      )
+  , append(ConcLRFragment_1, ConcLRFragment_rest, ConcLRFragment_list)
+  , append(ConcLCFragment_1, ConcLCFragment_rest, ConcLCFragment_list)
+  .
+lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs , [] % Input params
+                  , [], [], [] % Output params
+                  ) :- true
+  .
+lprove_kt_one_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_i   % Input params
+                 , PremiseOb, ConcLRFragment_i, ConcLCFragment_i                    % Output params
+                 ) :- true
   % Unfolding
   , get_unifier([LRP], [BRP_samehead_i], USubst_i)
   , printf("USubst_i = %\n", [USubst_i])
@@ -920,8 +970,6 @@ lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRP_samehead_i, CNF)
   , find_affected_variables(CritActVs_i, NonCritActVs_i, LCPs, AffectedPasVs_i)
   , printf("LCPs %\n", [LCPs])
   , printf("find_affected_variables: % => %\n", [CritActVs_i, AffectedPasVs_i])
-  % find_affected_variables(LCPs, CritActVs_list, PasVs, AffectedPasVs_list)
-
 
   % NOTE: AfffectedPasVs depend only on CritActVs.
 
@@ -931,39 +979,41 @@ lprove_kt_one_brp(LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRP_samehead_i, CNF)
   % untouched. In other words, the domain (modulo identity substitution) is
   % AffectedPasVs_i.
 
-  % get_ASubsts(AffectedPasVs_list, ASubsts)
+  , make_subst_with_fresh(AffectedPasVs_i, ASubst_i)
+  , printf("ASubst_i: %\n", [ASubst_i])
 
   % apply USubst_i and ASubst_i, in order, on
   % LRPs,LCPs -> (exists EVs .) RRPs,RCPs
-  % make sure the following does work! Here LRPs_U_list is one more level nested than
-  % just LRPs! It's a list of lists.
-  % apply_multiple_substitutions(ASubsts, LRPs_U_list, LRPs_UA_list)
-  % apply_multiple_substitutions(ASubsts, LCPs_U_list, LCPs_UA_list)
-  % apply_multiple_substitutions(ASubsts, RRPs_U_list, RRPs_UA_list)
-  % apply_multiple_substitutions(ASubsts, RCPs_U_list, RCPs_UA_list)
+  , substitute(ASubst_i, LRPs_U_i, LRPs_UA_i)
+  , substitute(ASubst_i, LCPs_U_i, LCPs_UA_i)
+  , substitute(ASubst_i, RRPs_U_i, RRPs_UA_i)
+  , substitute(ASubst_i, RCPs_U_i, RCPs_UA_i)
+  , !
 
-
-  % Construct k (Premise) proof obligations. They have the form
+  % Construct (Premise) proof obligations. They have the form
   % LRPs,LCPs,BRPs,BCPs -> (exists EVs .) LRPs_UA_i,LCPs_UA_i, i = 1 ... k
   % These proof obligations are called (Premise) because
   % They try to establish the left-hand side after substitutions.
   % Even though we can merge these k (Premise) proof obligations into
   % a big one, we may not want to do that, because that makes the proof
   % more complicated.
+  , append(LRPs, BRPs, NewLRPs)
+  , append(LCPs, BCPs, NewLCPs)
+  , PremiseOb = obligation(NewLRPs, NewLCPs, LRPs_UA_i, LCPs_UA_i)
+  , printf("PremiseOb = %\n", [PremiseOb])
 
-  % make_KT_premise_obligations(LRPs, LCPs, BRPs, BCPs, LRPs_UA_list, LCPs_UA_list, PremiseOBs)
+  % generate fresh copies of EVs
+  , make_subst_with_fresh(EVs, FSubst_i)
+  , substitute(FSubst_i, RRPs_UA_i, RRPs_UAF_i)
+  , substitute(FSubst_i, RCPs_UA_i, RCPs_UAF_i)
 
   % Construct the (Conclusion) proof obligation. It has the form
   % LRPs,LCP,BRPs,BCPs,LRPs_UA_i,LCPs_UA_i,RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]
   % -> RRPs, RCPs.
-
-  % generate k fresh copies of EVs
-  % get_multiple_fresh_copies(BRPs_samehead_len, EVs, FreshEVs_list)
-
-  % make_KT_conclusion_obligation(LRPs,LCPs,BRPs,BCPs,LRPs_UA_list,LCPs_UA_list, FreshEVs_list, RRPs,RCPs, ConcOB)
-
-  % CNF = [ConcOb|PremiseOBs]
-
+  % ConcLRFragment_i contains: LRPs_UA_i,RRPs_UA_i[FreshEVs_i/EVs]
+  % ConcLCFragment_i contains: LCPs_UA_i,RCPs_UA_i[FreshEVs_i/EVs]
+  , append(LRPs_UA_i, RRPs_UA_i, ConcLRFragment_i)
+  , append(LCPs_UA_i, RCPs_UA_i, ConcLCFragment_i)
 
 
   .
