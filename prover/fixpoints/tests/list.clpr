@@ -152,25 +152,24 @@ run_ll_list__list__aux_4 :- true
   .
 
 
-run :-
+run :- true
 
 % main tests
 
-% run_ll_lr,
-% run_lr_ll,
-% run_ll_list,
-% run_lr_list,
-% run_ll_list_list,
-% run_lr_list_list,
+% run_ll_lr
+% run_lr_ll
+% run_ll_list
+% run_lr_list
+% run_ll_list_list
+% run_lr_list_list
 
 % aux tests for debugging purposes.
-% run_ll_lr_aux_1,
-% run_ll_lr_aux_2,
-  run_ll_list__list__aux_4,
-
-  !,
-
-  printf("PROOF SUCCEED.\n", []).
+% run_ll_lr_aux_1
+% run_ll_lr_aux_2
+, run_ll_list__list__aux_4
+, !
+, printf("PROOF SUCCEED.\n", [])
+.
 
 run :-
   printf("PROOF FAILED\n", []).
