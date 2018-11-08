@@ -898,7 +898,7 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   % ConcLCFragment_i contains: LCPs_UA_i,RCPs_UA_i[FreshEVs_i/EVs]
 
   , append(LRPs, BRPs, NewLRPs1), append(NewLRPs1, ConcLRFragment_list, NewLRPs)
-  , append(LCPs, BRPs, NewLCPs1), append(NewLCPs1, ConcLCFragment_list, NewLCPs)
+  , append(LCPs, BCPs, NewLCPs1), append(NewLCPs1, ConcLCFragment_list, NewLCPs)
   , ConcOb = obligation(NewLRPs, NewLCPs, RRPs, RCPs)
   , CNF = [ConcOb|PremiseOb_list]
   .
