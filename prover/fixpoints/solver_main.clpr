@@ -585,7 +585,7 @@ rewrite_step(_Rule, [], []).
 
 
 lprove(GoalID, Level, LRPs, LCPs, RRPs, RCPs) :-
-  printf("\n---new proof obligation at level %.---\n\n", [Level]),
+  printf("\n---new proof obligation at level %: %.---\n\n", [Level, GoalID]),
   printf("% %\n  ->\n% %\n",
     [LRPs, LCPs, RRPs, RCPs]),
   fail.
@@ -652,6 +652,7 @@ prove_all(_Level, []) :- true
 
 prove_all(Level, [Ob | R]) :- true
   , Level > 0
+  , Ob = obligation(GoalID, LRPs, LCPs, RRPs, RCPs)
   % length([Ob|R],L)
   % printf("\n---help me decide (size %, level %)---\n", [L,Level])
   % printf(
@@ -660,8 +661,7 @@ prove_all(Level, [Ob | R]) :- true
   % read(Ans)
   % !
   % check_answer(Ans)
-  , printf("---ok I'll continue.\n---", [])
-  , Ob = obligation(GoalID, LRPs, LCPs, RRPs, RCPs)
+  , printf("---ok I'll continue: %\n---", [GoalID])
   , lprove(GoalID, Level - 1, LRPs, LCPs, RRPs, RCPs)
   , prove_all(Level, R)
   , !
@@ -770,7 +770,7 @@ lprove_ru_collect_all_cases(
   % printf("HBody = %\n", [HBody])
   , append(RRPs,BAtoms,NewRRPs)
   , append(RCPs,BConstraints,NewRCPs)
-  , Ob = obligation(GoalID, LRPs,LCPs,NewRRPs,NewRCPs)
+  , Ob = obligation(["RU"|GoalID], LRPs,LCPs,NewRRPs,NewRCPs)
   % printf("\n---right unfold ends---\n", [])
   % printf("Ob = %\n", [Ob])
   , NewInDNF = [[Ob]|InDNF]
@@ -903,7 +903,7 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
 
   , append(LRPs, BRPs, NewLRPs1), append(NewLRPs1, ConcLRFragment_list, NewLRPs)
   , append(LCPs, BCPs, NewLCPs1), append(NewLCPs1, ConcLCFragment_list, NewLCPs)
-  , ConcOb = obligation(GoalID, NewLRPs, NewLCPs, RRPs, RCPs)
+  , ConcOb = obligation(["KTConc"|GoalID], NewLRPs, NewLCPs, RRPs, RCPs)
   , CNF = [ConcOb|PremiseOb_list]
   .
 
@@ -1008,7 +1008,7 @@ lprove_kt_one_brp(GoalID
   % more complicated.
   , append(LRPs, BRPs, NewLRPs)
   , append(LCPs, BCPs, NewLCPs)
-  , PremiseOb = obligation(GoalID, NewLRPs, NewLCPs, LRPs_UA_i, LCPs_UA_i)
+  , PremiseOb = obligation(["KTPrem"|GoalID], NewLRPs, NewLCPs, LRPs_UA_i, LCPs_UA_i)
   , printf("PremiseOb = %\n", [PremiseOb])
 
   % generate fresh copies of EVs
