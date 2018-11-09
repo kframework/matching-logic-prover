@@ -146,7 +146,7 @@ run_ll_list__list__aux_4 :- true
                  , eqset(F, add(F1, X1))
                  ]
                )
-  , lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, Out )
+  , lprove_kt_one_body(["aux4"], LRP, LRPs, LCPs, RRPs, RCPs, Body, Out )
   , !
   , printf("Out:\n%\n", [Out])
   .

@@ -584,14 +584,14 @@ rewrite_step(_Rule, [], []).
 
 
 
-lprove(Level, LRPs, LCPs, RRPs, RCPs) :-
+lprove(GoalID, Level, LRPs, LCPs, RRPs, RCPs) :-
   printf("\n---new proof obligation at level %.---\n\n", [Level]),
   printf("% %\n  ->\n% %\n",
     [LRPs, LCPs, RRPs, RCPs]),
   fail.
 
 % Try (Direct Proof) first.
-lprove(_Level, LRPs, LCPs, RRPs, RCPs) :- true
+lprove(GoalID, _Level, LRPs, LCPs, RRPs, RCPs) :- true
 %, lprove_direct_by_user(LRPs, LCPs, RRPs, RCPs)
  , lprove_direct(LRPs, LCPs, RRPs, RCPs)
  .
@@ -603,8 +603,8 @@ lprove(_Level, LRPs, LCPs, RRPs, RCPs) :- true
 % Try all possible rules and collect a set of obligation sets DNF.
 % prove one obligation set in DNF and we are done.
 % In other words, DNF is a disjunction of conjunctions. 
-lprove(Level, LRPs, LCPs, RRPs, RCPs) :- true
-  , lprove_aux(LRPs, LCPs, RRPs, RCPs, DNF)
+lprove(GoalID, Level, LRPs, LCPs, RRPs, RCPs) :- true
+  , lprove_aux(GoalID, LRPs, LCPs, RRPs, RCPs, DNF)
   , length(DNF, L)
   , printf("\n---% disjunctions collected---\n", [L])
   , printf("DNF =\n%\n", [DNF])
@@ -613,9 +613,9 @@ lprove(Level, LRPs, LCPs, RRPs, RCPs) :- true
   , true.
  
 % collect DNF by trying all possible rules.
-lprove_aux(LRPs, LCPs, RRPs, RCPs, DNF) :- true
-  , lprove_kt(LRPs, LCPs, RRPs, RCPs, DNFKT)
-  , lprove_ru(LRPs, LCPs, RRPs, RCPs, DNFRU)
+lprove_aux(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
+  , lprove_kt(GoalID, LRPs, LCPs, RRPs, RCPs, DNFKT)
+  , lprove_ru(GoalID, LRPs, LCPs, RRPs, RCPs, DNFRU)
   , append(DNFKT,DNFRU,DNF)
   .
 
@@ -661,8 +661,8 @@ prove_all(Level, [Ob | R]) :- true
   % !
   % check_answer(Ans)
   , printf("---ok I'll continue.\n---", [])
-  , Ob = obligation(LRPs, LCPs, RRPs, RCPs)
-  , lprove(Level - 1, LRPs, LCPs, RRPs, RCPs)
+  , Ob = obligation(GoalID, LRPs, LCPs, RRPs, RCPs)
+  , lprove(GoalID, Level - 1, LRPs, LCPs, RRPs, RCPs)
   , prove_all(Level, R)
   , !
   .
@@ -701,29 +701,29 @@ lprove_direct(_LRPs, _LCPs, _RRPs, _RCPs) :- true
 % lprove_ru(+LRPs,+LCPs,+RRPs,+RCPs,-DNF)
 %------------------------------------------------------------------------------
 
-lprove_ru(LRPs,LCPs,RRPs,RCPs,DNF) :- true
+lprove_ru(GoalID, LRPs,LCPs,RRPs,RCPs,DNF) :- true
   , length(RRPs, RRPs_len)
   , printf("\n---RU begins, % RRP(s) in total.---\n",[RRPs_len])
-  , lprove_ru_aux(LRPs,LCPs,RRPs,RCPs, 1, [], DNF)
+  , lprove_ru_aux(GoalID, LRPs,LCPs,RRPs,RCPs, 1, [], DNF)
   , length(DNF, DNF_len)
   , printf("\n---RU ends, % disjunctions collected---\n", [DNF_len])
   , printf("DNF(RU) = %\n", [DNF])
   .
 
-lprove_ru_aux(LRPs,LCPs,RRPs,RCPs,
+lprove_ru_aux(GoalID, LRPs,LCPs,RRPs,RCPs,
   N,InDNF,OutDNF) :- true
   % The following claim fails if N > |RRPs|
   , nth1(N,RRPs,RRP,RestRRPs)
   , !
   , printf("\n---RU on the %th recursive pattern.---\n", [N])
-  , lprove_ru(LRPs,LCPs,RRP,RestRRPs,RCPs,DNFRU)
+  , lprove_ru(GoalID, LRPs,LCPs,RRP,RestRRPs,RCPs,DNFRU)
   , append(DNFRU,InDNF,NewInDNF)
-  , lprove_ru_aux(LRPs,LCPs,RRPs,RCPs,
+  , lprove_ru_aux(GoalID, LRPs,LCPs,RRPs,RCPs,
       N+1, NewInDNF,OutDNF)
   .
 
 % N > |RRPs|.
-lprove_ru_aux(_LRPs,_LCPs,_RRPs,_RCPs,
+lprove_ru_aux(GoalID, _LRPs,_LCPs,_RRPs,_RCPs,
   _N,_DNF,_DNF) :- true
   , !
   .
@@ -734,12 +734,12 @@ lprove_ru_aux(_LRPs,_LCPs,_RRPs,_RCPs,
 %   -DNF)
 %------------------------------------------------------------------------------
 
-lprove_ru(LRPs,LCPs,RRP,RRPs,RCPs,
-  DNF) :- true
+lprove_ru(GoalID, LRPs,LCPs,RRP,RRPs,RCPs, DNF) :- true
   , unfold(RRP,HBodies)
   % length(HBodies,L)
   % printf("\n---right unfold (one atom) begins, % cases to collect---\n",[L])
   , lprove_ru_collect_all_cases(
+      GoalID,
       LRPs,LCPs,RRP,RRPs,RCPs,HBodies,
       [],DNF)
   .
@@ -754,13 +754,15 @@ lprove_ru(LRPs,LCPs,RRP,RRPs,RCPs,
 
 % The case when HBodies is empty.
 lprove_ru_collect_all_cases(
+  GoalID,
   _LRPs,_LCPs,_RRP,_RRPs,_RCPs,[],
   _InDNF,_InDNF) :- true
-  , printf("\n---all cases collected.---\n", [])
+  , printf("\n---all cases collected: %---\n", [GoalID])
   , !
   .
 
 lprove_ru_collect_all_cases(
+  GoalID,
   LRPs,LCPs,RRP,RRPs,RCPs,[HBody|HBodies],
   InDNF,OutDNF) :- true
   % printf("\n---collect case---\n", [])
@@ -768,11 +770,12 @@ lprove_ru_collect_all_cases(
   % printf("HBody = %\n", [HBody])
   , append(RRPs,BAtoms,NewRRPs)
   , append(RCPs,BConstraints,NewRCPs)
-  , Ob = obligation(LRPs,LCPs,NewRRPs,NewRCPs)
+  , Ob = obligation(GoalID, LRPs,LCPs,NewRRPs,NewRCPs)
   % printf("\n---right unfold ends---\n", [])
   % printf("Ob = %\n", [Ob])
   , NewInDNF = [[Ob]|InDNF]
   , lprove_ru_collect_all_cases(
+      GoalID,
       LRPs,LCPs,RRP,RRPs,RCPs,HBodies,
       NewInDNF,OutDNF)
   .
@@ -793,14 +796,14 @@ lprove_ru_collect_all_cases(
 %------------------------------------------------------------------------------
 
 % (KT) is not applicable if there's no LRP.
-lprove_kt([], _LCPs, _RRPs, _RCPs, []) :- true
+lprove_kt(GoalID, [], _LCPs, _RRPs, _RCPs, []) :- true
   .
 
-lprove_kt(LRPs, LCPs, RRPs, RCPs, DNF) :- true
+lprove_kt(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
   , length(LRPs, LRPs_len)
   , printf("\n---KT begins, % LRP(s) in total.---\n", [LRPs_len])
   , printf("% %\n  ->\n% %\n", [LRPs,LCPs,RRPs,RCPs])
-  , lprove_kt_aux(LRPs, LCPs, RRPs, RCPs, 1, [], DNF)
+  , lprove_kt_aux(GoalID, LRPs, LCPs, RRPs, RCPs, 1, [], DNF)
   , length(DNF, DNF_len)
   , printf("\n---KT ends, % disjunctions collected---\n", [DNF_len])
   , printf("DNF(KT) = %\n", [DNF])
@@ -809,18 +812,18 @@ lprove_kt(LRPs, LCPs, RRPs, RCPs, DNF) :- true
 % Apply (KT) on the Nth pattern in LRPs, where 1 <= N <= |LRPs|,
 % then continue on the (N+1)th pattern by recursion.
 % This function never fails.
-lprove_kt_aux(LRPs, LCPs, RRPs, RCPs, N, DNFIn, DNFOut) :- true
+lprove_kt_aux(GoalID, LRPs, LCPs, RRPs, RCPs, N, DNFIn, DNFOut) :- true
   % Let LPR = LRPs[N]; it fails if N > |LRPs|.
   , nth1(N, LRPs, LRP, LRPs_rest)
   , !
   , printf("\n---KT on the %th recursive pattern---\n", [N])
-  , lprove_kt(LRP, LRPs_rest, LCPs, RRPs, RCPs, DNF)
+  , lprove_kt(GoalID, LRP, LRPs_rest, LCPs, RRPs, RCPs, DNF)
   , append(DNFIn, DNF, DNFIn_new)
-  , lprove_kt_aux(LRPs, LCPs, RRPs, RCPs, N+1, DNFIn_new, DNFOut)
+  , lprove_kt_aux(GoalID, LRPs, LCPs, RRPs, RCPs, N+1, DNFIn_new, DNFOut)
   .
 
 % N > |LRPs|
-lprove_kt_aux(_LRPs, _LCPs, _RRPs, _RCPs, _N, _DNF, _DNF) :- true
+lprove_kt_aux(GoalID, _LRPs, _LCPs, _RRPs, _RCPs, _N, _DNF, _DNF) :- true
   .
 
 %------------------------------------------------------------------------------
@@ -832,28 +835,28 @@ lprove_kt_aux(_LRPs, _LCPs, _RRPs, _RCPs, _N, _DNF, _DNF) :- true
 % exactly one conjunction.
 %------------------------------------------------------------------------------
 
-lprove_kt(LRP, LRPs, LCPs, RRPs, RCPs, DNF) :- true
+lprove_kt(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, DNF) :- true
   , unfold(LRP, Bodies)
-  , lprove_kt_all_bodies(LRP, LRPs, LCPs, RRPs, RCPs, Bodies, CNF)
+  , lprove_kt_all_bodies(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Bodies, CNF)
   , DNF = [CNF]
   .
 
-lprove_kt_all_bodies(LRP, LRPs, LCPs, RRPs, RCPs, Bodies, CNF) :- true
-  , lprove_kt_all_bodies_aux(LRP, LRPs, LCPs, RRPs, RCPs, 1, Bodies, [], CNF)
+lprove_kt_all_bodies(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Bodies, CNF) :- true
+  , lprove_kt_all_bodies_aux(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, 1, Bodies, [], CNF)
   .
 
-lprove_kt_all_bodies_aux(LRP, LRPs, LCPs, RRPs, RCPs, 
+lprove_kt_all_bodies_aux(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, 
   N, Bodies, CNFIn, CNFOut) :- true
   , nth1(N, Bodies, Body, Bodies_rest)
   , !
-  , lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF)
+  , lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF)
   , append(CNFIn, CNF, CNFIn_new)
-  , lprove_kt_all_bodies_aux(LRP, LRPs, LCPs, RRPs, RCPs, 
+  , lprove_kt_all_bodies_aux(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, 
       N+1, Bodies_rest, CNFIn_new, CNFOut)
   .
 
 % N > |Bodies|
-lprove_kt_all_bodies_aux(_LRP, _LRPs, _LCPs, _RRPs, _RCPs, 
+lprove_kt_all_bodies_aux(GoalID, _LRP, _LRPs, _LCPs, _RRPs, _RCPs, 
   _N, _Bodies, _CNF, _CNF) :- true
   .
 
@@ -864,7 +867,7 @@ lprove_kt_all_bodies_aux(_LRP, _LRPs, _LCPs, _RRPs, _RCPs,
 
 %%%% todo %%%%
 
-lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
+lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , LRP =.. [H|_]
   , body(BRPs, BCPs) = Body
   , gather_by_head(H, BRPs, BRPs_samehead, BRPs_diffhead)
@@ -887,7 +890,8 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , unord_setdiff(UVs, ActVs, PasVs) % passive variables
 
   , !
-  , lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRPs_samehead
+  , lprove_kt_each_brp(GoalID
+                      , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRPs_samehead
                       , PremiseOb_list, ConcLRFragment_list, ConcLCFragment_list
                       )
 
@@ -899,11 +903,12 @@ lprove_kt_one_body(LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
 
   , append(LRPs, BRPs, NewLRPs1), append(NewLRPs1, ConcLRFragment_list, NewLRPs)
   , append(LCPs, BCPs, NewLCPs1), append(NewLCPs1, ConcLCFragment_list, NewLCPs)
-  , ConcOb = obligation(NewLRPs, NewLCPs, RRPs, RCPs)
+  , ConcOb = obligation(GoalID, NewLRPs, NewLCPs, RRPs, RCPs)
   , CNF = [ConcOb|PremiseOb_list]
   .
 
-lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
+lprove_kt_each_brp(GoalID
+                  , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
                   , [BRP_samehead_1 | BRP_samehead_rest]
                   % Input params
 
@@ -913,13 +918,15 @@ lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
                   % Output params
                   ) :- true
   , !
-  , lprove_kt_one_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
+  , lprove_kt_one_brp(GoalID
+                     , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
                      , BRP_samehead_1
                      , PremiseOb_1
                      , ConcLRFragment_1
                      , ConcLCFragment_1
                      )
-  , lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
+  , lprove_kt_each_brp(GoalID
+                      , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
                       , BRP_samehead_rest
                       , PremiseOb_rest
                       , ConcLRFragment_rest
@@ -928,11 +935,13 @@ lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
   , append(ConcLRFragment_1, ConcLRFragment_rest, ConcLRFragment_list)
   , append(ConcLCFragment_1, ConcLCFragment_rest, ConcLCFragment_list)
   .
-lprove_kt_each_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs , [] % Input params
+lprove_kt_each_brp( GoalID
+                  , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs , [] % Input params
                   , [], [], [] % Output params
                   ) :- true
   .
-lprove_kt_one_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_i   % Input params
+lprove_kt_one_brp(GoalID
+                 , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_i   % Input params
                  , PremiseOb, ConcLRFragment_i, ConcLCFragment_i                    % Output params
                  ) :- true
   % Unfolding
@@ -999,7 +1008,7 @@ lprove_kt_one_brp( LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_
   % more complicated.
   , append(LRPs, BRPs, NewLRPs)
   , append(LCPs, BCPs, NewLCPs)
-  , PremiseOb = obligation(NewLRPs, NewLCPs, LRPs_UA_i, LCPs_UA_i)
+  , PremiseOb = obligation(GoalID, NewLRPs, NewLCPs, LRPs_UA_i, LCPs_UA_i)
   , printf("PremiseOb = %\n", [PremiseOb])
 
   % generate fresh copies of EVs
@@ -1101,7 +1110,7 @@ get_the_first_atom_with_the_same_head(
 
 % The case when BRPs are all distinct from LRP.
 % In this case, KT is just left unfolding.
-lprove_kt_one_body(LRP,LRPs,LCPs,RRPs,RCPs, Body, [Ob]) :- true
+lprove_kt_one_body(GoalID, LRP,LRPs,LCPs,RRPs,RCPs, Body, [Ob]) :- true
   , Body = body(BRPs, BCPs)
   , number_of_occurrences(LRP,BRPs,N)
   , N = 0
@@ -1110,14 +1119,14 @@ lprove_kt_one_body(LRP,LRPs,LCPs,RRPs,RCPs, Body, [Ob]) :- true
   % replace LRP for BRPs,BCPs
   , append(LRPs,BRPs,NewLRPs)
   , append(LCPs,BCPs,NewLCPs)
-  , Ob = obligation(NewLRPs,NewLCPs,RRPs,RCPs)
+  , Ob = obligation(GoalID, NewLRPs,NewLCPs,RRPs,RCPs)
   , printf("Ob=%\n", [Ob])
   , printf("---KT(0:_) ends---\n",[])
   .
 
 % The case when BRPs have exactly one atom with the same head as LRP,
 % and RRPs all different from LRP.
-lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
+lprove_kt_one_body(GoalID, LRP,LRPs,LCPs,AllRRPs,RCPs,
   body(AllBRPs, BCPs), KTSet) :- true
  , number_of_occurrences(LRP,AllBRPs,N1)
  , number_of_occurrences(LRP,AllRRPs,N2)
@@ -1175,7 +1184,7 @@ lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
  , flatten([BRPs,LRPs], LRPs6a2)
  , flatten([BCPs,LCPs], LCPs6a2)
 
- , Ob6a2 = obligation(LRPs6a2, LCPs6a2, LRPs1, LCPs1)
+ , Ob6a2 = obligation(GoalID, LRPs6a2, LCPs6a2, LRPs1, LCPs1)
 
  % [AllRRPs1, RCPs1] is RHS'
 
@@ -1184,7 +1193,7 @@ lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
  , flatten([LRPs1,AllRRPs1,BRPs,LRPs], LRPs6b)
  , flatten([LCPs1,RCPs1,BCPs,LCPs], LCPs6b)
 
- , Ob6b = obligation(LRPs6b, LCPs6b, AllRRPs, RCPs)
+ , Ob6b = obligation(GoalID, LRPs6b, LCPs6b, AllRRPs, RCPs)
 
  % printf("\n---final check---\n",[])
  % printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
@@ -1220,7 +1229,7 @@ lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
 % where LRP,RRP,BRP have the same head and RRPs,BRPs don't have.
 %------------------------------------------------------------------------------
 
-lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
+lprove_kt_one_body(GoalID, LRP,LRPs,LCPs,AllRRPs,RCPs,
   body(AllBRPs, BCPs), KTSet) :- true
  , number_of_occurrences(LRP,AllBRPs,N1)
  , number_of_occurrences(LRP,AllRRPs,N2)
@@ -1302,7 +1311,7 @@ lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
  , flatten([BRPs,LRPs], LRPs6a2)
  , flatten([BCPs,LCPs], LCPs6a2)
 
- , Ob6a2 = obligation(LRPs6a2, LCPs6a2, LRPs2, LCPs2)
+ , Ob6a2 = obligation(GoalID, LRPs6a2, LCPs6a2, LRPs2, LCPs2)
 
  % [RRP2 RRPs2 RCPs2] is RHS''
 
@@ -1311,7 +1320,7 @@ lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
  , flatten([LRPs2,RRP2,RRPs2,BRPs,LRPs], LRPs6b)
  , flatten([LCPs2,RCPs2,BCPs,LCPs], LCPs6b)
 
- , Ob6b = obligation(LRPs6b, LCPs6b, AllRRPs, RCPs)
+ , Ob6b = obligation(GoalID, LRPs6b, LCPs6b, AllRRPs, RCPs)
 
  , printf("\n---final check---\n",[])
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
@@ -1344,7 +1353,7 @@ lprove_kt_one_body(LRP,LRPs,LCPs,AllRRPs,RCPs,
 
 %------------------------------------------------------------------------------
 
-lprove_kt_one_body(
+lprove_kt_one_body(GoalID,
   LRP,LRPs,LCPs,RRPs,RCPs,Body,KTSet) :- true
   , body(BRPs_all, BCPs) = Body
   , LRP =.. [H|_]
@@ -1383,13 +1392,13 @@ lprove_kt_one_body(
   , flatten([BRPs_all, LRPs], BLRPs)
   , flatten([BCPs, LCPs], BLCPs)
 
-  , Ob1 = obligation(BLRPs, BLCPs, LRPs_1, LCPs_1)
-  , Ob2 = obligation(BLRPs, BLCPs, LRPs_2, LCPs_2)
+  , Ob1 = obligation(GoalID, BLRPs, BLCPs, LRPs_1, LCPs_1)
+  , Ob2 = obligation(GoalID, BLRPs, BLCPs, LRPs_2, LCPs_2)
 
   , flatten([BLRPs, LRPs_1, LRPs_2, RRPs_1, RRPs_2], Main_LRPs)
   , flatten([BLCPs, LCPs_1, LCPs_2, RCPs_1, RCPs_2], Main_LCPs)
 
-  , Main_Ob = obligation(Main_LRPs, Main_LCPs, RRPs, RCPs)
+  , Main_Ob = obligation(GoalID, Main_LRPs, Main_LCPs, RRPs, RCPs)
   , KTSet = [Ob1, Ob2, Main_Ob]
   , printf("Ob1=%\nOb2=%\nMain_Ob=%\n", KTSet)
   , printf("\n---KT(2:0) ends---\n",[])
@@ -1400,7 +1409,7 @@ lprove_kt_one_body(
 
 %------------------------------------------------------------------------------
 % Otherwise case
-lprove_kt_one_body(LRP,_LRPs,_LCPs,_RRPs,_RCPs,
+lprove_kt_one_body(GoalID, LRP,_LRPs,_LCPs,_RRPs,_RCPs,
   body(BRPs, _BCPs), KTSet) :- true
   , printf("\n---KT: uncovered case---\n", [])
   , number_of_occurrences(LRP,BRPs,N)
