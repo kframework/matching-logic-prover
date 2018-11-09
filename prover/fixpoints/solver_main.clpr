@@ -229,6 +229,7 @@ substitute(EQs, [T|TS], Out) :- true
   , substitute(EQs, [T], Out1)
   , substitute(EQs,  TS, Out2)
   , append(Out1, Out2, Out)
+  , !
   .
 substitute([], Term, Term) :- true
   , !
