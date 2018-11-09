@@ -592,7 +592,7 @@ lprove(GoalID, Level, LRPs, LCPs, RRPs, RCPs) :-
 
 % Try (Direct Proof) first.
 lprove(GoalID, _Level, LRPs, LCPs, RRPs, RCPs) :- true
-%, lprove_direct_by_user(LRPs, LCPs, RRPs, RCPs)
+ % lprove_direct_by_user(LRPs, LCPs, RRPs, RCPs)
  , lprove_direct(LRPs, LCPs, RRPs, RCPs)
  .
 % lprove(Level, LRPs, LCPs, RRPs, RCPs) :- true
@@ -661,7 +661,7 @@ prove_all(Level, [Ob | R]) :- true
   % read(Ans)
   % !
   % check_answer(Ans)
-  , printf("---ok I'll continue: %\n---", [GoalID])
+  % printf("---ok I'll continue: %\n---", [GoalID])
   , lprove(GoalID, Level - 1, LRPs, LCPs, RRPs, RCPs)
   , prove_all(Level, R)
   , !
@@ -837,6 +837,8 @@ lprove_kt_aux(GoalID, _LRPs, _LCPs, _RRPs, _RCPs, _N, _DNF, _DNF) :- true
 
 lprove_kt(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, DNF) :- true
   , unfold(LRP, Bodies)
+  , printf("\n---KT (one case) begins.---\n", [])
+  , printf("Bodies=%\n", [Bodies])
   , lprove_kt_all_bodies(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Bodies, CNF)
   , DNF = [CNF]
   .
@@ -852,7 +854,7 @@ lprove_kt_all_bodies_aux(GoalID, LRP, LRPs, LCPs, RRPs, RCPs,
   , lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF)
   , append(CNFIn, CNF, CNFIn_new)
   , lprove_kt_all_bodies_aux(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, 
-      N+1, Bodies_rest, CNFIn_new, CNFOut)
+      N+1, Bodies, CNFIn_new, CNFOut)
   .
 
 % N > |Bodies|
@@ -871,6 +873,8 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , LRP =.. [H|_]
   , body(BRPs, BCPs) = Body
   , gather_by_head(H, BRPs, BRPs_samehead, BRPs_diffhead)
+
+  , printf("BRPs = %\nBCPs = %\n", [BRPs,BCPs])
 
   , length(BRPs_samehead, BRPs_samehead_len)
   , printf("\n---head occurs % time(s) in body---\n", [BRPs_samehead_len])
@@ -894,6 +898,7 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
                       , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRPs_samehead
                       , PremiseOb_list, ConcLRFragment_list, ConcLCFragment_list
                       )
+
 
   % Construct the (Conclusion) proof obligation. It has the form
   % LRPs,LCP,BRPs,BCPs,LRPs_UA_i,LCPs_UA_i,RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]

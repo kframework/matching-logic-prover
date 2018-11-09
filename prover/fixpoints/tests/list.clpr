@@ -8,6 +8,7 @@ unfold(ll(H,X,Y,F),
   [
   body([],                            % recursive  predicates (RPs)
        [eq(X,Y), eqset(F,emptyset)]), % constraint predicates (CPs)
+       %[eq(X,Y)]), % constraint predicates (CPs)
   body([ll(H,X1,Y,F1)],               % recursive  predicates (RPs)
        [gt(X, 0),                     % constraint predicates (CPs)
        %z3_not(eq(X, Y)),             % removed because z3 cannot handle it.
