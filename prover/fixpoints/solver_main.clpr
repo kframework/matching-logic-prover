@@ -627,27 +627,23 @@ lprove_aux(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
 prove_one(_Level, []) :- !, fail. % fail to prove.
 
 prove_one(Level, DNF) :- true
-  , length(DNF,L)
-  , printf("\n----consider an orset of size % and level %----\n", 
-      [L,Level])
-  % printf("DNF =\n%\n", [DNF])
   , prove_one_set(Level, DNF)
   .
 
 prove_one_set(Level, DNF) :- prove_one_set_aux(Level, DNF).
 
-prove_one_set_aux(_Level, []) :-  true
-  , printf("\n---prove_one fails.---\n", [])
-  % FIND OUT WHAT HAPPENED AFTER prove_one_set_aux FAILED.
-  , !, fail. % fail to prove.
 
-prove_one_set_aux(Level, [Obs|Rest]) :- true
-  , length([Obs|Rest],L)
-  , printf("\n---prove_one CNF from % of them---\n", [L])
-  , prove_all(Level, Obs)
+prove_one_set_aux(Level, [CNF|CNFs]) :- true
+  , length([CNF|CNFs],L)
+  , printf("\n---I have % CNFs.---\n", [L])
+  , prove_all(Level, CNF)
   , !
   , true
   .
+
+prove_one_set_aux(_Level, []) :-  true
+  , printf("\n---I failed to prove any CNFs.---\n", [])
+  , !, fail. % fail to prove.
 
 prove_one_set_aux(Level, [_ | R]) :- prove_one_set_aux(Level, R).
 
@@ -880,6 +876,8 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   , body(BRPs, BCPs) = Body
   , gather_by_head(H, BRPs, BRPs_samehead, BRPs_diffhead)
 
+  , printf("\n---lprove_kt_one_body starts.---\n", [])
+
   , printf("BRPs = %\nBCPs = %\n", [BRPs,BCPs])
 
   , length(BRPs_samehead, BRPs_samehead_len)
@@ -925,6 +923,8 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
 
   , printf("ConcOb = %\n", [ConcOb])
   , CNF = [ConcOb|PremiseOb_list]
+
+  , printf("\n---lprove_kt_one_body ends.---\n", [])
   .
 
 lprove_kt_each_brp(GoalID
@@ -938,6 +938,7 @@ lprove_kt_each_brp(GoalID
                   % Output params
                   ) :- true
   , !
+  , printf("\n---lprove_kt_each_brp starts.---\n", [])
   , lprove_kt_one_brp(GoalID
                      , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
                      , BRP_samehead_1
@@ -954,6 +955,7 @@ lprove_kt_each_brp(GoalID
                       )
   , append(ConcLRFragment_1, ConcLRFragment_rest, ConcLRFragment_list)
   , append(ConcLCFragment_1, ConcLCFragment_rest, ConcLCFragment_list)
+  , printf("\n---lprove_kt_each_brp ends.---\n", [])
   .
 lprove_kt_each_brp( GoalID
                   , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs , [] % Input params
@@ -964,6 +966,7 @@ lprove_kt_one_brp(GoalID
                  , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_i   % Input params
                  , PremiseOb, ConcLRFragment_i, ConcLCFragment_i                    % Output params
                  ) :- true
+  , printf("\n---lprove_kt_one_brp starts.---\n", [])
   % Unfolding
   , get_unifier([LRP], [BRP_samehead_i], USubst_i)
   , printf("USubst_i = %\n", [USubst_i])
@@ -1044,6 +1047,8 @@ lprove_kt_one_brp(GoalID
   , append(LRPs_UA_i, RRPs_UA_i, ConcLRFragment_i)
   , append(LCPs_UA_i, RCPs_UA_i, ConcLCFragment_i)
 
+  , !
+  , printf("\n---lprove_kt_one_brp ends.---\n", [])
 
   .
 
