@@ -653,15 +653,14 @@ prove_all(_Level, []) :- true
 prove_all(Level, [Ob | R]) :- true
   , Level > 0
   , Ob = obligation(GoalID, LRPs, LCPs, RRPs, RCPs)
-  % length([Ob|R],L)
-  % printf("\n---help me decide (size %, level %)---\n", [L,Level])
-  % printf(
-  %   "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
-  % printf("%\n", [[Ob|R]])
-  % read(Ans)
-  % !
-  % check_answer(Ans)
-  % printf("---ok I'll continue: %\n---", [GoalID])
+  , length([Ob|R],L)
+  , printf("\n---help me decide (size %, level %)---\n", [L,Level])
+  , printf("\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
+  , printf("%\n", [[Ob|R]])
+  , read(Ans)
+  , !
+  , check_answer(Ans)
+  , printf("---ok I'll continue: %\n---", [GoalID])
   , lprove(GoalID, Level - 1, LRPs, LCPs, RRPs, RCPs)
   , prove_all(Level, R)
   , !
