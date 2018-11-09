@@ -899,16 +899,25 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
                       , PremiseOb_list, ConcLRFragment_list, ConcLCFragment_list
                       )
 
+  , printf("PremiseOb_list = %\n", [PremiseOb_list])
+
 
   % Construct the (Conclusion) proof obligation. It has the form
-  % LRPs,LCP,BRPs,BCPs,LRPs_UA_i,LCPs_UA_i,RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]
+  % LRPs,LCP,BRPs_diffhead,BCPs,
+  % LRPs_UA_i,LCPs_UA_i,
+  % RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]
   % -> RRPs, RCPs.
   % ConcLRFragment_i contains: LRPs_UA_i,RRPs_UA_i[FreshEVs_i/EVs]
   % ConcLCFragment_i contains: LCPs_UA_i,RCPs_UA_i[FreshEVs_i/EVs]
 
-  , append(LRPs, BRPs, NewLRPs1), append(NewLRPs1, ConcLRFragment_list, NewLRPs)
+  , append(LRPs, BRPs_diffhead, NewLRPs1), append(NewLRPs1, ConcLRFragment_list, NewLRPs)
   , append(LCPs, BCPs, NewLCPs1), append(NewLCPs1, ConcLCFragment_list, NewLCPs)
   , ConcOb = obligation(["KTConc"|GoalID], NewLRPs, NewLCPs, RRPs, RCPs)
+
+  , printf("LRPs = %\nBRPs = %\nConcLRFragment_list=%\n",
+    [LRPs, BRPs, ConcLRFragment_list])
+
+  , printf("ConcOb = %\n", [ConcOb])
   , CNF = [ConcOb|PremiseOb_list]
   .
 
