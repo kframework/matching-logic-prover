@@ -636,9 +636,14 @@ prove_one(Level, DNF) :- true
 
 prove_one_set(Level, DNF) :- prove_one_set_aux(Level, DNF).
 
-prove_one_set_aux(_Level, []) :- !, fail. % fail to prove.
+prove_one_set_aux(_Level, []) :-  true
+  , printf("\n---prove_one fails.---\n", [])
+  % FIND OUT WHAT HAPPENED AFTER prove_one_set_aux FAILED.
+  , !, fail. % fail to prove.
 
-prove_one_set_aux(Level, [Obs | _]) :- true
+prove_one_set_aux(Level, [Obs|Rest]) :- true
+  , length([Obs|Rest],L)
+  , printf("\n---prove_one CNF from % of them---\n", [L])
   , prove_all(Level, Obs)
   , !
   , true
@@ -667,7 +672,8 @@ prove_all(Level, [Ob | R]) :- true
   , !
   .
 
-prove_all(_Level, _) :- true
+prove_all(Level, _) :- true
+  , Level = 0
   , printf("\n---prove_all gives up; reaches level 0---\n", [])
   , fail
   .
