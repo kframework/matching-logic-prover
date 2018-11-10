@@ -50,6 +50,35 @@ run_ll_lr :-
   !,
   printf("LL-LR is PROVED.\n", []).
 
+run_ll_lr_no_search :- true
+  , LRPs = [ll(H,X,Y,F)]
+  , LCPs = []
+  , RRPs = [lr(H,X,Y,F)]
+  , RCPs = []
+
+  , lprove_kt(["LL->LR"], LRPs, LCPs, RRPs, RCPs, [CNF]) , !
+  , CNF = [ConcBase, ConcRec, PremRec]
+
+  , prove_one(3, [[ConcBase]])
+  , prove_one(3, [[PremRec]])
+  , printf("\n\nConcBase = %\n PremRec = %\n ConcRec = %\n", [ConcBase, PremRec, ConcRec])
+
+  , ConcRec = obligation(G, LRPsCR, LCPsCR, RRPsCR, RCPsCR)
+  , lprove_kt(G, LRPsCR, LCPsCR, RRPsCR, RCPsCR, ObsCR)
+  , printf("\n\nObsCR = %\n", [ObsCR])
+  , ObsCR = [[O1, O2, O3]]
+  , prove_one(2, [[O2]])
+  , prove_one(2, [[O3]])
+
+  , printf("\n\no1 = %\n", [O1])
+  , O1 = obligation(G1, LRPs1, LCPs1, RRPs1, RCPs1)
+  , lprove_ru(G1, LRPs1, LCPs1, RRPs1, RCPs1, Obs1)
+  , Obs1 = [Obs2a, Obs2b]
+  , printf("\n\n Obs2a = % \n\n Obs2b = %\n", [Obs2a, Obs2b])
+  % prove_one(4, [Obs2a])
+
+  .
+
 run_lr_ll :-
   GAtoms = [lr(H,X,Y,F)],
   HAtoms = [ll(H,X,Y,F)],
@@ -157,7 +186,8 @@ run :- true
 
 % main tests
 
-, run_ll_lr
+% run_ll_lr
+, run_ll_lr_no_search
 % run_lr_ll
 % run_ll_list
 % run_lr_list

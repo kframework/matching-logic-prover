@@ -1040,7 +1040,9 @@ lprove_kt_one_brp(GoalID
   , substitute(FSubst_i, RCPs_UA_i, RCPs_UAF_i)
 
   % Construct the (Conclusion) proof obligation. It has the form
-  % LRPs,LCP,BRPs,BCPs,LRPs_UA_i,LCPs_UA_i,RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]
+  % LRPs,LCP,BRPs_diffhead,BCPs,
+  % LRPs_UA_i,LCPs_UA_i,
+  % RRPs_UA_i[FreshEVs_i,EVs],RCPs_UA_i[FreshEVs_i/EVs]
   % -> RRPs, RCPs.
   % ConcLRFragment_i contains: LRPs_UA_i,RRPs_UA_i[FreshEVs_i/EVs]
   % ConcLCFragment_i contains: LCPs_UA_i,RCPs_UA_i[FreshEVs_i/EVs]
