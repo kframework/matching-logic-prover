@@ -49,66 +49,37 @@ run_ll_lr :-
   !,
   printf("LL-LR is PROVED.\n", []).
 
-run_ll_lr_no_search :- true
-  , LRPs = [ll(H,X,Y,F)]
-  , LCPs = []
-  , RRPs = [lr(H,X,Y,F)]
-  , RCPs = []
-
-  , lprove_kt(["LL->LR"], LRPs, LCPs, RRPs, RCPs, [CNF]) , !
-  , CNF = [ConcBase, ConcRec, PremRec]
-
-  , printf("CNF = %\n", [CNF])
-
-  , prove_one(3, [[ConcBase]])
-  , prove_one(3, [[PremRec]])
-  , printf("\n\nConcBase = %\n PremRec = %\n ConcRec = %\n", [ConcBase, PremRec, ConcRec])
-
-  , ConcRec = obligation(G, LRPsCR, LCPsCR, RRPsCR, RCPsCR)
-  , lprove_kt(G, LRPsCR, LCPsCR, RRPsCR, RCPsCR, ObsCR)
-  , printf("\n\nObsCR = %\n", [ObsCR])
-  , ObsCR = [[O1, O2, O3]]
-  , prove_one(2, [[O2]])
-  , prove_one(2, [[O3]])
-
-  , printf("\n\no1 = %\n", [O1])
-  , O1 = obligation(G1, LRPs1, LCPs1, RRPs1, RCPs1)
-  , lprove_ru(G1, LRPs1, LCPs1, RRPs1, RCPs1, Obs1)
-  , Obs1 = [Obs2a, Obs2b]
-  , printf("\n\n Obs2a = % \n\n Obs2b = %\n", [Obs2a, Obs2b])
-  % prove_one(4, [Obs2a])
-
-  .
-
 run_lr_ll :-
   GAtoms = [lr(H,X,Y,F)],
   HAtoms = [ll(H,X,Y,F)],
-  lprove(4, GAtoms, [], HAtoms, []),
+  lprove(["LR->LL"], 4, GAtoms, [], HAtoms, []),
   !,
   printf("LR-LL is PROVED.\n", []).
 
 run_ll_list :-
   GAtoms = [ll(H,X,Y,F)],
   HAtoms = [list(H,X,F)],
-  lprove(4, GAtoms, [eq(Y,0)], HAtoms, []),
+  lprove(["LL->list"],4, GAtoms, [eq(Y,0)], HAtoms, []),
   !,
   printf("LL-LIST is PROVED.\n", []).
 
 % can we ever prove this?
-% run_lr_list :-
-%   GAtoms = [lr(H,X,Y,F)],
-%   HAtoms = [list(H,X,F)],
-%   lprove(5, GAtoms, [eq(Y,0)], HAtoms, []),
-%   !,
-%   printf("LR-LIST is PROVED.\n", []).
-
-run_ll_list_list :-
-  GAtoms = [ll(H,X,Y,F), list(H,Y,G)],
-  GConstraints = [eqset(K, union(F,G)), eqset(inter(F,G), emptyset)],
-  HAtoms = [list(H,X,K)],
-  lprove(5, GAtoms, GConstraints, HAtoms, []),
+run_lr_list :-
+  GAtoms = [lr(H,X,Y,F)],
+  HAtoms = [list(H,X,F)],
+  lprove(["lr->list"], 6, GAtoms, [eq(Y,0)], HAtoms, []),
   !,
-  printf("LL-LIST-LIST is PROVED.\n", []).
+  printf("LR-LIST is PROVED.\n", []).
+
+run_ll_list_list :- true
+, GAtoms = [ll(H,X,Y,F), list(H,Y,G)]
+, GConstraints = [eqset(K, union(F,G)), eqset(emptyset, inter(F,G))]
+, HAtoms = [list(H,X,K)]
+, HConstraints = []
+, lprove(["LL*list->list"], 5, GAtoms, GConstraints, HAtoms, HConstraints)
+, !
+, printf("LL-LIST-LIST is PROVED.\n", [])
+.
 
 
 
@@ -179,16 +150,18 @@ run :- true
 
 % main tests
 
+% passing
 % run_ll_lr
-% run_ll_lr_no_search
 % run_lr_ll
 % run_ll_list
-% run_lr_list
 % run_ll_list_list
+
+% not yet passing
+, run_lr_list
 % run_lr_list_list
 
 % aux tests for debugging purposes.
-, run_ll_lr_aux_1
+% run_ll_lr_aux_1
 % run_ll_lr_aux_2
 % run_ll_list__list__aux_4
 , !
