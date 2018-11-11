@@ -616,7 +616,7 @@ lprove(GoalID, Level, LRPs, LCPs, RRPs, RCPs) :- true
 lprove_aux(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
   , lprove_kt(GoalID, LRPs, LCPs, RRPs, RCPs, DNFKT)
   , lprove_ru(GoalID, LRPs, LCPs, RRPs, RCPs, DNFRU)
-  , append(DNFKT,DNFRU,DNF)
+  , append(DNFRU,DNFKT,DNF)
   .
 
 %--------------------------------------------------------------------
