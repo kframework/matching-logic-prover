@@ -1,7 +1,6 @@
-% I don't think the following are needed.
-% declare_unification_type(ll, [arreq,eq,eq,eqset]).
-% declare_unification_type(lr, [arreq,eq,eq,eqset]).
-% declare_unification_type(list, [arreq,eq,eqset]).
+declare_unification_type(ll, [arreq,eq,eq,eqset]).
+declare_unification_type(lr, [arreq,eq,eq,eqset]).
+declare_unification_type(list, [arreq,eq,eqset]).
 
 % list segment recursively defined from the left
 unfold(ll(H,X,Y,F),
