@@ -510,10 +510,6 @@ find_affected_variables_aux([CritActV], [T], [CritActV]) :- true
   .
 find_affected_variables_aux([CritActV], [eqset(emptyset, _R)], [CritActV]) :- true
   .
-find_affected_variables_aux([CritActV], [z3_not(P)], DependentVs) :- true
-  , !
-  , find_affected_variables_aux([CritActV], [P], DependentVs)
-  .
 find_affected_variables_aux([CritActV], [C], _DependentVs) :- true
   , var(CritActV)
   , !
