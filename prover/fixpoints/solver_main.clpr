@@ -166,6 +166,8 @@ get_unifier([L|LS], [R|RS], Out) :- true
 get_unifier([], [], []).
 
 % Given a list of variables create a substitution that replaces them with fresh variables
+make_subst_with_fresh([], []) :- true
+  .
 make_subst_with_fresh([V], [eq(V, _)]) :- true
   .
 make_subst_with_fresh([V | Vs], [EQ | EQs]) :- true
