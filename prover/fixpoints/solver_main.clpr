@@ -995,8 +995,9 @@ lprove_kt_one_brp(GoalID
   % should keep the same. 
 
   , unord_setdiff(ActVs, CritActVs_i, NonCritActVs_i)
-  , find_affected_variables(CritActVs_i, NonCritActVs_i, LCPs, AffectedPasVs_i)
-  , printf("LCPs=%\n", [LCPs])
+  , find_affected_variables(CritActVs_i, NonCritActVs_i, LCPs, AffectedVs_i)
+  , unord_setdiff(AffectedVs_i, ActVs, AffectedPasVs_i)
+  , printf("LCPs %\n", [LCPs])
   , printf("find_affected_variables: % => %\n", [CritActVs_i, AffectedPasVs_i])
 
   % NOTE: AfffectedPasVs depend only on CritActVs.
