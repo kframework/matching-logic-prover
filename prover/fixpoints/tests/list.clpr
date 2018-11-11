@@ -151,13 +151,13 @@ run :- true
 % main tests
 
 % passing
-% run_ll_lr
-% run_lr_ll
-% run_ll_list
-% run_ll_list_list
+, run_ll_lr
+, run_lr_ll
+, run_ll_list
+, run_ll_list_list
 
 % not yet passing
-, run_lr_list
+% run_lr_list
 % run_lr_list_list
 
 % aux tests for debugging purposes.
