@@ -898,7 +898,7 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
 
   , !
   , lprove_kt_each_brp(GoalID
-                      , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRPs_samehead
+                      , LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRPs_diffhead, BRPs_samehead
                       , PremiseOb_list, ConcLRFragment_list, ConcLCFragment_list
                       )
 
@@ -927,8 +927,8 @@ lprove_kt_one_body(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Body, CNF) :- true
   .
 
 lprove_kt_each_brp(GoalID
-                  , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
-                  , [BRP_samehead_1 | BRP_samehead_rest]
+                  , LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs
+                  , BRPs_diffhead, [BRP_samehead_1 | BRP_samehead_rest]
                   % Input params
 
                   , [PremiseOb_1 | PremiseOb_rest]
@@ -939,30 +939,26 @@ lprove_kt_each_brp(GoalID
   , !
   , printf("\n---lprove_kt_each_brp starts.---\n", [])
   , lprove_kt_one_brp(GoalID
-                     , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
-                     , BRP_samehead_1
-                     , PremiseOb_1
-                     , ConcLRFragment_1
-                     , ConcLCFragment_1
+                     , LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs
+                     , BRPs_diffhead, BRP_samehead_1
+                     , PremiseOb_1 , ConcLRFragment_1 , ConcLCFragment_1
                      )
   , lprove_kt_each_brp(GoalID
-                      , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs
-                      , BRP_samehead_rest
-                      , PremiseOb_rest
-                      , ConcLRFragment_rest
-                      , ConcLCFragment_rest
+                      , LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs
+                      , BRPs_diffhead, BRP_samehead_rest
+                      , PremiseOb_rest , ConcLRFragment_rest , ConcLCFragment_rest
                       )
   , append(ConcLRFragment_1, ConcLRFragment_rest, ConcLRFragment_list)
   , append(ConcLCFragment_1, ConcLCFragment_rest, ConcLCFragment_list)
   , printf("\n---lprove_kt_each_brp ends.---\n", [])
   .
 lprove_kt_each_brp( GoalID
-                  , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs , [] % Input params
+                  , LRP, LRPs, LCPs, RRPs, RCPs,BCPs, ActVs ,  BRPs_diffhead, [] % Input params
                   , [], [], [] % Output params
                   ) :- true
   .
 lprove_kt_one_brp(GoalID
-  , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_i   % Input params
+  , LRP, LRPs, LCPs, RRPs, RCPs, BCPs, ActVs, BRPs_diffhead, BRP_samehead_i   % Input params
   , PremiseOb, ConcLRFragment_i, ConcLCFragment_i                    % Output params
   ) :- true
   , printf("\n---lprove_kt_one_brp starts.---\n", [])
@@ -1029,7 +1025,7 @@ lprove_kt_one_brp(GoalID
   % Even though we can merge these k (Premise) proof obligations into
   % a big one, we may not want to do that, because that makes the proof
   % more complicated.
-  , append(LRPs, BRPs, NewLRPs)
+  , append(LRPs, BRPs_diffhead, NewLRPs)
   , append(LCPs, BCPs, NewLCPs)
   , PremiseOb = obligation(["KTPrem"|GoalID], NewLRPs, NewLCPs, LRPs_UA_i, LCPs_UA_i)
   , printf("PremiseOb = %\n", [PremiseOb])
