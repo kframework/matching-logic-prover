@@ -13,8 +13,8 @@ unfold(ll(H,X,Y,F),
        [gt(X, 0),                     % constraint predicates (CPs)
        %z3_not(eq(X, Y)),             % removed because z3 cannot handle it.
         eq(X1, ref(H, X)),
-        z3_not(mem(X1, F1)),
-        eqset(F, add(F1, X1))])
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
   ]).
 
 % list segment recursively defined from the right
