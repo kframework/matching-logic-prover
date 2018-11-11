@@ -474,6 +474,7 @@ find_affected_variables__is_equality(eqset) .
 find_affected_variables__is_other_predicate(gt) .
 find_affected_variables__is_other_predicate(mem) .
 find_affected_variables__is_other_predicate(add) .
+find_affected_variables__is_other_predicate(z3_not) .
 
 find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs) :- true
   , member_special(CritActV, RVs)
