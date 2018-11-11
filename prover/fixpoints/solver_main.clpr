@@ -493,6 +493,11 @@ find_affected_variables_aux([], _Constraints, []) :- true
 find_affected_variables_aux(InitialVaraibles, [], InitialVaraibles) :- true
   .
 
+find_affected_variables_aux(InitialVaraibles, [T], InitialVaraibles) :- true
+  , fv([T], FVs)
+  , unord_setintersection(InitialVaraibles, FVs, [])
+  , !
+  .
 find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , var(CritActV)
   , T =.. [Ctor, L, R]
@@ -502,6 +507,18 @@ find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , collect_variables([R], RVs)
   , find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs)
   .
+% TODO: This duplicates previous rule
+find_affected_variables_aux([CritActV], [T], DependentVs) :- true
+  , var(CritActV)
+  , T =.. [Ctor, R, L]
+  , find_affected_variables__is_equality(Ctor)
+  , var(L)
+  , !
+  , collect_variables([R], RVs)
+  , find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs)
+  .
+
+
 find_affected_variables_aux([CritActV], [T], [CritActV]) :- true
   , var(CritActV)
   , T =.. [Ctor | _Args]
