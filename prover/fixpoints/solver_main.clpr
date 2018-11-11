@@ -200,6 +200,9 @@ unify_one_to_more(L, [R|Rs], [Subst|Substs]) :- true
 %   , printf("SUBSTITUTE: Assign = % ; Term = % ; Out = % \n", [Assign, Term, Out])
 %   , 0 == 1
 %   .
+substitute([], Term, Term) :- true
+  , !
+  .
 substitute([eq(L, R)], [T], [R]) :- true
   , var(L)
   , L == T
@@ -231,9 +234,6 @@ substitute(EQs, [T|TS], Out) :- true
   , substitute(EQs, [T], Out1)
   , substitute(EQs,  TS, Out2)
   , append(Out1, Out2, Out)
-  , !
-  .
-substitute([], Term, Term) :- true
   , !
   .
 substitute(EQS, Term, _) :- true
