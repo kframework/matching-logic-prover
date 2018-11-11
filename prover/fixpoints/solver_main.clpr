@@ -963,11 +963,12 @@ lprove_kt_each_brp( GoalID
                   ) :- true
   .
 lprove_kt_one_brp(GoalID
-                 , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_i   % Input params
-                 , PremiseOb, ConcLRFragment_i, ConcLCFragment_i                    % Output params
-                 ) :- true
+  , LRP, LRPs, LCPs, RRPs, RCPs, BRPs, BCPs, ActVs, BRP_samehead_i   % Input params
+  , PremiseOb, ConcLRFragment_i, ConcLCFragment_i                    % Output params
+  ) :- true
   , printf("\n---lprove_kt_one_brp starts.---\n", [])
   % Unfolding
+  , printf("LRPs=%\nLRPs=%\n", [LRPs,LCPs])
   , get_unifier([LRP], [BRP_samehead_i], USubst_i)
   , printf("USubst_i = %\n", [USubst_i])
 
@@ -1000,7 +1001,7 @@ lprove_kt_one_brp(GoalID
 
   , unord_setdiff(ActVs, CritActVs_i, NonCritActVs_i)
   , find_affected_variables(CritActVs_i, NonCritActVs_i, LCPs, AffectedPasVs_i)
-  , printf("LCPs %\n", [LCPs])
+  , printf("LCPs=%\n", [LCPs])
   , printf("find_affected_variables: % => %\n", [CritActVs_i, AffectedPasVs_i])
 
   % NOTE: AfffectedPasVs depend only on CritActVs.
@@ -1023,7 +1024,7 @@ lprove_kt_one_brp(GoalID
   , !
 
   % Construct (Premise) proof obligations. They have the form
-  % LRPs,LCPs,BRPs,BCPs -> (exists EVs .) LRPs_UA_i,LCPs_UA_i, i = 1 ... k
+  % LRPs,LCPs,BRPs_samehead,BCPs -> (exists EVs .) LRPs_UA_i,LCPs_UA_i, i = 1 ... k
   % These proof obligations are called (Premise) because
   % They try to establish the left-hand side after substitutions.
   % Even though we can merge these k (Premise) proof obligations into

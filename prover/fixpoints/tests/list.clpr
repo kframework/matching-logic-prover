@@ -59,6 +59,8 @@ run_ll_lr_no_search :- true
   , lprove_kt(["LL->LR"], LRPs, LCPs, RRPs, RCPs, [CNF]) , !
   , CNF = [ConcBase, ConcRec, PremRec]
 
+  , printf("CNF = %\n", [CNF])
+
   , prove_one(3, [[ConcBase]])
   , prove_one(3, [[PremRec]])
   , printf("\n\nConcBase = %\n PremRec = %\n ConcRec = %\n", [ConcBase, PremRec, ConcRec])
@@ -123,15 +125,7 @@ run_ll_lr_aux_1 :- true
   , HAtoms = [lr(H,X,Y,F)]
   , HConstraints = []
   % call lprove_kt/5
-  , lprove_kt(GAtoms,GConstraints,HAtoms,HConstraints,OrSet)
-  , !
-  , printf("OrSet:\n%\n", [OrSet])
-  % nth1(2, KTSet, Ob6b) % Ob6b should be proved by a RightUnfold + DP
-  % obligation(GAtoms6b,GConstraints6b,[HAtom6b|HAtoms6b],HConstraints6b) = Ob6b
-  % printf("\nObligation (6b) is:\n%\n%\n  ->\n%\n%\n%\n", 
-  %   [GAtoms6b,GConstraints6b,HAtom6b,HAtoms6b,HConstraints6b])
-  % lprove_right_unfold(GAtoms6b,GConstraints6b,HAtom6b,HAtoms6b,HConstraints6b,OrSetRU)
-  % printf("OrSetRU:\n%\n", [OrSetRU])
+  , lprove_kt(["LL->LR second KT"],GAtoms,GConstraints,HAtoms,HConstraints,DNF)
   .
 
 % run ll_lr from the beginning, apply KT
@@ -187,7 +181,7 @@ run :- true
 % main tests
 
 % run_ll_lr
-, run_ll_lr_no_search
+% run_ll_lr_no_search
 % run_lr_ll
 % run_ll_list
 % run_lr_list
@@ -195,7 +189,7 @@ run :- true
 % run_lr_list_list
 
 % aux tests for debugging purposes.
-% run_ll_lr_aux_1
+, run_ll_lr_aux_1
 % run_ll_lr_aux_2
 % run_ll_list__list__aux_4
 , !
