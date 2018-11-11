@@ -493,11 +493,6 @@ find_affected_variables_aux([], _Constraints, []) :- true
 find_affected_variables_aux(InitialVaraibles, [], InitialVaraibles) :- true
   .
 
-find_affected_variables_aux(InitialVaraibles, [T], InitialVaraibles) :- true
-  , fv([T], FVs)
-  , unord_setintersection(InitialVaraibles, FVs, [])
-  , !
-  .
 find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , var(CritActV)
   , T =.. [Ctor, L, R]
