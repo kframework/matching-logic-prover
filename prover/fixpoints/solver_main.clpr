@@ -626,9 +626,11 @@ lprove(GoalID, Level, LRPs, LCPs, RRPs, RCPs) :- true
  
 % collect DNF by trying all possible rules.
 lprove_aux(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
-  , lprove_kt(GoalID, LRPs, LCPs, RRPs, RCPs, DNFKT)
-  , lprove_ru(GoalID, LRPs, LCPs, RRPs, RCPs, DNFRU)
-  , append(DNFRU,DNFKT,DNF)
+  , lprove_ru(GoalID, LRPs, LCPs, RRPs, RCPs, DNF_RU)
+  , lprove_lu(GoalID, LRPs, LCPs, RRPs, RCPs, DNF_LU)
+  , lprove_kt(GoalID, LRPs, LCPs, RRPs, RCPs, DNF_KT)
+  , append(DNF_RU,DNF_LU,DNF_RULU)
+  , append(DNF_RULU,DNF_KT,DNF)
   .
 
 %--------------------------------------------------------------------
@@ -708,6 +710,81 @@ lprove_direct(_LRPs, _LCPs, _RRPs, _RCPs) :- true
  , printf("\n---DP fails.---\n", [])
  , fail
  .
+
+
+%------------------------------------------------------------------------------
+% lprove_lu/5
+% lprove_lu(+LRPs,+LCPs,+RRPs,+RCPs,-DNF)
+%------------------------------------------------------------------------------
+
+lprove_lu(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
+  , length(LRPs, LRPs_len)
+  , printf("\n---LU begins, % LRPs in total.---\n", [LRPs_len])
+  , lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, 1, [], DNF)
+  , length(DNF, DNF_len)
+  , printf("\n---LU ends, % disjunctions collected---\n", [DNF_len])
+  , printf("DNF(LU) = %\n", [DNF])
+  .
+
+lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, N, InDNF, OutDNF) :- true
+  % The following claim fails if N > |RRPs|
+  , nth1(N, LRPs, LRP, LRPs_rest)
+  , !
+  , printf("\n---LU on the %th recursive predicate.---\n", [N])
+  , lprove_lu(GoalID, LRP, LRPs_rest, LCPs, RRPs, RCPs, CNF)
+  , append(InDNF, [CNF], NewInDNF)
+  , lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, N+1, NewInDNF, OutDNF)
+  .
+
+% N > |RRPs|.
+lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, _N, _DNF, _DNF) :- true
+  , !
+  .
+
+%------------------------------------------------------------------------------
+% lprove_lu/6
+% lprove_lu(+LRPs,+LCPs,+RRP,+RRPs,+RCPs,
+%   -DNF)
+%------------------------------------------------------------------------------
+
+lprove_lu(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, CNF) :- true
+  , unfold(LRP, Bodies)
+  , length(Bodies, Bodies_len)
+  , printf("\n---LU one atom, start to collect all % cases---\n", [Bodies_len])
+  , lprove_lu_collect_all_cases(
+      GoalID, 
+      LRPs, LCPs, RRPs, RCPs, Bodies,
+      [], CNF)
+  .
+
+% The case when Bodies is empty.
+lprove_lu_collect_all_cases(
+  GoalID,
+  _LRPs, _LCPs, _RRPs, _RCPs, [], 
+  _CNF,_CNF) :- true
+  , printf("\n---LU: one atom, all cases collected: %---\n", [GoalID])
+  , !
+  .
+
+lprove_lu_collect_all_cases(
+  GoalID,
+  LRPs, LCPs, RRPs, RCPs, [Body|Bodies], 
+  InCNF,OutCNF) :- true
+  , printf("\n---LU: one atom, collecting case---\n", [])
+  , body(BRPs, BCPs) = Body
+  , printf("Body = %\n", [Body])
+  , append(LRPs,BRPs,NewLRPs)
+  , append(LCPs,BCPs,NewLCPs)
+  , Ob = obligation(["LU"|GoalID], NewLRPs,NewLCPs,RRPs,RCPs)
+  , NewInCNF = [Ob|InCNF]
+  , printf("LUOB = %\n", [Ob])
+  , lprove_lu_collect_all_cases(
+      GoalID,
+      LRPs, LCPs, RRPs, RCPs, Bodies,
+      NewInCNF,OutCNF)
+  .
+
+
 
 %------------------------------------------------------------------------------
 % lprove_ru/5
