@@ -489,8 +489,10 @@ find_affected_variables__append_if_member_special(CritActV, _L, _RVs, DependentV
 
 % Base cases
 find_affected_variables_aux([], _Constraints, []) :- true
+  , !
   .
 find_affected_variables_aux(InitialVaraibles, [], InitialVaraibles) :- true
+  , !
   .
 
 find_affected_variables_aux([CritActV], [T], DependentVs) :- true
@@ -502,7 +504,6 @@ find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , collect_variables([R], RVs)
   , find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs)
   .
-% TODO: This duplicates previous rule
 find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , var(CritActV)
   , T =.. [Ctor, R, L]
@@ -512,14 +513,13 @@ find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , collect_variables([R], RVs)
   , find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs)
   .
-
-
 find_affected_variables_aux([CritActV], [T], [CritActV]) :- true
   , var(CritActV)
   , T =.. [Ctor | _Args]
   , find_affected_variables__is_other_predicate(Ctor)
   , !
   .
+
 find_affected_variables_aux([CritActV], [eqset(emptyset, _R)], [CritActV]) :- true
   .
 find_affected_variables_aux([CritActV], [C], _DependentVs) :- true
@@ -534,13 +534,17 @@ find_affected_variables_aux([CritActV], [C | Cs], DependentVs) :- true
   , var(CritActV)
   , !
   , find_affected_variables_aux([CritActV], [C], DependentVs1)
+  , !
   , find_affected_variables_aux([CritActV],  Cs, DependentVs2)
+  , !
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
 find_affected_variables_aux([CritActV | InitialVaraibles], Constraints, DependentVs) :- true
   , !
   , find_affected_variables_aux([CritActV], Constraints, DependentVs1)
+  , !
   , find_affected_variables_aux( InitialVaraibles, Constraints, DependentVs2)
+  , !
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
 
@@ -626,9 +630,11 @@ lprove(GoalID, Level, LRPs, LCPs, RRPs, RCPs) :- true
  
 % collect DNF by trying all possible rules.
 lprove_aux(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
-  , lprove_kt(GoalID, LRPs, LCPs, RRPs, RCPs, DNFKT)
-  , lprove_ru(GoalID, LRPs, LCPs, RRPs, RCPs, DNFRU)
-  , append(DNFRU,DNFKT,DNF)
+  , lprove_ru(GoalID, LRPs, LCPs, RRPs, RCPs, DNF_RU)
+  , lprove_lu(GoalID, LRPs, LCPs, RRPs, RCPs, DNF_LU)
+  , lprove_kt(GoalID, LRPs, LCPs, RRPs, RCPs, DNF_KT)
+  , append(DNF_RU,DNF_LU,DNF_RULU)
+  , append(DNF_RULU,DNF_KT,DNF)
   .
 
 %--------------------------------------------------------------------
@@ -709,6 +715,82 @@ lprove_direct(_LRPs, _LCPs, _RRPs, _RCPs) :- true
  , fail
  .
 
+
+%------------------------------------------------------------------------------
+% lprove_lu/5
+% lprove_lu(+LRPs,+LCPs,+RRPs,+RCPs,-DNF)
+%------------------------------------------------------------------------------
+
+lprove_lu(GoalID, LRPs, LCPs, RRPs, RCPs, DNF) :- true
+  , length(LRPs, LRPs_len)
+  , printf("\n---LU begins, % LRPs in total.---\n", [LRPs_len])
+  , lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, 1, [], DNF)
+  , length(DNF, DNF_len)
+  , printf("\n---LU ends, % disjunctions collected---\n", [DNF_len])
+  , printf("DNF(LU) = %\n", [DNF])
+  .
+
+lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, N, InDNF, OutDNF) :- true
+  % The following claim fails if N > |RRPs|
+  , nth1(N, LRPs, LRP, LRPs_rest)
+  , !
+  , printf("\n---LU on the %th recursive predicate.---\n", [N])
+  , lprove_lu(GoalID, LRP, LRPs_rest, LCPs, RRPs, RCPs, CNF)
+  , append(InDNF, [CNF], NewInDNF)
+  , lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, N+1, NewInDNF, OutDNF)
+  .
+
+% N > |RRPs|.
+lprove_lu_aux(GoalID, LRPs, LCPs, RRPs, RCPs, _N, _DNF, _DNF) :- true
+  , !
+  .
+
+%------------------------------------------------------------------------------
+% lprove_lu/6
+% lprove_lu(+LRPs,+LCPs,+RRP,+RRPs,+RCPs,
+%   -DNF)
+%------------------------------------------------------------------------------
+
+lprove_lu(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, CNF) :- true
+  , LRP =.. [Ctor | _Args]
+  , unfold(LRP, Bodies)
+  , length(Bodies, Bodies_len)
+  , printf("\n---LU one atom, start to collect all % cases---\n", [Bodies_len])
+  , lprove_lu_collect_all_cases(
+      [lu(Ctor)|GoalID],
+      LRPs, LCPs, RRPs, RCPs, Bodies,
+      [], CNF)
+  .
+
+% The case when Bodies is empty.
+lprove_lu_collect_all_cases(
+  GoalID,
+  _LRPs, _LCPs, _RRPs, _RCPs, [], 
+  _CNF,_CNF) :- true
+  , printf("\n---LU: one atom, all cases collected: %---\n", [GoalID])
+  , !
+  .
+
+lprove_lu_collect_all_cases(
+  GoalID,
+  LRPs, LCPs, RRPs, RCPs, [Body|Bodies], 
+  InCNF,OutCNF) :- true
+  , printf("\n---LU: one atom, collecting case---\n", [])
+  , body(BRPs, BCPs) = Body
+  , printf("Body = %\n", [Body])
+  , append(LRPs,BRPs,NewLRPs)
+  , append(LCPs,BCPs,NewLCPs)
+  , Ob = obligation(GoalID, NewLRPs,NewLCPs,RRPs,RCPs)
+  , NewInCNF = [Ob|InCNF]
+  , printf("LUOB = %\n", [Ob])
+  , lprove_lu_collect_all_cases(
+      GoalID,
+      LRPs, LCPs, RRPs, RCPs, Bodies,
+      NewInCNF,OutCNF)
+  .
+
+
+
 %------------------------------------------------------------------------------
 % lprove_ru/5
 % lprove_ru(+LRPs,+LCPs,+RRPs,+RCPs,-DNF)
@@ -748,11 +830,12 @@ lprove_ru_aux(GoalID, _LRPs,_LCPs,_RRPs,_RCPs,
 %------------------------------------------------------------------------------
 
 lprove_ru(GoalID, LRPs,LCPs,RRP,RRPs,RCPs, DNF) :- true
+  , RRP =.. [Ctor | Args]
   , unfold(RRP,HBodies)
   % length(HBodies,L)
   % printf("\n---right unfold (one atom) begins, % cases to collect---\n",[L])
   , lprove_ru_collect_all_cases(
-      GoalID,
+      [ru(Ctor)| GoalID],
       LRPs,LCPs,RRP,RRPs,RCPs,HBodies,
       [],DNF)
   .
@@ -783,7 +866,7 @@ lprove_ru_collect_all_cases(
   % printf("HBody = %\n", [HBody])
   , append(RRPs,BAtoms,NewRRPs)
   , append(RCPs,BConstraints,NewRCPs)
-  , Ob = obligation(["RU"|GoalID], LRPs,LCPs,NewRRPs,NewRCPs)
+  , Ob = obligation(GoalID, LRPs,LCPs,NewRRPs,NewRCPs)
   % printf("\n---right unfold ends---\n", [])
   % printf("Ob = %\n", [Ob])
   , NewInDNF = [[Ob]|InDNF]
@@ -850,9 +933,10 @@ lprove_kt_aux(GoalID, _LRPs, _LCPs, _RRPs, _RCPs, _N, _DNF, _DNF) :- true
 
 lprove_kt(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, DNF) :- true
   , unfold(LRP, Bodies)
+  , LRP =.. [Ctor|Args]
   , printf("\n---KT (one case) begins.---\n", [])
   , printf("Bodies=%\n", [Bodies])
-  , lprove_kt_all_bodies(GoalID, LRP, LRPs, LCPs, RRPs, RCPs, Bodies, CNF)
+  , lprove_kt_all_bodies([kt(Ctor)|GoalID], LRP, LRPs, LCPs, RRPs, RCPs, Bodies, CNF)
   , DNF = [CNF]
   .
 
@@ -992,7 +1076,7 @@ lprove_kt_one_brp(GoalID
   % TODO: This depends on get_unifier()  Since
   % domain of each USubsts_i is CritActVs_i
   , substitutions_get_domains([USubst_i], [CritActVs_i])
-  , printf("CritActVs_i = % \n", [CritActVs_i])
+  , printf("CritActVs_i = %\nActVs = %\n", [CritActVs_i, ActVs])
   % Note that some variables may have been renamed at this point (and thats OK.)
 
   % AffectedPasVs are PasVs that "depend on"  ActVs.
@@ -1007,7 +1091,9 @@ lprove_kt_one_brp(GoalID
   % should keep the same. 
 
   , unord_setdiff(ActVs, CritActVs_i, NonCritActVs_i)
+  , !
   , find_affected_variables(CritActVs_i, NonCritActVs_i, LCPs, AffectedVs_i)
+  , !
   , unord_setdiff(AffectedVs_i, ActVs, AffectedPasVs_i)
   , printf("LCPs %\n", [LCPs])
   , printf("find_affected_variables: % => %\n", [CritActVs_i, AffectedPasVs_i])
