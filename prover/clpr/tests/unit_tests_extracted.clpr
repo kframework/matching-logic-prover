@@ -1,0 +1,100 @@
+% TODO: We need a stonger assertion than `=`, but weaker that `==`
+% Currently this only checks is Acutal and expected unifies, but we want
+% to assert that Actual are equal (but not backtract to find another actual
+% that equals expected).
+%
+do_test(Actual, Expected) :-
+%    printf("Actual = %\n", [Actual]),
+%    printf("Expected = %\n", [Expected]),
+    Actual = Expected,
+%    printf("Passed?\n\n", []),
+    true .
+do_test(Actual, _Expected) :-
+    printf("Failed: actual = %\n\n", [Actual]),
+    fail .
+
+test_get_unifier(LHS, RHS, Expected) :-
+    printf("test_get_unifier(%, %, %)?\n", [LHS, RHS, Expected]),
+    get_unifier(LHS, RHS, Out),
+    do_test(Out, Expected),
+    true.
+
+test_substitute(Assignment, Input, Expected) :-
+    printf("test_substitute(%, %, %)\n", [Assignment, Input, Expected]),
+    substitute(Assignment, Input, Out),
+    do_test(Out, Expected),
+    true.
+
+test_rewrite_step(Rules, Input, Expected) :-
+    printf("test_rewrite_step(%, %, %)\n", [Rules, Input, Expected]),
+    rewrite_step(Rules, Input, Out),
+    do_test(Out, Expected),
+    true.
+
+test_collect_variables(Input, Expected) :-
+    printf("test_collect_variables(%, %)\n", [Input, Expected]),
+    collect_variables(Input, Out),
+    do_test(Out, Expected),
+    true.
+
+test_collect_variables_by_position(Term, Positions, Expected) :-
+  printf("collect_variables_by_position(%, %, %)\n", [Term, Positions, Expected]),
+  collect_variables_by_position(Term, Positions, Out),
+  do_test(Out, Expected).
+  true.
+
+% Tests
+% =====
+
+:-  consult('solver_main_extracted.clpr').
+:-  printf("\n==== get_unifier\n", []).
+
+
+:- freshcopy([X], L),
+   printf("freshcopy of % is %\n", [X|L]).
+:- freshcopy([X,Y,Z],L),
+   printf("freshcopy of %,%,% is %,%,%\n", [X|[Y|[Z|L]]]).
+
+:- test_get_unifier([Y],    [a(X)],    [eq(Y, a(X))]) .
+:- test_get_unifier([a(X)], [a(Y)],    [eq(X, Y)]) .
+:- test_get_unifier([a(X)], [a(a(Y))], [eq(X, a(Y))]) .
+:- test_get_unifier([a(X)], [a(b(1))], [eq(X, b(1))]) .
+% :- test_get_unifier([a(X)], [body(a(X))], _) .
+% :- test_get_unifier([a(X)], [X], _) .
+:- test_get_unifier([ll(H, X, Y, F)], [ll(H1, X1, Y1, F1)],
+                    [eq(H, H1), eq(X, X1), eq(Y, Y1), eq(F, F1)]) .
+
+:- printf("\n==== substitute\n", []).
+:- test_substitute([eq(X,z)], [c(b)], [c(b)]) .
+:- test_substitute([eq(X,a(b(Y)))], [c(X)], [c(a(b(Y)))]) .
+:- test_substitute([eq(X,b(X))], [a(X)], [a(b(X))]) .
+:- test_substitute([eq(X,b(X))], [a(X, X)], [a(b(X), b(X))]) .
+:- test_substitute([eq(X,b(X))], [a(X, Y)], [a(b(X), Y)]) .
+:- test_substitute([eq(X,b(X)), eq(Y,x)], [a(X, Y)], [a(b(X), x)]) .
+
+:-  printf("\n==== rewrite\n", []).
+:- test_rewrite_step([eq(a(X),b(X))], [a(X)], [b(X)]) .
+:- test_rewrite_step([eq(a(X),b(X))], [body(a(X))], [body(b(X))]) .
+:- test_rewrite_step([eq(a(X),b(X))],    [a(a(X))], [b(a(X))]) .
+:- test_rewrite_step([eq(a(X),b(Y))],    [a(a(X))], [b(Y)]) .
+:- test_rewrite_step([eq(a(X),b(1, X))], [a(a(X))], [b(1, a(X))]) .
+:- test_rewrite_step( [eq(mul4(X), even(X))]
+                    , [ body([], [eq(X, 0)]), body([mul4(N)]
+                      , [gt(X, 0), eq(X, plus(N, 4))])]
+                    , [ body([], [eq(X, 0)]), body([even(N)]
+                      , [gt(X, 0), eq(X, plus(N, 4))])]
+                    ) .
+
+:-  printf("\n==== collect variables\n", []).
+:- test_collect_variables([body(X, Y, ll(Z))], [X, Y, Z]) .
+:- test_collect_variables([ll(H,X,Y,F)],[H,X,Y,F]) .
+:- test_collect_variables([ll(H,X,Y,F), lr(H,X,Y,F)],[H,X,Y,F]) .
+:- test_collect_variables([ll(H,X,Y,F), eq(X,0), eqset(F, emptyset)],[H,X,Y,F]) .
+:- test_collect_variables([x],                 []       ) .
+
+:-  printf("\n==== collect variables by positions\n", []).
+:- test_collect_variables_by_position(ll(H,X,Y,F), [1,3], [H, Y]) .
+:- test_collect_variables_by_position(ll(H,X,Y,F), [], []) .
+
+
+:- halt .
