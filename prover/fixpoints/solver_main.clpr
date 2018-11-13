@@ -504,7 +504,6 @@ find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , collect_variables([R], RVs)
   , find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs)
   .
-% TODO: This duplicates previous rule
 find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , var(CritActV)
   , T =.. [Ctor, R, L]
@@ -514,14 +513,13 @@ find_affected_variables_aux([CritActV], [T], DependentVs) :- true
   , collect_variables([R], RVs)
   , find_affected_variables__append_if_member_special(CritActV, L, RVs, DependentVs)
   .
-
-
 find_affected_variables_aux([CritActV], [T], [CritActV]) :- true
   , var(CritActV)
   , T =.. [Ctor | _Args]
   , find_affected_variables__is_other_predicate(Ctor)
   , !
   .
+
 find_affected_variables_aux([CritActV], [eqset(emptyset, _R)], [CritActV]) :- true
   .
 find_affected_variables_aux([CritActV], [C], _DependentVs) :- true
@@ -536,13 +534,17 @@ find_affected_variables_aux([CritActV], [C | Cs], DependentVs) :- true
   , var(CritActV)
   , !
   , find_affected_variables_aux([CritActV], [C], DependentVs1)
+  , !
   , find_affected_variables_aux([CritActV],  Cs, DependentVs2)
+  , !
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
 find_affected_variables_aux([CritActV | InitialVaraibles], Constraints, DependentVs) :- true
   , !
   , find_affected_variables_aux([CritActV], Constraints, DependentVs1)
+  , !
   , find_affected_variables_aux( InitialVaraibles, Constraints, DependentVs2)
+  , !
   , unord_setunion(DependentVs1, DependentVs2, DependentVs)
   .
 
