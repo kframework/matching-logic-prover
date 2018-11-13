@@ -1,0 +1,332 @@
+declare_unification_type(bst, [arreq,eq,eqset,eq,eq]).
+declare_unification_type(bst2, [arreq,eq,eqset,eq,eq]).
+declare_unification_type(bst_with_hole, [arreq,eq,eq,eqset,eq,eq,eq]).
+declare_unification_type(bst_with_hole_left, [arreq,eq,eq,eqset,eq,eq,eq]).
+
+unfold(bst(H,X,F,MIN,MAX),
+  [
+  body([], [eq(X,0), eqset(F,emptyset)]),
+  body([],
+       [gt(X,0), 
+        eq(0, ref(H, plus(X,1))),
+        eq(0, ref(H, plus(X,2))),
+        eq(MIN,X),
+        eq(MAX,X),
+        eqset(F,singleton(X))]),
+  body([bst(H,L,F1,MIN1,MAX1),
+        bst(H,R,F2,MIN2,MAX2)],
+       [gt(X,0), 
+        eq(L, ref(H, plus(X,1))),
+        eq(R, ref(H, plus(X,2))),
+        gt(X,MAX1),
+        gt(MIN2,X),
+        eq(MIN,MIN1),
+        eq(MAX,MAX2),
+        z3_not(mem(X,F1)),
+        eqset(F3,add(F1,X)),
+        eqset(emptyset,inter(F3,F2)),
+        eqset(F,union(F3,F2))])
+  ]).
+
+unfold(bst2(H,X,F,MIN,MAX),
+  [
+  body([], [eq(X,0), eqset(F,emptyset)]),
+  body([],
+       [gt(X,0), 
+        eq(0, ref(H, plus(X,1))),
+        eq(0, ref(H, plus(X,2))),
+        eq(MIN,X),
+        eq(MAX,X),
+        eqset(F,singleton(X))]),
+  body([bst2(H,L,F1,MIN1,MAX1),
+        bst2(H,R,F2,MIN2,MAX2)],
+       [])
+  ]).
+
+unfold(bst_with_hole_left(H,X,HOLE,F,MIN,MAX,KEY),
+  [
+  body([], [eq(X,HOLE), eqset(F,emptyset)]),
+  body([bst_with_hole_left(H,L,HOLE,F1,MIN1,MAX1,KEY),
+        bst2(H,R,F2,MIN2,MAX2)],
+       [gt(X,0), 
+        eq(L, ref(H, plus(X,1))),
+        eq(R, ref(H, plus(X,2))),
+        gt(X,KEY),
+        gt(X,MAX1),
+        gt(MIN2,X),
+        z3_not(mem(X,F1)),
+        eqset(F3,add(F1,X)),
+        eqset(emptyset,inter(F3,F2)),
+        eqset(F,union(F3,F2))]),
+  body([bst2(H,L,F1,MIN1,MAX1),
+        bst_with_hole_left(H,R,HOLE,F2,MIN2,MAX2,KEY)],
+       [gt(X,0), 
+        eq(L, ref(H, plus(X,1))),
+        eq(R, ref(H, plus(X,2))),
+        gt(KEY,X),
+        gt(X,MAX1),
+        gt(MIN2,X),
+        z3_not(mem(X,F1)),
+        eqset(F3,add(F1,X)),
+        eqset(emptyset,inter(F3,F2)),
+        eqset(F,union(F3,F2))])
+  ]).
+
+
+unfold(bst_with_hole(H,X,HOLE,F,MIN,MAX,KEY),
+  [
+  body([], [eq(X,HOLE), eqset(F,emptyset)]),
+  body([bst_with_hole(H,X,PARENT,F1,MIN1,MAX1,KEY),
+        bst(H,R,F2,MIN2,MAX2)],
+       [gt(PARENT,0), 
+        eq(HOLE, ref(H, plus(PARENT,1))),
+        eq(R, ref(H, plus(PARENT,2))),
+        gt(PARENT,KEY),
+        eq(PARENT,MIN)
+       ]),
+  body([bst(H,L,F1,MIN1,MAX1),
+        bst_with_hole(H,X,PARENT,F2,MIN2,MAX2,KEY)],
+       [gt(PARENT,0), 
+        eq(L, ref(H, plus(PARENT,1))),
+        eq(HOLE, ref(H, plus(PARENT,2))),
+        gt(KEY,PARENT),
+        eq(MAX,PARENT)
+       ])
+  ]).
+
+
+%bb bst-insert-nil:
+%pre: (bst^(root) & ((keys^(root) s= kk) & (~ (k i-in kk)))) ;
+%post: (bst^(ret) & (keys^(ret) s= (kk union (singleton k)))) ;
+%{
+%	assume (root l== nil);
+%	malloc y;
+%	int y.key := k;
+%	loc ret := y;
+%}
+run_nil :- true
+ , LRPs = [bst(H0, ROOT, F0, MIN0, MAX0)]
+ , RRPs = [bst(H0, Y, F1, MIN1, MAX1)]
+ , LCPs = [eq(ROOT,0),          
+           gt(Y,0),
+           z3_not(mem(Y,F0)),
+           eq(0, ref(H0, plus(Y,1))),
+           eq(0, ref(H0, plus(Y,2))),
+           eq(MIN,Y),
+           eq(MAX,Y),
+           eqset(F1,singleton(Y))
+          ] 
+ , RCPs = [eqset(F1,add(F0,Y))]
+ , lprove(["NIL"], 2, LRPs, LCPs, RRPs, RCPs)
+ , !
+ , printf("NIL PROVED.\n", [])
+ .
+
+%bb bst-insert-before-loop1:
+%pre: (bst^(root) & ((keys^(root) s= kk) & (~ (k i-in kk)))) ;
+%post: ( (((bst-with-hole-k^(root, parent) & ((keys-lt-k^(root, parent) set-lt k) 
+%& (k lt-set keys-gt-k^(root, parent)))) * (bst^(parent) & (~ (k i-in keys^(parent))))) 
+%& (((keys-lt-k^(root, parent) lt keys^(parent)) & (keys^(parent) lt keys-gt-k^(root, parent))) 
+%& ((keys^(parent) union keys-with-hole-k^(root, parent)) s= kk))) &
+%	(((parent |-> loc left: hole; int key: rk) * (k < rk)) | ((parent |-> loc right: hole; int key: rk) * (rk < k))) ) ;
+%{
+%	assume (! (root l== nil));
+%	int rk := root.key;
+%	assume (k < rk);
+%	loc parent := root;
+%	loc hole := root.left;
+%}
+run_before_loop1 :- true
+ , LRPs = [bst(H0, ROOT, F0, MIN0, MAX0)]
+ , LCPs = [eq(PARENT,ROOT), gt(ROOT,0)]
+ , RRPs = [bst(H0, PARENT, F0, MIN0, MAX0)]
+ , RCPs = []
+ , lprove(["BEFORE LOOP 1"], 2, LRPs, LCPs, RRPs, RCPs)
+ , printf("BEFORE LOOP 1 PROVED.\n", [])
+ .
+
+%bb bst-insert-before-loop2:
+%pre: (bst^(root) & ((keys^(root) s= kk) & (~ (k i-in kk)))) ;
+%post: ( (((bst-with-hole-k^(root, parent) & ((keys-lt-k^(root, parent) set-lt k) & (k lt-set keys-gt-k^(root, parent)))) * (bst^(parent) & (~ (k i-in keys^(parent))))) & (((keys-lt-k^(root, parent) lt keys^(parent)) & (keys^(parent) lt keys-gt-k^(root, parent))) & ((keys^(parent) union keys-with-hole-k^(root, parent)) s= kk))) &
+%	(((parent |-> loc left: hole; int key: rk) * (k < rk)) | ((parent |-> loc right: hole; int key: rk) * (rk < k))) ) ;
+%{
+%	assume (! (root l== nil));
+%	int rk := root.key;
+%	assume (! (k < rk));
+%	loc parent := root;
+%	loc hole := root.right;
+%}
+run_before_loop2 :- true
+ , LRPs = [bst(H0, ROOT, F0, MIN0, MAX0)]
+ , LCPs = [eq(PARENT,ROOT), gt(ROOT,0)]
+ , RRPs = [bst(H0, PARENT, F0, MIN0, MAX0)]
+ , RCPs = []
+ , lprove(["BEFORE LOOP2"], 2, LRPs, LCPs, RRPs, RCPs)
+ , !
+ , printf("BEFORE LOOP 2 PROVED.\n", [])
+ .
+
+
+%bb bst-insert-in-loop1:
+%pre: ( (((bst-with-hole-k^(root, parent) & ((keys-lt-k^(root, parent) set-lt k) 
+%& (k lt-set keys-gt-k^(root, parent)))) * (bst^(parent) & (~ (k i-in keys^(parent))))) 
+%& (((keys-lt-k^(root, parent) lt keys^(parent)) & (keys^(parent) lt keys-gt-k^(root, parent))) 
+%& ((keys^(parent) union keys-with-hole-k^(root, parent)) s= kk))) &
+%	(((parent |-> loc left: hole; int key: pk) * (k < pk)) | ((parent |-> loc right: hole; int key: pk) * (pk < k))) ) ;
+%post: ( (((bst-with-hole-k^(root, parent1) & ((keys-lt-k^(root, parent1) set-lt k) 
+%& (k lt-set keys-gt-k^(root, parent1)))) * (bst^(parent1) & (~ (k i-in keys^(parent1))))) 
+%& (((keys-lt-k^(root, parent1) lt keys^(parent1)) & (keys^(parent1) lt keys-gt-k^(root, parent1))) 
+%& ((keys^(parent1) union keys-with-hole-k^(root, parent1)) s= kk))) &
+%	(((parent1 |-> loc left: hole1; int key: hk) * (k < hk)) | ((parent1 |-> loc right: hole1; int key: hk) * (hk < k))) ) ;
+%{
+%	loc pl := parent.left;
+%	loc pr := parent.right;
+%	assume (! (hole l== nil));
+%	int hk := hole.key;
+%	assume (k < hk);
+%	loc parent1 := hole;
+%	loc hole1 := hole.left;
+%}
+run_in_loop1 :- true
+ , LRPs = [ bst_with_hole(H0, ROOT, PARENT, F0, MIN0, MAX0,KEY)
+          , bst(H0, PARENT, F1, MIN1, MAX1)
+          ]
+ , LCPs = [ gt(PARENT,0)
+          , gt(PARENT1,0)
+          , eq(PARENT1,ref(H0,plus(PARENT,1)))
+          , gt(PARENT,KEY)
+          , eq(PARENT,MIN2)
+          ]
+ , RRPs = [ bst_with_hole(H0, ROOT, PARENT1, F2, MIN2, MAX2,KEY)
+          , bst(H0, PARENT1, F3, MIN3, MAX3)
+          ]
+ , RCPs = []
+ , lprove(["IN LOOP 1"], 3, LRPs, LCPs, RRPs, RCPs)
+ , !
+ , printf("IN LOOP 1 PROVED.\n", [])
+ .
+
+%bb bst-insert-in-loop2:
+%pre: ( (((bst-with-hole-k^(root, parent) & ((keys-lt-k^(root, parent) set-lt k) & (k lt-set keys-gt-k^(root, parent)))) * (bst^(parent) & (~ (k i-in keys^(parent))))) & (((keys-lt-k^(root, parent) lt keys^(parent)) & (keys^(parent) lt keys-gt-k^(root, parent))) & ((keys^(parent) union keys-with-hole-k^(root, parent)) s= kk))) &
+%	(((parent |-> loc left: hole; int key: pk) * (k < pk)) | ((parent |-> loc right: hole; int key: pk) * (pk < k))) ) ;
+%post: ( (((bst-with-hole-k^(root, parent1) & ((keys-lt-k^(root, parent1) set-lt k) & (k lt-set keys-gt-k^(root, parent1)))) * (bst^(parent1) & (~ (k i-in keys^(parent1))))) & (((keys-lt-k^(root, parent1) lt keys^(parent1)) & (keys^(parent1) lt keys-gt-k^(root, parent1))) & ((keys^(parent1) union keys-with-hole-k^(root, parent1)) s= kk))) &
+%	(((parent1 |-> loc left: hole1; int key: hk) * (k < hk)) | ((parent1 |-> loc right: hole1; int key: hk) * (hk < k))) ) ;
+%{
+%	loc pl := parent.left;
+%	loc pr := parent.right;
+%	assume (! (hole l== nil));
+%	int hk := hole.key;
+%	assume (! (k < hk));
+%	loc parent1 := hole;
+%	loc hole1 := hole.right;
+%}
+run_in_loop2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [bst_with_hole(H0, ROOT, PARENT, F0, MIN0, MAX0,KEY),
+                        bst(H0, PARENT, F1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [bst_with_hole(H0, ROOT, PARENT1, F2, MIN2, MAX2,KEY),
+                        bst(H0, PARENT1, F3, MIN3, MAX3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(PARENT,0),
+          gt(PARENT1,0),
+          eq(PARENT1,ref(H0,plus(PARENT,2))),
+          gt(KEY,PARENT),
+          eq(PARENT,MAX2)
+         ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("IN LOOP 2 PROVED.\n", []).
+
+%bb bst-insert-after-loop1:
+%pre: ( (((bst-with-hole-k^(root, parent) & ((keys-lt-k^(root, parent) set-lt k) 
+%& (k lt-set keys-gt-k^(root, parent)))) * (bst^(parent) & (~ (k i-in keys^(parent))))) 
+%& (((keys-lt-k^(root, parent) lt keys^(parent)) & (keys^(parent) lt keys-gt-k^(root, parent))) 
+%& ((keys^(parent) union keys-with-hole-k^(root, parent)) s= kk))) &
+%	(((parent |-> loc left: hole; int key: pk) * (k < pk)) | ((parent |-> loc right: hole; int key: pk) * (pk < k))) ) ;
+%post: (bst^(root) & (keys^(root) s= (kk union (singleton k)))) ;
+%{
+%	assume (hole l== nil);
+%	int pk := parent.key;
+%	assume (k < pk);
+%	malloc y;
+%	int y.key := k;
+%	loc parent.left := y;
+%}
+run_after_loop1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [bst_with_hole_left(H0, ROOT, PARENT, F0, MIN0, MAX0,KEY),
+                        bst2(H0, PARENT, F1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [bst2(H1, ROOT, F2, MIN2, MAX2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(Y,0),
+          z3_not(mem(Y,F0)),
+          z3_not(mem(Y,F1)),
+          eq(Y,KEY),
+          arrassign(H1, upd(H0, plus(PARENT, 1), Y))
+         ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER LOOP 1 PROVED.\n", []).
+
+%bb bst-insert-after-loop2:
+%pre: ( (((bst-with-hole-k^(root, parent) & ((keys-lt-k^(root, parent) set-lt k) & (k lt-set keys-gt-k^(root, parent)))) * (bst^(parent) & (~ (k i-in keys^(parent))))) & (((keys-lt-k^(root, parent) lt keys^(parent)) & (keys^(parent) lt keys-gt-k^(root, parent))) & ((keys^(parent) union keys-with-hole-k^(root, parent)) s= kk))) &
+%	(((parent |-> loc left: hole; int key: pk) * (k < pk)) | ((parent |-> loc right: hole; int key: pk) * (pk < k))) ) ;
+%post: (bst^(root) & (keys^(root) s= (kk union (singleton k)))) ;
+%{
+%	assume (hole l== nil);
+%	int pk := parent.key;
+%	assume (! (k < pk));
+%	malloc y;
+%	int y.key := k;
+%	loc parent.right := y;
+%}
+run_after_loop2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [bst_with_hole_left(H0, ROOT, PARENT, F0, MIN0, MAX0,KEY),
+                        bst2(H0, PARENT, F1, MIN1, MAX1)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [bst2(H1, ROOT, F2, MIN2, MAX2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(Y,0),
+          z3_not(mem(Y,F0)),
+          z3_not(mem(Y,F1)),
+          eq(Y,KEY),
+          arrassign(H1, upd(H0, plus(PARENT, 2), Y))
+         ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER LOOP 2 PROVED.\n", []).
+
+run :- true
+ , run_nil
+ , run_before_loop1
+ , run_before_loop2
+ , run_in_loop1
+ % run_in_loop2
+ % run_after_loop1
+ % run_after_loop2
+ , !
+ , printf("PROOF SUCCEED.\n", [])
+ .
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('solver_main.clpr').
+
+:- run, halt.
