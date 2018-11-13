@@ -166,9 +166,7 @@ run_after_loop2 :- true
 run :- true
  , run_before_loop , !
  , run_in_loop__lseg , !
- % run_in_loop__sorted_list
- % ^^^^ stack overflow in find_affected_variables
- %      but passes with RU
+ , run_in_loop__sorted_list
  , run_after_loop1
  % run_after_loop2
  , !
