@@ -1,0 +1,70 @@
+All coinduction benchmarks.
+
+======== streams ========
+
+--- unfolding definitions ---
+
+same(H,G):=same1(H,G,0)
+same1(H,G,I):= H[I]=G[I], same1(H,G,I+1)
+
+tl(H,G):=tl1(H,G,0)
+tl1(H,G,I): H[I+1]=G[I], tl1(H,G,I+1)
+
+zeros(H):= zeros1(H,0)
+zeros1(H,I) := H[I]=0, zeros1(H,I+1)
+
+ones(H):= ones1(H,0)
+ones1(H,I) := H[I]=1, ones1(H,I+1)
+
+alters(H):= alters1(H,0)
+alters1(H,I) := H[I]=0, H[I+1]=1, alters1(H,I+2)
+
+nats(H) := nats1(H,0)
+nats(H,I):= H[I]=I, nats(H,I+1)
+
+evens(H) := evens1(H,0)
+evens1(H,I) := H[I]=2I, evens1(H,I+1)
+
+odds(H) := odds1(H,0)
+odds1(H,I) := H[I]=2I+1,odds1(H,I+1)
+
+zip(H1,H2,G):= zip1(H1,H2,G,0)
+zip1(H1,H2,G,I) := H1[I]=G[2I],H2[I]=G[2I+1],zip1(H1,H2,G,I+1)
+
+--- benchmarks ---
+
+zeros(Zs), ones(Os), zip(Zs, Os, S)
+  ->
+alters(S)
+
+evens(Evens), odds(Odds), zip(Evens, Odds, S)
+  ->
+nats(S)
+
+tl(H,H1), tl(G,G1), H[0]=G[0], same(H1,G1)
+  ->
+same(H,G)
+
+
+======== LTL induction rule ========
+
+[](P -> oP) /\ P -> []P
+
+always(H,I) := H[I]=0, always(H,I+1)
+
+alwaysnext(H,I) := H[I+1]=0, alwaysnext(H,I+1)
+                \/ H[I]!=0, alwaysnext(H,I+1)
+
+--- benchmarks ---
+
+alwaysnext(H,I), H[I]=0
+  ->
+always(H,I)
+
+======== infinite trees ========
+
+--- unfolding definitions ---
+
+
+
+

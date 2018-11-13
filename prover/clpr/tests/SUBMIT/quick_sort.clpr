@@ -1,0 +1,61 @@
+inductionlimit(1).
+unfolddepthbound(1).
+
+traceleftbound(1).
+tracerightbound(1).
+
+declare_unification_type(sorted_list, [arreq,eq,eq]).
+declare_unification_type(sorted_ls, [arreq,eq,eq,eq,eq]).
+
+unfold(sorted_list(H,X,L),
+  [
+  body([], [gt(X,0), 
+            eq(0, ref(H, plus(X, 1))), 
+            eq(L, ref(H, plus(X, 2)))]),
+  body([sorted_list(H,T,L1)],
+       [gt(X,0), 
+        eq(T, ref(H, plus(X, 1))),
+        eq(L, ref(H, plus(X, 2))),
+        eq(L1, ref(H, plus(T, 2))),
+        gt(L1, L)])
+  ]).
+
+
+unfold(sorted_ls(H,X,Y,Low,High),
+  [
+  body([], [eq(X,Y), 
+            eq(Low, ref(H, plus(X, 2))),
+            eq(Low, High)]),
+  body([sorted_ls(H,X,T,Low,High1)],
+       [z3_not(eq(X,Y)),
+        gt(T,0), 
+        eq(Y, ref(H, plus(T, 1))),
+        eq(High, ref(H, plus(Y, 2))),
+        eq(High1, ref(H, plus(T, 2))),
+        gt(High, High1)])
+  ]).
+
+
+% Here we only prove the obligation cannot be handled by [7]
+% It is stated as a lemma in their system
+
+run_lemma :-
+  init_counters,
+  addunfoldlevel(0, 0, [sorted_ls(H, X, Y, Low, High),
+                        sorted_list(H, Y, High)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [sorted_list(H, X, Low)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("LEMMA PROVED.\n", []).
+
+
+:- consult('../solver_main.clpr').
+
+:- run_lemma, halt.

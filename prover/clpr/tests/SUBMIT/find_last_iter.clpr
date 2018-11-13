@@ -1,0 +1,178 @@
+inductionlimit(1).
+unfolddepthbound(1).
+
+traceleftbound(1).
+tracerightbound(1).
+
+declare_unification_type(sorted_list, [arreq,eq,eqset]).
+declare_unification_type(sorted_lseg, [arreq,eq,eq,eqset]).
+
+unfold(sorted_list(H,X,F),
+  [
+  body([], [eq(X,0), eqset(F,emptyset)]),
+  body([sorted_list(H,T,F1)],
+       [gt(X,0), 
+        eq(T, ref(H, plus(X,1))),
+        gt(X,T),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+unfold(sorted_lseg(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([sorted_lseg(H,X,T,F1)],
+       [gt(T, 0),
+        eq(Y, ref(H, plus(T, 1))),
+        gt(T,Y),
+        z3_not(mem(T, F1)),
+        eqset(F, add(F1, T))])
+  ]).
+
+%bb find-last-before-loop:
+%pre: ((sorted-sll^(y) * (keys^(y) s= yks)) & (~ (y l= nil)));
+%post: ( (((sorted-lseg^(y, curr) & (lseg-keys^(y, curr) set-le currd)) * (curr |-> loc next: currn; int key: currd)) *
+%	(sorted-sll^(currn) & (currd le-set keys^(currn)))) & (((lseg-keys^(y, curr) union (singleton currd)) union keys^(currn)) s= yks) ) ; 
+%{
+%	loc curr := y;
+%	loc currn := curr.next;
+%	int currd := curr.key;
+%}
+run_before_loop :-
+  init_counters,
+  addunfoldlevel(0, 0, [sorted_list(H0, Y, F0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [sorted_lseg(H0, Y, CURR, F1),
+                        sorted_list(H0, NXT, F2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(Y,0),
+          eq(CURR,Y),
+          eq(NXT,ref(H0,plus(Y,1)))
+         ],
+         [], UnfoldableHAtoms, 
+         [z3_not(mem(CURR,F1)),
+          eq(NXT,ref(H0,plus(CURR,1))),
+          eqset(F3,add(F1,CURR)),
+          eqset(emptyset,inter(F3,F2)),
+          gt(CURR,NXT),
+          eqset(F0,union(F3,F2))], []),
+  !,
+  show_counters,
+  printf("BEFORE PROVED.\n", []).
+
+%bb find-last-in-loop:
+%pre: ( (((sorted-lseg^(y, curr) & (lseg-keys^(y, curr) set-le currd)) * (curr |-> loc next: currn; int key: currd)) *
+%	(sorted-sll^(currn) & (currd le-set keys^(currn)))) & (((lseg-keys^(y, curr) union (singleton currd)) union keys^(currn)) s= yks) ) ; 
+%post: ( (((sorted-lseg^(y, curr1) & (lseg-keys^(y, curr1) set-le currd1)) * (curr1 |-> loc next: currn1; int key: currd1)) *
+%	(sorted-sll^(currn1) & (currd1 le-set keys^(currn1)))) & (((lseg-keys^(y, curr1) union (singleton currd1)) union keys^(currn1)) s= yks) ) ; 
+%{
+%	assume (! (currn l== nil));
+%	loc curr1 := currn;
+%	loc currn1 := currn.next;
+%	int currd1 := currn.key;
+%}
+run_in_loop :-
+  init_counters,
+  addunfoldlevel(0, 0, [sorted_lseg(H0, Y, CURR, F1),
+                        sorted_list(H0, NXT, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [sorted_lseg(H0, Y, CURR1, F4),
+                        sorted_list(H0, NXT1, F5)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(CURR,0),
+          z3_not(mem(CURR,F1)),
+          eq(NXT,ref(H0,plus(CURR,1))),
+          eqset(F3,add(F1,CURR)),
+          eqset(emptyset,inter(F3,F2)),
+          gt(CURR,NXT),
+          eqset(F0,union(F3,F2)),
+          
+          gt(NXT,0),
+          eq(CURR1,NXT),
+          eq(NXT1,ref(H0,plus(NXT,1))),
+          eqset(F4,add(F1,CURR)),
+          eqset(F5,del(F2,NXT))],
+         [], UnfoldableHAtoms, 
+         [gt(CURR1,0),
+          z3_not(mem(CURR1,F4)),
+          eq(NXT1,ref(H0,plus(CURR1,1))),
+          eqset(F6,add(F4,CURR1)),
+          eqset(emptyset,inter(F6,F5)),
+          gt(CURR1,NXT1),
+          eqset(F0,union(F6,F5))], []),
+  !,
+  show_counters,
+  printf("IN LOOP PROVED.\n", []).
+
+%bb find-last-after-loop:
+%pre: ( (((sorted-lseg^(y, curr) & (lseg-keys^(y, curr) set-le currd)) * (curr |-> loc next: currn; int key: currd)) *
+%	(sorted-sll^(currn) & (currd le-set keys^(currn)))) & (((lseg-keys^(y, curr) union (singleton currd)) union keys^(currn)) s= yks) ) ; 
+%post: ((sorted-lseg^(y, ret) & ((lseg-keys^(y, ret) set-le lastd) & ((lseg-keys^(y, ret) union (singleton lastd)) s= ykss)))
+%       	* (ret |-> loc next: nill; int key: lastd)) ; 
+%{
+%	assume (currn l== nil);
+%	loc ret := curr;
+%}
+run_after_loop1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [sorted_lseg(H0, Y, CURR, F1),
+                        sorted_list(H0, NXT, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [sorted_lseg(H0, Y, RET, F1)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(CURR,0),
+          z3_not(mem(CURR,F1)),
+          eq(NXT,ref(H0,plus(CURR,1))),
+          eqset(F3,add(F1,CURR)),
+          eqset(emptyset,inter(F3,F2)),
+          gt(CURR,NXT),
+          eqset(F0,union(F3,F2)),
+          eq(NXT,0),
+          eq(RET,CURR)],
+         [], UnfoldableHAtoms, 
+         [eq(0,ref(H0,plus(RET,1))),
+          z3_not(mem(RET,F1)),
+          eqset(F0,add(F1,RET))], []),
+  !,
+  show_counters,
+  printf("AFTER LOOP 1 PROVED.\n", []).
+
+run_after_loop2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [sorted_lseg(H0, Y, CURR, F1),
+                        sorted_list(H0, CURR, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [sorted_list(H0, Y, F3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eqset(emptyset,inter(F1,F2)),
+          eqset(F3,union(F1,F2))],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER LOOP 2 PROVED.\n", []).
+
+
+run :-
+  run_before_loop,
+  run_in_loop,
+  run_after_loop1,
+  run_after_loop2,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.

@@ -1,0 +1,8 @@
+[lr(H, X, T1, F3)] [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F2)), eqset(F3, add(F2, X)), gt(T1, 0), eq(Y, ref(H, T1)), z3_not(mem(T1, F2)), eqset(F1, add(F2, T1)), gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X))]
+  ->
+[lr(H, X, Y, F)] []
+
+---->(?)
+
+[obligation([lr(H, X, T1, F3)], [gt(X, 0), eq(_h17065, ref(H, X)), z3_not(mem(X, _h16908)), eqset(F3, add(_h16908, X)), gt(T1, 0), eq(_h17477, ref(H, T1)), z3_not(mem(T1, _h16908)), eqset(_h17288, add(_h16908, T1)), gt(X, 0), eq(_h17065, ref(H, X)), z3_not(mem(X, _h17288)), eqset(_h17258, add(_h17288, X))], [lr(H, X, _h18048, _h18049)], [gt(_h18048, 0), eq(_h17477, ref(H, _h18048)), z3_not(mem(_h18048, _h18049)), eqset(_h17258, add(_h18049, _h18048))])]
+

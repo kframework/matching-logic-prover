@@ -1,0 +1,176 @@
+inductionlimit(1).
+unfolddepthbound(1).
+
+traceleftbound(1).
+tracerightbound(2).
+
+declare_unification_type(list_seg, [arreq,eq,eq,eqset]).
+declare_unification_type(list, [arreq,eq,eqset]).
+declare_unification_type(find, [eq,eq,eqset]).
+
+
+unfold(list_seg(H,X,Y,F),
+  [
+  body([], [eq(X,Y), eqset(F,emptyset)]),
+  body([list_seg(H,X,T,F1)],
+       [gt(T, 0),
+        eq(Y, ref(H, plus(T, 1))),
+        z3_not(mem(T, F1)),
+        eqset(F, add(F1, T))])
+  ]).
+
+unfold(list(H,X,F),
+  [
+  body([], [eq(X,0), eqset(F,emptyset)]),
+  body([list(H,T,F1)],
+       [gt(X,0), 
+        eq(T, ref(H, plus(X,1))),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+%	  (((d i-in keys^(oldx)) & ((ret |-> int key: d) * true)) | ((~ (d i-in keys^(oldx))) & (ret l= nil)))) ;
+unfold(find(DATA,RET,F),
+  [
+  body([], [gt(RET,0), eq(RET,DATA), mem(DATA,F)]),
+  body([], [eq(RET,0), z3_not(mem(DATA,F))])
+  ]).
+
+
+
+%  bb find-before-loop:
+%  pre: (list^(x) & (oldx l= x));
+%  post: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
+%  {
+%	  loc tmp := nil;
+%  }
+run_before_loop :-
+  init_counters,
+  addunfoldlevel(0, 0, [list(H0, X, F0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X, F1),
+                        list(H0, X, F2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(X, OLDX),
+          eq(TMP, 0)],
+         [], UnfoldableHAtoms, 
+         [eqset(emptyset,inter(F1,F2)),
+          z3_not(mem(DATA,F1))], []),
+  !,
+  show_counters,
+  printf("BEFORE PROVED.\n", []).
+
+%  bb find-in-loop:
+%  pre: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
+%  post: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
+%  {
+%	  assume (! (x l== nil));
+%	  int xk := x.key;
+%	  assume (! (xk i== d));
+%	  loc tmp := x.next;
+%	  loc x := tmp;
+%  }
+run_in_loop :-
+  init_counters,
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X, F1),
+                        list(H0, X, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X2, F3),
+                        list(H0, X2, F4)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eqset(emptyset,inter(F1,F2)),
+          z3_not(mem(DATA,F1)),
+          
+          gt(X, 0),
+          gt(X, DATA),
+          eq(X2, ref(H0, plus(X,1))),
+          eqset(F3,add(F1,X)),
+          eqset(F4,del(F2,X))
+         ],
+         [], UnfoldableHAtoms, 
+         [eqset(emptyset,inter(F3,F4)),
+          z3_not(mem(DATA,F3))], []),
+  !,
+  show_counters,
+  printf("INV PROVED.\n", []).
+
+%  bb find-after-loop1:
+%  pre: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
+%  post: ((list^(oldx) & ((lseg^(oldx, ret) & (~ (d i-in lseg-keys^(oldx, ret)))) * list^(ret))) &
+%	  (((d i-in keys^(oldx)) & ((ret |-> int key: d) * true)) | ((~ (d i-in keys^(oldx))) & (ret l= nil)))) ;
+%  {
+%	  assume (x l== nil);
+%	  loc ret := x;
+%  }
+run_after_loop1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X, F1),
+                        list(H0, X, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list(H0, OLDX, F3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eqset(emptyset,inter(F1,F2)),
+          eqset(F3,union(F1,F2))
+         ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER1 PROVED.\n", []).
+
+%  bb find-after-loop2:
+%  pre: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
+%  post: ((list^(oldx) & ((lseg^(oldx, ret) & (~ (d i-in lseg-keys^(oldx, ret)))) * list^(ret))) &
+%	  (((d i-in keys^(oldx)) & ((ret |-> int key: d) * true)) | ((~ (d i-in keys^(oldx))) & (ret l= nil)))) ;
+%  {
+%	  assume (! (x l== nil));
+%	  int xk := x.key;
+%	  assume (xk i== d);
+%	  loc ret := x;
+%  }
+run_after_loop2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X, F1),
+                        list(H0, X, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X, F1),
+                        list(H0, X, F2),
+                        find(DATA,RET,F3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eqset(emptyset,inter(F1,F2)),
+          z3_not(mem(DATA,F1)),
+
+          gt(X, 0),
+          eq(X, DATA),
+          eq(RET,X),
+          eqset(F3,union(F1,F2))],
+         [], UnfoldableHAtoms, 
+         [eqset(emptyset,inter(F1,F2)),
+          z3_not(mem(DATA,F1))], []),
+  !,
+  show_counters,
+  printf("AFTER2 PROVED.\n", []).
+
+run :-
+  run_before_loop,
+  run_in_loop,
+  run_after_loop1,
+  run_after_loop2,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.
