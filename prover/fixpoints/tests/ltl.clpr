@@ -1,0 +1,24 @@
+LTL (Ind) rule
+
+[] (P -> oP) -> (P -> []P)
+
+====================
+
+CLPR syntax
+
+always(X) = X=1, 
+
+f(X) = X /\ o(f(X))
+f(T) /\ T = X=>o(X) /\ X  |=  f(X)
+============
+f(X) = eq(X,1) /\ o(f(X))
+i(X, T) = eq(T,1) /\ z3_not(eq(X,1))
+       || eq(T,1) /\ o(X)
+       || z3_not(eq(T,1)) /\ eq(X,1) /\ z3_not(o(X))
+f(T) /\ i(X, T) /\ eq(X, 1)  |=  f(X)
+===================
+KT:    f(T) /\ i(X, T) /\ eq(X, 1)  |=  бн /\ o(f(T) /\ i(X, T) /\ eq(X, 1))
+SIMP:  f(T) /\ i(X, T) /\ eq(X, 1)  |=  o(f(T) /\ i(X, T)) /\ o(eq(X, 1)))
+FIX:   eq(T,1) /\ o(f(T) /\ i(X, T)) /\ i(X,T) /\ eq(X, 1) |=  o(f(T) /\ i(X, T)) /\ o(eq(X, 1)))
+SIMP:  eq(T,1) /\ o(f(T) /\ i(X, T)) /\ o(X) /\ eq(X, 1) |=  o(f(T) /\ i(X, T)) /\ o(eq(X, 1)))
+SIMP:  eq(T,1) /\ o(f(T) /\ i(X, T)) /\ o(eq(X, 1)) /\ eq(X, 1) |=  o(f(T) /\ i(X, T)) /\ o(eq(X, 1)))
