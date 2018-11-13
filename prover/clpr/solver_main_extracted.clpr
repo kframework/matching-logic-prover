@@ -1,0 +1,604 @@
+%--------------------------------------------------------------------
+% This file tries to exact from the solver_main.clpr functions and
+% code that are needed for the implementation of (KT) and related
+% rules. I'll go throught the code and select what in my view are
+% needed.
+%--------------------------------------------------------------------
+
+%--------------------------------------------------------------------
+% set_default ignored.
+% counters related functions ignored.
+%--------------------------------------------------------------------
+
+
+
+
+%==============================================================================
+% Load the solver to do constraint proof
+%==============================================================================\
+% Hiep: Using z3, no need for custom solver
+
+:- consult('z3_wrapper.clpr').
+
+%--------------------------------------------------------------------
+% set_equalities ignored.
+%--------------------------------------------------------------------
+
+%--------------------------------------------------------------------
+% remove_atm not needed: no need to keep track of the levels.
+%--------------------------------------------------------------------
+
+
+%--------------------------------------------------------------------
+% pretty printing needed. the following is copied blindly.
+%--------------------------------------------------------------------
+
+prettyprint_aux(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
+            NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints) :-
+  assert(refresh_variables(t(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
+                                   NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints))),
+  retract(refresh_variables(t(NonUnfoldableG, UnfoldableG, G,
+                                   NonUnfoldableH, UnfoldableH, H))),
+  prettyprint(NonUnfoldableG, UnfoldableG, G,
+                     NonUnfoldableH, UnfoldableH, H).
+
+prettyprint(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
+            NonUnfoldableHAtoms, UnfoldableHAtoms, HConstraints) :- !,
+  set_counter(variable_number, 0),
+  append(NonUnfoldableGAtoms, UnfoldableGAtoms, GAtoms),
+  append(NonUnfoldableHAtoms, UnfoldableHAtoms, HAtoms),
+  remove_atm(GAtoms, GAtoms1),
+  remove_atm(HAtoms, HAtoms1),
+  prettyprintlist(" , ", GAtoms1),
+  printf(",", []),
+  prettyprintlist(" , ", GConstraints),
+  printf("\n\t|=\n", []),
+  prettyprintlist(" , ", HAtoms1),
+  printf(",", []),
+  prettyprintlist(" , ", HConstraints),
+  printf("\n", []).
+
+prettyprint(A) :-
+  var(A), counter_value(variable_number, N),
+  printf_to_atom(A, "v%", [N]), printf("%", [A]),
+        add_counter(variable_number, 1), !.
+prettyprint(emptyset) :-
+  printf("{", []),
+  printf("}", []), !.
+prettyprint(A) :-
+  atomic(A), printf("%", [A]), !.
+prettyprint(singleton(A)) :-
+  printf("{", []),
+  prettyprint(A),
+  printf("}", []), !.
+prettyprint(ref(A,B)) :-
+  prettyprint(A), printf("[", []), prettyprint(B), printf("]", []), !.
+prettyprint(eqset(A,B)) :-
+  prettyprint(A), printf("=", []), prettyprint(B), !.
+prettyprint(arreq(A,B)) :-
+  prettyprint(A), printf(" =a= ", []), prettyprint(B), !.
+prettyprint(eq(A,B)) :-
+  prettyprint(A), printf("=", []), prettyprint(B), !.
+prettyprint(plus(A,B)) :-
+  printf("(", []),
+  prettyprint(A), printf("+", []), prettyprint(B),
+  printf(")", []), !.
+prettyprint(minus(A,B)) :-
+  printf("(", []),
+  prettyprint(A), printf("-", []), prettyprint(B),
+  printf(")", []), !.
+prettyprint(geq(A,B)) :-
+  prettyprint(A), printf(">=", []), prettyprint(B), !.
+prettyprint(gt(A,B)) :-
+  prettyprint(A), printf(">", []), prettyprint(B), !.
+%prettyprint(union(L)) :- prettyprintlist("U", L), !.
+%prettyprint(inter(L)) :- prettyprintlist("^", L), !.
+%prettyprint(disjoint(L)) :- prettyprintlist("(X)", L), !.
+%prettyprint(multiset(L)) :-
+% printf("{", []),
+% prettyprintlist(",", L),
+% printf("}", []), !.
+prettyprint(upd(A,B,C)) :-
+  printf("<", []), prettyprint(A),
+  printf(",", []), prettyprint(B),
+  printf(",", []), prettyprint(C),
+  printf(">", []), !.
+prettyprint(A) :-
+  A =.. [X|L],
+  printf("%(", [X]),
+        prettyprintlist(",", L),
+        printf(")", []), !.
+
+prettyprintlist(_Op, []) :- !.
+prettyprintlist(_Op, [X]) :-
+  prettyprint(X), !.
+prettyprintlist(Op, [X,Y|R]) :-
+  prettyprint(X), printf("%", [Op]),
+        prettyprintlist(Op, [Y|R]), !.
+
+%--------------------------------------------------------------------
+% some aux functions: can be added later.
+%--------------------------------------------------------------------
+
+% append is defined in z3_wrapper.clpr.
+% append([], B, B).
+% append([X|A], B, [X|C]) :- append(A, B, C).
+
+%--------------------------------------------------------------------
+% freshcopy/2
+% freshcopy(Vars,FreshVars)
+% Assumptions: 
+%   Vars is a list of distinct variables.
+%--------------------------------------------------------------------
+
+freshcopy([], []) :- !.
+
+freshcopy([X],[Y]) :- true
+  , var(X)
+  , !
+  , Y = Z
+  .
+
+freshcopy([X|Xs],[Y|Ys]) :- true
+  , freshcopy([X],[Y])
+  , freshcopy(Xs,Ys)
+  .
+
+%--------------------------------------------------------------------
+% get_unifier(LHS, RHS, Unifier)
+% LHS: List of terms
+% RHS: List of terms
+% Unifier: List of eq(A,B), where A is variable
+% Finds a substitution that when applied to the LHS unifies it with the RHS.
+% Note that this is *NOT* full unification.
+%--------------------------------------------------------------------
+
+% get_unifier(L, R, _) :- true
+%   , printf("GET_UNIFIER: L = % ; R = %\n", [L, R])
+%   , 0 == 1
+%   .
+get_unifier([L|LS], [R|RS], [eq(L,R)|US]) :- true
+  , var(L)
+  , get_unifier(LS, RS, US)
+  .
+get_unifier([L|LS], [R|RS], Out) :- true
+  , L =.. [Ctor|Args1]
+  , not(var(R))
+  , R =.. [Ctor|Args2]
+  , get_unifier(Args1, Args2, Out1)
+  , get_unifier(LS, RS, Out2)
+  , append(Out1, Out2, Out)
+  .
+get_unifier([], [], []).
+
+%------------------------------------------------------------------------------
+% substitute(Subst, Terms, Modified)
+% Subst: List of eq(A,B), where A is variable.
+% Terms: The list of terms where A is to be replaced with B
+% Modified: The modified list of terms
+%------------------------------------------------------------------------------
+
+% substitute(Assign, Term, Out) :- true
+%   , printf("SUBSTITUTE: Assign = % ; Term = % ; Out = % \n", [Assign, Term, Out])
+%   , 0 == 1
+%   .
+substitute([eq(L, R)], [T], [R]) :- true
+  , var(L)
+  , L == T
+  , !
+  .
+substitute([eq(L, _R)], [T], [T]) :- true
+  , var(L)
+  , var(T)
+  , !
+  .
+substitute([eq(L, R)], [Term], [Out]) :- true
+  , var(L)
+  , Term =.. [Ctor|Args]
+  , !
+  , substitute([eq(L, R)], Args, OutArgs)
+  , Out =.. [Ctor|OutArgs]
+  .
+substitute([eq(L, R)], [T|TS], Out) :- true
+  , var(L)
+  , !
+  , substitute([eq(L, R)], [T], Out1)
+  , substitute([eq(L, R)], TS,  Out2)
+  , append(Out1, Out2, Out)
+  .
+substitute(_Assign, [], []) :- true
+  .
+substitute([EQ | EQS], [TS], Out) :- true
+  , !
+  , substitute([EQ], [TS], Out1)
+  , substitute(EQS,  Out1, Out)
+  .
+substitute([], Term, Term) .
+substitute(EQS, Term, Out) :- true
+  , printf("BAD SUBSTITUTION: %, %\n", [EQS, Term])
+  , halt
+  .
+
+%------------------------------------------------------------------------------
+% Lists
+%------------------------------------------------------------------------------
+
+% True when E is the N'th (1-based) element of List 
+
+nth1(1, [X | R], X) :- true
+  , !
+  .
+
+nth1(I, [X | R], E) :- true
+  , I >= 2
+  , !
+  , nth1(I-1, R, E)
+  .
+
+%------------------------------------------------------------------------------
+% collect_variables(Terms, OutTerms)
+%------------------------------------------------------------------------------
+
+collect_variables([], []) :- true
+  , !
+  .
+collect_variables([V], [V]) :- true
+  , var(V)
+  , !
+  .
+collect_variables([Term], Out) :- true
+  , Term =.. [Ctor|Args]
+  , !
+  , collect_variables(Args, Out)
+  .
+collect_variables([Term | Terms], Outs) :- true
+  , !
+  , collect_variables([Term], Outs0)
+  , collect_variables(Terms, Outs1)
+  , delete_var(Outs1, Outs0, Outs2)
+  , append(Outs0, Outs2, Outs)
+  .
+
+delete_var([], _, []) :- true
+%  , printf("Base\n", [])
+  , !
+  .
+delete_var([A | AS], [B], Outs) :- true
+%  , printf("Matched? [% | %], [%]\n", [A, AS, B])
+  , A == B
+%  , printf("Matched. [% | %], [%]\n", [A, AS, B])
+  , !
+  , delete_var(AS, [B], Outs)
+  .
+delete_var([A | AS], [B], [ A | Out]) :- true
+%  , printf("Matched failed. [% | %], [%]\n", [A, AS, B])
+  , !
+  , delete_var(AS, [A], Out)
+  .
+delete_var(AS, [B | BS], Outs) :- true
+  , delete_var(AS, [B], Outs1)
+  , delete_var(Outs1, BS, Outs)
+  .
+
+
+
+%------------------------------------------------------------------------------
+% collect_variables_by_positions(+Term, +Positions, -Vars)
+% Assume that all arguments in Term are variables.
+%------------------------------------------------------------------------------
+
+collect_variables_by_position(T, Ps, Vs) :- true
+% , printf("\n---collect_variables_by_position---\n",[])
+% , printf("T = %\nPs = %\n", [T,Ps])
+  , T =.. [_|AllVs]
+% , printf("AllVs = %\n", [AllVs])
+  , !
+  , pick_by_position(AllVs, Ps, Vs)
+  .
+
+pick_by_position(AllVs, [], []) :- true
+  , !
+  .
+
+pick_by_position(AllVs, [P|Ps], [V|Vs]) :- true
+% , printf("\n---pick_by_position---\n",[])
+  , nth1(P, AllVs, V)
+% , printf("P = %\nV = %\n", [P,V])
+  , pick_by_position(AllVs, Ps, Vs)
+  .
+
+%------------------------------------------------------------------------------
+% rewrite(Subst, In, Out)
+% Subst: List of eq(L, R) where L and R are terms
+% In: List of terms to rewrite
+% Out: List of output terms
+%------------------------------------------------------------------------------
+
+%rewrite(Rule, In, Out) :- true
+%  , printf("REWRITE: Rule = % ; In = %\n", [Rule, In])
+%  , 0 == 1
+%  .
+%rewrite(Rule, In, Out) :- true
+%  , rewrite_step(Rule, In, Out)
+%  , printf("REWRITE.1: Rule = % ; In = %; Out= %\n", [Rule, Int, Out])
+%  , In == Out
+%  .
+%% TODO:BRoken
+%rewrite(Rule, In, Out) :- true
+%  , rewrite_step(Rule, In, Out1)
+%  , printf("REWRITE.2: Rule = % ; In = %; Out= %\n", [Rule, Int, Out1])
+%  , Out1 = Out
+%  , rewrite(Rule, Out1, Out)
+%  .
+
+% rewrite_step(Rule, In, _Out) :- true
+%   , printf("REWRITE: Rule = % ; In = %\n", [Rule, In])
+%   , 0 == 1
+%   .
+% Unifies
+rewrite_step([eq(L, R)], [T], [Out]) :- true
+  , get_unifier([L], [T], Unif)
+  , substitute(Unif, [R], [Out])
+  .
+% Variable
+rewrite_step(_Rule, [A], [A]) :- true
+  , var(A)
+  , !
+  .
+% Visit arguments
+rewrite_step(Rule, [A], [B]) :- true
+  , A =.. [Name|M], !
+  , rewrite_step(Rule, M, N)
+  , B =.. [Name|N]
+  .
+rewrite_step(Rule, [A|AS], [B|BS]) :- true
+  , rewrite_step(Rule, [A], [B])
+  , rewrite_step(Rule, AS, BS)
+  .
+rewrite_step(_Rule, [], []).
+
+%--------------------------------------------------------------------
+% lprove needed, but parameters are different.
+%--------------------------------------------------------------------
+
+lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
+  printf("\n----consider a new obligation----\n", []),
+  printf("% % |= % %\n",
+    [GAtoms, GConstraints, HAtoms, HConstraints]),
+  fail.
+
+% try all possible rules and collect a set of obligation sets OrSet.
+% prove one obligation set in OrSet and we are done.
+% In other words, OrSet is a disjunction of conjunctions. 
+lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
+  lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet),
+  prove_one(OrSet),
+  !, true.
+ 
+% collect OrSet by trying all possible rules.
+lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :-
+  lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT),
+  lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU),
+  flatten([OrSetKT,OrSetRU],OrSet),
+  prove_one(OrSet).
+
+%--------------------------------------------------------------------
+% prove_one needed. the structure of the original code is kept.
+% prove_all needed. the structure of the original code is kept.
+%--------------------------------------------------------------------
+prove_one([]) :- !, fail. % fail to prove.
+
+prove_one(OrSet) :- 
+  printf("\n----consider an orset----\n", []),
+  prove_one_set(OrSet) .
+
+prove_one_set(OrSet) :- prove_one_set_aux(OrSet).
+
+prove_one_set_aux([]) :- !, fail. % fail to prove.
+
+prove_one_set_aux([Obs | _]) :- prove_all(Obs),
+  !, true.
+
+prove_one_set_aux([_ | R]) :- prove_one_set_aux(R).
+
+prove_all([]) :- !, true. % succeed to prove.
+
+prove_all([Ob | R]) :-
+  Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints),
+  lprove(GAtoms, GConstraints, HAtoms, HConstraints),
+  !,
+  prove_all(R).
+
+prove_all(_) :- fail. % not reachable.
+
+
+%------------------------------------------------------------------------------
+% lprove_right_unfold/5
+% lprove_right_unfold(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   -OrSet)
+%
+% GAtoms,GConstraints -> HAtoms,HConstraints
+%------------------------------------------------------------------------------
+
+
+%------------------------------------------------------------------------------
+% lprove_kt/5
+% lprove_kt(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   -OrSet)
+%
+% GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (KT) on every recursive predicates in GAtoms. For every recursive
+% predicate p(X1,..,Xn) in GAtoms, a list of proof obligations is generated
+% and is added as a single conjunction to OrSet.
+% If there are k recursive predicates in GAtoms, |OrSet| = k.
+%------------------------------------------------------------------------------
+
+lprove_kt([],_GConstraints,_HAtoms,_HConstraints, []) :- true
+  , !
+  .
+
+% TODO:: Finish lprove_kt/5 using lprove_kt/6.
+
+
+%------------------------------------------------------------------------------
+% lprove_kt/6
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,-OrSet)
+%
+% GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (KT) on GAtom. A list KTSet of proof obligations is generated
+% and is added as a single conjunction to OrSet; |OrSet| = 1.
+%------------------------------------------------------------------------------
+
+lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, [KTSet]) :- true
+  , printf("\n---try KT on---\n", [])
+  , flatten([GAtoms,GConstraints],LHS)
+  , flatten([HAtoms,HConstraints],RHS)
+  , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
+  , unfold(GAtom, GBodies)
+  , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
+    GBodies, [], KTSet)
+  , !
+  .
+
+
+%------------------------------------------------------------------------------
+% lprove_kt_try_all_cases/8
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +GBodies, +KTSetIn, -KTSetOut)
+%
+% GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Accumulates the results of applying (KT) according to GBodies.
+% Apply (KT) on GAtom, whose bodies is given in GBodies.
+% Append the results upon KTSetIn and return KTSetOut, 
+% a conjunction of proof obligation.
+%------------------------------------------------------------------------------
+
+% No bodies, no new obligations.
+lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
+  [], KTSet, KTSet) :- !.
+
+lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
+  [Body|RestGBodies], KTSetIn, KTSetOut) :- true
+  , lprove_kt_try_one_case(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
+      Body, KTSetBody)
+  , append(KTSetBody,KTSetIn,NewKTSetIn)
+  , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
+      RestGBodies, NewKTSetIn, KTSetOut)
+  , !
+  .
+
+%------------------------------------------------------------------------------
+% lprove_kt_try_one_case/7
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +Body, -KTSetBody)
+%
+% GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (KT) according to Body and return KTSetBody.
+%------------------------------------------------------------------------------
+
+% Just return true (the empty conjunction []) when body contains new atoms.
+lprove_kt_try_one_case(GAtom,[],GConstraints,HAtoms,HConstraints,
+  body(CP, [], BConstraints), []) :- true
+  , !
+  .
+
+% TODO:: Extend this function to support more general cases.
+% Current assumptions
+%   body contains exactly one atom, BAtom
+%   HAtoms contains exactly one atom, HAtom
+%   GAtoms is empty
+%   GAtom,HAtom,BAtom have the same head
+lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
+  body(CP, [BAtom], BConstraints), KTSetBody) :- true
+ , printf("\n---try KT (one case) on---\n", [])
+ , flatten([HAtom,HConstraints],RHS)
+ , printf("%\n%\n  ->\n%\n", [GAtom,GConstraints,RHS]) 
+ , printf("---case is---\n", [])
+ , printf("%\n%\n", [BAtom, BConstraints])
+
+ % Variables in GAtom are called active variables.
+ % Variables in GConstraints,HAtom,HConstraints but not in GAtom 
+ % are called passive variables.
+ % We assume that GAtom have distinct variables, so ActiveVars is a set.
+
+ , collect_variables([GAtom,GConstraints,HAtom,HConstraints], OriginalVarList)
+ , collect_variables([GAtom], ActiveVars) % already a set
+ , list_to_set(OriginalVarList, OriginalVars)
+ , unord_setdiff(OriginalVars,ActiveVars,PassiveVars)
+
+ , printf("\n---after variable collection---\n",[])
+ , printf("GAtom = %\n", [GAtom])
+ , printf("GConstraints = %\n", [GConstraints])
+ , printf("HAtom = %\n", [HAtom])
+ , printf("HConstraints = %\n", [HConstraints])
+ , printf("BAtom = %\n", [BAtom])
+ , printf("BConstraints = %\n", [BConstraints])
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+
+ % Subst1
+ , get_unifier([GAtom], [BAtom], Subst1)
+ , substitute(Subst1, [GConstraints], [GConstraints1])
+ , substitute(Subst1, [HAtom],        [HAtom1])
+ , substitute(Subst1, [HConstraints], [HConstraints1])
+
+ , printf("\n---after Subst1---\n", [])
+ , printf("Subst1 = %\n", [Subst1])
+ , printf("GConstraints = %\n", [GConstraints])
+ , printf("GConstraints1 = %\n", [GConstraints1])
+
+ % Subst2
+ , collect_variables_by_position(HAtom, CP, HAtomCriticalVars)
+ , unord_setintersection(HAtomCriticalVars, PassiveVars, HAtomPassiveCriticalVars)
+ , freshcopy(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars)
+ , get_unifier(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars, Subst2)
+
+ , substitute(Subst2, [GConstraints1],  [GConstraints2])
+ , substitute(Subst2, [HAtom1],  [HAtom2])
+ , substitute(Subst2, [HConstraints1],  [HConstraints2])
+
+ , printf("\n---after Subst2---\n", [])
+ , printf("HAtom = %\n", [HAtom])
+ , printf("CP = %\n", [CP])
+ , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
+ , printf("HAtomPassiveCriticalVars = %\n", [HAtomPassiveCriticalVars])
+ , printf("FreshCopyHAtomPassiveCriticalVars = %\n", [FreshCopyHAtomPassiveCriticalVars])
+ , printf("Subst2 = %\n", [Subst2])
+
+ , append(BConstraints, GConstraints, GConstraints6a2)
+
+ , Ob6a2 = obligation([], GConstraints6a2, [], GConstraints2)
+
+ , append(GConstraints6a2, GConstraints2, NotYetGConstraints6b)
+ , append(NotYetGConstraints6b, HConstraints2, GConstraints6b)
+
+ , Ob6b = obligation([HAtom2], GConstraints6b, [HAtom], HConstraints)
+
+ , printf("\n---final check---\n",[])
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+ , printf("GAtom = %\n", [GAtom])
+ , printf("GConstraints = %\n", [GConstraints])
+ , printf("HAtom = %\n", [HAtom])
+ , printf("HConstraints = %\n", [HConstraints])
+ , printf("BAtom = %\n", [BAtom])
+ , printf("Subst1 = %\n", [Subst1])
+ , printf("BConstraints = %\n", [BConstraints])
+ , printf("CP = %\n", [CP])
+ , printf("GConstraints1 = %\n", [GConstraints1])
+ , printf("HAtom1 = %\n", [HAtom1])
+ , printf("HConstraints1 = %\n", [HConstraints1])
+ , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
+ , printf("GConstraints2 = %\n", [GConstraints2])
+ , printf("HAtom2 = %\n", [HAtom2])
+ , printf("HConstraints2 = %\n", [HConstraints2])
+ , printf("\n",[])
+
+
+ , KTSetBody = [Ob6a2,Ob6b]
+ , !
+ .
+
+

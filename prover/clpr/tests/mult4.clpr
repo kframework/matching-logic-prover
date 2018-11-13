@@ -1,0 +1,82 @@
+inductionlimit(2).
+unfolddepthbound(3).
+
+traceleftbound(3).
+tracerightbound(3).
+
+declare_unification_type(mul4, [eq]).
+declare_unification_type(even, [eq]).
+
+
+
+unfold(mul4(X),
+  [
+  body([], [eq(X, 0)]),
+  body([mul4(Y)],
+       [gt(X, 0), eq(X, plus(Y, 4))])
+  ]).
+
+unfold(even(X),
+  [
+  body([], [eq(X, 0)]),
+  body([even(Y)],
+       [gt(X, 0), eq(X, plus(Y, 2))])
+  ]).
+  
+
+run_example_1 :-
+  init_counters,
+  addunfoldlevel(0, 0, [mul4(X)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [even(X)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms, [], % G
+         [], UnfoldableHAtoms, [], % H
+         []),
+  !,
+  show_counters,
+  printf("MUL4 EXAMPLE1 PROVED.\n", []).
+
+run_example_2 :-
+  init_counters,
+  addunfoldlevel(0, 0, [even(X)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [mul4(Y)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms, [eq(Y, plus(X, X))], % G
+         [], UnfoldableHAtoms, [], % H
+         []),
+  !,
+  show_counters,
+  printf("MUL4 EXAMPLE PROVED.\n", []).
+
+
+
+
+run :-
+    addunfoldlevel(0, 0, [mul4(X)], UnfoldableGAtoms)
+  , addunfoldlevel(0, 0, [even(X)], UnfoldableHAtoms)
+  , applyKT(X, UnfoldableGAtoms, UnfoldableHAtoms)
+  , printf("Done.\n", [])
+  , false %% Change to true to enable this
+  .
+
+applyKT(X, E, EPrime) :- 
+    substitute_terms([eq(X, EPrime)], E, Out)
+  , printf("applyKT: mu % % -> % === % .\n", [X, E, EPrime, Out])
+  .
+
+run :-
+  % run_example_1,
+  run_example_2,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+:- consult('solver_main.clpr').
+
+:- run, halt.
