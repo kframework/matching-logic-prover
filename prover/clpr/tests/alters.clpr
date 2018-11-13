@@ -1,0 +1,46 @@
+
+unfold(ones(Stream)
+  , [ body( []
+          , []
+          , [ eq(Stream, cons(1, Tail))
+            , ones(Tail)
+            ]
+          )
+    ]) .
+unfold(zeros(Stream)
+  , [ body( []
+          , []
+          , [ eq(Stream, cons(0, Tail))
+            , zeros(Tail)
+            ]
+          )
+    ]) .
+unfold(alternates(Stream)
+  , [ body( []
+          , []
+          , [ eq(Stream, cons(0, cons(1, Tail)))
+            , alternates(Tail)
+            ]
+          )
+    ]) .
+
+unfold(zip(A, B, Z)
+  , [ body( []
+          , []
+          , [ eq(A, cons(HA, TA))
+            , eq(B, cons(HB, TB))
+            , eq(Z, cons(HA, cons(HB, TZ))) 
+            , zip(TA, TB, TZ)
+            ]
+          )
+    ]) .
+
+----
+(Goal)          zeros(ZEROS) /\ ones(ONES)  /\ zip(ZEROS, ONES, ALTS) ->  alternates(ALTS)
+(unfold 3l+r)   eq(ZEROS, cons(0, T_ZEROS)) /\ zeros(T_ZEROS)
+             /\ eq(ONES,  cons(1, T_ONES )) /\ ones (T_ONES)
+
+             /\ eq(ZEROS, cons(HA, TA)) /\ eq(ONES, cons(HB, TB) /\ eq(ALTS, cons(HA, cons(HB, TZ)))
+             /\ zip(TA, TB, TZ)
+
+          ->    eq(ALTS, cons(0, cons(1, T_ALTS))) /\ alternates(T_ALTS) 

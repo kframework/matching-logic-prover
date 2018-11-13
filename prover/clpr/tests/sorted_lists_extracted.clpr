@@ -1,0 +1,131 @@
+declare_unification_type(list,        [arreq,eq,eqset]).
+declare_unification_type(list_len,    [arreq,eq,eqset,eq]).
+declare_unification_type(list_sorted, [arreq,eq,eqset,eq]).
+
+% list segment recursively defined from the left
+unfold(list(H,X,F),
+  [
+  body([],                            % list of critical positions
+       [],                            % recursive predicates
+       [eq(X,0), eqset(F,emptyset)]), % constraints
+  body([2,3],
+       [list(H,T,F1)],
+       [ gt(X, 0)
+       , eq(T, ref(H, X))
+       , z3_not(mem(X, F1))
+
+       , eq(VADDR, plus(X, 1))
+       , eq(V, ref(H, VADDR))
+       , z3_not(mem(VADDR, F1))
+
+       , eqset(F2, add(F1, X))
+       , eqset(F, add(F2, VADDR))
+       ])
+  ]).
+
+unfold(list_len(H,X,F,Len),
+  [
+  body([],                            % list of critical positions
+       [],                            % recursive predicates
+       [ eq(X,0)
+       , eqset(F,emptyset)
+       , eq(Len,0)
+       ]
+      ),
+  body([2,3,4],
+       [list_len(H,T,F1,Len1)],
+       [ gt(X, 0)
+       , eq(T, ref(H, X))
+       , z3_not(mem(X, F1))
+
+       , eq(VADDR, plus(X, 1))
+       , z3_not(mem(VADDR, F1))
+
+       , eq(plus(1, Len1), Len)
+
+       , eqset(F2, add(F1, X))
+       , eqset(F, add(F2, VADDR))
+       ])
+  ]).
+
+unfold(list_sorted(H,X,F,Min),
+  [ body([],                            % list of critical positions
+         [],                            % recursive predicates
+         [eq(X,0), eqset(F,emptyset)]), % constraints
+    body([2,3,4],
+         [list_sorted(H,T,F1,V)],
+         [ gt(X, 0)
+         , eq(T, ref(H, X))
+         , z3_not(mem(X, F1))
+  
+         , eq(VADDR, plus(X, 1))
+         , eq(V, ref(H, VADDR))
+         , gt(V, Min) 
+         , z3_not(mem(VADDR, F1))
+  
+         , eqset(F2, add(F1, X))
+         , eqset(F, add(F2, VADDR))
+         ])
+  ]).
+
+unfold(ls(H, X, Y, F),
+  [ body( []
+        , []
+        , [ eq(X, Y)
+          , eqset(F, emptyset)
+          ]
+        )
+  , body( [2,4]
+        , [ ls(H, T, Y, F1)]
+        , [ z3_not(eq(X, Y))
+          , gt(X, 0)
+          , eq(T, ref(H, X))
+          , z3_not(mem(X, F1))
+
+          , eq(VADDR, plus(X, 1))
+          , eq(V, ref(H, VADDR))
+          , z3_not(mem(VADDR, F1))
+
+          , eqset(F2, add(F1, X))
+          , eqset(F,  add(F2, VADDR))
+          ])
+  ]) .
+
+run_list_sorted__list :-
+  GAtoms = [list_sorted(H,X,F,Min)],
+  HAtoms = [list(H,X,F)],
+  lprove(4, GAtoms, [], HAtoms, []),
+  !,
+  printf("list_sorted -> list is PROVED.\n", []).
+
+run_list_len__list :-
+  GAtoms = [list_len(H,X,F,Len)],
+  HAtoms = [list(H,X,F)],
+  lprove(4, GAtoms, [], HAtoms, []),
+  !,
+  printf("list_len -> list is PROVED.\n", []).
+
+run_sorted_ls__list_sorted :-
+  GAtoms = [ ls(H, X, T, F1)
+           , list(H, T, F2)
+           ],
+  GConstraints = [ eqset(F, union(F1, F2))
+                 , eqset(emptyset, inter(F1, F2))
+                 ],
+  HAtoms = [list(H,X,F)],
+  HConstraints = [],
+  lprove(4, GAtoms, GConstraints, HAtoms, HConstraints),
+  !,
+  printf("list_len -> list is PROVED.\n", []).
+
+
+run :-
+% run_list_sorted__list,
+% run_list_len__list,
+  run_sorted_ls__list_sorted,
+  printf("PROOF SUCCEED.\n", []).
+run :-
+  printf("PROOF FAILED\n", []).
+
+:- consult('solver_main_extracted.clpr').
+:- run, halt.

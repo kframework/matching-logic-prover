@@ -569,7 +569,7 @@ Consider the nonbasic case.
  * RHS is lr(H,X,Y,F)
  * p(z) is lr(H,T,T1,F2)
  * substitution [z/x] is [T1/Y,F2/F1]
- * BODY is T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
+ * BODY is T1>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}
  * critical positions are 3,4, because lr(H,T,Y,F1) ---unfold---> lr(H,T,T1,F2)
  * noncritical positions are 1,2
  * LHS' === LHS[z/x] is X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F=F2+{X}
@@ -583,17 +583,17 @@ Consider the nonbasic case.
  */
 
 prove BOTH
-(4a2) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}    // BODY
+(4a2) T1>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}   // BODY
       /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}     // LHS
    -> X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}      // LHS''
 (4b) X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}       // LHS''
      /\ lr(H,X,T1,F3)                                        // RHS''
-     /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}  // BODY
+     /\ T1>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1} // BODY
      /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}      // LHS
   -> lr(H,X,Y,F)                                             // RHS
 
 remove simple constraints from (4a2)
-(4a2-1) T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}    // BODY
+(4a2-1) T1>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}   // BODY
         /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}     // LHS
      -> /\ X!=T1 /\ X notin F2 /\ F3=F2+{X}
 
@@ -602,9 +602,9 @@ proved by (DP).
 (Right Unfold) on (4b)
 (4b-1) X>0 /\ X!=T1 /\ T=H[X] /\ X notin F2 /\ F3=F2+{X}       // LHS''
        /\ lr(H,X,T1,F3)                                        // RHS''
-       /\ T>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1}  // BODY
+       /\ T1>0 /\ T!=Y /\ Y=H[T1] /\ T1 notin F2 /\ F1=F2+{T1} // BODY
        /\ X>0 /\ X!=Y /\ T=H[X] /\ X notin F1 /\ F=F1+{X}      // LHS
-    -> lr(H,X,T2,F4) /\ X>0 /\ X!=Y /\ Y=H[T2] /\ T2 notin F4 /\ F=F4+{T2}
+    -> lr(H,X,T2,F4) /\ T2>0 /\ X!=Y /\ Y=H[T2] /\ T2 notin F4 /\ F=F4+{T2}
     
 prove by (DP).
 

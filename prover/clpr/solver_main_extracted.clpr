@@ -12,6 +12,8 @@
 
 
 
+:- consult('directproof.clpr') .
+:- consult('directproof_by_user.clpr') .
 
 %==============================================================================
 % Load the solver to do constraint proof
@@ -21,16 +23,7 @@
 :- consult('z3_wrapper.clpr').
 
 %--------------------------------------------------------------------
-% set_equalities ignored.
-%--------------------------------------------------------------------
-
-%--------------------------------------------------------------------
-% remove_atm not needed: no need to keep track of the levels.
-%--------------------------------------------------------------------
-
-
-%--------------------------------------------------------------------
-% pretty printing needed. the following is copied blindly.
+% pretty printing is copied blindly.
 %--------------------------------------------------------------------
 
 prettyprint_aux(NonUnfoldableGAtoms, UnfoldableGAtoms, GConstraints,
@@ -124,6 +117,11 @@ prettyprintlist(Op, [X,Y|R]) :-
 % append([], B, B).
 % append([X|A], B, [X|C]) :- append(A, B, C).
 
+length([], 0).
+length([_], 1) :- !.
+length([_, _], 2) :- !.
+length([_|R], N+1) :- length(R, N).
+
 %--------------------------------------------------------------------
 % freshcopy/2
 % freshcopy(Vars,FreshVars)
@@ -132,13 +130,12 @@ prettyprintlist(Op, [X,Y|R]) :-
 %--------------------------------------------------------------------
 
 freshcopy([], []) :- !.
-
 freshcopy([X],[Y]) :- true
   , var(X)
   , !
   , Y = Z
+  , Z = Z % Suppress warning
   .
-
 freshcopy([X|Xs],[Y|Ys]) :- true
   , freshcopy([X],[Y])
   , freshcopy(Xs,Ys)
@@ -159,6 +156,7 @@ freshcopy([X|Xs],[Y|Ys]) :- true
 %   .
 get_unifier([L|LS], [R|RS], [eq(L,R)|US]) :- true
   , var(L)
+  , !
   , get_unifier(LS, RS, US)
   .
 get_unifier([L|LS], [R|RS], Out) :- true
@@ -207,14 +205,17 @@ substitute([eq(L, R)], [T|TS], Out) :- true
   , append(Out1, Out2, Out)
   .
 substitute(_Assign, [], []) :- true
+  , !
   .
 substitute([EQ | EQS], [TS], Out) :- true
   , !
   , substitute([EQ], [TS], Out1)
   , substitute(EQS,  Out1, Out)
   .
-substitute([], Term, Term) .
-substitute(EQS, Term, Out) :- true
+substitute([], Term, Term) :- true
+  , !
+  .
+substitute(EQS, Term, _) :- true
   , printf("BAD SUBSTITUTION: %, %\n", [EQS, Term])
   , halt
   .
@@ -225,14 +226,26 @@ substitute(EQS, Term, Out) :- true
 
 % True when E is the N'th (1-based) element of List 
 
-nth1(1, [X | R], X) :- true
+nth1(1, [X | _R], X) :- true
   , !
   .
 
-nth1(I, [X | R], E) :- true
+nth1(I, [_X | R], E) :- true
   , I >= 2
   , !
   , nth1(I-1, R, E)
+  .
+
+% Same as nth1/3 but also returns the remaining list.
+
+nth1(1, [X | R], X, R) :- true
+  , !
+  .
+
+nth1(I, [X | R], E, [X | R1]) :- true
+  , I >= 2
+  , !
+  , nth1(I-1, R, E, R1)
   .
 
 %------------------------------------------------------------------------------
@@ -247,7 +260,7 @@ collect_variables([V], [V]) :- true
   , !
   .
 collect_variables([Term], Out) :- true
-  , Term =.. [Ctor|Args]
+  , Term =.. [_Ctor|Args]
   , !
   , collect_variables(Args, Out)
   .
@@ -260,8 +273,8 @@ collect_variables([Term | Terms], Outs) :- true
   .
 
 delete_var([], _, []) :- true
-%  , printf("Base\n", [])
-  , !
+  .
+delete_var(A, [], A) :- true
   .
 delete_var([A | AS], [B], Outs) :- true
 %  , printf("Matched? [% | %], [%]\n", [A, AS, B])
@@ -272,8 +285,7 @@ delete_var([A | AS], [B], Outs) :- true
   .
 delete_var([A | AS], [B], [ A | Out]) :- true
 %  , printf("Matched failed. [% | %], [%]\n", [A, AS, B])
-  , !
-  , delete_var(AS, [A], Out)
+  , delete_var(AS, [B], Out)
   .
 delete_var(AS, [B | BS], Outs) :- true
   , delete_var(AS, [B], Outs1)
@@ -281,11 +293,50 @@ delete_var(AS, [B | BS], Outs) :- true
   .
 
 
+%------------------------------------------------------------------------------
+% find_critical_positions(+P, +Q, -CP)
+% find_positions_of_diff(+Xs, +Ys, -CP)
+%------------------------------------------------------------------------------
+
+find_critical_positions(P, Q, CP) :- true
+  , P =.. [H|Xs]
+  , Q =.. [H|Ys]
+  , !
+  , find_positions_of_diff(Xs, Ys, CP)
+  .
+
+% The otherwise case.
+find_critical_positions(_P, _Q, _CP) :- true
+  , fail
+  .
+
+find_positions_of_diff(Xs, Ys, CP) :- true
+  , find_positions_of_diff_aux(Xs, Ys, CP, 0)
+  .
+
+find_positions_of_diff_aux([], [], [], _Offset).
+
+find_positions_of_diff_aux([X|P], [Y|Q], CP, Offset) :- true
+  , var(X), var(Y)
+  , not(X == Y)
+  , find_positions_of_diff_aux(P, Q, CP_Rest, (Offset + 1))
+  , CP = [(Offset + 1) | CP_Rest]
+  .
+
+% The otherwise case
+find_positions_of_diff_aux([_X|P], [_Y|Q], CP, Offset) :- true
+  , find_positions_of_diff_aux(P, Q, CP, (Offset + 1))
+  .
+
 
 %------------------------------------------------------------------------------
 % collect_variables_by_positions(+Term, +Positions, -Vars)
 % Assume that all arguments in Term are variables.
 %------------------------------------------------------------------------------
+
+collect_variables_by_positions(T, Ps, Vs) :- true
+  , collect_variables_by_positions(T,Ps,Vs)
+  .
 
 collect_variables_by_position(T, Ps, Vs) :- true
 % , printf("\n---collect_variables_by_position---\n",[])
@@ -296,7 +347,7 @@ collect_variables_by_position(T, Ps, Vs) :- true
   , pick_by_position(AllVs, Ps, Vs)
   .
 
-pick_by_position(AllVs, [], []) :- true
+pick_by_position(_AllVs, [], []) :- true
   , !
   .
 
@@ -361,55 +412,122 @@ rewrite_step(_Rule, [], []).
 % lprove needed, but parameters are different.
 %--------------------------------------------------------------------
 
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-  printf("\n----consider a new obligation----\n", []),
-  printf("% % |= % %\n",
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :-
+  printf("\n----new proof obligation (level = %)----\n", [Level]),
+  printf("% %\n  ->\n% %\n",
     [GAtoms, GConstraints, HAtoms, HConstraints]),
   fail.
 
-% try all possible rules and collect a set of obligation sets OrSet.
+% Try (Direct Proof) first.
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+%, lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
+ , lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints)
+ .
+% lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+%  , lprove_direct_by_user(GAtoms, GConstraints, HAtoms, HConstraints)
+%  .
+
+% Depth-first search on proof trees.
+% Try all possible rules and collect a set of obligation sets OrSet.
 % prove one obligation set in OrSet and we are done.
 % In other words, OrSet is a disjunction of conjunctions. 
-lprove(GAtoms, GConstraints, HAtoms, HConstraints) :-
-  lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet),
-  prove_one(OrSet),
-  !, true.
+lprove(Level, GAtoms, GConstraints, HAtoms, HConstraints) :- true
+  , printf("\n---collecting all possible conjunctions---\n",[])
+  , lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet)
+  , length(OrSet, L)
+  , printf("\n---% disjunctions collected---\n", [L])
+  , printf("OrSet =\n%\n", [OrSet])
+  , prove_one(Level, OrSet)
+  , !
+  , true.
  
 % collect OrSet by trying all possible rules.
-lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :-
-  lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT),
-  lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU),
-  flatten([OrSetKT,OrSetRU],OrSet),
-  prove_one(OrSet).
+lprove_aux(GAtoms, GConstraints, HAtoms, HConstraints, OrSet) :- true
+  , lprove_kt(GAtoms, GConstraints, HAtoms, HConstraints, OrSetKT)
+  , lprove_right_unfold(GAtoms, GConstraints, HAtoms, HConstraints, OrSetRU)
+  , append(OrSetKT,OrSetRU,OrSet)
+  .
 
 %--------------------------------------------------------------------
 % prove_one needed. the structure of the original code is kept.
 % prove_all needed. the structure of the original code is kept.
 %--------------------------------------------------------------------
-prove_one([]) :- !, fail. % fail to prove.
+prove_one(_Level, []) :- !, fail. % fail to prove.
 
-prove_one(OrSet) :- 
-  printf("\n----consider an orset----\n", []),
-  prove_one_set(OrSet) .
+prove_one(Level, OrSet) :- true
+  , length(OrSet,L)
+  , printf("\n----consider an orset of size % and level %----\n", 
+      [L,Level])
+  % printf("OrSet =\n%\n", [OrSet])
+  , prove_one_set(Level, OrSet)
+  .
 
-prove_one_set(OrSet) :- prove_one_set_aux(OrSet).
+prove_one_set(Level, OrSet) :- prove_one_set_aux(Level, OrSet).
 
-prove_one_set_aux([]) :- !, fail. % fail to prove.
+prove_one_set_aux(_Level, []) :- !, fail. % fail to prove.
 
-prove_one_set_aux([Obs | _]) :- prove_all(Obs),
-  !, true.
+prove_one_set_aux(Level, [Obs | _]) :- true
+  , prove_all(Level, Obs)
+  , !
+  , true
+  .
 
-prove_one_set_aux([_ | R]) :- prove_one_set_aux(R).
+prove_one_set_aux(Level, [_ | R]) :- prove_one_set_aux(Level, R).
 
-prove_all([]) :- !, true. % succeed to prove.
+prove_all(_Level, []) :- true
+  , !
+  , true  % succeed to prove.
+  . 
 
-prove_all([Ob | R]) :-
-  Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints),
-  lprove(GAtoms, GConstraints, HAtoms, HConstraints),
-  !,
-  prove_all(R).
+prove_all(Level, [Ob | R]) :- true
+  , Level > 0
+  , length([Ob|R],L)
+  , printf("\n---help me decide (size %, level %)---\n", [L,Level])
+  , printf(
+      "\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
+  , printf("%\n", [[Ob|R]])
+% , read(Ans)
+% , !
+% , check_answer(Ans)
+% , printf("---ok I'll continue.\n---", [])
+  , Ob = obligation(GAtoms, GConstraints, HAtoms, HConstraints)
+  , lprove(Level - 1, GAtoms, GConstraints, HAtoms, HConstraints)
+  , prove_all(Level, R)
+  , !
+  .
 
-prove_all(_) :- fail. % not reachable.
+prove_all(_Level, _) :- true
+  , printf("\n---prove_all gives up; reaches level 0---\n", [])
+  , fail
+  .
+
+
+%------------------------------------------------------------------------------
+% lprove_direct/4
+% lprove_direct(+GAtoms,+GConstraints,+HAtoms,+HConstraints)
+%
+% GAtoms,GConstraints -> HAtoms,HConstraints
+%------------------------------------------------------------------------------
+lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+ , GNonUnfoldable = []
+ , HNonUnfoldable = []
+ , addunfoldlevel(0, Level, GAtoms, UnfoldableGAtoms)
+ , addunfoldlevel(0, Level, HAtoms, UnfoldableHAtoms)
+ , directproof(GNonUnfoldable, UnfoldableGAtoms, GConstraints,
+               HNonUnfoldable, UnfoldableHAtoms, HConstraints)
+ , !
+ .
+lprove_direct(GAtoms, GConstraints, HAtoms, HConstraints) :- true
+ , printf("DIRECT PROOF FAILED FOR:\n\t% %\n->\t% %", [GAtoms, GConstraints, HAtoms, HConstraints])
+ , fail
+ .
+
+%------------------------------------------------------------------------------
+% lprove_direct_by_user/4
+% lprove_direct(+GAtoms,+GConstraints,+HAtoms,+HConstraints)
+%
+% GAtoms,GConstraints -> HAtoms,HConstraints
+%------------------------------------------------------------------------------
 
 
 %------------------------------------------------------------------------------
@@ -418,8 +536,91 @@ prove_all(_) :- fail. % not reachable.
 %   -OrSet)
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
+%
+% Apply (Right Unfold) on every recursive predicates in HAtoms.
+% For every recursive predicate p(X1,...,Xn) in HAtoms, a disjunction
+% is generated and added to OrSet.
 %------------------------------------------------------------------------------
 
+lprove_right_unfold(GAtoms,GConstraints,HAtoms,HConstraints,OrSet) :- true
+  , printf("\n---right unfold begins---\n",[])
+  , lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      1,[], OrSet)
+  , length(OrSet,L)
+  , printf("\n---right unfold ends, % disjunctions collected---\n", [L])
+  .
+
+lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+  N,InOrSet,OutOrSet) :- true
+  % The following claim fails if N > |HAtoms|
+  , nth1(N,HAtoms,HAtom,RestHAtoms)
+  , !
+  , lprove_right_unfold(GAtoms,GConstraints,HAtom,RestHAtoms,HConstraints,OrSetRU)
+  , append(OrSetRU,InOrSet,NewInOrSet)
+  , lprove_right_unfold_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      N+1, NewInOrSet,OutOrSet)
+  .
+
+% The otherwise case when N > |HAtoms|.
+lprove_right_unfold_try_all_atoms(_GAtoms,_GConstraints,_HAtoms,_HConstraints,
+  _N,_OrSet,_OrSet) :- true
+  , !
+  .
+
+%------------------------------------------------------------------------------
+% lprove_right_unfold/6
+% lprove_right_unfold(+GAtoms,+GConstraints,+HAtom,+HAtoms,+HConstraints,
+%   -OrSet)
+%
+% GAtoms,GConstraints -> HAtom,HAtoms,HConstraints
+%
+% Apply (Right Unfold) on HAtom.
+% For every recursive predicate p(X1,...,Xn) in HAtoms, a disjunction
+% is generated and added to OrSet.
+%------------------------------------------------------------------------------
+
+lprove_right_unfold(GAtoms,GConstraints,HAtom,HAtoms,HConstraints,
+  OrSet) :- true
+  , unfold(HAtom,HBodies)
+  , length(HBodies,L)
+  , printf("\n---right unfold (one atom) begins, % cases to collect---\n",[L])
+  , lprove_right_unfold_collect_all_cases(
+      GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
+      [],OrSet)
+  .
+
+%------------------------------------------------------------------------------
+% lprove_right_unfold_collect_all_cases
+% GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
+% +InOrSet,-OutOrSet)
+% 
+% Go over every body in HBodies and add the new OrSet to InOrSet.
+%------------------------------------------------------------------------------
+
+% The case when HBodies is empty.
+lprove_right_unfold_collect_all_cases(
+  _GAtoms,_GConstraints,_HAtom,_HAtoms,_HConstraints,[],
+  _InOrSet,_InOrSet) :- true
+  , printf("\n---all cases collected.---\n", [])
+  , !
+  .
+
+lprove_right_unfold_collect_all_cases(
+  GAtoms,GConstraints,HAtom,HAtoms,HConstraints,[HBody|HBodies],
+  InOrSet,OutOrSet) :- true
+  , printf("\n---collect case---\n", [])
+  , body(_, BAtoms, BConstraints) = HBody
+  , printf("HBody = %\n", [HBody])
+  , append(HAtoms,BAtoms,NewHAtoms)
+  , append(HConstraints,BConstraints,NewHConstraints)
+  , Ob = obligation(GAtoms,GConstraints,NewHAtoms,NewHConstraints)
+  , printf("\n---right unfold ends---\n", [])
+  , printf("Ob = %\n", [Ob])
+  , NewInOrSet = [[Ob]|InOrSet]
+  , lprove_right_unfold_collect_all_cases(
+      GAtoms,GConstraints,HAtom,HAtoms,HConstraints,HBodies,
+      NewInOrSet,OutOrSet)
+  .
 
 %------------------------------------------------------------------------------
 % lprove_kt/5
@@ -428,37 +629,64 @@ prove_all(_) :- fail. % not reachable.
 %
 % GAtoms,GConstraints -> HAtoms,HConstraints
 %
-% Apply (KT) on every recursive predicates in GAtoms. For every recursive
-% predicate p(X1,..,Xn) in GAtoms, a list of proof obligations is generated
-% and is added as a single conjunction to OrSet.
+% Apply (KT) on every recursive predicates in GAtoms. For each of them,
+% a conjunction is generated and added to OrSet.
 % If there are k recursive predicates in GAtoms, |OrSet| = k.
+%
+% lprove_kt_try_all_atoms(+GAtoms,+GConstraints,+HAtoms,+HConstraints,
+%   +N,+InOrSet,-OutOrSet)
+% An auxillary function for lprove_kt/5. It calls lprove_kt/6 on
+% every atom in GAtoms[N..].
 %------------------------------------------------------------------------------
 
-lprove_kt([],_GConstraints,_HAtoms,_HConstraints, []) :- true
+lprove_kt(GAtoms,GConstraints,HAtoms,HConstraints,OrSet) :- true
+  , printf("\n---KT begins---\n", [])
+  , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      1, [], OrSet)
+  , length(OrSet,L)
+  , printf("\n---KT ends, % disjunctions collected---\n", [L])
+  .
+
+lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+  N,InOrSet,OutOrSet) :- true
+  % The following claim fails if N > |GAtoms|
+  , nth1(N, GAtoms, GAtom, RestGAtoms)
+  , !
+  , lprove_kt(GAtom,RestGAtoms,GConstraints,HAtoms,HConstraints,KTSet)
+  , lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+      N+1,[KTSet|InOrSet], OutOrSet)
+  .
+
+% The otherwise case.
+lprove_kt_try_all_atoms(GAtoms,GConstraints,HAtoms,HConstraints,
+  N,OrSet,OrSet) :- true
   , !
   .
 
-% TODO:: Finish lprove_kt/5 using lprove_kt/6.
-
-
 %------------------------------------------------------------------------------
 % lprove_kt/6
-% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,-OrSet)
+% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,-KTSet)
 %
 % GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
 %
-% Apply (KT) on GAtom. A list KTSet of proof obligations is generated
-% and is added as a single conjunction to OrSet; |OrSet| = 1.
+% Apply (KT) on GAtom. A conjunction KTSet is generated.
+% If GAtom is m cases in the definition, |KTSet| = 2m, two conjunctions
+% for each case.
 %------------------------------------------------------------------------------
 
-lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, [KTSet]) :- true
-  , printf("\n---try KT on---\n", [])
+lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, KTSet) :- true
+  , printf("\n---KT (one case) begins---\n", [])
   , flatten([GAtoms,GConstraints],LHS)
   , flatten([HAtoms,HConstraints],RHS)
   , printf("%\n%\n  ->\n%\n", [GAtom,LHS,RHS])
   , unfold(GAtom, GBodies)
+  , length(GBodies,L)
+  , printf("\n---unfold % case(s)---\n",[L])
+  , printf("GBodies =\n%\n", [GBodies])
   , lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
     GBodies, [], KTSet)
+  , length(KTSet,M)
+  , printf("\n---KT (one case) ends, % conjunctions collected.---\n",[M])
   , !
   .
 
@@ -470,15 +698,14 @@ lprove_kt(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, [KTSet]) :- true
 %
 % GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
 %
-% Accumulates the results of applying (KT) according to GBodies.
-% Apply (KT) on GAtom, whose bodies is given in GBodies.
-% Append the results upon KTSetIn and return KTSetOut, 
-% a conjunction of proof obligation.
+% Accumulates the results of applying (KT) on GBodies.
 %------------------------------------------------------------------------------
 
 % No bodies, no new obligations.
 lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
-  [], KTSet, KTSet) :- !.
+  [], KTSet, KTSet) :- true
+  , !
+  .
 
 lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints, 
   [Body|RestGBodies], KTSetIn, KTSetOut) :- true
@@ -490,115 +717,450 @@ lprove_kt_try_all_cases(GAtom,GAtoms,GConstraints,HAtoms,HConstraints,
   , !
   .
 
+
+%%%%% MAJOR REFACTORING ONGING %%%%%%
+
 %------------------------------------------------------------------------------
 % lprove_kt_try_one_case/7
-% lprove_kt(+GAtom, +GAtoms,+GConstraints,+HAtoms,+HConstraints,
-%   +Body, -KTSetBody)
+% lprove_kt_try_one_case(
+%   +Left_Recursive_Pattern, 
+%   +Left_Rest_Recursive_Patterns,
+%   +Left_Nonrecursive_Patterns,
+%   +Right_Recursive_Patterns,
+%   +Right_Nonrecursive_Patterns,
+%   +Body, 
+%   -KTSet)
 %
-% GAtom,GAtoms,GConstraints -> HAtoms,HConstraints
+% Left_Recursive_Pattern,Left_Rest_Recursive_Patterns,Left_Nonrecursive_Patterns 
+%   -> 
+% Right_Recursive_Patterns,Right_Nonrecursive_Patterns
 %
-% Apply (KT) according to Body and return KTSetBody.
+% Apply (KT) according to Body and return KTSet, a set of conjunction.
+%
+% This is the key function. And we implement it incrementally, and
+% support only fragments.
+% Let's assume Left_Recursive_Pattern is about the recursive predicate p.
+% We consider cases depending on how many times p occurs in Body.
+% For now, we implement the case when p doesn't occur (the base case)
+% and when it occurs exactly once, and twice.
+% The number is calculated by number_of_occurrences(Left_Recursive_Pattern,Body_Recursive_Patterns,Answer)
 %------------------------------------------------------------------------------
 
-% Just return true (the empty conjunction []) when body contains new atoms.
-lprove_kt_try_one_case(GAtom,[],GConstraints,HAtoms,HConstraints,
-  body(CP, [], BConstraints), []) :- true
+number_of_occurrences(Left_Recursive_Pattern,[],0).
+
+% Left_Recursive_Pattern and Body_Recursive_Pattern have the same head.
+number_of_occurrences(Left_Recursive_Pattern,[Body_Recursive_Pattern|Body_Recursive_Patterns],Answer) :- true
+  , Left_Recursive_Pattern =.. [Head|_]
+  , Body_Recursive_Pattern =.. [Head|_]
+  , !
+  , number_of_occurrences(Left_Recursive_Pattern, Body_Recursive_Patterns, Answer1)
+  , Answer = Answer1 + 1
+  .
+
+% Left_Recursive_Pattern and Body_Recursive_Pattern have different heads.
+number_of_occurrences(Left_Recursive_Pattern,[Body_Recursive_Pattern|Body_Recursive_Patterns],Answer) :- true
+  , !
+  , number_of_occurrences(Left_Recursive_Pattern,Body_Recursive_Patterns,Answer)
+  .
+
+get_the_first_atom_with_the_same_head(
+  Left_Recursive_Pattern,[Body_Recursive_Pattern|Body_Recursive_Patterns],Body_Recursive_Pattern,Body_Recursive_Patterns) :- true
+  , Left_Recursive_Pattern =.. [Head|_]
+  , Body_Recursive_Pattern =.. [Head|_]
   , !
   .
 
-% TODO:: Extend this function to support more general cases.
-% Current assumptions
-%   body contains exactly one atom, BAtom
-%   HAtoms contains exactly one atom, HAtom
-%   GAtoms is empty
-%   GAtom,HAtom,BAtom have the same head
-lprove_kt_try_one_case(GAtom,[],GConstraints,[HAtom],HConstraints,
-  body(CP, [BAtom], BConstraints), KTSetBody) :- true
- , printf("\n---try KT (one case) on---\n", [])
- , flatten([HAtom,HConstraints],RHS)
- , printf("%\n%\n  ->\n%\n", [GAtom,GConstraints,RHS]) 
+get_the_first_atom_with_the_same_head(
+  Left_Recursive_Pattern,[Body_Recursive_Pattern|Body_Recursive_Patterns],OutAtom,[Body_Recursive_Pattern|OutAtoms]) :- true
+  , get_the_first_atom_with_the_same_head(Left_Recursive_Pattern,Body_Recursive_Patterns,OutAtom,OutAtoms)
+  .
+  
+
+% The case when Body_Recursive_Patterns are all distinct from Left_Recursive_Pattern.
+% In this case, KT is just left unfolding.
+lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonrecursive_Patterns,Right_Recursive_Patterns,Right_Nonrecursive_Patterns,
+  body(CP, Body_Recursive_Patterns, Body_Nonrecursive_Patterns), KTSet) :- true
+  , number_of_occurrences(Left_Recursive_Pattern,Body_Recursive_Patterns,N)
+  , N = 0
+  , !
+  , printf("\n---KT(0:_) begins---\n",[])
+  % replace Left_Recursive_Pattern for Body_Recursive_Patterns,Body_Nonrecursive_Patterns
+  , append(Left_Recursive_Patterns,Body_Recursive_Patterns,NewLeft_Recursive_Patterns)
+  , append(Left_Nonrecursive_Patterns,Body_Nonrecursive_Patterns,NewLeft_Nonrecursive_Patterns)
+  , Ob = obligation(NewLeft_Recursive_Patterns,NewLeft_Nonrecursive_Patterns,Right_Recursive_Patterns,Right_Nonrecursive_Patterns)
+  , KTSet = [Ob]
+  , printf("Ob=%\n", [Ob])
+  , printf("---KT(0:_) ends---\n",[])
+  .
+
+% The case when Body_Recursive_Patterns have exactly one atom with the same head as Left_Recursive_Pattern,
+% and Right_Recursive_Patterns all different from Left_Recursive_Pattern.
+lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonrecursive_Patterns,AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns,
+  body(CP, AllBody_Recursive_Patterns, Body_Nonrecursive_Patterns), KTSet) :- true
+ , number_of_occurrences(Left_Recursive_Pattern,AllBody_Recursive_Patterns,N1)
+ , number_of_occurrences(Left_Recursive_Pattern,AllRight_Recursive_Patterns,N2)
+ , N1 = 1
+ , N2 = 0
+ , !
+ , printf("\n---KT(1:0) begins---\n",[])
+ , get_the_first_atom_with_the_same_head(Left_Recursive_Pattern,AllBody_Recursive_Patterns,Body_Recursive_Pattern,Body_Recursive_Patterns)
+ , flatten([Left_Recursive_Patterns,Left_Nonrecursive_Patterns],LHS)
+ , flatten([AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns],RHS)
+
+ , printf("\n---apply KT on---\n", [])
+ , printf("%\n%\n  ->\n%\n", [Left_Recursive_Pattern,LHS,RHS]) 
  , printf("---case is---\n", [])
- , printf("%\n%\n", [BAtom, BConstraints])
+ , printf("%\n%\n%\n", [Body_Recursive_Pattern, Body_Recursive_Patterns,Body_Nonrecursive_Patterns])
 
- % Variables in GAtom are called active variables.
- % Variables in GConstraints,HAtom,HConstraints but not in GAtom 
+ % Variables in Left_Recursive_Pattern are called active variables.
+ % Variables in Left_Recursive_Patterns,Left_Nonrecursive_Patterns,AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns but not in Left_Recursive_Pattern 
  % are called passive variables.
- % We assume that GAtom have distinct variables, so ActiveVars is a set.
+ % We assume that Left_Recursive_Pattern have distinct variables, so ActiveVars is a set.
 
- , collect_variables([GAtom,GConstraints,HAtom,HConstraints], OriginalVarList)
- , collect_variables([GAtom], ActiveVars) % already a set
+ , flatten([[Left_Recursive_Pattern], Left_Recursive_Patterns, Left_Nonrecursive_Patterns,AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns],
+     AllOriginalTerms)
+ , collect_variables(AllOriginalTerms, OriginalVarList)
+ , collect_variables([Left_Recursive_Pattern], ActiveVars) % already a set
  , list_to_set(OriginalVarList, OriginalVars)
  , unord_setdiff(OriginalVars,ActiveVars,PassiveVars)
 
  , printf("\n---after variable collection---\n",[])
- , printf("GAtom = %\n", [GAtom])
- , printf("GConstraints = %\n", [GConstraints])
- , printf("HAtom = %\n", [HAtom])
- , printf("HConstraints = %\n", [HConstraints])
- , printf("BAtom = %\n", [BAtom])
- , printf("BConstraints = %\n", [BConstraints])
  , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
 
  % Subst1
- , get_unifier([GAtom], [BAtom], Subst1)
- , substitute(Subst1, [GConstraints], [GConstraints1])
- , substitute(Subst1, [HAtom],        [HAtom1])
- , substitute(Subst1, [HConstraints], [HConstraints1])
+ , get_unifier([Left_Recursive_Pattern], [Body_Recursive_Pattern], Subst1)
+ , substitute(Subst1, [Left_Recursive_Patterns],        [Left_Recursive_Patterns1])
+ , substitute(Subst1, [Left_Nonrecursive_Patterns], [Left_Nonrecursive_Patterns1])
+ , substitute(Subst1, [AllRight_Recursive_Patterns],    [AllRight_Recursive_Patterns1])
+ , substitute(Subst1, [Right_Nonrecursive_Patterns], [Right_Nonrecursive_Patterns1])
 
- , printf("\n---after Subst1---\n", [])
- , printf("Subst1 = %\n", [Subst1])
- , printf("GConstraints = %\n", [GConstraints])
- , printf("GConstraints1 = %\n", [GConstraints1])
+ % printf("\n---after Subst1---\n", [])
+ % printf("Subst1 = %\n", [Subst1])
+ % printf("Left_Nonrecursive_Patterns = %\n", [Left_Nonrecursive_Patterns])
+ % printf("Left_Nonrecursive_Patterns1 = %\n", [Left_Nonrecursive_Patterns1])
 
- % Subst2
- , collect_variables_by_position(HAtom, CP, HAtomCriticalVars)
- , unord_setintersection(HAtomCriticalVars, PassiveVars, HAtomPassiveCriticalVars)
- , freshcopy(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars)
- , get_unifier(HAtomPassiveCriticalVars, FreshCopyHAtomPassiveCriticalVars, Subst2)
+ % Construct proof obligations (6a2) and (6b)
+ % TODO:: Find better names.
 
- , substitute(Subst2, [GConstraints1],  [GConstraints2])
- , substitute(Subst2, [HAtom1],  [HAtom2])
- , substitute(Subst2, [HConstraints1],  [HConstraints2])
+ % [Body_Recursive_Patterns,Body_Nonrecursive_Patterns,Left_Recursive_Patterns,Left_Nonrecursive_Patterns] is LHS6a2
+ %  ------------------  -------------------
+ %        BODY                 LHS
 
- , printf("\n---after Subst2---\n", [])
- , printf("HAtom = %\n", [HAtom])
- , printf("CP = %\n", [CP])
- , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
- , printf("HAtomPassiveCriticalVars = %\n", [HAtomPassiveCriticalVars])
- , printf("FreshCopyHAtomPassiveCriticalVars = %\n", [FreshCopyHAtomPassiveCriticalVars])
- , printf("Subst2 = %\n", [Subst2])
+ % [Left_Recursive_Patterns1,Left_Nonrecursive_Patterns1] is RHS6a2
+ %  -----------------------
+ %           LHS'
 
- , append(BConstraints, GConstraints, GConstraints6a2)
+ , flatten([Body_Recursive_Patterns,Left_Recursive_Patterns], Left_Recursive_Patterns6a2)
+ , flatten([Body_Nonrecursive_Patterns,Left_Nonrecursive_Patterns], Left_Nonrecursive_Patterns6a2)
 
- , Ob6a2 = obligation([], GConstraints6a2, [], GConstraints2)
+ , Ob6a2 = obligation(Left_Recursive_Patterns6a2, Left_Nonrecursive_Patterns6a2, Left_Recursive_Patterns1, Left_Nonrecursive_Patterns1)
 
- , append(GConstraints6a2, GConstraints2, NotYetGConstraints6b)
- , append(NotYetGConstraints6b, HConstraints2, GConstraints6b)
+ % [AllRight_Recursive_Patterns1, Right_Nonrecursive_Patterns1] is RHS'
 
- , Ob6b = obligation([HAtom2], GConstraints6b, [HAtom], HConstraints)
+ % LHS', RHS', BODY, LHS -> RHS
 
- , printf("\n---final check---\n",[])
- , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
- , printf("GAtom = %\n", [GAtom])
- , printf("GConstraints = %\n", [GConstraints])
- , printf("HAtom = %\n", [HAtom])
- , printf("HConstraints = %\n", [HConstraints])
- , printf("BAtom = %\n", [BAtom])
- , printf("Subst1 = %\n", [Subst1])
- , printf("BConstraints = %\n", [BConstraints])
- , printf("CP = %\n", [CP])
- , printf("GConstraints1 = %\n", [GConstraints1])
- , printf("HAtom1 = %\n", [HAtom1])
- , printf("HConstraints1 = %\n", [HConstraints1])
- , printf("HAtomCriticalVars = %\n", [HAtomCriticalVars])
- , printf("GConstraints2 = %\n", [GConstraints2])
- , printf("HAtom2 = %\n", [HAtom2])
- , printf("HConstraints2 = %\n", [HConstraints2])
- , printf("\n",[])
+ , flatten([Left_Recursive_Patterns1,AllRight_Recursive_Patterns1,Body_Recursive_Patterns,Left_Recursive_Patterns], Left_Recursive_Patterns6b)
+ , flatten([Left_Nonrecursive_Patterns1,Right_Nonrecursive_Patterns1,Body_Nonrecursive_Patterns,Left_Nonrecursive_Patterns], Left_Nonrecursive_Patterns6b)
 
+ , Ob6b = obligation(Left_Recursive_Patterns6b, Left_Nonrecursive_Patterns6b, AllRight_Recursive_Patterns, Right_Nonrecursive_Patterns)
 
- , KTSetBody = [Ob6a2,Ob6b]
+ % printf("\n---final check---\n",[])
+ % printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+ % printf("Left_Recursive_Pattern = %\n", [Left_Recursive_Pattern])
+ % printf("Left_Nonrecursive_Patterns = %\n", [Left_Nonrecursive_Patterns])
+ % printf("AllRight_Recursive_Patterns = %\n", [AllRight_Recursive_Pattern])
+ % printf("Right_Nonrecursive_Patterns = %\n", [Right_Nonrecursive_Patterns])
+ % printf("Body_Recursive_Pattern = %\n", [Body_Recursive_Pattern])
+ % printf("Subst1 = %\n", [Subst1])
+ % printf("Body_Nonrecursive_Patterns = %\n", [Body_Nonrecursive_Patterns])
+ % printf("Left_Nonrecursive_Patterns1 = %\n", [Left_Nonrecursive_Patterns1])
+ % printf("AllRight_Recursive_Pattern1 = %\n", [AllRight_Recursive_Pattern1])
+ % printf("Right_Nonrecursive_Patterns1 = %\n", [Right_Nonrecursive_Patterns1])
+ % printf("\n",[])
+
+ , KTSet= [Ob6a2,Ob6b]
+ , printf("\n---KT(1:0) ends---\n",[])
  , !
  .
 
 
+%------------------------------------------------------------------------------
+% The case when Body_Recursive_Patterns have exactly one atom with the same head as Left_Recursive_Pattern,
+% and Right_Recursive_Patterns have exactly one atom with the same head as Left_Recursive_Pattern, too.
+% Proof obligation: Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonrecursive_Patterns -> Right_Recursive_Pattern,Right_Recursive_Patterns,Right_Nonrecursive_Patterns
+%                                                ------------
+%                                                  AllRight_Recursive_Patterns
+%
+% Recursive definition Left_Recursive_Pattern = ... \/ Body_Recursive_Pattern,Body_Recursive_Patterns,Body_Nonrecursive_Patterns \/ ...
+%                                     ------------
+%                                      AllBody_Recursive_Patterns
+%
+% where Left_Recursive_Pattern,Right_Recursive_Pattern,Body_Recursive_Pattern have the same head and Right_Recursive_Patterns,Body_Recursive_Patterns don't have.
+%------------------------------------------------------------------------------
+
+lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonrecursive_Patterns,AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns,
+  body(CP, AllBody_Recursive_Patterns, Body_Nonrecursive_Patterns), KTSet) :- true
+ , number_of_occurrences(Left_Recursive_Pattern,AllBody_Recursive_Patterns,N1)
+ , number_of_occurrences(Left_Recursive_Pattern,AllRight_Recursive_Patterns,N2)
+ , printf("N1=%,N2=%\n",[N1,N2])
+ , N1 = 1
+ , N2 = 1
+ , !
+ , printf("\n---KT(1:1) begins---\n",[])
+ , get_the_first_atom_with_the_same_head(Left_Recursive_Pattern,AllRight_Recursive_Patterns,Right_Recursive_Pattern,Right_Recursive_Patterns)
+ , get_the_first_atom_with_the_same_head(Left_Recursive_Pattern,AllBody_Recursive_Patterns,Body_Recursive_Pattern,Body_Recursive_Patterns)
+ , flatten([Left_Recursive_Patterns,Left_Nonrecursive_Patterns],LHS)
+ , flatten([AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns],RHS)
+
+ , printf("\n---apply KT on---\n", [])
+ , printf("%\n%\n  ->\n%\n", [Left_Recursive_Pattern,LHS,RHS]) 
+ , printf("---case is---\n", [])
+ , printf("%\n%\n%\n", [Body_Recursive_Pattern, Body_Recursive_Patterns,Body_Nonrecursive_Patterns])
+
+ % Variables in Left_Recursive_Pattern are called active variables.
+ % Variables in Left_Recursive_Patterns,Left_Nonrecursive_Patterns,AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns but not in Left_Recursive_Pattern 
+ % are called passive variables.
+ % We assume that Left_Recursive_Pattern have distinct variables, so ActiveVars is a set.
+
+ , flatten([[Left_Recursive_Pattern], Left_Recursive_Patterns, Left_Nonrecursive_Patterns,AllRight_Recursive_Patterns,Right_Nonrecursive_Patterns],
+     AllOriginalTerms)
+ , collect_variables(AllOriginalTerms, OriginalVarList)
+ , collect_variables([Left_Recursive_Pattern], ActiveVars) % already a set
+ , list_to_set(OriginalVarList, OriginalVars)
+ , unord_setdiff(OriginalVars,ActiveVars,PassiveVars)
+
+ , printf("\n---after variable collection---\n",[])
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+
+ % Subst1
+ , get_unifier([Left_Recursive_Pattern], [Body_Recursive_Pattern], Subst1)
+ , !
+ , substitute(Subst1, [Left_Recursive_Patterns],        [Left_Recursive_Patterns1])
+ , substitute(Subst1, [Left_Nonrecursive_Patterns], [Left_Nonrecursive_Patterns1])
+ , substitute(Subst1, [Right_Recursive_Pattern],        [Right_Recursive_Pattern1])
+ , substitute(Subst1, [Right_Recursive_Patterns],        [Right_Recursive_Patterns1])
+ , substitute(Subst1, [Right_Nonrecursive_Patterns], [Right_Nonrecursive_Patterns1])
+
+ % printf("\n---after Subst1---\n", [])
+ % printf("Subst1 = %\n", [Subst1])
+ % printf("Left_Nonrecursive_Patterns = %\n", [Left_Nonrecursive_Patterns])
+ % printf("Left_Nonrecursive_Patterns1 = %\n", [Left_Nonrecursive_Patterns1])
+
+ % Subst2
+ , collect_variables_by_position(Right_Recursive_Pattern, CP, Right_Recursive_PatternCriticalVars)
+ , unord_setintersection(Right_Recursive_PatternCriticalVars, PassiveVars, Right_Recursive_PatternPassiveCriticalVars)
+ , freshcopy(Right_Recursive_PatternPassiveCriticalVars, FreshCopyRight_Recursive_PatternPassiveCriticalVars)
+ , get_unifier(Right_Recursive_PatternPassiveCriticalVars, FreshCopyRight_Recursive_PatternPassiveCriticalVars, Subst2)
+
+ , substitute(Subst2, [Left_Recursive_Patterns1],  [Left_Recursive_Patterns2])
+ , substitute(Subst2, [Left_Nonrecursive_Patterns1],  [Left_Nonrecursive_Patterns2])
+ , substitute(Subst2, [Right_Recursive_Pattern1],  [Right_Recursive_Pattern2])
+ , substitute(Subst2, [Right_Recursive_Patterns1],  [Right_Recursive_Patterns2])
+ , substitute(Subst2, [Right_Nonrecursive_Patterns1],  [Right_Nonrecursive_Patterns2])
+
+ , printf("\n---after Subst2---\n", [])
+ , printf("Right_Recursive_Pattern = %\n", [Right_Recursive_Pattern])
+ , printf("CP = %\n", [CP])
+ , printf("Right_Recursive_PatternCriticalVars = %\n", [Right_Recursive_PatternCriticalVars])
+ , printf("Right_Recursive_PatternPassiveCriticalVars = %\n", [Right_Recursive_PatternPassiveCriticalVars])
+ , printf("FreshCopyRight_Recursive_PatternPassiveCriticalVars = %\n", [FreshCopyRight_Recursive_PatternPassiveCriticalVars])
+ , printf("Subst2 = %\n", [Subst2])
+
+ % Construct proof obligations (6a2) and (6b)
+ % TODO:: Find better names.
+
+ % [Body_Recursive_Patterns,Body_Nonrecursive_Patterns,Left_Recursive_Patterns,Left_Nonrecursive_Patterns] is LHS6a2
+ %  ------------------  -------------------
+ %        BODY                 LHS
+
+ % [Left_Recursive_Patterns2,Left_Nonrecursive_Patterns2] is RHS6a2
+ %  -----------------------
+ %           LHS''
+
+ , flatten([Body_Recursive_Patterns,Left_Recursive_Patterns], Left_Recursive_Patterns6a2)
+ , flatten([Body_Nonrecursive_Patterns,Left_Nonrecursive_Patterns], Left_Nonrecursive_Patterns6a2)
+
+ , Ob6a2 = obligation(Left_Recursive_Patterns6a2, Left_Nonrecursive_Patterns6a2, Left_Recursive_Patterns2, Left_Nonrecursive_Patterns2)
+
+ % [Right_Recursive_Pattern2 Right_Recursive_Patterns2 Right_Nonrecursive_Patterns2] is RHS''
+
+ % LHS'', RHS'', BODY, LHS -> RHS
+
+ , flatten([Left_Recursive_Patterns2,Right_Recursive_Pattern2,Right_Recursive_Patterns2,Body_Recursive_Patterns,Left_Recursive_Patterns], Left_Recursive_Patterns6b)
+ , flatten([Left_Nonrecursive_Patterns2,Right_Nonrecursive_Patterns2,Body_Nonrecursive_Patterns,Left_Nonrecursive_Patterns], Left_Nonrecursive_Patterns6b)
+
+ , Ob6b = obligation(Left_Recursive_Patterns6b, Left_Nonrecursive_Patterns6b, AllRight_Recursive_Patterns, Right_Nonrecursive_Patterns)
+
+ , printf("\n---final check---\n",[])
+ , printf("ActiveVars = %\nPassiveVars = %\n", [ActiveVars,PassiveVars])
+ , printf("Left_Recursive_Pattern = %\n", [Left_Recursive_Pattern])
+ , printf("Left_Nonrecursive_Patterns = %\n", [Left_Nonrecursive_Patterns])
+ , printf("Right_Recursive_Pattern = %\n", [Right_Recursive_Pattern])
+ , printf("Right_Nonrecursive_Patterns = %\n", [Right_Nonrecursive_Patterns])
+ , printf("Body_Recursive_Pattern = %\n", [Body_Recursive_Pattern])
+ , printf("Subst1 = %\n", [Subst1])
+ , printf("Body_Nonrecursive_Patterns = %\n", [Body_Nonrecursive_Patterns])
+ , printf("Left_Recursive_Patterns1 = %\n", [Left_Recursive_Patterns1])
+ , printf("Left_Nonrecursive_Patterns1 = %\n", [Left_Nonrecursive_Patterns1])
+ , printf("Right_Recursive_Pattern1 = %\n", [Right_Recursive_Pattern1])
+ , printf("Right_Nonrecursive_Patterns1 = %\n", [Right_Nonrecursive_Patterns1])
+ , printf("CP = %\n", [CP])
+ , printf("Right_Recursive_PatternCriticalVars = %\n", [Right_Recursive_PatternCriticalVars])
+ , printf("Subst2 = %\n", [Subst2])
+ , printf("Left_Recursive_Patterns2 = %\n", [Left_Recursive_Patterns2])
+ , printf("Left_Nonrecursive_Patterns2 = %\n", [Left_Nonrecursive_Patterns2])
+ , printf("Right_Recursive_Pattern2 = %\n", [Right_Recursive_Pattern2])
+ , printf("Right_Nonrecursive_Patterns2 = %\n", [Right_Nonrecursive_Patterns2])
+ , printf("\n",[])
+
+
+ , KTSet= [Ob6a2,Ob6b]
+ , printf("KTSet = %\n", [KTSet])
+ , printf("\n---KT(1:1) ends---\n",[])
+ , !
+ .
+
+%------------------------------------------------------------------------------
+
+lprove_kt_try_one_case(
+  LRP,LRPs,LCPs,RRPs,RCPs,Body,KTSet) :- true
+  , body(CPs, BRPs_all, BCPs) = Body
+  , LRP =.. [H|_]
+  , count_occurrences_of_head(H, BRPs_all, HeadOccurTimesInBody)
+  , count_occurrences_of_head(H, RRPs, HeadOccurTimesInRightHandSide)
+  , HeadOccurTimesInBody = 2
+  , HeadOccurTimesInRightHandSide = 0
+  , !
+  , printf("\n---KT(2:0) begins---\n",[])
+
+  , get_the_first_atom_with_the_same_head(LRP, BRPs_all, BRP_1, BRPs_yet)
+  , get_the_first_atom_with_the_same_head(LRP, BRPs_yet, BRP_2, BRPs_rest)
+
+  , get_unifier([LRP], [BRP_1], BSubst_1)
+  , get_unifier([LRP], [BRP_2], BSubst_2)
+
+  , printf("BSubst_1 = %\nBSubst_2 = %\n", [BSubst_1, BSubst_2])
+
+  , substitute(BSubst_1, LRPs, LRPs_1)
+
+ 
+  , substitute(BSubst_1, [LCPs], [LCPs_1])
+  , substitute(BSubst_1, [RRPs], [RRPs_1])
+  , substitute(BSubst_1, [RCPs], [RCPs_1])
+  , substitute(BSubst_2, [LRPs], [LRPs_2])
+  , substitute(BSubst_2, [LCPs], [LCPs_2])
+  , substitute(BSubst_2, [RRPs], [RRPs_2])
+  , substitute(BSubst_2, [RCPs], [RCPs_2])
+
+  % (L_1 -> R_1), (L_2 -> R_2), B, L -> R
+  %   turns to
+  % B, L -> L1
+  % B, L -> L2
+  % B, L, L1, L2, R1, R2 -> R
+  
+  , flatten([BRPs, LRPs], BLRPs)
+  , flatten([BCPs, LCPs], BLCPs)
+
+  , Ob1 = obligation(BLRPs, BLCPs, LRPs_1, LCPs_1)
+  , Ob2 = obligation(BLRPs, BLCPs, LRPs_2, LCPs_2)
+
+  , flatten([BLRPs, LRPs_1, LRPs_2, RRPs_1, RRPs_2], Main_LRPs)
+  , flatten([BLCPs, LCPs_1, LCPs_2, RCPs_1, RCPs_2], Main_LCPs)
+
+  , Main_Ob = obligation(Main_LRPs, Main_LCPs, RRPs, RCPs)
+  , KTSet = [Ob1, Ob2, Main_Ob]
+  , printf("Ob1=%\nOb2=%\nMain_Ob=%\n", KTSet)
+  , printf("\n---KT(2:0) ends---\n",[])
+  .
+
+
+
+
+%------------------------------------------------------------------------------
+% Otherwise case
+lprove_kt_try_one_case(Left_Recursive_Pattern,Left_Recursive_Patterns,Left_Nonrecursive_Patterns,Right_Recursive_Patterns,Right_Nonrecursive_Patterns,
+  body(CP, AllBody_Recursive_Patterns, Body_Nonrecursive_Patterns), KTSet) :- true
+  , printf("\n---KT: uncovered case---\n", [])
+  , number_of_occurrences(Left_Recursive_Pattern,AllBody_Recursive_Patterns,N1)
+  , printf("number of occurrences=%\n",[N1])
+  , KTSet = [failure]  % something dummy that fails the future proof.
+  .
+
+
+%------------------------------------------------------------------------------
+% Auxilliary functions about lists.
+%
+% part(+Es, +Ns, -Fs)
+% Assume:
+% - Ns is in the range of Es.
+% - Ns is strictly increasing.
+% 
+%------------------------------------------------------------------------------
+
+part(Es, Ns, Fs) :- true
+  , part_aux(Es, Ns, Fs, 0)
+  .
+
+part_aux(Es, [], [], Offset) :- true
+  .
+
+part_aux([E|Es], [N|Ns], [E|Fs], Offset) :- true
+  , N - Offset = 1 % E is in
+  , !
+  , part_aux(Es, Ns, Fs, Offset + 1)
+  .
+
+part_aux([E|Es], [N|Ns], Fs, Offset) :- true
+  , N - Offset >= 2 % E is not in
+  , !
+  , part_aux(Es, [N|Ns], Fs, Offset + 1)
+  .
+
+%------------------------------------------------------------------------------
+% Auxilliary functions about patterns.
+%
+% find_critical_variables(
+%   +RPatterns,
+%   +Head,
+%   +CPs,
+%   -CVars)
+%
+% find_critical_substitution(
+%   +RPatterns,
+%   +Head,
+%   +CPs,
+%   -CSubst)
+%
+% count_occurrences_of_head(H, Ps, N)
+%------------------------------------------------------------------------------
+
+find_critical_variables([], H, CPs, []).
+
+find_critical_variables([RP|RPs], H, CPs, CVars) :- true
+  , RP =.. [H|Xs]
+  , !
+  , part(Xs, CPs, CXs)
+  , find_critical_variables(RPs, H, CPs, CVars_Rest)
+  , unord_setunion(CXs, CVars_Rest, CVars)
+  .
+
+% The otherwise case, RP doesn't have head H, skip it.
+find_critical_variables([RP|RPs], H, CPs, CVars) :- true
+  , find_critical_variables(RPs, H, CPs, CVars)
+  .
+
+
+count_occurrences_of_head(H, [], 0) :- true
+  .
+
+count_occurrences_of_head(H, [P|Ps], N) :- true
+  , P =.. [H|_]
+  , !
+  , count_occurrences_of_head(H, Ps, M)
+  , N = M + 1
+  .
+
+% The otherwise case, P doesn't have head H
+count_occurrences_of_head(H, [P|Ps], N) :- true
+  , count_occurrences_of_head(H, Ps, N)
+  .
