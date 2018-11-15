@@ -1,0 +1,279 @@
+\usepackage{fullpage}
+\usepackage{comment}
+\usepackage{booktabs}                           
+\usepackage{subcaption} 
+\usepackage{mathtools,amsthm,amssymb,prftree,amsfonts}
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[bbgreekl]{mathbbol} % must go after newtxtext & newtxmath
+\usepackage{tikz}\usetikzlibrary{arrows}\usepgflibrary{arrows}
+\usepackage{tabularx,multirow}
+\usepackage{xspace}
+\usepackage{wrapfig}
+\usepackage{array}
+\usepackage{todonotes}
+
+%%%%%%%%%%%%%%%% NEW THEOREM ENVS %%%%%%%%%%%%%%%%
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{notation}[theorem]{Notation}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+
+%%%%%%%%%%%%%%%% NEW COMMANDS %%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%% NEW COMMANDS: TEXTS %%%%%%%%%%%%%%%%
+\newcommand{\MmL}{M$\mu$L\xspace}
+\newcommand{\K}{K\xspace}
+
+%%%%%%%%%%%%%%%% NEW COMMANDS: BASIC MATHS %%%%%%%%%%%%%%%%
+\newcommand{\pset}[1]{\mathcal{P}(#1)} % powerset
+\newcommand{\fix}{\mathrm{fix}}
+
+%%%%%%%%%%%%%%%% NEW COMMANDS: BASIC LOGIC %%%%%%%%%%%%%%%%
+
+% on usage of colons:
+% - use \colon for functions. E.g., f: Int -> Int;
+% - use : for binary relations with space around;
+% - use \cln or binary relations without space around, x:s, f(Int):Int.
+\newcommand{\cln}{\mathbin{\!:\!}}
+\newcommand{\ldot}{\mathbin{\!.\!}} % lower dot, used in exists x . phi
+\newcommand{\imp}{\to}
+\newcommand{\dimp}{\leftrightarrow}
+\newcommand{\To}{\Rightarrow}
+\newcommand{\rhox}[1]{{\rho_{#1}}}
+\newcommand{\rhop}{\rho'}
+\newcommand{\rhopx}[1]{{\rhop_{#1}}}
+\newcommand{\barrho}{\bar{\rho}}
+\newcommand{\widebar}[1]{\overline{#1}}
+\newcommand{\barrhop}{\widebar{\rhop}}
+\newcommand{\barrhox}[1]{\widebar{\rhox{#1}}}
+\newcommand{\barrhopx}[1]{\widebar{\rhopx{#1}}}
+\newcommand{\simon}[1]{\overset{#1}{\sim}}
+\newcommand{\simx}{\simon{x}}
+\newcommand{\simz}{\simon{z}}
+\newcommand{\sigmaM}{\sigma_M}
+\newcommand{\sigmaW}{\sigma_W}
+\newcommand{\sigmaY}{\sigma_Y}
+\newcommand{\mathsc}[1]{{\normalfont\textsc{#1}}} % small caps in math mode
+\newcommand{\Name}{\textnormal{\textsc{Name}}}
+\newcommand{\Var}{\mathsc{Var}}
+\newcommand{\EVar}{\mathsc{EVar}}
+\newcommand{\SVar}{\mathsc{SVar}}
+\newcommand{\Nom}{\textnormal{\textsc{Nom}}}
+\newcommand{\sig}{\mathbb{\Sigma}}
+\newcommand{\Pattern}{\textnormal{\textsc{Pattern}}}
+
+
+
+%%%%%%%%%%%%%%%% NEW COMMANDS: MISC %%%%%%%%%%%%%%%%
+\newcommand{\inlinetodo}[1]{\todo[inline]{#1}}
+\newcommand{\todorosu}[1]{\todo[inline,color=green!10]{(Grigore). #1}}
+\newcommand{\todochen}[1]{\todo[inline,color=blue!10]{(Xiaohong). #1}}
+
+
+
+
+
+
+
+
+
+\newcommand{\ddd}{,\dots,}
+\newcommand{\doubleslash}{//\xspace}
+\newcommand{\FV}{\mathit{FV}}
+\newcommand{\CC}{\mathcal{C}}
+\newcommand{\MM}{\mathcal{M}}
+\newcommand{\WW}{\mathcal{W}}
+\newcommand{\YY}{\mathcal{Y}}
+\newcommand{\II}{\mathcal{I}}
+\newcommand{\interp}[1]{\__{#1}}
+\newcommand{\interpM}{\interp{\MM}}
+\newcommand{\interpY}{\interp{\YY}}
+\newcommand{\interpW}{\interp{\WW}}
+
+\newcommand{\SigmaSub}[1]{\Sigma_{#1}}
+\newcommand{\SetOF}[1]{\{ #1 \}}
+
+
+\newcommand{\txtand}{\text{ and }}
+\newcommand{\MLLambda}{\mathsf{\Lambda}}
+\newcommand{\MLMu}{\mathsf{Mu}}
+\newcommand{\MLLTL}{\mathsf{LTL}}
+\newcommand{\MLCTL}{\mathsf{CTL}}
+\newcommand{\MLSfive}{\mathsf{S5}}
+\newcommand{\MLSL}{\mathsf{SL}}
+\newcommand{\MLhybridML}{\mathsf{hybridML}}
+\newcommand{\MLpolyadicML}{\mathsf{polyML}}
+\newcommand{\MLTS}{\textnormal{\textsf{TS}}\xspace}
+\newcommand{\MLUTS}{\textnormal{\textsf{UTS}}\xspace}
+\newcommand{\MLinfLTL}{\mathsf{infLTL}}
+\newcommand{\MLfinLTL}{\mathsf{finLTL}}
+\newcommand{\MLPDL}{\mathsf{PDL}}
+\newcommand{\MLuRL}{\mathsf{uRL}}
+\newcommand{\MLRL}{\mathsf{RL}}
+\newcommand{\hybridModalLogic}{\textit{hybrid}}
+\newcommand{\polyadicModalLogic}{\textit{polyadic}}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\newcommand{\infLTL}{\mathrm{infLTL}}
+\newcommand{\finLTL}{\mathrm{finLTL}}
+\newcommand{\uRL}{\textsc{uRL}}
+\newcommand{\SSS}{\mathcal{S}}
+
+% name of the proof rules
+\newcommand{\prule}[1]{\textsc{(#1)}}
+
+\newcommand{\modusponens}{\prule{Modus Ponens}\xspace}
+\newcommand{\universalgeneralization}{\prule{Universal Generalization}\xspace}
+\newcommand{\necessitation}{\prule{Necessitation}\xspace}
+\newcommand{\existence}{\prule{Existence}\xspace}
+\newcommand{\singletonvariable}{\prule{Singleton Variable}\xspace}
+\newcommand{\propagationbottom}{\prule{Propagation$_\bot$}\xspace}
+\newcommand{\propagationvee}{\prule{Propagation$_\vee$}\xspace}
+\newcommand{\propagationexists}{\prule{Propagation$_\exists$}\xspace}
+\newcommand{\variablesubstitution}{\prule{Variable Substitution}\xspace}
+\newcommand{\framing}{\prule{Framing}\xspace}
+\newcommand{\propositionaltautology}{\prule{Propositional Tautology}\xspace}
+\newcommand{\forallrule}{\prule{$\forall$}\xspace}
+\newcommand{\membership}{\prule{Membership}\xspace}
+\newcommand{\membershipintroduction}{\prule{Membership Introduction}\xspace}
+\newcommand{\membershipelimination}{\prule{Membership Elimination}\xspace}
+\newcommand{\membershipneg}{\prule{Membership$_\neg$}\xspace}
+\newcommand{\membershipwedge}{\prule{Membership$_\wedge$}\xspace}
+\newcommand{\membershipexists}{\prule{Membership$_\exists$}\xspace}
+\newcommand{\equalityelimination}{\prule{Equality Elimination}\xspace}
+\newcommand{\membershipsymbol}{\prule{Membership Symbol}\xspace}
+\newcommand{\membershipvariable}{\prule{Membership Variable}\xspace}
+\newcommand{\functionalsubstitution}{\prule{Functional Substitution}\xspace}
+\newcommand{\circularity}{\prule{Circularity}\xspace}
+\newcommand{\Lfp}{\prule{Lfp}\xspace}
+\newcommand{\Gfp}{\prule{Gfp}\xspace}
+\newcommand{\Fix}{\prule{Fix}\xspace}
+\newcommand{\Fixmu}{\prule{Fix$_\mu$}\xspace}
+\newcommand{\Fixnu}{\prule{Fix$_\nu$}\xspace}
+\newcommand{\FIX}{\Fix}
+\newcommand{\LFP}{\Lfp}
+\newcommand{\xif}[1]{\xLeftarrow{\text{#1}}}
+
+\newcommand{\Nat}{\mathit{Nat}}
+\newcommand{\Map}{\mathit{Map}}
+\newcommand{\emp}{\mathit{emp}}
+\newcommand{\Cfg}{\mathit{Cfg}}
+\newcommand{\simp}{\mathbin{-*}}
+\newcommand{\merge}{\mathbin{*}}
+\newcommand{\pto}{\rightharpoonup}
+\newcommand{\SL}{{\text{SL}}}
+\newcommand{\FOL}{{\text{FOL}}}
+\newcommand{\TT}{\mathcal{T}}
+
+% contexts
+\newcommand{\CSub}[1]{C_{#1}}
+\newcommand{\Csigma}{\CSub{\sigma}}
+\newcommand{\Csigmai}{\CSub{\sigma,i}}
+\newcommand{\Csigmaapp}[1]{\CSub{\sigma}[#1]}
+\newcommand{\Csigmaiapp}[1]{\CSub{\sigma,i}[#1]}
+\newcommand{\Capp}[1]{C[#1]}
+
+% compliment of symbols contexts
+\newcommand{\Csigmabar}{\overline{\CSub{\sigma}}}
+\newcommand{\sigmabar}{\bar{\sigma}}
+\newcommand{\Cbar}{\bar{C}}
+
+\newcommand{\Prop}{\textsc{Prop}}
+\newcommand{\AP}{\textsc{AP}}
+\newcommand{\APgm}{\textsc{APgm}}
+\newcommand{\Label}{\textsc{Label}}
+\newcommand{\true}{\mathit{true}}
+\newcommand{\false}{\mathit{false}}
+\newcommand{\wnext}{{\medcirc}}
+\newcommand{\snext}{{\medbullet}}
+\newcommand{\sprev}{{\widebar{\snext}}}
+\newcommand{\wprev}{{\widebar{\wnext}}}
+\newcommand{\always}{{\square}}
+\newcommand{\eventually}{{\lozenge}}
+\newcommand{\AAA}{{\mathsf{A}}}
+\newcommand{\EEE}{{\mathsf{E}}}
+\newcommand{\EE}{{\mathsf{E}}}
+\newcommand{\XX}{{\mathsf{X}}}
+\newcommand{\UU}{\mathbin{\mathsf{U}}}
+\newcommand{\FF}{{\mathsf{F}}}
+\newcommand{\GG}{{\mathsf{G}}}
+\newcommand{\AG}{{\mathsf{AG}}}
+\newcommand{\EG}{{\mathsf{EG}}}
+\newcommand{\AF}{{\mathsf{AF}}}
+\newcommand{\EF}{{\mathsf{EF}}}
+\newcommand{\AX}{\mathsf{AX}}
+\newcommand{\AU}{\mathbin{\mathsf{AU}}}
+\newcommand{\EU}{\mathbin{\mathsf{EU}}}
+\newcommand{\EX}{\mathsf{EX}}
+\newcommand{\Us}{\mathbin{\mathsf{U}_s}}
+\newcommand{\Uw}{\mathbin{\mathsf{U}_w}}
+\newcommand{\rt}{\mathsf{root}}
+\newcommand{\subtrees}{\mathsf{subtrees}}
+\newcommand{\fullpaths}{\mathsf{fullpaths}}
+\newcommand{\world}{\mathit{world}}
+\newcommand{\statesort}{\mathit{state}}
+\newcommand{\pgm}{\mathit{pgm}}
+\newcommand{\hole}{\square}
+\DeclarePairedDelimiter{\bracket}{\llbracket}{\rrbracket}
+\newcommand{\bracketM}[1]{{\bracket{#1}_\MM}}
+\DeclarePairedDelimiter{\angleBraces}{\langle}{\rangle}
+
+\newcommand{\Words}{\textsc{Words}}
+\newcommand{\infTraces}{\textsc{Traces$^\omega$}\xspace}
+\newcommand{\finTraces}{\textsc{Traces$^*$}\xspace}
+\newcommand{\infTrees}{\textsc{Trees$^\omega$}\xspace}
+\newcommand{\Inf}{\prule{Inf}\xspace}
+\newcommand{\Fin}{\prule{Fin}\xspace}
+\newcommand{\Lin}{\prule{Lin}\xspace}
+\newcommand{\LL}{\mathcal{L}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\QED}{\text{QED}}
+
+\newcommand{\textiff}{\text{ iff }}
+\newcommand{\xto}[1]{\xrightarrow{#1}}
+\newcommand{\xtoa}{\xto{a}}
+\newcommand{\pred}{\mathit{pred}}
+\newcommand{\succc}{\mathit{succ}}
+\newcommand{\CTL}{{\textsc{CTL}}}
+\newcommand{\PDL}{\textsc{PDL}}
+\newcommand{\textthen}{\text{ then }}
+\newcommand{\PDLseq}{\mathbin{;}}
+\newcommand{\PDLunion}{\mathbin{\cup}}
+\newcommand{\PDLstar}{^*}
+\newcommand{\PDLquestion}{{?}}
+
+
+\newcommand{\sfk}{\textsf{k}\xspace}
+\newcommand{\sfstate}{\textsf{state}\xspace}
+\newcommand{\ttInt}{\texttt{Int}\xspace}
+\newcommand{\ttId}{\texttt{Id}\xspace}
+\newcommand{\ttExp}{\texttt{Exp}\xspace}
+\newcommand{\ttplus}{\ \texttt{+}\ }
+\newcommand{\ttminus}{\ \texttt{-}\ }
+\newcommand{\KResult}{\texttt{KResult}\xspace}
+
+\newcommand{\Int}{\textit{Int}}
+\newcommand{\Exp}{\textit{Exp}}
+\newcommand{\AExp}{\textit{BExp}}
+\newcommand{\BExp}{\textit{BExp}}
+\newcommand{\ttrue}{\textit{true}}
+\newcommand{\ffalse}{\textit{false}}
+\newcommand{\Id}{\textit{Id}}
+\newcommand{\Stmt}{\textit{Stmt}}
+\newcommand{\ite}{\textit{ite}}
+
+\newcommand{\parametric}[2]{{#1}\raisebox{.2ex}{\texttt{\footnotesize{\{}}}#2\raisebox{.2ex}{\texttt{\footnotesize{\}}}}}
+\newcommand{\parametricscript}[2]{{#1}\raisebox{.2ex}{\texttt{\tiny{\{}}}#2\raisebox{.2ex}{\texttt{\tiny{\}}}}}
+
+\newcommand{\Context}{\mathit{Context}}
+\newcommand{\compose}{\circ}
+\newcommand{\strict}[1]{\textsf{strict(#1)}}
