@@ -14,8 +14,10 @@ Definitions should be precise, rigorous, and compact.
 Proofs should be fluent, readable, intuitive, and sound.}
 
 \section{Background and Motivation}
-
-In occasions, we abbreviate matching $\mu$ logic as \MmL. 
+\sout{
+In occasions, we abbreviate matching $\mu$ logic as \MmL.
+}
+No. I realize I do not like this abbreviation. 
 
 \section{Preliminaries}
 
@@ -36,20 +38,20 @@ for any $i, j \in I$ with $i \neq j$,
 $F_i \cap F_j = \emptyset$.
 When $F$ is a pairwise disjoint family,
 we write $x \in F$ to mean that $x$ belongs to some set $F_i$ in the family. 
-There is no risk of confusion because $F$ is pairwise disjoint. 
 \end{definition}
 
 \begin{notation}
-Let $F = \{F_i\}_{i \in I}$ and $G = \{G_i\}_{i \in I}$ be two $I$-indexed families. 
+Let $F = \{F_i\}_{i \in I}$ and $G = \{G_i\}_{i \in I}$ be two families. 
 An $I$-indexed function $h = \{ h_i \}_{i \in I}$,
-denoted as $h \colon F \to G$,
+denoted shortly as $h \colon F \to G$,
 is a set of
 functions $h_i \colon F_i \to G_i$ for every index $i \in I$.
 \end{notation}
 
 \begin{notation}
-Let $F = \{F_i\}_{i \in I}$ be an $I$-indexed family of sets. 
-We use $\pset{F} = \{ \pset{F_i} \}_{i \in I}$ to denote the family of power sets.  
+Let $F = \{F_i\}_{i \in I}$ be a family of sets.
+We use $\pset{F} = \{ \pset{F_i} \}_{i \in I}$ to denote the family of 
+the power sets of its element sets.
 \end{notation}
 
 \begin{definition}
@@ -73,35 +75,47 @@ denoted as $\nu F$.
 
 \todochen{Please be concise and precise.}
 
+\todochen{This is more like a proposal.
+I learned from various least fixpoint logics, including
+first-order logic with least fixpoints (FOL$_{\mathrm{lfp}}$)
+and modal logic with least fixpoints (ML$_\mu$).
+Based on what I learned, I extended matching logic with least fixpoints
+and carried it \emph{to extremes}.
+}
+
+
 \subsection{Syntax}
 \label{sec:MmL_sytax}
 
-\begin{definition}
-An \MmL signature $\sig = (S,\Var,\Sigma)$ consists of
-\begin{itemize}
-\item a nonempty set $S$ of sorts;
-\item a sortwise set $\Var = \EVar \uplus \SVar$ of
-countably infinitely many element variables and set variables;
-\item a many-sorted set of symbols $\Sigma$.
-\end{itemize}
-\end{definition}
+\begin{notation}[Variables]
+\label{not:variables}
+Let $S$ be a nonempty set of sorts.
+We need two kinds of variables. 
+One is \emph{element variables}, denoted as
+$x \cln s, y \cln s, \dots$. 
+The other is \emph{symbol variables}, denoted as
+$f(s_1,\dots,s_n) \cln s, g(s_1,\dots,s_n) \cln s, \dots$. 
+To keep our notation tidy,
+we drop the sorts when they are clear from the context
+and just write $x, y, f, g$, etc.
+We assume there are countably infinitely many variables.
+Let $\Var = \EVar \cup \SVar$ denote the set of all variables,
+where $\EVar$ and $\SVar$ denote the sets of element and symbol variables,
+respectively. 
+\end{notation}
 
-As a convention, we use $s_1,s_2,\dots$ to denote sorts, 
-$x \cln s, y \cln s, \dots$ to denote element variables of sort $s$, and
-$X \cln s, Y \cln s, \dots$ to denote set variables of sort $s$.
-When sorts are irrelevant or clear from the context,
-we drop them and simply write $x, y, X, Y$, etc.
+\begin{notation}[Many-sorted symbols]
+Let $S$ be a set of sorts. 
 We write $\sigma(s_1,\dots,s_n) \cln s$ to mean
-$\sigma \in \Sigma_{s_1 \dots s_n , s}$.
-When $\sigma \in \Sigma_{\lambda , s}$ is a constant,
-we simply write $\sigma \cln s$.
-When $\Var$ is clear,
-we omit it and write $\sig = (S, \Sigma)$;
-when $S$ is also clear, we refer to a signature by just $\Sigma$.
+an $n$-ary symbol with argument sorts $s_1,\dots,s_n$
+and return sort $s$.
+We drop the sorts when they are clear from the context.
+\end{notation}
 
 \begin{definition}
-Given a signature $\sig = (S, \Var, \Sigma)$, 
-the set of \emph{patterns}, 
+Given a many-sorted signature $\sig = (S, \Var, \Sigma)$,
+the set of \emph{matching $\mu$ logic patterns}, 
+or simply \emph{pattern}, 
 denoted as $\Pattern = \{\Pattern_s\}_{s \in S}$,
 is inductively defined by the following grammar:
 \begin{center}
@@ -112,12 +126,13 @@ $\varphi_s$
 & \doubleslash Element variables
 \\
 & $|$
-& $X \cln s \in \SVar_s$
-& \doubleslash Set variables
+& $f(\varphi_{s_1} \ddd \varphi_{s_n})$
+  where $f(s_1,\dots,s_n) \cln s \in \SVar$
+& \doubleslash Symbol variables
 \\
 & $|$
 & $\sigma(\varphi_{s_1} \ddd \varphi_{s_n})$
-  where $\sigma(s_1,\dots,s_n) \cln s$
+  where $\sigma(s_1,\dots,s_n) \cln s \in \Sigma$
 & \doubleslash Structure
 \\
 & $|$
@@ -134,33 +149,89 @@ $\varphi_s$
 & \doubleslash First-order binding
 \\
 & $|$
-& $\mu X \cln s' \ldot \varphi_s$
-  where $s' \in S$,and every free occurrence of $X \cln s'$ in $\varphi_s$
-  is positive
-& \doubleslash Least fixpoints
+& $[\mu {f (x_1 \dots x_n)} \ldot \varphi_s] 
+  (\varphi_{s_1} \ddd \varphi_{s_n})$,
+  where $f(s_1, \dots, s_n) \cln s \in \SVar$,
+& \doubleslash Least fixpoint binding
+\\
+&
+& $x_1 \cln s_1 , \dots, x_n \cln s_n \in \EVar$, all distinct,
+  and $\varphi_s$ is positive in $f$
 \end{tabular}
 \end{center}
 \end{definition}
 
-When $\sigma \cln s$ is a constant, 
-we abbreviate the pattern $\sigma()$ as just $\sigma$. 
-The syntax defines two binders: $\exists  x \cln s$ and $\mu  X \cln s$. 
-The notions of free variables and alpha-renaming are defined as in
-first-order logic. 
-We use $\psi[\varphi_s / x \cln s]$ 
-(and $\psi[\varphi_s / X \cln s]$) to denote
-the results of substituting $\varphi_s$ for $x \cln s$ (and $X \cln s$)
-in $\psi$, where alpha-renaming happens implicitly to avoid
+The syntax has two binders: $\exists$ and $\mu$.
+The $\exists$-binder is the same as in first-order logic.
+In the pattern $\exists x . \varphi$,
+all free occurrences of $x$ in $\varphi$ are bound. 
+The $\mu$-binder is similar to the ``letrec'' binder in
+many functional programming languages such as OCaml. 
+In the pattern 
+$[\mu f(x_1 , \dots , x_n) . \varphi_s](\varphi_{s_1} , \dots, \varphi_{s_n})$,
+all free occurrences of $f$ and $x_1,\dots,x_n$ in $\varphi$
+are bound.
+Notice that the order of $x_1 , \dots, x_n$ matters.
+As a convention, we call $f$ the \emph{recursive symbol}
+and $\varphi_s$ the \emph{recursive definition} of $f$.
+There might be other free variables occurring in the body $\varphi_s$
+apart from $x_1,\dots,x_n$.
+These variables are called \emph{parameters of the recursion}.
+
+\begin{notation}
+When $\sigma$ is a constant symbol, 
+we write the pattern $\sigma()$ as just $\sigma$.
+Similarly, if $f$ is a $0$-ary constant symbol variable,
+we write the pattern $f()$ as just $f$
+and write the fixpoint pattern
+$[\mu f() . \varphi]()$ as just $\mu f . \varphi$.
+\end{notation}
+
+\begin{notation}
+We use $\varphi[\varphi_s / x \cln s]$ to denote
+the results of substituting $\varphi_s$ for $x \cln s$
+in $\varphi$, where alpha-renaming happens implicitly to avoid
 unintended capturing of free variables. 
+We use $\varphi[\neg f / f]$ to denote the result of replacing
+every $f(\varphi_1,\dots,\varphi_n)$ with
+$\neg f(\varphi_1,\dots,\varphi_n)$ in $\varphi$.
+This is useful when we define the greatest fixpoint $\nu$-binder
+from the least fixpoint $\mu$-binder. 
+\end{notation}
+
+Propositional connectives
+such as $\varphi \to \varphi$, $\varphi \vee \varphi$,
+$\varphi \dimp \varphi$
+are defined in the usual way.
+The top $\top \equiv \exists x \ldot x$ and bottom $\bot \equiv \mu f \ldot f$
+are defined in a way such that they contain no free variables.  
+It might not be clear why we define them as so,
+but we will see the reason very soon in Section~\ref{sec:standard_semantics}
+when we prove they have the intended semantics.
+The two binders $\exists$ and $\mu$ have their
+dual versions defined as follows:
+\begin{align*}
+\forall x \ldot \varphi \equiv \neg \exists x \ldot \neg \varphi
+&&
+[\nu f(x_1,\dots,x_n) \ldot \varphi](\varphi_1 , \dots, \varphi_n)
+\equiv
+\neg
+[\mu f(x_1,\dots,x_n) \ldot \neg \varphi[\neg f / f]]
+(\varphi_1 , \dots, \varphi_n)
+\end{align*}
+It is easy to show that the $\nu$-binder
+is well-defined, by verifying that $\neg \varphi [\neg f / f]$ is positive in
+$f$ if $\varphi$ is positive in $f$.
 
 
 \subsection{Standard semantics}
+\label{sec:standard_semantics}
 
 \begin{definition}
-An \MmL model of a give signature $\sig = (S, \Sigma)$
+A model $(M,\interpM)$ of a give signature $\sig = (S, \Sigma)$
 consists of
 \begin{itemize}
-\item a sortwise family of carrier sets $M = \{M_s\}_{s \in S}$;
+\item a sortwise family of carrier sets $M = \{M_s\}_{s \in S}$; and
 \item a function 
 $\sigma_M \colon M_{s_1} \times \dots \times M_{s_n} \to \pset{M_s}$
 for every symbol $\sigma(s_1,\dots,s_n) \cln s \in \Sigma$.
@@ -172,29 +243,54 @@ We tacitly use the same notion $\sigma_M$ for its
 pointwise extension 
 $\sigma_M \colon \pset{M_{s_1}} \times \dots \times \pset{M_{s_n}} 
 \to \pset{M_s}$, which is defined as
-$$
+\begin{equation}
+\label{eq:pointwise_extension}
 \sigma_M(A_1,\dots,A_n) = \bigcup 
 \{ \sigma_M(a_1,\dots,a_n) \mid  
 a_1 \in A_1, \dots, a_n \in A_n
 \}
 \quad \text{for all $A_1 \subseteq M_{s_1}$, \dots, $A_n \subseteq M_{s_n}$}.
-$$
+\end{equation}
 
-Given a model, a valuation $\rho$ is a function that maps
-every element variable of sort $s$ to an element in $M_s$
-and every set variable of sort $s$ to a subset of $M_s$. 
-Formally, for any element variable $x \cln s$ 
-and set variable $X \cln s$,
-$\rho(x \cln s) \in M_s$ and $\rho(X \cln s) \in \pset{M_s}$.
-Given an element $a \in M_s$, 
-we define $\rho[a/x \cln s]$ as the valuation
-that maps $x \cln s$ to $a$
-and maps all other variables in the same as $\rho$.
-The valuation $\rho[A / X \cln s]$ is defined similarly
-for any subset $A \subseteq M_s$.
+\begin{remark}
+
+One can think of an $n$-ary symbol $\sigma$
+as being an $(n+1)$-ary predicate.
+
+\end{remark}
+
+\begin{remark}
+
+The pointwise extension of $\sigma_M$ is convenient but also sets a trap.
+One might think that it can be any function
+$f \colon \pset{M_{s_1}} \times \dots \times \pset{ M_{s_n}} \to \pset{M_s}$.
+This is not true.
+For example, $\sigma_M(\emptyset,\dots,\emptyset) = \emptyset$ always holds.
+In fact, $\sigma_M$ can only be functions that are \emph{extensional},
+in the sense of~\eqref{eq:pointwise_extension}.
+
+\end{remark}
+
+\begin{definition}
+
+Given a model $(M,\interpM)$, a valuation $\rho$ is a function such that
+\begin{itemize}
+\item $\rho(x \cln s) \in M_s$ for all element variable $x \cln s \in \EVar$;
+\item $\rho(f) \in [M_{s_1} \times \dots \times M_{s_n} \to \pset{M_s}]$
+for all symbol variable $f(s_1,\dots,s_n)\cln s \in \SVar$.
+\end{itemize}
+Given an element $a \in M$, 
+we define $\rho[a/x]$ as the valuation
+that maps $x$ to $a$
+and maps all other variables the same as $\rho$.
+The valuation $\rho[F / f]$ is defined similarly.
 We write $\rho \simon{x : s} \rho'$ 
 to mean that two valuations $\rho$ and $\rho'$ 
 agree on all variables except $x \cln s$. 
+
+\end{definition}
+
+
 
 \begin{definition}
 \label{def:standard_semantics}
@@ -205,8 +301,10 @@ be inductively defined as follows:
 \begin{itemize}
 \item $\barrho(x \cln s) = \{\rho(x \cln s)\}$, 
 for all $x \cln s \in \EVar_s$;
-\item $\barrho(X \cln s) = \rho(X \cln s)$, 
-for all $X \cln s \in \SVar_s$;
+\item $\barrho(f(\varphi_1 , \dots, \varphi_n)) = 
+\rho(f)(\barrho(\varphi_1) \ddd \barrho(\varphi_n))$, 
+for all $f(s_1,\dots,s_n) \cln s \in \SVar$
+and appropriate $\varphi_1 \ddd \varphi_n$;
 \item $\barrho(\sigma(\varphi_1 \ddd \varphi_n))
 = \sigmaM( \barrho(\varphi_1) \ddd \barrho(\varphi_n) )$,
 for all $\sigma(s_1,\dots,s_n) \cln s$
