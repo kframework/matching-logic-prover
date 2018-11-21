@@ -13,7 +13,7 @@
 \usepackage{todonotes}
 \usepackage[normalem]{ulem}
 
-%%%%%%%%%%%%%%%% NEW THEOREM ENVS %%%%%%%%%%%%%%%%
+% new theorems
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
@@ -27,19 +27,32 @@
 \newtheorem{remark}[theorem]{Remark}
 \newtheorem{example}[theorem]{Example}
 
-%%%%%%%%%%%%%%%% NEW COMMANDS: TEXTS %%%%%%%%%%%%%%%%
+% comments
+\newcommand{\inlinetodo}[1]{\todo[inline]{#1}}
+\newcommand{\todorosu}[1]{\todo[inline,color=green!10]{(Grigore). #1}}
+\newcommand{\todochen}[1]{\todo[inline,color=blue!10]{(Xiaohong). #1}}
+
+% texts
+\newcommand{\nats}{\mathbb{N}} % set of natural numbers
+\newcommand{\reals}{\mathbb{R}} % set of reals
+\newcommand{\K}{$\mathbb{K}$\xspace} % \K framework
+
 \newcommand{\MmL}{M$\mu$L\xspace}
-\newcommand{\K}{K\xspace}
-\newcommand{\Fcal}{\mathcal{F}}
-\newcommand{\N}{\mathbb{N}}
+
+% mathrm font
 \newcommand{\cfg}{\mathrm{cfg}}
 \newcommand{\lfp}{\mathrm{lfp}}
 \newcommand{\gfp}{\mathrm{gfp}}
 
-% prefix symbols
+% mathit font
 \newcommand{\listit}{\mathit{list}}
 
-%%%%%%%%%%%%%%%% NEW COMMANDS: BASIC MATHS %%%%%%%%%%%%%%%%
+% mathbb font
+
+% mathcal font
+\newcommand{\Fcal}{\mathcal{F}}
+
+% basic maths
 \newcommand{\pset}[1]{\mathcal{P}(#1)} % powerset
 \newcommand{\fixpoint}{\mathsc{Fixpoint}}
 \newcommand{\FP}{\mathsc{fp}}
@@ -116,7 +129,7 @@
 }
 \makeatother
 
-%%%%%%%%%%%%%%%% NEW COMMANDS: BASIC LOGIC %%%%%%%%%%%%%%%%
+
 
 % on usage of colons:
 % - use \colon for functions. E.g., f: Int -> Int;
@@ -127,8 +140,7 @@
 \newcommand{\imp}{\to}
 \newcommand{\dimp}{\leftrightarrow}
 \newcommand{\To}{\Rightarrow}
-
-%%%%%%%%%%%%%%%% NEW COMMANDS: ML SYNTAX %%%%%%%%%%%%%%%%
+\newcommand{\FV}{\mathit{FV}}
 
 \newcommand{\mathsc}[1]{{\normalfont\textsc{#1}}} % small caps in math mode
 \newcommand{\Name}{\textnormal{\textsc{Name}}}
@@ -139,8 +151,6 @@
 \newcommand{\sig}{\mathbb{\Sigma}}
 \newcommand{\Pattern}{\textnormal{\textsc{Pattern}}}
 
-%%%%%%%%%%%%%%%% NEW COMMANDS: ML SEMANTICS %%%%%%%%%%%%%%%%
-
 \DeclarePairedDelimiter{\bracket}{\llbracket}{\rrbracket}
 \newcommand{\std}{\mathrm{std}}
 \newcommand{\hnk}{\mathrm{hnk}}
@@ -148,13 +158,11 @@
 \newcommand{\rhobar}{\bar{\rho}}
 \newcommand{\rhobarp}{\widebar{\rhop}}
 
-%%%%%%%%%%%%%%%% NEW COMMANDS: MISC %%%%%%%%%%%%%%%%
 
-\newcommand{\inlinetodo}[1]{\todo[inline]{#1}}
-\newcommand{\todorosu}[1]{\todo[inline,color=green!10]{(Grigore). #1}}
-\newcommand{\todochen}[1]{\todo[inline,color=blue!10]{(Xiaohong). #1}}
 
-%%%%%%%%%%%%%%%% GET FROM HERE %%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\rhox}[1]{{\rho_{#1}}}
 \newcommand{\rhopx}[1]{{\rhop_{#1}}}
@@ -168,9 +176,7 @@
 \newcommand{\sigmaY}{\sigma_Y}
 
 
-\newcommand{\ddd}{,\dots,}
 \newcommand{\doubleslash}{//\xspace}
-\newcommand{\FV}{\mathit{FV}}
 \newcommand{\CC}{\mathcal{C}}
 \newcommand{\MM}{\mathcal{M}}
 \newcommand{\WW}{\mathcal{W}}

@@ -33,7 +33,7 @@ in mathematics and computer science.
 
 \todochen{Please, Xiaohong, please, revise the language. 
 Definitions should be precise, rigorous, and compact. 
-Proofs should be fluent, readable, intuitive, and sound.}
+Proofs should be fluent, readable, intuitive, and, of course, sound.}
 
 \section{Background and Motivation}
 
@@ -149,7 +149,7 @@ $\varphi_s$
 & \doubleslash Set variables
 \\
 & $|$
-& $\sigma(\varphi_{s_1} \ddd \varphi_{s_n})$
+& $\sigma(\varphi_{s_1} ,\dots, \varphi_{s_n})$
   where $\sigma(s_1,\dots,s_n) \cln s \in \Sigma$
 & \doubleslash Structure
 \\
@@ -211,10 +211,12 @@ dual versions defined in the following usual way:
 \begin{align*}
 \forall x \cln s \ldot \varphi \equiv \neg \exists x \cln s \ldot \neg \varphi
 &&
-\nu X \cln s . \varphi \equiv \neg \mu X \cln s . \neg \varphi[\neg X \cln s / X \cln s]
+\nu X \cln s . \varphi \equiv \neg \mu X \cln s . \neg \varphi[\neg X \cln s / 
+X \cln s]
 \end{align*}
 It is easy to show that the $\nu$-binder
-is well-defined, by verifying that $\neg \varphi[\neg X \cln s / X \cln s]$ is positive in
+is well-defined, by verifying that $\neg \varphi[\neg X \cln s / X \cln s]$ is 
+positive in
 $X \cln s$ if $\varphi$ is so.
 
 Finally, we feel free to drop the sorts whenever we can.
@@ -316,10 +318,10 @@ defined inductively as follows:
 for all $x \cln s \in \EVar$;
 \item $\rhobar_\std(X \cln s) = \rho(X \cln s)$
 for all $X \cln s \in \SVar$;
-\item $\rhobar_\std(\sigma(\varphi_1 \ddd \varphi_n))
-= \sigmaM( \rhobar_\std(\varphi_1) \ddd \rhobar_\std(\varphi_n) )$,
+\item $\rhobar_\std(\sigma(\varphi_1 ,\dots, \varphi_n))
+= \sigmaM( \rhobar_\std(\varphi_1) ,\dots, \rhobar_\std(\varphi_n) )$,
 for all $\sigma(s_1,\dots,s_n) \cln s \in \Sigma$
-and appropriate $\varphi_1 \ddd \varphi_n$;
+and appropriate $\varphi_1 ,\dots, \varphi_n$;
 \item $\rhobar_\std(\neg \varphi) = M_s \setminus \rhobar_\std(\varphi)$,
       for every $\varphi \in \Pattern_s$;
 \item $\rhobar_\std(\varphi_1 \wedge \varphi_2)
@@ -393,15 +395,6 @@ the true least fixpoint in the model, but only the least \emph{definable} fixpoi
 This is known as the \emph{Henkin semantics}, which we defines in
 Section~\ref{sec:hnk_semantics}.
 
-\subsection{Recursive symbols}
-\label{sec:recursive_symbols}
-
-In this section we show how to define recursive symbols using the $\mu$-binder.
-We start with unary symbols. 
-
-For any sorts $s_1,s_2 \in S$, define a new sort $s_1 \times s_2$,
-called the \emph{product} of $s_1$ and $s_2$.
-
 \subsection{Henkin semantics}
 \label{sec:hnk_semantics}
 
@@ -421,6 +414,146 @@ w.r.t. Henkin semantics.
 The proof system in Figure~\ref{fig:proof_system} is sound but not complete
 w.r.t. standard semantics.
 \end{theorem}
+
+\section{Recursive Symbols}
+\label{sec:recursive_symbols}
+
+The $\mu$-binder in matching $\mu$-logic may not
+seem to be powerful enough for some readers, especially
+for those who are familiar with first-order logic
+with least fixpoints (FOL$_\lfp$).
+In FOL$_\lfp$, one can write a formula
+\begin{equation}
+\label{eq:transitive_closure_FOLlfp_definition}
+[\lfp_{R,x,y} (x = y \vee \exists z \ldot ( E(x,z) \wedge R(z,y) ))](u,v)
+\end{equation}
+with free variables $u$ and $v$, that defines
+the reflexive and transitive closure of the predicate $E$.
+In~\eqref{eq:transitive_closure_FOLlfp_definition},
+the least fixpoint binder $\lfp$ binds all free occurrences of
+the predicate variable $R$ and variables $x$ and $y$
+in formula
+$x = y \vee \exists z \ldot ( E(x,z) \wedge R(z,y) )$.
+
+
+In this section we show how to define 
+recursive symbols using the $\mu$-binder.
+We start with unary symbols, but the techniques can be applied
+to symbols with any number of arguments. 
+
+\subsection{An important isomorphism}
+Let $s, t \in S$ be two sorts,
+and $M_s, M_t$ be the corresponding carrier sets.
+Our approach is based on the following isomorphism:
+\begin{equation}
+[M_s \to \pset{M_t}]
+\xrightleftharpoons[H]{G}
+\pset{M_s \times M_t}
+\end{equation}
+where the two mappings $G$ and $H$ are defined as follows:
+\begin{align}
+G(f) &= \{ (a,b) \mid b \in f(a) 
+\text{ for all $a \in M_s$ and $b \in M_t$} \}, \\
+H(\alpha)(a) &= \{ b \in M_t \mid (a,b) \in \alpha \},
+\end{align}
+One can verify that $G(H(\alpha)) = \alpha$ and $H(G(f)) = f$.
+The subset $G(f)$ is called the \emph{graph} of the function $f$.
+This isomorphism tells us that we can use a constant symbol
+$\alpha_\sigma \cln s \times t$ to represent a unary symbol
+$\sigma (s) \cln t$.
+
+\begin{definition}
+Let $s, t \in S$ be two sorts, not necessarily distinct.
+Define a new sort $s \times t$ called the \emph{product sort}
+of $s$ and $t$.
+Two product sorts $s \times t$ and
+and $s' \times t'$ are the same if
+$s$ is the same sort as $s'$, and $t$ is the same sort as  $t'$.
+Define a new symbol $(\_,\_) \in \Sigma_{s t , s \times t}$
+called \emph{pairing}, parametric on $s$ and $t$.
+Define a new symbol $\_[\_] \in \Sigma_{s \times t s , t}$
+called \emph{projection}, parametric on $s$ and $t$.
+We often drop the sort subscripts to keep our notation tidy.
+We add the following axiom:
+\begin{equation}
+(x,\varphi)[x] = \varphi
+\end{equation}
+\end{definition}
+
+\subsection{An example in separation logic}
+
+Consider a signature with sorts $\Nat$ and $\Map$.
+We want to define a recursive symbol $\listit(\Nat)\cln \Map$
+such that, intuitively,
+\begin{equation}
+\label{eq:list_lfp_definition}
+\listit(x) =_\lfp (x = 0 \wedge \emp) \vee \exists y \ldot 
+(x \mapsto y \merge \listit(y)).
+\end{equation}
+Here, the notion $=_\lfp$ means we want $\listit$ to be the least symbol
+that satisfies \eqref{eq:list_lfp_definition}.
+Intuitively, we want $\listit(x)$ to be the set of
+all maps which consists of a single linked list starting at $x$.
+Using product sorts, we can achieve this by defining
+the following notation:
+\begin{equation}
+\label{not:list}
+\listit(x) \equiv 
+\underbrace{( \mu \alpha \ldot \exists x \ldot 
+( (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge \alpha[y] )))
+}_{\alpha_\listit}
+[x]
+\end{equation}
+We claim the notation define in~\eqref{not:list} is a ``good'' one,
+in the sense that we can indeed regard 
+$\listit(x)$ as the pattern which is the ``symbol'' $\listit$ applied
+to the argument $x$.
+When it comes to semantics, it is indeed interpreted as ``the least symbol''
+that satisfies~\eqref{eq:list_lfp_definition}.
+In fact:
+\begin{align}
+\listit(\bot) &= \alpha_\listit[\bot] = \bot,
+\\
+\listit(\varphi_1 \vee \varphi_2) &= \alpha_\listit[\varphi_1 \vee \varphi_2]
+= \alpha_\listit[\varphi_1] \vee \alpha_\listit[\varphi_2],
+\\
+\listit(\exists x \ldot \varphi) &=
+\alpha_\listit[\exists x \ldot \varphi] =
+\exists x \ldot \alpha_\listit[\varphi].
+\end{align}
+So the notation $\listit(x)$ defined in~\eqref{not:list}
+indeed satisfies all three propagation rules for symbols.
+In addition, the \prule{Framing} rule also holds:
+\begin{align}
+\text{if $\varphi_1 \imp \varphi_2$ then
+$\alpha_\listit[\varphi_1] \imp \alpha_\listit[\varphi_2]$,
+which is exactly
+$\listit(\varphi_1) \imp \listit(\varphi_2)$.
+}
+\end{align}
+Last but not the least, we can prove the following two rules hold,
+which makes it possible to regard $\listit(x)$ as a recursive symbol:
+\begin{align}
+&\listit(x) = (x = 0 \wedge \emp \merge \exists y \ldot x \mapsto y \merge 
+\listit(y)) \\
+&\prftree[r]
+{ % rule label
+if $y \notin \FV(\psi)$
+}
+{
+% premise
+(x = 0 \wedge \emp \merge \exists y \ldot x \mapsto y \merge \psi[y/x]) 
+\to \psi
+}{
+% conclusion
+\listit(x) \to \psi
+}
+\end{align}
+
+
+\subsection{A notation of unary recursive symbols in matching $\mu$-logic}
+
+\subsection{A notation of recursive symbols taking any number of arguments}
 
 
 \section{Instance: Modal Logic and Its Variants}
@@ -528,7 +661,7 @@ modal logic.
 		\prule{Nom}&
 		$\forall x . (\eventually^m (x \wedge \varphi)
 		\imp \always^n(x \imp \varphi))$,
-		for every $m,n \in \N$
+		for every $m,n \in \nats$
 		&
 		\prule{Name}&
 		$\exists x . x$
@@ -945,8 +1078,10 @@ Figure~\ref{fig_snext_wnext} illustrates the meaning of $\snext \varphi$ and
 $\wnext \varphi$.
 \begin{figure}
 	\begin{tikzpicture}
-	\node at (2,1.2)[circle,draw,inner sep=1.1cm,label=left:$\wnext \varphi$] {};
-	\node at (2,2.8)[circle,draw,inner sep=1.1cm,label=left:$\snext \varphi$] {};
+	\node at (2,1.2)[circle,draw,inner sep=1.1cm,label=left:$\wnext \varphi$] 
+	{};
+	\node at (2,2.8)[circle,draw,inner sep=1.1cm,label=left:$\snext \varphi$] 
+	{};
 	\node at (7,2)  [circle,draw,inner sep=1.1cm,label=right:$\varphi$] {};
 	\node (down) at (2,0.8) [circle,fill=black,inner sep=0.6mm] {};
 	\node (middle) at (2,2) [circle,fill=black,inner sep=0.6mm] {};
@@ -1007,25 +1142,26 @@ gfps.
 		all paths starting at $s$ are finite 
 		\\
 		$\eventually \varphi \equiv \mu f . (\varphi \vee \snext f)$ &
-		there exists $n \ge 0$ and $t_1 \ddd t_n$ such that 
+		there exists $n \ge 0$ and $t_1 ,\dots, t_n$ such that 
 		$s \to t_1 \to \dots \to t_n$ and $t_n \in \rhobar(\varphi)$
 		\\
 		$\always \varphi \equiv \nu f . (\varphi \wedge \wnext f)$ &
-		for all $n \ge 0$ and $t_1 \ddd t_n$ such that
+		for all $n \ge 0$ and $t_1 ,\dots, t_n$ such that
 		$s \to t_1 \to \dots \to t_n$, $t_n \in \rhobar(\varphi)$
 		\\
 		$\mu f . (\varphi_1 \vee (\varphi_2 \wedge \snext f))$ &
-		there exists $n \ge 0$ and $t_1 \ddd t_n$ such that 
+		there exists $n \ge 0$ and $t_1 ,\dots, t_n$ such that 
 		$s \to t_1 \to \dots \to t_n$, 
 		$t_n \in \rhobar(\varphi_2)$
-		\\& and $s,t_1 \ddd t_{n-1} \in \rhobar(\varphi_1)$
+		\\& and $s,t_1 ,\dots, t_{n-1} \in \rhobar(\varphi_1)$
 		\\
 		$\mu f . (\varphi_1 \vee (\varphi_2 \wedge \wnext f))$ &
-		for all $n \ge 0$ and $t_1 \ddd t_n$ such that
+		for all $n \ge 0$ and $t_1 ,\dots, t_n$ such that
 		$s \to t_1 \to \dots \to t_n$, 
 		there exists $m \le n$ 
 		\\&such that $t_n \in \rhobar(\varphi)$
-		$t_m \in \rhobar(\varphi_2)$ and $s,t_1 \ddd t_{m-1} \in \rhobar(\varphi_1)$
+		$t_m \in \rhobar(\varphi_2)$ and $s,t_1 ,\dots, t_{m-1} \in 
+		\rhobar(\varphi_1)$
 	\end{tabular}
 \end{center}
 
@@ -1099,7 +1235,7 @@ we define $\eventually \varphi \equiv \true \Us \varphi$
 and $\always \varphi \equiv \neg (\eventually \neg \varphi)$.
 Infinite-trace LTL formulas are interpreted on 
 \emph{infinite traces of sets of atomic propositions},
-denoted as $\infTraces = [ \NN \to \pset{\AP}]$.
+denoted as $\infTraces = [ \nats \to \pset{\AP}]$.
 We use $\alpha = \alpha_0\alpha_1\dots$
 to denote an infinite trace,
 and use the conventional notation
@@ -1548,7 +1684,8 @@ We write $\vdash_\CTL\varphi$ if $\varphi$ is provable in CTL.
 		\\
 		\prule{CTL$_7$}
 		&
-		$\AG(\varphi_3 \imp (\neg \varphi_2 \wedge (\varphi_1 \imp \AX \varphi_3)))
+		$\AG(\varphi_3 \imp (\neg \varphi_2 \wedge (\varphi_1 \imp \AX 
+		\varphi_3)))
 		\imp (\varphi_3 \imp \neg (\varphi_1 \EU \varphi_2))$
 		\\
 		\prule{CTL$_8$}
@@ -1800,7 +1937,8 @@ defining axioms, one for each PDL program construct.
 		\prule{Seq} & $[\alpha \PDLseq \beta] \varphi = [\alpha][\beta]\varphi$
 		\\
 		\prule{Test} & $[\psi \PDLquestion] \varphi = (\psi \imp \varphi)$ &
-		\prule{Iter} & $[\alpha \PDLstar] \varphi = \nu f . (\varphi \wedge [\alpha] f)$\end{tabular}
+		\prule{Iter} & $[\alpha \PDLstar] \varphi = \nu f . (\varphi \wedge 
+		[\alpha] f)$\end{tabular}
 \end{center}
 
 Obviously, axioms \prule{Choice}, \prule{Seq}, and \prule{Test}
@@ -2068,7 +2206,7 @@ According to the semantics of reachability logic,
 this means that for every configuration $\gamma_0 \vDash \varphi_1$, 
 there exists a complete path $\tau = \gamma_0 \gamma_1 \gamma_2 \dots$ such that
 $\tau$ is a finite path implies 
-there exists $n \in \NN$ such that $\gamma_n \vDash \varphi_2$.
+there exists $n \in \nats$ such that $\gamma_n \vDash \varphi_2$.
 In other words, from configuration $\gamma_0$, 
 either ``eventually'' $\varphi_2$ holds, in the usual LTL sense,
 or there exists an infinite path.
@@ -2560,14 +2698,14 @@ For example,
 We drop their sort subscripts if there is no confusion.
 
 In matching logic, symbols are interpreted relationally
-$\sigmaM \colon M_{s_1} \times \ddd \times M_{s_n} \to 2^{M_s}$.
+$\sigmaM \colon M_{s_1} \times ,\dots, \times M_{s_n} \to 2^{M_s}$.
 Sometimes, we want to state a symbol $\sigma$ is to be interpreted
 as a function in all models.
 This is achieved by adding the axiom
-$\exists y . \sigma(x_1 \ddd x_n) = y$
-where $x_1 \ddd x_n , y$ are distinct.
+$\exists y . \sigma(x_1 ,\dots, x_n) = y$
+where $x_1 ,\dots, x_n , y$ are distinct.
 Partial functions can be defined in the similar way, by adding the axiom
-$\neg \sigma(x_1 \ddd x_n) \vee \exists y . \sigma(x_1 \ddd x_n) = y$.
+$\neg \sigma(x_1 ,\dots, x_n) \vee \exists y . \sigma(x_1 ,\dots, x_n) = y$.
 We point out that partial functions has been the main subject of research
 in partial first-order logic, with various logics and axioms proposed
 to capture the desired properties of definedness and undefinedness;
@@ -2766,10 +2904,10 @@ the theory $\MLSL$ is defined by
 a particular matching logic model 
 of the above signature
 known as the intended model or the standard model, denoted as $\Map$.
-The intended model $\Map$ has the set of natural numbers $\N$ as the carrier
+The intended model $\Map$ has the set of natural numbers $\nats$ as the carrier
 set of sort $\Nat$,
 and the set of partial functions 
-$ \{ h \mid h \colon \N \pto \N \} $
+$ \{ h \mid h \colon \nats \pto \nats \} $
 as the carrier set of sort $\Map$.
 Symbols $\emp$, $\merge$, and $\mapsto$ are interpreted in $\Map$ in the
 intended way.
