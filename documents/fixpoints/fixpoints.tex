@@ -369,7 +369,7 @@ So far, we have seen how we can use the $\mu$-binder to
 define a \emph{set} as a least fixpoint. 
 In practice, however, this is not enough. 
 For example, we want to define multiplication 
-$\_ \! \times \! \_ \colon \Sigma_{\Nat\Nat,\Nat}$ as
+$\z \! \times \! \z \colon \Sigma_{\Nat\Nat,\Nat}$ as
 $$
 x \times y =_\lfp ((x = 0) \wedge 0) 
 \vee \exists x_1 \ldot (x = s(x_1) \wedge y + (x_1 \times y))
@@ -419,48 +419,206 @@ w.r.t. standard semantics.
 \label{sec:recursive_symbols}
 
 The $\mu$-binder in matching $\mu$-logic may not
-seem to be powerful enough for some readers, especially
+seem to be powerful enough to some readers, especially
 for those who are familiar with first-order logic
 with least fixpoints (FOL$_\lfp$).
 In FOL$_\lfp$, one can write a formula
 \begin{equation}
-\label{eq:transitive_closure_FOLlfp_definition}
+\label{eq:transitive_closure_FOLlfp_formula}
 [\lfp_{R,x,y} (x = y \vee \exists z \ldot ( E(x,z) \wedge R(z,y) ))](u,v)
 \end{equation}
 with free variables $u$ and $v$, that defines
 the reflexive and transitive closure of the predicate $E$.
-In~\eqref{eq:transitive_closure_FOLlfp_definition},
+In~\eqref{eq:transitive_closure_FOLlfp_formula},
 the least fixpoint binder $\lfp$ binds all free occurrences of
 the predicate variable $R$ and variables $x$ and $y$
 in formula
 $x = y \vee \exists z \ldot ( E(x,z) \wedge R(z,y) )$.
+The result,
+$[\lfp_{R,x,y} (x = y \vee \exists z \ldot ( E(x,z) \wedge R(z,y) ))]$,
+is a ``predicate'' 
+(because it can be applied to $u,v$ and returns a truth value)
+that satisfies the next equation about the predicate variable $R$:
+\begin{equation}
+\label{eq:transitive_closure_FOLlfp_definition}
+R(x,y) =_\lfp x = y \vee \exists z \ldot ( E(x,z) \wedge R(z,y) ).
+\end{equation}
+In addition, it is also the ``smallest predicates'' among
+all those that satisfy~\eqref{eq:transitive_closure_FOLlfp_definition}.
+This means that for any first-order logic formula $\varphi(x,y)$ with
+two distinguished free variables $x,y$,
+if
+\begin{equation}
+\varphi(x,y) =_\lfp x = y \vee \exists z \ldot ( E(x,z) \wedge \varphi(z,y) ).
+\end{equation}
+holds, then
+\begin{equation}
+R(x,y) \imp \varphi(x,y)
+\end{equation}
+holds.
+We refer readers to~\cite{bibid} for a comprehensive discussion about
+FOL$_\lfp$ and other fixpoint logics. 
 
+It may seem to readers that the $\mu$-binder in matching $\mu$-logic
+is less powerful than the one in FOL$_\lfp$.
+Indeed, the $\mu$-binder in matching $\mu$-logic can only bind
+\emph{set variables}, as in $\mu X \ldot \varphi$, but not
+\emph{symbols variables}.
+Since that set variables can be regarded as variables that range over
+\emph{constant symbols},
+one can say
+the $\mu$-binder in matching $\mu$-logic allows us to define
+\emph{recursive constant symbols}. 
+There is obviously a gap between the $\mu$-binder
+and defining general recursive symbols with any number of arguments.
+In this section, we aim at filling this gap,
+and show that we can just as well define
+general recursive symbols using the $\mu$-binder.
+Before we dive into the technical details,
+let us first see some examples.
 
-In this section we show how to define 
-recursive symbols using the $\mu$-binder.
-We start with unary symbols, but the techniques can be applied
-to symbols with any number of arguments. 
+\subsection{Some motivating examples from separation logic}
+\label{sec:recursive_symbols:SL_examples}
+
+We start with some examples borrowed from separation logic
+with recursive predicates.
+It is known that (static) separation logic can be naturally regarded
+as theories in matching logic, and thus in matching $\mu$-logic.
+We only give a brief definition here.
+A comprehensive discussion about matching logic and separation logic
+is given in~\cite{bibid}.
+To be clear:
+we are \emph{not} going to discuss separation logic in what follows.
+The examples that we use throughout the section are about
+matching $\mu$-logic.
+
+Consider a many-sorted signature with sorts $\Nat$ and $\Map$.
+Here $\Nat$ is the sort of natural numbers,
+and $\Map$ is the sort of \emph{finite maps}:
+$$\{ f \colon \nats \pfun \nats 
+\mid \text{$\dom(f)$ is finite} \}. $$
+The \emph{empty map}
+is the partial function that is undefined everywhere,
+i.e., $\dom(\bot_\Map) = \emptyset$.
+We will call finite maps just maps throughout this section.
+
+We have three constructor symbols in the many-sorted signature:
+\begin{align}
+\emp &\in \Sigma_{\lambda,\Map} \\
+\z\mapsto\z  &\in \Sigma_{\Nat \Nat , \Map} \\
+\z \merge \z &\in \Sigma_{\Map \Map , \Map}
+\end{align}
+We use the constant symbol $\emp \cln \Map$ to denote the empty map.
+We use $x \mapsto y$ to denote the singleton map
+which maps $x$ to $y$ and is undefined everywhere else. 
+We use $h_1 \merge h_2$ to denote the \emph{separating conjunction},
+or \emph{merge}, of two maps $h_1,h_2$.
+When the domains of $h_1$ and $h_2$ are not disjoint, 
+$h_1 \merge h_2$ equals the bottom pattern $\bot_\Map$,
+meaning that no maps can match it, not even the empty map $\emp$.
+
+We are interested in defining maps that have particular structures.
+For example, we want to have a symbol $\listit \in \Sigma_{\Nat,\Map}$
+that takes a natural number $x$ and returns the set of all maps
+that consist of a single linked-list starting at $x$.
+Intuitively speaking, we want $\listit$ to be the solution
+of the following equation about a unary symbol $\sigma$:
+\begin{equation}
+\label{eq:list_equation}
+\sigma(x) = 
+(\emp \wedge x = 0) \vee \exists y \ldot x \mapsto y \merge \sigma(y).
+\end{equation}
+Not just that, we want it to be the ``least solution'' among all those
+that satisfy~\eqref{eq:list_equation}.
+Let us denote this fact as
+\begin{equation}
+\label{eq:list_lfp_definition}
+\listit(x) =_\lfp (x = 0 \wedge \emp) \vee \exists y \ldot 
+(x \mapsto y \merge \listit(y)).
+\quad \text{\doubleslash just a notation}
+\end{equation}
+Unfortunately, we cannot \emph{define} the symbol $\listit$ as
+in FOL$_\lfp$ as
+\begin{equation}
+\label{eq:list_lfp_binder}
+\listit(x) =
+[\lfp_{\sigma,x}  
+(\emp \wedge x = 0) \vee \exists y \ldot x \mapsto y \merge \sigma(y)](x),
+\quad \text{\doubleslash not a valid definition}
+\end{equation}
+because the right-hand side is beyond the syntax of matching $\mu$-logic.
+
+As another example, we want to have a symbol 
+$\lsegleft \in \Sigma_{\Nat\Nat,\Map}$
+that takes two natural numbers $x$ (as the starting position)
+and $y$ (as the ending position), 
+and returns the set of all maps that consist of a singe linked-list
+from $x$ to $y$.
+We can write it as
+\begin{equation}
+\label{eq:lsegleft_lfp_definition}
+\lsegleft(x,y) =_\lfp (x = y \wedge \emp) \vee 
+\exists z \ldot 
+(x \mapsto z \merge \lsegleft(z,y)).
+\quad \text{\doubleslash just a notation}
+\end{equation}
+The name $\lsegleft$ is a shortcut for
+``list segments recursively defined on the left-hand side''.
+A dual version is $\lsegright$, meaning
+``list segments recursively defined on the right-hand side''.
+We can write it as
+\begin{equation}
+\label{eq:lsegright_lfp_definition}
+\lsegright(x,y) =_\lfp (x = y \wedge \emp) \vee 
+\exists z \ldot 
+(\lsegright(x,z) \merge z \mapsto y).
+\quad \text{\doubleslash just a notation}
+\end{equation}
+Intuitively, the two ways to define list segments are equivalent.
+In other words, we expect that
+\begin{equation}
+\label{eq:lsegleft_implies_lsegright}
+\forall x \forall y \ldot \lsegleft(x,y) = \lsegright(x,y)
+\end{equation}
+holds.
+
+So far, \eqref{eq:list_lfp_definition}, \eqref{eq:lsegleft_lfp_definition},
+and \eqref{eq:lsegright_lfp_definition} remain an intuitive notation
+instead of a rigorous definition.
+In what follows, we will formally define these intuitive notations
+using the $\mu$-binder in matching $\mu$-logic,
+and we will prove the property~\eqref{eq:lsegleft_implies_lsegright}.
+
 
 \subsection{An important isomorphism}
-Let $s, t \in S$ be two sorts,
-and $M_s, M_t$ be the corresponding carrier sets.
-Our approach is based on the following isomorphism:
-\begin{equation}
-[M_s \to \pset{M_t}]
-\xrightleftharpoons[H]{G}
-\pset{M_s \times M_t}
-\end{equation}
-where the two mappings $G$ and $H$ are defined as follows:
+
+We introduce a way to ``mimic'' an $n$-ary symbol
+with a constant symbol.
+This will let us define general recursive symbols
+as we saw in Section~\ref{sec:recursive_symbols:SL_examples}.
+The idea is in fact not new.
+In simply-typed $\lambda$-calculus with product types,
+a function $f$ that takes two natural numbers and returns
+a boolean value is just a constant $f \colon (\Nat \times \Nat \to \Bool)$.
+We adopt the same approach in matching $\mu$-logic.
+
+\begin{proposition}
+Given two sets $A$ and $B$,
+there is an isomorphism:
 \begin{align}
-G(f) &= \{ (a,b) \mid b \in f(a) 
-\text{ for all $a \in M_s$ and $b \in M_t$} \}, \\
-H(\alpha)(a) &= \{ b \in M_t \mid (a,b) \in \alpha \},
+[A \to \pset{B}] & \xrightleftharpoons[\uncurry]{\curry} \pset{A \times B}
 \end{align}
-One can verify that $G(H(\alpha)) = \alpha$ and $H(G(f)) = f$.
-The subset $G(f)$ is called the \emph{graph} of the function $f$.
-This isomorphism tells us that we can use a constant symbol
-$\alpha_\sigma \cln s \times t$ to represent a unary symbol
-$\sigma (s) \cln t$.
+defined as
+\begin{align}
+\curry(f) = \{ (a,b) \mid b \in f(a) \},
+\quad \text{for any $f \colon A \to \pset{B}$} \\
+\uncurry(\alpha)(a) = \{ b \mid (a,b) \in \alpha \},
+\quad \text{for any $\alpha \subseteq A \times B$.}
+\end{align}
+\end{proposition}
+
+
+
 
 \begin{definition}
 Let $s, t \in S$ be two sorts, not necessarily distinct.
@@ -469,48 +627,107 @@ of $s$ and $t$.
 Two product sorts $s \times t$ and
 and $s' \times t'$ are the same if
 $s$ is the same sort as $s'$, and $t$ is the same sort as  $t'$.
-Define a new symbol $(\_,\_) \in \Sigma_{s t , s \times t}$
+Define a new symbol $\la\_,\_\ra_{s,t} \in \Sigma_{s t , s \times t}$
 called \emph{pairing}, parametric on $s$ and $t$.
-Define a new symbol $\_[\_] \in \Sigma_{s \times t s , t}$
+Define a new symbol $\_[\_]_{s,t} \in \Sigma_{s \times t s , t}$
 called \emph{projection}, parametric on $s$ and $t$.
 We often drop the sort subscripts to keep our notation tidy.
 We add the following axiom:
 \begin{equation}
-(x,\varphi)[x] = \varphi
+\label{eq:key_value}
+\la x,\varphi \ra [y] = (x=y) \wedge \varphi.
 \end{equation}
 \end{definition}
 
-\subsection{An example in separation logic}
+\begin{notation}
+\label{not:product_sorts}
+Let $s_1,\dots,s_n, t\in S$ be $n+1$ sorts for some $n \ge 2$,
+not necessarily distinct.
+We write $s_1 \times \dots \times s_n \times t$ to mean the product sort
+$s_1 \times 
+(s_2 \times ( \dots \times (s_n \times t) \dots ))$.
+Let $\varphi_{s_1 \times \dots \times s_n \times t},
+\varphi_{s_1}, \dots, \varphi_{s_n},
+\varphi_t$ be patterns of the subscripted sorts.
+We write
+$\la \varphi_1,\dots,\varphi_n,\varphi_t \ra$
+to mean the pattern
+$\la \varphi_1, \la \dots, \la \varphi_n,\varphi_t\ra  \dots\ra \ra$.
+We write
+$\varphi_{s_1 \times \dots \times s_n \times t}[\varphi_1,\dots,\varphi_n]$
+to mean the pattern
+$\varphi_{s_1 \times \dots \times s_n \times t}[\varphi_1]\dots[\varphi_n]$.
+\end{notation}
 
-Consider a signature with sorts $\Nat$ and $\Map$.
-We want to define a recursive symbol $\listit(\Nat)\cln \Map$
-such that, intuitively,
-\begin{equation}
-\label{eq:list_lfp_definition}
-\listit(x) =_\lfp (x = 0 \wedge \emp) \vee \exists y \ldot 
-(x \mapsto y \merge \listit(y)).
-\end{equation}
-Here, the notion $=_\lfp$ means we want $\listit$ to be the least symbol
-that satisfies \eqref{eq:list_lfp_definition}.
-Intuitively, we want $\listit(x)$ to be the set of
-all maps which consists of a single linked list starting at $x$.
-Using product sorts, we can achieve this by defining
-the following notation:
-\begin{equation}
-\label{not:list}
-\listit(x) \equiv 
-\underbrace{( \mu \alpha \ldot \exists x \ldot 
-( (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge \alpha[y] )))
+\begin{proposition}
+The notations $\la \varphi_{s_1},\dots,\varphi_{s_n},\varphi_t \ra$
+and $\varphi_{s_1 \times \dots \times s_n \times 
+t}[\varphi_{s_1},\dots,\varphi_{s_n}]$
+defined in Notation~\ref{not:product_sorts}
+``behave like symbols'', meaning that they satisfy
+the three propagation rules and the frame rule:
+\begin{itemize}
+\item $\Gamma \vdash \la \varphi_1,\dots,\varphi_n,\varphi_t\ra  \dimp \bot$
+if any of $\varphi_1,\dots,\varphi_n,\varphi_t$ is $\bot$.
+\item $\Gamma \vdash \la \varphi_1,\dots,\varphi_i \vee 
+\varphi'_i,\dots,\varphi_n,\varphi_t\ra  \dimp
+\la \varphi_1,\dots,\varphi_i,\dots,\varphi_n,\varphi_t\ra 
+\vee
+\la \varphi_1,\dots,\varphi'_i,\dots,\varphi_n,\varphi_t\ra $
+\item $\Gamma \vdash \la \varphi_1,\dots\varphi_n,\varphi_t\vee \varphi'_t\ra  
+\dimp
+\la \varphi_1,\dots\varphi_n,\varphi_t\ra  
+\vee
+\la \varphi_1,\dots\varphi_n,\varphi'_t\ra  $
+\item TBC.
+\end{itemize}
+\end{proposition}
+
+\subsection{Separation logic examples revisited}
+
+With product sorts, we can
+give a formal definition of the notations we used in
+define~\eqref{eq:list_lfp_definition}, \eqref{eq:lsegleft_lfp_definition},
+and \eqref{eq:lsegright_lfp_definition} as follows:
+\begin{align}
+\label{eq:three_SL_notations}
+\listit(x) &\equiv 
+\underbrace{( \mu \alpha \ldot \exists x \ldot \la x , 
+(x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge \alpha[y] )
+\ra
+)
 }_{\alpha_\listit}
-[x]
-\end{equation}
-We claim the notation define in~\eqref{not:list} is a ``good'' one,
-in the sense that we can indeed regard 
-$\listit(x)$ as the pattern which is the ``symbol'' $\listit$ applied
-to the argument $x$.
-When it comes to semantics, it is indeed interpreted as ``the least symbol''
-that satisfies~\eqref{eq:list_lfp_definition}.
-In fact:
+[x] \\
+\lsegleft(x,y) &\equiv 
+\underbrace{( \mu \alpha \ldot 	\exists x  \exists y \ldot \la x , 
+( x = y \wedge \emp) \vee 
+(\exists z \ldot x \mapsto z \merge \alpha[z,y] )
+\ra
+)
+}_{\alpha_\lsegleft}
+[x,y] \\
+\lsegright(x,y) &\equiv 
+\underbrace{( \mu \alpha \ldot \exists x  \exists y \ldot \la x ,
+(x = y \wedge \emp) \vee (\exists z \ldot \alpha[x,z] \merge z \mapsto y )
+\ra
+)
+}_{\alpha_\lsegright}
+[x,y]
+\end{align}
+Notice that $\listit,\lsegleft,\lsegright$ are not actually symbols,
+but merely a notation.
+However, it is a good notation, in the sense that 
+we can indeed regard 
+$\listit(x), \lsegleft(x,y),\lsegright(x,y)$ 
+as patterns that are symbols applied to arguments.
+When it comes to semantics, they are 
+indeed interpreted as ``the least symbol''
+that satisfies~\eqref{eq:list_lfp_definition}, 
+\eqref{eq:lsegleft_lfp_definition},
+and \eqref{eq:lsegright_lfp_definition}.
+
+Take $\listit$ as an example. We can prove that
+it ``satisfies'' all three propagation rules.
 \begin{align}
 \listit(\bot) &= \alpha_\listit[\bot] = \bot,
 \\
@@ -521,8 +738,6 @@ In fact:
 \alpha_\listit[\exists x \ldot \varphi] =
 \exists x \ldot \alpha_\listit[\varphi].
 \end{align}
-So the notation $\listit(x)$ defined in~\eqref{not:list}
-indeed satisfies all three propagation rules for symbols.
 In addition, the \prule{Framing} rule also holds:
 \begin{align}
 \text{if $\varphi_1 \imp \varphi_2$ then
@@ -531,11 +746,16 @@ which is exactly
 $\listit(\varphi_1) \imp \listit(\varphi_2)$.
 }
 \end{align}
+The \prule{Singleton Variables} rule also holds.
+We leave it as an exercise to interested readers.
 Last but not the least, we can prove the following two rules hold,
-which makes it possible to regard $\listit(x)$ as a recursive symbol:
+which justifies the least fixpoint essence of $\listit$:
 \begin{align}
-&\listit(x) = (x = 0 \wedge \emp \merge \exists y \ldot x \mapsto y \merge 
-\listit(y)) \\
+\label{eq:list_fixpoint}
+&(x = 0 \wedge \emp \merge \exists y \ldot x \mapsto y \merge \listit(y)) 
+\imp \listit(x)
+\\
+\label{eq:list_KT}
 &\prftree[r]
 { % rule label
 if $y \notin \FV(\psi)$
@@ -549,12 +769,105 @@ if $y \notin \FV(\psi)$
 \listit(x) \to \psi
 }
 \end{align}
+We sketch the proof of \eqref{eq:list_KT} in Figure~\ref{fig:proof_of_list_KT}.
+
+\begin{figure}[t]
+\small
+\begin{align*}
+&&list(x) \imp \psi \\
+&\xif{by Notation~\eqref{eq:three_SL_notations}}
+&\alpha_\listit[x] \imp \psi \\
+&\xif{by \prule{Plugout}}
+& \alpha_\listit \imp 
+  \underbrace{
+  \exists \alpha \ldot(\alpha \wedge \floor{\alpha[x] \imp \psi})}_{\alpha_0} \\
+&\xif{by FOL reasoning}
+& \alpha_\listit \imp
+  \forall x \ldot \alpha_0 \\
+& \xif{by Notation~\eqref{eq:three_SL_notations}}
+& \mu \alpha \ldot \exists x \ldot \la x , 
+  (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge \alpha[y] )
+  \ra
+  \imp \forall x \ldot \alpha_0 \\
+& \xif{by \prule{Knaster-Tarski}, $y \notin \FV(\psi)$}
+& \exists x \ldot \la x , 
+  (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+  (\forall x \ldot \alpha_0)[y] )
+  \ra \imp \forall x \ldot \alpha_0 \\
+&\xif{by FOL reasoning}
+& \la x , 
+(x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+(\forall x \ldot \alpha_0)[y] )
+\ra \imp \forall x \ldot \alpha_0 \\
+&\xif{by FOL reasoning}
+& \la x , 
+  (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+  \alpha_0[y/x][y] )
+  \ra \imp \forall x \ldot \alpha_0 \\
+&\xif{by \prule{Collaspe}}
+& \la x , 
+  (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+  \psi[y/x] )
+  \ra \imp \forall x \ldot \alpha_0 \\
+& \xif{by FOL reasoning, for some fresh $z$}
+& \la x , 
+  (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+  \psi[y/x] )
+  \ra \imp \alpha_0[z/x] \\
+& \xif{by \prule{Plugin}}
+& \la x , 
+  (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+  \psi[y/x] )
+  \ra [z] \imp \psi[z/x] \\
+& \xif{by Axiom~\eqref{eq:key_value}}
+&  (x = z) \wedge  
+  ((x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+  \psi[y/x]) \imp \psi[z/x] \\
+& \xif{by FOL reasoning}
+& (x = 0 \wedge \emp) \vee (\exists y \ldot x \mapsto y \merge 
+  \psi[y/x]) \imp \psi \\
+& \xif{by assumption}
+& \QED
+\end{align*}
+\caption{The \prule{Knaster-Tarski} ``proof rule'',
+shown in~\eqref{eq:list_KT}, is sound for $\listit$.}
+\label{fig:proof_of_list_KT}
+\end{figure}
 
 
-\subsection{A notation of unary recursive symbols in matching $\mu$-logic}
 
-\subsection{A notation of recursive symbols taking any number of arguments}
+\subsection{Define general recursive symbols}
 
+\begin{definition}
+Let $s_1,\dots,s_n,t \in S$ be $n+1$ sorts, not necessarily distinct.
+Let $\sigma (s_1,\dots,s_n) {:} t$ be a symbol that is not in the signature.
+We write
+$$
+\sigma(x_1,\dots,x_n) =_\lfp \psi
+$$
+where $\psi$ is positive in $\sigma$
+to mean the following:
+\begin{itemize}
+\item define a new product sort $s_1 \times \dots \times s_n \times t$
+      and the corresponding pairing and projection symbols.
+\item define a new constant symbol $\alpha_\sigma : s_1 \times \dots \times 
+s_n \times t$.
+\item define an alias $\sigma(x_1,\dots,x_n) \equiv \mu \alpha \ldot
+(\exists x_1 \dots \exists x_n \ldot
+\la x_1 , \dots , x_n ,
+\psi[\alpha_\sigma / \alpha]
+\ra)
+[x_1,\dots,x_n]
+$.
+\end{itemize}
+\end{definition}
+
+\begin{proposition}
+Let $\sigma(x_1,\dots,x_n) =_\lfp \psi$.
+Then $\sigma$ satisfies all three propagation rules,
+\prule{Framing} rule, \prule{Singleton Variables} rule,
+\prule{Pre-Fixpoint} rule, and \prule{Knaster-Tarski} rule.
+\end{proposition}
 
 \section{Instance: Modal Logic and Its Variants}
 
@@ -786,7 +1099,7 @@ for each label $a$,
 and a valuation $V \colon \AP \to \pset{S}$.
 Given a structure $\MM$ and an assignment $g \colon \Var \to \pset{S}$,
 the interpretation function
-$\bracket{\_}_{\MM,g}$ is defined inductively as follows.
+$\bracket{\z}_{\MM,g}$ is defined inductively as follows.
 \begin{itemize}
 	\item $\bracket{p}_{\MM,g} = V(p)$;
 	\item $\bracket{x}_{\MM,g} = g(x)$;
@@ -1812,8 +2125,8 @@ Define $\angleBraces{a} \varphi \equiv \neg [\alpha] (\neg \varphi)$ as in
 mu-calculus.
 
 PDL formulas are interpreted on Kripke frames
-$\MM = (M,\bracketM{\_})$ where $M$ is a state set and 
-$\bracketM{\_}$ is a meaning function that
+$\MM = (M,\bracketM{\z})$ where $M$ is a state set and 
+$\bracketM{\z}$ is a meaning function that
 \begin{itemize}
 	\item maps every atomic proposition $p \in \AP$ to a set of states $\bracketM{p}
 	\subseteq M$;
@@ -1903,10 +2216,10 @@ The symbol set $\Sigma$ contains
 	for atomic program $a \in \APgm$;
 	\item a unary symbol $\snext \in \Sigma_{\statesort,\statesort}$ called ``strong
 	next'';
-	\item a binary symbol $\_\PDLseq\_ \in \Sigma_{\pgm \ \pgm , \pgm}$;
-	\item a binary symbol $\_ \PDLunion \_ \in \Sigma_{\pgm \ \pgm , \pgm}$;
-	\item a unary symbol $\_ \PDLstar \in \Sigma_{\pgm , \pgm}$;
-	\item a unary symbol $\_ \PDLquestion \in \Sigma_{\statesort, \pgm}$;
+	\item a binary symbol $\z\PDLseq\z \in \Sigma_{\pgm \ \pgm , \pgm}$;
+	\item a binary symbol $\z \PDLunion \z \in \Sigma_{\pgm \ \pgm , \pgm}$;
+	\item a unary symbol $\z \PDLstar \in \Sigma_{\pgm , \pgm}$;
+	\item a unary symbol $\z \PDLquestion \in \Sigma_{\statesort, \pgm}$;
 \end{itemize}
 In addition, the theory $\MLPDL$ contains all definitions needed for fixpoint
 constructs.
@@ -2661,13 +2974,13 @@ In matching logic, the above is methodologically achieved by
 \emph{definedness} symbols.
 For any two sorts $s$ and $s'$ which need not be distinct, 
 the definedness symbol
-$\ceil{\_}_{s}^{s'} \in \SigmaSub{s,s'}$
+$\ceil{\z}_{s}^{s'} \in \SigmaSub{s,s'}$
 is a unary matching logic symbol which has an axiom
 $
 \ceil{x \cln s}_{s}^{s'}
 $
 called the definedness axiom. 
-The axioms makes $\ceil{\_}_{s}^{s'}$ behaves like a predicate
+The axioms makes $\ceil{\z}_{s}^{s'}$ behaves like a predicate
 that checks definedness:
 \begin{align*}
 & \rhobar(\ceil{\varphi_s}_{s}^{s'}) = M_{s'}

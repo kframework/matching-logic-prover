@@ -32,12 +32,31 @@
 \newcommand{\todorosu}[1]{\todo[inline,color=green!10]{(Grigore). #1}}
 \newcommand{\todochen}[1]{\todo[inline,color=blue!10]{(Xiaohong). #1}}
 
+% angle braces < >
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+
 % texts
+\newcommand{\z}{{\!\_\!}}
 \newcommand{\nats}{\mathbb{N}} % set of natural numbers
 \newcommand{\reals}{\mathbb{R}} % set of reals
 \newcommand{\K}{$\mathbb{K}$\xspace} % \K framework
-
 \newcommand{\MmL}{M$\mu$L\xspace}
+\newcommand{\pfun}{\rightharpoonup} % partial function arrow
+\newcommand{\dom}{\mathrm{dom}}
+\newcommand{\curry}{\mathit{curry}}
+\newcommand{\uncurry}{\mathit{uncurry}}
+
+% sorts using mathit fonts
+\newcommand{\Nat}{\mathit{Nat}}
+\newcommand{\Map}{\mathit{Map}}
+\newcommand{\Cfg}{\mathit{Cfg}}
+\newcommand{\Bool}{\mathit{Bool}}
+
+% prefix symbols using mathit fonts
+\newcommand{\emp}{\mathit{emp}}
+\newcommand{\lsegleft}{\lsegleftit}
+\newcommand{\lsegright}{\lsegrightit}
 
 % mathrm font
 \newcommand{\cfg}{\mathrm{cfg}}
@@ -46,6 +65,8 @@
 
 % mathit font
 \newcommand{\listit}{\mathit{list}}
+\newcommand{\lsegleftit}{\mathit{ls\hspace{-0.02em}e\hspace{-0.04em}gleft}}
+\newcommand{\lsegrightit}{\mathit{ls\hspace{-0.02em}e\hspace{-0.04em}gright}}
 
 % mathbb font
 
@@ -251,10 +272,9 @@
 \newcommand{\LFP}{\Lfp}
 \newcommand{\xif}[1]{\xLeftarrow{\text{#1}}}
 
-\newcommand{\Nat}{\mathit{Nat}}
-\newcommand{\Map}{\mathit{Map}}
-\newcommand{\emp}{\mathit{emp}}
-\newcommand{\Cfg}{\mathit{Cfg}}
+
+
+
 \newcommand{\simp}{\mathbin{-*}}
 \newcommand{\merge}{\mathbin{*}}
 \newcommand{\pto}{\rightharpoonup}
