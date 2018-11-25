@@ -10,12 +10,14 @@ import os.path
 proj = KProject()
 
 # Compile the definition
-# 
+#
+imported_k_files = [ proj.source('kore.md').then(proj.tangle().output(proj.tangleddir('kore.k'))) ]
 mlprover = proj.source('matching-logic-prover.md') \
             .then(proj.tangle().output(proj.tangleddir('matching-logic-prover.k'))) \
-            .then(proj.kompile(backend = 'java') \
-                      .variables(directory = proj.builddir('matching-logic-prover')))
-
+            .then(proj.kompile(backend = 'java')
+                      .variables(directory = proj.builddir('matching-logic-prover'))
+                      .implicit(imported_k_files)
+                 )
 # Unit tests
 #
 proj.source('unit-tests.md') \
