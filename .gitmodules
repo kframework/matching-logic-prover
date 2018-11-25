@@ -1,0 +1,9 @@
+[submodule "prover/k/ext/kninja"]
+	path = prover/k/ext/kninja
+	url = https://github.com/nishantjr/kninja
+[submodule "prover/k/ext/k"]
+	path = prover/k/ext/k
+	url = https://github.com/kframework/k
+[submodule "prover/k/ext/pandoc-tangle"]
+	path = prover/k/ext/pandoc-tangle
+	url = https://github.com/ehildenb/pandoc-tangle
