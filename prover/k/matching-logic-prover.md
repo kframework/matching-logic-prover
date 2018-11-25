@@ -8,7 +8,8 @@ endmodule
 
 module MATCHING-LOGIC-PROVER
   imports MATCHING-LOGIC-PROVER-SYNTAX
-  imports KORE
+  imports KORE-HELPERS
+
   rule foo => bar
 endmodule
 ```
