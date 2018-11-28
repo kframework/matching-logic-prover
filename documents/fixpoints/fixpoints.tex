@@ -591,6 +591,7 @@ and we will prove the property~\eqref{eq:lsegleft_implies_lsegright}.
 
 
 \subsection{An important isomorphism}
+\label{sec:recursive_symbols:isomorphism}
 
 We introduce a way to ``mimic'' an $n$-ary symbol
 with a constant symbol.
@@ -684,6 +685,7 @@ if any of $\varphi_1,\dots,\varphi_n,\varphi_t$ is $\bot$.
 \end{proposition}
 
 \subsection{Separation logic examples revisited}
+\label{sec:recursive_symbols:examples_revisited}
 
 With product sorts, we can
 give a formal definition of the notations we used in
@@ -838,29 +840,78 @@ shown in~\eqref{eq:list_KT}, is sound for $\listit$.}
 
 \subsection{Define general recursive symbols}
 
+We generalize the results and insights
+from the separation logic examples in 
+Section~\ref{sec:recursive_symbols:examples_revisited}
+and propose a notation to define and use general recursive symbols
+in matching $\mu$-logic.
+
 \begin{definition}
+\label{def:recursive_symbols}
+Let $\sig = (S, \Sigma)$ be a signature,
+and $\Gamma$ be an axiom set of $\sig$-patterns.
 Let $s_1,\dots,s_n,t \in S$ be $n+1$ sorts, not necessarily distinct.
-Let $\sigma (s_1,\dots,s_n) {:} t$ be a symbol that is not in the signature.
-We write
-$$
+Let $\sigma (s_1,\dots,s_n) {:} t$ be a symbol 
+that is not in the signature $\sig$,
+and denote the extended signature $\sig'$.
+Let $x_1 \cln s_1,\dots,x_n \cln s_n$ be $n$ distinct variables,
+and $\psi$ be a $\sig'$-pattern that is positive in $\sigma$.
+Variables $x_1,\dots,x_n$
+may occur free in $\psi$.
+The pattern $\psi$ may contain other free variables, too.
+We use the notation
+\begin{equation}
 \sigma(x_1,\dots,x_n) =_\lfp \psi
-$$
-where $\psi$ is positive in $\sigma$
+\end{equation}
 to mean the following:
-\begin{itemize}
-\item define a new product sort $s_1 \times \dots \times s_n \times t$
-      and the corresponding pairing and projection symbols.
-\item define a new constant symbol $\alpha_\sigma : s_1 \times \dots \times 
-s_n \times t$.
-\item define an alias $\sigma(x_1,\dots,x_n) \equiv \mu \alpha \ldot
-(\exists x_1 \dots \exists x_n \ldot
-\la x_1 , \dots , x_n ,
-\psi[\alpha_\sigma / \alpha]
-\ra)
-[x_1,\dots,x_n]
-$.
-\end{itemize}
+\begin{enumerate}
+\item We define a new product sort $s_1 \times \dots \times s_n \times t$
+      and the corresponding pairing and projection symbols as in 
+      Section~\ref{sec:recursive_symbols:isomorphism}.
+      Notice that when $n \ge 2$, there are multiple sorts being defined,
+      because $s_1 \times \dots \times s_n \times t$
+      is merely a notation to the product sort
+      $s_1 \times (s_2 \times ( \dots \times (s_n \times t) \dots ))$.
+      In other words, we are defining $n$ new product sorts in total.
+      They are $s_n \times t$, $s_{n-1} \times s_n \times t$,
+      \dots, $s_1 \times \dots \times s_n \times t$.
+\item We add the new sorts and symbols defined in (1) to the signature
+      $\sig$, and denoted the extended signature $\sig^\sigma$.
+      Notice that $\sig^\sigma$ is not $\sig'$.
+      The signature $\sig^\sigma$ does not contain the symbol $\sigma$.
+\item We define an alias
+      $\alpha_\sigma \equiv \mu \alpha \ldot
+      (\exists x_1 \dots \exists x_n \ldot
+      \la x_1 , \dots , x_n ,
+      \psi[\alpha / \sigma]
+      \ra)$,
+      where $\alpha$ is a fresh set variable 
+      of sort $s_1 \times \dots \times s_n \times t$,
+      and $\psi[\alpha / \sigma]$ is a $\sig^\sigma$-pattern
+      obtained by repeatedly replacing every pattern of the form
+      $\sigma(\varphi_1,\dots,\varphi_n)$ in $\psi$
+      with $\alpha_\sigma[\varphi_1,\dots,\varphi_n]$,
+      until there is no occurrence of the symbol $\sigma$ anymore.
+      It is easy to verify that $\psi[\alpha / \sigma]$ is
+      a well-defined and well-formed $\sig^\sigma$-pattern,
+      and it is positive in $\alpha$.
+      Therefore, $\alpha_\sigma$ is a well-defined and well-formed
+      $\sig^\sigma$-pattern of sort $s_1 \times \dots s_n \times t$.
+\item We define an alias 
+      $\sigma(\varphi_1,\dots,\varphi_n) \equiv 
+      \alpha_\sigma[\varphi_1,\dots,\varphi_n]$
+      for every $\sig^\sigma$-patterns $\varphi_1,\dots,\varphi_n$
+      of appropriate sorts.
+\end{enumerate}
 \end{definition}
+
+The following two propositions show that
+the alias
+$\sigma(\varphi_1,\dots,\varphi_n) 
+ \equiv \alpha_\sigma[\varphi_1,\dots,\varphi_n]$
+given in Definition~\ref{def:recursive_symbols}
+is a good one,
+in the sense that it indeed behaves as a recursive symbol.
 
 \begin{proposition}
 Let $\sigma(x_1,\dots,x_n) =_\lfp \psi$.
