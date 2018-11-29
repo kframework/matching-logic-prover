@@ -83,7 +83,8 @@ endmodule
 
 module KORE-HELPERS
   imports KORE-COMMON
-  imports DOMAINS
+  imports BOOL
+  imports K-EQUAL
 
   syntax Declarations ::= Declarations "++Declarations" Declarations [function]
   rule (D1 DS1) ++Declarations DS2 => D1 (DS1 ++Declarations DS2)
