@@ -1,0 +1,2156 @@
+\documentclass{article}
+
+\usepackage{amsmath, amsthm, amssymb, mathtools}
+
+\usepackage{txfonts}
+
+\usepackage{wasysym}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{proof, prftree}
+
+\usepackage{authblk}
+
+\usepackage{todonotes}
+\usepackage{comment}
+
+% Import packages for syntax highlight code.
+\usepackage{listings}
+\usepackage{xcolor}
+
+\usepackage[]{algorithm2e}
+
+\usepackage{longtable}
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{defn}[thm]{Definition}
+\newtheorem{eg}[thm]{Example}
+\newtheorem{rmk}[thm]{Remark}
+\newtheorem{lemma}[thm]{Lemma}
+
+% Define the implication symbol ->
+\newcommand{\imp}{\rightarrow}
+\newcommand{\dimp}{\leftrightarrow}
+
+% Define ceiling and flooring symbols.
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\newcommand{\miniPS}{\mathcal{S}}
+
+\lstdefinestyle{smt}{
+    basicstyle=\footnotesize\ttfamily,
+    breaklines=true
+}
+
+\def\land{\mathbin\&}
+
+\def\I{\textsf{I}}
+\def\snext{\fullmoon}
+\def\prev{\odot}
+\def\eventually{\lozenge}
+\def\wnext{\newmoon}
+
+% Sf keywords used in math mode.
+
+\def\fol{\mathsf{fol}}
+\def\foltwo{\mathsf{fol_2}}
+
+% Small capital letters
+
+\def\MLFOL{\text{\small ML2FOL}}
+\def\ML{\text{\small ML}}
+\def\FOL{\text{\small FOL}}
+
+% Italic keywords used in math mode.
+\def\fv{\textit{freevars}}
+\def\Nat{\textit{Nat}}
+\def\Cfg{\textit{Cfg}}
+\def\pre{\textit{pre}}
+\def\post{\textit{post}}
+\def\ite{\textit{ite}}
+\def\true{\textit{true}}
+\def\false{\textit{false}}
+
+% Rewriting
+\def\To1{\Rightarrow^{\forall}_1}
+
+% Label inference rules.
+\newcommand{\rl}[1]{\text{\scriptsize{(#1)}}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% Title and authors
+
+\title{Technical Report: Deduction in Matching Logic}
+\author[1]{Formal Systems Laboratory}
+\affil[1]{University of Illinois, Urbana-Champaign, USA}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+This paper discusses deduction in matching logic.
+
+\end{abstract}
+
+\section{Syntax}
+
+Formulas of matching logic, called \emph{patterns}, are written in a formal language, denoted as $\mathcal{L}$, whose grammar is listed in~\eqref{ml_grammar}. The language $\mathcal{L}$ is many-sorted. A signature of $\mathcal{L}$ contains not only a finite set $\Sigma$ of \emph{symbols}, but also a finite nonempyty set $S$ of \emph{sorts}. Each symbol $\sigma \in \Sigma$ is, of course, sorted, with a fixed nonempty arity. We write $\sigma \in \Sigma_{s_1,\dots,s_n,s}$ to emphasize that $\sigma$ takes $n$ arguments (with argument sorts $s1,\dots,s_n$) and returns a pattern in sort $s$, but we hope in most cases sorting is clear from context.
+
+The grammar for $\mathcal{L}$, as defined below, is almost identical to first-order logic, except that in $\mathcal{L}$ there is no difference between relational (predicate) and functional symbols, and we accept first-order terms as patterns in matching logic. 
+\begin{align}
+\label{ml_grammar}
+P \Coloneqq\  & x \\
+       \mid\  & P_1 \wedge P_2 \nonumber \\
+       \mid\  & \neg P \nonumber \\
+       \mid\  & \forall x . P \nonumber \\
+       \mid\  & \sigma(P_1,\dots,P_n), \nonumber
+\end{align}
+where the universal quantifier ($\forall x$) behaves as a binder with alpha-renaming always assumed.
+
+For simplicity, we did not mention sorting in the grammar definition, and assume it should be clear to all readers. For example, in $P_1 \wedge P_2$, both patterns $P_1$ and $P_2$ should have the same sort, and that sort is the sort of $P_1 \wedge P_2$. The sort of $\forall x . P$ is the sort of $P$, while the sort of variable $x$ does not matter. To see why it is the case, consider the pattern $\exists x . list(x, 1 \cdot 3 \cdot 5)$, which is the set of all memory configurations that has a list $(1,3,5)$ in it.
+
+Propositional connectives are always assumed, including disjunction ($\vee$), implication ($\imp$), and equivalence ($\leftrightarrow$). Existential quantifier ($\exists x$) is defined by universal quantifier ($\forall x$) in the normal way. The bottom pattern ($\bot_s$) and the top pattern ($\top_s$) in sort $s$ are given by $x \wedge \neg x$ and $\neg \bot_s$, respectively, where $x$ is a variable in sort $s$. It does not matter which variable we pick.
+
+\begin{defn}
+	The set of free variables in a pattern $P$ is denoted as $\fv(P)$, defined recursively over the structure of $P$ as usual. A pattern is said to be \emph{closed} if $\fv(P) = \emptyset$. The universal (existential) generalization of $P$, denoted as $\forall P$($\exists P$), is defined as $\forall x_1 \dots \forall x_n . P$ ($\exists x_1 \dots \exists x_n . P$) where $\fv(P) = \{x_1,\dots,x_n\}$.
+\end{defn}
+
+
+\subsection{Extended syntax}
+The formal language $\mathcal{L}$ is often extended with \emph{definedness} symbols. For $s_1, s_2$ are two sorts, the definedness symbol $\ceil*{\_}_{s_1}^{s_2} \in \Sigma_{s_1,s_2}$ is a unary symbol with one argument sort $s_1$ and the result sort $s_2$. For a pattern $P$ who has sort $s_1$, the pattern $\ceil*{\_}_{s_1}^{s_2} \left(P\right)$ is often written as $\ceil*{P}_{s_1}^{s_2}$, or simply $\ceil*{P}$.
+
+Definedness symbols carry specific intended semantics. For each definedness symbol $\ceil*{\_}_{s_1}^{s_2}$, we add the pattern $\ceil*{x}_{s_1}^{s_2}$ as an axiom to the deductive system, where $x$ is a variable who has sort $s_1$. It does not matter which variable we pick.
+
+With definedness symbols, we extend the formal language $\mathcal{L}$ with 
+\begin{align*}
+&\floor*{P}_{s_1}^{s_2} \coloneqq {\neg} \ceil*{\neg P}_{s_1}^{s_2} \\
+&P_1 =_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \leftrightarrow P_2}_{s_1}^{s_2} \\
+&P_1 \neq_{s_1}^{s_2} P_2 \coloneqq \neg (P_1 =_{s_1}^{s_2} P_2) \\
+&P_1 \subseteq_{s_1}^{s_2} P_2 \coloneqq \floor*{P_1 \imp P_2}_{s_1}^{s_2} \\
+&x \in_{s_1}^{s_2} P \coloneqq \ceil{x \wedge P}_{s_1}^{s_2}.
+\end{align*}
+
+\begin{rmk}
+	To prevent writing tangled subscripts and superscripts that indicate sorts of variables and patterns all the time, we omit them as much as possible, unless there is a chance of confusing things. A statement with sorting subscripts and superscripts omitted is treated as (possibly many) statements with the omitting sorting subscripts and superscripts completed in all possible well-formed ways.
+\end{rmk}
+
+\section{Deductive System}
+A deductive system is a recursive set of patterns as \emph{axioms} and a finite set of \emph{inference rules}. The deductive system of matching logic that we introduce in this section has been proved \emph{sound} and \emph{complete}.
+
+\subsection{The deductive system}
+\label{sec:deductive_system}
+
+Axioms are given by the following axiom schemata where $P, Q, R$ are arbitrary patterns and $x, y$ are arbitrary logic variables.
+\begin{itemize}
+\item (K1) $P \imp (Q \imp P)$
+\item (K2) $(P \imp (Q \imp R)) \imp ((P \imp Q) \imp (P \imp R))$
+\item (K3) $(\neg P \imp \neg Q) \imp (Q \imp P)$
+\item (K4) $\forall x . P \imp P[y/x]$
+\item (K5) $\forall x . (P \imp Q) \imp (P \imp \forall x . Q)$ if $x$ does not occur free in $P$
+\item (K6) $P_1 = P_2 \imp (Q[P_1/x] \imp Q[P_2/x])$
+\item (Df)  $\ceil{x}$
+\item (M1) $x \in y = (x = y)$
+\item (M2) $x \in P \wedge Q = (x \in P) \wedge (x \in Q)$
+\item (M3) $x \in \neg P = \neg (x \in P)$
+\item (M4) $x \in \forall y . P = \forall y . x \in P$ where $x$ is distinct from $y$
+\item (M5) $x \in \sigma(\dots,P_i,\dots) = \exists y . y \in P_i \wedge x \in 
+\sigma(\dots,y,\dots)$ where $y$ does not occur free in the left-hand side of 
+the equation.
+\end{itemize}
+
+\begin{rmk}
+	Substitution is denoted as $Q[P/x]$. Alpha-renaming is always assumed in order to avoid free variables capturing. Therefore, free variables in $P$ are kept free after the substitution, i.e., $\fv(P) \subseteq \fv(Q[P/x])$.
+\end{rmk}
+
+Inference rules include
+\begin{itemize}
+\item (Modus Ponens) From $P$ and $P \to Q$, deduce $Q$.
+\item (Universal Generalization) From $P$, deduce $\forall x . P$. 
+\item (Membership Introduction) From $P$, deduce $\forall x . (x \in P)$, where $x$ does not occur free in $P$.
+\item (Membership Elimination) From $\forall x . (x \in P)$, deduce $P$, where $x$ does not occur free in $P$.
+\end{itemize}
+
+\begin{thm}
+The proof system is sound and complete.
+\end{thm}
+\begin{proof}
+Refer to [RTA15].
+\end{proof}
+
+\subsection{Metatheorems of the deductive system}
+
+Writing formal proofs is never easy. Derivations are prone to be lengthy and boring. To ease such difficulty, we here in this section introduce a dozen of lemmas (i.e., metatheorems) of the deductive system. Metatheorems discover all kinds of properties of the deductive system, from the simplest ``$\vdash P=P$'' to the complexest deduction theorem and the framing rule. 
+
+\begin{prop}[Tautology] \label{prop:taut}
+	For any propositional tautology $\mathcal{A}(p_1,\dots,p_n)$ where $p_1,\dots,p_n$ are all propositional variables in $\mathcal{A}$, and for any patterns $P_1,\dots,P_n$, $$ \vdash \mathcal{A}(P_1,\dots,P_n).$$
+\end{prop}
+\begin{proof}
+	No proof.
+\end{proof}
+
+\begin{cor}
+  $\vdash \top$.
+\end{cor}
+\begin{proof}
+By definition, $\top = \neg \bot = \neg (x \wedge \neg x)$, where $x$ is a matching logic variable who has the same sort with $\top$. Let proposition $\mathcal{A} = \neg (p \wedge \neg p)$ with $p$ is a propositional variable. Then $\mathcal{A}$ is a propositional tautology. By Proposition~\ref{prop:taut}, $\top = \mathcal{A}[x/p]$ is derivable in the proof system, i.e., $\vdash \top$.
+\end{proof}
+
+\begin{prop}
+	$\vdash P \to Q$ implies $P \vdash Q$. 
+\end{prop}
+\begin{proof}
+	The proof is a simple application of the Modus Ponens inference rule, as shown in the next derivation tree.
+	$$
+	\infer[\rl{MP}]{Q}
+	{\infer{P \to Q}{\cdot}
+	&\infer{P}{\cdot}}
+	$$
+\end{proof}
+
+\begin{prop}[$\vee$-Introduction] \label{prop:vee-introduction}
+	$\vdash P$ implies $\vdash P \vee Q$.
+\end{prop}
+\begin{proof}
+    $$
+    \infer[\rl{Sugar}]{\vdash P \vee Q}
+    {\infer[\rl{MP}]{\vdash \neg Q \to P}
+    {\infer{\vdash P}{\cdot} &
+     \infer[\rl{K1}]{\vdash P \to (\neg Q \to P)}{\cdot}}}
+    $$
+\end{proof}
+
+\begin{cor}[$\to$-Introduction]
+$\vdash P$ implies $\vdash Q \to P$ and $\vdash \neg P \to Q$.
+\end{cor}
+
+\begin{rmk}
+	In general, $\vdash P \vee Q$ does not implies $\vdash P$ or $\vdash Q$. For example, we have shown that $\vdash \top$, and $\top$ is, by definition, just sugar of $\neg \bot = \neg (x \wedge \neg x) = \neg x \vee x$. It is clearly wrong if we conclude $\vdash \neg x$ or $\vdash x$. From a semantic point of view, it is easy to understand: the union of two sets is the total set does not imply that one of them is the total set.
+\end{rmk}
+
+\begin{prop}[$\wedge$-Introduction and Elimination]
+	\label{prop:wedge}
+	$\vdash P$ and $\vdash Q$ iff $\vdash P \wedge Q$.
+\end{prop}
+\begin{proof}
+($\Rightarrow$).
+$$
+\infer[\rl{MP}]{\vdash P \wedge Q}
+{\infer{\vdash P}
+{\cdot}
+&\infer[\rl{MP}]{\vdash P \to P \wedge Q}
+{\infer{\vdash Q}
+{\cdot}
+&\infer[\rl{Taut}]{\vdash Q \to P \to P \wedge Q}
+{\cdot}}}
+$$
+($\Leftarrow$). Left as an exercise.
+\end{proof}
+
+
+Equalities plays an important role in matching logic. Axiom (K6) is very powerful even though it looks quite simple. It basically says that whenever one establishes that $P = Q$, then the two patterns are interchangeable everywhere in any patterns, as concluded in the next lemma.
+
+\begin{lemma}
+	\label{lemma:ereplacement}
+	If $\vdash P_1 = P_2$ and $\vdash Q[P_1 / x]$, then $\vdash Q[P_2 / x]$.
+\end{lemma}
+
+\begin{proof}
+$$
+\infer[\rl{MP}]{\vdash Q[P_2 / x]}
+{\infer[\rl{MP}]{\vdash Q[P_1 / x] \to Q[P_2 / x]}
+	   {\infer{\vdash P_1 = P_2}{\cdot}
+	   &\infer[\rl{K6}]{\vdash P_1 = P_2 \to \left(Q[P_1 / x] \to Q[P_2 / x]\right)}{\cdot}}
+	&\infer{\vdash Q[P_1 / x]}{\cdot}}
+$$
+\end{proof}
+
+
+Remind that the equality ``$=$'' is not a built-in logic connective in matching logic. It is the syntactic sugar of $\neg \ceil{\neg (P \leftrightarrow Q)}$, where $\ceil{\_}$ is the definedness symbol that we introduced before. One may wonder how to establish such equalities in the deduction system. Indeed, the proof system says little about how to derive an equality. Most of its axioms (except (K6)) and rules are not even about equalities. That is why the next proposition is quite useful in practice. It helps one to establish an equality pattern.
+
+\begin{prop}
+	\label{prop:eestablish}
+	$\vdash P \leftrightarrow Q$ iff $\vdash P = Q$.
+\end{prop}
+
+\begin{proof}
+That the right hand side implies the left is easy, so we left the proof as an exercise to the readers. In the following, we only prove that the left implies the right. By definition, $P = Q$ is the syntactic sugar of $\neg \ceil{\neg \left(P \leftrightarrow Q\right)}$, so we have the following derivation.
+
+$$
+\infer[\rl{$\in$-Intro}]{\vdash \neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
+{\infer[\rl{$\forall x$-Gen}]{\vdash \forall x . \left(x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)} \right)}
+{\infer[\rl{K6, M3}]{\vdash x \in \neg \ceil{\neg \left(P \leftrightarrow Q\right)}}
+{\infer[\rl{K6, M5}]{\vdash \neg \left( x \in  \ceil{\neg \left(P \leftrightarrow Q\right)} \right) }
+{\infer[\rl{Sugar, K3, M3}]{\vdash \neg \exists y . \left(x \in \ceil{y} \wedge y \in \neg \left(P \leftrightarrow Q\right)\right)}
+{\infer[\rl{$\forall y$-Gen}]{\vdash \forall y .(\neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
+{\infer[\rl{$\vee$-Intro}]{\vdash \neg (x \in \ceil{y}) \vee (y \in P \leftrightarrow Q)}
+{\infer[\rl{K4, MP}]{\vdash y \in P \leftrightarrow Q}
+{\infer[\rl{$\in$-Intro}]{\vdash \forall y . (y \in P \leftrightarrow Q)}
+{\infer{\vdash P \leftrightarrow Q}
+{\cdot}}}}}}}}}}.
+$$
+\end{proof}
+
+\begin{rmk}
+We never say $P=Q$ and $P \leftrightarrow Q$ are logically equivalent. One will never derive $\vdash (P = Q) = (P \leftrightarrow Q)$ for any patterns $P$ and $Q$ in the deductive system from a consistent set of axioms.
+\end{rmk}
+
+\begin{cor}
+\label{cor:topbot_simp}
+	The following propositions hold for any pattern $P$.
+	\begin{enumerate}
+		\item $\vdash P$ iff $\vdash P = \top$.
+		\item $\vdash \neg P$ iff $\vdash P = \bot$.
+		\item $\vdash \left(P \wedge \top\right) = P$.
+		\item $\vdash (P \wedge \bot) = \bot$.
+		\item $\vdash (P \vee \top) = \top$.
+		\item $\vdash (P \vee \bot) = P$.
+		\item $\vdash \forall x . \top = \top$.
+		\item $\vdash \forall x . \bot = \bot$.
+		\item $\vdash \exists x . \top = \top$.
+		\item $\vdash \exists x . \bot = \bot$.
+		\item $\vdash (x \in \top) = \top$.
+		\item $\vdash (x \in \bot) = \bot$.
+		\item $\vdash P = P$.
+	\end{enumerate}
+\end{cor}
+\begin{proof}
+	Left as exercises. Hint: use Proposition~\ref{prop:eestablish}.
+\end{proof}
+
+Equalities are important, both semantically and syntactically. First recall the next proposition of the semantics of equalities.
+
+\begin{prop}
+	If $\models P = Q$, then in any model $M$ and evaluation $\rho$, $\bar{\rho}(P) = \bar{\rho}(Q)$ in $M$.
+\end{prop}
+
+Roughly speaking, if we establish $\models P = Q$, then it means that $P$ and $Q$ are interchangeable in any ways in any models. The same thing happen in a syntactic prospective, too, as we have seen in Proposition~\ref{lemma:ereplacement}. But we can do more, as shown in the next proposition.
+
+\begin{prop}
+	$\vdash P=Q$ implies $\vdash \forall x . P = \forall x . Q$ and $\vdash \exists x . P = \exists x . Q$, where $x$ is an arbitraty variable that may or may not be free in $P$ or $Q$.
+\end{prop}
+\begin{proof}
+	To be continued.
+\end{proof}
+
+
+\begin{prop}[Functional Substitution]
+$\vdash \exists y . (Q = y) \to (\forall x . P \to P[Q/x]))$, if $y$ occurs free in $Q$.
+\end{prop}
+
+\begin{proof}
+	To be continued.
+\end{proof}
+
+We shall also be able to do non-functional substitution, $P[Q/R]$, in which $Q$ and $R$ can be any patterns. This translation is highly useful in the implementation of the matching logic prover. The way we do it is as follows. 
+$$\vdash \exists v.( v \notin \fv(P, Q, R )) \to (\exists x. P[Q/R] \to \exists v.((P[v/x])[Q/R] )) $$
+$$\vdash \forall v.( v \notin \fv(P, Q, R )) \to (\forall x. P[Q/R] \to \forall v.((P[v/x])[Q/R] )) $$
+
+The reader can try to apply these to a quantified formula like $\exists x. \forall y. x \wedge y$ to get an intuitive understanding.
+
+\begin{prop} \label{prop:var1}
+$\vdash x \in \ceil*{y}$.
+\end{prop}
+\begin{proof}
+\begin{align*}
+&\vdash x \in \ceil*{y} \\
+{\text{if}}& \vdash \forall x . (x \in \ceil*{y}) \tag{$K5$, $K6$, and Modus Ponens} \\
+{\text{iff}}& \vdash \ceil*{y}.
+\end{align*}
+\end{proof}
+
+\begin{prop} \label{prop:p->ceilp}
+$\vdash P \to \ceil*{P}$.
+\end{prop}
+\begin{proof}
+\begin{align*} 
+&\vdash P \to \ceil*{P} \\
+{\text{iff}}& \vdash \forall x . (x \in P \to \ceil*{P}) \\
+{\text{if}}&  \vdash x \in P \to \ceil*{P} \\
+{\text{iff}}& \vdash x \in P \to x \in \ceil*{P} \\
+{\text{iff}}& \vdash x \in P \to \exists y . (y \in P \wedge x \in \ceil*{y}) \\
+{\text{iff}}& \vdash x \in P \to \neg \forall y . (y \not \in P \vee x \not \in \ceil*{y}) \\
+{\text{iff}}& \vdash \forall y . (y \not \in P \vee x \not \in \ceil*{y}) \to x \not \in P \\
+{\text{if}}&  \vdash x \not \in P \vee x \not \in \ceil*{x} \to x \not \in P \\
+{\text{iff}}& \vdash x \in P \to x \in P \wedge x \in \ceil*{x} \\
+{\text{iff}}& \vdash x \in P \to x \in \ceil*{x} \\
+{\text{if}}&  \vdash x \in \ceil*{x} \\
+\end{align*}
+\paragraph{Remark} Similarly we can show $\vdash \floor*{P} \to P$.
+\end{proof}
+
+\begin{prop} \label{prop:floor}
+$\vdash \forall x . (x \in P) = \floor*{P}$, where $x$ occurs free in $P$.
+\end{prop}
+\begin{proof}
+By Proposition~\ref{prop:eestablish} and~\ref{prop:wedge}, it suffices to show \begin{equation} \label{eq:prop11-1}
+\vdash \forall x . (x \in P) \to \floor*{P}
+\end{equation}
+and
+\begin{equation} \label{eq:prop11-2}
+\vdash \floor*{P} \to \forall x . (x \in P).
+\end{equation}
+
+To show~\eqref{eq:prop11-1},
+
+\begin{align*}
+&\vdash \forall x . (x \in P) \to \floor*{P} \\
+{\text{iff}}& \vdash \forall x . \ceil*{x \wedge P} \to \neg \ceil*{\neg P} \\
+{\text{iff}}& \vdash \ceil*{\neg P} \to \exists x . \neg \ceil*{x \wedge P} \\
+{\text{iff}}& \vdash \forall y . (y \in ( \ceil*{\neg P} \to \exists x . \neg \ceil*{x \wedge P})) \\
+{\text{if}}& \vdash y \in ( \ceil*{\neg P} \to \exists x . \neg \ceil*{x \wedge P} \\
+{\text{iff}}& \vdash \exists z_1 . (z_1 \not \in P \wedge y \in \ceil*{z_1}) \to \\ & \quad \quad \exists x . \neg (\exists z_2 . (z_2 = x \wedge z_2 \in P \wedge y \in \ceil*{z_2})) \\
+{\text{iff}}& \vdash \exists z_1 . (z_1 \not \in P \wedge \top) \to \tag{Proposition~\ref{prop:var1}, \ref{prop:ereplacement}, and Corollary~\ref{cor:top}}\\
+& \quad \quad \exists x . \neg (\exists z_2 . (z_2 = x \wedge z_2 \in P \wedge \top)) \\
+{\text{iff}}& \vdash \exists z_1 . (z_1 \not \in P) \to \exists x . \neg (\exists z_2 . (z_2 = x \wedge z_2 \in P)) \\
+{\text{iff}}& \vdash \forall x . (\exists z_2 . (z_2 = x \wedge z_2 \in P)) \to \forall z_1 . (z_1 \in P) \\
+{\text{if}}& \vdash \forall z_1 . (\forall x . (\exists z_2 . (z_2 = x \wedge z_2 \in P)) \to (z_1 \in P)) \\
+{\text{if}}& \vdash \forall x . (\exists z_2 . (z_2 = x \wedge z_2 \in P)) \to (z_1 \in P).
+\end{align*}
+Since $\vdash \forall x . (\exists z_2 . (z_2 = x \wedge z_2 \in P)) \to \exists z_2 . (z_2 = z_1 \wedge z_2 \in P) $, it suffices to show
+\begin{align*}
+&\vdash \exists z_2 . (z_2 = z_1 \wedge z_2 \in P) \to (z_1 \in P) \\
+{\text{iff}}& \vdash z_1 \not \in P \to \forall z_2 . (z_2 \neq z_1 \vee z_2 \not \in P) \\
+{\text{if}}& \vdash \forall z_2 . (z_1 \not \in P \to z_2 \neq z_1 \vee z_2 \not \in P) \\
+{\text{if}}& \vdash z_1 \not \in P \to z_2 \neq z_1 \vee z_2 \not \in P \\
+{\text{if}}& \vdash z_2 = z_1 \wedge z_2 \in P \to z_1 \in P.
+\end{align*}
+And we proved~\eqref{eq:prop11-1}.
+
+Similarly, to show~\eqref{eq:prop11-2}, 
+\begin{align*}
+&\vdash \floor*{P} \to \forall x . (x \in P)  \\
+{\text{iff}}& \vdash \exists x . \neg \ceil*{x \wedge P} \to \ceil*{\neg P} \\
+{\text{iff}}& \vdash \forall y . (y \in \exists x . \neg \ceil*{x \wedge P} \to \ceil*{\neg P}) \\
+{\text{if}}& \vdash y \in \exists x . \neg \ceil*{x \wedge P} \to \ceil*{\neg P} \\
+{\text{iff}}& \vdash \exists x . \neg \exists z_2 . (z_2 = x \wedge z_2 \in P) \to \exists z_1 . (z_1 \not \in P) \\
+{\text{iff}}& \vdash \forall z_1 . (z_1 \in P) \to \exists z_2 . (z_2 = x \wedge z_2 \in P)\\
+{\text{iff}}& \vdash x \in P \to \exists z_2 . (z_2 = x \wedge z_2 \in P).
+\end{align*}
+We proved~\eqref{eq:prop11-2}.
+
+\paragraph{Remark} If $x$ occurs free in $P$, the result does not hold. For example, let $P$ be $upto(x)$ where $upto(\cdot)$ is interpreted to $upto(n) = \{0, 1, \dots, n\}$ on $\mathbb{N}$. 
+\end{proof}
+
+\paragraph{Remark} From Membership Introduction and Elimination inference rules and Proposition~\ref{prop:floor}, $\vdash P$ iff $\vdash \floor*{P}$.
+
+\begin{prop}[Classification Reasoning] \label{prop:classificationreasoning}
+	For any $P$ and $Q$, from $\vdash P \to Q$ and $\vdash \neg P \to Q$ deduce $\vdash Q$.
+\end{prop}
+\begin{proof}
+	From $\vdash \neg P \to Q$ deduce $\vdash \neg Q \to P$. Notice that $\vdash P \to Q$, so we have $\vdash \neg Q \to Q$, i.e., $\vdash \neg \neg Q \vee Q$ which concludes the proof.
+\end{proof}
+\begin{cor} \label{cor:classificationreasoning}
+	For any $P_1$, $P_2$, and $Q$ are patterns with $\vdash P_1 \vee P_2$, from $\vdash P_1 \to Q$ and $\vdash P_2 \to Q$, deduce $\vdash Q$.
+\end{cor}
+
+\begin{defn}[Predicate Pattern]
+A pattern $P$ is called a predicate pattern or a predicate if $\vdash (P = \top) \vee (P = \bot)$.
+\end{defn}
+\paragraph{Remark} Predicate patterns are closed under all logic connectives.
+\paragraph{Remark} For any $P$, $\ceil*{P}$ is a predicate pattern.
+
+\begin{prop} \label{prop:017}
+	$\vdash (\ceil*{P} = \bot) = (P = \bot)$ and $\vdash (\floor*{P} = \top) = (P = \top)$.
+\end{prop}
+\begin{proof}
+	It is easy to prove one derivation from the other, so we only prove the first one. By Proposition~\ref{prop:eestablish}, it suffices to prove
+	\begin{equation} \label{eq:prop:017:a}
+	\vdash (\ceil*{P} = \bot) \to (P = \bot)
+	\end{equation}
+	and
+	\begin{equation} \label{eq:prop:017:b}
+	\vdash (P = \bot) \to (\ceil*{P} = \bot)
+	\end{equation}
+	
+	The proof of~\eqref{eq:prop:017:b} is trivial and we left it as an exercise. We now prove~\eqref{eq:prop:017:a} through the following backward reasoning.
+	
+	\begin{align}
+	&\vdash (\ceil*{P} = \bot) \to (P = \bot)  \nonumber \\
+	\text{iff} \quad &\vdash \forall y . (y \in ((\ceil*{P} = \bot) \to (P = \bot))) \nonumber \\
+	\text{if} \quad &\vdash y \in ((\ceil*{P} = \bot) \to (P = \bot)) \nonumber \\
+	\text{iff} \quad &\vdash (y \in (\ceil*{P} = \bot) \to (y \in (P = \bot)). \label{eq:prop:017:a:1}
+	\end{align}
+	While for any pattern $Q$, 
+	\begin{align*}
+	&\vdash y \in (Q = \bot) \\
+	\text{iff} \quad &\vdash y \in \neg \ceil*{\neg (Q \leftrightarrow \bot)} \\
+	\text{iff} \quad &\vdash y \in \neg \ceil*{Q}\\
+	\text{iff} \quad &\vdash \neg \exists z . (z \in Q \wedge y \in \ceil*{z}) \\
+	\text{iff} \quad &\vdash \neg \exists z . (z \in Q) 
+	\end{align*}
+	So we continue to prove~\eqref{eq:prop:017:a:1} by showing
+	\begin{align*}
+&\vdash (y \in (\ceil*{P} = \bot)) \to (y \in (P = \bot))  \\
+\text{iff} \quad &\vdash \neg \exists z . (z \in \ceil*{P}) \to \neg \exists z . (z \in P) \\
+\text{iff} \quad &\vdash \exists z . (z \in P) \to  \exists z . (z \in \ceil*{P}) \\
+\text{iff} \quad &\vdash \exists z . (z \in P) \to \exists z . (\exists z_1 . (z_1 \in P \wedge z \in \ceil*{z_1}))\\
+\text{iff} \quad &\vdash \exists z . (z \in P) \to \exists z . \exists z_1 . (z_1 \in P) \\
+\text{iff} \quad &\vdash \exists z_1 . (z_1 \in P) \to \exists z . \exists z_1 . (z_1 \in P).
+	\end{align*}
+	And we finish the proof by noticing the fact that for any pattern $Q$ and variable $x$, 
+	$$ \vdash Q \to \exists x . Q.$$
+	
+\end{proof}
+
+
+
+\begin{prop} \label{prop:predicateabsorb}
+For any predicate $P$, $\vdash (P \neq \top) = (P = \bot)$ and $\vdash (P \neq \bot) = (P = \top)$.
+\end{prop}
+\begin{proof}
+We only prove the first derivation, by showing both
+\begin{equation}\label{eq:predicateabsort1}
+\vdash (P \neq \top) \to (P = \bot)
+\end{equation}
+and
+\begin{equation}\label{eq:predicateabsort2}
+\vdash (P = \bot) \to (P \neq \top).
+\end{equation}
+Proving~\eqref{eq:predicateabsort2} is trivial. We now prove~\eqref{eq:predicateabsort1}, which is also trivial by transforming disjunction to implication.
+\end{proof}
+\begin{prop} \label{prop:predicatevee}
+For any pattern $Q$ and any predicate pattern $P$, $\vdash P \vee Q$ iff $\vdash P \vee \floor*{Q}$.
+\end{prop}
+\begin{proof}
+($\Leftarrow$) is obtained immediately by the remark of Proposition~\ref{prop:p->ceilp}. We now prove ($\Rightarrow$). 
+
+Because $\vdash Q = \top \vee Q \neq \top$, it suffices to show
+\begin{equation} \label{eq:predicatevee-01}
+\vdash Q = \top \to (P \vee \floor*{Q} = \top)
+\end{equation}
+and
+\begin{equation} \label{eq:predicatevee-02}
+\vdash Q \neq \top \to (P \vee \floor*{Q} = \top)
+\end{equation}
+by Corollary~\ref{cor:classificationreasoning}, and the fact that $\vdash P \vee \floor*{Q} = \top$ and $\vdash \top$ imply $\vdash P \vee \floor*{Q}$. 
+
+The proof of~\eqref{eq:predicatevee-01} is straightforward as follows.
+\begin{align*}
+&\vdash Q = \top \to (P \vee \floor*{Q} = \top) \\
+\text{if} \quad &\vdash Q = \top \to (P \vee \floor*{\top} = \top) \\
+\text{if} \quad &\vdash Q = \top \to (\top = \top) \\
+\text{if} \quad &\vdash \top.
+\end{align*}
+
+The proof of~\eqref{eq:predicatevee-02} needs more effort:
+\begin{align*}
+&\vdash Q \neq \top \to (P \vee \floor*{Q} = \top) \\
+\text{iff} \quad &\vdash (Q = \top) \vee (P \vee \floor*{Q} = \top) \\
+\text{iff} \quad &\vdash (\floor*{Q} = \top) \vee (P \vee \floor*{Q} = \top) \\
+\text{iff} \quad &\vdash \floor*{Q} \neq \top \to (P \vee \floor*{Q} = \top) \\
+\text{iff} \quad &\vdash \floor*{Q} = \bot \to (P \vee \floor*{Q} = \top) \\
+\text{if} \quad &\vdash \floor*{Q} = \bot \to (P \vee \bot = \top) \\
+\text{iff} \quad &\vdash \floor*{Q} = \bot \to (P = \top) \\
+\text{if} \quad &\vdash Q = \top \vee P = \top.
+\end{align*}
+Notice that $P$ is a predicate pattern, so it suffices to show
+\begin{equation*}
+\vdash P = \top \to (Q = \top \vee P = \top),
+\end{equation*}
+whose validity is obvious, and
+\begin{equation*}
+\vdash P = \bot \to (Q = \top \vee P = \top),
+\end{equation*}
+which is proved by showing
+\begin{equation} 
+\vdash P = \bot \to Q = \top.
+\end{equation}
+Because $\vdash P \vee Q$, it suffices to show
+\begin{align*}
+&\vdash P = \bot \to (P \vee Q) \to (Q = \top) \\
+\text{if} \quad &\vdash P = \bot \to (\bot \vee Q) \to (Q = \top) \\
+\text{iff} \quad &\vdash P = \bot \to Q \to (Q = \top) \\
+\text{if} \quad &\vdash Q \to (Q = \top) \\
+\text{iff} \quad &\vdash (Q \neq \top) \to \neg Q \\
+\text{iff} \quad &\vdash (\floor*{Q} = \bot) \to \neg Q.
+\end{align*}
+Notice we have $\vdash Q \to \floor*{Q}$, which means $\vdash \neg \floor*{Q} \to \neg Q$, so it suffices to show
+\begin{align*}
+&\vdash (\floor*{Q} = \bot) \to \neg \floor*{Q} \\
+\text{iff} \quad &\vdash (\floor*{Q} = \bot) \to \neg \bot \\
+\text{iff} \quad &\vdash (\floor*{Q} = \bot) \to \top \\
+\text{iff} \quad &\vdash \top.
+\end{align*}
+And this concludes the proof.
+\end{proof}
+
+
+\begin{thm}[Deduction Theorem]
+\label{thm:deduction}
+If $\Gamma \cup \{P\} \vdash Q$ and the derivation does not use \mbox{$\forall x$-Generalization} where $x$ is free in $P$, then $\Gamma \vdash \floor*{P} \to Q$. 
+\end{thm}
+\begin{proof}
+The proof is by induction on $n$, the length of the derivation of $Q$ from $\Gamma \cup \{P\}$.
+
+Base step: $n = 1$, and $Q$ is an axiom, or $P$, or a member of $\Gamma$. If $Q$ is an axiom or a member of $\Gamma$, then $\Gamma \vdash Q$ and as a result, $\Gamma \vdash \floor*{P} \to Q$. If $Q$ is $P$, then $\Gamma \vdash \floor*{P} \to Q$ by Proposition~\ref{prop:p->ceilp}.
+
+Induction step: Let $n > 1$. Suppose that if $P'$ can be deduced from $\Gamma \cup \{P\}$ without using $\forall x$-Generalization where $x$ is free in $P$, in a derivation containing fewer than $n$ steps, then $\Gamma \vdash \floor*{P} \to P'$.
+
+Case 1: $Q$ is an axiom, or $P$, or a member of $\Gamma$. Precisely as in the Base step, we show that $\vdash \floor*{P} \to Q$.
+
+Case 2: $Q$ follows from two previous patterns in the derivation by an application of Modus Ponens. These two patterns must have the forms $Q_1$ and $Q_1 \to Q$, and each one can certainly be deduced from $\Gamma \cup \{P\}$ by a derivation with fewer than $n$ steps, by just omitting the subsequent members from the original derivation from $\Gamma \cup \{P\} \vdash Q$. So we have $\Gamma \cup \{P\} \vdash Q_1$ and $\Gamma \cup \{P\} \vdash Q_1 \to Q$, and, applying the hypothesis of induction, $\Gamma \vdash \floor*{P} \to Q_1$ and $\Gamma \vdash \floor*{P} \to (Q_1 \to Q)$. It follows immediately that $\Gamma \vdash \floor*{P} \to Q$.
+
+Case 3: $Q$ follows from a previous pattern in the derivation by an application of $\forall x_i$-Generalization where $x_i$ does not occur free in $P$. So $Q$ is $\forall x_i . Q_1$, say, and $Q_1$ appears previously in the derivation. Thus $\Gamma \cup \{P\} \vdash Q_1$, and the derivation has fewer than $n$ steps, so $\Gamma \vdash \floor*{P} \to Q_1$, since there is no application of Universal Generalization involving a free variable of $P$. Also $x_i$ cannot occur free in $P$, as it is involved in an application of Universal Generalization in the deduction of $Q$ from $\Gamma \cup \{P\}$. So we have a derivation of $\Gamma \vdash \floor*{P} \to Q$ as follows.
+\begin{align*}
+\Gamma &\vdash \floor*{P} \to Q \\
+{\text{iff} \quad} \Gamma &\vdash \floor*{P} \to \forall x_i . Q_1 \\
+{\text{if} \quad} \Gamma &\vdash \forall x_i . (\floor*{P} \to Q_1) \\
+{\text{if} \quad} \Gamma &\vdash \floor*{P} \to Q_1. \\
+\end{align*}
+So $\Gamma \vdash \floor*{P} \to Q$ as required.
+
+Case 4: Q follows from a previous pattern in the derivation by an application of Membership Introduction. So $Q$ is $\forall x_i . (x_i \in Q_1)$ with $x_i$ is free in $Q_1$, say, and $Q_1$ appears previously in the derivation. Thus $\Gamma \cup \{P\} \vdash Q_1$, and the derivation has fewer than $n$ steps, so $\Gamma \vdash \floor*{P} \to Q_1$, since there is no application of Universal Generalization involving a free variable of $P$. So we have a derivation of $\Gamma \vdash \floor*{P} \to Q$ as follows.
+\begin{align*}
+\Gamma &\vdash \floor*{P} \to Q \\
+{\text{iff} \quad} \Gamma &\vdash \floor*{P} \to \forall x_i . (x_i \in Q_1) \\
+{\text{iff} \quad} \Gamma &\vdash \floor*{P} \to \floor*{Q_1}, \\
+\end{align*}
+which follows by the hypothesis of induction $\Gamma \vdash \floor*{P} \to Q_1$ and the fact that $\Gamma \vdash Q_1 \to \floor*{Q_1}$ (by the Remark in Proposition~\ref{prop:p->ceilp}).
+
+Case 5: Q follows from a previous pattern in the derivation by an application of Membership Elimination. The previous pattern must have the form $\forall x_i . (x_i \in Q)$, and can be deduced from $\Gamma \cup \{P\}$ by a derivation with fewer than $n$ steps, by just omitting the subsequent members from the original derivation from $\Gamma \cup \{P\} \vdash Q$. So we have $\Gamma \cup \{P\} \vdash \forall x_i . (x_i \in Q)$, and, applying the hypothesis of induction, $\Gamma \vdash \floor*{P} \to \forall x_i . (x_i \in Q)$. So we have a derivation of $\Gamma \vdash \floor*{P} \to Q$ as follows.
+\begin{align*}
+\Gamma &\vdash \floor*{P} \to Q \\
+{\text{iff} \quad} \Gamma &\vdash \neg \floor*{P} \vee Q \\
+{\text{iff} \quad} \Gamma &\vdash \neg \floor*{P} \vee \floor*{Q} \tag{Proposition~\ref{prop:predicatevee}} \\
+{\text{iff} \quad} \Gamma &\vdash \neg \floor*{P} \vee \forall x_i . (x_i \in Q) \\
+{\text{iff} \quad} \Gamma &\vdash \floor*{P} \to \forall x_i . (x_i \in Q),
+\end{align*}
+which is the hypothesis of induction. And this concludes our inductive proof.
+\end{proof}
+
+\begin{cor}[Closed-form Deduction Theorem]
+If $P$ is closed, $\Gamma \cup \{P\} \vdash Q$ implies $\Gamma \vdash \floor*{P} \to Q$.
+\end{cor}
+
+\begin{thm} [Frame Rule]
+	Let $\sigma \in \Sigma$ be a symbol in the signature. From $P_1 \to P_2$, deduce $\sigma(P_1) \to \sigma(P_2)$. In its most general form, $P_1 \to P_2$ deduces $\sigma(Q_1,\dots,P_1,\dots,Q_n) \to \sigma(Q_1,\dots, P_2, \dots, Q_n)$.
+\end{thm}
+\begin{proof}
+	we write $\sigma(Q_1,\dots,P_i,\dots,Q_n)$ as $\sigma(P_i,\vec{Q})$ for short, for any $i \in \{1,2\}$.
+	\begin{align*}
+	&\vdash \sigma(P_1, \vec{Q}) \to \sigma(P_2,\vec{Q}) \\
+	\text{iff} \quad &\vdash y \in (\sigma(P_1, \vec{Q}) \to \sigma(P_2,\vec{Q})) \\
+	\text{iff} \quad &\vdash (y \in \sigma(P_1, \vec{Q})) \to (y \in \sigma(P_2, \vec{Q})) \\
+	\text{iff} \quad &\vdash \exists z_1 . \exists \vec{z} . (z_1 \in P_1 \wedge \vec{z} \in \vec{Q} \wedge y \in \sigma(z_1, \vec{z})) \\
+	&\to \exists z_2 . \exists \vec{z} . (z_2 \in P_2 \wedge \vec{z} \in \vec{Q} \wedge y \in \sigma(z_2, \vec{z})) \\
+	\text{iff} \quad &\vdash \exists z_1 . \exists \vec{z} . (z_1 \in P_1 \wedge \vec{z} \in \vec{Q} \wedge y \in \sigma(z_1, \vec{z}) \\
+	 &\quad \quad \quad \to z_1 \in P_2 \wedge \vec{z} \in \vec{Q} \wedge y \in \sigma(z_1, \vec{z})) \\
+	\text{iff} \quad &\vdash \exists z_1. \exists \vec{z} . (z_1 \in P_1 \to z_1 \in P_2) \\
+	\text{if} \quad &\vdash \exists z_1 .  (z_1 \in P_1 \to z_1 \in P_2) \\
+	\text{if} \quad &\vdash P_1 \to P_2.
+	\end{align*}
+\end{proof}
+\begin{cor} [Frame Rule]
+	$\vdash \floor*{P \to Q} \to (\sigma(P) \to \sigma(Q))$
+\end{cor}
+
+\subsection{The {\MLFOL} translation}
+
+Given a matching logic signature $(S, \Sigma_{\textit{func}} \cup \Sigma_{\textit{partial}} \cup \Sigma_{\textit{uninterpreted}})$. Define a first-order logic signature $(S, \Phi, \Pi)$ whose has the same set of sorts $S$. The set of function symbols $\Phi$ and the set of predicate symbols $\Pi$ are defined as follows.
+\begin{itemize}
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{uninterpreted}}$ whose argument sorts are $s_1, \dots, s_n$ and result sort is $s$, introduce $\pi_\sigma$ that is an $(n+1)$-arity predicate symbol in $\Pi$  whose argument sorts are $s_1,\dots, s_n, s$. Intuitively, $\pi_\sigma(x_1,\dots,x_n, y)$ holds in {\FOL} if $y \in \sigma(x_1,\dots,x_n)$ holds in {\ML}.
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{func}}$ whose argument sorts are $s_1, \dots, s_n$ and result sort is $s$, introduce $\sigma$ that is an $n$-arity function symbol in $\Phi$ whose has the same signature as $\sigma \in \Sigma_{\textit{func}}$. Intuitively, the term $\sigma(x_1,\dots,x_n)$ in {\FOL} is the only element that is in the singleton $\sigma(x_1,\dots,x_n)$ in {\ML}.
+	\item For any $n$-arity $\sigma \in \Sigma_{\textit{partial}}$ whose argument sorts are $s_1, \dots, s_n$ and result sort is~$s$, introduce $\delta_\sigma$ that is an $n$-arity predicate symbol in $\Pi$ and $\tilde{\sigma}$ that is an $n$-arity function symbol in $\Phi$. Both $\delta_\sigma$ and $\tilde{\sigma}$ have the argument sorts $s_1,\dots,s_n$, and $\tilde{\sigma}$ has the result sort $s$. Intuitively, $\delta_\sigma(x_1,\dots,x_n)$ holds in {\FOL} if $\sigma(x_1,\dots,x_n)$ is not the empty set in {\ML}. If $\delta_\sigma(x_1,\dots,x_n)$ holds in {\FOL}, then the term $\tilde{\sigma}(x_1,\dots,x_n)$ is the only element that is in the singleton $\sigma(x_1,\dots,x_n)$ in {\ML}.
+\end{itemize}
+Define two formula transformations $\mathsf{fol}$ and $\foltwo$ as follows.
+
+
+\begin{algorithm}
+	\KwIn{a matching logic pattern $P$}
+	\KwOut{a first order formula}
+	generate a fresh variable $r$ whose sort the same as $P$ \;
+	\Return{$\forall r . \foltwo(P, r)$} \;
+\caption{The  $\mathsf{fol}$ transformation}
+\end{algorithm}
+
+\begin{algorithm}
+	\KwIn{a matching logic pattern $P$ and a variable $r$}
+	\KwOut{a first order formula}
+    \Switch{the pattern $P$}{
+      \uCase{$x$}
+            {\Return{$r = x$} \;}
+      \uCase{$Q_1 \wedge Q_2$}
+            {\Return{$\foltwo(Q_1, r) \wedge \foltwo(Q_2, r)$} \;}
+      \uCase{$\neg Q$}
+            {\Return{$\neg \foltwo(Q, r)$ \;}}
+      \uCase{$\exists x . Q$}
+            {\Return{$\exists x . \foltwo(Q, r)$} \;}
+      \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is uninterpreted}
+            {\Return{$\exists r_1 \dots r_n \left( \pi_\sigma(r1,\dots,r_n, r) \wedge \foltwo(Q_1, r_1) \wedge \dots \wedge \foltwo(Q_n, r_n) \right) $} \;}
+      \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is functional}
+            {\Return{$\exists r_1 \dots r_n \left( r = \sigma(r_1, \dots, r_n) \wedge \foltwo(Q_1, r_1) \wedge \dots \wedge \foltwo(Q_n, r_n) \right) $} \;}
+      \uCase{$\sigma(Q_1,\dots,Q_n)$ where $\sigma$ is partial}
+            {\Return{$\exists r_1 \dots r_n \left( \delta_\sigma(r_1,\dots,r_n) \wedge r = \tilde{\sigma}(r_1, \dots, r_n)
+            	\wedge \foltwo(Q_1, r_1) \wedge \dots \wedge \foltwo(Q_n, r_n) \right) $} \;}
+    }
+	\caption{The  $\foltwo$ transformation}
+\end{algorithm}
+
+\begin{prop}
+	For any $P, Q$ are patterns and $r, r'$ are fresh variables, the following holds.
+	\begin{itemize}
+		\item $\foltwo(P = Q, r) = \forall r' . (\foltwo(P, r') \leftrightarrow \foltwo(Q, r'))$.
+		\item $\foltwo(\ceil{P}, r) = \exists r' . \foltwo(P, r')$.
+		\item $\foltwo(\floor{P}, r) = \forall r' . \foltwo(P, r')$.
+		\item $\foltwo(P \subseteq Q, r) = \forall r' . (\foltwo(P, r') \imp \foltwo(Q, r'))$.
+	\end{itemize}
+\end{prop}
+\begin{proof}
+	To be continued.
+\end{proof}
+
+\begin{thm}
+  For any pattern set $\Gamma$, $\Gamma$ is satisfiable in matching logic iff $\fol(\Gamma)$ is satisfiable in first-order logic.
+\end{thm}
+
+In the following, we introduce a matching logic theory of heaps as a running example to show how {\MLFOL} works. From now on, we will use s-expressions to write matching logic patterns and first-order formulas. Readers who are familiar with SMT-LIB should find our representation almost identical to the one that many SMT solvers, such as Z3, use. Lisp programmers should find our representation quite easy to understand, too.
+
+\lstset{style=smt}
+\begin{lstlisting}
+; A matching logic theory of maps
+
+(declare-sort Nat)
+(declare-sort NatSeq)
+(declare-sort Map)
+
+; Natural numbers
+
+(declare-func zero () Nat)
+(declare-func succ (Nat) Nat)
+
+(declare-func one        () Nat)
+(declare-func two        () Nat)
+...
+
+(assert (= one        (succ zero     ))) 
+(assert (= two        (succ one      ))) 
+...
+
+; succ is injective
+(assert (forall ((x Nat) (y Nat))
+  (= (= (succ x) (succ y))
+     (= x y))))
+
+; succ(x) =/= x
+(assert (forall ((x Nat))
+  (not (= (succ x) x))))
+
+; Sequence of naturals
+
+(declare-func epsilon () NatSeq)
+(declare-func cons (Nat NatSeq) NatSeq)
+(declare-func append (NatSeq NatSeq) NatSeq)
+
+(assert (forall ((x Nat) (s NatSeq))
+  (not (= (cons x s) s))))
+
+(assert (forall ((x1 Nat) (x2 Nat) (s1 NatSeq) (s2 NatSeq))
+  (= (= (cons x1 s1) (cons x2 s2))
+     (and (= x1 x2) (= s1 s2)))))
+
+(assert (forall ((s1 NatSeq) (s2 NatSeq) (s3 NatSeq))
+  (= (append (append s1 s2) s3)
+     (append s1 (append s2 s3)))))
+
+(assert (forall ((s NatSeq))
+  (= (append s epsilon) s)))
+
+(assert (forall ((s NatSeq))
+  (= (append epsilon s) s)))
+
+(assert (forall ((s1 NatSeq) (s2 NatSeq) (x Nat))
+  (= (append (cons x s1) s2)
+     (cons x (append s1 s2)))))
+
+(declare-func rev (NatSeq) NatSeq)
+
+(assert (= (rev epsilon) epsilon))
+
+(assert (forall ((x Nat) (s NatSeq))
+  (= (rev (cons x s))
+     (append (rev s) (cons x epsilon)))))
+
+; Maps
+
+(declare-func emp () Map)
+
+; x |-> y
+(declare-part mapsto (Nat Nat) Map)
+
+; 0 |-> y is bottom
+(assert (forall ((y Nat))
+  (not (mapsto zero y))))
+
+; succ(x) |-> y is defined 
+(assert (forall ((x Nat) (y Nat))
+  (ceil (mapsto (succ x) y))))
+
+; succ(x1) |-> y1 = succ(x2) |-> y2 iff x1 = x2 /\ y1 = y1
+(assert (forall ((x1 Nat) (x2 Nat) (y1 Nat) (y2 Nat))
+  (= (= (mapsto (succ x1) y1) (mapsto (succ x2) y2))
+     (and (= x1 x2) (= y1 y2)))))
+
+; merge is a partial AC binary function
+(declare-part merge (Map Map) Map)
+
+; commutativity
+(assert (forall ((h1 Map) (h2 Map))
+(= (merge h1 h2) (merge h2 h1))))
+
+; associativity
+(assert (forall ((h1 Map) (h2 Map) (h3 Map))
+  (= (merge (merge h1 h2) h3)
+     (merge h1 (merge h2 h3)))))
+; identity
+(assert (forall ((h Map))
+  (= h (merge h emp))))
+
+; x |-> y * x |-> z = bottom
+(assert (forall ((x Nat) (y Nat) (z Nat))
+  (not (merge (mapsto x y) (mapsto x z)))))
+
+; mapstoseq
+(declare-part mapstoseq (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+  (= (mapstoseq x epsilon) emp)))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+  (= (mapstoseq x (cons y s))
+     (merge (mapsto x y) (mapstoseq (succ x) s)))))
+
+(declare-symb list (Nat NatSeq) Map)
+
+(assert (forall ((x Nat))
+  (= (list x epsilon)
+     (and emp (= x zero)))))
+
+(assert (forall ((x Nat) (y Nat) (s NatSeq))
+  (= (list x (cons y s))
+     (exists ((z Nat))
+       (merge (mapstoseq x (cons y (cons z epsilon)))
+              (list z s))))))
+
+\end{lstlisting}
+
+\subsubsection*{Validity and satisfiability}
+The duality between validity and satisfiability forms the foundation of SMT solvers. Suppose one wants to deduce $\varphi$ from a set of axioms $\Gamma$. What he or she can do is adding the negation of the proof obligation $\neg \varphi$ to the axiom set and try to prove $\Gamma \cup \{\neg \varphi\}$ is unsatisfiable. This approach is justified thanks to the next theorem that establishes a duality between satisfiability and validity.
+
+\begin{thm}
+  For any first-order theory $\Gamma$ and first-order formula $\varphi$, 
+  \begin{equation*}
+  \Gamma \models \varphi \quad \text{iff} \quad \Gamma \cup \{\neg \varphi\} \text{ is unsatisfiable.}  
+  \end{equation*}
+\end{thm}
+
+The dual relation between validity and satisfiability is less straightforward then the one in first-order logic. 
+
+\begin{thm}
+	For any matching logic theory $\Gamma$ and a closed pattern $P$,
+	\begin{equation*}
+	\Gamma \models \varphi \quad \text{iff} \quad  \Gamma \cup \{\neg \floor{\varphi}\} \text{ is unsatisfiable.}
+	\end{equation*}
+\end{thm}
+\begin{proof}
+	We here give a proof using the deduction theorem (Theorem~\ref{thm:deduction}). 
+\end{proof}
+
+\subsubsection*{Simplification}
+The formula(s) that are autogenerated by $\MLFOL$ are often unnecessarily verbose. Quantified dummy variables are everywhere, which makes it too hard for SMT solvers. Therefore, it is necessary to preprocess and simplify the autogenerated formulas before throwing them to solvers. In the next paragraph, we will introduce two main simplification rules that are crucial and useful in practice. All of them are trivially valid simplification rules, so the emphasis will be put on the reason why we apply them.
+
+\paragraph{Rule 1: Eliminating existential quantifiers}
+For any term $t$ where $x$ does not occur, 
+$$\exists x . ((x = t) \wedge \varphi) \equiv \varphi[x \coloneqq t]. $$
+
+This rule is often used to simplify formulas $\foltwo(\sigma(P), r)$.
+
+\paragraph{Rule 2: Eliminating universal quantifiers}
+For terms $t_1, t_2$ where $x$ does not occur,
+$$\forall x . (x = t_1 \leftrightarrow x = t_2) \equiv t_1 = t_2.$$
+
+This rule is often used to simplify formulas $\foltwo(P = Q, r)$ where $P, Q$ are functional patterns.
+
+\paragraph{Rule 2$'$}
+For any terms $t_1, t_2$, formulas $\varphi_1, \varphi_2$ where $x$ does not occur (free), and formulas $\psi_1(x), \psi_2(x)$ which are satisfiable w.r.t. the variable $x$, \footnote{That is, $\exists x . \psi_i(x)$ is valid, for $i = 1, 2$.}
+\begin{align*}
+      & \forall x . \left((\varphi_1 \wedge \psi_1(x)) \leftrightarrow (\varphi_2 \wedge \psi_2(x))\right)\\
+&\equiv (\varphi_1 \leftrightarrow \varphi_2) \wedge ((\varphi_1 \vee \varphi_2) \rightarrow \forall x . (\psi_1(x) \leftrightarrow \psi_2(x))).
+\end{align*}
+
+This rule is often used to simplify formulas $\foltwo(P = Q, r)$ where $P, Q$ are partial patterns. Usually, $\psi_i(x)$ has the form $x = t_i$ with $t_i$ is a term not containing $x$.
+
+The main objective of the above simplification rules is to eliminate quantifiers of dummy variables that are autogenerated by the $\MLFOL$ translation. In practice, we found cases where quantifier elimination is feasible but the above rules do not capture that. For example, when translating $\neg (P \subseteq Q)$ where $P$ is a functional or partial pattern, one often gets
+$$\neg \forall x . ((\varphi \wedge x = t) \rightarrow \psi).$$
+Although the formula cannot be simplified by any rules above, we can transform it to an equivalent formula that can be simplified, as follows.
+\begin{align*}
+&\neg \forall x . ((\varphi \wedge x = t) \rightarrow \psi) \\
+&\equiv \exists x . \neg ((\varphi \wedge x = t) \rightarrow \psi) \\
+&\equiv \exists x . (\varphi \wedge x = t \wedge \neg \psi) \\
+&\equiv \varphi[x \coloneqq t] \wedge \neg \psi[x \coloneqq t].
+\end{align*}
+
+\subsubsection*{Performance}
+In general, the $\MLFOL$ translation performs well on functional and partial patterns. This is because the translation takes special care of functional and partial symbols and encodes them in an efficient way in first-order logic. Translating arbitrary patterns is feasible but there is little benefit we can get from the translation. State-of-the-art SMT solvers tend to have a hard time dealing with the autogenerated first-order theory if the original matching logic theory has a heavy use of uninterpreted symbols that are neither functional nor partial. One typical example is the list theory in matching logic.
+
+The author did some experiments with the translation and used the SMT solver Z3 to solve the autogenerated first-order theories. The experiment results are enclosed here, divided into three parts.
+
+\paragraph{Part 1: functional symbols}
+The author tested the performance of solving theories about functional patterns using the theory of sequence, defined below.
+
+\begin{lstlisting}
+	(declare-sort NatSeq)
+	
+	(declare-func epsilon () NatSeq)
+	(declare-func cons (Nat NatSeq) NatSeq)
+	(declare-func append (NatSeq NatSeq) NatSeq)
+	(declare-func rev (NatSeq) NatSeq)
+	
+	(assert (forall ((x Nat) (s NatSeq))
+	  (not (= (cons x s) s))))
+	
+	(assert (forall ((x1 Nat) (x2 Nat) (s1 NatSeq) (s2 NatSeq))
+	  (= (= (cons x1 s1) (cons x2 s2))
+	     (and (= x1 x2) (= s1 s2)))))
+	
+	(assert (forall ((s1 NatSeq) (s2 NatSeq) (s3 NatSeq))
+	  (= (append (append s1 s2) s3)
+	     (append s1 (append s2 s3)))))
+	
+	(assert (forall ((s NatSeq))
+	  (= (append s epsilon) s)))
+	
+	(assert (forall ((s NatSeq))
+	  (= (append epsilon s) s)))
+	
+	(assert (forall ((s1 NatSeq) (s2 NatSeq) (x Nat))
+	  (= (append (cons x s1) s2)
+	     (cons x (append s1 s2)))))
+		
+	(assert (= (rev epsilon) epsilon))
+	
+	(assert (forall ((x Nat) (s NatSeq))
+	  (= (rev (cons x s))
+	     (append (rev s) (cons x epsilon)))))
+\end{lstlisting}
+It takes $1.00$ second to prove \textsf{\small rev([3;14;15;9;2;7;18;2;8;18;20;3;6;8;8]) = [8;8;6;3;20;18;8;2;18;7;2;9;15;14;3]}.
+
+\paragraph{Part 2: partial symbols} The author used the theory of map, where the separating conjunction operator \textsf{\small merge} is an associative and commutative partial symbol, to test associative-commutative matching of partial symbols.
+
+\begin{equation*}
+\begin{array}{ccc}
+	\text{number of bindings} & \text{time in second} & \text{memory} \\ 
+	8 & 12.79 & 574.42 \\ 
+	9 & 91.35 & 2518.37
+\end{array}
+\end{equation*}
+
+\paragraph{Part 3: uninterpreted symbols} 
+
+\begin{equation*}
+\begin{array}{ccc}
+\text{example} & \text{time in second} & \text{memory} \\ 
+list(13,[11]) & 0.06 & 6.06 \\ 
+list(5,[9;2]) & 1.49 & 33.45 \\ 
+list(5,[9;2;5]) & 212.77 & 172.01 \\ 
+list(5,[9;2;5]) \text{ with domain theory} & 0.67 & 52.73 \\ 
+list(5,[13;17;9;2;5;13]) \text{ with domain theory} & n.a. & n.a.
+\end{array} 
+\end{equation*}
+
+\section{A sound and complete proof system for the zeroth-order fragment of 
+matching logic}
+
+The purpose of this section is to introduce a proof system for the zeroth-order 
+fragment of matching logic and to establish its soundness and completeness.
+Unlike the proof system we have seen in Section~\ref{sec:deductive_system}, the 
+proof system that we define in this section does not rely on the presence of 
+the definedness symbols.
+
+The zeroth-order fragment of matching logic is matching logic without variables 
+and quantifiers.
+Given a signature $\Sigma$ which contains at least a zero-arity symbol for each 
+sort, the syntax of zeroth-order matching logic is defined as follows.
+\begin{align}
+P \Coloneqq\  & P_1 \wedge P_2 \nonumber \\
+       \mid\  & \neg P \nonumber \\
+       \mid\  & \sigma(P_1,\dots,P_n). \nonumber
+\end{align}
+Disjunction, implication, double implication, top and bottom are defined in 
+their usual way as syntactic sugar.
+
+The proof system of zeroth-order matching logic consists of five axiom 
+schemas and two inference rules.
+
+\begin{itemize}
+\item (P1) $P \to (Q \to P)$
+\item (P2) $(P \to (Q \to R)) \to (P \to Q) \to (P \to R)$
+\item (P3) $(\neg Q \to \neg P) \to (P \to Q)$
+\item (K){\ } $\sigma(\dots P \vee Q \dots) \leftrightarrow \sigma(\dots P \dots) \vee \sigma(\dots Q \dots)$ 
+\item (N){\ } $\neg \sigma(\dots \bot \dots)$
+\item (MP) From $P$ and $P \to Q$, deduce $Q$.
+\item (Congruence) From $P \leftrightarrow Q$, deduce $R[P] \leftrightarrow 
+R[Q]$.
+\end{itemize}
+
+We will show the above proof system is sound and complete for zeroth-order 
+matching logic.
+It might not be the minimal one as one may get rid of the (Congruence) rule and 
+remain complete.
+The focus here is to find a proof system that is independent of the definedness 
+symbols.
+Proving soundness is easy and we will skip it.
+ We will prove its completeness using the standard approach of 
+{maximal consistent sets construction} from which we can build a {canonical 
+model} for any consistent sets of axioms.
+The high-level proof sketch is as follows.
+Assume $\Gamma$ is consistent and $\Gamma \not\vdash \varphi$.
+We can show that $\Gamma \cup \{\neg \varphi\}$ is also consistent.
+Then we show that we can construct a canonical model $M$ of the consistent set
+$\Gamma \cup \{ \neg \varphi \}$, and this shows $\Gamma \not \vDash \varphi$.
+
+\begin{thm}
+For any patterns $P$ and $Q$ that belong to the same sort, $\Gamma \cup \{Q\} \vdash P$ iff $\Gamma \vdash Q \to P$.
+\end{thm}
+
+\begin{defn}
+  $\Gamma$ is consistent if $\Gamma \not \vdash \bot_s$ for any sort $s$.
+\end{defn}
+
+\begin{defn}
+  $\Gamma$ is maximal consistent if it is consistent and for any $\Gamma' \supsetneqq \Gamma$, $\Gamma'$ is inconsistent.
+\end{defn}
+
+\begin{prop}
+If $\Gamma$ is consistent and $\Gamma \not \vdash P$, then $\Gamma \cup \{\neg P\}$ is consistent.
+\end{prop}
+\begin{proof}
+Suppose $\Gamma \cup \{\neg P\}$ is inconsistent. By definition, $\Gamma \cup \{\neg P\} \vdash \bot$. By deduction theorem, $\Gamma \vdash \neg P \to \bot$, that is, $\Gamma \vdash P$, which contradicts the fact that $\Gamma \not \vdash P$.
+\end{proof}
+
+\begin{prop}
+If $\Gamma$ is maximal consistent, then $P \in \Gamma$ iff $\Gamma \vdash P$.
+\end{prop}
+\begin{proof}
+($\Rightarrow$) is trivial. Let us prove ($\Leftarrow$). Since $\Gamma$ is consistent and $\Gamma \vdash P$, we know $\Gamma \cup \{P\}$ is also consistent. Since $\Gamma$ is maximal consistent, we know $\Gamma = \Gamma \cup \{P\}$, which implies that $P \in \Gamma$.
+\end{proof}
+
+\begin{prop}
+If $\Gamma$ is maximal consistent, then for any $P$, either $\Gamma \vdash P$ or $\Gamma \vdash \neg P$.
+\end{prop}
+\begin{proof}
+Suppose $\Gamma \not \vdash P$. Since $\Gamma$ is consistent, we know $\Gamma \cup \{\neg P\}$ is also consistent. Since $\Gamma$ is maximal consistent, we know $\Gamma = \Gamma \cup \{\neg P\}$, which implies that $\Gamma \vdash \neg P$.
+\end{proof}
+
+\begin{prop}
+If $\Gamma \vdash P$, then $\Gamma \cup \{\neg P\}$ is inconsistent.
+\end{prop}
+
+\begin{prop}
+For any $\Gamma$ is consistent, there exists an extension $\Gamma' \supseteqq \Gamma$ such that $\Gamma'$ is maximal consistent. We call such $\Gamma'$ the maximal consistent extension of $\Gamma$.
+\end{prop}
+\begin{proof}
+Enumerate all patterns as $P_1, P_2, \dots$. Define a sequence of sets $\Gamma_0, \Gamma_1, \Gamma_2, \dots$ as follows.
+
+\begin{align*}
+  \Gamma_0 &= \Gamma, \\
+  \Gamma_{i} &= \begin{cases}
+                  \Gamma_{i-1} \cup \{P_i\} \quad &\text{if it is consistent} \\
+                  \Gamma_{i-1} \quad &\text{otherwise}
+                \end{cases}.
+\end{align*}
+Then $\Gamma = \Gamma_0 \subseteqq \Gamma_1 \subseteqq \dots$ is a monotonic sequence of consistent sets. Let $\Gamma' = \bigcup \Gamma_i$. It is obvious that $\Gamma' \supseteqq \Gamma$. We are going to show that $\Gamma'$ is maximal consistent.
+
+Suppose $\Gamma'$ is inconsistent. By definition, $\Gamma' \vdash \bot$. The derivation of $\bot$ must only use a finite number of patterns in $\Gamma'$, which means there is a finite subset of $\Gamma'$ that is inconsistent. Therefore, there must exist an $n > 0$ such that $\Gamma_n$ is inconsistent, which contradicts the way we construct the sequence $\{\Gamma_i\}_i$.
+
+Suppose $\Gamma'$ is not maximal consistent. By definition, there exists a $P$ such that $\Gamma' \not \vdash P$ and $\Gamma' \cup \{P\}$ is also consistent. Rememeber we have enumerated all patterns as $P_1, P_2, \dots$, so the pattern $P$ must be one of them. Suppose $P = P_n$. Since $P = P_n \not \in \Gamma'$, we know $\Gamma_n$ does not include $P_n$. By the way of how we construct $\{\Gamma_i\}_i$, it must be the case that $\Gamma_{n-1} \cup \{P_n\}$ is inconsistent, which contradicts the fact that $\Gamma' \cup \{P\}$ is consistent.
+\end{proof}
+
+\begin{defn}
+Suppose $\Gamma$ is maximal consistent. Its canonical model $M_\Gamma$ is defined as follows.
+\begin{itemize}
+\item For each sort $s \in S$, the carrier set $M_s = \{\Gamma_s\}$ is a singleton set;
+\item For each symbol $\sigma \in \Sigma_{s_1,\dots,s_n,s}$, its interpretation $\sigma_M \colon M_{s_1} \times \dots \times M_{s_n} \to \rho(M_s)$ is defined as
+\begin{equation*}
+\sigma_M(\Gamma_{s_1},\dots,\Gamma_{s_n}) = \begin{cases}
+                                            \{\Gamma_s\} \quad &\text{if for any $P_1 \in \Gamma_{s_1}, \dots, P_n \in \Gamma_{s_n}$, $\sigma(P_1,\dots,P_n) \in \Gamma_s$} \\
+                                            \emptyset    \quad &\text{otherwise}
+                                            \end{cases}.
+\end{equation*}
+\end{itemize}
+\end{defn}
+
+\begin{prop}
+Suppose $M$ is a canonical model. Then $M$ is negation complete, in the sense that for any pattern $P$, either $M \vDash P$ or $M \vDash \neg P$.
+\end{prop}
+\begin{proof}
+Simply notice that all the carrier sets of $M$ are singleton sets.
+\end{proof}
+
+\begin{prop} \label{prop:canonicalmodel}
+Suppose $\Gamma$ is maximal consistent and $M_\Gamma$ is its canonical model. For any pattern $P$, $M \vDash P$ iff $P \in \Gamma$.
+\end{prop}
+
+\begin{proof}
+Let us conduct structural induction on $P$.
+
+(Base case). $P$ is atomic, that is, $P = \sigma()$ for some zero-arity symbol $\sigma$.
+\begin{align*}
+M \vDash \sigma() \quad &\text{iff} \quad 
+\sigma_M() = \{\Gamma_s\} \\
+&\text{iff} \quad \sigma() \in \Gamma_s.
+\end{align*}
+
+(Induction step). $P$ is of the form $\neg Q$, $Q_1 \wedge Q_2$, or $\sigma(Q_1,\dots,Q_n)$.
+
+\quad (Case A) $P = \neg Q$.
+\begin{align*}
+M \vDash \neg Q \quad &\text{iff} \quad
+\bar{\rho}(\neg Q) = \{\Gamma_s\} \\
+&\text{iff} \quad \bar{\rho}(Q) = \emptyset \\
+&\text{iff} \quad Q \not \in \Gamma_s \\
+&\text{iff} \quad \neg Q \in \Gamma_s.
+\end{align*}
+
+\quad (Case B) $P = Q_1 \wedge Q_2$.
+\begin{align*}
+M \vDash Q_1 \wedge Q_2 \quad &\text{iff} \quad
+\bar{\rho}(Q_1 \wedge Q_2) = \{\Gamma_s\} \\
+&\text{iff} \quad \bar{\rho}(Q_1) = \bar{\rho}(Q_2) = \{\Gamma_s\} \\
+&\text{iff} \quad Q_1, Q_2 \in \Gamma_s \\
+&\text{iff} \quad Q_1 \wedge Q_2 \in \Gamma_s.
+\end{align*}
+
+\quad (Case C) $P = \sigma(Q_1,\dots,Q_n)$.
+\begin{align*}
+M \vDash \sigma(Q_1,\dots,Q_n) \quad &\text{iff} \quad
+\bar{\rho}(\sigma(Q_1,\dots,Q_n)) = \{\Gamma_s\} \\
+&\text{iff} \quad \text{for any } 1 \le i \le n,\ \bar{\rho}(Q_i) = \{\Gamma_{s_i}\}\\
+&\quad \quad \text{and } \sigma_M(\Gamma_{s_1}, \dots, \Gamma_{s_n}) = \{\Gamma_s\}\\
+&\text{iff} \quad \text{for any } 1 \le i \le n,\ Q_i \in \Gamma_{s_i} \\
+&\quad \quad \text{and } \text{for any } P_i \in \Gamma_{s_i}, \ 
+\sigma(P_1, \dots, P_n) \in \Gamma_s \\
+&\text{implies} \quad \sigma(Q_1,\dots,Q_n) \in \Gamma_s.
+\end{align*}
+
+We need a little bit trick to finish our proof of (Case C). In the last step, we showed only one direction of implication. We need to prove the other direction, that is, $\sigma(Q_1,\dots,Q_n) \in \Gamma_s$ implies that for any $1 \le i \le n$, $Q_i \in \Gamma_{s_i}$, and for any $P_i \in \Gamma_{s_i}$, $\sigma(P_1, \dots, P_n) \in \Gamma_s$.
+
+Let us first show the simpler one that every $Q_i$ belongs to $\Gamma_{s_i}$. Assume the opposite. Without loss of generality, let us assume $Q_1 \not \in \Gamma_{s_1}$. From $\Gamma_{s_1}$'s maximal consistency, we know that $\neg Q_1 \in \Gamma_{s_1}$, in other words, $\Gamma \vdash \neg Q_1$. The proof system (that we haven't seen) should let us deduce from that $\Gamma \vdash \neg \sigma(Q_1,\dots, Q_n)$, which contradicts $\Gamma$'s consistency.
+
+We are going to prove the second point that $\sigma(P_1,\dots,P_n) \in \Gamma_s$ for any $P_i \in \Gamma_{s_i}$. The proof needs a trick which I firstly learned from Natalia Gabriela Moanga's thesis \emph{Many-sorted polyadic modal logic}~\cite{}, where Moanga uses it to prove a similar result called the \emph{Existence Lemma}.
+
+We know that $\sigma(Q_1,\dots,Q_n) \in \Gamma_s$ and that every $Q_i$ belongs to $\Gamma_{s_i}$. We are going to consistently maximize $\{Q_i\}$ as we did in Proposition~\ref{maximalconsistentextension}, until we reach $\Gamma_{s_i}$. To do that, we enumerate all patterns as $P_1, P_2, \dots$. 
+
+\begin{align*}
+\Gamma \vdash \sigma(Q_1,\dots,Q_n) \quad
+&\text{iff} \quad \Gamma \vdash \sigma(Q_1 \wedge (P_1 \vee \neg P_1), \dots, Q_n \wedge (P_1 \vee \neg P_1)) \\
+&\text{iff} \quad \Gamma \vdash \bigvee_{\sim_i \in \{+, -\}} \sigma(Q_1 \wedge \sim_1 P_1, \dots, Q_n \wedge \sim_n P_1) \\
+&\text{iff} \quad \Gamma \vdash \sigma(Q_1 \wedge \sim_1 P_1, \dots, Q_n \wedge \sim_n P_1) \ \text{for some $\sim_i \in \{+, -\}$}.
+\end{align*}
+
+Repeat the procedure for $P_2, P_3, \dots$ until we obtain $\Pi^i = \{Q_i, [\neg]P_1, [\neg]P_2, \dots\}$ for each $1 \le i \le n$. It is easy to show that $\Pi^i$ is maximal consistent, by noticing that $\Pi^i$ is negation complete and consistent. 
+
+In fact, $\Pi^i = \Gamma_{s_i}$. If not, then there exists a pattern $P_i^*$ such that $P_i^* \in \Pi^i$ and $\neg P_i^* \in \Gamma_{s_i}$. By the contruction of $\Pi^i$, we can prove that $\Gamma \vdash \sigma(Q_1,\dots,P_i^*,\dots,Q_n)$, while from $\neg P_i^* \in \Gamma_{s_i}$ we can deduce $\Gamma \vdash \neg \sigma(Q_1,\dots,P_i^*,\dots,Q_n)$. This contradition shows that $\Pi^i = \Gamma_{s_i}$, which directly follows that $\Gamma \vdash \sigma(P_1,\dots,P_n)$ for any $P_i \in \Gamma_{s_i} = \Pi^i$.
+
+And here ends the whole proof.
+
+\end{proof}
+
+\begin{thm}
+For any set of patterns $\Gamma$ and any pattern $P$, if $\Gamma \vDash P$ then $\Gamma \vdash P$.
+\end{thm}
+\begin{proof}
+The case where $\Gamma$ is inconsistent is trivial, so let us suppose $\Gamma$ is consistent. Suppose there is a pattern $P$ such that $\Gamma \vDash P$ but $\Gamma \not \vdash P$. By Proposition~\ref{prop:consistent1}, $\Gamma \cup \{\neg P\}$ is consistent. Let $\Gamma'$ be the maximal consistent extension of $\Gamma \cup \{\neg P\}$, and $M$ be the canonical model of $\Gamma'$. Note that $\Gamma'$ is consistent, so $\Gamma' \not \vdash P$, and, by Proposition~\ref{prop:canonicalmodel}, $M \not \vDash P$. On the other hand, $M \vDash \Gamma'$, which implies that $M \vDash \Gamma$ because $\Gamma \subseteq \Gamma'$. This contradicts against the fact that $\Gamma \vDash P$, because we found a model $M$ which satisfies $\Gamma$ but does not entail $P$.
+\end{proof}
+
+\section{Minimal Proof System}
+Matching logic is proved to have a sound complete proof system in the presence 
+of definedness symbols.
+We aim at a sound and complete proof system that does not 
+rely on definedness symbols.
+We conjecture the following proof system~$\miniPS$ is such a proof system.
+\begingroup
+\renewcommand\arraystretch{1.3}
+	\begin{longtable}{ll}
+		\textsc{Propositional$_1$}
+		&  $\varphi_1 \imp (\varphi_2 \imp \varphi_1)$
+		\\
+		\textsc{Propositional$_2$}
+		&  $(\varphi_1 \imp (\varphi_2 \imp \varphi_3)) 
+		\imp ((\varphi_1 \imp \varphi_2) \imp (\varphi_1 \imp \varphi_3))$
+		\\
+		\textsc{Propositional$_3$}
+		&  $(\neg \varphi_1 \imp \neg \varphi_2) \imp (\varphi_2 \imp 
+		\varphi_1)$
+		\\
+		\textsc{Variable Substitution}
+		&  $\forall x . \varphi \imp \varphi[y/x]$
+		\\
+		\textsc{$_\forall$}
+		&  $\forall x . (\varphi_1 \imp \varphi_2) 
+		\imp (\varphi_1 \imp \forall x . \varphi_2)$
+		\\
+		&
+		if $x$ does not occur free in $\varphi_1$
+		\\
+		\textsc{K}
+		&  $\sigma(\dots,\varphi_1 \vee \varphi_2,\dots) 
+		\dimp
+		\sigma(\dots,\varphi_1,\dots) \vee \sigma(\dots,\varphi_2,\dots)$
+		\\
+		\textsc{$\wedge$}
+		&  $\sigma(\dots,\varphi_1 \wedge \varphi_2,\dots) 
+		\imp
+		\sigma(\dots,\varphi_1,\dots) \wedge \sigma(\dots,\varphi_2,\dots)$
+		\\
+		\textsc{N}
+		&  $\neg \sigma(\bot)$
+		\\
+		\textsc{Barcan}
+		&  $\sigma(\dots,\exists x . \varphi,\dots) \dimp \exists x . 
+		\sigma(\dots, \varphi,\dots)$
+		\\
+		&
+		if $x$ does not occur free
+		\\
+		\textsc{Name}
+		& $\exists x . x$
+		\\
+		\textsc{Modus Ponens}
+		&  From $\varphi_1$ and $\varphi_1 \imp \varphi_2$ deduce $\varphi_2$
+		\\
+		\textsc{Universal Generalization}
+		&  From $\varphi$ deduce $\forall x . \varphi$
+		\\
+		\textsc{Equational Substitution}
+		&  From $\varphi_1 \dimp \varphi_2$, deduce $\psi[\varphi_1 / x] \dimp 
+		\psi[\varphi_2 / x]$
+		\\
+		\textsc{Framing}
+		& From $\varphi_1 \imp \varphi_2$, deduce $\sigma(\dots, 
+		\varphi_1,\dots) \imp \sigma(\dots, \varphi_2, \dots)$
+		\\
+		\textsc{Implication Introduction}
+		& From $\varphi$ deduce $x \imp \varphi$, where $x$ does not occur free 
+		in $\varphi$
+		\\
+		\textsc{Implication Elimination}
+		& From $x \imp \varphi$ deduce $\varphi$, where $x$ does not occur free 
+		in $\varphi$
+		\\
+		\caption{A proof system without the presence of definedness symbols}
+		\end{longtable}
+\endgroup
+
+We confess the proof system $\miniPS$ shown above is not minimal yet.
+Many axioms seem to be derivable.
+However, for now we mainly focus on finding a proof system that is independent 
+of the definedness symbols.
+We will prove that $\miniPS$ is sound and complete, but before that, let us 
+establish some useful metatheorems of $\miniPS$.
+This shall give us some confidence that $\miniPS$ is indeed complete.
+
+\begin{prop}[Tautology] \label{prop:taut}
+	For any propositional tautology $\mathcal{A}(p_1,\dots,p_n)$ where 
+	$p_1,\dots,p_n$ are all propositional variables in $\mathcal{A}$, and for 
+	any patterns $\varphi_1,\dots,\varphi_n$ such that the pattern
+	$\mathcal{A}(\varphi_1,\dots,\varphi_n)$ is wellformed,
+	$$ \vdash 
+	\mathcal{A}(\varphi_1,\dots,\varphi_n).$$
+\end{prop}
+\begin{proof}
+	Simply mimic the proof in propositional logic.
+\end{proof}
+
+\begin{prop}
+	$\vdash \forall x . \varphi \imp \exists x . \varphi$.
+\end{prop}
+\begin{proof}
+	Mimic the proof in predicate logic.
+\end{proof}
+
+We say two patterns $\varphi_1$ and $\varphi_2$ are \emph{provably equivalent} 
+in $\Gamma$, if $\Gamma\vdash \varphi_1$ iff $\Gamma \vdash \varphi_2$.
+We often omit $\Gamma$ if it is clear from the context.
+We use $\varphi_1 \equiv \varphi_2$ to denote that $\varphi_1$ and $\varphi_2$ 
+are probably equivalent.
+One can easily verify that if $\Gamma \vdash \varphi_1 \dimp \varphi_2$, then 
+$\varphi_1 \equiv \varphi_2$ in $\Gamma$.
+The notation of probably equivalence is not essential, but it makes the proof 
+of many metatheorems more succinct and intuitive.
+
+
+\begin{prop}
+	In the presence of definedness symbols, 
+	$\vdash \varphi = \varphi$.
+\end{prop}
+\begin{proof}
+	By definition, 
+	$\varphi = \varphi \equiv \neg \ceil{\neg (\varphi \dimp \varphi)}$, which 
+	is provably equivalent to
+	$\neg \ceil{\neg \top} \equiv \neg \ceil{\bot}$.
+	By the (N) rule, $\neg \ceil{\bot} \equiv \neg \bot \equiv \top$.
+\end{proof}
+
+\begin{prop}
+	In the presence of definedness symbols,
+	$\vdash \varphi_1 \dimp \varphi_2$ iff $\vdash \varphi_1 = \varphi_2$.
+\end{prop}
+\begin{proof}
+	Use (Equational Substitution).
+\end{proof}
+
+
+The following transformation is often useful.
+\begin{align*}
+\varphi_1 = \varphi_2
+&\equiv \neg \ceil{\neg(\varphi_1 \dimp \varphi_2)} \\
+&\equiv \neg \ceil{(\varphi_1 \wedge \neg \varphi_2) \vee (\neg \varphi_1 
+\wedge \varphi_2)} \\
+&\equiv \neg \left( \ceil{\varphi_1 \wedge \neg \varphi_2}  \vee  \ceil{\neg 
+\varphi_1 \wedge \varphi_2} \right) \\
+&\equiv \neg \ceil{\varphi_1 \wedge \neg \varphi_2} \wedge \neg \ceil{\neg 
+	\varphi_1 \wedge \varphi_2}
+\end{align*} 
+
+\begin{prop}
+	In the presence of definedness symbols,
+	$\vdash (x \in y) = (x = y)$.
+\end{prop}
+\begin{proof}
+It suffices to prove
+\begin{itemize}
+	\item (Case 1). $\ceil{x \wedge y} \imp \neg \ceil{x \wedge \neg y} \wedge 
+	\neg \ceil{\neg x \wedge y}$
+	\item (Case 2). $\neg(\ceil{x \wedge \neg y} \vee \ceil{\neg x \wedge y}) 
+	\imp \ceil{x \wedge y}$
+\end{itemize}
+Notice that by the (N) rule and the axiom $\forall x . \ceil{x}$, we can prove 
+that
+\begin{align*}
+& \ceil{x \wedge y} \vee \ceil{x \wedge \neg y} \equiv \ceil{x} \equiv \top \\
+& \ceil{x \wedge y} \vee \ceil{\neg x \wedge y} \equiv \ceil{y} \equiv \top
+\end{align*}
+We leave the readers to verify that (Case 2) can be easily established.
+To prove (Case~1), notice its symmetric form, and we only need to prove
+\begin{align*}
+\ceil{x \wedge y} \imp \neg \ceil{x \wedge \neg y}
+&\equiv 
+\end{align*}
+\end{proof}
+
+\begin{prop}
+	$\vdash \varphi \imp \ceil{\varphi}$
+\end{prop}
+\begin{proof}
+	content...
+\end{proof}
+
+
+\section{Applications}
+
+\subsection{Axiomatizing transition systems}
+
+\begin{defn}
+	A transition system $T = (\Cfg, \tau)$ has a (finite or infinite) set $\Cfg$ of configurations and a (partial) transition function $\tau : \Cfg \rightharpoonup \Cfg$. The set of \emph{direct successors} and \emph{direct predecessors} of a configuration $c \in \Cfg$ are denoted as $\tau(c)$ and $\tau^{-1}(c)$ respectively. A configuration is \emph{terminal} if it has no successor.
+\end{defn}
+
+\begin{rmk}
+	There is a dual way to define a transition system $T = (\Cfg, \tau)$. Instead of specifying the transition function $\tau$, we can define the \emph{reverse transition function} or the \emph{predecessor function} $\tau^{-1}$. This fact is witnessed by the next Galois connection
+	\begin{align*}
+	\tau(c)      &= \{d \in \Cfg \mid c \in \tau^{-1}(d) \}, \\
+	\tau^{-1}(d) &= \{c \in \Cfg \mid d \in \tau(c) \}.
+	\end{align*}
+\end{rmk}
+
+Fix a signature $(S,\Sigma)$ where $S = \{\Cfg\}$ has only one sort and $\Sigma = \{\snext\}$ has a unary symbol. Such a signature is called \emph{the signature of transition systems}, as illustrated by the obvious interpretation that takes the sort $\Cfg$ to the carrier set $\Cfg$ of a transition system $(\Cfg, \tau)$ and interprets the symbol $\snext$ as the predecessor function $\tau^{-1}$.
+
+\subsubsection{One-path reachability}
+
+\begin{defn}
+  Given $(S, \Sigma)$ the a signature of transition systems. Introduce predicate patterns $P \Rightarrow^\exists_1 Q$, read as ``$P$ one-step rewrites to $Q$'', as syntactic sugar of $P \to \snext Q$. A transition system theory is a theory whose signature is the signature of transition systems, and whose axioms are all of the form $P \Rightarrow^\exists_1 Q$.
+\end{defn}
+
+The unary symbol $\snext$ is known as the ``strong-next'' temporal connective in temporal logics. Its dual version, the so-called ``weak-next'' connective $\wnext$ is defined as $\neg \snext \neg$ in the usual way.
+
+\begin{eg}
+	Give $T$ is a theory of transition systems, then $T \vdash P \to \wnext \bot$ implies that in any transition system $T$ who is a model of the theory, $P$ is a set of terminal configurations. For the same reason, $T \vdash P \to \snext \top$ implies that $P$ is a set of nonterminal configurations.
+\end{eg}
+
+\begin{eg}
+	Let $T$ be a transition system whose configuration set contains all natural numbers plus one single special configuration $c_\textit{rand}$. Natural numbers are all terminal configurations. Intuitively, $c_\textit{rand}$ is the special configuration that will randomly rewrite to some natural number in a step.
+	
+	Suppose one has that intuition of randomness in mind, and starts to write a specification for that intuition. The followings are possible rules that could be written (we abbreviate $\Rightarrow^{\exists}_1$ as $\Rightarrow$).
+	\begin{enumerate}
+		\item $c_\textit{rand} \Rightarrow \top$. \footnote{For the rewriting patterns below, we assume the right hand sides are patterns of the sort \textit{Nat}, regarded as a subsort of \Cfg, although matching logic is truly not an order-sorted logic. This is for the sake of the simplicity. Otherwise one may fall into unnecessary details that prevent him seeing the big picture. } 
+	    \item $\forall x . (c_\textit{rand} \Rightarrow x)$.
+	    \item $c_\textit{rand} \subseteq \forall x . \snext x$.
+	\end{enumerate}
+Before we study the subtle difference among these specifications, let us list some patterns that are logically equivalent to one of the above, which will cover most cases that any reader might think of. Patterns that are equivalent to the first case include $c_\textit{rand} \Rightarrow \exists x . x$,
+$\exists x . (c_\textit{rand} \Rightarrow x)$,
+and $c_\textit{rand} \subseteq \exists x . \snext x$. Patterns that are equivalent to the second are
+$c_\textit{rand} \Rightarrow \forall x . x$, or
+$c_\textit{rand} \Rightarrow \bot$. Patterns that are equivalent to the third include $\forall x . (c_\textit{rand} \Rightarrow x)$.
+
+Obviously, the second case makes no sense. In fact, it is a falsity, because $c_\textit{rand}$ will never be a subset of $\snext \bot = \bot$, the empty set. The first case is simply saying that $c_\textit{rand}$ is nonterminating. This might seem counterintuitive, but it does capture some kind of randomness here: it allows \emph{any models} in which $c_\textit{rand}$ rewrites to something. Among those models, there exists the standard model where $c_\textit{rand}$ rewrites to possibly any of the natural numbers, but there also have models where $c_\textit{rand}$ only rewrite to some values but not others. It even allows models that rewrite $c_\textit{rand}$ to a fixed single value all the time. As a comparison, the third case precisely captures the standard model where $c_\textit{rand}$ is the predecessor of \emph{all natural numbers}.
+
+To conclude, the third specification is the one that fits the best with the requirement of having some random objects that can potentially become \emph{any} possible objects, while the first specification is the one that allows \emph{any} possible implementation of some nondeterministic objects. A typical example for that is the scheduler in a multithreaded program. The second specification is simply a mistake and should never be written.
+
+\end{eg}
+\todo[author=Traian, inline]{
+	I'm not sure I understand why 2 and 3 are different. It seems to me that $c_{\it rand} \subseteq \forall x. \snext x$ iff $c_{\it rand} \to \forall x. \snext x$ iff $\forall x. c_{\it rand} \to \snext x$ iff $\forall x. c_{\it rand} \Rightarrow x$
+}
+
+We can define $\eventually P$, the temporal ``eventually'' operator with the semantics: if the computation terminates then a state where $P$ holds is reachable.  This can be written as:
+\[\eventually P = (\mu x . (P \vee \snext x)) \vee (\nu x. \snext x)\]
+
+\begin{defn}
+	It is natural to extend the one-step one-path reachability $P \Rightarrow^{\exists}_1 Q$ relation to multisteps one-path reachability $P \Rightarrow^\exists Q$, defined as syntactic sugar for $P \to \eventually Q$.
+\end{defn}
+
+\subsubsection{All-path reachability}
+
+When dealing with nondeterministic programs, we are interested in a different kind of reachability.  Instead of proving that there exists an execution path leading from $P$ to $Q$ we rather want that on all execution paths starting with $P$ $Q$ would eventually hold.
+
+Note that $P \Rightarrow^\exists_1 Q$ models the fact $Q$ {\em can} be reached (i.e., there exists a path) from $P$ in one step. To model all-path reachability, we first need to model that $Q$ must hold if previously $P$ held.  We do that using the previously operator $\prev$ which is the inverse of $\snext$ (thus representing the forward transition relation):
+\[y\in \prev x \leftrightarrow x\in\snext y.\]
+Alternatively, $\prev$ can be defined as
+$\prev x = \exists y. y\wedge x\in \snext y$ where $y$ is distinct from $x$.
+
+
+Using this we can express that if $P$ previously held then $Q$ must hold now.
+
+\begin{defn}
+  Let $P \Rightarrow^\forall_1 Q$, read as ``$P$ must rewrite to $Q$'', be the predicate pattern defined as the syntactic sugar for $\prev P \to Q$.
+\end{defn}
+
+As for the one-path relation, we want to extend this one-step relation to a relation $P \Rightarrow^\forall Q$.  However, note that $Q$ does not need to hold at the same rewrite depth for all paths.  For example, consider the system $\{a \Rightarrow b, a\Rightarrow c, c\Rightarrow b\}$. We have that $a\Rightarrow^\forall b$, but there are two paths of different length leading $a$ to $b$. Therefore we would like to define the all-path reachability relation as:
+\[P \Rightarrow^\forall Q \iff (P\to Q) \vee (\prev (P\wedge \neg Q) \Rightarrow^\forall Q)\]
+
+\[\_ \Rightarrow^\forall Q = \mu f. \lambda P. P\to Q\vee f(\prev(P\wedge \neg Q))\]
+
+\subsection{Symbolic execution}
+
+Different from normal concrete execution, symbolic execution method runs programs in a symbolic way, aiming for a better state-space converge rate. In the literatures of rewriting theory, symbolic execution is often called narrowing, whose main idea is to define a sequence of (symbolic) rewriting steps such that \emph{any} concrete rewriting step can be seen as a specific way to \emph{instantiate} the symbolic rewriting steps. 
+
+\begin{defn}
+	A theory of symbolic execution is a theory of transition system whose axioms are all of the form $P(\vec{x}, \vec{z}) \Rightarrow^{\forall}_1 Q(\vec{x}, \vec{y})$ where $P, Q$ are term patterns with 
+	\begin{align*}
+\vec{x} &= \fv(P) \cap \fv(Q), \\
+\vec{z} &= \fv(P) \setminus \fv(Q), \\
+\vec{y} &= \fv(Q) \setminus \fv(P).
+	\end{align*}
+	Axioms in a theory of symbolic execution are often called \emph{rules}.
+\end{defn}
+
+\begin{defn}
+Given $T$ is a theory of symbolic execution with rules $P_i \To1 Q_i$ for $1 \le i \le n$. Given $R$ is a term pattern. The symbolic term that $R$ rewrites to in one step is defined as
+$$
+\tau(R) = \bigvee_{i} \ceil{R \wedge P_i} \wedge Q_i.
+$$
+\end{defn}
+
+\begin{prop}
+	The following propositions hold for term patterns and unconstrained symbols.
+	\begin{itemize}
+		\item $\ceil{P \wedge Q} = (P = Q)$,
+		\item $\ceil{\sigma(P_1,\dots,P_n) \wedge \sigma(Q_1,\dots,Q_n)} = \bigwedge_{i}(P_i = Q_i)$,
+	\end{itemize}
+\end{prop}
+\begin{proof}
+	Notice that the second bullet is just a corollary of the first bullet and the fact that $\sigma$ is unconstrained.
+\end{proof}
+
+\begin{eg}
+	Fix a signature of transition systems where the only sort is $\Nat$, with the next two axioms
+	\begin{align*}
+	&2x \To1 x, \\
+	&2x+1 \To1 6x+4.
+	\end{align*}
+	
+	Start with a constant $a$. The symbolic term that $a$ rewrites to in one step is 
+	\begin{align*}
+	\tau(a) 
+	&= \ceil{a \wedge 2x} \wedge x \vee
+	          \ceil{a\wedge 2x + 1  } \wedge (6x + 4) \\
+	&= (a = 2x) \wedge x \vee (a = 2x+1) \wedge (6x+4).  
+	\end{align*}
+\end{eg}
+
+\begin{eg}
+	Given a signature of a simple programming language and the following rules.
+	\begin{align*}
+	&\ite(\true, s_1, s_2) \To1 s_1,\\
+	&\ite(\false, s_1, s_2) \To1 s_2.
+	\end{align*}
+	The symbolic term $\ite(b, \textit{stmt}_1, \textit{stmt}_2)$ rewrites in one step to
+	\begin{align*}
+	\tau(\ite(b, \textit{stmt}_1, \textit{stmt}_2))
+	&= \ceil{\ite(b, \textit{stmt}_1, \textit{stmt}_2) \wedge \ite(\true, s_1, s_2)} \wedge s_1 \\
+	&\quad \vee \ceil{\ite(b, \textit{stmt}_1, \textit{stmt}_2) \wedge \ite(\false, s_1, s_2)} \wedge s_2. \\
+    &= b = \true \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge s_1 \\
+    &\quad \vee b = \false \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge s_2\\
+    &= b = \true \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge \textit{stmt}_1 \\
+    &\quad \vee b = \false \wedge \textit{stmt}_1 = s_1 \wedge \textit{stmt}_2 = s_2 \wedge \textit{stmt}_2.    
+	\end{align*}
+\end{eg}
+
+\subsection{Context}
+
+Fix a signature $(S, \Sigma)$. For each sort $s \in S$, introduce an infinite number of \emph{hole} variables, written as $\square_1, \square_2, \cdots$. Think of hole variables as normal matching logic variables, but lie in a disjoint namespace. Extend the grammar by adding the following.
+
+\begin{align}
+\label{ml_grammar}
+P \Coloneqq\  & \cdots \nonumber \\
+\mid\  & \square \nonumber \\
+\mid\  & \gamma \square . P \nonumber \\
+\mid\  & P[P'] . \nonumber
+\end{align}
+
+The sort of $\gamma \square . P$ is the sort of $P$. The sort of $P[P']$ is the sort of $P$, too. Think of $\gamma \square$ as a binder. Alpha-renaming is always assumed. Patterns of the form $\gamma \square . P$ are often called \emph{contexts}, denoted by $C, C_0, C_1, \dots$. The pattern $P[P']$ is often called an \emph{application}. The $\_[\_]$ operator is left associative.
+
+\begin{defn}
+	The context $\gamma \square . \square$ is called the identity context, denoted as $\I$. Identity context has the axiom schema $\I[P]=P$ where $P$ is any pattern.
+\end{defn}
+
+\begin{eg}
+	$\I[\I] = \I$.
+\end{eg}
+
+\begin{eg}
+	Consider a signature $(S,\Sigma)$ of a simple imperative programming language, with $S = \{{BExp},{Pgm}\}$, and $\Sigma = \{skip, {ite}, {seq}, true, false\}$. Add axiom schemata $${ite}(C_1[B], P, Q) = (\gamma \square . {ite}(C_1[\square], P, Q))[B]$$ and $${seq}(C_2[P],Q) = (\gamma \square . {seq}(C_2[\square], Q))[P],$$ where $P, Q$ are ${Pgm}$ patterns, $B$ is a ${BExp}$ pattern, $C_1$ is a ${BExp}$ context, and $C_2$ is a ${Pgm}$ context.
+	
+	Suppose we have the rewrite rules (schemata):
+	\begin{itemize}
+		\item $C[{ite}({true}, P, Q)] \Rightarrow C[P]$,
+		\item $C[{ite}({false}, P, Q)] \Rightarrow C[Q]$,
+		\item $C[{seq}({skip},Q)] \Rightarrow C[Q]$.
+	\end{itemize}
+	
+	Example (a). Rewrite $seq(skip,skip)$.
+	\begin{align*}
+	seq(skip,skip)
+	&= \mathsf{I}[seq(skip,skip)] \\
+	&\Rightarrow \mathsf{I}[skip] \\
+	&= skip.
+	\end{align*}
+	
+	Example (b). Rewrite $ite(true, P, Q); R$.
+	\begin{align*}
+	seq(ite(true, P, Q), R) 
+	&= seq(\I[ite(true, P, Q)], R) \\
+	&= (\gamma \square . seq(\I[\square], R))[ite(true, P, Q)] \\
+	&\Rightarrow (\gamma \square . seq(\I[\square], R))[P] \\
+	&= seq(\I[P], R) \\
+	&= seq(P, R).
+	\end{align*}
+\end{eg}
+
+\begin{defn}
+	Let $\sigma \in \Sigma_{s_1\dots s_n, s}$ is an $n$-arity symbol. We say $\sigma$ is \emph{active} on its $i$th argument ($1 \le i \le n$), if
+	$\sigma(P_1,\dots, C[P_i], \dots, P_n)
+	= (\gamma \square . \sigma(P_1,\dots,C[\square], \dots, P_n))[P_i]$. Orienting the equation from the left to the right is often called \emph{heating}, while orienting from the right to the left is called \emph{cooling}.
+\end{defn}
+
+\begin{eg}
+	Suppose $f$ and $g$ are binary symbols who are active on their first argument. Suppose $a, b$ are constants, and $x$ is a variable. Let $\square_1$ and $\square_2$ be two hole variables. Define two contexts $C_1 = \gamma \square_1 . f(\square_1, a)$ and $C_2 = \gamma \square_2 . g(\square_2, b)$. 
+	
+	Because $f$ is active on the first argument, 
+	\begin{align*}
+       C_1[\varphi]
+       &= (\gamma \square_1 . f(\square_1, a)) [\varphi] \\
+       &= (\gamma \square_1 . f(\I[\square_1], a)) [\varphi] \\
+       &= f(\I[\varphi], a) \\
+       &= f(\varphi, a), \text{ for any pattern $\varphi$.}
+	\end{align*}
+	And for the same reason, $C_2[\varphi] = g(\varphi, b)$. Then we have
+	\begin{align*}
+	C_1[C_2[x]]
+	&= C_1[f(x,a)] \\
+	&= g(f(x,a), b).
+	\end{align*}
+	On the other hand, 
+	\begin{align*}
+    g(f(x,a), b)
+    &= g(C_1[x], b) \\
+    &= (\gamma \square . g(C_1[\square], b))[x] \\
+    &= (\gamma \square . g(f(\square, a), b))[x].
+	\end{align*}
+	Therefore, the context $\gamma \square . g(f(\square, a), b))$ is often called the \emph{composition} of $C_1$ and $C_2$, denoted as $C_1 \circ C_2$.
+
+\end{eg}
+
+\begin{eg}
+	Suppose $f$ is a binary symbol with all its two arguments active. Suppose $C_1$ and $C_2$ are two contexts and $a, b$ are constants. Then easily we get
+	\begin{align*}
+	f(C_1[a],C_2[b])
+	&= (\gamma \square_2 . f(C_1[a], C_2[\square_2]))[b] \\
+	&= (\gamma \square_2 . ((\gamma \square_1 . f(C_1[\square_1], C_2[\square_2])) [a] )) [b].
+	\end{align*}
+	What happens above is similar to \emph{curring} a function that takes two arguments. It says that there exists a context $C_a$, related with $C_1, C_2, f$ and $a$ of course, such that $C_a[b]$ returns $f(C_1[a],C_2[b])$. The context $C_a$ has a binding hole $\square_2$, and a body that itself is another context $C_a'$ applied to $a$. In other words, there exists $C_a$ and $C_a'$ such that 
+	\begin{itemize}
+	\item $f(C_1[a],C_2[b]) = C_a[b]$,
+	\item $C_a = \gamma \square_2 . (C_a'[a])$,
+	\item $C_a' = \gamma \square_1 . f(C_1[\square_1], C_2[\square_2])$.
+	\end{itemize}
+	
+	A natural question is whether there is a context $C$ such that $C[a][b] = f(C_1[a],C_2[b])$. 
+\end{eg}
+
+\begin{prop}
+	$C_1[C_2[\varphi]] = C [\varphi], \text{ where } C = \gamma \square . C_1[C_2[\square]].$
+\end{prop}
+
+\subsubsection{Normal forms}
+
+In this section, we consider \emph{decomposition} of patterns. A decomposition of a pattern $P$ is a pair $\langle C, R \rangle $ such that $C[R] = P$. Let us now consider patterns that do not have logical connectives.
+
+\subsection{Separation logic and their variants}
+
+In this section we show how various variants of separation logic are instances of matching logic. We will choose $n$ most popular variants $\mathrm{SL}_1, \dots, \mathrm{SL}_n$, and for each of them prove the following conservative extension result:
+\begin{equation*}
+\vDash_{\mathrm{SL}_i} \varphi \quad \text{iff} \quad T_{\mathrm{SL}_i} \vDash t_i(\varphi),
+\end{equation*}
+where $T_{\mathrm{SL}_i}$ is the matching logic theory of $\mathrm{SL}_i$ and $t_i$ is the corresponding ``separation logic formulae to matching logic patterns''  translation function, which in most cases should be the identity function.
+
+\subsubsection{Original separation logic}
+
+\subsubsection{Separation logic with recursive definitions}
+
+% PLEASE FOLLOW FSL RULES. FOR EXAMPLE, EACH SENTENCE IN ONE LINE, ETC.
+
+Since 2005 when Josh Berdine, Cristiano Calcagno, and Peter W. O'Hearn firstly proposed separation logic as a formalization 
+of mutable data structures on heaps in the canonical paper~\cite{SymbolicExecutionwithSeparationLogic}, many people 
+have studied and proposed various variants of separation logic. 
+Among all variants, the one that was proposed in~\cite{SeparationLogicwithRecursiveDefinitions}, named 
+\emph{separation logic with recursive/inductive definitions} (SLRD or SLID), 
+seem to be the most popular one \cite{SmallFoot}\cite{ShapeAnalysis}\cite{VeriFast}\cite{NaturalProof}\cite{SLReport}. 
+In 2014, David Cok initiated the first edition of separation logic competition (SL-COMP) alongside the satisfiability modulo theories competition (SMT-COMP), and successfully held the second edition in 2015. 
+Six state-of-the-art separation logic provers participated in the events and competed on a set of benchmarks~\cite{bench}. 
+The benchmarks include hundreds of separation logic formulas of fragments of SLRD, namely SLID+, SLNL, and SLL, in which SLID+ considers inductive definitions of the general form given in equation and its satisfiability problem is decidable but the validity of an entailment is not; SLNL is obtained from SLID+ by mainly restricting the inductive definitions to nested lists data structures, and including skip-lists; SLL is a sub-fragment of SLL+ in which only the \textit{ls} definition is used, it's obtained by requiring that both formulas of the entailment problem do not contain disjunctions and the right-hand side formula has no existential quantification.
+
+The main goal of this section is to show that SLRD is an instance of matching logic.
+We will introduce a matching logic theory $T_{\text{SLRD}}$ that is a \emph{conservative extension} of SLRD, which means that every separation logic formula is a well-formed pattern in $T_{\text{SLRD}}$ (modulo syntactic sugar), and  
+\begin{equation*}
+\vdash_\text{SL} \varphi \quad \text{iff} \quad T_\text{SLRD} \vdash \varphi
+\quad \text{for any separation logic formula $\varphi$.}
+\end{equation*}
+Separation logic assertions are often written in an extended SMT-LIB format~\cite{SMTLIB}. 
+Therefore we also implemented a code-translator that converts separation logic assertions to matching logic definitions, which can later be fed to the matching logic prover. 
+
+Here we only provide a brief review of SLRD. Readers are refered to~\cite{SeparationLogicwithRecursiveDefinitions} for more details.
+
+\newcommand{\FF}{\mathbb{F}}
+\newcommand{\DD}{\mathbb{D}}
+\newcommand{\PP}{\mathbb{P}}
+
+Let $\FF$ be a finite nonempty set of field names, $\DD$ be a set of data types, and $\PP$ be a finite set of recursive predicates. The next figure summaries the syntax of SLRD. 
+\begin{align*}
+&f \in \mathbb{F} \ \text{field names} & &P \in \mathbb{P} \ \text{recursive definition name}\\
+&x,y \in Vars \ \text{reference program vars}& &X,Y \in LVars \ \text{reference logical vars}\\
+&d,D \in DVars \ \text{data\ variables}& &\Delta \ \text{data constraints}\\
+&E,F \Coloneqq x \mid X & &\text{reference  variables}\\
+&\rho \Coloneqq \{(f,E)\} \mid \{(f,D)\}  \mid \rho\cup \rho & &\text{set of field references}\\
+&\Pi \Coloneqq E=F \mid E \ne F  \mid \Pi \wedge  \Pi & &\text{pure formulas}\\
+&\Sigma \Coloneqq emp \mid junk \mid E \mapsto \rho \mid (P(\mathbf{E},\mathbf{D})) \mid \Sigma *\Sigma & &\text{spatial formulas}\\
+&A,B \overset{\Delta}{=} \exists \mathbf{X},\mathbf{D}. \Pi \wedge  \Sigma  \wedge  \Delta & &\text{formulas}\\
+\end{align*}
+%In this section we focus on separation logic with recursive definitions, the separation logic variant first introduced in 2013 by Radu Iosif, Adam Rogalewicz, and Jirı Simácek. Its $symbolic\ heaps$ part was first introduced in 2005 by Josh Berdine, Cristiano Calcagno and Peter W. O'Hearn. It is also the main focus of the SL-COMP 2014 chaired by David R. Cok.
+
+SLRD describes $\mathtt{states}$ consisting of a stack and a heap. 
+Let \textit{Loc} be a set of locations and \textit{Val} a set of data values.
+Let \textit{DVars} be a set of data variables, \textit{LVars} a set of reference logical variables and \textit{Vars} a set of reference program variables.
+A stack \textit{S} is a function mapping reference variables to non-addressable values and locations, which are disjoint sets. 
+Note that \textit{DVars} maps to \textit{Val}, and \textit{LVars} as well as \textit{Vars} maps to \textit{Loc}.
+A heap \textit{H} is a partial function that defines values of fields for some of the locations in \textit{Loc}, it can also be seen as a partial mapping from locations to records. 
+The records are defined by the user as a set of fields typed as reference or data. 
+The domain of the heap $H$ is denoted by \textit{dom(H)} and the set of locations in the domain of $H$ is denoted by \textit{ldom(H)}. 
+Two heaps are disjoint if their domains do not overlap. Symbol \textit{nil} is interpreted to a location $\mathit{S(nil) \notin ldom(H)}$. 
+Their definitions are as follows.
+\begin{equation*}
+\begin{split}
+& \mathrm{Heaps \buildrel \text{d{}ef}\over= Loc \times Fields \rightharpoonup Val\cup Loc} \\
+& \mathrm{Stacks \buildrel \text{d{}ef}\over= Var \to Val \cup Loc}
+\end{split}
+\end{equation*}
+
+
+Let's look at the definitions of SLRD's syntax above. The set of field names $\FF$ is defined using the \textit{Field} sort in the theory. 
+Each field is declared as a function symbol of arity 0 and result type \textit{Field\ A\ B}. 
+Let \textit{A} be the sort corresponding to the record type declaring the field and \textit{B} be the sort typing the field. 
+The following is an example of the definition of a binary tree node.
+\begin{verbatim}
+  typedef struct btree_s {
+  struct btree_s* lson;
+  struct btree_s* rson;
+  int data;
+  }* btree_t;
+  
+  (declare-fun lson () (Field Btree_t Btree_t))
+  (declare-fun rson () (Field Btree_t Btree_t))
+  (declare-fun data () (Field Btree_t Int))
+\end{verbatim}
+
+Let record values be denoted by mappings of record fields to locations stored in variables. 
+The following is an example value for a record defining a binary tree node.
+\begin{verbatim}
+ {(lson, x), (rson, y),(data, z)}
+\end{verbatim}
+
+The set of recursive definitions $\PP$ is defined by the syntax $P(\mathbf{E}\text{,}\mathbf{D}\text{)}\overset{\Delta}{=}\bigvee_{i}\ \exists \mathbf{X_i},\mathbf{D_i},\\ \Pi_i\wedge \Sigma_i \wedge \Delta_i$ where the spatial formulas $\Sigma_i$ may call $P$ or other predicates from $\PP$. 
+In spatial formulas, we have \textit{emp} that denotes empty heap. 
+We have \textit{junk} that is true for any heap, whether empty or consisting of some allocated nodes. We have * as the separating conjunction symbol. %What's more, note that we have pure formulas typed by the \textit{Bool} sort and spatial formulas typed by the \textit{Space} sort, the spatial atoms' combination with a pure formula requires to cast \textit{Space} to \textit{Bool} using the symbol \textit{tobool}. 
+
+After we have known the syntax of SLRD, we then turn our attention to the semantics. 
+The logic allows to prove judgments of the form $(S,H)$ $\vDash$ $\varphi$, where $S$ is a stack, $H$ is a heap, and $\varphi$ is an assertion over the given stack and heap. 
+The semantics are given as follows:
+\begin{align*}
+   & (S,H) \models E = F  & &\text{iff } S(E) = S(F)\\
+   & (S,H) \models E \neq F & &\text{iff }  S(E) \neq S(F)\\
+   & (S,H) \models \varphi \wedge \psi & &\text{iff } (S,H) \models \phi \text{ and } (S,H) \models \psi\\
+    &(S,H) \models emp & &\text{iff } dom(H) = \emptyset\\
+    &(S,H) \models junk  \quad  & &\text{always}\\
+    &(S,H) \models E \mapsto \rho & &\text{iff } dom(H) = \{(S(E),f_i) \mid (f_i,E_i) \in \rho\} \\ & & &\text{and for every } (f_i,E_i) \in \rho , H(S(E),f_i) = S(E_i) \\
+    &(S,H) \models \Sigma_1 \ast \Sigma_2 & &\text{iff }  \exists H_1 , H_2 \text{ s.t. } ldom(H)=ldom(H_1) \uplus ldom(H_2),\\ & & &(S,H_1) \models \Sigma_1, \text{ and } (S,H_2) \models \Sigma_2\\
+    &(S,H) \models P(\mathbf{E}) & &\text{iff } (S,H) \in  \mathbb{[}\mathbb{P]}(P(\mathbf{E}))\\
+    &(S,H) \models \exists X.\varphi & &\text{iff } \text{there exists }  \mathit{l} \in Loc \text{ s.t.}  (S[X \gets \mathit{l}], H) \models \varphi
+\end{align*}
+
+In the above semantics, $\uplus$ denotes the disjoint union of sets. 
+$ S[X\gets\mathit{l}]$ denotes the function $S'$ s.t. $S'(X) = l$ and $S'(Y)=S(Y)$ for any $Y \ne X$. 
+Note that a configuration $(S,H)$ satisfies a predicate atom $P(\mathbf{E})$ if it belongs to the least fix point of the set of recursive definitions $\PP$ for the actual parameters $\mathbf{E}$ of $P$. The set of models of a formula $\varphi$ is denoted by [$\varphi$]. Given two formulas $\varphi_1$ and $\varphi_2$, we have $\varphi_1 \Rightarrow \varphi_2$ iff $[\varphi_1] \subseteq [\varphi_2]$.
+
+Now we have got the general idea of SLRD. 
+We will then focus on building a separation logic theory of this variant using matching logic, in other words, to contribute to proving that SLRD is an instance of matching logic. 
+The theory $T_{\mathrm{SL}}$ consists of two parts: $S$ is the set of sorts and $\Sigma$ is the set of symbols. 
+Our definition focus on the \textit{symbolic\ heaps} part, because there is no need to redefine recursive definitions in matching logic. 
+In the following definition, we can define different data types in $\DD$ such as \textit{Nat}, \textit{node}, etc. 
+Let $\mathit{H,H_1,H_2,H_3}$ be of sort \textit{Map}. Let $\mathit{r,r_1,r_2,r_3}$ be of sort \textit{Record}. 
+Let \textit{x,y,z} be variables of the same data type.  $f\in\FF$. $D\in\DD$. Let $\mathbb{F_\mathrm{D}}$ denote the subset of field names which take a value of type $D$ to form a \textit{Record}.
+\begin{align*}
+&T_{\mathrm{SL}} =  \{ S , \Sigma \}\\
+& S =  \{ \mathit{Record} , \mathit{Map} \} \cup  \mathbb{D }\\
+&\Sigma = \{\cup , \mathit{nil} , \mathit{emp} , \mapsto ,  \mathit{*} , \mathit{ls}\}\cup  \mathbb{F }\\
+&\qquad\ nil:\to\mathit{D} & &\mathit{emp}:\to \mathit{Map} \\ 
+&\qquad\ \_*\_:\mathit{Map}\times\mathit{Map}\rightharpoonup Map& &\mathit{H_1 * H_2 = H_2 * H_1}\\
+&\qquad\ (H_1 * H_2) * H_3 = H_1 * (H_2 * H_3)& & \mathit{emp}*\mathit{H}=\mathit{H}\\
+&\qquad\ \_ \mapsto \_ :D\times Record \rightharpoonup Map& & x \mapsto r_1 * x \mapsto r_2 = \bot\\
+&\qquad\ \{(f\ \_)\}:\mathit{D} \to \mathit{Record}\text{\ \ for any }f\in\mathbb{F_\mathrm{D}} & &nil \mapsto r = \bot
+\\
+&\qquad\ \_\cup\_:\mathit{Record}\times\mathit{Record}\rightharpoonup\mathit{Record}& &\{(f\ x)\}\cup\{(f\ y)\} = \bot\\
+&\qquad\ (r_1 \cup r_2) \cup r_3 = r_1 \cup (r_2 \cup r_3)& &r_1 \cup r_2 = r_2 \cup r_1
+\\&\qquad\ \mathit{ls} (x\ z) = (x = z)\vee ( \exists y\ (x \ne z \wedge x \mapsto \{( f\ y)\} *\mathit{ls} (y\ z))
+\end{align*}
+
+In $S$ we have sorts \textit{Record}, \textit{Map} and all the data types. 
+In the benchmarks of SL-COMP they have data types \textit{Sll\_t}, \textit{TLL\_t}, etc. 
+We can define all of them in \textit{S}. 
+A field reference is the combination of a field name and a data. 
+Let \textit{Record} be a set of field references. 
+Let \textit{Map} be the mapping by symbol $\mapsto$ from a data to a \textit{Record}. 
+
+In $\Sigma$, the symbol $\cup$ is used to group two \textit{Record} together to form a new \textit{Record}. Note that its semantic is not like $or$ because it doesn't conform to the ($\vee$)-rule: $\sigma (...,P\vee Q,...)=\sigma(...,P,...)\vee\sigma(...,Q,...)$. In general it's more like $and$. Let's look at an example: $(S,H) \models E \mapsto \{(lson,3)\}\cup\{(rson,4)\}$ iff the domain of heap $H$ is the fields $lson$ and $rson$ of \textit{E}'s location, and the corresponding values of the fields are 3 and 4. The values of other fields are not concerned. What's more, $\{(lson,3)\}\cup\{(lson,4)\}$ can not be satisfied because the function $H$ cannot have multiple values. We use $\cup$ here because we want to keep consistent with the separation logic syntax. Let the symbol \textit{nil} be a program variable representing an undefined reference. Let the symbol \textit{emp} be an empty heap. Symbol $\mapsto$ has been explained above. Let symbol $*$ be the separating conjunction operator. Note that $\cup$ and $*$ are both associative and commutative. Symbol \textit{ls} means list, its definition can be seen above. We define all the field names to be symbols. They take a certain type data as input and form a field reference. The following is an example of a binary tree node.
+\begin{verbatim}
+  D        : t
+  Record   : {(lson x), (rson y), (data z)}
+  Map      : t |-> {(lson x), (rson y), (data z)}   
+\end{verbatim}
+
+In addition, we define a syntactic sugar in our theory called  \textit{junk}. It stands for the top pattern ($\top$), which means total set in matching logic. 
+\begin{equation*}
+\begin{split}
+ junk &\equiv \top\\
+\end{split}
+\end{equation*}
+
+Now we can do the formula transformation from separation logic with recursive definitions to matching logic. We are happy to tell you that all the formulas stay the same in matching logic as in this separation logic variant, so no extra work needed.
+\begin{comment}
+\begin{algorithm}
+	\KwIn{a separation logic pattern $P$}
+	\KwOut{a matching logic formula}
+    \Switch{the pattern $P$}{
+      \uCase{$\Pi$}
+            {\Return{$\Pi$} \;}
+      \uCase{$junk$}
+            {\Return{$true$} \;}
+      \uCase{$\Sigma$}
+            {\Return{$\Sigma$} \;}
+      \uCase{$\exists x . Q$}
+            {\Return{$\exists x . Q$} \;}
+      \uCase{$\Pi \wedge \mathtt{tobool}(\Sigma) \wedge \Delta$}
+            {\Return{$\Pi \wedge \Sigma \wedge \Delta$ \;}}
+    }
+	\caption{The separation logic to matching logic  transformation}
+\end{algorithm}
+\end{comment}
+
+Finally, we show an example of translation from the benchmark of SL-COMP to matching logic. 
+Over 400 translated examples can be refered in this repository.
+In the following separation logic example, data type \textit{Sll\_t} is defined. 
+Let \textit{next} be a field name with record type \textit{Sll\_t} and field type \textit{Sll\_t}. Let $x_1$ - $x_{10}$ be constants of data type \textit{Sll\_t}. The following formula is asserted:
+\begin{equation*}
+\begin{split}
+&((\mathit{ls}\ x_6\ x_1) *(x_4\mapsto \{(\mathit{next}\ x_9)\}) *\mathit{emp})
+\end{split}
+\end{equation*}
+
+The following is the example encoded in the separation logic theory in SMT\_LIB. 
+The sorts and the set of reference variables (program or existentially quantified) are declared in a classic way. For example:
+\begin{verbatim}
+(declare-sort Btree_t () 0)
+(declare-fun root () Btree_t)
+\end{verbatim}
+declares a binary tree sort with no parameters and a variable root to be a reference to a binary tree.
+The way to declare field names has been explained above. This is an extension from SMT\_LIB.
+Note that in the benchmarks of SL-COMP the flatness of formulas is not ensured. 
+So the spatial atoms are typed in the theory by the \textit{Space} sort (arity 0) and their combination with a pure (boolean) formula requires to cast \textit{Space} to \textit{Bool}.
+The space atoms are built using the following theory operators.
+\begin{equation*}
+\begin{array}{ccc}
+\text{Syntax} & &\text{SMT\_LIB notation} \\ 
+\hline
+emp & &\mathtt{emp}  \\ 
+junk & &\mathtt{junk} \\ 
+\Sigma_1*...*\Sigma_n & &\mathtt{(ssep\ \mathrm{<form>^{+}})}  \\ 
+E \mapsto \rho & &\mathtt{(pto\ \mathrm{<var>}\ \rho)} \\ 
+none & &\mathtt{(tobool\ \mathrm{<form>\ <form>})} \\
+none & &\mathtt{(tospace\ \mathrm{<form>\ <form>})}\\
+\{(f,E)\} & &\mathtt{(ref\ \mathrm{<f>\ <var>})}\\
+\rho \cup\rho &  &\mathtt{(sref\ \mathrm{<\rho>^{+}})}
+\end{array} 
+\end{equation*}
+
+In the following codes, %symbol \textit{ssep} denotes the separating conjunction symbol, it can take arbitrary number of \textit{Maps} as input. Symbol \textit{pto} denotes $\mapsto$. %and \textit{tobool} is used to cast spatial formulas to pure ones. %We use \textit{ref} to denote a field reference and \textit{sref} to denote a set of field references.
+note that we only have one field here, so $\mathtt{ref}$ and $\mathtt{sref}$ may look redundant, but if we have multiple fields then their differences can be seen.
+\begin{verbatim}
+;Sll_t is of arity 0
+(declare-sort Sll_t 0)
+;next is a field name
+(declare-fun next () (Field Sll_t Sll_t))
+
+;List
+(define-fun ls ((?in Sll_t) (?out Sll_t)) Space
+(tospace (or (= ?in ?out)
+(exists ((?u Sll_t))
+(and (distinct ?in ?out) (tobool
+(ssep (pto ?in (sref (ref next ?u))) (ls ?u ?out)
+)))))))
+
+;Sll_t constants
+(declare-fun x0 () Sll_t)
+(declare-fun x1 () Sll_t)
+(declare-fun x2 () Sll_t)
+(declare-fun x3 () Sll_t)
+(declare-fun x4 () Sll_t)
+(declare-fun x5 () Sll_t)
+(declare-fun x6 () Sll_t)
+(declare-fun x7 () Sll_t)
+(declare-fun x8 () Sll_t)
+(declare-fun x9 () Sll_t)
+(declare-fun x10 () Sll_t)
+
+;example 1
+;((ls x6 x1)*(x4|->{(next x9)})*emp)
+(assert
+    (tobool 
+	    (ssep
+       		(ls  x6 x1) 
+       		(pto x4 (ref next x9))
+       		emp
+	))
+)
+(check-sat)
+
+\end{verbatim}
+
+The following is the matching logic version of the above example. It shall be noted that proving assertion $P$ is equivalent to establishing \textit{not(floor\ P)} is unsat. Its syntax refers to the matching logic syntax used in section 2.3.
+\begin{verbatim}
+(declare-sort Sll_t)
+(declare-sort Record)
+(declare-sort Map)
+
+;Sll_t constants
+(declare-func x0 () Sll_t)
+(declare-func x1 () Sll_t)
+(declare-func x2 () Sll_t)
+(declare-func x3 () Sll_t)
+(declare-func x4 () Sll_t)
+(declare-func x5 () Sll_t)
+(declare-func x6 () Sll_t)
+(declare-func x7 () Sll_t)
+(declare-func x8 () Sll_t)
+(declare-func x9 () Sll_t)
+(declare-func x10 () Sll_t)
+
+(declare-func nil () Sll_t)
+
+;distinct : a syntactic sugar
+;distinct(x y) = (not (= x y))
+
+;Field name
+(declare-func next (Sll_t) Record)
+
+;Record
+;(declare-func ref (Record) Record)
+
+;Union
+(declare-part uni (Record Record) Record)
+
+; Maps
+(declare-func emp () Map)
+
+; x |-> y
+(declare-part pto (Sll_t Record) Map)
+
+; nil |-> y is bottom
+(assert (forall ((x Record))
+  (not (pto nil x))))
+
+; ssep is separating conjunction
+(declare-part ssep (Map Map) Map)
+
+; commutativity
+(assert (forall ((h1 Map) (h2 Map))
+  (= (ssep h1 h2) (ssep h2 h1))))
+
+; associativity
+(assert (forall ((h1 Map) (h2 Map) (h3 Map))
+  (= (ssep (ssep h1 h2) h3)
+     (ssep h1 (ssep h2 h3)))))
+
+; identity
+(assert (forall ((h Map))
+  (= h (ssep h emp))))
+
+; x |-> y * x |-> z = bottom
+(assert (forall ((x Sll_t) (y Record) (z Record))
+  (not (ssep (pto x y) (pto x z)))))
+
+;(next x) U (next y) = bottom
+(assert (forall ((x Sll_t) (y Sll_t))
+  (not (uni (next x) (next y)))))
+
+; commutativity
+(assert (forall ((r1 Record) (r2 Record))
+  (= (uni r1 r2) (uni r2 r1))))
+
+; associativity
+(assert (forall ((r1 Record) (r2 Record) (r3 Record))
+  (= (uni (uni r1 r2) r3)
+     (uni r1 (uni r2 r3)))))
+
+;List
+(declare-func ls (Sll_t Sll_t) Map)
+(assert (forall ((in Sll_t)(out Sll_t)) 
+ (= (ls in out) (or (= in out) (exists ((u Sll_t)) (and (not 
+ (= in out)) (ssep (pto in (next u)) (ls u out)
+)))))
+))
+
+;example 1
+;((ls x6 x1)*(x4|->{(next x9)})*emp)
+(assert
+    (not (floor  
+        (ssep
+          (ls  x6 x1) 
+        (ssep     
+          (pto x4 (next x9)) 
+          emp
+  ))))
+)
+\end{verbatim}
+
+\section{Linear Temporal Logic}
+
+This section studies the connection between matching logic and linear temporal 
+logic.
+
+Consider a unary symbol $\sigma$.
+Given a model $M$, the symbol $\sigma$ is interpreted as a function
+$$ \sigma_M \colon M \to 2^M $$
+Notice that there is an isomorphism between the sets $M \to 2^M$ and $2^{M 
+\times M}$.
+The isomorphism implies the following two facts.
+Firstly, every interpretation of a symbol can be seen as 
+a binary relation on the domain.
+Secondly, every binary relation on the domain can be taken as an interpretation 
+of a symbol.
+This is formalized in the next definition.
+\begin{defn}
+Given a function $\sigma_M \colon M \to 2^M$, the binary relation $R_\sigma$ 
+deduced from $\sigma_M$ is defined as
+\begin{center}
+$(a,b) \in R_\sigma$ \quad iff \quad $a \in \sigma_M(b)$
+\end{center}
+\end{defn}
+
+\begin{eg}
+Given a signature $(S, \Sigma)$ where $S = \{s\}$ and $\Sigma = \{\circ\}$.
+The symbol $\circ$ is known as the ``next'' operator.
+Given a model $M$ of the signature and an interpretation of $\circ$:
+$$ \circ_M \colon M \to 2^M $$
+The binary relation deduced from $\circ_M$, denoted as $\Rightarrow$, is 
+defined as
+\begin{center}
+$a \Rightarrow b$ \quad iff \quad $a \in \circ_M(b)$
+\end{center}
+\end{eg}
+
+Duality is an important property of unary constructs.
+The dual of a construct $c$ is denoted and defined as
+$$ \bar{c} = \neg c \neg $$
+As an example, it is well-known that the universal quantifier $\forall x$ and 
+the existential quantifier $\exists x$ have each other as dual constructs:
+\begin{align*}
+\forall x . \varphi = \neg \exists x . (\neg \varphi) \\
+\exists x . \varphi = \neg \forall x . (\neg \varphi)
+\end{align*}
+Negation is dual to itself:
+$$\neg \varphi = \neg (\neg (\neg \varphi))$$
+For a symbol $\sigma$, its dual $\bar{\sigma}$ is
+$$ \bar{\sigma}(\varphi) = \neg \sigma (\neg \varphi)
+$$
+Notice that in general, the dual of a symbol $\bar{\sigma}$ is not 
+``interpreted'' 
+as a binary relation as the symbol $\sigma$ does.
+Given a model $M$, a construct $c$ is ``interpreted'' as a function
+$$ c_M \colon 2^M \to 2^M $$
+This is because the construct $c$ can take any pattern $\varphi$ and gives back 
+another pattern $c(\varphi)$, which is obtained by applying $c$ to $\varphi$.
+As a result, ``interpretation'' of unary constructs cannot be naturally viewed 
+as binary relations.
+
+\begin{defn}
+Given a construct $c$ and a model $M$. We say $c$ is a point-wise extension 
+in $M$, if the function $c_M \colon 2^M \to 2^M$ satisfies 
+the following disjunctive propagation conditions:
+\begin{itemize}
+\item $c_M(\emptyset) = \emptyset$
+\item $c_M(A \cup B) = c_M(A) \cup c_M(B)$, for any $A, B \subseteq M$
+\end{itemize}
+This means the function $c_M$ is fully determined by its values on singleton 
+sets:
+$$
+c_M(A) = \bigcup_{a \in A} c_M(\{a\})
+$$
+\end{defn}
+
+\begin{thm}
+Given a unary symbol $\sigma$ and a model $M$.
+The following statements are equivalent:
+\begin{enumerate}
+\item The dual $\bar{\sigma}$ is a point-wise extension in $M$;
+\item $\sigma_M(M) = M$ and $\sigma_M(A \cap B) = \sigma_M(A) \cap \sigma_M(B)$
+\item The binary relation $R_\sigma$ deduced from $\sigma_M$ is a function;
+\item $\sigma_M = \bar{\sigma}_M$
+\end{enumerate}
+\end{thm}
+\begin{proof}
+($1 \Rightarrow 2$).
+By definition, $\bar{\sigma}_M(\emptyset) = M \setminus \sigma_M(M \setminus 
+\emptyset) = M \setminus \sigma_M(M ) = \emptyset$, so $\sigma_M(M) = M$.
+Similarly, $\bar{\sigma}_M(A \cup B) = M \setminus \sigma_M(M \setminus (A \cup 
+B)) = M \setminus \sigma_M((M \setminus A) \cap (M \setminus B)) = 
+\bar{\sigma}_M(A) \cup \bar{\sigma}_M(B) = (M \setminus \sigma_M(M \setminus 
+A)) \cup (M \setminus \sigma_M(M \setminus B)) = M \setminus (\sigma_M(M 
+\setminus 
+A) \cap \sigma_M(M \setminus 
+B))$, so $\sigma_M((M \setminus A) \cap (M \setminus B)) = (\sigma_M(M 
+\setminus 
+A) \cap \sigma_M(M \setminus 
+B))$. Because $A, B$ are arbitrary subsets, this gives us $\sigma_M(A \cap B) = 
+\sigma_M(A) \cap \sigma_M(b)$.
+
+($2 \Rightarrow 3$).
+Because $\sigma_M(M) = M$, for any $a$, there exists a $b$ such that $(a, b) 
+\in R_\sigma$.
+Assume there exist $a, b_1, b_2$ and $b_1 \neq b_2$ such that $(a, b_1), (a, 
+b_2) \in R_\sigma$.
+By definition, $a \in \sigma_M(b_1)$ and $a \in \sigma_M(b_2)$, so $a \in 
+\sigma_M(b_1) \cap \sigma_M(b_2) = \sigma_M(\{b_1\} \cap \{b_2\}) = 
+\sigma_M(\emptyset) = \emptyset$.
+This is a contradiction, which means our assumption is incorrect.
+Therefore, for any a, there exists one and exactly one $b$ such that $(a, b) 
+\in R_\sigma$, and thus $R_\sigma$ is a function.
+
+($3 \Rightarrow 4$).
+We only show that for any $b$, $\sigma_M(b) \subseteq \bar{\sigma}_M(b)$.
+The other direction can be obtained by considering $\bar{\sigma}_M$ and 
+$\bar{\bar{\sigma}}_M$, and the fact that $\sigma_M = \bar{\bar{\sigma}}_M$.
+Now let $a \in \sigma_M(b)$,
+\begin{align*}
+&a \in \bar{\sigma}_M(b) \\
+\text{if}\quad & a \not\in \sigma_M(M \setminus \{b\}) \\
+\text{if}\quad & a \notin \sigma_M(c) \quad \text{for any $c \neq b$} \\
+\text{if}\quad & a \in \sigma_M(c) \text{ implies }  c = b \quad \text{for any 
+$c$} \\
+\text{if}\quad & (a, c) \in R_\sigma \text{ implies }  c = b \quad \text{for 
+any 
+$c$}
+\end{align*}
+The last statement is true, because $R_\sigma$ is a function, and by assumption 
+we have $a \in \sigma_M(b)$, so $(a,b) \in R_\sigma$.
+\end{proof}
+
+($4 \Rightarrow 1$).
+Trivial.
+
+\begin{prop}
+For any unary symbol $\circ$, 
+\begin{displaymath}
+\prftree
+{\circ\varphi \dimp \neg \circ \neg \varphi}
+{\circ(\varphi \to \psi) \to (\circ \varphi \to \circ \psi)}
+\end{displaymath}
+\end{prop}
+
+
+\medskip
+ 
+\begin{thebibliography}{9}
+\bibitem{SymbolicExecutionwithSeparationLogic} 
+Berdine J, Calcagno C, O'Hearn P W. Symbolic execution with separation 
+logic[C]//APLAS. 2005, 5(3780): 52-68.
+
+ 
+\bibitem{SmallFoot} 
+Berdine J, Calcagno C, O’hearn P W. Smallfoot: Modular automatic assertion checking with separation logic[C]//International Symposium on Formal Methods for Components and Objects. Springer, Berlin, Heidelberg, 2005: 115-137.
+
+\bibitem{ShapeAnalysis}
+Distefano D, O’Hearn P, Yang H. A local shape analysis based on separation logic[J]. Tools and Algorithms for the Construction and Analysis of Systems, 2006: 287-302.
+
+\bibitem{VeriFast}
+Jacobs B, Piessens F. The VeriFast program verifier[J]. 2008.
+
+\bibitem{NaturalProof}
+Qiu X, Garg P, Ştefănescu A, et al. Natural proofs for structure, data, and separation[J]. ACM SIGPLAN Notices, 2013, 48(6): 231-242.
+
+\bibitem{SLReport}
+Sighireanu M, Cok D R. Report on sl-comp 2014[J]. \textit{Journal on Satisfiability, Boolean Modeling and Computation}, 2016, 9: 173-186.
+
+\bibitem{bench}
+https://github.com/mihasighi/smtcomp14-sl
+
+\bibitem{SMTLIB}
+https://www.irif.fr/~sighirea/slcomp14/smtlib2sl-v0.pdf
+\end{thebibliography}
+\end{document}
+\grid

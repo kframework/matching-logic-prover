@@ -1,0 +1,1652 @@
+% ------------------------------------------
+addunfoldlevel(_UnfoldLevel, _Level, [], []).
+addunfoldlevel(UnfoldLevel, Level, [X|R], [atm(UnfoldLevel, Level, X)|S]) :-
+  addunfoldlevel(UnfoldLevel, Level, R, S).
+
+%------------------------------------------------------------------------------
+find_existential_unifier(V, [Atom|R], R, ExtUnif) :-
+  Atom =.. [S,X,Y], equality(S),
+  not S == arreq, X==V, !, ExtUnif =.. [S,X,Y].
+find_existential_unifier(V, [Atom|R], R, ExtUnif) :-
+  Atom =.. [S,Y,X], equality(S),
+  not S == arreq, X==V, !, ExtUnif =.. [S,X,Y].
+find_existential_unifier(V, [C|R], [C|S], ExtUnif) :-
+  find_existential_unifier(V, R, S, ExtUnif).
+
+
+%------------------------------------------------------------------------------
+% find_existential_variables
+%------------------------------------------------------------------------------
+
+:- dynamic(refresh_variables, 1). % Not sure what this does
+
+find_existential_variables(GAtoms, GConstraints,
+                     HAtoms, HConstraints, EV) :-
+  assert(refresh_variables(t(GAtoms, GConstraints,
+                                      HAtoms, HConstraints))),
+  retract(refresh_variables(t(GAtoms1, GConstraints1,
+                                       HAtoms1, HConstraints1))),
+  label_variables(0, GAtoms1, N),
+  label_variables(N, GConstraints1, _),
+  gather_variable(HAtoms1, HAtoms, V1, V2),
+  gather_variable(HConstraints1, HConstraints, V3, V4),
+  append(V1, V3, V5),
+  append(V2, V4, V6),
+  label_variables(0, V5, _),
+  once(remove_multiple_occurrence(V5, V6, EV)).
+
+remove_multiple_occurrence([], [], []).
+remove_multiple_occurrence([A|R], [B|S], [B|T]) :-
+  not in(A, R),
+  remove_multiple_occurrence(R, S, T).
+remove_multiple_occurrence([_|R], [_|S], T) :-
+  remove_multiple_occurrence(R, S, T).
+
+in(A, [A|_]) :- !.
+in(A, [_|R]) :- in(A, R).
+
+%------------------------------------------------------------------------------
+% unsatisfiable/1: Testing unsatisfiability of list of constraints
+%------------------------------------------------------------------------------
+
+unsatisfiable(ConstrainList) :- true
+ , satisfiable_negation(ConstrainList, [ff]), !
+ , fail
+ .
+unsatisfiable(_CL) :- true
+ .
+
+% This should be called only when all the existential variables
+% in the RHS have been removed
+satisfiable_negation(GConstraints, HConstraints) :- true
+ , satisfiable_negation_aux(GConstraints, HConstraints)
+ , !
+ , true
+ .
+
+% If fails, GConstraints |= Hconstraints
+satisfiable_negation_aux(_GConstraints, []) :-
+  %----------------------------------------------------------------------
+  % [] means "true", so its trivially holds
+  %----------------------------------------------------------------------
+  !, fail.
+
+
+% If fails, GConstraints |= Hconstraints
+satisfiable_negation_aux(GConstraints, HConstraints) :-
+  %----------------------------------------------------------------------
+  % Symbolic
+  %----------------------------------------------------------------------
+  %printf("about to negate list\n", []),
+
+        negate_list(HConstraints, NegHConstraints),
+  %printf("calling sat_disjunct LHS = %, RHS = %\n",
+        %        [GConstraints, NegHConstraints]),
+  satisfiable_disjunct(GConstraints, NegHConstraints), !.
+
+satisfiable_disjunct(_G, []):- !, fail.
+
+satisfiable_disjunct(G, [C | _Rest]):-
+  z3_check_sat_from_list([C | G], Res),
+  Res > 0, % SATISFIABLE or UNKNOWN
+  !.
+
+satisfiable_disjunct(G, [_ | Rest]):-
+  satisfiable_disjunct(G, Rest).
+
+%------------------------------------------------------------------------------
+% negate_list
+% Negate constraints except array equalities
+%------------------------------------------------------------------------------
+
+negate_list([], []).
+negate_list([z3_not(A)|R], [A|S]) :-
+  !, negate_list(R, S).
+negate_list([eq(A,B)|R], [z3_not(eq(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([assign(A,B)|R], [z3_not(eq(A,B))|S]) :-
+  !, negate_list(R, S).
+
+negate_list([arrassign(A,B)|R], [z3_not(arrassign(A,B))|S]) :-
+  !, negate_list(R, S).
+%negate_list([arreq(A,B)|R], [z3_not(arreq(A,B))|S]) :-
+% !, negate_list(R, S).
+
+% Hiep: to check
+negate_list([arreq(_A,_B)|R], S) :-
+  !, negate_list(R, S).
+
+
+negate_list([eqset(A,B)|R], [z3_not(eqset(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([subset(A,B)|R], [z3_not(subset(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([mem(A,B)|R], [z3_not(mem(A,B))|S]) :-
+  !, negate_list(R, S).
+negate_list([emptyset(A)|R], [z3_not(emptyset(A))|S]) :-
+  !, negate_list(R, S).
+
+
+negate_list([gt(A,B)|R], [geq(B,A)|S]) :-
+  !, negate_list(R, S).
+negate_list([geq(A,B)|R], [gt(B,A)|S]) :-
+  !, negate_list(R, S).
+negate_list([tt|R], [ff|S]) :- !, negate_list(R, S).
+negate_list([_|R], [tt|S]) :- negate_list(R, S).
+
+remove_atm([], []).
+remove_atm([atm(_,_,X)|R], [X|S]) :- remove_atm(R, S).
+
+collect_unifying_constraints([], []) :- !.
+collect_unifying_constraints([Atom | Rest], [Atom | ERest]) :- true
+ , Atom =..[S,X,Y]
+ , equality(S)
+ , var(X), var(Y), !
+ , collect_unifying_constraints(Rest, ERest)
+ .
+collect_unifying_constraints([_Atom | Rest], ERest) :- true
+ , collect_unifying_constraints(Rest, ERest)
+ .
+
+%------------------------------------------------------------------------------
+% existential_unifier(V, A, B, C):
+% Split the list a of elements eq(X,Y) into two lists:
+% The list B containing eq(X,Y) in A when X is in V, and
+% the list C contains eq(X,Y) in A when X is not in V.
+% Essentially, B is the "existential unifiers" when V is the set of
+% existential variables, and C other unifiers.
+%------------------------------------------------------------------------------
+existential_unifier(_ExtVar, [], [], []) :- !.
+existential_unifier(ExtVar, [Equality|R], [Equality|S], T) :-
+  Equality =.. [_,A,_],
+  existential_unifier_in(A, ExtVar), !,
+  existential_unifier(ExtVar, R, S, T).
+existential_unifier(ExtVar, [Equality|R], S, [Equality|T]) :-
+  existential_unifier(ExtVar, R, S, T).
+
+existential_unifier_in(A, [B|_]) :- A==B, !.
+existential_unifier_in(A, [_|R]) :- existential_unifier_in(A, R).
+
+%------------------------------------------------------------------------------
+% existential_unifier_closure(+A,+B,-C):
+% Compute the "closure" C of the existential unifier. The "closure" C simply
+% stores the association of existential variable with a set of substitutes.
+% B is always [] initially .
+%------------------------------------------------------------------------------
+existential_unifier_closure([], Closure, Closure).
+existential_unifier_closure([Equality|R], Closure, Closure2) :-
+  Equality =.. [Symb,A,B],
+  update_eu_closure(Symb, A, B, Closure, Closure1),
+  existential_unifier_closure(R, Closure1, Closure2).
+
+%------------------------------------------------------------------------------
+% update_eu_closure(+A,+B,+C,-D):
+% New association of existential variable A with B is found, update list C
+% containing associations found earlier resulting in the list D.
+%------------------------------------------------------------------------------
+% Hiep: found the bug here !!! due to unification
+update_eu_closure(Symb, A, B, [], [t(Symb,A,[B])]).
+update_eu_closure(Symb, A, B, [t(Symb,A1,Class)|R], [t(Symb,A1,[B|Class])|R]) :-
+  A == A1,
+  !.
+update_eu_closure(Symb, A, B, [TClass|R], [TClass|S]) :-
+  update_eu_closure(Symb, A, B, R, S).
+
+
+%------------------------------------------------------------------------------
+% closure_to_constraints(+A, -B):
+% Given a closure list A : [...,t(Ai,Bi)...], when Bi contains more than one
+% element with first element X, for all other elements Cj in Bi, generate
+% equalities [...,eq(X,Cj),...].
+%------------------------------------------------------------------------------
+closure_to_constraints([], []).
+closure_to_constraints([t(_, _, [_])|R], Constraints) :-
+  closure_to_constraints(R, Constraints).
+closure_to_constraints([t(Symb, _, [A,B|R])|S], Constraints) :-
+  closure_to_constraints(S, T),
+  closure_to_constraints_aux(Symb, A, [B|R], T, Constraints).
+
+%------------------------------------------------------------------------------
+% closure_to_constraints_aux(-A,-L,-M,+C):
+% Given an object A and a list L of objects, and another list M of a set of
+% constraints, return C, which contains equalities of A with elements of L
+% appended to M.
+%------------------------------------------------------------------------------
+closure_to_constraints_aux(_Symb, _A, [], Constraints, Constraints).
+closure_to_constraints_aux(Symb, A, [B|R], Constraints, [Equality|S]) :-
+  Equality =.. [Symb,A,B],
+  closure_to_constraints_aux(Symb, A, R, Constraints, S).
+
+% -------------------------------------------------------------
+% remove_dangling_constraints(+InHConstraints, +ExtVar2, -OutHConstraints),
+% -------------------------------------------------------------
+remove_dangling_constraints(InHConstraints, [], InHConstraints, []) :- !.
+
+
+remove_dangling_constraints(InHConstraints, InVar, OutHConstraints1, OutVar1) :-
+  once(remove_dangling_constraints_aux(InHConstraints, InVar, OutHConstraints, OutVar)),
+  remove_dangling_constraints_fix_point(InHConstraints, InVar, OutHConstraints, OutVar,
+                                        OutHConstraints1, OutVar1).
+
+% -------------------------------------------------------------
+
+remove_dangling_constraints_fix_point(_InHConstraints, _InVar,
+                                OutHConstraints, [],
+                                OutHConstraints, []) :- !.
+
+remove_dangling_constraints_fix_point(_InHConstraints, InVar,
+                                OutHConstraints, OutVar,
+                                OutHConstraints, OutVar) :-
+
+  % Fix point has been reached
+  InVar = OutVar, !.
+
+
+remove_dangling_constraints_fix_point(_InHConstraints, _InVar,
+                                OutHConstraints, OutVar,
+                                OutHConstraints1, OutVar1) :-
+
+  % Fix point has NOT been reached
+  % Recursively perform removal
+  remove_dangling_constraints(OutHConstraints, OutVar,
+                              OutHConstraints1, OutVar1).
+
+% -------------------------------------------------------------
+
+get_constraints_from_var(_, [], []) :- !.
+get_constraints_from_var(Var, [C | S], [C | T]) :-
+  contains_variable(Var, C), !,
+  get_constraints_from_var(Var, S, T).
+get_constraints_from_var(Var, [_C | S],  T) :-
+  get_constraints_from_var(Var, S, T).
+
+% -------------------------------------------------------------
+
+remove_constraints_from_var(_, [], []) :- !.
+remove_constraints_from_var(Var, [C | S],  T) :-
+  same_variable(Var, C), !,
+  remove_constraints_from_var(Var, S, T).
+remove_constraints_from_var(Var, [C | S],  [C | T]) :-
+  remove_constraints_from_var(Var, S, T).
+
+
+% -------------------------------------------------------------
+
+remove_dangling_constraints_aux(InHConstraints, [], InHConstraints, []) :- !.
+
+remove_dangling_constraints_aux(InHConstraints, [Var | Rest], OutHConstraints, OutVar) :-
+  get_constraints_from_var(Var, InHConstraints, Constraints),
+  dangling_contraints(Var, Constraints), !,
+  %printf("An Existential Var with dangling constraint(s) has been removed\n", []),
+  remove_constraints_from_var(Var, InHConstraints, Temp),
+  remove_dangling_constraints_aux(Temp, Rest, OutHConstraints, OutVar).
+
+
+remove_dangling_constraints_aux(InHConstraints, [Var | Rest],
+                          OutHConstraints,[Var | OutRest]) :-
+  remove_dangling_constraints_aux(InHConstraints, Rest,
+                                  OutHConstraints,  OutRest).
+
+% -------------------------------------------------------------
+% For now, only true if the input list is singleton
+% -------------------------------------------------------------
+
+dangling_contraints(Var, [eq(Var1, A)]) :-
+  Var == Var1,
+  A == 0, !.
+dangling_contraints(Var, [eqset(Var1, A)]) :-
+  Var == Var1,
+  A == emptyset, !.
+dangling_contraints(Var, [eq(Var1, X)]) :-
+  Var == Var1,
+  X =.. [S, A, B],
+  arithmetic_bi_operator(S), !,
+  not contains_variable(Var, A),
+  not contains_variable(Var, B).
+dangling_contraints(Var, [eq(Var1, X)]) :-
+  Var == Var1,
+  X =.. [S, A, B],
+  array_ref_operator(S), !,
+  not contains_variable(Var, A),
+  not contains_variable(Var, B).
+dangling_contraints(Var, [eqset(Var1, X)]) :-
+  Var == Var1,
+  X =.. [S, A, B],
+  set_bi_operator(S), !,
+  not contains_variable(Var, A),
+  not contains_variable(Var, B).
+dangling_contraints(Var, [eqset(Var1, X)]) :-
+  Var == Var1,
+  X =.. [S, A],
+  set_unary_operator(S), !,
+  not contains_variable(Var, A).
+
+move_assign_to_lhs(GConstraints, [], GConstraints, []) :- !.
+move_assign_to_lhs(GConstraints0, [ C | T],  GConstraints, HConstraints) :-
+  C =..[S,_X,_Y], assign_type(S), !,
+  move_assign_to_lhs(GConstraints0,  T,  GConstraints1, HConstraints),
+  append(GConstraints1, [C], GConstraints).
+move_assign_to_lhs(GConstraints0, [ C | T],  GConstraints, [ C | HConstraints]) :-
+  move_assign_to_lhs(GConstraints0,  T,  GConstraints, HConstraints).
+
+assign_type(arrassign).
+assign_type(assign).
+
+entailment_check(GConstraints, HConstraints, [], _) :- true
+ , !
+ , prettyprint_aux([], [], GConstraints, [], [], HConstraints)
+ , remove_redundant_constraints(HConstraints, NewH)
+ , z3_check_implies(GConstraints, NewH, Res)
+ , Res == 0
+ .
+entailment_check(GConstraints, HConstraints, EVs, EqualityIn) :- true
+ , get_lhs_vars([], GConstraints, Lhs_Vars)
+ , remove_weak_existential_variable(Lhs_Vars, EqualityIn, EVs, EqualityOut, NewEVs)
+ , collect_unifying_constraints(EqualityOut, FinalUnifier)
+ , existential_unifier(EVs, FinalUnifier, ExtUnifier, _NonExtUnifier)
+ , printf("ExtUnifier = %\n", [ExtUnifier]), substitute_terms(ExtUnifier, HConstraints, HConstraints1)
+ , remove_dangling_constraints(HConstraints1, NewEVs, HConstraints2, _)
+ , prettyprint_aux([], [], GConstraints, [], [], HConstraints2)
+ , remove_redundant_constraints(HConstraints2, NewH)
+ , !
+ , z3_check_implies(GConstraints, NewH, Res)
+ , Res == 0
+ .
+
+%%------------------------------------------------------------------------------
+
+remove_weak_existential_variable(Lhs_Vars, Unifier1, ExtVar1,
+                              Unifier3, ExtVar3) :-
+  once(remove_weak_existential_variable_aux(Lhs_Vars, Unifier1, ExtVar1,
+                       Unifier2, ExtVar2)),
+  remove_weak_existential_variable_fix_point(Lhs_Vars, Unifier1, ExtVar1,
+              Unifier2, ExtVar2,
+              Unifier3, ExtVar3).
+
+
+remove_weak_existential_variable_fix_point(_, _Unifier1, _ExtVar1,
+              Unifier2, [],
+              Unifier2, []) :- !.
+
+
+remove_weak_existential_variable_fix_point(_, Unifier1, _ExtVar1,
+              Unifier2, ExtVar2,
+              Unifier2, ExtVar2) :-
+  % Fix point has been reached
+  length(Unifier1, N1),
+  length(Unifier2, N2),
+  N1 == N2, !.
+
+
+
+remove_weak_existential_variable_fix_point(Lhs_Vars, _Unifier1, _ExtVar1,
+              Unifier2, ExtVar2,
+              Unifier3, ExtVar3) :-
+  % Fix point has NOT been reached
+  % Recursively perform removal
+  remove_weak_existential_variable(Lhs_Vars, Unifier2, ExtVar2,
+              Unifier3, ExtVar3).
+
+% -------------------------------------------------------------
+% No more existential variables, stop
+% -------------------------------------------------------------
+remove_weak_existential_variable_aux(_, Unifier1, [],
+          Unifier1, []) :- !.
+
+% -------------------------------------------------------------
+% Process the first existential variables in the list ExtVar1
+% -------------------------------------------------------------
+remove_weak_existential_variable_aux(Lhs_Vars, Unifier1, [Var|Rest1],
+          Unifier2, Rest2) :-
+        functionally_unifiable(Lhs_Vars, Unifier1, Var, ExtUnif),
+  !,
+
+  add_ext_unifier(Unifier1, ExtUnif, NewUnifier),
+
+        remove_weak_existential_variable_aux(Lhs_Vars,
+                                      NewUnifier, Rest1,
+              Unifier2, Rest2).
+
+
+remove_weak_existential_variable_aux(Lhs_Vars, Unifier1, [Var|Rest1],
+          Unifier2, Rest2) :-
+        weak_functionally_unifiable(Lhs_Vars, Unifier1, Var, ExtUnif),
+  !,
+  add_ext_unifier(Unifier1, ExtUnif, NewUnifier),
+        remove_weak_existential_variable_aux(Lhs_Vars,
+                                      NewUnifier, Rest1,
+              Unifier2, Rest2).
+
+
+
+
+remove_weak_existential_variable_aux(Lhs_Vars,
+                                Unifier1, [Var|Rest1],
+        Unifier2, [Var|Rest2]) :-
+
+  % --------------------------------------------------------------------------
+  % There not exists a nonexistential variable Var1 which can be unified with Var
+  % Var is included in the output list
+  % --------------------------------------------------------------------------
+  remove_weak_existential_variable_aux(Lhs_Vars,
+                                      Unifier1, Rest1,
+              Unifier2, Rest2).
+
+
+self_unification(ExtUnif) :- true
+ , ExtUnif =.. [S, X, Y]
+ , equality(S)
+ , !
+ , X == Y
+ .
+
+remove_redundant_constraints([], []) :- true
+ , !
+ .
+remove_redundant_constraints([C | Rest], NewUnifier) :- true
+ , self_unification(C)
+ , !
+ , remove_redundant_constraints(Rest, NewUnifier)
+ .
+remove_redundant_constraints([C | Rest], NewUnifier) :- true
+ , memberGndchk(C, Rest)
+ , !
+ , remove_redundant_constraints(Rest, NewUnifier)
+ .
+remove_redundant_constraints([C | Rest], NewUnifier) :- true
+ , C =.. [Type, A, B]
+ , C1 =.. [Type, A1, B1]
+ , equality(Type)
+ , member(C1, Rest)
+ , A == B1, B == A1
+ , !
+ , remove_redundant_constraints(Rest, NewUnifier)
+ .
+remove_redundant_constraints([C | Rest], [C | Rest1]) :- true
+ , remove_redundant_constraints(Rest, Rest1)
+ .
+
+remove_redundant_unifier([], NonExtUnifier, NonExtUnifier) :- true
+ , !
+ .
+remove_redundant_unifier([A | T], NonExtUnifier, FinalNonExtUnifier) :- true
+ , remove_constraints_from_var(A, NonExtUnifier, NonExtUnifier1)
+ , remove_redundant_unifier(T, NonExtUnifier1, FinalNonExtUnifier)
+ .
+
+%--------------------------------------------------------
+
+weak_functionally_unifiable(Lhs_Vars, Unifier, Var, ExtUnif) :-
+  weak_functionally_unifiable_aux(Lhs_Vars, Unifier, Unifier, Var, ExtUnif).
+
+
+weak_functionally_unifiable_aux(_Lhs_Vars, [], _, _Var, _) :- !, fail.
+
+%- not guaranteed to be correct unifier, but likely
+weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eq(X,ref(H, plus(Y, Field))),  var(X), var(H),
+  Y==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(Z,ref(H1, plus(Y1, Field1))),
+  Field == Field1,
+  var(Y1),
+  memberGndchk(Y1, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(X, Z, Unifier, eq),
+  !, ExtUnif = eq(Var,Y1).
+
+
+
+weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eq(X,ref(H, plus(Y, Field))),  var(X), var(H),
+  Y==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(Z,ref(H1, plus(Y1, Field1))),
+  Field == Field1,
+  var(Y1),
+  memberGndchk(Y1, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, arreq),
+  can_be_unified_directly(X, Z, Unifier, eq),
+  not_updated_at(H, Y, 1, Unifier),
+  not_updated_at(H1, Y1, 1, Unifier),
+
+  !, ExtUnif = eq(Var,Y1).
+
+weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X,union(Y, Z)),  var(X), var(Z),
+  Y==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(X1, union(Y1, Z1)),
+  var(Y1),
+  memberGndchk(Y1, Lhs_Vars),
+  can_be_unified_directly(Z, Z1, Unifier, eqset),
+  can_be_unified_directly(X, X1, Unifier, eqset),
+
+  !, ExtUnif = eqset(Var,Y1).
+
+
+weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, union(Z, Y)),  var(X), var(Z),
+  Y==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(X1, union(Z1, Y1)),
+  var(Y1),
+  memberGndchk(Y1, Lhs_Vars),
+  can_be_unified_directly(Z, Z1, Unifier, eqset),
+  can_be_unified_directly(X, X1, Unifier, eqset),
+
+  !, ExtUnif = eqset(Var,Y1).
+
+
+% We are desparate to unify
+weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X,union(Y, _Z)),  var(X),
+  Y==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(X1, union(Y1, _Z1)),
+  var(Y1),
+  memberGndchk(Y1, Lhs_Vars),
+  can_be_unified_directly(X, X1, Unifier, eqset),
+
+  !, ExtUnif = eqset(Var,Y1).
+
+weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, union(_Z, Y)),  var(X),
+  Y==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(X1, union(_Z1, Y1)),
+  var(Y1),
+  memberGndchk(Y1, Lhs_Vars),
+  can_be_unified_directly(X, X1, Unifier, eqset),
+
+  !, ExtUnif = eqset(Var,Y1).
+
+
+
+
+%weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = eq(X,ref(H, plus(Y, 2))), var(X),
+% Y==Var,
+% member(Atom2, Unifier),
+% Atom2 = eq(Z,ref(H1, plus(Y1, 2))),
+% var(Y1),
+% memberGndchk(Y1, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(X, Z, Unifier, eq),
+%
+% !, ExtUnif = eq(Var,Y1).
+
+
+%weak_functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = eq(X,ref(H, plus(Y, 2))), var(X),
+% Y==Var,
+% member(Atom2, Unifier),
+% Atom2 = eq(Z,ref(H1, plus(Y1, 2))),
+% var(Y1),
+% memberGndchk(Y1, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, arreq),
+% can_be_unified_directly(X, Z, Unifier, eq),
+% not_updated_at(H, Y, 2, Unifier),
+% not_updated_at(H1, Y1, 2, Unifier),
+%
+% !, ExtUnif = eq(Var,Y1).
+
+
+weak_functionally_unifiable_aux(Lhs_Vars, [_Atom | Rest], Unifier, Var, ExtUnif) :-
+  weak_functionally_unifiable_aux(Lhs_Vars, Rest, Unifier, Var, ExtUnif).
+
+
+% Direct Proof
+% ============
+
+directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- true
+ , printf("DIRECT PROOF: % % % -> % % %\n", [GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints])
+ , fail
+ .
+
+% If the LHS constraint is unsatisfiable, succeed immediately
+directproof(_GAtoms1, _GAtoms2, GConstraints, _HAtoms1, _HAtoms2, _HConstraints) :- true
+ , unsatisfiable(GConstraints)
+ , !
+ , printf("LHS UNSATISFIABLE: PROOF OK\n", [])
+ .
+
+% Else, Repetitively perform substitutions to discharge
+% recursive terms on the RHS and finally consult the SMT solver
+directproof(GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints) :- true
+ % First we test that the rhs atoms signatures is the subset of
+ % the lhs atom signatures.
+ , append_signature(GAtoms1, GAtoms2, GAtoms, GSig)
+ , printf("append_signature(%, %, %, %)\n", [GAtoms1, GAtoms2, GAtoms, GSig])
+ , append_signature(HAtoms1, HAtoms2, HAtoms, HSig)
+
+ % If HSig is not a subset of GSig, no point trying
+ % In other words, no substitution available
+ , subset(HSig, GSig)
+
+ % Find existentially quantified variables (appearing in rhs but not
+ % in lhs).
+ , find_existential_variables(GAtoms, GConstraints, HAtoms, HConstraints, EV)
+ , printf("find_existential_variables: HAtoms = %, \nHC = %\n, EV = %\n", [HAtoms, HConstraints, EV])
+
+ % Simplify RHS constraints (HConstraints) by removing existential
+ % variables, if possible. Existential variables v that can be removed
+ % appears in RHS as v = exp or exp = v, in which case we substitute
+ % all instances of v with exp. Here we assume that v does not occur
+ % in exp. Remaining existential variables that are not removed is
+ % in EV1.
+ , simplify_by_existential_equalities(HAtoms, HConstraints, EV, HAtomsX, HConstraintsX, EVX)
+ , signature_subset(HSig, GSig, HAtomsX, GAtoms, _, Unifier, _)
+ , reverse_unifier(Unifier, RevUnifier)
+
+ , get_lhs_vars(GAtoms, GConstraints, Lhs_Vars)
+ , directproof_aux(GConstraints, HConstraintsX, RevUnifier, Lhs_Vars, EVX)
+ , !
+ , printf("DIRECT PROOF SUCCESSFUL: % % % -> % % %\n", [GAtoms1, GAtoms2, GConstraints, HAtoms1, HAtoms2, HConstraints])
+ .
+
+directproof_aux(GConstraints, HConstraints, Unifier, Lhs_Vars, ExtVar) :- true
+ , assert(refresh_variables(t(GConstraints, HConstraints, Unifier, Lhs_Vars, ExtVar)))
+ , retract(refresh_variables(t(GConstraints1, HConstraints1, Unifier1, Lhs_Vars1, ExtVar1)))
+
+ , collect_equality_constraints(GConstraints1, Equality1)
+ , collect_equality_constraints(HConstraints1, Equality3)
+ , append(Unifier1, Equality1, Equality2)
+ , append(Equality2, Equality3, Equality)
+
+ % Further remove EVs by building transitive closure for
+ % equality & set equality
+
+ % Get the closure
+ , compute_equality_closure(Lhs_Vars1, Equality, EqualityIn)
+
+ % Using the closure to attempt EV removal
+ % Could have done better by add closure for EVs as well
+ , further_remove_existential_variable(Lhs_Vars1, EqualityIn, ExtVar1, EqualityOut, ExtVar2)
+
+ , collect_unifying_constraints(EqualityOut, Unifier2)
+ , append(Unifier1, Unifier2, FinalUnifier)
+
+ % We try to find out which are the unifiers of existential variables.
+ % In general, in ExtUnifier we may get eq(A,B) and eq(A,C), that is,
+ % an existential variable A being unified with both object B and C.
+ , existential_unifier(ExtVar1, FinalUnifier, ExtUnifier, NonExtUnifier)
+
+ % Remove all existential variables by substituting them with one of
+ % their (possibly several) unifiers.
+ , substitute_terms(ExtUnifier, HConstraints1, HConstraints2)
+
+ % We compute all things that are made equal by earlier substitution.
+ % For things in ExtUnifier, an existential variable can be unified
+ % with several objects. That is, if there exists X s.t. X=Exp1,
+ % X=Exp2, ..., X=Expn, this means that Exp1=Exp2=...=Expn. We
+ % construct equality between these objects in NewUnifier.
+ , existential_unifier_closure(ExtUnifier, [], TClosure)
+ , closure_to_constraints(TClosure, NewUnifierConstraints)
+
+ % Remove dangling contraints on the RHS: this has not been tested
+ , remove_dangling_constraints(HConstraints2, ExtVar2, FinalHConstraints, _)
+ , !
+
+ % To make sure that GConstraints1 |= FinalHConstraints),
+ , move_assign_to_lhs(GConstraints1, FinalHConstraints, GConstraints2, FinalHConstraints1)
+
+ , find_existential_variables([], GConstraints2, [], FinalHConstraints1, FinalEVs)
+ , entailment_check(GConstraints2, FinalHConstraints1, FinalEVs, EqualityOut)
+
+ % These equations should contains no Existential Variables
+ % Since they are just by product of the unification process
+ , remove_redundant_unifier(ExtVar1, NonExtUnifier, FinalNonExtUnifier)
+ % To make sure that GConstraints1 |= NonExtUnifier
+ , entailment_check(GConstraints2, FinalNonExtUnifier, [], [])
+
+ % To make sure that GConstraints1 |= NewUnifierConstraints
+ , entailment_check(GConstraints2, NewUnifierConstraints, [], [])
+ .
+
+
+contains_variable(_, []) :- !, fail.
+contains_variable(A, [B | _S]) :-
+  same_variable(A, B), !.
+contains_variable(A, [_B | S]) :-
+  contains_variable(A, S).
+contains_variable(_A, _B) :- !, fail.
+
+same_variable(_A, B) :-
+  ground(B), !,
+  fail.
+same_variable(A, B) :-
+  var(B), !,
+  A == B.
+same_variable(A, B) :-
+  B =.. [_|Args], !,
+  contains_variable(A, Args).
+same_variable(_A, _B) :-
+  fail.
+
+can_be_unified_directly(A, B, _Unifier, _Type) :-
+  A == B, !.
+can_be_unified_directly(A, B, Unifier, Type) :-
+  Atom =.. [Type, A1, B1],
+  member(Atom, Unifier),
+  A == A1, B == B1, !.
+can_be_unified_directly(A, B, Unifier, Type) :-
+  Atom =.. [Type, B1, A1],
+  member(Atom, Unifier),
+  A == A1, B == B1.
+
+set_unified_directly(A, B, _Unifier) :- true
+ , fail
+ .
+set_unified_directly(A, B, _Unifier) :- true
+ , A == B
+ , !
+ .
+set_unified_directly(A, B, Unifier) :- true
+ , myvar(A)
+ , !
+ , can_be_unified_directly(A, B, Unifier, eqset)
+ .
+set_unified_directly(B, A, Unifier) :- true
+ , myvar(A)
+ , !
+ , can_be_unified_directly(A, B, Unifier, eqset)
+ .
+set_unified_directly(A, B, Unifier) :- true
+ , A =.. [add, S1, V1]
+ , B =.. [add, S2, V2], !
+ , set_unified_directly(S1, S2, Unifier)
+ , atom_unified_directly_eq(V1, V2, Unifier)
+ .
+set_unified_directly(A, B, Unifier) :- true
+ , A=.. [Type, A1, A2]
+ , B=.. [Type, B1, B2] % union or intersection
+ , set_unified_directly(A1, B1, Unifier)
+ , set_unified_directly(A2, B2, Unifier)
+ .
+set_unified_directly(A, B, Unifier) :- true
+ , A=.. [Type, A1, A2]
+ , B=.. [Type, B1, B2] % union or intersection
+ , set_unified_directly(A1, B2, Unifier)
+ , set_unified_directly(A2, B1, Unifier)
+ .
+
+%%------------------------------------------------------------------------------
+% Hiep: to add more rules with sets
+%%------------------------------------------------------------------------------
+functionally_unifiable(Lhs_Vars, Unifier, Var, ExtUnif) :-
+  functionally_unifiable_aux(Lhs_Vars, Unifier, Unifier, Var, ExtUnif).
+
+
+functionally_unifiable_aux(_Lhs_Vars, [], _, _Var, _) :- !, fail.
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], _Unifier, Var, ExtUnif) :-
+  Atom =.. [S,X,Y], equality(S), var(X),
+  Y==Var,
+  memberGndchk(X, Lhs_Vars),
+  !, ExtUnif =.. [S,Var,X].
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], _Unifier, Var, ExtUnif) :-
+  Atom =.. [S,Y,X], equality(S), var(X),
+  Y==Var,
+  memberGndchk(X, Lhs_Vars),
+  !, ExtUnif = [].
+
+
+% Transitive closure for equality
+% i.e. X = Y, Y = Z, and X, Y are in the RHS, Z is in the LHS,
+% Both X & Y can be renamed to Z
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom =.. [S,X,Y], equality(S), var(X),
+  Y==Var,
+  % X is not in the LHS
+  member(Atom2, Unifier),
+  Atom2 =.. [S,X1,Z],
+  X1 == X, var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  !, ExtUnif =.. [S,Var,Z].
+
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom =.. [S,X,Y], equality(S), var(Y),
+  X==Var,
+  % Y is not in the LHS
+  member(Atom2, Unifier),
+  Atom2 =.. [S,Y1,Z],
+  Y1 == Y, var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  !, ExtUnif =.. [S,Var,Z].
+
+
+% For pointer, for next, prev, left, right
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eq(X, 0),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(Z, B),
+  B == 0, var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  !, ExtUnif = eq(Var,Z).
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eq(X,ref(H, plus(Y, Field))),  var(Y),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(Z,ref(H1, plus(Y1, Field1))),
+  Field == Field1,
+  var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  !, ExtUnif = eq(Var,Z).
+
+% This should be done only if neither H nor H1 is updated
+% at that particular position
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eq(X,ref(H, plus(Y, Field))),  var(Y),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(Z,ref(H1, plus(Y1, Field1))),
+  Field == Field1,
+  var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, arreq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  not_updated_at(H, Y, 1, Unifier),
+  not_updated_at(H1, Y1, 1, Unifier),
+  !, ExtUnif = eq(Var,Z).
+
+
+
+
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = eq(X,ref(H, plus(Y, 2))), var(Y),
+% X==Var,
+% member(Atom2, Unifier),
+% Atom2 = eq(Z,ref(H1, plus(Y1, 2))),
+% var(Z),
+% memberGndchk(Z, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% !, ExtUnif = eq(Var,Z).
+
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = eq(X,ref(H, plus(Y, 2))), var(Y),
+% X==Var,
+% member(Atom2, Unifier),
+% Atom2 = eq(Z,ref(H1, plus(Y1, 2))),
+% var(Z),
+% memberGndchk(Z, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, arreq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% not_updated_at(H, Y, 2, Unifier),
+% not_updated_at(H1, Y1, 2, Unifier),
+% !, ExtUnif = eq(Var,Z).
+
+
+%-------------
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = arrassign(X,upd(H, plus(Y, 2), Z)), var(Y), var(Z),
+% X==Var,
+% member(Atom2, Unifier),
+% Atom2 = eq(X1,upd(H1, plus(Y1, 2)), Z1),
+% var(X1),
+% memberGndchk(X1, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% can_be_unified_directly(Z, Z1, Unifier, eq),
+% !, ExtUnif = eq(Var,X1).
+
+
+
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = arrassign(X,upd(H, plus(Y, Field), Z)), var(Y), var(Z),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(X1,upd(H1, plus(Y1, Field1)), Z1),
+  Field == Field1,
+  var(X1),
+  memberGndchk(X1, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  can_be_unified_directly(Z, Z1, Unifier, eq),
+  !, ExtUnif = eq(Var,X1).
+
+
+
+
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = arrassign(H,upd(X, plus(Y, 2), Z)), var(Y), var(Z),
+% X==Var,
+% member(Atom2, Unifier),
+% Atom2 = eq(H1,upd(X1, plus(Y1, 2)), Z1),
+% var(X1),
+% memberGndchk(X1, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% can_be_unified_directly(Z, Z1, Unifier, eq),
+% !, ExtUnif = eq(Var,X1).
+
+
+
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = arrassign(H,upd(X, plus(Y, Field), Z)), var(Y), var(Z),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(H1,upd(X1, plus(Y1, Field1)), Z1),
+  Field == Field1,
+  var(X1),
+  memberGndchk(X1, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  can_be_unified_directly(Z, Z1, Unifier, eq),
+  !, ExtUnif = eq(Var,X1).
+
+
+
+
+%--------
+
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = arrassign(X,upd(H, plus(Y, 2), Z)), var(Y), var(Z),
+% X==Var,
+% member(Atom2, Unifier),
+% Atom2 = arrassign(X1,upd(H1, plus(Y1, 2), Z1)),
+% var(X1),
+% memberGndchk(X1, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% can_be_unified_directly(Z, Z1, Unifier, eq),
+% !, ExtUnif = eq(Var,X1).
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = arrassign(X,upd(H, plus(Y, Field), Z)), var(Y), var(Z),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = arrassign(X1,upd(H1, plus(Y1, Field1), Z1)),
+  Field == Field1,
+  var(X1),
+  memberGndchk(X1, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  can_be_unified_directly(Z, Z1, Unifier, eq),
+  !, ExtUnif = eq(Var,X1).
+
+
+
+
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = arrassign(H,upd(X, plus(Y, 2), Z)), var(Y), var(Z),
+% X==Var,
+% member(Atom2, Unifier),
+% Atom2 = arrassign(H1,upd(X1, plus(Y1, 2), Z1)),
+% var(X1),
+% memberGndchk(X1, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% can_be_unified_directly(Z, Z1, Unifier, eq),
+% !, ExtUnif = eq(Var,X1).
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = arrassign(H,upd(X, plus(Y, Field), Z)), var(Y), var(Z),
+  X==Var,
+  %printf("Atom = %\n", [Atom]),
+  member(Atom2, Unifier),
+  Atom2 = arrassign(H1,upd(X1, plus(Y1, Field1), Z1)),
+  Field == Field1,
+  var(X1),
+  memberGndchk(X1, Lhs_Vars),
+  %printf("Atom2 = %\n", [Atom2]),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  can_be_unified_directly(Z, Z1, Unifier, eq),
+  !, ExtUnif = eq(Var,X1).
+
+
+%------------
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = arrassign(H,upd(_X, plus(Y, Field), Z)), var(Y), var(H),
+  Z==Var,
+  member(Atom2, Unifier),
+  Atom2 = eq(Z1,ref(H1, plus(Y1, Field1))),
+  Field == Field1,
+  var(Z1),
+  memberGndchk(Z1, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  !, ExtUnif = eq(Var,Z1).
+
+
+
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = arrassign(H,upd(_X, plus(Y, 2), Z)), var(Y), var(H),
+% Z==Var,
+% member(Atom2, Unifier),
+% Atom2 = eq(Z1,ref(H1, plus(Y1, 2))),
+% var(Z1),
+% memberGndchk(Z1, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% !, ExtUnif = eq(Var,Z1).
+
+
+
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eq(Z1,ref(H1, plus(Y1, Field1))), var(H1), var(Y1),
+  Z1 == Var,
+  Atom2 = arrassign(H,upd(_X, plus(Y, Field), Z)), var(Y), var(H),
+  member(Atom2, Unifier),
+  Field == Field1,
+  var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(H, H1, Unifier, eq),
+  can_be_unified_directly(Y, Y1, Unifier, eq),
+  !, ExtUnif = eq(Var,Z).
+
+
+
+%functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+% Atom = eq(Z1,ref(H1, plus(Y1, 2))), var(H1), var(Y1),
+% Z1 == Var,
+% Atom2 = arrassign(H,upd(_X, plus(Y, 2), Z)), var(Y), var(H),
+% member(Atom2, Unifier),
+% var(Z),
+% memberGndchk(Z, Lhs_Vars),
+% can_be_unified_directly(H, H1, Unifier, eq),
+% can_be_unified_directly(Y, Y1, Unifier, eq),
+% !, ExtUnif = eq(Var,Z).
+
+
+% For Set operation
+
+% Emptyset
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, Y), var(X),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, Y1),
+  var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(Y, Y1, Unifier, eqset),
+  !, ExtUnif = eqset(Var,Z).
+
+
+% Singleton
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, singleton(A)), var(A),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, singleton(B)),
+  var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(A, B, Unifier, eqset),
+  !, ExtUnif = eqset(Var,Z).
+
+
+% Add in set
+
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, add(A,B)), var(A), var(B),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, add(C,D)), var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(A, C, Unifier, eqset),
+  can_be_unified_directly(B, D, Unifier, eq),
+  !, ExtUnif = eqset(Var,Z).
+
+% union
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, union(A,B)), var(A), var(B),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, union(C,D)), var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(A, C, Unifier, eqset),
+  can_be_unified_directly(B, D, Unifier, eqset),
+  !, ExtUnif = eqset(Var,Z).
+
+
+
+% union
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, union(A,B)), var(A), var(B),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, union(C,D)), var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(A, D, Unifier, eqset),
+  can_be_unified_directly(B, C, Unifier, eqset),
+  !, ExtUnif = eqset(Var,Z).
+
+
+% intersection
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, inter(A,B)), var(A), var(B),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, inter(C,D)), var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(A, C, Unifier, eqset),
+  can_be_unified_directly(B, D, Unifier, eqset),
+  !, ExtUnif = eqset(Var,Z).
+
+
+
+% intersection
+functionally_unifiable_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, inter(A,B)), var(A), var(B),
+  X==Var,
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, inter(C,D)), var(Z),
+  memberGndchk(Z, Lhs_Vars),
+  can_be_unified_directly(A, D, Unifier, eqset),
+  can_be_unified_directly(B, C, Unifier, eqset),
+  !, ExtUnif = eqset(Var,Z).
+
+
+%%% Recurse
+
+functionally_unifiable_aux(Lhs_Vars, [_Atom | Rest], Unifier, Var, ExtUnif) :-
+  functionally_unifiable_aux(Lhs_Vars, Rest, Unifier, Var, ExtUnif).
+
+functionally_unifiable_non_ev(Lhs_Vars, Unifier, Var, ExtUnif) :-
+  functionally_unifiable_non_ev_aux(Lhs_Vars, Unifier, Unifier, Var, ExtUnif).
+
+functionally_unifiable_non_ev_aux(_Lhs_Vars, [], _, _Var, _) :- !, fail.
+
+functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(A, X), var(X),
+  memberGndchk(X, Lhs_Vars),
+
+  member(Atom2, Unifier),
+  Atom2 = eqset(B, Z),
+  same_variable(Var, Z), % Z contains existential Var in it
+
+  set_unified_directly(A, B, Unifier),
+  !, ExtUnif = eqset(X,Z).
+
+functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, A), var(X),
+  memberGndchk(X, Lhs_Vars),
+  member(Atom2, Unifier),
+  Atom2 = eqset(B, Z),
+  same_variable(Var, Z), % Z contains existential Var in it
+  set_unified_directly(A, B, Unifier),
+  !, ExtUnif = eqset(X,Z).
+
+functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(A, X), var(X),
+  memberGndchk(X, Lhs_Vars),
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, B),
+  same_variable(Var, Z), % Z contains existential Var in it
+  set_unified_directly(A, B, Unifier),
+  !, ExtUnif = eqset(X,Z).
+
+functionally_unifiable_non_ev_aux(Lhs_Vars, [Atom | _Rest], Unifier, Var, ExtUnif) :-
+  Atom = eqset(X, A), var(X),
+  memberGndchk(X, Lhs_Vars),
+  member(Atom2, Unifier),
+  Atom2 = eqset(Z, B),
+  same_variable(Var, Z), % Z contains existential Var in it
+  set_unified_directly(A, B, Unifier),
+  !, ExtUnif = eqset(X,Z).
+functionally_unifiable_non_ev_aux(Lhs_Vars, [_Atom | Rest], Unifier, Var, ExtUnif) :-
+  functionally_unifiable_non_ev_aux(Lhs_Vars, Rest, Unifier, Var, ExtUnif).
+
+%%------------------------------------------------------------------------------
+
+add_ext_unifier(Unifier, [], Unifier) :- !.
+add_ext_unifier(Unifier, ExtUnif, Unifier) :-
+    memberGndchk(ExtUnif, Unifier), !.
+add_ext_unifier(Unifier, ExtUnif, [ExtUnif | Unifier]).
+
+compute_equality_closure(Vars, Unifier1, Unifier3) :-
+  once(compute_equality_closure_aux(Vars, Vars, Unifier1, Unifier2)),
+  compute_equality_closure_fix_point(Vars, Unifier1, Unifier2, Unifier3).
+compute_equality_closure_fix_point(_, Unifier1, Unifier2, Unifier2) :-
+  length(Unifier1, N1),
+  length(Unifier2, N2),
+  N1 == N2, !.
+compute_equality_closure_fix_point(Vars, _Unifier1, Unifier2, Unifier3) :-
+  % Fix point has NOT been reached
+  % Recursively perform removal
+  compute_equality_closure(Vars, Unifier2, Unifier3).
+compute_equality_closure_aux(_, [], Unifier1, Unifier1) :- !. % No more variables, stop
+compute_equality_closure_aux(Vars, [Var | Rest], Unifier1,
+          Unifier2) :-
+  %printf("Var = %\n", [Var]),
+  %printf("Unifier = %\n", [Unifier1]),
+  % --------------------------------------------------------------------------
+  % There exists a nonexistential variable Var1 which can be unified with Var
+  % add eq(Var,Var1) into the Unifier, remove Var from the output list
+  % --------------------------------------------------------------------------
+        functionally_unifiable(Vars, Unifier1, Var, ExtUnif),
+  not self_unification(ExtUnif),
+% not cyclic(ExtUnif),
+  !,
+  add_ext_unifier(Unifier1, ExtUnif, NewUnifier),
+        compute_equality_closure_aux(Vars, Rest, NewUnifier, Unifier2).
+
+
+compute_equality_closure_aux(Vars, [_Var|Rest], Unifier1, Unifier2) :-
+
+  % --------------------------------------------------------------------------
+  % There not exists a nonexistential variable Var1 which can be unified with Var
+  % Var is included in the output list
+  % --------------------------------------------------------------------------
+  compute_equality_closure_aux(Vars, Rest, Unifier1, Unifier2).
+
+% -------------------------------------------------------------
+% Hiep: Do until fix-point. Still can do better. When have time,
+% Need to restructure
+% -------------------------------------------------------------
+further_remove_existential_variable(Lhs_Vars, Unifier1, ExtVar1, Unifier3, ExtVar3) :- true
+ , set_counter(pass, 0)
+ , once(further_remove_existential_variable_aux(Lhs_Vars, Unifier1, ExtVar1, Unifier2, ExtVar2))
+ , further_remove_existential_variable_fix_point(Lhs_Vars, Unifier1, ExtVar1, Unifier2, ExtVar2, Unifier3, ExtVar3)
+ .
+further_remove_existential_variable_fix_point(_, _Unifier1, _ExtVar1, Unifier2, [], Unifier2, []) :- !.
+further_remove_existential_variable_fix_point(_, Unifier1, _ExtVar1, Unifier2, ExtVar2, Unifier2, ExtVar2) :- true
+ % Fix point has been reached
+ , length(Unifier1, N1)
+ , length(Unifier2, N2)
+ , N1 == N2
+ , !
+ .
+further_remove_existential_variable_fix_point(Lhs_Vars, _Unifier1, _ExtVar1, Unifier2, ExtVar2,  Unifier3, ExtVar3) :- true
+ % Fix point has NOT been reached
+ % Recursively perform removal
+ , further_remove_existential_variable(Lhs_Vars, Unifier2, ExtVar2, Unifier3, ExtVar3)
+ .
+
+
+% No more existential variables, stop
+further_remove_existential_variable_aux(_, Unifier1, [], Unifier1, []) :- true
+ , !
+ .
+% Process the first existential variables in the list ExtVar1
+further_remove_existential_variable_aux(Lhs_Vars, Unifier1, [Var|Rest1], Unifier2, Rest2) :- true
+ % There exists a nonexistential variable Var1 which can be unified with Var
+ % add eq(Var,Var1) into the Unifier, remove Var from the output list
+ , functionally_unifiable(Lhs_Vars, Unifier1, Var, ExtUnif)
+ , !
+ , add_ext_unifier(Unifier1, ExtUnif, NewUnifier)
+ , further_remove_existential_variable_aux(Lhs_Vars, NewUnifier, Rest1, Unifier2, Rest2)
+ .
+further_remove_existential_variable_aux(Lhs_Vars, Unifier1, ExtVar, Unifier2, Rest2) :- true
+ , ExtVar = [Var | _]
+ % A possibly useful unifier should be added
+ , functionally_unifiable_non_ev(Lhs_Vars, Unifier1, Var, ExtUnif)
+ , printf("might cause infinite loop !\n", [])
+ , add_counter(pass, 1)
+ , counter_value(pass, Pass)
+ , printf("#Pass = %\n", [Pass])
+ , Pass < 20
+ , !
+ , add_ext_unifier(Unifier1, ExtUnif, NewUnifier)
+ , further_remove_existential_variable_aux(Lhs_Vars, NewUnifier, ExtVar, Unifier2, Rest2)
+ .
+further_remove_existential_variable_aux(Lhs_Vars, Unifier1, [Var|Rest1], Unifier2, [Var|Rest2]) :- true
+ , further_remove_existential_variable_aux(Lhs_Vars, Unifier1, Rest1, Unifier2, Rest2)
+ .
+
+%==============================================================================
+% Load the solver to do constraint proof
+%==============================================================================\
+% Hiep: Using z3, no need for custom solver
+
+equality(eq).
+equality(eqset) .
+equality(arreq) .
+
+collect_equality_constraints([], []) :- !.
+collect_equality_constraints([Atom | Rest], [Atom | ERest]) :-
+  Atom =..[S,_,_], equality(S),
+  %not cyclic(Atom),
+  !,
+  collect_equality_constraints(Rest, ERest).
+collect_equality_constraints([Atom | Rest], [Atom | ERest]) :-
+  Atom =..[S,_,_], S = arrassign, !,
+  collect_equality_constraints(Rest, ERest).
+collect_equality_constraints([_Atom | Rest], ERest) :-
+  collect_equality_constraints(Rest, ERest).
+
+append_signature([], [], [], []).
+append_signature([], [A|GAtoms2], GAtoms, GSig) :- true
+ , append_signature([A|GAtoms2], [], GAtoms, GSig)
+ .
+append_signature([A|GAtoms1], GAtoms2, [B|GAtoms], [sig(S,N)|GSig]) :- true
+ , A = atm(_,_,B)
+ , B =.. [S|Args]
+ , length(Args, N)
+ , append_signature(GAtoms1, GAtoms2, GAtoms, GSig)
+ .
+
+%------------------------------------------------------------------------------
+% subset/2: subset(A, B) succeeds when the elements of list A is a subset
+% of the elements of list B
+%------------------------------------------------------------------------------
+
+subset([], _).
+subset([X|Set1], Set2) :-
+  subset_aux(X, Set2, Set3), subset(Set1, Set3).
+
+subset_aux(X, [X|Set1], Set1) :- !.
+subset_aux(X, [Y|Set1], [Y|Set2]) :- subset_aux(X, Set1, Set2).
+
+%------------------------------------------------------------------------------
+% label_variables(N,L,M):
+% Recurse over atoms in the list L, naming all _ into some atom vm, where
+% m is a distinct number greater than or equal to N.
+%------------------------------------------------------------------------------
+
+label_variables(N, [], N).
+label_variables(N, [X|R], M) :-
+  var(X), !,
+  printf_to_atom(X, "v%", [N]),
+  label_variables(N+1, R, M).
+label_variables(N, [X|R], K) :-
+  X =.. [_|Arg],
+  label_variables(N, Arg, M),
+  label_variables(M, R, K).
+
+gather_variable(A, B, [A], [B]) :- var(A), !.
+gather_variable([], [], [], []) :- !.
+gather_variable([A|R], [B|S], V1, V2) :- !,
+  gather_variable(A, B, V3, V4),
+  gather_variable(R, S, V5, V6),
+  append(V3, V5, V1),
+  append(V4, V6, V2).
+gather_variable(A, B, [], []) :-
+  A =.. [_|_], var(B), !.
+gather_variable(A, B, V1, V2) :-
+  A =.. [_|A1], B =.. [_|B1],
+  gather_variable(A1, B1, V1, V2).
+
+%------------------------------------------------------------------------------
+% simplify_by_existential_equalities/6:
+%------------------------------------------------------------------------------
+simplify_by_existential_equalities(InHAtoms, InHConstraints, InEV,
+           OutHAtoms, OutHConstraints, OutEV) :-
+% printf("split_by_existential_equalities(%,%,HConstraints1,ExtUnif,OutEV)\n", [InEV,InHConstraints]),
+  split_by_existential_equalities(InEV, InHConstraints,
+          HConstraints1, ExtUnif, OutEV),
+% printf("HConstraints1=% ExtUnif=% OutEV=%\n", [HConstraints1,ExtUnif,OutEV]),
+% printf("substitute_terms(%,%,OutHAtoms)\n", [ExtUnif,InHAtoms]),
+% dump([ExtUnif,InHAtoms,OutHAtoms]),
+%   printf("A substitute_until_fixpoint(%,%,OutHAtoms)\n",
+%          [ExtUnif, InHAtoms]),
+%   substitute_until_fixpoint(ExtUnif, InHAtoms, OutHAtoms),
+  substitute_terms(ExtUnif, InHAtoms, OutHAtoms),
+%  printf("substitute_terms(%,%,OutHConstraints)\n", [ExtUnif,InHAtoms], OutHAtoms),
+%   printf("B substitute_until_fixpoint(%,%,OutHConstraints)\n",
+%          [ExtUnif, HConstraints1]),
+%   substitute_until_fixpoint(ExtUnif, HConstraints1, OutHConstraints).
+  substitute_terms(ExtUnif, HConstraints1, OutHConstraints).
+
+%------------------------------------------------------------------------------
+% split_by_existential_equalities/5:
+% Here we split the existential variables (the first argument), into
+% those that have unifiers (the unifiers are  output of the 4th argument),
+% and those that haven't (the variables themselves output as 5th argument).
+% We note that the 4th and 5th arguments may not be disjoint in case there is
+% a cyclic unifier, in which case both the 4th and 5th arguments will include
+% the variable
+%------------------------------------------------------------------------------
+split_by_existential_equalities(ExtVar, HConstraints,
+        OutHConstraints, ExtUnif,
+        RemainingExtVar) :-
+  split_by_existential_equalities_aux(ExtVar, HConstraints,
+              OutHConstraints, ExtUnif1,
+              RemainingExtVar1),
+  substitute_until_fixpoint_or_cycle(ExtUnif1, ExtUnif, CycleVar),
+  append(CycleVar, RemainingExtVar1, RemainingExtVar).
+
+
+%------------------------------------------------------------------------------
+split_by_existential_equalities_aux([], HConstraints, HConstraints, [], []).
+
+split_by_existential_equalities_aux([V|InExtVar], InHConstraints,
+            OutHConstraints,
+            [ExtUnif|OutExtUnifList],
+            OutRemainingExtVar) :-
+  find_existential_unifier(V, InHConstraints, HConstraints1, ExtUnif), !,
+  split_by_existential_equalities_aux(InExtVar, HConstraints1,
+              OutHConstraints,
+              OutExtUnifList,
+              OutRemainingExtVar).
+
+split_by_existential_equalities_aux([V|InExtVar], InHConstraints,
+            OutHConstraints,
+            ExtUnifList,
+            [V|OutRemainingExtVar]) :-
+  split_by_existential_equalities_aux(InExtVar, InHConstraints,
+              OutHConstraints,
+              ExtUnifList,
+              OutRemainingExtVar).
+
+%------------------------------------------------------------------------------
+% substitute_until_fixpoint_or_cycle/3:
+% Perform substitution on unifiers alone until we can detect cyclic unifier
+% or fixpoint. If there is any cyclic unifiers, the variable is returned in
+% as a list element of the third argument
+%------------------------------------------------------------------------------
+% testa :- substitute_until_fixpoint_or_cycle([eq(Y,f(Z)), eq(X,g(Y)), eq(Z, h(X))], Unifiers), printf("%\n", [Unifiers]).
+
+% testb :- get_cyclic_unifiers([eq(_h10, f(h(g(f(_h12))))), eq(_h15, g(f(h(g(f(_h12)))))), eq(_h12, h(g(f(_h12))))],CyclicUnifiers,OtherUnifiers), printf("CyclicUnifiers=% OtherUnifiers=%\n", [CyclicUnifiers,OtherUnifiers]).
+
+% testc :- substitute_until_fixpoint_or_cycle([eq(Y,f(X)), eq(X,g(Z))], Unifiers), printf("%\n", [Unifiers]).
+
+substitute_until_fixpoint_or_cycle(InUnifiers, OutUnifiers, OutEV) :-
+  apply_unifier_to_others_once(InUnifiers, [], Unifiers1),
+  fixpoint_test(InUnifiers, Unifiers1, OutUnifiers, OutEV).
+
+%------------------------------------------------------------------------------
+% get_cyclic_unifiers/4(+U, -CU, -OU, -CV):
+% Given a set of unifiers U, output those that are circular in CU, and
+% the rest in OU, and the circular unifiers's variables in CV
+%------------------------------------------------------------------------------
+get_cyclic_unifiers([], [], [], []).
+get_cyclic_unifiers([Unifier|R], [Unifier|S], T, [Lhs|U]) :-
+  Unifier =.. [_,Lhs,Rhs],
+  find_variable_in_term(Lhs,Rhs), !,
+  get_cyclic_unifiers(R, S, T, U).
+get_cyclic_unifiers([Unifier|R], S, [Unifier|T], U) :-
+  get_cyclic_unifiers(R, S, T, U).
+
+find_variable_in_term(_, []) :- !, fail.
+find_variable_in_term(V, [A|_]) :- V==A, !.
+find_variable_in_term(V, [A|_]) :-
+  find_variable_in_term(V, A), !.
+find_variable_in_term(V, [_|R]) :- !,
+  find_variable_in_term(V, R).
+find_variable_in_term(V, Term) :-
+  Term =.. [_|R],
+  find_variable_in_term(V, R).
+
+
+fixpoint_test(PrevUnifiers, Unifiers, Unifiers, []) :-
+  PrevUnifiers==Unifiers, !.
+fixpoint_test(_, Unifiers, OutUnifiers, OutEV) :-
+  get_cyclic_unifiers(Unifiers, CyclicUnifiers, OtherUnifiers, EV1),
+  %----------------------------------------------------------------------
+  % Continue with cycle test
+  %----------------------------------------------------------------------
+  cycle_test(CyclicUnifiers, OtherUnifiers, EV1,
+       OutUnifiers, OutEV).
+
+cycle_test([], OtherUnifiers, [], OutUnifiers, OutEV) :- !,
+  %----------------------------------------------------------------------
+  % Test for cycle failed
+  %----------------------------------------------------------------------
+  substitute_until_fixpoint_or_cycle(OtherUnifiers, OutUnifiers,
+             OutEV).
+cycle_test(CyclicUnifiers, OtherUnifiers, EV, OutUnifiers, EV) :-
+  %----------------------------------------------------------------------
+  % There must be a cycle
+  %----------------------------------------------------------------------
+  append(CyclicUnifiers, OtherUnifiers, OutUnifiers).
+
+
+apply_unifier_to_others_once([], OutUnifiers, OutUnifiers).
+apply_unifier_to_others_once([Unifier|R], PrevUnifiers, OutUnifiers) :-
+  substitute_unifier_terms(Unifier, R, R1),
+  substitute_unifier_terms(Unifier, PrevUnifiers, PrevUnifiers1),
+  append(PrevUnifiers1, [Unifier], PrevUnifiers2),
+  apply_unifier_to_others_once(R1, PrevUnifiers2, OutUnifiers).
+
+substitute_unifier_terms(_, [], []).
+substitute_unifier_terms(Unifier, [Eq|R], [Eq1|S]) :-
+  Eq =.. [EqSymb,Lhs,Rhs],
+  substitute_terms([Unifier], [Rhs], [NewRhs]),
+  Eq1 =.. [EqSymb,Lhs,NewRhs],
+  substitute_unifier_terms(Unifier, R, S).
+
+%------------------------------------------------------------------------------
+% substitute_terms(Q, Unifier, Terms, Modified)
+% Unifier: List of eq(A,B), where A is ground term
+% Q: A number used to ground variables with term such that
+%    the grounding terms are disjoint from As in Unifier
+% Terms: The list of terms where A is to be replaced with B
+% Modified: The modified list of terms
+%------------------------------------------------------------------------------
+
+substitute_terms(_Unifier, [], []).
+substitute_terms(Unifier, [A|R], [B|S]) :-
+  get_matching_term(A, Unifier, B), !,
+  substitute_terms(Unifier, R, S).
+substitute_terms(Unifier, [A|R], [A|S]) :-
+  var(A), !,
+  substitute_terms(Unifier, R, S).
+%substitute_terms(Unifier, [A|R], [B|S]) :-
+% A =.. [Name, C | M],
+% Name = arrassign, !,
+% substitute_terms(Unifier, M, N),
+% B =.. [Name, C | N],
+% substitute_terms(Unifier, R, S).
+substitute_terms(Unifier, [A|R], [B|S]) :-
+  A =.. [Name|M], !,
+  substitute_terms(Unifier, M, N),
+  B =.. [Name|N],
+  substitute_terms(Unifier, R, S).
+
+get_matching_term(A, [Atom|_], C) :-
+  Atom=..[_,B,C], A==B, !.
+get_matching_term(A, [_|R], B) :-
+  get_matching_term(A, R, B).
+
+reverse_unifier([], []) :- !.
+reverse_unifier([Atom | R], [Atom1 | S]) :-
+  Atom =.. [T, A, B], equality(T), !,
+  Atom1 =.. [T, B, A],
+  reverse_unifier(R, S).
+reverse_unifier([arreq(A,B) | R], [arreq(B,A) | S]) :-
+  !,
+  reverse_unifier(R, S).
+
+reverse_unifier([_Atom | R], S) :-
+  reverse_unifier(R, S).
+
+get_lhs_vars(GAtoms, GConstraints, Lhs_Vars) :-
+  assert(refresh_variables(t(GAtoms, GConstraints))),
+  retract(refresh_variables(t(GAtoms1, GConstraints1))),
+
+  gather_variable(GAtoms1, GAtoms, V1, V2),
+  gather_variable(GConstraints1, GConstraints, V3, V4),
+  append(V1, V3, V5),
+  append(V2, V4, V6),
+  label_variables(0, V5, _),
+  once(remove_multiple_occurrence(V5, V6, Lhs_Vars)).
+
+
+%------------------------------------------------------------------------------
+% signature_subset/7:
+% signature_subset(Sig1, Sig2, Atoms1, Atoms2, RemainingAtoms2, Unifier, CyclicVariables)
+% Sig1: Input signature list of input Atoms1
+% Sig2: Input signature list of input Atoms2
+% Atoms1: 1st Atom set (list in the same order as Sig1)
+% Atoms2: 2nd Atom set (list in the same order as Sig2)
+% RemainingAtoms2: Output atoms in Atoms2 that are not included in Atoms1
+% Unifier: Output unifier of the arguments of matching atoms in Atoms1
+%          and Atoms2
+% CyclicVariables: The variables of cyclic unifiers
+%
+% This procedure tests if Atoms1 is a subset of Atoms2, and if so,
+% returns the difference in RemainingAtoms2, and the unifier for the
+% arguments of matching atoms.
+%------------------------------------------------------------------------------
+signature_subset(Sig1, Sig2, Atoms1, Atoms2, RemainingAtoms2, Unifier,
+     CyclicVariables) :-
+  signature_subset_aux(Sig1, Sig2, Atoms1, Atoms2, RemainingAtoms2,
+           Unifier1),
+  substitute_until_fixpoint_or_cycle(Unifier1, Unifier,
+             CyclicVariables).
+
+signature_subset_aux([], _RemainingSigs, [],
+         RemainingAtoms, RemainingAtoms, []).
+
+signature_subset_aux([Sig|S1], S2, [Atom|R1], R2, RemainingAtoms, U1) :-
+  match_signature(Sig, S2, S3, Atom, R2, R3, Unif),
+  append(Unif, U, U1),
+  signature_subset_aux(S1, S3, R1, R3, RemainingAtoms, U).
+
+match_signature(Sig, [Sig|S], S, Atom, [Atom1|T], T, Unif) :-
+  Atom =.. [Name|Args1], Atom1 =.. [_|Args2],
+  match_signature_aux(Name, Args1, Args2, Unif).
+
+match_signature(Sig, [X|R], [X|S], Atom, [Y|T], [Y|U], Unif) :-
+  match_signature(Sig, R, S, Atom, T, U, Unif).
+
+% test_sig :- signature_subset([sig(s, 2), sig(s, 2)],[sig(s, 2), sig(s, 2), sig(s, 2)],[s(A, B), s(B, C)],[s(h(X), Y), s(Z, Xf), s(Y, Z)],Rem,Unif, Cyclics), printf("Unif = %\n", [Unif]).
+% test :- signature_subset([sig(s, 2), sig(s, 2)], [sig(s, 2), sig(s, 2)], [s(h(X), Z), s(Z, Xf)], [s(Y, Xf), s(h(X), Y)], Rem, U).
+
+match_signature_aux(Name, Args1, Args2, Unif) :-
+  warning(warning_off),
+  declare_unification_type(Name, TagList), !,
+  warning(warning_on),
+  unify_arguments_with_type(Args1, Args2, TagList, Unif).
+match_signature_aux(_Name, Args1, Args2, Unif) :-
+  warning(warning_on),
+  unify_arguments(Args1, Args2, Unif).
+
+%------------------------------------------------------------------------------
+% Part (***) of the code depends on the ordering of the arguments of eq
+%------------------------------------------------------------------------------
+unify_arguments_with_type([], [], [], []).
+%unify_arguments_with_type([_A1|R], [_A2|S], [Tag|U], T) :-
+% Tag = arreq,  % no need to generate constraints for this
+% unify_arguments_with_type(R, S, U, T).
+
+
+unify_arguments_with_type([A1|R], [A2|S], [Tag|U], [Atom|T]) :-
+  Atom=..[Tag,A1,A2],
+  unify_arguments_with_type(R, S, U, T).
+
+unify_arguments([], [], []).
+unify_arguments([A1|R], [A2|S], [eq(A1,A2)|T]) :-
+  unify_arguments(R, S, T).
+

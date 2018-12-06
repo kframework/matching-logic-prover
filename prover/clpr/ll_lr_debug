@@ -1,0 +1,19 @@
+obligation(
+[lr(H, T, Y, F1)], [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X))], 
+[lr(H, X, Y, F)], []), 
+
+obligation([], [eq(X, Y), eqset(F, emptyset)], 
+[lr(H, X, Y, F)], [])
+
+
+---- after KT
+
+obligation([], [gt(T1, 0), eq(Y, ref(H, T1)), z3_not(mem(T1, F2)), eqset(F1, add(F2, T1)), gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X))], 
+[], [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F2)), eqset(F3, add(F2, X))]), 
+
+obligation([lr(H, X, T1, F3)], [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F2)), eqset(F3, add(F2, X)), gt(T1, 0), eq(Y, ref(H, T1)), z3_not(mem(T1, F2)), eqset(F1, add(F2, T1)), gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X))],
+[lr(H, X, Y, F)], []), 
+
+obligation([], [gt(X, 0), eq(T, ref(H, X)), z3_not(mem(X, F1)), eqset(F, add(F1, X)), eq(T, Y), eqset(F1, emptyset)], 
+[lr(H, X, Y, F)], [])
+

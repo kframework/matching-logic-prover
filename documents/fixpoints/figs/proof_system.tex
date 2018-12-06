@@ -1,0 +1,92 @@
+\begin{figure}[hbtp]
+\begin{tabular}{ll}
+	\hline
+	\prule{Proposition$_1$} &
+	$\varphi_1 \imp (\varphi_2 \imp \varphi_1) $
+	\\
+	\prule{Proposition$_2$} &
+	$(\varphi_1 \imp (\varphi_2 \imp \varphi_3))
+	 \imp (\varphi_1 \imp \varphi_2)
+	 \imp (\varphi_1 \imp \varphi_3)$
+	\\
+	\prule{Proposition$_3$} &
+	$(\neg \varphi_1 \imp \neg \varphi_2)
+	 \imp (\varphi_2 \imp \varphi_1)$
+	\\
+	\modusponens &
+	$$
+	\begin{prftree}
+	{\varphi_1}{\varphi_1 \imp \varphi_2}
+	{\varphi_2}
+	\end{prftree}
+	$$
+	\\
+	\hline
+	\variablesubstitution &
+	$\forall x . \varphi \imp \varphi[y/x]$
+	\\
+	\prule{$\forall$} &
+	$\forall x . (\varphi_1 \imp \varphi_2) 
+	 \imp (\varphi_1 \imp \forall x . \varphi_2)$
+	 \quad if $x \not\in \FV(\varphi_1)$
+	\\
+	\universalgeneralization &
+	$$
+	\begin{prftree}
+	{\varphi}
+	{\forall x . \varphi}
+	\end{prftree}
+	$$
+	\\
+	\hline
+	\propagationbottom &
+	$\Csigma[\bot] \imp \bot$
+	\\
+	\propagationvee &
+	$\Csigma[\varphi_1 \vee \varphi_2]
+	 \imp \Csigma[\varphi_1] \vee \Csigma[\varphi_2] $
+	\\
+	\prule{Propagation$_\exists$} &
+	$\Csigma[\exists x . \varphi]
+	 \imp \exists x . \Csigma[\varphi]$
+	 \quad if $x \not\in \FV(\Csigmaapp{\exists x . \varphi})$
+	\\
+	\hline
+	\framing &
+	$$
+	\begin{prftree}
+	{\varphi_1 \imp \varphi_2}
+	{\Csigma[\varphi_1] \imp \Csigma[\varphi_2]}
+	\end{prftree}
+	$$
+	\\
+	\hline
+	\prule{Pre-fixpoint} &
+	$\varphi[\mu X \ldot \varphi / X] \imp \mu X \ldot \varphi
+	$
+	\\
+	\prule{Knaster-Tarski} &
+	$$
+	\begin{prftree}
+	{
+	\varphi[\psi / X] \imp \psi
+	}
+	{
+	\mu X . \varphi \imp \psi
+	}
+	\end{prftree}
+	$$
+	\\
+	\hline
+	\existence &
+	$\exists x . x$
+	\\
+	\singletonvariable &
+	$\neg (C_1[x \wedge \varphi] \wedge C_2[x \wedge \neg \varphi])$
+	\\ & where $C_1$ and $C_2$ are symbol contexts.
+	\\
+	\hline
+\end{tabular}
+\caption{A sound and complete proof system of matching $\mu$ logic}
+\label{fig:proof_system}
+\end{figure}

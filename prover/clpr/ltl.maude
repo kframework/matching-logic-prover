@@ -1,0 +1,150 @@
+mod LTL1 is
+
+  ---- Form: the category of all LTL formulas.
+  ---- Goal: the category of proof goals, of the form |- P where P is an LTL formula
+  ---- Gaols: the category of sets of proof goals, separated using the keyword "and".
+  sort Form Goal Goals .
+
+  op |-_ : Form -> Goal [prec 80] .
+
+  subsort Goal < Goals .
+  op done : -> Goals .  ---- done means all proof goals are discharged.
+  op _and_ : Goals Goals -> Goals [prec 82 assoc comm id: done] .
+
+  op p q r : -> Form . ---- some LTL propositions
+  op _->_ : Form Form -> Form [prec 70] . ---- implication
+  op _/\_ : Form Form -> Form [prec 68 assoc comm] . ---- conjunction
+  op o_ : Form -> Form [prec 66] . ---- next
+  op []_ : Form -> Form [prec 66] . ---- always
+
+  vars P Q R : Form . ---- variables of formulas (\varphi, \psi, etc.)
+
+  ----    |- P -> Q and |- P -> R
+  ----    ------------------------ (/\-IntroR)
+  ----    |- P -> (Q /\ R)
+  eq |- P -> Q /\ R 
+   = |- P -> Q and |- P -> R .
+
+
+  ----    done
+  ----    ------------------------ (DP)
+  ----    |- P /\ Q -> P 
+  eq |- P /\ Q -> P 
+   = done .
+
+  
+  ----    This rule is needed for LTL. 
+  ----    Think of it as a propagation rule that
+  ----    canonicalize LTL formulas.
+  ----    This rule substitutes any occurrences of
+  ----    o(P /\ Q) by o P /\ o Q.
+
+  ----    |- C[o P /\ o Q]
+  ----    ------------------------ (Propagation o)
+  ----    |- C[o(P /\ Q)]
+
+  eq o (P /\ Q) 
+   = o P /\ o Q .
+
+  ----    The (Modus Ponens) rule.
+  eq P /\ (P -> Q) = Q .
+
+
+  ----    |- P -> (Q /\ o P)
+  ----    ------------------------ (KT)
+  ----    |- P -> []Q
+  eq |- P -> []Q 
+   = |- P -> Q /\ o P .
+
+  ----    |- C[P /\ o[]P]
+  ----    ------------------------ (Fix)
+  ----    |- C[[]P]
+  rl []P => P /\ o[]P .
+
+endm
+
+
+
+mod LTL2 is
+
+  ---- use mu x . e
+
+  sort Var Form Goal Goals .
+
+  vars X F . vars P Q R : Form . 
+
+  subsort Var < Form .
+  op |-_ : Form -> Goal [prec 80] .
+
+  subsort Goal < Goals .
+  op done : -> Goals .  ---- done means all proof goals are discharged.
+  op _and_ : Goals Goals -> Goals [prec 82 assoc comm id: done] .
+
+  op f     : -> Var .
+  ops p q r : -> Form . ---- some LTL propositions
+
+  op _->_ : Form Form -> Form [prec 70] . ---- implication
+  op _/\_ : Form Form -> Form [prec 68 assoc comm] . ---- conjunction
+  op o_ : Form -> Form [prec 66] . ---- next
+  op nu_._ : Var Form -> Form [prec 72] . ---- gfp
+
+  op []_ : Form -> Form [prec 66] . ---- always
+  eq []P = nu f . (P /\ o f) .
+
+
+  ---- substitution (something that just works)
+  op _[_/_] : Form Form Var -> Form .
+  eq F [R / F] = R .
+  eq p [R / F] = p . 
+  eq (P -> Q)[R / F] = (P[R / F]) -> (Q[R / F]) .
+  eq (P /\ Q)[R / F] = (P[R / F]) /\ (Q[R / F]) .
+  eq (o P)[R / F] = o (P[R / F]) .
+
+
+  ----    |- P -> Q and |- P -> R
+  ----    ------------------------ (/\-IntroR)
+  ----    |- P -> (Q /\ R)
+  eq |- P -> Q /\ R 
+   = |- P -> Q and |- P -> R .
+
+
+  ----    done
+  ----    ------------------------ (DP)
+  ----    |- P /\ Q -> P 
+  eq |- P /\ Q -> P 
+   = done .
+
+  
+  ----    This rule is needed for LTL. 
+  ----    Think of it as a propagation rule that
+  ----    canonicalize LTL formulas.
+  ----    This rule substitutes any occurrences of
+  ----    o(P /\ Q) by o P /\ o Q.
+
+  ----    |- C[o P /\ o Q]
+  ----    ------------------------ (Propagation o)
+  ----    |- C[o(P /\ Q)]
+
+  eq o (P /\ Q) 
+   = o P /\ o Q .
+
+  ----    The (Modus Ponens) rule.
+  eq P /\ (P -> Q) = Q .
+
+
+  ----    |- Q -> (Q /\ o P)
+  ----    ------------------------ (KT)
+  ----    |- Q -> nu f . P 
+  eq |- Q -> (nu F . P)   
+   = |- Q -> (P[Q / F]) .
+
+  ---- (Fix)
+  rl nu F . P => P[(nu F . P) / F] .
+
+endm
+---- set trace on .
+
+rewrite [2] in LTL2 :
+|- (([](p -> o p)) /\ p) -> []p .
+
+q .

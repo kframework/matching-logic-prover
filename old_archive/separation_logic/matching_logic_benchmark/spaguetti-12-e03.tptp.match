@@ -1,0 +1,132 @@
+(declare-sort Sll_t)
+(declare-sort Record)
+(declare-sort Map)
+
+;Sll_t constants
+(declare-func x0 () Sll_t)
+(declare-func x1 () Sll_t)
+(declare-func x2 () Sll_t)
+(declare-func x3 () Sll_t)
+(declare-func x4 () Sll_t)
+(declare-func x5 () Sll_t)
+(declare-func x6 () Sll_t)
+(declare-func x7 () Sll_t)
+(declare-func x8 () Sll_t)
+(declare-func x9 () Sll_t)
+(declare-func x10 () Sll_t)
+(declare-func x11 () Sll_t)
+(declare-func x12 () Sll_t)
+(declare-func x13 () Sll_t)
+(declare-func x14 () Sll_t)
+(declare-func x15 () Sll_t)
+(declare-func x16 () Sll_t)
+(declare-func x17 () Sll_t)
+(declare-func x18 () Sll_t)
+(declare-func x19 () Sll_t)
+(declare-func x20 () Sll_t)
+(declare-func x21 () Sll_t)
+(declare-func x22 () Sll_t)
+(declare-func x23 () Sll_t)
+(declare-func x24 () Sll_t)
+
+(declare-func nil () Sll_t)
+
+;distinct : a syntactic sugar
+;distinct(x y) = (not (= x y))
+
+;Field name
+(declare-func next (Sll_t) Record)
+
+;Record
+;(declare-func ref (Record) Record)
+
+;Union
+(declare-part uni (Record Record) Record)
+
+; Maps
+(declare-func emp () Map)
+
+; x |-> y
+(declare-part pto (Sll_t Record) Map)
+
+; nil |-> y is bottom
+(assert (forall ((x Record))
+  (not (pto nil x))))
+
+; ssep is separating conjunction
+(declare-part ssep (Map Map) Map)
+
+; commutativity
+(assert (forall ((h1 Map) (h2 Map))
+  (= (ssep h1 h2) (ssep h2 h1))))
+
+; associativity
+(assert (forall ((h1 Map) (h2 Map) (h3 Map))
+  (= (ssep (ssep h1 h2) h3)
+     (ssep h1 (ssep h2 h3)))))
+
+; identity
+(assert (forall ((h Map))
+  (= h (ssep h emp))))
+
+; x |-> y * x |-> z = bottom
+(assert (forall ((x Sll_t) (y Record) (z Record))
+  (not (ssep (pto x y) (pto x z)))))
+
+;(next x) U (next y) = bottom
+(assert (forall ((x Sll_t) (y Sll_t))
+  (not (uni (next x) (next y)))))
+
+; commutativity
+(assert (forall ((r1 Record) (r2 Record))
+  (= (uni r1 r2) (uni r2 r1))))
+
+; associativity
+(assert (forall ((r1 Record) (r2 Record) (r3 Record))
+  (= (uni (uni r1 r2) r3)
+     (uni r1 (uni r2 r3)))))
+
+;List
+(declare-func ls (Sll_t Sll_t) Map)
+(assert (forall ((in Sll_t)(out Sll_t)) 
+ (= (ls in out) (or (= in out) (exists ((u Sll_t)) (and (not 
+ (= in out)) (ssep (pto in (next u)) (ls u out)
+)))))
+))
+(assert (not (floor
+  (and 
+    (= nil nil)
+	(and (not (=  x6 x9))
+	(and (not (=  x4 x6))
+	(and (not (=  x4 x9))
+	(and (not (=  x2 x11))
+	(and (not (=  x5 x7))
+     
+	(ssep
+		(ls  x9 x10) 
+	(ssep 		
+		(ls  x9 x4) 
+	(ssep 		
+		(ls  x10 x12) 
+	(ssep 		
+		(ls  x10 x9) 
+	(ssep 		
+		(ls  x7 x10) 
+	(ssep 		
+		(ls  x3 x10) 
+	(ssep 		
+		(ls  x3 x7) 
+	(ssep 		
+		(ls  x3 x6) 
+	(ssep 		
+		(ls  x6 x11) 
+	(ssep 		
+		(ls  x6 x4) 
+	(ssep 		
+		(ls  x8 x9) 
+		emp
+	))))))))))) ))
+  ))))))
+)
+
+

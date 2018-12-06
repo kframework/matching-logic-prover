@@ -1,0 +1,141 @@
+inductionlimit(1).
+unfolddepthbound(1).
+
+traceleftbound(1).
+tracerightbound(1).
+
+declare_unification_type(list_seg, [arreq,eq,eq,eq,eqset]).
+declare_unification_type(list_seg_left, [arreq,eq,eq,eq,eqset]).
+declare_unification_type(list, [arreq,eq,eq,eqset]).
+declare_unification_type(cllist, [arreq,eq,eq,eqset]).
+
+
+unfold(list_seg(H,X,Y,N,F),
+  [
+  body([], [eq(X,Y), eq(N,0), eqset(F,emptyset)]),
+  body([list_seg(H,X,T,N1,F1)],
+       [gt(T, 0),
+        eq(N, plus(N1,1)),
+        eq(Y, ref(H, plus(T, 1))),
+        z3_not(mem(T, F1)),
+        eqset(F, add(F1, T))])
+  ]).
+
+unfold(list_seg_left(H,X,Y,N,F),
+  [
+  body([], [eq(X,Y), eq(N,0), eqset(F,emptyset)]),
+  body([list_seg_left(H,T,Y,N1,F1)],
+       [gt(X, 0),
+        eq(N, plus(N1,1)),
+        eq(T, ref(H, plus(X, 1))),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+unfold(cllist(H,X,N,F),
+  [
+  body([list_seg(H,NXT,X,N1,F1)], 
+       [gt(X,0),
+        eq(ref(H, plus(X,1)), NXT),
+        eq(N,plus(N1,1)),
+        z3_not(mem(X,F1)),
+        eqset(F,add(F1, X))])
+  ]).
+
+unfold(list(H,X,N,F),
+  [
+  body([], [eq(X,0),eq(N,0),eqset(F,emptyset)]),
+  body([list(H,T,N1,F1)],
+       [gt(X,0), 
+        eq(N,plus(N1,1)),
+        eq(T, ref(H, plus(X,1))),
+        z3_not(mem(X, F1)),
+        eqset(F, add(F1, X))])
+  ]).
+
+
+run_before_loop :-
+  init_counters,
+  addunfoldlevel(0, 0, [cllist(H0, X, N0, F0)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X, N1, F1),
+                        list_seg(H0, NXT, OLDX, N2, F2)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eq(X, OLDX),
+          eq(N1,0)],
+         [], UnfoldableHAtoms, 
+         [gt(X,0),
+          eqset(emptyset,inter(F1,F2)),
+          eq(N0, plus(N2,1)),
+          eq(NXT,ref(H0,plus(X,1)))], []),
+  !,
+  show_counters,
+  printf("BEFORE PROVED.\n", []).
+
+
+run_in_loop :-
+  init_counters,
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, X, N1, F1),
+                        list_seg_left(H0, X, OLDX, N2, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_seg(H0, OLDX, NXT, N3, F3),
+                        list_seg_left(H0, NXT, OLDX, N4, F4)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [gt(X,OLDX),
+          eqset(emptyset,inter(F1,F2)),
+          eq(N0, plus(N1,N2)),
+          
+          gt(X, 0),
+          eq(NXT,ref(H0,plus(X,1))),
+          
+          eq(N3,plus(N1,1)),
+          eq(N4,minus(N2,1)),
+          eqset(F3,add(F1,X)),
+          eqset(F4,del(F2,X))
+         ],
+         [], UnfoldableHAtoms, 
+         [eqset(emptyset,inter(F3,F4)),
+          eq(N0, plus(N3,N4))], []),
+  !,
+  show_counters,
+  printf("INV PROVED.\n", []).
+
+
+run_after_loop_lemma :-
+  init_counters,
+  addunfoldlevel(0, 0, [list_seg_left(H0, NXT, X, N1, F1),
+                        list_seg_left(H0, X, OLDX, N2, F2)],
+                 UnfoldableGAtoms),
+  addunfoldlevel(0, 0, [list_seg_left(H0, NXT, OLDX, N3, F3)],
+                 UnfoldableHAtoms),
+  lprove(0, 0, 0,
+         [], UnfoldableGAtoms,
+         [eqset(emptyset,inter(F1,F2)),
+          eqset(F3,union(F1,F2)),
+          eq(N3, plus(N1,N2))
+         ],
+         [], UnfoldableHAtoms, 
+         [], []),
+  !,
+  show_counters,
+  printf("AFTER LEMMA PROVED.\n", []).
+
+
+run :-
+  run_before_loop,
+  run_in_loop,
+  run_after_loop_lemma,
+  !,
+  printf("PROOF SUCCEED.\n", []).
+
+run :-
+  printf("PROOF FAILED\n", []).
+
+
+:- consult('../solver_main.clpr').
+
+:- run, halt.

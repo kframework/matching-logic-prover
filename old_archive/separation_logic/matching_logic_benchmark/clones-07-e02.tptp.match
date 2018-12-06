@@ -1,0 +1,147 @@
+(declare-sort Sll_t)
+(declare-sort Record)
+(declare-sort Map)
+
+;Sll_t constants
+(declare-func x0 () Sll_t)
+(declare-func x1 () Sll_t)
+(declare-func x2 () Sll_t)
+(declare-func x3 () Sll_t)
+(declare-func x4 () Sll_t)
+(declare-func x5 () Sll_t)
+(declare-func x6 () Sll_t)
+(declare-func x7 () Sll_t)
+(declare-func x8 () Sll_t)
+(declare-func x9 () Sll_t)
+(declare-func x10 () Sll_t)
+(declare-func x11 () Sll_t)
+(declare-func x12 () Sll_t)
+(declare-func x13 () Sll_t)
+(declare-func x14 () Sll_t)
+(declare-func x15 () Sll_t)
+(declare-func x16 () Sll_t)
+(declare-func x17 () Sll_t)
+(declare-func x18 () Sll_t)
+(declare-func x19 () Sll_t)
+(declare-func x20 () Sll_t)
+(declare-func x21 () Sll_t)
+(declare-func x22 () Sll_t)
+(declare-func x23 () Sll_t)
+(declare-func x24 () Sll_t)
+(declare-func x25 () Sll_t)
+(declare-func x26 () Sll_t)
+(declare-func x27 () Sll_t)
+(declare-func x28 () Sll_t)
+(declare-func x29 () Sll_t)
+(declare-func x30 () Sll_t)
+(declare-func x31 () Sll_t)
+(declare-func x32 () Sll_t)
+(declare-func x33 () Sll_t)
+(declare-func x34 () Sll_t)
+(declare-func x35 () Sll_t)
+(declare-func x36 () Sll_t)
+(declare-func x37 () Sll_t)
+(declare-func x38 () Sll_t)
+(declare-func x39 () Sll_t)
+(declare-func x40 () Sll_t)
+(declare-func x41 () Sll_t)
+(declare-func x42 () Sll_t)
+(declare-func x43 () Sll_t)
+(declare-func x44 () Sll_t)
+
+(declare-func nil () Sll_t)
+
+;distinct : a syntactic sugar
+;distinct(x y) = (not (= x y))
+
+;Field name
+(declare-func next (Sll_t) Record)
+
+;Record
+;(declare-func ref (Record) Record)
+
+;Union
+(declare-part uni (Record Record) Record)
+
+; Maps
+(declare-func emp () Map)
+
+; x |-> y
+(declare-part pto (Sll_t Record) Map)
+
+; nil |-> y is bottom
+(assert (forall ((x Record))
+  (not (pto nil x))))
+
+; ssep is separating conjunction
+(declare-part ssep (Map Map) Map)
+
+; commutativity
+(assert (forall ((h1 Map) (h2 Map))
+  (= (ssep h1 h2) (ssep h2 h1))))
+
+; associativity
+(assert (forall ((h1 Map) (h2 Map) (h3 Map))
+  (= (ssep (ssep h1 h2) h3)
+     (ssep h1 (ssep h2 h3)))))
+
+; identity
+(assert (forall ((h Map))
+  (= h (ssep h emp))))
+
+; x |-> y * x |-> z = bottom
+(assert (forall ((x Sll_t) (y Record) (z Record))
+  (not (ssep (pto x y) (pto x z)))))
+
+;(next x) U (next y) = bottom
+(assert (forall ((x Sll_t) (y Sll_t))
+  (not (uni (next x) (next y)))))
+
+; commutativity
+(assert (forall ((r1 Record) (r2 Record))
+  (= (uni r1 r2) (uni r2 r1))))
+
+; associativity
+(assert (forall ((r1 Record) (r2 Record) (r3 Record))
+  (= (uni (uni r1 r2) r3)
+     (uni r1 (uni r2 r3)))))
+
+;List
+(declare-func ls (Sll_t Sll_t) Map)
+(assert (forall ((in Sll_t)(out Sll_t)) 
+ (= (ls in out) (or (= in out) (exists ((u Sll_t)) (and (not 
+ (= in out)) (ssep (pto in (next u)) (ls u out)
+)))))
+))
+(assert (not (floor
+  (and 
+    (= nil nil)
+	(and (not (=  nil x1))
+	(and (not (=  nil x2))
+	(and (not (=  x1 x2))
+	(and (not (=  nil x3))
+	(and (not (=  nil x4))
+	(and (not (=  x3 x4))
+	(and (not (=  nil x5))
+	(and (not (=  nil x6))
+	(and (not (=  x5 x6))
+	(and (not (=  nil x7))
+	(and (not (=  nil x8))
+	(and (not (=  x7 x8))
+	(and (not (=  nil x9))
+	(and (not (=  nil x10))
+	(and (not (=  x9 x10))
+	(and (not (=  nil x11))
+	(and (not (=  nil x12))
+	(and (not (=  x11 x12))
+	(and (not (=  nil x13))
+	(and (not (=  nil x14))
+	(and (not (=  x13 x14))
+     emp
+  ))))))))))))))))))))))
+)))
+(assert (not (floor
+  (not
+         emp
+  ))))
+
