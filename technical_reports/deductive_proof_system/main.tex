@@ -1977,9 +1977,151 @@ The following is the matching logic version of the above example. It shall be no
   ))))
 )
 \end{verbatim}
-\section{Semantics of K}
 
-Moved to a separate repository.
+\section{Linear Temporal Logic}
+
+This section studies the connection between matching logic and linear temporal 
+logic.
+
+Consider a unary symbol $\sigma$.
+Given a model $M$, the symbol $\sigma$ is interpreted as a function
+$$ \sigma_M \colon M \to 2^M $$
+Notice that there is an isomorphism between the sets $M \to 2^M$ and $2^{M 
+\times M}$.
+The isomorphism implies the following two facts.
+Firstly, every interpretation of a symbol can be seen as 
+a binary relation on the domain.
+Secondly, every binary relation on the domain can be taken as an interpretation 
+of a symbol.
+This is formalized in the next definition.
+\begin{defn}
+Given a function $\sigma_M \colon M \to 2^M$, the binary relation $R_\sigma$ 
+deduced from $\sigma_M$ is defined as
+\begin{center}
+$(a,b) \in R_\sigma$ \quad iff \quad $a \in \sigma_M(b)$
+\end{center}
+\end{defn}
+
+\begin{eg}
+Given a signature $(S, \Sigma)$ where $S = \{s\}$ and $\Sigma = \{\circ\}$.
+The symbol $\circ$ is known as the ``next'' operator.
+Given a model $M$ of the signature and an interpretation of $\circ$:
+$$ \circ_M \colon M \to 2^M $$
+The binary relation deduced from $\circ_M$, denoted as $\Rightarrow$, is 
+defined as
+\begin{center}
+$a \Rightarrow b$ \quad iff \quad $a \in \circ_M(b)$
+\end{center}
+\end{eg}
+
+Duality is an important property of unary constructs.
+The dual of a construct $c$ is denoted and defined as
+$$ \bar{c} = \neg c \neg $$
+As an example, it is well-known that the universal quantifier $\forall x$ and 
+the existential quantifier $\exists x$ have each other as dual constructs:
+\begin{align*}
+\forall x . \varphi = \neg \exists x . (\neg \varphi) \\
+\exists x . \varphi = \neg \forall x . (\neg \varphi)
+\end{align*}
+Negation is dual to itself:
+$$\neg \varphi = \neg (\neg (\neg \varphi))$$
+For a symbol $\sigma$, its dual $\bar{\sigma}$ is
+$$ \bar{\sigma}(\varphi) = \neg \sigma (\neg \varphi)
+$$
+Notice that in general, the dual of a symbol $\bar{\sigma}$ is not 
+``interpreted'' 
+as a binary relation as the symbol $\sigma$ does.
+Given a model $M$, a construct $c$ is ``interpreted'' as a function
+$$ c_M \colon 2^M \to 2^M $$
+This is because the construct $c$ can take any pattern $\varphi$ and gives back 
+another pattern $c(\varphi)$, which is obtained by applying $c$ to $\varphi$.
+As a result, ``interpretation'' of unary constructs cannot be naturally viewed 
+as binary relations.
+
+\begin{defn}
+Given a construct $c$ and a model $M$. We say $c$ is a point-wise extension 
+in $M$, if the function $c_M \colon 2^M \to 2^M$ satisfies 
+the following disjunctive propagation conditions:
+\begin{itemize}
+\item $c_M(\emptyset) = \emptyset$
+\item $c_M(A \cup B) = c_M(A) \cup c_M(B)$, for any $A, B \subseteq M$
+\end{itemize}
+This means the function $c_M$ is fully determined by its values on singleton 
+sets:
+$$
+c_M(A) = \bigcup_{a \in A} c_M(\{a\})
+$$
+\end{defn}
+
+\begin{thm}
+Given a unary symbol $\sigma$ and a model $M$.
+The following statements are equivalent:
+\begin{enumerate}
+\item The dual $\bar{\sigma}$ is a point-wise extension in $M$;
+\item $\sigma_M(M) = M$ and $\sigma_M(A \cap B) = \sigma_M(A) \cap \sigma_M(B)$
+\item The binary relation $R_\sigma$ deduced from $\sigma_M$ is a function;
+\item $\sigma_M = \bar{\sigma}_M$
+\end{enumerate}
+\end{thm}
+\begin{proof}
+($1 \Rightarrow 2$).
+By definition, $\bar{\sigma}_M(\emptyset) = M \setminus \sigma_M(M \setminus 
+\emptyset) = M \setminus \sigma_M(M ) = \emptyset$, so $\sigma_M(M) = M$.
+Similarly, $\bar{\sigma}_M(A \cup B) = M \setminus \sigma_M(M \setminus (A \cup 
+B)) = M \setminus \sigma_M((M \setminus A) \cap (M \setminus B)) = 
+\bar{\sigma}_M(A) \cup \bar{\sigma}_M(B) = (M \setminus \sigma_M(M \setminus 
+A)) \cup (M \setminus \sigma_M(M \setminus B)) = M \setminus (\sigma_M(M 
+\setminus 
+A) \cap \sigma_M(M \setminus 
+B))$, so $\sigma_M((M \setminus A) \cap (M \setminus B)) = (\sigma_M(M 
+\setminus 
+A) \cap \sigma_M(M \setminus 
+B))$. Because $A, B$ are arbitrary subsets, this gives us $\sigma_M(A \cap B) = 
+\sigma_M(A) \cap \sigma_M(b)$.
+
+($2 \Rightarrow 3$).
+Because $\sigma_M(M) = M$, for any $a$, there exists a $b$ such that $(a, b) 
+\in R_\sigma$.
+Assume there exist $a, b_1, b_2$ and $b_1 \neq b_2$ such that $(a, b_1), (a, 
+b_2) \in R_\sigma$.
+By definition, $a \in \sigma_M(b_1)$ and $a \in \sigma_M(b_2)$, so $a \in 
+\sigma_M(b_1) \cap \sigma_M(b_2) = \sigma_M(\{b_1\} \cap \{b_2\}) = 
+\sigma_M(\emptyset) = \emptyset$.
+This is a contradiction, which means our assumption is incorrect.
+Therefore, for any a, there exists one and exactly one $b$ such that $(a, b) 
+\in R_\sigma$, and thus $R_\sigma$ is a function.
+
+($3 \Rightarrow 4$).
+We only show that for any $b$, $\sigma_M(b) \subseteq \bar{\sigma}_M(b)$.
+The other direction can be obtained by considering $\bar{\sigma}_M$ and 
+$\bar{\bar{\sigma}}_M$, and the fact that $\sigma_M = \bar{\bar{\sigma}}_M$.
+Now let $a \in \sigma_M(b)$,
+\begin{align*}
+&a \in \bar{\sigma}_M(b) \\
+\text{if}\quad & a \not\in \sigma_M(M \setminus \{b\}) \\
+\text{if}\quad & a \notin \sigma_M(c) \quad \text{for any $c \neq b$} \\
+\text{if}\quad & a \in \sigma_M(c) \text{ implies }  c = b \quad \text{for any 
+$c$} \\
+\text{if}\quad & (a, c) \in R_\sigma \text{ implies }  c = b \quad \text{for 
+any 
+$c$}
+\end{align*}
+The last statement is true, because $R_\sigma$ is a function, and by assumption 
+we have $a \in \sigma_M(b)$, so $(a,b) \in R_\sigma$.
+\end{proof}
+
+($4 \Rightarrow 1$).
+Trivial.
+
+\begin{prop}
+For any unary symbol $\circ$, 
+\begin{displaymath}
+\prftree
+{\circ\varphi \dimp \neg \circ \neg \varphi}
+{\circ(\varphi \to \psi) \to (\circ \varphi \to \circ \psi)}
+\end{displaymath}
+\end{prop}
+
 
 \medskip
  
