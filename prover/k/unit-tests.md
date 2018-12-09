@@ -16,12 +16,16 @@ endmodule
 module UNIT-TESTS-SPEC
   imports MATCHING-LOGIC-PROVER
   imports SPEC-IDS
+```
 
+```k
   rule <k>            (X : Nat { .Sorts })
            inPatterns (Y : Nat { .Sorts }, .Patterns )
         => false
            ...
        </k>
+```
 
+```k
 endmodule
 ```
