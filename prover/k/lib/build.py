@@ -22,7 +22,7 @@ def do_test(defn, file, expected):
 def do_prove(alias, defn, spec_module, spec):
     return proj.source(spec) \
                .then(proj.tangle().ext('spec.k')) \
-               .then(mlprover.kprove().variables(flags = '--spec-module ' + spec_module)) \
+               .then(defn.kprove().variables(flags = '--spec-module ' + spec_module)) \
                .then(proj.check(proj.source('t/kprove.expected'))) \
                .alias(alias) \
                .default()
@@ -30,8 +30,6 @@ def do_prove(alias, defn, spec_module, spec):
 # Matching Logic Prover
 # =====================
 
-# Compile the definition
-#
 imported_k_files = [ proj.source('kore.md').then(proj.tangle().output(proj.tangleddir('kore.k'))) ]
 mlprover = proj.source('matching-logic-prover.md') \
             .then(proj.tangle().output(proj.tangleddir('matching-logic-prover.k'))) \
@@ -49,6 +47,6 @@ do_test(mlprover, 't/foo', 't/foo.expected')
 lists = proj.source('lists.md') \
             .then(proj.tangle().output(proj.tangleddir('lists.k'))) \
             .then(proj.kompile(backend = 'java')
-                      .variables(directory = proj.builddir('lists'))
+                      .variables( directory = proj.builddir('lists') )
                  )
-do_prove('list-tests', mlprover, 'LISTS-SPEC', 'lists.md')
+do_prove('lists-tests', lists, 'LISTS-SPEC', 'lists.md')
