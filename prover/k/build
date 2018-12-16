@@ -2,7 +2,14 @@
 
 set -eu
 base="$(cd "$(dirname "$0")"; pwd)"
+builddir="$base/.build" 
+prefix="$builddir/local"
+
 type -t ninja > /dev/null || fail "`ninja-build` not available. Giving up."
+
 export PYTHONPATH="$base/ext/"
+export LD_LIBRARY_PATH="$prefix/lib:${LD_LIBRARY_PATH:-}"
+export PATH="$base/lib/:$prefix/bin:$PATH"
+
 python3 lib/build.py
 exec ninja -f .build/generated.ninja "$@"

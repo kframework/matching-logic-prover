@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -eu
+z3_repo=$1 ; shift
+prefix="$(cd "$1"; pwd)" ; shift
+
+echo ============ prefix $prefix
+
+[ -e "$z3_repo/.git" ] || git submodule update --init "$z3_repo"
+( cd $z3_repo/
+  [ -e build/Makefile ] || python3 scripts/mk_make.py --prefix="$prefix" --java
+  cd build
+  make -j4
+  make install
+)
+
+mvn install:install-file                        \
+    -Dfile="$prefix/lib/com.microsoft.z3.jar"   \
+    -DgroupId=com.microsoft                     \
+    -DartifactId=z3                             \
+    -Dversion=1.0.0                             \
+    -Dpackaging=jar                             \
+    -DgeneratePom=true

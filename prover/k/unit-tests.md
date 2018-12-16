@@ -1,28 +1,25 @@
 Here, we write unit tests as reachability claims.
 
-Not that 
-
-```k
-module SPEC-IDS
-  imports KORE-COMMON
-  syntax KoreName ::= "X"   [token, autoReject]
-                    | "Y"   [token, autoReject]
-                    | "Z"   [token, autoReject]
-  syntax KoreName ::= "Nat" [token, autoReject]
-endmodule
-```
-
 ```k
 module UNIT-TESTS-SPEC
   imports MATCHING-LOGIC-PROVER
-  imports SPEC-IDS
 ```
 
 ```k
-  rule <k>            (X : Nat { .Sorts })
-           inPatterns (Y : Nat { .Sorts }, .Patterns )
-        => false
-           ...
+  rule <k> Z3CheckSAT("(declare-const p0 Bool) (assert (= p0 true)) (assert (= p0 false))")
+        => "UNSAT"
+       </k>
+  rule <k> Z3CheckSAT("(declare-const p0 Bool) (assert (= p0 false))")
+        => "SAT"
+       </k>
+  rule <k> Z3CheckSAT(         "(declare-const a Int)"
+                       +String "(declare-const b Int)"
+                       +String "(declare-const n Int)"
+                       +String "(assert (= b (* (^ a n) a)))"
+                       +String "(assert (not (= b (^ a (+ n 1)))))"
+                       +String "(check-sat)"
+                     )
+         => "UNKNOWN"
        </k>
 ```
 

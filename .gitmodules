@@ -7,3 +7,6 @@
 [submodule "prover/k/ext/pandoc-tangle"]
 	path = prover/k/ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle
+[submodule "prover/k/ext/z3"]
+	path = prover/k/ext/z3
+	url = https://github.com/Z3Prover/z3
