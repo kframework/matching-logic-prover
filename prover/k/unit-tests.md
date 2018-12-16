@@ -6,18 +6,20 @@ module UNIT-TESTS-SPEC
 ```
 
 ```k
-  rule <k> Z3CheckSAT("(declare-const p0 Bool) (assert (= p0 true)) (assert (= p0 false))")
+  rule <k> Z3CheckSAT(SMTLIB2ToString((declare-const a Bool)
+                                      (assert (= a true))
+                                      (assert (= a false))))
         => "UNSAT"
        </k>
-  rule <k> Z3CheckSAT("(declare-const p0 Bool) (assert (= p0 false))")
+  rule <k> Z3CheckSAT(SMTLIB2ToString((declare-const a Bool) (assert (= a false))))
         => "SAT"
        </k>
-  rule <k> Z3CheckSAT(         "(declare-const a Int)"
-                       +String "(declare-const b Int)"
-                       +String "(declare-const n Int)"
-                       +String "(assert (= b (* (^ a n) a)))"
-                       +String "(assert (not (= b (^ a (+ n 1)))))"
-                       +String "(check-sat)"
+  rule <k> Z3CheckSAT( SMTLIB2ToString( (declare-const a Int)
+                                        (declare-const b Int)
+                                        (declare-const n Int)
+                                        (assert (= b (* (^ a n) a)))
+                                        (assert (not (= b (^ a (+ n 1)))))
+                                      )
                      )
          => "UNKNOWN"
        </k>
