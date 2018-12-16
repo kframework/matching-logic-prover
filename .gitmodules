@@ -10,3 +10,4 @@
 [submodule "prover/k/ext/z3"]
 	path = prover/k/ext/z3
 	url = https://github.com/Z3Prover/z3
+    ignore = untracked
