@@ -5,6 +5,9 @@ module UNIT-TESTS-SPEC
   imports MATCHING-LOGIC-PROVER
 ```
 
+CheckSAT
+--------
+
 ```k
   rule <k> Z3CheckSAT(SMTLIB2ToString((declare-const a Bool)
                                       (assert (= a true))
