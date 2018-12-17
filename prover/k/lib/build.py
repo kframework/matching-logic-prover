@@ -55,12 +55,3 @@ mlprover = proj.source('matching-logic-prover.md') \
 do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md')
 do_test(mlprover, 't/foo', 't/foo.expected')
 
-# Theories we use for testing
-# ===========================
-
-lists = proj.source('lists.md') \
-            .then(proj.tangle().output(proj.tangleddir('lists.k'))) \
-            .then(proj.kompile(backend = 'java')
-                      .variables( directory = proj.builddir('lists') )
-                 )
-do_prove('lists-tests', lists, 'LISTS-SPEC', 'lists.md')
