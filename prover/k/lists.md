@@ -20,8 +20,9 @@ module LISTS
   syntax Set  ::= add(Set, Int)                           [symbol(set_add ), klabel(set_add )]
   syntax Bool ::= isListSegmentleft(Array, Int, Int, Set) [function, symbol(isListSegmentleft), klabel(isListSegmentleft)]
 
-  rule isListSegmentleft(H, X, Y, .Set) => true
+  rule isListSegmentleft(H, X, Y, F) => true
     requires X >Int Y
+     andBool F ==Set .Set
   rule isListSegmentleft(H, X, Y, F) => true
     requires X =/=Int Y
      andBool X   >Int 0
@@ -37,11 +38,11 @@ That generates these axioms:
 ```
   axiom{R} \implies{R} (
     \equals{SortBool{},R}(
-        Lblint'Unds'gt{}(VarX:SortInt{},VarY:SortInt{}),
+        Lbl'Unds'andBool'Unds'{}(Lblint'Unds'gt{}(VarX:SortInt{},VarY:SortInt{}),Lblset'Unds'eq{}(VarF:SortSet{},Lbl'Stop'Set{}())),
         \dv{SortBool{}}("true")),
     \and{R} (
       \equals{SortBool{},R} (
-        LblisListSegmentleft{}(VarH:SortArray{},VarX:SortInt{},VarY:SortInt{},Lbl'Stop'Set{}()),
+        LblisListSegmentleft{}(VarH:SortArray{},VarX:SortInt{},VarY:SortInt{},VarF:SortSet{}),
         \dv{SortBool{}}("true")),
       \top{R}()))
 ```
@@ -64,8 +65,10 @@ And then clean them up by
 * The kore converter doesn't seem to support `?VNAME`. Manually convert this into `\exists`
 
 ```
-  axiom{R} \implies{R} ( int_ge{}(X:Int{},Y:Int{})
-                       , isListSegmentleft{}(H:Array{},X:Int{},Y:Int{}, set_empty{}())
+  axiom{R} \implies{R} ( \and{R} ( int_ge{}(X:Int{},Y:Int{})
+                                 , set_eq{}(F:Set{}, set_empty{}())
+                                 )
+                       , isListSegmentleft{}(H:Array{},X:Int{},Y:Int{}, F:Set{})
                        )
 ```
 
