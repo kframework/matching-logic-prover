@@ -105,5 +105,7 @@ module KORE-HELPERS
   rule (P inPatterns P1:Pattern ,  PS)
     => (P inPatterns               PS)
     requires notBool P ==K P1
+
+  syntax String ::= KoreName2String(KoreName) [function, functional, hook(STRING.token2string)]
 endmodule
 ```
