@@ -54,3 +54,12 @@ mlprover = proj.source('matching-logic-prover.md') \
 
 do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md')
 
+# Theories
+# --------
+
+lists = proj.source('lists.md') \
+            .then(proj.tangle().output(proj.tangleddir('lists.k'))) \
+            .then(proj.kompile(backend = 'kore')
+                      .variables(directory = proj.builddir('lists'))
+                 ) \
+            .alias('lists')
