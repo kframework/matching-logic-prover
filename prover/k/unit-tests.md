@@ -1,8 +1,15 @@
 Here, we write unit tests as reachability claims.
 
 ```k
+module SPEC-IDS
+  imports BUILTIN-ID-TOKENS
+  syntax UpperName ::= #UpperId [token, prefer]
+  syntax LowerName ::= #LowerId [token, prefer]
+endmodule
+
 module UNIT-TESTS-SPEC
   imports MATCHING-LOGIC-PROVER
+  imports SPEC-IDS
 ```
 
 CheckSAT
@@ -25,6 +32,16 @@ CheckSAT
                                       )
                      )
          => "UNKNOWN"
+       </k>
+```
+
+Lists
+-----
+
+```k
+  rule <k>  lsegleft(V_ 0, V_ 1, V_ 2, V_ 3)
+        -> lsegright(V_ 0, V_ 1, V_ 2, V_ 3)
+        => .K
        </k>
 ```
 
