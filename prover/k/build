@@ -12,4 +12,5 @@ export LD_LIBRARY_PATH="$prefix/lib:${LD_LIBRARY_PATH:-}"
 export PATH="$base/lib/:$prefix/bin:$PATH"
 
 python3 lib/build.py
+[[ $# -lt 1 ]] || [[ -- != $1 ]] || { shift ; exec "$@" ; }
 exec ninja -f .build/generated.ninja "$@"
