@@ -43,6 +43,9 @@ Lists
         -> lsegright(V_ 0, V_ 1, V_ 2, V_ 3)
         => .K
        </k>
+       <strategy>
+         left-unfold
+       </strategy>
 ```
 
 ```k

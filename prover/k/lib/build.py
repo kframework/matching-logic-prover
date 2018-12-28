@@ -53,6 +53,7 @@ mlprover = proj.source('matching-logic-prover.md') \
                  )
 
 do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md')
+do_test(mlprover, 't/lsegleft-implies-lsegright.prover', 't/lsegleft-implies-lsegright.prover.expected')
 
 # Theories
 # --------
