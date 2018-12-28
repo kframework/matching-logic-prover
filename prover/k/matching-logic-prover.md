@@ -56,7 +56,26 @@ module MATCHING-LOGIC-PROVER
 
   configuration
     <k> $PGM </k>
-    <nextVar> 4 </nextVar>
+    <strategy> clpr(4) ~> .K </strategy>
+
+  syntax Strategy ::= "success"
+                    | "fail"
+                    | Strategy     Strategy  // composition
+                    | Strategy "|" Strategy  // choice
+                    | clpr(Int)
+                    | "direct-proof"
+                    | "kt"
+                    | "right-unfold"
+                    |  "left-unfold"
+  rule ( (S T) U ):Strategy => S (T U) [macro]
+
+  rule clpr(0) => fail
+  rule <strategy> clpr(N)
+               => direct-proof
+                | kt clpr(N -Int 1)
+                | right-unfold clpr(N -Int 1)
+       </strategy>
+    requires N >=Int 0
 
   syntax DisjunctionForm ::= "unfold" "(" Atom ")" [function]
 
