@@ -64,7 +64,7 @@ Strategy Language
 -----------------
 
 ```k
-  syntax ResultStrategy ::= "noop" | "fail" | "#hole"
+  syntax ResultStrategy ::= "noop" | "fail" | "success" | "#hole"
   syntax Strategy ::= ResultStrategy
                     | Strategy     Strategy  [right] // composition
                     > Strategy "|" Strategy  [right] // choice
@@ -76,6 +76,12 @@ Since strategies do not libe in the K cell, we must manually heat and cool:
   rule <strategy> S1 S2 => S1 ~> #hole S2 ... </strategy>
     requires notBool(isResultStrategy(S1))
   rule <strategy> S1:ResultStrategy ~> #hole S2 => S1 S2 ... </strategy>
+```
+
+```k
+  syntax Strategy ::= "if" Bool "then" Strategy "else" Strategy "fi" [function]
+  rule if true then S1 else _  fi => S1
+  rule if true then _  else S2 fi => S2
 ```
 
 ```k
@@ -106,6 +112,25 @@ Since strategies do not libe in the K cell, we must manually heat and cool:
          => ( LHS -> unfold(R:RecursivePredicate ( ARGS:Terms )) )
        </k>
        <strategy>  right-unfold => noop ... </strategy>
+```
+
+TODO: Stubbed.
+Returns true if negation is unsatisfiable, false if unknown or satisfiable:
+
+```k
+  syntax Bool ::= checkValid(ImplicationForm) [function]
+  rule checkValid(_) => false:Bool
+```
+
+```k
+  rule <k> IMPLICATION </k>
+       <strategy> direct-proof
+               => if checkValid(IMPLICATION)
+                  then success
+                  else fail
+                  fi
+                  ...
+       </strategy>
 ```
 
 Definition of Recursive Predicates

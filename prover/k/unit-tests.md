@@ -35,8 +35,8 @@ CheckSAT
        </k>
 ```
 
-Lists
------
+Prover
+------
 
 Composition and right-unfold:
 
