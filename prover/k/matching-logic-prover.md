@@ -42,6 +42,11 @@ module MATCHING-LOGIC-PROVER-SYNTAX
   /* prover infrastructure */
 
   syntax DisjunctionForm ::= List{ConjunctionForm, "\\/"}
+
+  /* examples */
+  syntax RecursivePredicate ::= "lsegleft"
+                              | "lsegright"
+
 endmodule
 
 module MATCHING-LOGIC-PROVER
@@ -55,26 +60,23 @@ module MATCHING-LOGIC-PROVER
 
   syntax DisjunctionForm ::= "unfold" "(" Atom ")" [function]
 
-  /* examples */
-  syntax RecursivePredicate ::= "lsegleft"
-                              | "lsegright"
-
   /* lsegleft */
-  rule <k> unfold(lsegleft(H,X,Y,F))
-           => ((X=Y) /\ (F=emptyset))
-              \/ (lsegleft(H,(V_ I),Y,(V_ (I+Int 1)))
-                 /\ (X!=Y) /\ (X!=0) /\ H[X]=(V_ I) /\ (F=(V_ (I +Int 1)) # X))
-           ...
-       </k>
-       <nextVar> I => I +Int 2 </nextVar>
+  rule unfold(lsegleft(H,X,Y,F))
+       =>    ( X = Y /\ F = emptyset )
+          \/ (    lsegleft(H, (V_ !I), Y, (V_ (!J)))
+               /\ (X!=Y) /\ (X!=0)
+               /\ H[X]=(V_ !I)
+               /\ (F=(V_ (!J)) # X)
+             )
 
   /* lsegright */
-  rule <k> unfold(lsegright(H,X,Y,F))
-           => ((X=Y) /\ (F=emptyset))
-              \/ (lsegright(H,X,(V_ I),(V_ (I+Int 1)))
-                 /\ (X!=Y) /\ (X!=0) /\ H[(V_ I)]=Y /\ (F=(V_ (I +Int 1)) # (V_ I)))
-       ...</k>
-       <nextVar> I => I +Int 2 </nextVar>
+  rule unfold(lsegright(H,X,Y,F))
+       =>    ( X = Y /\ F = emptyset )
+          \/ (   lsegright(H,X,(V_ !I),(V_ (!J)))
+              /\ (X!=Y) /\ (X!=0)
+              /\ H[(V_ !I)]=Y
+              /\ (F=(V_ (!J)) # (V_ !I))
+             )
 
 endmodule
 ```
