@@ -37,7 +37,7 @@ module MATCHING-LOGIC-PROVER-SYNTAX
 
   syntax ConjunctionForm ::= List{Atom, "/\\"}
 
-  syntax ImplicationForm ::= ConjunctionForm "->" Atom
+  syntax ImplicationForm ::= ConjunctionForm "->" DisjunctionForm
 
   /* prover infrastructure */
 
@@ -46,6 +46,7 @@ module MATCHING-LOGIC-PROVER-SYNTAX
   /* examples */
   syntax RecursivePredicate ::= "lsegleft"
                               | "lsegright"
+                              | "isEmpty"
 
 endmodule
 
@@ -55,28 +56,62 @@ module MATCHING-LOGIC-PROVER
   imports SMTLIB2
 
   configuration
-    <k> $PGM </k>
+    <k> $PGM:ImplicationForm </k>
     <strategy> clpr(4) ~> .K </strategy>
+```
 
-  syntax Strategy ::= "success"
-                    | "fail"
-                    | Strategy     Strategy  // composition
-                    | Strategy "|" Strategy  // choice
-                    | clpr(Int)
-                    | "direct-proof"
-                    | "kt"
-                    | "right-unfold"
-                    |  "left-unfold"
+Strategy Language
+-----------------
+
+```k
+  syntax ResultStrategy ::= "noop" | "fail" | "#hole"
+  syntax Strategy ::= ResultStrategy
+                    | Strategy     Strategy  [right] // composition
+                    > Strategy "|" Strategy  [right] // choice
+```
+
+Since strategies do not libe in the K cell, we must manually heat and cool:
+
+```k
+  rule <strategy> S1 S2 => S1 ~> #hole S2 ... </strategy>
+    requires notBool(isResultStrategy(S1))
+  rule <strategy> S1:ResultStrategy ~> #hole S2 => S1 S2 ... </strategy>
+```
+
+```k
+  rule <strategy> noop S2 => S2 ... </strategy>
+```
+
+```k
+  syntax Strategy ::= clpr(Int)
+                    | "direct-proof" [token]
+                    | "kt"           [token]
+                    | "right-unfold" [token]
+                    |  "left-unfold" [token]
+
   rule ( (S T) U ):Strategy => S (T U) [macro]
+  rule noop T => T
 
   rule clpr(0) => fail
   rule <strategy> clpr(N)
                => direct-proof
-                | kt clpr(N -Int 1)
+                | kt           clpr(N -Int 1)
                 | right-unfold clpr(N -Int 1)
        </strategy>
     requires N >=Int 0
+```
 
+```k
+  rule <k>  ( LHS -> R:RecursivePredicate ( ARGS:Terms ) )
+         => ( LHS -> unfold(R:RecursivePredicate ( ARGS:Terms )) )
+       </k>
+       <strategy>  right-unfold => noop ... </strategy>
+```
+
+Definition of Recursive Predicates
+----------------------------------
+
+```k
   syntax DisjunctionForm ::= "unfold" "(" Atom ")" [function]
 
   /* lsegleft */
@@ -97,5 +132,6 @@ module MATCHING-LOGIC-PROVER
               /\ (F=(V_ (!J)) # (V_ !I))
              )
 
+  rule unfold(isEmpty(S)) => S = emptyset
 endmodule
 ```

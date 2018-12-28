@@ -38,13 +38,15 @@ CheckSAT
 Lists
 -----
 
+Composition and right-unfold:
+
 ```k
-  rule <k>  lsegleft(V_ 0, V_ 1, V_ 2, V_ 3)
-        -> lsegright(V_ 0, V_ 1, V_ 2, V_ 3)
-        => .K
+  rule <k> ( (V_ 0 = emptyset /\ .ConjunctionForm ) -> isEmpty(V_ 0) )
+        => ( (V_ 0 = emptyset /\ .ConjunctionForm ) -> (V_ 0 = emptyset) )
        </k>
        <strategy>
-         left-unfold
+            (right-unfold fail)
+         => fail
        </strategy>
 ```
 
