@@ -35,13 +35,14 @@ module MATCHING-LOGIC-PROVER-SYNTAX
                 | RecursivePredicate "(" Terms ")"
                 | "(" Atom ")" [bracket]
 
-  syntax ConjunctionForm ::= List{Atom, "/\\"}
+  syntax ConjunctionForm ::= Atom
+                           | Atom "/\\" ConjunctionForm
 
   syntax ImplicationForm ::= ConjunctionForm "->" DisjunctionForm
 
   /* prover infrastructure */
-
-  syntax DisjunctionForm ::= List{ConjunctionForm, "\\/"}
+  syntax DisjunctionForm ::= ConjunctionForm
+                           | ConjunctionForm "\\/" DisjunctionForm
 
   /* examples */
   syntax RecursivePredicate ::= "lsegleft"
@@ -58,6 +59,7 @@ module MATCHING-LOGIC-PROVER
   configuration
     <k> $PGM:ImplicationForm </k>
     <strategy> search-bound(4) ~> .K </strategy>
+    <stateStack> .K </stateStack>
 ```
 
 Strategy Language
@@ -70,7 +72,7 @@ Strategy Language
                     > Strategy "|" Strategy  [right] // choice
 ```
 
-Since strategies do not libe in the K cell, we must manually heat and cool:
+Since strategies do not live in the K cell, we must manually heat and cool:
 
 ```k
   rule <strategy> S1 S2 => S1 ~> #hole S2 ... </strategy>
@@ -78,10 +80,30 @@ Since strategies do not libe in the K cell, we must manually heat and cool:
   rule <strategy> S1:ResultStrategy ~> #hole S2 => S1 S2 ... </strategy>
 ```
 
+When we encounter a choice we push the contents of <k> cell to a stack, and
+attempt the first strategy. If the strategy fails, we reset the <k> cell to the
+top element of the stack, and pop from the stack when all choices fail
+
+```k
+  syntax KItem ::= "#pop"
+  rule <strategy> (S1 | S2) => S1 ~> #hole | S2 ~> #pop ... </strategy>
+       <k> GOAL:ImplicationForm ... </k>
+       <stateStack> .K => GOAL ... </stateStack>
+    requires notBool(isResultStrategy(S1))
+  rule <strategy> S1:ResultStrategy ~> #hole | S2 => S1 | S2 ... </strategy>
+
+  rule <strategy> fail | S2
+               => S2
+                  ...
+       </strategy>
+       <k> _ => GOAL </k>
+       <stateStack> GOAL:ImplicationForm ... </stateStack>
+```
+
 ```k
   syntax Strategy ::= "if" Bool "then" Strategy "else" Strategy "fi" [function]
-  rule if true then S1 else _  fi => S1
-  rule if true then _  else S2 fi => S2
+  rule if true  then S1 else _  fi => S1
+  rule if false then _  else S2 fi => S2
 ```
 
 ```k
@@ -89,7 +111,11 @@ Since strategies do not libe in the K cell, we must manually heat and cool:
 ```
 
 ```k
-  syntax Strategy ::= search-bound(Int)
+  rule <strategy> success ~> _ => success </strategy>
+```
+
+```k
+  syntax Strategy ::= "search-bound" "(" Int ")"
                     | "direct-proof" [token]
                     | "kt"           [token]
                     | "right-unfold" [token]
@@ -119,13 +145,14 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 
 ```k
   syntax Bool ::= checkValid(ImplicationForm) [function]
-  rule checkValid(_) => false:Bool
+  rule checkValid(P -> P) => true:Bool
+  rule checkValid(_) => false:Bool [owise]
 ```
 
 ```k
-  rule <k> IMPLICATION </k>
+  rule <k> GOAL </k>
        <strategy> direct-proof
-               => if checkValid(IMPLICATION)
+               => if checkValid(GOAL)
                   then success
                   else fail
                   fi

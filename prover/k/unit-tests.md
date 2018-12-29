@@ -38,14 +38,14 @@ CheckSAT
 Prover
 ------
 
-Composition and right-unfold:
+This demonstrates composition, right-unfold and choice:
 
 ```k
-  rule <k> ( (V_ 0 = emptyset /\ .ConjunctionForm ) -> isEmpty(V_ 0) )
-        => ( (V_ 0 = emptyset /\ .ConjunctionForm ) -> (V_ 0 = emptyset) )
+  rule <k> ( (V_ 0 = emptyset ) -> isEmpty(V_ 0) )
+        => ( (V_ 0 = emptyset ) -> (V_ 0 = emptyset) )
        </k>
        <strategy>
-            (right-unfold fail)
+            direct-proof | right-unfold direct-proof
          => fail
        </strategy>
 ```
