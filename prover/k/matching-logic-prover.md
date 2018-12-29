@@ -57,7 +57,7 @@ module MATCHING-LOGIC-PROVER
 
   configuration
     <k> $PGM:ImplicationForm </k>
-    <strategy> clpr(4) ~> .K </strategy>
+    <strategy> search-bound(4) ~> .K </strategy>
 ```
 
 Strategy Language
@@ -89,7 +89,7 @@ Since strategies do not libe in the K cell, we must manually heat and cool:
 ```
 
 ```k
-  syntax Strategy ::= clpr(Int)
+  syntax Strategy ::= search-bound(Int)
                     | "direct-proof" [token]
                     | "kt"           [token]
                     | "right-unfold" [token]
@@ -98,11 +98,11 @@ Since strategies do not libe in the K cell, we must manually heat and cool:
   rule ( (S T) U ):Strategy => S (T U) [macro]
   rule noop T => T
 
-  rule clpr(0) => fail
-  rule <strategy> clpr(N)
+  rule search-bound(0) => fail
+  rule <strategy> search-bound(N)
                => direct-proof
-                | kt           clpr(N -Int 1)
-                | right-unfold clpr(N -Int 1)
+                | kt           search-bound(N -Int 1)
+                | right-unfold search-bound(N -Int 1)
        </strategy>
     requires N >=Int 0
 ```
