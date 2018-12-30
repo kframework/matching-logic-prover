@@ -41,8 +41,10 @@ Prover
 This demonstrates composition, right-unfold and choice:
 
 ```k
-  rule <k> ( (V_ 0 = emptyset ) -> isEmpty(V_ 0) )
-        => ( (V_ 0 = emptyset ) -> (V_ 0 = emptyset) )
+  rule <k> \implies(     \and(\equals(variable("S", 0), emptyset))
+                   , \or(\and(isEmpty(variable("S", 0))))
+                   )
+        => success
        </k>
        <strategy>
             direct-proof | right-unfold direct-proof

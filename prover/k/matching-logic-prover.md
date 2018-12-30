@@ -3,47 +3,49 @@ requires "smtlib2.k"
 
 module MATCHING-LOGIC-PROVER-SYNTAX
   imports DOMAINS-SYNTAX
+```
 
-  /* FOL-Horn fragment */
-  syntax Var ::= "V_" Int
+Kore Sugar
+----------
 
-  syntax AtomicTerm ::= Int | Var | "emptyset"
+The following is sugar for a post-sort-erasure first-order horn clause fragment
+of kore:
 
-  syntax Term ::= AtomicTerm
-                | Term "+" Term
-                | "union" "(" Term "," Term ")"
-                | "intersect" "(" Term "," Term ")"
-                | Term "#" Term /* F # x means F U {x}, and that x \not\in F */
-                | Term "[" Term ":=" Term "]"
-                | Term "[" Term "]"
-                | "(" Term ")" [bracket]
-
-  syntax Terms ::= List{Term, ","}
-
+```k
+  syntax Variable ::= variable(String, Int) // For easy debugging we allow variables to have names.
+                                            // The `Int` can be used for generating fresh-variables.
+  syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
+                         | Variable
+                         | "emptyset"       // Sugar for "\emptyset { T } ()"
   syntax RecursivePredicate
   syntax NonRecursivePredicate
 
-  syntax Atom ::= "true" | "false"
-                | Term "=" Term
-                | Term "!=" Term
-                | Term "<=" Term
-                | Term "<" Term
-                | "disjoint" "(" Term "," Term ")"
-                | Term "in" Term
-                | Term "notin" Term
-                | NonRecursivePredicate "(" Terms ")"
-                | RecursivePredicate "(" Terms ")"
-                | "(" Atom ")" [bracket]
+  syntax BasicPattern
+  syntax BasicPatterns ::= List{BasicPattern, ","}
+  syntax BasicPattern ::= AtomicPattern
+                        | "\\top"    "(" ")"
+                        | "\\bottom" "(" ")"
+                        | "\\equals" "(" BasicPattern "," BasicPattern ")"
+                        | "\\not"    "(" BasicPattern ")"
 
-  syntax ConjunctionForm ::= Atom
-                           | Atom "/\\" ConjunctionForm
+                        // Array{Int, Int}
+                        | "select" "(" BasicPattern "," BasicPattern ")"        // Array, Int
 
-  syntax ImplicationForm ::= ConjunctionForm "->" DisjunctionForm
+                        // Set{Int}
+                        | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // Set, Set
+                        | "singleton"     "(" BasicPattern ")"                  // Int
+                        | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, Set
 
-  /* prover infrastructure */
-  syntax DisjunctionForm ::= ConjunctionForm
-                           | ConjunctionForm "\\/" DisjunctionForm
+                        | NonRecursivePredicate "(" BasicPatterns ")"
+                        | RecursivePredicate    "(" BasicPatterns ")"
 
+  syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")"
+  syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
+  syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")"
+  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," DisjunctiveForm ")"
+```
+
+```k
   /* examples */
   syntax RecursivePredicate ::= "lsegleft"
                               | "lsegright"
@@ -57,7 +59,7 @@ module MATCHING-LOGIC-PROVER
   imports SMTLIB2
 
   configuration
-    <k> $PGM:ImplicationForm </k>
+    <k> $PGM:ImplicativeForm </k>
     <strategy> search-bound(4) ~> .K </strategy>
     <stateStack> .K </stateStack>
 ```
@@ -87,7 +89,7 @@ top element of the stack, and pop from the stack when all choices fail
 ```k
   syntax KItem ::= "#pop"
   rule <strategy> (S1 | S2) => S1 ~> #hole | S2 ~> #pop ... </strategy>
-       <k> GOAL:ImplicationForm ... </k>
+       <k> GOAL:ImplicativeForm ... </k>
        <stateStack> .K => GOAL ... </stateStack>
     requires notBool(isResultStrategy(S1))
   rule <strategy> S1:ResultStrategy ~> #hole | S2 => S1 | S2 ... </strategy>
@@ -97,7 +99,7 @@ top element of the stack, and pop from the stack when all choices fail
                   ...
        </strategy>
        <k> _ => GOAL </k>
-       <stateStack> GOAL:ImplicationForm ... </stateStack>
+       <stateStack> GOAL:ImplicativeForm ... </stateStack>
 ```
 
 ```k
@@ -134,8 +136,8 @@ top element of the stack, and pop from the stack when all choices fail
 ```
 
 ```k
-  rule <k>  ( LHS -> R:RecursivePredicate ( ARGS:Terms ) )
-         => ( LHS -> unfold(R:RecursivePredicate ( ARGS:Terms )) )
+  rule <k>  \implies(LHS, \or(\and(R:RecursivePredicate(ARGS))))
+         => \implies(LHS, unfold(R:RecursivePredicate(ARGS)))
        </k>
        <strategy>  right-unfold => noop ... </strategy>
 ```
@@ -144,8 +146,8 @@ TODO: Stubbed.
 Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 
 ```k
-  syntax Bool ::= checkValid(ImplicationForm) [function]
-  rule checkValid(P -> P) => true:Bool
+  syntax Bool ::= checkValid(ImplicativeForm) [function]
+  rule checkValid(\implies(P, \or(P))) => true:Bool
   rule checkValid(_) => false:Bool [owise]
 ```
 
@@ -164,26 +166,51 @@ Definition of Recursive Predicates
 ----------------------------------
 
 ```k
-  syntax DisjunctionForm ::= "unfold" "(" Atom ")" [function]
+  syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
   /* lsegleft */
   rule unfold(lsegleft(H,X,Y,F))
-       =>    ( X = Y /\ F = emptyset )
-          \/ (    lsegleft(H, (V_ !I), Y, (V_ (!J)))
-               /\ (X!=Y) /\ (X!=0)
-               /\ H[X]=(V_ !I)
-               /\ (F=(V_ (!J)) # X)
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   )
+             , \and( lsegleft( H
+                             , variable("X", !I)
+                             , Y
+                             , variable("F", !J)
+                             )
+                   , \not(\equals(X, Y))
+                   , \not(\equals(X, 0))
+                   , \equals( select(H, X)
+                            , variable("X", !I)
+                            )
+                   , \equals( F
+                            , disjointUnion( variable("F", !J)
+                                           , singleton(X)
+                                           )
+                            )
+                   )
              )
 
   /* lsegright */
   rule unfold(lsegright(H,X,Y,F))
-       =>    ( X = Y /\ F = emptyset )
-          \/ (   lsegright(H,X,(V_ !I),(V_ (!J)))
-              /\ (X!=Y) /\ (X!=0)
-              /\ H[(V_ !I)]=Y
-              /\ (F=(V_ (!J)) # (V_ !I))
-             )
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   )
+             , \and( lsegright( H
+                              , X
+                              , variable("Y", !I)
+                              , variable("F", !J)
+                              )
+                   , \not(\equals(X, Y))
+                   , \not(\equals(X, 0))
+                   , \equals(Y, select(H, variable("Y", !I)))
+                   , \equals( F
+                            , disjointUnion( variable("F", !J)
+                                           , singleton(variable("Y", !I))
+                                           )
+                            )
+             )     )
 
-  rule unfold(isEmpty(S)) => S = emptyset
+  rule unfold(isEmpty(S)) => \or ( \and ( \equals(S, emptyset) ) )
 endmodule
 ```
