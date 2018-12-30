@@ -41,8 +41,8 @@ Prover
 This demonstrates composition, right-unfold and choice:
 
 ```k
-  rule <k> \implies(     \and(\equals(variable("S", 0), emptyset))
-                   , \or(\and(isEmpty(variable("S", 0))))
+  rule <k> \implies(     \and(\equals(variable("S"), emptyset))
+                   , \or(\and(isEmpty(variable("S"))))
                    )
         => success
        </k>

@@ -12,7 +12,9 @@ The following is sugar for a post-sort-erasure first-order horn clause fragment
 of kore:
 
 ```k
-  syntax Variable ::= variable(String, Int) // For easy debugging we allow variables to have names.
+  syntax Variable ::= variable(String)
+                    | variable(String, Int) // Fresh Variables:
+                                            // For easy debugging we allow variables to have names.
                                             // The `Int` can be used for generating fresh-variables.
   syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
                          | Variable
