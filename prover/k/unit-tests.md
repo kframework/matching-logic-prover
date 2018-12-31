@@ -44,12 +44,13 @@ This demonstrates composition, right-unfold and choice:
   rule <k> \implies(     \and(\equals(variable("S"), emptyset))
                    , \or(\and(isEmpty(variable("S"))))
                    )
-        => success
+        => _
        </k>
        <strategy>
-            direct-proof | right-unfold direct-proof
-         => fail
+            right-unfold direct-proof
+         => success
        </strategy>
+       [specification]
 ```
 
 ```k

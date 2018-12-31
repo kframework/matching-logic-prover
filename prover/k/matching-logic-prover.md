@@ -111,28 +111,22 @@ top element of the stack, and pop from the stack when all choices fail
 ```
 
 ```k
-  rule <strategy> noop S2 => S2 ... </strategy>
-```
-
-```k
-  rule <strategy> success ~> _ => success </strategy>
-```
-
-```k
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "direct-proof" [token]
                     | "kt"           [token]
                     | "right-unfold" [token]
                     |  "left-unfold" [token]
 
-  rule ( (S T) U ):Strategy => S (T U) [macro]
-  rule noop T => T
+  rule <strategy> ( (S T) U ):Strategy => S (T U) ... </strategy>
+  rule <strategy> fail T => fail                  ... </strategy>
+  rule <strategy> noop T => T                     ... </strategy>
 
-  rule search-bound(0) => fail
+  rule <strategy> search-bound(0) => fail </strategy>
   rule <strategy> search-bound(N)
                => direct-proof
                 | kt           search-bound(N -Int 1)
                 | right-unfold search-bound(N -Int 1)
+                ...
        </strategy>
     requires N >=Int 0
 ```
@@ -162,6 +156,10 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
                   fi
                   ...
        </strategy>
+```
+
+```k
+  rule <strategy> kt => fail ... </strategy> // unimplemented
 ```
 
 Definition of Recursive Predicates

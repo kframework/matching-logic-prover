@@ -1,0 +1,3 @@
+\implies(     \and(\equals(variable("S"), emptyset))
+        , \or(\and(isEmpty(variable("S"))))
+        )

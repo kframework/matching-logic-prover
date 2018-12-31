@@ -23,7 +23,8 @@ z3_target = proj.source('').then(build_z3_rule)
 # Helpers for running tests
 # -------------------------
 
-def do_test(defn, file, expected):
+def do_test(defn, file):
+    expected = file + '.expected'
     return proj.source(file) \
                .then(defn.krun()) \
                .then(proj.check(proj.source(expected))
@@ -53,7 +54,8 @@ mlprover = proj.source('matching-logic-prover.md') \
                  )
 
 do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md')
-do_test(mlprover, 't/lsegleft-implies-lsegright.prover', 't/lsegleft-implies-lsegright.prover.expected')
+do_test(mlprover, 't/lsegleft-implies-lsegright.prover')
+do_test(mlprover, 't/emptyset-implies-isempty.prover')
 
 # Theories
 # --------
