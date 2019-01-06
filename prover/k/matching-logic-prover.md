@@ -157,20 +157,31 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
        </strategy>
 ```
 
+### Knaster Tarski
+
+First, we find all recursive patterns KT can be applied to:
+
 ```k
   rule <k> GOAL </k>
        <strategy> kt => ktAux(getLeftRecursivePredicates(GOAL)) ... </strategy>
 
-  syntax RecursivePredicates ::= List{RecursivePredicate, ","}
-  syntax RecursivePredicates ::= getLeftRecursivePredicates(ImplicativeForm) [function]
-  rule getLeftRecursivePredicates(_) => .RecursivePredicates
+  syntax BasicPatterns ::= getLeftRecursivePredicates(ImplicativeForm) [function]
+  rule getLeftRecursivePredicates(\implies(\and(LHS), RHS))
+    => getRecursivePredicates(LHS)
 
-  syntax Strategy ::= ktAux(RecursivePredicates)   [function, klabel(ktAux)]
-                    | kt(RecursivePredicate)
+  syntax BasicPatterns ::= getRecursivePredicates(BasicPatterns)   [function]
+  rule getRecursivePredicates(.BasicPatterns) => .BasicPatterns
+  rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
+    => R(ARGS), getRecursivePredicates(REST)
+  rule getRecursivePredicates(PATTERN, REST)
+    => getRecursivePredicates(REST)
+       [owise]
 
+  syntax Strategy ::= ktAux(BasicPatterns)   [function, klabel(ktAux)]
+                    | kt(BasicPattern)
 
-  rule ktAux(.RecursivePredicates) => fail
-  rule ktAux(LRP:RecursivePredicate, LRPs)
+  rule ktAux(.BasicPatterns) => fail
+  rule ktAux(LRP, LRPs)
     => kt(LRP) | ktAux(LRPs)
        [owise]
 ```
