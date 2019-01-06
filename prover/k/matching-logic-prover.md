@@ -138,7 +138,9 @@ top element of the stack, and pop from the stack when all choices fail
        <strategy>  right-unfold => noop ... </strategy>
 ```
 
-TODO: Stubbed.
+### Direct proof
+
+TODO: Stubbed: Should translate to SMTLIB queries.
 Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 
 ```k
@@ -159,7 +161,21 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 ```
 
 ```k
-  rule <strategy> kt => fail ... </strategy> // unimplemented
+  rule <k> GOAL </k>
+       <strategy> kt => ktAux(getLeftRecursivePredicates(GOAL)) ... </strategy>
+
+  syntax RecursivePredicates ::= List{RecursivePredicate, ","}
+  syntax RecursivePredicates ::= getLeftRecursivePredicates(ImplicativeForm) [function]
+  rule getLeftRecursivePredicates(_) => .RecursivePredicates
+
+  syntax Strategy ::= ktAux(RecursivePredicates)   [function, klabel(ktAux)]
+                    | kt(RecursivePredicate)
+
+
+  rule ktAux(.RecursivePredicates) => fail
+  rule ktAux(LRP:RecursivePredicate, LRPs)
+    => kt(LRP) | ktAux(LRPs)
+       [owise]
 ```
 
 Definition of Recursive Predicates
