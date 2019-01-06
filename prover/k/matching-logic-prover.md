@@ -70,6 +70,7 @@ Strategy Language
   syntax ResultStrategy ::= "noop" | "fail" | "success" | "#hole"
   syntax Strategy ::= ResultStrategy
                     | Strategy     Strategy  [right] // composition
+                    > Strategy "&" Strategy  [right] // and
                     > Strategy "|" Strategy  [right] // choice
 ```
 
@@ -81,22 +82,40 @@ Since strategies do not live in the K cell, we must manually heat and cool:
   rule <strategy> S1:ResultStrategy ~> #hole S2 => S1 S2 ... </strategy>
 ```
 
+`|` and `&` require maintaining a stack of states. We use the `<stateStack>`
+cell for this. `#pop` pops the item from this stack.
+
+```k
+  syntax KItem ::= "#pop"
+```
+
 When we encounter a choice we push the contents of <k> cell to a stack, and
 attempt the first strategy. If the strategy fails, we reset the <k> cell to the
 top element of the stack, and pop from the stack when all choices fail
 
 ```k
-  syntax KItem ::= "#pop"
   rule <strategy> (S1 | S2) => S1 ~> #hole | S2 ~> #pop ... </strategy>
        <k> GOAL:ImplicativeForm ... </k>
        <stateStack> .K => GOAL ... </stateStack>
     requires notBool(isResultStrategy(S1))
   rule <strategy> S1:ResultStrategy ~> #hole | S2 => S1 | S2 ... </strategy>
+  rule <strategy> fail | S2 => S2 ... </strategy>
+       <k> _ => GOAL </k>
+       <stateStack> GOAL:ImplicativeForm ... </stateStack>
+```
 
-  rule <strategy> fail | S2
-               => S2
-                  ...
-       </strategy>
+Similarly, when we encounter *and*, we push the contents of <k> cell to a stack, and
+attempt the first strategy. If the strategy *succeeds*, we reset the <k> cell to the
+top element of the stack, and pop from the stack when any sub-strategy fails.
+
+```k
+  rule <strategy> (S1 & S2) => S1 ~> #hole & S2 ~> #pop ... </strategy>
+       <k> GOAL:ImplicativeForm ... </k>
+       <stateStack> .K => GOAL ... </stateStack>
+    requires notBool(isResultStrategy(S1))
+  rule <strategy> S1:ResultStrategy ~> #hole & S2 => S1 & S2 ... </strategy>
+  rule <strategy> fail & S2 => fail ... </strategy>
+  rule <strategy> success & S2 => S2 ... </strategy>
        <k> _ => GOAL </k>
        <stateStack> GOAL:ImplicativeForm ... </stateStack>
 ```
