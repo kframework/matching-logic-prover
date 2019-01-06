@@ -20,7 +20,7 @@ of kore:
                          | Variable
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
   syntax RecursivePredicate
-  syntax NonRecursivePredicate
+  syntax Predicate ::= RecursivePredicate
 
   syntax BasicPattern
   syntax BasicPatterns ::= List{BasicPattern, ","}
@@ -37,9 +37,7 @@ of kore:
                         | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // Set, Set
                         | "singleton"     "(" BasicPattern ")"                  // Int
                         | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, Set
-
-                        | NonRecursivePredicate "(" BasicPatterns ")"
-                        | RecursivePredicate    "(" BasicPatterns ")"
+                        | Predicate "(" BasicPatterns ")"
 
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")"
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
@@ -51,8 +49,7 @@ of kore:
   /* examples */
   syntax RecursivePredicate ::= "lsegleft"
                               | "lsegright"
-                              | "isEmpty"
-
+  syntax Predicate ::= "isEmpty"
 endmodule
 
 module MATCHING-LOGIC-PROVER
@@ -132,8 +129,8 @@ top element of the stack, and pop from the stack when all choices fail
 ```
 
 ```k
-  rule <k>  \implies(LHS, \or(\and(R:RecursivePredicate(ARGS))))
-         => \implies(LHS, unfold(R:RecursivePredicate(ARGS)))
+  rule <k>  \implies(LHS, \or(\and(R:Predicate(ARGS))))
+         => \implies(LHS, unfold(R:Predicate(ARGS)))
        </k>
        <strategy>  right-unfold => noop ... </strategy>
 ```
