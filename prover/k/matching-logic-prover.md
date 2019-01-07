@@ -182,7 +182,7 @@ First, we find all recursive patterns KT can be applied to:
 
 ```k
   rule <k> GOAL </k>
-       <strategy> kt => ktAux(getLeftRecursivePredicates(GOAL)) ... </strategy>
+       <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
 
   syntax BasicPatterns ::= getLeftRecursivePredicates(ImplicativeForm) [function]
   rule getLeftRecursivePredicates(\implies(\and(LHS), RHS))
@@ -196,13 +196,20 @@ First, we find all recursive patterns KT can be applied to:
     => getRecursivePredicates(REST)
        [owise]
 
-  syntax Strategy ::= ktAux(BasicPatterns)   [function, klabel(ktAux)]
-                    | kt(BasicPattern)
+  syntax Strategy ::= ktForEachLRP(BasicPatterns) [function, klabel(ktForEachLRP)]
+  rule ktForEachLRP(.BasicPatterns) => fail
+  rule ktForEachLRP(LRP, LRPs) => kt(LRP) | ktForEachLRP(LRPs) [owise]
 
-  rule ktAux(.BasicPatterns) => fail
-  rule ktAux(LRP, LRPs)
-    => kt(LRP) | ktAux(LRPs)
-       [owise]
+  syntax Strategy ::= kt(BasicPattern) [function, klabel(ktForEachLRP)]
+  rule kt(LRP) => ktForEachBody(LRP, unfold(LRP))
+
+  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm) [function, klabel(ktForEachLRP)]
+  rule ktForEachBody(LRP, \or(.ConjunctiveForms))
+    => success
+  rule ktForEachBody(LRP, \or(BODY, BODIES))
+    => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
+
+  syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm)
 ```
 
 Definition of Recursive Predicates
