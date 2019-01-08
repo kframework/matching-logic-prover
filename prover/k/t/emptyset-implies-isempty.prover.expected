@@ -1,11 +1,5 @@
-<generatedTop>
-  <k>
-    \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .BasicPatterns ) , \or ( \and ( \equals ( variable ( "S" ) , emptyset ) , .BasicPatterns ) , .ConjunctiveForms ) )
-  </k>
-  <strategy>
-    success | kt search-bound ( 2 ) | right-unfold search-bound ( 2 ) ~> #pop ~> #pop ~> #pop
-  </strategy>
-  <stateStack>
-    \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .BasicPatterns ) , \or ( \and ( \equals ( variable ( "S" ) , emptyset ) , .BasicPatterns ) , .ConjunctiveForms ) ) ~> \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .BasicPatterns ) , \or ( \and ( isEmpty ( variable ( "S" ) , .BasicPatterns ) , .BasicPatterns ) , .ConjunctiveForms ) ) ~> \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .BasicPatterns ) , \or ( \and ( isEmpty ( variable ( "S" ) , .BasicPatterns ) , .BasicPatterns ) , .ConjunctiveForms ) )
-  </stateStack>
-</generatedTop>
+<proveOne>
+  <proveAll>
+    .GoalCellBag
+  </proveAll>
+</proveOne>

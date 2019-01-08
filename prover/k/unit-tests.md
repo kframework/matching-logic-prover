@@ -41,16 +41,21 @@ Prover
 This demonstrates composition, right-unfold and choice:
 
 ```k
-  rule <k> \implies(     \and(\equals(variable("S"), emptyset))
-                   , \or(\and(isEmpty(variable("S"))))
-                   )
-        => _
-       </k>
-       <strategy>
-            right-unfold direct-proof
-         => success
-       </strategy>
-       [specification]
+  rule <proveOne>
+         <proveAll>
+           <goal>
+           <k> \implies(     \and(\equals(variable("S"), emptyset))
+                       , \or(\and(isEmpty(variable("S"))))
+                       )
+            => _
+           </k>
+           <strategy>
+                right-unfold direct-proof
+             => success
+           </strategy>
+           </goal>
+         </proveAll>
+       </proveOne>
 ```
 
 ```k

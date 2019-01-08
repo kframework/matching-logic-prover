@@ -56,19 +56,30 @@ module MATCHING-LOGIC-PROVER
   imports DOMAINS
   imports MATCHING-LOGIC-PROVER-SYNTAX
   imports SMTLIB2
+```
 
+TODO: `type="List"` work for some reason. `type="Bag"` allows too much
+non-determinism and affects efficiency.
+
+```k
   configuration
-    <k> $PGM:ImplicativeForm </k>
-    <strategy> search-bound(4) ~> .K </strategy>
-    <stateStack> .K </stateStack>
+    <proveOne>
+      <proveAll multiplicity="*" type="Bag">
+        <goal multiplicity="*" type="Bag">
+          <k> $PGM:ImplicativeForm </k>
+          <strategy> search-bound(4) ~> .K </strategy>
+        </goal>
+      </proveAll>
+    </proveOne>
 ```
 
 Strategy Language
 -----------------
 
 ```k
-  syntax ResultStrategy ::= "noop" | "fail" | "success" | "#hole"
+  syntax ResultStrategy ::= "noop" | "fail" | "#hole"
   syntax Strategy ::= ResultStrategy
+                    | "success"
                     | Strategy     Strategy  [right] // composition
                     > Strategy "&" Strategy  [right] // and
                     > Strategy "|" Strategy  [right] // choice
@@ -82,26 +93,40 @@ Since strategies do not live in the K cell, we must manually heat and cool:
   rule <strategy> S1:ResultStrategy ~> #hole S2 => S1 S2 ... </strategy>
 ```
 
-`|` and `&` require maintaining a stack of states. We use the `<stateStack>`
-cell for this. `#pop` pops the item from this stack.
+`|` splits the current goal set with one copy using each branch of the choice.
+TODO: Support multiple goals in `<proveAll>` cell.
 
 ```k
-  syntax KItem ::= "#pop"
-```
-
-When we encounter a choice we push the contents of <k> cell to a stack, and
-attempt the first strategy. If the strategy fails, we reset the <k> cell to the
-top element of the stack, and pop from the stack when all choices fail
-
-```k
-  rule <strategy> (S1 | S2) => S1 ~> #hole | S2 ~> #pop ... </strategy>
-       <k> GOAL:ImplicativeForm ... </k>
-       <stateStack> .K => GOAL ... </stateStack>
+  rule <proveOne>
+         ( .Bag =>
+           <proveAll>
+             <goal>
+               <strategy> S1 ~> REST </strategy>
+               <k> GOAL:ImplicativeForm </k>
+             </goal>
+           </proveAll>
+         )
+         <proveAll>
+           <goal>
+             <strategy> ( (S1 | S2) => S2 ) ~> REST </strategy>
+             <k> GOAL:ImplicativeForm </k>
+           </goal>
+         </proveAll>
+         ...
+       </proveOne>
     requires notBool(isResultStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole | S2 => S1 | S2 ... </strategy>
-  rule <strategy> fail | S2 => S2 ... </strategy>
-       <k> _ => GOAL </k>
-       <stateStack> GOAL:ImplicativeForm ... </stateStack>
+  rule <proveOne>
+         <proveAll>
+           <goal>
+             <strategy> fail </strategy>
+             <k> GOAL </k>
+             ...
+           </goal>
+           ...
+         </proveAll>
+         => .Bag
+         ...
+       </proveOne>
 ```
 
 Similarly, when we encounter *and*, we push the contents of <k> cell to a stack, and
@@ -109,16 +134,48 @@ attempt the first strategy. If the strategy *succeeds*, we reset the <k> cell to
 top element of the stack, and pop from the stack when any sub-strategy fails.
 
 ```k
-  rule <strategy> (S1 & S2) => S1 ~> #hole & S2 ~> #pop ... </strategy>
-       <k> GOAL:ImplicativeForm ... </k>
-       <stateStack> .K => GOAL ... </stateStack>
-    requires notBool(isResultStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole & S2 => S1 & S2 ... </strategy>
-  rule <strategy> fail & S2 => fail ... </strategy>
-  rule <strategy> success & S2 => S2 ... </strategy>
-       <k> _ => GOAL </k>
-       <stateStack> GOAL:ImplicativeForm ... </stateStack>
+  rule <proveAll>
+         ( .Bag =>
+             <goal>
+               <strategy> S1 ~> REST </strategy>
+               <k> GOAL:ImplicativeForm </k>
+             </goal>
+         )
+         <goal>
+           <strategy> ((S1 & S2) => S2) ~> REST </strategy>
+           <k> GOAL:ImplicativeForm </k>
+         </goal>
+         ...
+       </proveAll>
 ```
+
+If a goal succeeds, we clear it:
+
+```k
+  rule <proveAll>
+         <goal>
+           <strategy> success ... </strategy>
+           <k> GOAL:ImplicativeForm </k>
+         </goal>
+         => .Bag
+         ...
+       </proveAll>
+```
+
+Once all goals in one goal set have succeeded, we can stop processing the other
+goal sets:
+
+```k
+  rule <proveOne>
+         ( <proveAll> <k> _ </k> ... </proveAll> => .Bag)
+         <proveAll>
+           .Bag
+         </proveAll>
+         ...
+       </proveOne>
+```
+
+If-then-else-fi strategy is useful for implementing other strategies:
 
 ```k
   syntax Strategy ::= "if" Bool "then" Strategy "else" Strategy "fi" [function]
