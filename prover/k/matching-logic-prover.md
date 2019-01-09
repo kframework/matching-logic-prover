@@ -22,8 +22,6 @@ of kore:
   syntax RecursivePredicate
   syntax Predicate ::= RecursivePredicate
 
-  syntax BasicPattern
-  syntax BasicPatterns ::= List{BasicPattern, ","}
   syntax BasicPattern ::= AtomicPattern
                         | "\\top"    "(" ")"
                         | "\\bottom" "(" ")"
@@ -43,6 +41,20 @@ of kore:
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
   syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")"
   syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," DisjunctiveForm ")"
+
+  syntax Pattern ::= BasicPattern
+                   | ConjunctiveForm
+                   | DisjunctiveForm
+                   | ImplicativeForm
+
+  syntax BasicPatterns ::= ".Patterns"
+                         | BasicPattern "," BasicPatterns [klabel(PatternCons), right]
+  syntax Patterns      ::= BasicPatterns
+                         | Pattern "," Patterns           [klabel(PatternCons), right]
+
+  syntax BasicPatterns ::= BasicPatterns "++BasicPatterns" BasicPatterns [function]
+  rule (BP1, BP1s) ++BasicPatterns BP2s => BP1, (BP1s ++BasicPatterns BP2s)
+  rule .Patterns ++BasicPatterns BP2s => BP2s
 ```
 
 ```k
@@ -205,7 +217,7 @@ If-then-else-fi strategy is useful for implementing other strategies:
 ```
 
 ```k
-  rule <k>  \implies(LHS, \or(\and(R:Predicate(ARGS))))
+  rule <k>  \implies(LHS, \or(\and(R:Predicate(ARGS), .Patterns)))
          => \implies(LHS, unfold(R:Predicate(ARGS)))
        </k>
        <strategy>  right-unfold => noop ... </strategy>
@@ -246,7 +258,7 @@ First, we find all recursive patterns KT can be applied to:
     => getRecursivePredicates(LHS)
 
   syntax BasicPatterns ::= getRecursivePredicates(BasicPatterns)   [function]
-  rule getRecursivePredicates(.BasicPatterns) => .BasicPatterns
+  rule getRecursivePredicates(.Patterns) => .Patterns
   rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
     => R(ARGS), getRecursivePredicates(REST)
   rule getRecursivePredicates(PATTERN, REST)
@@ -254,7 +266,7 @@ First, we find all recursive patterns KT can be applied to:
        [owise]
 
   syntax Strategy ::= ktForEachLRP(BasicPatterns) [function, klabel(ktForEachLRP)]
-  rule ktForEachLRP(.BasicPatterns) => fail
+  rule ktForEachLRP(.Patterns) => fail
   rule ktForEachLRP(LRP, LRPs) => kt(LRP) | ktForEachLRP(LRPs) [owise]
 
   syntax Strategy ::= kt(BasicPattern) [function, klabel(ktForEachLRP)]
@@ -267,6 +279,16 @@ First, we find all recursive patterns KT can be applied to:
     => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
 
   syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm)
+
+  syntax BasicPatterns ::= getFreeVariables(Patterns) [function]
+  rule getFreeVariables(P, Ps)
+    =>                 getFreeVariables(P, .Patterns)
+       ++BasicPatterns getFreeVariables(Ps)
+    requires Ps =/=K .Patterns
+  rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
+  rule getFreeVariables(P:Predicate(ARGS) , .Patterns)   => getFreeVariables(ARGS)
+  rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
+  rule getFreeVariables(.Patterns) => .Patterns
 ```
 
 Definition of Recursive Predicates
@@ -276,14 +298,16 @@ Definition of Recursive Predicates
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
   /* lsegleft */
-  rule unfold(lsegleft(H,X,Y,F))
+  rule unfold(lsegleft(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
+                   , .Patterns
                    )
              , \and( lsegleft( H
                              , variable("X", !I)
                              , Y
                              , variable("F", !J)
+                             , .Patterns
                              )
                    , \not(\equals(X, Y))
                    , \not(\equals(X, 0))
@@ -291,22 +315,23 @@ Definition of Recursive Predicates
                             , variable("X", !I)
                             )
                    , \equals( F
-                            , disjointUnion( variable("F", !J)
-                                           , singleton(X)
-                                           )
+                            , disjointUnion(variable("F", !J) , singleton(X))
                             )
+                   , .Patterns
                    )
              )
 
   /* lsegright */
-  rule unfold(lsegright(H,X,Y,F))
+  rule unfold(lsegright(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
+                   , .Patterns
                    )
              , \and( lsegright( H
                               , X
                               , variable("Y", !I)
                               , variable("F", !J)
+                              , .Patterns
                               )
                    , \not(\equals(X, Y))
                    , \not(\equals(X, 0))
@@ -316,8 +341,10 @@ Definition of Recursive Predicates
                                            , singleton(variable("Y", !I))
                                            )
                             )
-             )     )
+                   , .Patterns
+                   )
+             )
 
-  rule unfold(isEmpty(S)) => \or ( \and ( \equals(S, emptyset) ) )
+  rule unfold(isEmpty(S, .Patterns)) => \or ( \and ( \equals(S, emptyset), .Patterns ) )
 endmodule
 ```

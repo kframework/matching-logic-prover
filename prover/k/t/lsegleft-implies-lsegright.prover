@@ -1,3 +1,3 @@
-\implies(       \and( lsegleft (variable("H"), variable("X"), variable("Y"), variable("F")) )
-        , \or ( \and( lsegright(variable("H"), variable("X"), variable("Y"), variable("F")) ) )
+\implies(       \and( lsegleft (variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns )
+        , \or ( \and( lsegright(variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns ) )
         )
