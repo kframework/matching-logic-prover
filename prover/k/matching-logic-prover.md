@@ -1,5 +1,6 @@
 ```k
 requires "smtlib2.k"
+requires "substitution.k"
 
 module MATCHING-LOGIC-PROVER-SYNTAX
   imports DOMAINS-SYNTAX
@@ -16,6 +17,7 @@ of kore:
                     | variable(String, Int) // Fresh Variables:
                                             // For easy debugging we allow variables to have names.
                                             // The `Int` can be used for generating fresh-variables.
+  syntax KVariable ::= Variable
   syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
                          | Variable
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
@@ -52,21 +54,97 @@ of kore:
   syntax Patterns      ::= BasicPatterns
                          | Pattern "," Patterns           [klabel(PatternCons), right]
 
-  syntax BasicPatterns ::= BasicPatterns "++BasicPatterns" BasicPatterns [function]
-  rule (BP1, BP1s) ++BasicPatterns BP2s => BP1, (BP1s ++BasicPatterns BP2s)
-  rule .Patterns ++BasicPatterns BP2s => BP2s
-```
-
-```k
   /* examples */
   syntax RecursivePredicate ::= "lsegleft"
                               | "lsegright"
   syntax Predicate ::= "isEmpty"
 endmodule
+```
 
+```k
+module KORE-HELPERS
+  imports MATCHING-LOGIC-PROVER-SYNTAX
+  imports MAP
+
+  syntax Bool ::= BasicPattern "in" BasicPatterns [function]
+  rule BP in (BP,  BP1s) => true
+  rule BP in (BP1, BP1s) => BP in BP1s requires BP =/=K BP1
+  rule BP in .Patterns   => false
+
+  syntax BasicPatterns ::= BasicPatterns "++BasicPatterns" BasicPatterns [function]
+  rule (BP1, BP1s) ++BasicPatterns BP2s => BP1, (BP1s ++BasicPatterns BP2s)
+  rule .Patterns ++BasicPatterns BP2s => BP2s
+
+  syntax BasicPatterns ::= BasicPatterns "-BasicPatterns" BasicPatterns [function]
+  rule (BP1, BP1s) -BasicPatterns BP2s => BP1, (BP1s -BasicPatterns BP2s)
+    requires notBool(BP1 in BP2s)
+  rule (BP1, BP1s) -BasicPatterns BP2s =>      (BP1s -BasicPatterns BP2s)
+    requires BP1 in BP2s
+  rule .Patterns -BasicPatterns BP2s => .Patterns
+  rule BP1s -BasicPatterns .Patterns => BP1s
+
+  syntax BasicPatterns ::= getFreeVariables(Patterns) [function]
+  rule getFreeVariables(.Patterns) => .Patterns
+  rule getFreeVariables(P, Ps)
+    =>                 getFreeVariables(P, .Patterns)
+       ++BasicPatterns getFreeVariables(Ps)
+    requires Ps =/=K .Patterns
+  rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
+  rule getFreeVariables(P:Predicate(ARGS) , .Patterns)   => getFreeVariables(ARGS)
+  rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
+
+  rule getFreeVariables(\or(CF, CFs),  .Patterns)
+    =>                 getFreeVariables(CF, .Patterns)
+       ++BasicPatterns getFreeVariables(\or(CFs), .Patterns)
+  rule getFreeVariables(\or(.ConjunctiveForms), .Patterns)
+    => .Patterns
+
+  // TODO: Stubbed
+  syntax BasicPatterns ::= filterByConstructor(BasicPatterns, Predicate) [function]
+  rule filterByConstructor(Ps, CTOR) => Ps
+
+  // TODO: Needing to define these are annoying; We should define them in terms of application.
+  rule getFreeVariables(\not(P), .Patterns) => getFreeVariables(P, .Patterns)
+  rule getFreeVariables(\equals(P1, P2), .Patterns)
+    => getFreeVariables(P1, .Patterns) ++BasicPatterns getFreeVariables(P2, .Patterns)
+
+  rule getFreeVariables(select(P1, P2), .Patterns)
+    => getFreeVariables(P1, .Patterns) ++BasicPatterns getFreeVariables(P2, .Patterns)
+
+  rule getFreeVariables(emptyset, .Patterns) => .Patterns
+  rule getFreeVariables(singleton(P1), .Patterns) => getFreeVariables(P1, .Patterns)
+  rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
+    => getFreeVariables(P1, .Patterns) ++BasicPatterns getFreeVariables(P2, .Patterns)
+
+  rule getFreeVariables(N:Int, .Patterns) => .Patterns
+```
+
+zip: Take two lists and return a map. This can be used to take a list of variables
+and values, passed to K's substitute.
+
+```k
+  syntax Map ::= zip(BasicPatterns, BasicPatterns) [function]
+  rule zip((L, Ls), (R, Rs)) => (L |-> R) zip(Ls, Rs)
+  rule zip(.Patterns, .Patterns) => .Map
+
+  syntax Map ::= removeIdentityMappings(Map) [function]
+  rule removeIdentityMappings((L |-> R) REST) =>           removeIdentityMappings(REST)
+    requires L ==K R
+  rule removeIdentityMappings((L |-> R) REST) => (L |-> R) removeIdentityMappings(REST)
+    requires L =/=K R
+  rule removeIdentityMappings(.Map) => .Map
+```
+
+```k
+endmodule
+```
+
+```k
 module MATCHING-LOGIC-PROVER
   imports DOMAINS
   imports MATCHING-LOGIC-PROVER-SYNTAX
+  imports KORE-HELPERS
+  imports SUBSTITUTION
   imports SMTLIB2
 ```
 
@@ -257,11 +335,14 @@ First, we find all recursive patterns KT can be applied to:
   rule getLeftRecursivePredicates(\implies(\and(LHS), RHS))
     => getRecursivePredicates(LHS)
 
-  syntax BasicPatterns ::= getRecursivePredicates(BasicPatterns)   [function]
+  syntax BasicPatterns ::= getRecursivePredicates(Patterns)   [function]
   rule getRecursivePredicates(.Patterns) => .Patterns
   rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
     => R(ARGS), getRecursivePredicates(REST)
-  rule getRecursivePredicates(PATTERN, REST)
+  rule getRecursivePredicates(\and(Ps), REST)
+    =>                 getRecursivePredicates(Ps)
+       ++BasicPatterns getRecursivePredicates(REST)
+  rule getRecursivePredicates(PATTERN:BasicPattern, REST)
     => getRecursivePredicates(REST)
        [owise]
 
@@ -278,17 +359,46 @@ First, we find all recursive patterns KT can be applied to:
   rule ktForEachBody(LRP, \or(BODY, BODIES))
     => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
 
-  syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm)
+  syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm)                        // LRP, Body
+                    | ktOneBodyConcl(BasicPattern, ConjunctiveForm, BasicPatterns)    // LRP, Body, BRPs
+                    | ktOneBodyPremises(BasicPattern, ConjunctiveForm, BasicPatterns) // LRP, Body, BRPs
+                    | ktOneBodyPremise(BasicPattern, ConjunctiveForm, BasicPattern)   // LRP, Body, BRP
+  rule <strategy> ktOneBody(LRP:Predicate(ARGS), BODY)
+               => ktOneBodyConcl(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
+                & ktOneBodyPremises(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
+                  ...
+       </strategy>
 
-  syntax BasicPatterns ::= getFreeVariables(Patterns) [function]
-  rule getFreeVariables(P, Ps)
-    =>                 getFreeVariables(P, .Patterns)
-       ++BasicPatterns getFreeVariables(Ps)
-    requires Ps =/=K .Patterns
-  rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
-  rule getFreeVariables(P:Predicate(ARGS) , .Patterns)   => getFreeVariables(ARGS)
-  rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
-  rule getFreeVariables(.Patterns) => .Patterns
+  rule <strategy> ktOneBodyPremises(LRP, BODY, (BRP_samehead, BRPs_samehead))
+               => ktOneBodyPremise(LRP, BODY, BRP_samehead)
+                & ktOneBodyPremises(LRP, BODY, BRPs_samehead)
+                  ...
+       </strategy>
+  rule <strategy> ktOneBodyPremises(LRP, BODY, .Patterns)
+               => success ...
+       </strategy>
+
+  syntax BasicPatterns     // Critical       Non-Crit active    LHS
+    ::= findAffectedVariables(BasicPatterns, BasicPatterns,     BasicPatterns)
+        [function]
+
+  rule <k> \implies(\and(LHS), RHS) </k>
+       <strategy> ktOneBodyPremise(HEAD:RecursivePredicate(LRP_ARGS), BODY, HEAD(BRP_ARGS))
+               =>     variable("LHS_U_i")
+                   ~> \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
+                   ~> variable("Active Vars")
+                   ~> getFreeVariables(LRP_ARGS)
+                   ~> variable("Critical Vars")
+                   ~> LRP_ARGS -BasicPatterns BRP_ARGS
+                   ~> variable("Non-critical Active Vs")
+                   ~> getFreeVariables(LRP_ARGS) -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)
+                   ~> variable("Affected variables")
+                   ~> findAffectedVariables( LRP_ARGS -BasicPatterns BRP_ARGS
+                                           , getFreeVariables(LRP_ARGS) -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)
+                                           , LHS
+                                           )
+                  ...
+       </strategy>
 ```
 
 Definition of Recursive Predicates
