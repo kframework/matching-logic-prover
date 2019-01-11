@@ -136,6 +136,18 @@ and values, passed to K's substitute.
 ```
 
 ```k
+  syntax Map ::= makeFreshSubstitution(BasicPatterns) [function]
+  rule makeFreshSubstitution(variable(S), REST)
+    => variable(S) |-> variable(S, !I)
+       makeFreshSubstitution(REST)
+  rule makeFreshSubstitution(variable(S, J), REST)
+    => variable(S, J) |-> variable(S, !I)
+       makeFreshSubstitution(REST)
+  rule makeFreshSubstitution(.Patterns)
+    => .Map
+```
+
+```k
 endmodule
 ```
 
@@ -378,9 +390,35 @@ First, we find all recursive patterns KT can be applied to:
                => success ...
        </strategy>
 
-  syntax BasicPatterns     // Critical       Non-Crit active    LHS
-    ::= findAffectedVariables(BasicPatterns, BasicPatterns,     BasicPatterns)
-        [function]
+  syntax BasicPatterns        // Critical       Conds
+    ::= findAffectedVariablesAux(BasicPatterns, BasicPatterns)             [function]
+      | findAffectedVariables(BasicPatterns, BasicPatterns, BasicPatterns) [function]
+
+  rule findAffectedVariables(AFF, NONCRIT, CONDS)
+    => AFF -BasicPatterns NONCRIT
+    requires findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS) -BasicPatterns NONCRIT
+         ==K AFF -BasicPatterns NONCRIT
+  // TODO: Why doesn't `owise` work here?
+  rule findAffectedVariables(AFF, NONCRIT, CONDS)
+    => findAffectedVariables( findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS)
+                            , NONCRIT
+                            , CONDS
+                            )
+    requires findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS) -BasicPatterns NONCRIT
+         =/=K AFF -BasicPatterns NONCRIT
+  rule findAffectedVariablesAux(    AFF , (\equals(X, Y), REST))
+    => findAffectedVariablesAux((X, AFF),                 REST )
+    requires isVariable(X)
+     andBool AFF =/=K (AFF -BasicPatterns getFreeVariables(Y, .Patterns))
+  rule findAffectedVariablesAux(    AFF , (\equals(Y, X), REST))
+    => findAffectedVariablesAux((X, AFF),                 REST )
+    requires isVariable(X)
+     andBool (AFF -BasicPatterns getFreeVariables(Y, .Patterns)) =/=K AFF
+  rule findAffectedVariablesAux(    AFF , (COND,          REST))
+    => findAffectedVariablesAux(    AFF ,                 REST )
+       [owise]
+  rule findAffectedVariablesAux(    AFF , .Patterns)
+    => AFF
 
   rule <k> \implies(\and(LHS), RHS) </k>
        <strategy> ktOneBodyPremise(HEAD:RecursivePredicate(LRP_ARGS), BODY, HEAD(BRP_ARGS))
@@ -396,6 +434,14 @@ First, we find all recursive patterns KT can be applied to:
                    ~> findAffectedVariables( LRP_ARGS -BasicPatterns BRP_ARGS
                                            , getFreeVariables(LRP_ARGS) -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)
                                            , LHS
+                                           )
+                   ~> findAffectedVariablesAux( LRP_ARGS -BasicPatterns BRP_ARGS
+                                              , LHS
+                                              )
+                   ~> makeFreshSubstitution(findAffectedVariablesAux
+                                              ( LRP_ARGS -BasicPatterns BRP_ARGS
+                                              , LHS
+                                              )
                                            )
                   ...
        </strategy>
