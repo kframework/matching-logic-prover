@@ -422,27 +422,28 @@ First, we find all recursive patterns KT can be applied to:
 
   rule <k> \implies(\and(LHS), RHS) </k>
        <strategy> ktOneBodyPremise(HEAD:RecursivePredicate(LRP_ARGS), BODY, HEAD(BRP_ARGS))
-               =>     variable("LHS_U_i")
-                   ~> \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
-                   ~> variable("Active Vars")
-                   ~> getFreeVariables(LRP_ARGS)
-                   ~> variable("Critical Vars")
-                   ~> LRP_ARGS -BasicPatterns BRP_ARGS
-                   ~> variable("Non-critical Active Vs")
-                   ~> getFreeVariables(LRP_ARGS) -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)
+               =>     variable("LHS_U_i")                ~> \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
+                   ~> variable("Active Vars")            ~> getFreeVariables(LRP_ARGS)
+                   ~> variable("universalVs")            ~> getFreeVariables(LHS)
+                   ~> variable("existential")            ~> getFreeVariables(RHS, .Patterns) -BasicPatterns getFreeVariables(LHS)
+                   ~> variable("PassiveVars")            ~> getFreeVariables(LHS) -BasicPatterns getFreeVariables(LRP_ARGS)
+                   ~> variable("Critical Vars")          ~> LRP_ARGS -BasicPatterns BRP_ARGS // TODO: This is incorrect when variables are rearranged.
+                   ~> variable("Non-critical Active Vs") ~> getFreeVariables(LRP_ARGS) -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)
                    ~> variable("Affected variables")
-                   ~> findAffectedVariables( LRP_ARGS -BasicPatterns BRP_ARGS
-                                           , getFreeVariables(LRP_ARGS) -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)
-                                           , LHS
-                                           )
-                   ~> findAffectedVariablesAux( LRP_ARGS -BasicPatterns BRP_ARGS
-                                              , LHS
-                                              )
+                        ~> findAffectedVariables( LRP_ARGS -BasicPatterns BRP_ARGS
+                                                , getFreeVariables(LRP_ARGS) -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)
+                                                , LHS
+                                                )
                    ~> makeFreshSubstitution(findAffectedVariablesAux
                                               ( LRP_ARGS -BasicPatterns BRP_ARGS
                                               , LHS
                                               )
                                            )
+                   ~> variable("LHS_UA_i")
+                        ~> \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
+                                    [makeFreshSubstitution(findAffectedVariablesAux
+                                        (LRP_ARGS -BasicPatterns BRP_ARGS , LHS ))
+                                    ]
                   ...
        </strategy>
 ```
