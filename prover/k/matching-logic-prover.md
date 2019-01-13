@@ -421,7 +421,7 @@ First, we find all recursive patterns KT can be applied to:
     => AFF
 
   rule <k> \implies(\and(LHS), RHS) </k>
-       <strategy> ktOneBodyPremise(HEAD:RecursivePredicate(LRP_ARGS), BODY, HEAD(BRP_ARGS))
+       <strategy> ktOneBodyPremise(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS))
                =>     variable("LHS_U_i")                ~> \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
                    ~> variable("Active Vars")            ~> getFreeVariables(LRP_ARGS)
                    ~> variable("universalVs")            ~> getFreeVariables(LHS)
@@ -444,6 +444,16 @@ First, we find all recursive patterns KT can be applied to:
                                     [makeFreshSubstitution(findAffectedVariablesAux
                                         (LRP_ARGS -BasicPatterns BRP_ARGS , LHS ))
                                     ]
+
+                   ~> variable("Premise_i")
+                   ~> \implies( \and( LHS ++BasicPatterns
+                                      (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
+                                    )
+                              , \or(\and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
+                                    [makeFreshSubstitution(findAffectedVariablesAux
+                                        (LRP_ARGS -BasicPatterns BRP_ARGS , LHS ))
+                                    ] )
+                              )
                   ...
        </strategy>
 ```
