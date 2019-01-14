@@ -362,25 +362,45 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 
 ### Knaster Tarski
 
-First, we find all recursive patterns KT can be applied to:
+`ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
+(`ktForEachLRP` corresponds to `lprove_kt_aux`)
 
 ```k
   rule <k> GOAL </k>
        <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
   syntax Strategy ::= ktForEachLRP(BasicPatterns) [function, klabel(ktForEachLRP)]
   rule ktForEachLRP(.Patterns) => fail
-  rule ktForEachLRP(LRP, LRPs) => kt(LRP) | ktForEachLRP(LRPs) [owise]
+  rule ktForEachLRP(LRP, LRPs) => ktOneLRP(LRP) | ktForEachLRP(LRPs) [owise]
+```
 
-  syntax Strategy ::= kt(BasicPattern) [function, klabel(ktForEachLRP)]
-  rule kt(LRP) => ktForEachBody(LRP, unfold(LRP))
 
+(`ktOneLRP` corresponds to `lprove_kt/6`)
+
+```k
+  syntax Strategy ::= ktOneLRP(BasicPattern) [function]
+  rule ktOneLRP(LRP) => ktForEachBody(LRP, unfold(LRP))
+```
+
+(`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
+
+```k
   syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm) [function, klabel(ktForEachLRP)]
   rule ktForEachBody(LRP, \or(.ConjunctiveForms))
     => success
   rule ktForEachBody(LRP, \or(BODY, BODIES))
     => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
+```
 
+(`ktOneBody` corresponds to `lprove_kt_one_body`)
+
+```k
   syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm)                        // LRP, Body
+```
+
+(Correspondence breaks down here; Though roughly, ktOneBodyPremises => lprove_kt_all_each_brp
+ktOneBodyPremise => lprove_kt_one_brp and the ktOneBodyConcl is split between the two)
+
+```k
                     | ktOneBodyConcl(BasicPattern, ConjunctiveForm, BasicPatterns)    // LRP, Body, BRPs
                     | ktOneBodyPremises(BasicPattern, ConjunctiveForm, BasicPatterns) // LRP, Body, BRPs
                     | ktOneBodyPremise(BasicPattern, ConjunctiveForm, BasicPattern)   // LRP, Body, BRP
@@ -389,7 +409,9 @@ First, we find all recursive patterns KT can be applied to:
                 & ktOneBodyPremises(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
                   ...
        </strategy>
+```
 
+```k
   rule <strategy> ktOneBodyPremises(LRP, BODY, (BRP_samehead, BRPs_samehead))
                => ktOneBodyPremise(LRP, BODY, BRP_samehead)
                 & ktOneBodyPremises(LRP, BODY, BRPs_samehead)
@@ -398,11 +420,12 @@ First, we find all recursive patterns KT can be applied to:
   rule <strategy> ktOneBodyPremises(LRP, BODY, .Patterns)
                => success ...
        </strategy>
+```
 
+```k
   syntax BasicPatterns        // Critical       Conds
     ::= findAffectedVariablesAux(BasicPatterns, BasicPatterns)             [function]
       | findAffectedVariables(BasicPatterns, BasicPatterns, BasicPatterns) [function]
-
   rule findAffectedVariables(AFF, NONCRIT, CONDS)
     => AFF -BasicPatterns NONCRIT
     requires findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS) -BasicPatterns NONCRIT
@@ -428,7 +451,11 @@ First, we find all recursive patterns KT can be applied to:
        [owise]
   rule findAffectedVariablesAux(    AFF , .Patterns)
     => AFF
+```
 
+Temporary rule to see results of auxilary functionality needed for implementing KT
+
+```k
   rule <k> \implies(\and(LHS), RHS) </k>
        <strategy> ktOneBodyPremise(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS))
                =>     variable("LHS_U_i")                ~> \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
