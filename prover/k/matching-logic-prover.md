@@ -120,9 +120,13 @@ module KORE-HELPERS
 Returns a list of terms that are the application of the `Predicate`.
 
 ```k
-  // TODO: Stubbed
   syntax BasicPatterns ::= filterByConstructor(BasicPatterns, Predicate) [function]
-  rule filterByConstructor(Ps, CTOR) => Ps
+  rule filterByConstructor(.Patterns, CTOR) => .Patterns
+  rule filterByConstructor((P:Predicate (Ps) , Rest), P)
+    => (P:Predicate (Ps)), filterByConstructor(Rest, P)
+  rule filterByConstructor((Q:Predicate (Qs) , Rest), P)
+    => filterByConstructor(Rest, P)
+  requires P =/=K Q
 ```
 
 zip: Take two lists and return a map. This can be used to take a list of variables
