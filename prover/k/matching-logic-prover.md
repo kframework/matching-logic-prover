@@ -109,20 +109,26 @@ module KORE-HELPERS
 ```
 
 ```k
+  rule getFreeVariables(N:Int, .Patterns) => .Patterns
+  rule getFreeVariables(emptyset, .Patterns) => .Patterns
+  rule getFreeVariables(\top(), .Patterns) => .Patterns
+  rule getFreeVariables(\bottom(), .Patterns) => .Patterns
   rule getFreeVariables(\not(P), .Patterns) => getFreeVariables(P, .Patterns)
   rule getFreeVariables(\equals(P1, P2), .Patterns)
-    => getFreeVariables(P1, .Patterns) ++BasicPatterns getFreeVariables(P2, .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
 
   // TODO: Defining these for each symbol is tiring. If `select` etc were defined
   // as the application of a symbol to arguments (similar to how Predicate and RecursivePredicate
   // are), this would be easier. We would lose our compile time check on the arity though.
   rule getFreeVariables(select(P1, P2), .Patterns)
-    => getFreeVariables(P1, .Patterns) ++BasicPatterns getFreeVariables(P2, .Patterns)
-  rule getFreeVariables(emptyset, .Patterns) => .Patterns
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(union(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(singleton(P1), .Patterns) => getFreeVariables(P1, .Patterns)
   rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
-    => getFreeVariables(P1, .Patterns) ++BasicPatterns getFreeVariables(P2, .Patterns)
-  rule getFreeVariables(N:Int, .Patterns) => .Patterns
+    => getFreeVariables(P1, P2, .Patterns)
 ```
 
 Returns a list of terms that are the application of the `Predicate`.
