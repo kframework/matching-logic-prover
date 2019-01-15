@@ -160,7 +160,7 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax Map ::= makeFreshSubstitution(BasicPatterns) [function]
+  syntax Map ::= makeFreshSubstitution(BasicPatterns) [function] // Variables
   rule makeFreshSubstitution(variable(S), REST)
     => variable(S) |-> variable(S, !I)
        makeFreshSubstitution(REST)
