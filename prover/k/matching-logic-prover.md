@@ -127,7 +127,7 @@ module KORE-HELPERS
   rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(singleton(P1), .Patterns) => getFreeVariables(P1, .Patterns)
-  rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
+  rule getFreeVariables(isMember(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
 ```
 
