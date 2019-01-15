@@ -34,6 +34,7 @@ of kore:
                         | "select" "(" BasicPattern "," BasicPattern ")"        // Array, Int
 
                         // Set{Int}
+                        | "union"         "(" BasicPattern "," BasicPattern ")" // Set, Set
                         | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // Set, Set
                         | "singleton"     "(" BasicPattern ")"                  // Int
                         | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, Set
@@ -75,6 +76,13 @@ module KORE-HELPERS
   rule (BP1, BP1s) ++BasicPatterns BP2s => BP1, (BP1s ++BasicPatterns BP2s)
   rule .Patterns ++BasicPatterns BP2s => BP2s
 
+  syntax BasicPatterns ::= removeDuplicates(BasicPatterns) [function]
+  rule removeDuplicates(.Patterns) => .Patterns
+  rule removeDuplicates(BP, BPs) => BP, removeDuplicates(BPs)
+  requires notBool(BP in BPs)
+  rule removeDuplicates(BP, BPs) => removeDuplicates(BPs)
+  requires BP in BPs
+
   syntax BasicPatterns ::= BasicPatterns "-BasicPatterns" BasicPatterns [function]
   rule (BP1, BP1s) -BasicPatterns BP2s => BP1, (BP1s -BasicPatterns BP2s)
     requires notBool(BP1 in BP2s)
@@ -86,8 +94,8 @@ module KORE-HELPERS
   syntax BasicPatterns ::= getFreeVariables(Patterns) [function]
   rule getFreeVariables(.Patterns) => .Patterns
   rule getFreeVariables(P, Ps)
-    =>                 getFreeVariables(P, .Patterns)
-       ++BasicPatterns getFreeVariables(Ps)
+    => removeDuplicates(
+         getFreeVariables(P, .Patterns) ++BasicPatterns getFreeVariables(Ps))
     requires Ps =/=K .Patterns
   rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
   rule getFreeVariables(P:Predicate(ARGS) , .Patterns)   => getFreeVariables(ARGS)
