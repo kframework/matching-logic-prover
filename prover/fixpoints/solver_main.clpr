@@ -673,14 +673,14 @@ prove_all(Level, [Ob | R]) :- true
   , Level > 0
   , Ob = obligation(GoalID, LRPs, LCPs, RRPs, RCPs)
   , length([Ob|R],L)
-  , printf("\n---help me decide (size %, level %)---\n", [L,Level])
-  , printf("\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
-  , printf("%\n", [[Ob|R]])
-  , read(Ans)
-  , !
-  , check_answer(Ans)
-  , printf("---ok I'll continue: %\n---", [GoalID])
-  , lprove(GoalID, Level - 1, LRPs, LCPs, RRPs, RCPs)
+  % printf("\n---help me decide (size %, level %)---\n", [L,Level])
+  % printf("\n---keep it or not? ('y.' for yes and 'n.' for no)---\n",[])
+  % printf("%\n", [[Ob|R]])
+  % read(Ans)
+  % !
+  % check_answer(Ans)
+  % printf("---ok I'll continue: %\n---", [GoalID])
+  % lprove(GoalID, Level - 1, LRPs, LCPs, RRPs, RCPs)
   , prove_all(Level, R)
   , !
   .
@@ -1141,8 +1141,8 @@ lprove_kt_one_brp(GoalID
   % -> RRPs, RCPs.
   % ConcLRFragment_i contains: LRPs_UA_i,RRPs_UA_i[FreshEVs_i/EVs]
   % ConcLCFragment_i contains: LCPs_UA_i,RCPs_UA_i[FreshEVs_i/EVs]
-  , append(LRPs_UA_i, RRPs_UA_i, ConcLRFragment_i)
-  , append(LCPs_UA_i, RCPs_UA_i, ConcLCFragment_i)
+  , append(LRPs_UA_i, RRPs_UAF_i, ConcLRFragment_i)
+  , append(LCPs_UA_i, RCPs_UAF_i, ConcLCFragment_i)
 
   , !
   , printf("\n---lprove_kt_one_brp ends.---\n", [])
