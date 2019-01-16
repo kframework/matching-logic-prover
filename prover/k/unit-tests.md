@@ -44,9 +44,8 @@ This demonstrates composition, right-unfold and choice:
   rule <proveOne>
          <proveAll>
            <goal>
-           <k> \implies(     \and(\equals(variable("S"), emptyset), .Patterns)
-                       , \or(\and(isEmpty(variable("S"), .Patterns), .Patterns))
-                       )
+           <k> \implies( \and(\equals(variable("S"), emptyset), .Patterns)
+                       , \and(isEmpty(variable("S"), .Patterns), .Patterns))
             => _
            </k>
            <strategy>
