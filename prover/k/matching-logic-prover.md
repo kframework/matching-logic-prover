@@ -203,7 +203,7 @@ module MATCHING-LOGIC-PROVER
   imports SMTLIB2
 ```
 
-TODO: `type="List"` work for some reason. `type="Bag"` allows too much
+TODO: `type="List"` doesn't work for some reason. `type="Bag"` allows too much
 non-determinism and affects efficiency.
 
 ```k
