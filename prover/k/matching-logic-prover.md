@@ -365,13 +365,13 @@ Note that the resulting goals is stonger than the initial goal (i.e.
   syntax Strategy ::= "right-unfold" "(" DisjunctiveForm ")"
   rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
        <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
-       
+
   rule <strategy> right-unfold(\or(BODY, BODIES:ConjunctiveForms))
                => right-unfold(\or(BODY, .ConjunctiveForms))
                 | right-unfold(\or(BODIES))
        </strategy>
     requires BODIES =/=K .ConjunctiveForms
-  rule <k> \implies(LHS, RHS) => \implies(LHS, BODY) ... </k> 
+  rule <k> \implies(LHS, RHS) => \implies(LHS, BODY) ... </k>
        <strategy> right-unfold(\or(BODY, .ConjunctiveForms)) => noop ... </strategy>
   rule <strategy> right-unfold(\or(.ConjunctiveForms)) => success </strategy>
 ```
@@ -439,25 +439,51 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 ktOneBodyPremise => lprove_kt_one_brp and the ktOneBodyConcl is split between the two)
 
 ```k
-                    | ktOneBodyConcl(BasicPattern, ConjunctiveForm, BasicPatterns)    // LRP, Body, BRPs
-                    | ktOneBodyPremises(BasicPattern, ConjunctiveForm, BasicPatterns) // LRP, Body, BRPs
-                    | ktOneBodyPremise(BasicPattern, ConjunctiveForm, BasicPattern)   // LRP, Body, BRP
+  syntax KItem ::= ktEachBRP(BasicPattern, ConjunctiveForm, BasicPatterns) // LRP, Body, BRPs
+                 | ktOneBRP(BasicPattern, ConjunctiveForm, BasicPattern)   // LRP, Body, BRP
+                 | ktBRPResult(ImplicativeForm, ConjunctiveForm)
+                 | "ktBRPMarker"
   rule <strategy> ktOneBody(LRP:Predicate(ARGS), BODY)
-               => ktOneBodyConcl(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
-                & ktOneBodyPremises(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
+               => ktEachBRP(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
                   ...
        </strategy>
 ```
 
 ```k
-  rule <strategy> ktOneBodyPremises(LRP, BODY, (BRP_samehead, BRPs_samehead))
-               => ktOneBodyPremise(LRP, BODY, BRP_samehead)
-                & ktOneBodyPremises(LRP, BODY, BRPs_samehead)
+  rule <strategy> ktEachBRP(LRP, BODY, (BRP_samehead, BRPs_samehead))
+               => ktOneBRP(LRP, BODY, BRP_samehead)
+               ~> ktEachBRP(LRP, BODY, BRPs_samehead)
                   ...
        </strategy>
-  rule <strategy> ktOneBodyPremises(LRP, BODY, .Patterns)
-               => success ...
+  rule <strategy> ktEachBRP(LRP, BODY, .Patterns)
+               => .K ...
        </strategy>
+
+  rule <k> \implies(\and(LHS), \and(RHS)) </k>
+       <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS))
+               => ktBRPResult( ?Premise
+                             , \and(?LHS_UA ++BasicPatterns ?RHS_UAF)
+                             )
+                  ...
+       </strategy>
+    requires ?USubst ==K zip(LRP_ARGS, BRP_ARGS)
+     andBool ?ASubst ==K makeFreshSubstitution(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS ))
+     andBool ?LHS_UA  ==K {LHS[ ?USubst ][ ?ASubst ]}:>BasicPatterns
+     andBool ?Premise ==K \implies( \and( LHS ++BasicPatterns
+                                          (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
+                                        )
+                                  , \and(?LHS_UA)
+                                  )
+     andBool ?UnivVars ==K getFreeVariables(LHS)
+     andBool ?ExVARS   ==K getFreeVariables(\and(RHS), .Patterns) -BasicPatterns ?UnivVars
+     andBool ?FSubst   ==K makeFreshSubstitution(?ExVARS)
+     andBool ?RHS_UAF  ==K {RHS[?USubst][?ASubst][?FSubst]}:>BasicPatterns
+
+  rule <strategy> ktBRPResult(PREMISE, CONCL_FRAG) ~> ktEachBRP(LRP, BODY, BRPs_samehead)
+               => ktEachBRP(LRP, BODY, BRPs_samehead) ~> ktBRPResult(PREMISE, CONCL_FRAG)
+                  ...
+       </strategy>
+
 ```
 
 ```k
@@ -493,7 +519,7 @@ ktOneBodyPremise => lprove_kt_one_brp and the ktOneBodyConcl is split between th
 
 Temporary rule to see results of auxilary functionality needed for implementing KT
 
-```k
+```
   rule <k> \implies(\and(LHS), RHS) </k>
        <strategy> ktOneBodyPremise(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS))
                =>     variable("LHS_U_i")                ~> \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
