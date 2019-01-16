@@ -43,7 +43,7 @@ of kore:
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")"
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
   syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")"
-  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," DisjunctiveForm ")"
+  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")"
 
   syntax Pattern ::= BasicPattern
                    | ConjunctiveForm
@@ -349,11 +349,25 @@ If-then-else-fi strategy is useful for implementing other strategies:
     requires N >=Int 0
 ```
 
+### Right Unfold
+
+Unfold the predicates on the Right hand side into a disjunction of implications.
+Note that the resulting goals is stonger than the initial goal (i.e.
+`A -> B \/ C` vs `(A -> B) \/ (A -> C)`).
+
 ```k
-  rule <k>  \implies(LHS, \or(\and(R:Predicate(ARGS), .Patterns)))
-         => \implies(LHS, unfold(R:Predicate(ARGS)))
-       </k>
-       <strategy>  right-unfold => noop ... </strategy>
+  syntax Strategy ::= "right-unfold" "(" DisjunctiveForm ")"
+  rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
+       <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
+       
+  rule <strategy> right-unfold(\or(BODY, BODIES:ConjunctiveForms))
+               => right-unfold(\or(BODY, .ConjunctiveForms))
+                | right-unfold(\or(BODIES))
+       </strategy>
+    requires BODIES =/=K .ConjunctiveForms
+  rule <k> \implies(LHS, RHS) => \implies(LHS, BODY) ... </k> 
+       <strategy> right-unfold(\or(BODY, .ConjunctiveForms)) => noop ... </strategy>
+  rule <strategy> right-unfold(\or(.ConjunctiveForms)) => success </strategy>
 ```
 
 ### Direct proof
@@ -363,7 +377,7 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 
 ```k
   syntax Bool ::= checkValid(ImplicativeForm) [function]
-  rule checkValid(\implies(P, \or(P))) => true:Bool
+  rule checkValid(\implies(P, P)) => true:Bool
   rule checkValid(_) => false:Bool [owise]
 ```
 
@@ -503,10 +517,10 @@ Temporary rule to see results of auxilary functionality needed for implementing 
                    ~> \implies( \and( LHS ++BasicPatterns
                                       (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
                                     )
-                              , \or(\and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
-                                    [makeFreshSubstitution(findAffectedVariablesAux
-                                        (LRP_ARGS -BasicPatterns BRP_ARGS , LHS ))
-                                    ] )
+                              , \and(LHS)[zip(LRP_ARGS, BRP_ARGS)]
+                                [makeFreshSubstitution(findAffectedVariablesAux
+                                    (LRP_ARGS -BasicPatterns BRP_ARGS , LHS ))
+                                ]
                               )
                   ...
        </strategy>
