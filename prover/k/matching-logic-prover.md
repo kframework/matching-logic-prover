@@ -248,8 +248,8 @@ Strategy Language
   syntax Strategy ::= ResultStrategy
                     | "success"
                     | Strategy     Strategy  [right] // composition
-                    > Strategy "&" Strategy  [right] // and
-                    > Strategy "|" Strategy  [right] // choice
+                    > Strategy "&" Strategy  [right, format(%1%n%2  %3)] // and
+                    > Strategy "|" Strategy  [right, format(%1%n%2  %3)] // choice
 ```
 
 Since strategies do not live in the K cell, we must manually heat and cool:
