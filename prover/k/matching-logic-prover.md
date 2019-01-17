@@ -228,7 +228,7 @@ non-determinism and affects efficiency.
     <proveOne>
       <proveAll multiplicity="*" type="Bag">
         <goal multiplicity="*" type="Bag">
-          <id> -1 </id>
+          <id> -1 ~> .K </id>
           <k> $PGM:ImplicativeForm </k>
           <strategy> search-bound(4) ~> .K </strategy>
         </goal>
@@ -264,7 +264,7 @@ TODO: Support multiple goals in `<proveAll>` cell.
          ( .Bag =>
            <proveAll>
              <goal>
-               <id> !ID </id>
+               <id> !ID:Int ~> OLD_ID </id>
                <strategy> S1 ~> REST </strategy>
                <k> GOAL:ImplicativeForm </k>
              </goal>
@@ -272,6 +272,7 @@ TODO: Support multiple goals in `<proveAll>` cell.
          )
          <proveAll>
            <goal>
+             <id> OLD_ID </id>
              <strategy> ( (S1 | S2) => S2 ) ~> REST </strategy>
              <k> GOAL:ImplicativeForm </k>
              ...
@@ -302,12 +303,13 @@ top element of the stack, and pop from the stack when any sub-strategy fails.
   rule <proveAll>
          ( .Bag =>
              <goal>
-               <id> !ID </id>
+               <id> !ID:Int ~> OLD_ID </id>
                <strategy> S1 ~> REST </strategy>
                <k> GOAL:ImplicativeForm </k>
              </goal>
          )
          <goal>
+           <id> OLD_ID </id>
            <strategy> ((S1 & S2) => S2) ~> REST </strategy>
            <k> GOAL:ImplicativeForm </k>
            ...

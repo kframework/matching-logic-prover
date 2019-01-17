@@ -44,7 +44,7 @@ This demonstrates composition, right-unfold and choice:
   rule <proveOne>
          <proveAll>
            <goal>
-           <id> -1 => _ </id>
+           <id> N </id>
            <k> \implies( \and(\equals(variable("S"), emptyset), .Patterns)
                        , \and(isEmpty(variable("S"), .Patterns), .Patterns))
             => _
