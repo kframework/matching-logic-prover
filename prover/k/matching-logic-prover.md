@@ -35,6 +35,7 @@ of kore:
 
                         // Set{Int}
                         | "union"         "(" BasicPattern "," BasicPattern ")" // Set, Set
+                        | "disjoint"      "(" BasicPattern "," BasicPattern ")" // Set, Set
                         | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // Set, Set
                         | "singleton"     "(" BasicPattern ")"                  // Int
                         | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, Set
@@ -58,6 +59,9 @@ of kore:
   /* examples */
   syntax RecursivePredicate ::= "lsegleft"
                               | "lsegright"
+                              | "list"
+                              | "bt"
+                              | "bst"
   syntax Predicate ::= "isEmpty"
 endmodule
 ```
@@ -124,6 +128,8 @@ module KORE-HELPERS
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(union(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(disjoint(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(singleton(P1), .Patterns) => getFreeVariables(P1, .Patterns)
@@ -141,6 +147,9 @@ Returns a list of terms that are the application of the `Predicate`.
   rule filterByConstructor((Q:Predicate (Qs) , Rest), P)
     => filterByConstructor(Rest, P)
   requires P =/=K Q
+  rule filterByConstructor((Q, Rest), P)
+    => filterByConstructor(Rest, P)
+       [owise]
 ```
 
 zip: Take two lists and return a map. This can be used to take a list of variables
@@ -411,7 +420,6 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
   rule ktForEachLRP(LRP, LRPs) => ktOneLRP(LRP) | ktForEachLRP(LRPs) [owise]
 ```
 
-
 (`ktOneLRP` corresponds to `lprove_kt/6`)
 
 ```k
@@ -582,8 +590,9 @@ Definition of Recursive Predicates
                             , variable("X", !I)
                             )
                    , \equals( F
-                            , disjointUnion(variable("F", !J) , singleton(X))
+                            , union(variable("F", !J) , singleton(X))
                             )
+                   , disjoint(variable("F", !J) , singleton(X))
                    , .Patterns
                    )
              )
@@ -604,14 +613,34 @@ Definition of Recursive Predicates
                    , \not(\equals(X, 0))
                    , \equals(Y, select(H, variable("Y", !I)))
                    , \equals( F
-                            , disjointUnion( variable("F", !J)
-                                           , singleton(variable("Y", !I))
-                                           )
+                            , union( variable("F", !J)
+                                   , singleton(variable("Y", !I))
+                                   )
                             )
+                   , disjoint( variable("F", !J)
+                             , singleton(variable("Y", !I))
+                             )
                    , .Patterns
                    )
              )
 
   rule unfold(isEmpty(S, .Patterns)) => \or ( \and ( \equals(S, emptyset), .Patterns ) )
+
+  /* list */
+  rule unfold(list(H,X,F,.Patterns))
+       => \or( \and( \equals(X, 0)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( list(H,variable("X", !I),variable("F", !J),.Patterns)
+                   , \not(\equals(X,0))
+                   , \equals( select(H, X)
+                            , variable("X", !I))
+                   , \equals( F
+                            , union( variable("F", !J), singleton(X)))
+                   , disjoint(variable("F", !J), singleton(X))
+                   , .Patterns
+                   )
+             )
 endmodule
 ```
