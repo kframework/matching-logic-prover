@@ -1,0 +1,5 @@
+\implies( \and( bst(variable("H"), variable("X"), variable("F"), variable("MIN"), variable("MAX"), .Patterns)
+              , .Patterns
+              )
+        , \and( bt( variable("H"), variable("X"), variable("F"), .Patterns), .Patterns )
+        )

@@ -57,6 +57,7 @@ do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md')
 do_test(mlprover, 't/emptyset-implies-isempty.prover')
 do_test(mlprover, 't/lsegleft-implies-lsegright.prover')
 do_test(mlprover, 't/lsegleft-implies-list.prover')
+do_test(mlprover, 't/bst-implies-bt.prover')
 
 # Theories
 # --------
