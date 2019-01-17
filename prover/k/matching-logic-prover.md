@@ -80,9 +80,13 @@ module KORE-HELPERS
   rule BP in (BP1, BP1s) => BP in BP1s requires BP =/=K BP1
   rule BP in .Patterns   => false
 
-  syntax BasicPatterns ::= BasicPatterns "++BasicPatterns" BasicPatterns [function]
+  syntax BasicPatterns ::= BasicPatterns "++BasicPatterns" BasicPatterns [function, right]
   rule (BP1, BP1s) ++BasicPatterns BP2s => BP1, (BP1s ++BasicPatterns BP2s)
   rule .Patterns ++BasicPatterns BP2s => BP2s
+
+  syntax Patterns ::= Patterns "++Patterns" Patterns [function, right]
+  rule (BP1, BP1s) ++Patterns BP2s => BP1, (BP1s ++Patterns BP2s)
+  rule .Patterns ++Patterns BP2s => BP2s
 
   syntax BasicPatterns ::= removeDuplicates(BasicPatterns) [function]
   rule removeDuplicates(.Patterns) => .Patterns
