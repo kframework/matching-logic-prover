@@ -30,6 +30,10 @@ of kore:
                         | "\\equals" "(" BasicPattern "," BasicPattern ")"
                         | "\\not"    "(" BasicPattern ")"
 
+                        // Int
+                        | "plus"   "(" BasicPattern "," BasicPattern ")" // Int Int
+                        | "gt"     "(" BasicPattern "," BasicPattern ")" // Int Int
+
                         // Array{Int, Int}
                         | "select" "(" BasicPattern "," BasicPattern ")"        // Array, Int
 
@@ -124,6 +128,10 @@ module KORE-HELPERS
   // TODO: Defining these for each symbol is tiring. If `select` etc were defined
   // as the application of a symbol to arguments (similar to how Predicate and RecursivePredicate
   // are), this would be easier. We would lose our compile time check on the arity though.
+  rule getFreeVariables(plus(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(gt(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(select(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(union(P1, P2), .Patterns)
@@ -642,5 +650,29 @@ Definition of Recursive Predicates
                    , .Patterns
                    )
              )
+
+  /* bt */
+  rule unfold(bt(H,X,F,.Patterns))
+       => \or( \and( \equals(X, 0)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( bt(H, variable("X", !I1), variable("F", !J1), .Patterns)
+                   , bt(H, variable("X", !I2), variable("F", !J2), .Patterns)
+                   , \not(\equals(X, 0))
+                   , \equals( variable("X", !I1)
+                            , select(H, plus(X, 1)))
+                   , \equals( variable("X", !I2)
+                            , select(H, plus(X, 2)))
+                   , \not(isMember(X, variable("F", !J1)))
+                   , \not(isMember(X, variable("F", !J2)))
+                   , \equals(F, union( singleton(X)
+                                     , union( variable("F", !J1)
+                                            , variable("F", !J2))))
+                   , disjoint(variable("F", !J1), variable("F", !J2))
+                   , .Patterns
+                   )
+              )  
+
 endmodule
 ```
