@@ -593,7 +593,7 @@ Definition of Recursive Predicates
                              , .Patterns
                              )
                    , \not(\equals(X, Y))
-                   , \not(\equals(X, 0))
+                   , gt(X, 0)
                    , \equals( select(H, X)
                             , variable("X", !I)
                             )
@@ -618,7 +618,7 @@ Definition of Recursive Predicates
                               , .Patterns
                               )
                    , \not(\equals(X, Y))
-                   , \not(\equals(X, 0))
+                   , gt(X, 0)
                    , \equals(Y, select(H, variable("Y", !I)))
                    , \equals( F
                             , union( variable("F", !J)
@@ -641,7 +641,7 @@ Definition of Recursive Predicates
                    , .Patterns
                    )
              , \and( list(H,variable("X", !I),variable("F", !J),.Patterns)
-                   , \not(\equals(X,0))
+                   , gt(X,0)
                    , \equals( select(H, X)
                             , variable("X", !I))
                    , \equals( F
@@ -659,7 +659,7 @@ Definition of Recursive Predicates
                    )
              , \and( bt(H, variable("X", !I1), variable("F", !J1), .Patterns)
                    , bt(H, variable("X", !I2), variable("F", !J2), .Patterns)
-                   , \not(\equals(X, 0))
+                   , gt(X,0)
                    , \equals( variable("X", !I1)
                             , select(H, plus(X, 1)))
                    , \equals( variable("X", !I2)
