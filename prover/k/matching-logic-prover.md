@@ -467,10 +467,11 @@ ktOneBodyPremise => lprove_kt_one_brp and the ktOneBodyConcl is split between th
 ```k
   syntax KItem ::= ktEachBRP(BasicPattern, ConjunctiveForm, BasicPatterns) // LRP, Body, BRPs
                  | ktOneBRP(BasicPattern, ConjunctiveForm, BasicPattern)   // LRP, Body, BRP
-                 | ktBRPResult(ImplicativeForm, ConjunctiveForm)
-                 | "ktBRPMarker"
-  rule <strategy> ktOneBody(LRP:Predicate(ARGS), BODY)
+                 | ktBRPResult(Patterns, ConjunctiveForm)
+                 | ktBRPCollectResults(ConjunctiveForm, BasicPattern) // Body, LRP
+  rule <strategy> ktOneBody(LRP:RecursivePredicate(ARGS), BODY)
                => ktEachBRP(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
+               ~> ktBRPCollectResults(BODY, LRP(ARGS))
                   ...
        </strategy>
 ```
@@ -482,20 +483,20 @@ ktOneBodyPremise => lprove_kt_one_brp and the ktOneBodyConcl is split between th
                   ...
        </strategy>
   rule <strategy> ktEachBRP(LRP, BODY, .Patterns)
-               => .K ...
+               => ktBRPResult(.Patterns, \and(.Patterns)) ...
        </strategy>
 
   rule <k> \implies(\and(LHS), \and(RHS)) </k>
        <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS))
-               => ktBRPResult( ?Premise
+               => ktBRPResult( (?Premise, .Patterns)
                              , \and(?LHS_UA ++BasicPatterns ?RHS_UAF)
                              )
                   ...
        </strategy>
     requires ?USubst ==K zip(LRP_ARGS, BRP_ARGS)
      andBool ?ASubst ==K makeFreshSubstitution(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS ))
-     andBool ?LHS_UA  ==K {LHS[ ?USubst ][ ?ASubst ]}:>BasicPatterns
-     andBool ?Premise ==K \implies( \and( LHS ++BasicPatterns
+     andBool ?LHS_UA  ==K {(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ ?USubst ][ ?ASubst ]}:>BasicPatterns
+     andBool ?Premise ==K \implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns)) ++BasicPatterns
                                           (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
                                         )
                                   , \and(?LHS_UA)
@@ -504,12 +505,63 @@ ktOneBodyPremise => lprove_kt_one_brp and the ktOneBodyConcl is split between th
      andBool ?ExVARS   ==K getFreeVariables(\and(RHS), .Patterns) -BasicPatterns ?UnivVars
      andBool ?FSubst   ==K makeFreshSubstitution(?ExVARS)
      andBool ?RHS_UAF  ==K {RHS[?USubst][?ASubst][?FSubst]}:>BasicPatterns
+```
 
-  rule <strategy> ktBRPResult(PREMISE, CONCL_FRAG) ~> ktEachBRP(LRP, BODY, BRPs_samehead)
-               => ktEachBRP(LRP, BODY, BRPs_samehead) ~> ktBRPResult(PREMISE, CONCL_FRAG)
+Two consecutive ktBRPResults are consolidated into a single one.
+
+```k
+  rule <strategy>    ktBRPResult(PREMISES1, \and(CONCL_FRAGS1))
+                  ~> ktBRPResult(PREMISES2, \and(CONCL_FRAGS2))
+               => ktBRPResult( PREMISES1 ++Patterns PREMISES2
+                             , \and(CONCL_FRAGS1 ++BasicPatterns CONCL_FRAGS2)
+                             )
                   ...
        </strategy>
+```
 
+`ktEachBRP`s are brought to the top of the cell:
+
+```k
+  rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktEachBRP(LRP, BODY, BRPs_samehead)
+               => ktEachBRP(LRP, BODY, BRPs_samehead) ~> ktBRPResult(PREMISES, CONCL_FRAG)
+                  ...
+       </strategy>
+```
+
+Finally, once we encounter `ktBRPCollectResults`, we build a strategy for KT
+goals, including both the premises and the conclusion:
+
+```k
+                           // Body           , LRP         , Premises        , Conclusion frags
+  syntax Strategy ::= ktGoals(ConjunctiveForm, BasicPattern, Patterns        , ConjunctiveForm)
+  rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktBRPCollectResults(BODY, LRP)
+               => ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
+                  ...
+       </strategy>
+  rule <strategy> ktGoals(BODY, LRP, (PREMISE, PREMISES), CONCL_FRAG)
+               => replaceGoal(PREMISE) & ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
+                  ...
+       </strategy>
+```
+
+```k
+  rule <k> \implies(\and(LHS), RHS) ... </k>
+       <strategy> ktGoals(\and(BODY), HEAD:RecursivePredicate(LRP_ARGS), .Patterns, \and(CONCL_FRAGS))
+               => replaceGoal(\implies( \and(                (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))
+                                             ++BasicPatterns (BODY -BasicPatterns ?BRP_samehead)
+                                             ++BasicPatterns CONCL_FRAGS
+                                            )
+                                      , RHS
+                             )        )
+                  ...
+       </strategy>
+     requires ?BRP_samehead ==K filterByConstructor(getRecursivePredicates(BODY), HEAD)
+```
+
+```k
+  syntax Strategy ::= replaceGoal(ImplicativeForm)
+  rule <k> _:ImplicativeForm => GOAL ... </k>
+       <strategy> replaceGoal(GOAL) => noop ... </strategy>
 ```
 
 ```k
