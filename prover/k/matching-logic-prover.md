@@ -285,6 +285,10 @@ TODO: Support multiple goals in `<proveAll>` cell.
          ...
        </proveOne>
     requires notBool(isResultStrategy(S1))
+     andBool S2 =/=K fail
+  rule <strategy> S | fail    => S ... </strategy>
+  rule <strategy> fail | S    => S ... </strategy>
+
   rule <proveOne>
          <proveAll>
            <goal>
