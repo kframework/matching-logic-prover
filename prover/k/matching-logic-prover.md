@@ -674,5 +674,51 @@ Definition of Recursive Predicates
                    )
               )  
 
+  /* bst */
+  rule unfold(bst(H,X,F,MIN,MAX,.Patterns))
+       => \or( \and( \equals(X,0)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( gt(X,0)
+                   , \equals(select(H, plus(X, 1)), 0)
+                   , \equals(select(H, plus(X, 2)), 0)
+                   , \equals(MIN, X)
+                   , \equals(MAX, X)
+                   , .Patterns
+                   )
+             , \and( bst( H
+                        , variable("X",   !I1)
+                        , variable("F",   !J1)
+                        , variable("MIN", !K1)
+                        , variable("MAX", !L1)
+                        , .Patterns
+                        )
+                   , bst( H
+                        , variable("X",   !I2)
+                        , variable("F",   !J2)
+                        , variable("MIN", !K2)
+                        , variable("MAX", !L2)
+                        , .Patterns
+                        )
+                   , gt(X,0)
+                   , \equals(select(H, plus(X, 1)), variable("X", !I1))
+                   , \equals(select(H, plus(X, 2)), variable("X", !I2))
+                   , gt(X, variable("MAX", !K1))
+                   , gt(variable("MIN", !L2), X)
+                   , \equals(variable("MIN", !L1), MIN)
+                   , \equals(variable("MAX", !K2), MAX)
+                   , \not(isMember(X, variable("F", !J1)))
+                   , \not(isMember(X, variable("F", !J2)))
+                   , \equals(F, union( singleton(X)
+                                     , union( variable("F", !J1)
+                                            , variable("F", !J2))))
+                   , disjoint(variable("F", !J1), variable("F", !J2))
+                   , .Patterns
+                   )
+              )
+
+ 
+
 endmodule
 ```
