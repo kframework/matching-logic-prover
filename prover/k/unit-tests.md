@@ -28,29 +28,6 @@ CheckSAT
        </k>
 ```
 
-Prover
-------
-
-This demonstrates composition, right-unfold and choice:
-
-```k
-  rule <proveOne>
-         <proveAll>
-           <goal>
-             <id> N </id>
-             <k> \implies( \and(\equals(variable("S"), emptyset), .Patterns)
-                         , \and(isEmpty(variable("S"), .Patterns), .Patterns))
-              => _
-             </k>
-             <strategy>
-                  right-unfold direct-proof
-               => success
-             </strategy>
-           </goal>
-         </proveAll>
-       </proveOne>
-```
-
 ```k
 endmodule
 ```
