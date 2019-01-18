@@ -243,7 +243,7 @@ non-determinism and affects efficiency.
     <proveOne>
       <proveAll multiplicity="*" type="Bag">
         <goal multiplicity="*" type="Bag">
-          <id> -1 ~> .K </id>
+          <id> 0 ~> .K </id>
           <k> $PGM:Pattern </k>
           <strategy> search-bound(4) ~> .K </strategy>
         </goal>
@@ -258,7 +258,7 @@ The strategy I want to use for LTL-Ind example:
     <proveOne>
       <proveAll multiplicity="*" type="Bag">
         <goal multiplicity="*" type="Bag">
-          <id> -1 ~> .K </id>
+          <id> 0 ~> .K </id>
           <k> $PGM:Pattern </k>
           <strategy> kt-always and-intro and-intro unfold ~> .K </strategy>
         </goal>
