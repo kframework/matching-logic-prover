@@ -463,7 +463,7 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 ```k
   rule <k> GOAL </k>
        <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
-  syntax Strategy ::= ktForEachLRP(BasicPatterns) [function, klabel(ktForEachLRP)]
+  syntax Strategy ::= ktForEachLRP(BasicPatterns) [function]
   rule ktForEachLRP(.Patterns) => fail
   rule ktForEachLRP(LRP, LRPs) => ktOneLRP(LRP) | ktForEachLRP(LRPs) [owise]
 ```
@@ -478,7 +478,7 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 (`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
 
 ```k
-  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm) [function, klabel(ktForEachLRP)]
+  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm) [function]
   rule ktForEachBody(LRP, \or(.ConjunctiveForms))
     => success
   rule ktForEachBody(LRP, \or(BODY, BODIES))
