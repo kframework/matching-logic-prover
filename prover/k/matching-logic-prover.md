@@ -250,17 +250,22 @@ non-determinism and affects efficiency.
       </proveAll>
     </proveOne>
 ```
+
 The strategy I want to use for LTL-Ind example:
+
+```comment
   configuration
     <proveOne>
       <proveAll multiplicity="*" type="Bag">
         <goal multiplicity="*" type="Bag">
           <id> -1 ~> .K </id>
           <k> $PGM:Pattern </k>
-          <strategy> kt-always ~> and-intro ~> and-intro ~> unfold ~> .K </strategy>
+          <strategy> kt-always and-intro and-intro unfold ~> .K </strategy>
         </goal>
       </proveAll>
     </proveOne>
+```
+
 Strategy Language
 -----------------
 
