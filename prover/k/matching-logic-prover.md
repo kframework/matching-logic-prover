@@ -55,6 +55,17 @@ of kore:
                    | DisjunctiveForm
                    | ImplicativeForm
 
+                   // General syntax
+                   | "phi"
+                   | "\\implies" "(" Pattern "," Pattern ")"
+                   | "\\and"     "(" Patterns ")"
+                   | "\\not"     "(" Pattern ")"
+
+                   // LTL&CTL concrete syntax
+                   | "wnext" "(" Pattern ")"
+                   | "snext" "(" Pattern ")"
+                   | "always" "(" Pattern ")"
+
   syntax BasicPatterns ::= ".Patterns"
                          | BasicPattern "," BasicPatterns [klabel(PatternCons), right]
   syntax Patterns      ::= BasicPatterns
@@ -233,13 +244,23 @@ non-determinism and affects efficiency.
       <proveAll multiplicity="*" type="Bag">
         <goal multiplicity="*" type="Bag">
           <id> -1 ~> .K </id>
-          <k> $PGM:ImplicativeForm </k>
+          <k> $PGM:Pattern </k>
           <strategy> search-bound(4) ~> .K </strategy>
         </goal>
       </proveAll>
     </proveOne>
 ```
-
+The strategy I want to use for LTL-Ind example:
+  configuration
+    <proveOne>
+      <proveAll multiplicity="*" type="Bag">
+        <goal multiplicity="*" type="Bag">
+          <id> -1 ~> .K </id>
+          <k> $PGM:Pattern </k>
+          <strategy> kt-always ~> and-intro ~> and-intro ~> unfold ~> .K </strategy>
+        </goal>
+      </proveAll>
+    </proveOne>
 Strategy Language
 -----------------
 
@@ -366,7 +387,11 @@ If-then-else-fi strategy is useful for implementing other strategies:
                     | "direct-proof" [token]
                     | "kt"           [token]
                     | "right-unfold" [token]
-                    |  "left-unfold" [token]
+                    | "left-unfold"  [token]
+                    | "and-intro"    [token]
+                    | "unfold"       [token]
+                   // "wnext-and"    [token]
+                    | "kt-always"    [token]
 
   rule <strategy> ( (S T) U ):Strategy => S (T U) ... </strategy>
   rule <strategy> fail T => fail                  ... </strategy>
@@ -636,9 +661,56 @@ Temporary rule to see results of auxilary functionality needed for implementing 
        </strategy>
 ```
 
-Definition of Recursive Predicates
-----------------------------------
+### and-intro
+```k
+  /* |- A -> B /\ C
+   * =>
+   * |- A -> B
+   * |- A -> C
+   */
+  syntax Strategy ::= "and-intro" "(" Patterns ")"
+  rule <k> \implies(LHS:Pattern, \and(Ps:Patterns)) </k>
+       <strategy> and-intro => and-intro(Ps) ... </strategy>
+  
+  rule <strategy> and-intro(.Patterns) => success </strategy>
+  rule <strategy> and-intro(P:Pattern, Ps:Patterns)
+               => and-intro(P, .Patterns) & and-intro(Ps) ... </strategy>
+  requires Ps =/=K .Patterns
+  rule <k> \implies(LHS:Pattern, RHS:Pattern) => \implies(LHS, P) ... </k>
+       <strategy> and-intro(P, .Patterns) => .K ... </strategy>
+```
 
+### wnext-and
+```k
+  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
+  rule wnext(\and(.Patterns)) => \top()
+  rule wnext(\and(P:Pattern, Ps:Patterns))
+    => \and(wnext(P), wnext(\and(Ps)), .Patterns)
+```
+
+### kt-always
+```k
+  /* |- P -> always(Q)
+   * => 
+   * |- P -> Q /\ wnext(P)
+   */
+  rule <k> \implies(P:Pattern, always(Q:Pattern))
+        => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
+  <strategy> kt-always => .K ... </strategy>
+```
+
+### unfold
+```k
+  // <k> ... always(P) => P /\ wnext(always(P)) ... </k>
+  // This rule will pick one recursive/fixpoint and unfold it.
+  // One has to traverse the whole pattern.
+  // Here, I only did a simple special case that works for LTL-Ind.
+  rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
+        => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
+```
+
+### Definition of Recursive Predicates
+----------------------------------
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
