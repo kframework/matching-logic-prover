@@ -7,7 +7,7 @@ module MATCHING-LOGIC-PROVER-SYNTAX
 ```
 
 Kore Sugar
-----------
+==========
 
 The following is sugar for a post-sort-erasure first-order horn clause fragment
 of kore:
@@ -80,6 +80,9 @@ of kore:
   syntax Predicate ::= "isEmpty"
 endmodule
 ```
+
+Kore Helpers
+============
 
 ```k
 module KORE-HELPERS
@@ -240,143 +243,171 @@ non-determinism and affects efficiency.
 
 ```k
   configuration
-    <proveOne>
-      <proveAll multiplicity="*" type="Bag">
+      <prover>
         <goal multiplicity="*" type="Bag">
-          <id> 0 ~> .K </id>
+          <id> 0 </id>
+          <parent> -1 </parent>
           <k> $PGM:Pattern </k>
           <strategy> search-bound(4) ~> .K </strategy>
         </goal>
-      </proveAll>
-    </proveOne>
+      </prover>
 ```
 
-The strategy I want to use for LTL-Ind example:
+Probable strategy for LTL-Ind example: ``
 
-```comment
+```commented
   configuration
-    <proveOne>
-      <proveAll multiplicity="*" type="Bag">
+      <prover>
         <goal multiplicity="*" type="Bag">
-          <id> 0 ~> .K </id>
+          <id> 0 </id>
+          <parent> -1 </parent>
           <k> $PGM:Pattern </k>
           <strategy> kt-always and-intro and-intro unfold ~> .K </strategy>
         </goal>
-      </proveAll>
-    </proveOne>
+      </prover>
 ```
 
 Strategy Language
------------------
+=================
+
+The "strategy" language is an imperative language for describing which proof rules
+to apply to complete the proof.
+
+`Strategy`s can be sequentially composed via the `;` operator.
 
 ```k
-  syntax ResultStrategy ::= "noop" | "fail" | "#hole"
+   syntax Strategy ::= Strategy ";" Strategy [right]
+  rule <strategy> (S ; T) ; U => S ; (T ; U) ... </strategy>
+
+```
+
+Since strategies do not live in the K cell, we must manually heat and cool.
+`ResultStrategy`s are strategies that can only be simplified when they are
+cooled back into the sequence strategy.
+
+```k
+  syntax ResultStrategy ::= "#hole"
   syntax Strategy ::= ResultStrategy
-                    | "success"
-                    | Strategy     Strategy  [right] // composition
-                    > Strategy "&" Strategy  [right, format(%1%n%2  %3)] // and
-                    > Strategy "|" Strategy  [right, format(%1%n%2  %3)] // choice
-```
-
-Since strategies do not live in the K cell, we must manually heat and cool:
-
-```k
-  rule <strategy> S1 S2 => S1 ~> #hole S2 ... </strategy>
+  rule <strategy> S1 ; S2 => S1 ~> #hole ; S2 ... </strategy>
     requires notBool(isResultStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole S2 => S1 S2 ... </strategy>
+  rule <strategy> S1:ResultStrategy ~> #hole ; S2 => S1 ; S2 ... </strategy>
 ```
 
-`|` splits the current goal set with one copy using each branch of the choice.
-TODO: Support multiple goals in `<proveAll>` cell.
+The `noop` (no operation) strategy is the unit for sequential composition:
 
 ```k
-  rule <proveOne>
+  syntax ResultStrategy ::= "noop"
+  rule <strategy> noop ; T => T ... </strategy>
+```
+
+The `success` and `fail` strategy indicate that a goal has been successfully
+proved, or that constructing a proof has failed.
+
+```k
+  syntax TerminalStrategy ::= "success" | "fail"
+  syntax Strategy ::= TerminalStrategy
+  rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
+```
+
+TODO: These two cause inifinite loops. Why?
+
+```commented
+  rule <strategy> success ~> (REST => .K) </strategy> requires REST =/=K .K
+  rule <strategy> fail    ~> (REST => .K) </strategy> requires REST =/=K .K
+```
+
+The `goalStrat(Int)` strategy is used to establish a refernce to the result of another
+goal. It's argument holds the id of a subgoal. Once that subgoal has completed,
+its result is replaced in the parent goal and the subgoal is removed.
+
+```k
+  syntax ResultStrategy ::= goalStrat(Int)
+  rule <prover>
+         <goal> <id> PID </id>
+                <strategy> PStrat => replaceStrategyK(PStrat, goalStrat(ID), RStrat) </strategy>
+                ...
+         </goal>
+         ( <goal> <id> ID </id>
+                  <parent> PID </parent>
+                  <strategy> RStrat:TerminalStrategy ... </strategy>
+                  ...
+           </goal> => .Bag
+         )
+         ...
+       </prover>
+```
+
+```k
+  syntax K ::= replaceStrategyK(K, Strategy, Strategy) [function]
+  rule replaceStrategyK(K1 ~> K2, F, T) => replaceStrategyK(K1, F, T) ~> replaceStrategyK(K2, F, T)
+  rule replaceStrategyK(S:Strategy, F, T) => replaceStrategy(S, F, T)
+ 
+  syntax Strategy ::= replaceStrategy(Strategy, Strategy, Strategy) [function]
+  rule replaceStrategy(S1 ; S2, F, T) => replaceStrategy(S1, F, T) ; replaceStrategy(S2, F, T)
+  rule replaceStrategy(S1 & S2, F, T) => replaceStrategy(S1, F, T) & replaceStrategy(S2, F, T)
+  rule replaceStrategy(S1 | S2, F, T) => replaceStrategy(S1, F, T) | replaceStrategy(S2, F, T)
+  rule replaceStrategy(F,       F, T) => T
+  rule replaceStrategy(S,       F, T) => S [owise]
+```
+
+Sometimes, we may need to combine the proofs of two subgoals to construct a proof
+of the main goal. The `&` strategy generates subgoals for each child strategy, and if
+all succeed, it succeeds:
+
+```k
+  syntax ResultStrategy ::= Strategy "&" Strategy [right, format(%1%n%2  %3)]
+  rule <prover>
          ( .Bag =>
-           <proveAll>
              <goal>
-               <id> !ID:Int ~> OLD_ID </id>
-               <strategy> S1 ~> REST </strategy>
+               <id> !ID:Int </id>
+               <parent> PARENT </parent>
+               <strategy> S1 </strategy>
                <k> GOAL:ImplicativeForm </k>
              </goal>
-           </proveAll>
          )
-         <proveAll>
-           <goal>
-             <id> OLD_ID </id>
-             <strategy> ( (S1 | S2) => S2 ) ~> REST </strategy>
-             <k> GOAL:ImplicativeForm </k>
-             ...
-           </goal>
-         </proveAll>
+         <goal>
+           <id> PARENT </id>
+           <strategy> ((S1 & S2) => S2 & goalStrat(!ID)) </strategy>
+           <k> GOAL:ImplicativeForm </k>
+           ...
+         </goal>
          ...
-       </proveOne>
+       </prover>
+    requires notBool(isResultStrategy(S1))
+```
+
+Similarly, there may be a different approaches to finding a proof for a goal.
+The `|` strategy lets us try these different approaches, and succeeds if any one
+approach succeeds:
+
+```k
+  syntax ResultStrategy ::= Strategy "|" Strategy  [right, format(%1%n%2  %3)]
+
+  rule <strategy> S | fail => S ... </strategy>
+  rule <strategy> fail | S => S ... </strategy>
+  rule <strategy> S | success => success ... </strategy>
+  rule <strategy> success | S => success ... </strategy>
+  rule <strategy> (S1 | S2) ; S3 => (S1 ; S3) | (S2 ; S3) ... </strategy>
+
+  rule <prover>
+         ( .Bag =>
+             <goal>
+               <id> !ID:Int </id>
+               <parent> PARENT </parent>
+               <strategy> S1 </strategy>
+               <k> GOAL:ImplicativeForm </k>
+             </goal>
+         )
+         <goal>
+           <id> PARENT </id>
+           <strategy> (S1 | S2) => (S2 | goalStrat(!ID)) </strategy>
+           <k> GOAL:ImplicativeForm </k>
+           ...
+         </goal>
+         ...
+       </prover>
     requires notBool(isResultStrategy(S1))
      andBool S2 =/=K fail
-  rule <strategy> S | fail    => S ... </strategy>
-  rule <strategy> fail | S    => S ... </strategy>
-
-  rule <proveOne>
-         <proveAll>
-           <goal>
-             <strategy> fail </strategy>
-             <k> GOAL </k>
-             ...
-           </goal>
-           ...
-         </proveAll>
-         => .Bag
-         ...
-       </proveOne>
-```
-
-Similarly, when we encounter *and*, we push the contents of <k> cell to a stack, and
-attempt the first strategy. If the strategy *succeeds*, we reset the <k> cell to the
-top element of the stack, and pop from the stack when any sub-strategy fails.
-
-```k
-  rule <proveAll>
-         ( .Bag =>
-             <goal>
-               <id> !ID:Int ~> OLD_ID </id>
-               <strategy> S1 ~> REST </strategy>
-               <k> GOAL:ImplicativeForm </k>
-             </goal>
-         )
-         <goal>
-           <id> OLD_ID </id>
-           <strategy> ((S1 & S2) => S2) ~> REST </strategy>
-           <k> GOAL:ImplicativeForm </k>
-           ...
-         </goal>
-         ...
-       </proveAll>
-```
-
-If a goal succeeds, we clear it:
-
-```k
-  rule <proveAll>
-         <goal>
-           <strategy> success ... </strategy>
-           <k> GOAL:ImplicativeForm </k>
-           ...
-         </goal>
-         => .Bag
-         ...
-       </proveAll>
-```
-
-Once all goals in one goal set have succeeded, we can stop processing the other
-goal sets:
-
-```k
-  rule <proveOne>
-         ( <proveAll> <k> _ </k> ... </proveAll> => .Bag)
-         <proveAll>
-           .Bag
-         </proveAll>
-         ...
-       </proveOne>
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:
@@ -387,26 +418,19 @@ If-then-else-fi strategy is useful for implementing other strategies:
   rule if false then _  else S2 fi => S2
 ```
 
+Strategies for the Horn Clause fragment
+---------------------------------------
+
+### Search Bound
+
 ```k
   syntax Strategy ::= "search-bound" "(" Int ")"
-                    | "direct-proof" [token]
-                    | "kt"           [token]
-                    | "right-unfold" [token]
-                    | "left-unfold"  [token]
-                    | "and-intro"    [token]
-                    | "unfold"       [token]
-                   // "wnext-and"    [token]
-                    | "kt-always"    [token]
-
-  rule <strategy> ( (S T) U ):Strategy => S (T U) ... </strategy>
-  rule <strategy> fail T => fail                  ... </strategy>
-  rule <strategy> noop T => T                     ... </strategy>
 
   rule <strategy> search-bound(0) => fail </strategy>
   rule <strategy> search-bound(N)
                => direct-proof
-                | kt           search-bound(N -Int 1)
-                | right-unfold search-bound(N -Int 1)
+                | (kt           ; search-bound(N -Int 1))
+                | (right-unfold ; search-bound(N -Int 1))
                 ...
        </strategy>
     requires N >=Int 0
@@ -419,7 +443,8 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 `A -> B \/ C` vs `(A -> B) \/ (A -> C)`).
 
 ```k
-  syntax Strategy ::= "right-unfold" "(" DisjunctiveForm ")"
+  syntax Strategy ::= "right-unfold"
+                    | "right-unfold" "(" DisjunctiveForm ")"
   rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
        <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
 
@@ -435,16 +460,8 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 
 ### Direct proof
 
-TODO: Stubbed: Should translate to SMTLIB queries.
-Returns true if negation is unsatisfiable, false if unknown or satisfiable:
-
 ```k
-  syntax Bool ::= checkValid(ImplicativeForm) [function]
-  rule checkValid(\implies(P, P)) => true:Bool
-  rule checkValid(_) => false:Bool [owise]
-```
-
-```k
+  syntax Strategy ::= "direct-proof"
   rule <k> GOAL </k>
        <strategy> direct-proof
                => if checkValid(GOAL)
@@ -455,17 +472,34 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
        </strategy>
 ```
 
+TODO: Stubbed: Should translate to SMTLIB queries.
+Returns true if negation is unsatisfiable, false if unknown or satisfiable:
+
+```k
+  syntax Bool ::= checkValid(ImplicativeForm) [function]
+  rule checkValid(\implies(P, P)) => true:Bool
+  rule checkValid(_) => false:Bool [owise]
+```
+
+
 ### Knaster Tarski
 
 `ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
 (`ktForEachLRP` corresponds to `lprove_kt_aux`)
 
 ```k
+  syntax Strategy ::= "kt"
   rule <k> GOAL </k>
        <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
-  syntax Strategy ::= ktForEachLRP(BasicPatterns) [function]
-  rule ktForEachLRP(.Patterns) => fail
-  rule ktForEachLRP(LRP, LRPs) => ktOneLRP(LRP) | ktForEachLRP(LRPs) [owise]
+  syntax Strategy ::= ktForEachLRP(BasicPatterns)
+  rule <strategy> ktForEachLRP(.Patterns)
+               => fail
+                  ...
+       </strategy>
+  rule <strategy> ktForEachLRP(LRP, LRPs)
+               => ktOneLRP(LRP) | ktForEachLRP(LRPs)
+                  ...
+       </strategy>
 ```
 
 (`ktOneLRP` corresponds to `lprove_kt/6`)
@@ -478,11 +512,13 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 (`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
 
 ```k
-  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm) [function]
-  rule ktForEachBody(LRP, \or(.ConjunctiveForms))
-    => success
-  rule ktForEachBody(LRP, \or(BODY, BODIES))
-    => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
+  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm)
+  rule <strategy> ktForEachBody(LRP, \or(.ConjunctiveForms))
+               => success
+       </strategy>
+  rule <strategy> ktForEachBody(LRP, \or(BODY, BODIES))
+               => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
+       </strategy>
 ```
 
 (`ktOneBody` corresponds to `lprove_kt_one_body`)
@@ -666,17 +702,22 @@ Temporary rule to see results of auxilary functionality needed for implementing 
        </strategy>
 ```
 
+LTL Fragment
+------------
+
 ### and-intro
+
 ```k
   /* |- A -> B /\ C
    * =>
    * |- A -> B
    * |- A -> C
    */
-  syntax Strategy ::= "and-intro" "(" Patterns ")"
+  syntax Strategy ::= "and-intro"
+                    | "and-intro" "(" Patterns ")"
   rule <k> \implies(LHS:Pattern, \and(Ps:Patterns)) </k>
        <strategy> and-intro => and-intro(Ps) ... </strategy>
-  
+
   rule <strategy> and-intro(.Patterns) => success </strategy>
   rule <strategy> and-intro(P:Pattern, Ps:Patterns)
                => and-intro(P, .Patterns) & and-intro(Ps) ... </strategy>
@@ -698,9 +739,11 @@ Temporary rule to see results of auxilary functionality needed for implementing 
 
 ```k
   /* |- P -> always(Q)
-   * => 
+   * =>
    * |- P -> Q /\ wnext(P)
    */
+  syntax Strategy ::= "kt-always"
+
   rule <k> \implies(P:Pattern, always(Q:Pattern))
         => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
   <strategy> kt-always => .K ... </strategy>
@@ -718,7 +761,7 @@ Temporary rule to see results of auxilary functionality needed for implementing 
 ```
 
 Definition of Recursive Predicates
-----------------------------------
+==================================
 
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
@@ -815,7 +858,7 @@ Definition of Recursive Predicates
                    , disjoint(variable("F", !J1), variable("F", !J2))
                    , .Patterns
                    )
-              )  
+              ) 
 
   /* bst */
   rule unfold(bst(H,X,F,MIN,MAX,.Patterns))
@@ -861,7 +904,7 @@ Definition of Recursive Predicates
                    )
               )
 
- 
+
 
 endmodule
 ```

@@ -1,5 +1,16 @@
-<proveOne>
-  <proveAll>
-    .GoalCellBag
-  </proveAll>
-</proveOne>
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .Patterns ) , \and ( isEmpty ( variable ( "S" ) , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+  </goal>
+</prover>
