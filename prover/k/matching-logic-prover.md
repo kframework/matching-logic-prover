@@ -686,6 +686,7 @@ Temporary rule to see results of auxilary functionality needed for implementing 
 ```
 
 ### wnext-and
+
 ```k
   /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
   rule wnext(\and(.Patterns)) => \top()
@@ -694,6 +695,7 @@ Temporary rule to see results of auxilary functionality needed for implementing 
 ```
 
 ### kt-always
+
 ```k
   /* |- P -> always(Q)
    * => 
@@ -705,6 +707,7 @@ Temporary rule to see results of auxilary functionality needed for implementing 
 ```
 
 ### unfold
+
 ```k
   // <k> ... always(P) => P /\ wnext(always(P)) ... </k>
   // This rule will pick one recursive/fixpoint and unfold it.
@@ -714,8 +717,9 @@ Temporary rule to see results of auxilary functionality needed for implementing 
         => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
 ```
 
-### Definition of Recursive Predicates
+Definition of Recursive Predicates
 ----------------------------------
+
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
