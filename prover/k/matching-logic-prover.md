@@ -452,7 +452,7 @@ Strategies for the Horn Clause fragment
                 | (right-unfold ; search-bound(N -Int 1))
                 ...
        </strategy>
-    requires N >=Int 0
+    requires N >Int 0
 ```
 
 ### Right Unfold
