@@ -23,12 +23,14 @@ of kore:
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
   syntax RecursivePredicate
   syntax Predicate ::= RecursivePredicate
+  syntax PredicatePattern ::= Predicate "(" BasicPatterns ")"
 
   syntax BasicPattern ::= AtomicPattern
                         | "\\top"    "(" ")"
                         | "\\bottom" "(" ")"
                         | "\\equals" "(" BasicPattern "," BasicPattern ")"
                         | "\\not"    "(" BasicPattern ")"
+                        | PredicatePattern
 
                         // Int
                         | "plus"   "(" BasicPattern "," BasicPattern ")" // Int Int
@@ -43,7 +45,6 @@ of kore:
                         | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // Set, Set
                         | "singleton"     "(" BasicPattern ")"                  // Int
                         | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, Set
-                        | Predicate "(" BasicPatterns ")"
 
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")"
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
@@ -466,10 +467,39 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                     | "right-unfold" "(" DisjunctiveForm ")"
   rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
        <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
+       <trace> .K => right-unfold ... </trace>
+  rule <k>  \implies(LHS, \and(P, .Patterns)) </k>
+       <strategy>  right-unfold => fail ... </strategy>
+       <trace> .K => right-unfold ... </trace>
+    requires notBool(isPredicatePattern(P))
+  rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
+       <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
+       <trace> .K => right-unfold ... </trace>
+```
 
+TODO: This should be applied to any active rule rather than just right-unfold:
+
+```k
+  rule <k> \implies(LHS, \and(.Patterns)) </k>
+       <strategy> right-unfold
+               => success
+                  ...
+       </strategy>
+  rule <k> \implies(LHS, \and(P, Ps)) </k>
+       <strategy> right-unfold
+               => ( replaceGoal(\implies(LHS, \and(P, .Patterns)))
+                  & replaceGoal(\implies(LHS, \and(Ps)))
+                  ) ; right-unfold
+                  ...
+       </strategy>
+    requires Ps =/=K .Patterns
+```
+
+```k
   rule <strategy> right-unfold(\or(BODY, BODIES:ConjunctiveForms))
                => right-unfold(\or(BODY, .ConjunctiveForms))
                 | right-unfold(\or(BODIES))
+                  ...
        </strategy>
     requires BODIES =/=K .ConjunctiveForms
   rule <k> \implies(LHS, RHS) => \implies(LHS, BODY) ... </k>
