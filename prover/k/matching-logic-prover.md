@@ -235,7 +235,6 @@ module MATCHING-LOGIC-PROVER
   imports MATCHING-LOGIC-PROVER-SYNTAX
   imports KORE-HELPERS
   imports SUBSTITUTION
-  imports SMTLIB2
 ```
 
 TODO: `type="List"` doesn't work for some reason. `type="Bag"` allows too much
