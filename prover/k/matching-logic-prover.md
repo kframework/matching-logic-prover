@@ -360,6 +360,11 @@ all succeed, it succeeds:
 
 ```k
   syntax ResultStrategy ::= Strategy "&" Strategy [right, format(%1%n%2  %3)]
+  rule <strategy> S & fail => fail ... </strategy>
+  rule <strategy> fail & S => fail ... </strategy>
+  rule <strategy> S & success => S ... </strategy>
+  rule <strategy> success & S => S ... </strategy>
+  rule <strategy> (S1 & S2) ; S3 => (S1 ; S3) & (S2 ; S3) ... </strategy>
   rule <prover>
          ( .Bag =>
              <goal>
