@@ -565,9 +565,11 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
   syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm)
   rule <strategy> ktForEachBody(LRP, \or(.ConjunctiveForms))
                => success
+                  ...
        </strategy>
   rule <strategy> ktForEachBody(LRP, \or(BODY, BODIES))
                => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
+                  ...
        </strategy>
 ```
 
