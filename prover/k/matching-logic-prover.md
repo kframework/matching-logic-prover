@@ -245,19 +245,22 @@ non-determinism and affects efficiency.
       <prover>
         <goal multiplicity="*" type="Bag">
           <id> 0 </id>
+          <active> true </active>
           <parent> -1 </parent>
           <k> $PGM:Pattern </k>
           <strategy> search-bound(4) ~> .K </strategy>
+          <trace> .K </trace> // Use as a debug log
         </goal>
       </prover>
 ```
 
-Probable strategy for LTL-Ind example: ``
+Probable strategy for LTL-Ind example:
 
 ```commented
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
+          <active> true </active>
           <id> 0 </id>
           <parent> -1 </parent>
           <k> $PGM:Pattern </k>
@@ -323,10 +326,12 @@ its result is replaced in the parent goal and the subgoal is removed.
   syntax ResultStrategy ::= goalStrat(Int)
   rule <prover>
          <goal> <id> PID </id>
+                <active> _ => true </active>
                 <strategy> PStrat => replaceStrategyK(PStrat, goalStrat(ID), RStrat) </strategy>
                 ...
          </goal>
          ( <goal> <id> ID </id>
+                  <active> true </active>
                   <parent> PID </parent>
                   <strategy> RStrat:TerminalStrategy ... </strategy>
                   ...
@@ -359,15 +364,20 @@ all succeed, it succeeds:
          ( .Bag =>
              <goal>
                <id> !ID:Int </id>
+               <active> true </active>
                <parent> PARENT </parent>
                <strategy> S1 </strategy>
                <k> GOAL:ImplicativeForm </k>
+               <trace> TRACE </trace>
+               ...
              </goal>
          )
          <goal>
            <id> PARENT </id>
+           <active> true => false </active>
            <strategy> ((S1 & S2) => S2 & goalStrat(!ID)) </strategy>
            <k> GOAL:ImplicativeForm </k>
+           <trace> TRACE </trace>
            ...
          </goal>
          ...
@@ -392,15 +402,20 @@ approach succeeds:
          ( .Bag =>
              <goal>
                <id> !ID:Int </id>
+               <active> true </active>
                <parent> PARENT </parent>
                <strategy> S1 </strategy>
                <k> GOAL:ImplicativeForm </k>
+               <trace> TRACE </trace>
+               ...
              </goal>
          )
          <goal>
            <id> PARENT </id>
+           <active> true => false </active>
            <strategy> (S1 | S2) => (S2 | goalStrat(!ID)) </strategy>
            <k> GOAL:ImplicativeForm </k>
+           <trace> TRACE </trace>
            ...
          </goal>
          ...
@@ -469,6 +484,7 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                   fi
                   ...
        </strategy>
+       <trace> .K => direct-proof ... </trace>
 ```
 
 TODO: Stubbed: Should translate to SMTLIB queries.
@@ -490,6 +506,7 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
   syntax Strategy ::= "kt"
   rule <k> GOAL </k>
        <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
+       <trace> .K => kt ... </trace>
   syntax Strategy ::= ktForEachLRP(BasicPatterns)
   rule <strategy> ktForEachLRP(.Patterns)
                => fail
