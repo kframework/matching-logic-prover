@@ -236,6 +236,7 @@ module MATCHING-LOGIC-PROVER
   imports MATCHING-LOGIC-PROVER-SYNTAX
   imports KORE-HELPERS
   imports SUBSTITUTION
+  imports SMTLIB2
 ```
 
 TODO: `type="List"` doesn't work for some reason. `type="Bag"` allows too much
@@ -246,7 +247,7 @@ non-determinism and affects efficiency.
       <prover>
         <goal multiplicity="*" type="Bag">
           <id> 0 </id>
-          <active> true </active>
+          <active> true:Bool </active>
           <parent> -1 </parent>
           <k> $PGM:Pattern </k>
           <strategy> search-bound(4) ~> .K </strategy>
@@ -261,7 +262,7 @@ Probable strategy for LTL-Ind example:
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
-          <active> true </active>
+          <active> true:Bool </active>
           <id> 0 </id>
           <parent> -1 </parent>
           <k> $PGM:Pattern </k>
@@ -331,7 +332,7 @@ its result is replaced in the parent goal and the subgoal is removed.
                 ...
          </goal>
          ( <goal> <id> ID </id>
-                  <active> true </active>
+                  <active> true:Bool </active>
                   <parent> PID </parent>
                   <strategy> RStrat:TerminalStrategy ... </strategy>
                   ...
@@ -369,7 +370,7 @@ all succeed, it succeeds:
          ( .Bag =>
              <goal>
                <id> !ID:Int </id>
-               <active> true </active>
+               <active> true:Bool </active>
                <parent> PARENT </parent>
                <strategy> S1 </strategy>
                <k> GOAL:ImplicativeForm </k>
@@ -407,7 +408,7 @@ approach succeeds:
          ( .Bag =>
              <goal>
                <id> !ID:Int </id>
-               <active> true </active>
+               <active> true:Bool </active>
                <parent> PARENT </parent>
                <strategy> S1 </strategy>
                <k> GOAL:ImplicativeForm </k>
