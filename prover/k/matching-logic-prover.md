@@ -242,7 +242,7 @@ module MATCHING-LOGIC-PROVER
 TODO: `type="List"` doesn't work for some reason. `type="Bag"` allows too much
 non-determinism and affects efficiency.
 
-```k
+```commented
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
@@ -258,7 +258,7 @@ non-determinism and affects efficiency.
 
 Probable strategy for LTL-Ind example:
 
-```commented
+```k
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
@@ -266,7 +266,8 @@ Probable strategy for LTL-Ind example:
           <id> 0 </id>
           <parent> -1 </parent>
           <k> $PGM:Pattern </k>
-          <strategy> kt-always and-intro and-intro unfold ~> .K </strategy>
+          <strategy> kt-always ; and-intro ; and-intro ; unfold ~> .K </strategy>
+          <trace> .K </trace> // Use as a debug log
         </goal>
       </prover>
 ```
@@ -715,8 +716,7 @@ goals, including both the premises and the conclusion:
 ```
 
 LTL Fragment
-------------
-
+============
 ### and-intro
 
 ```k
@@ -768,6 +768,7 @@ LTL Fragment
   // This rule will pick one recursive/fixpoint and unfold it.
   // One has to traverse the whole pattern.
   // Here, I only did a simple special case that works for LTL-Ind.
+  syntax Strategy ::= "unfold"
   rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
         => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
 ```
