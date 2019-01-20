@@ -279,9 +279,8 @@ to apply to complete the proof.
 `Strategy`s can be sequentially composed via the `;` operator.
 
 ```k
-   syntax Strategy ::= Strategy ";" Strategy [right]
+  syntax Strategy ::= Strategy ";" Strategy [right]
   rule <strategy> (S ; T) ; U => S ; (T ; U) ... </strategy>
-
 ```
 
 Since strategies do not live in the K cell, we must manually heat and cool.
