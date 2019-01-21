@@ -1,4 +1,4 @@
-claim implies( \and( lsegleft( variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns) 
+claim \implies( \and( lsegleft( variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns) 
                   , list( variable("H"), variable("Y"), variable("G"), .Patterns)
                   , \equals( variable("K"), union(variable("F"), variable("G")))
                   , disjoint(variable("F"), variable("G"))
