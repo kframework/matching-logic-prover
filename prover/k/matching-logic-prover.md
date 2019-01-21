@@ -947,9 +947,10 @@ module MATCHING-LOGIC-PROVER-LTL
 
 ```k
   /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
-  rule wnext(\and(.Patterns)) => \top()
-  rule wnext(\and(P:Pattern, Ps:Patterns))
-    => \and(wnext(P), wnext(\and(Ps)), .Patterns)
+  rule <strategy> wnext(\and(.Patterns)) => \top() </strategy>
+  rule <strategy> wnext(\and(P:Pattern, Ps:Patterns))
+               => \and(wnext(P), wnext(\and(Ps)), .Patterns)
+       </strategy>
 ```
 
 ### kt-always
