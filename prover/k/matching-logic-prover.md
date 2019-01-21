@@ -247,7 +247,9 @@ module MATCHING-LOGIC-PROVER-CONFIGURATION
 
   syntax Pgm
   syntax Strategy
+```
 
+```k
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
@@ -536,6 +538,14 @@ TODO: This should be applied to any active rule rather than just right-unfold:
   rule <strategy> right-unfold(\or(.ConjunctiveForms)) => success </strategy>
 ```
 
+### Simplification Rules
+TODO:: Generalize these rules properly.
+```k
+  rule \and(P:Pattern, \top(), Ps:Patterns)
+    => \and(P, Ps) [anywhere]
+  rule \and(.Patterns) => \top() [anywhere]
+```
+
 ### Direct proof
 
 ```k
@@ -557,6 +567,12 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
   syntax Bool ::= checkValid(ImplicativeForm) [function]
   rule checkValid(\implies(P, P)) => true:Bool
   rule checkValid(_) => false:Bool [owise]
+```
+
+Some "hard-wire" direct-proof rules.
+```k
+  rule <k> \implies( \and (P1, P2, Phi, Ps) , Phi) </k>
+       <strategy> direct-proof => success ... </strategy>
 ```
 
 ### Knaster Tarski
@@ -748,6 +764,41 @@ left-unfolding and the other for right unfolding. Each unfold rule would thus be
 equivalent to a set of axioms for each body: `BODY_i -> Predicate(ARGS)` and
 another axiom `Predicate(ARGS) -> or(BODIES)`.
 
+```k
+  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
+  rule wnext(\and(.Patterns)) => \top() [anywhere]
+  rule wnext(\and(P:Pattern, Ps:Patterns))
+    => \and(wnext(P), wnext(\and(Ps)), .Patterns) [anywhere]
+```
+
+### kt-always
+
+```k
+  /* |- P -> always(Q)
+   * =>
+   * |- P -> Q /\ wnext(P)
+   */
+  syntax Strategy ::= "kt-always"
+
+  rule <k> \implies(P:Pattern, always(Q:Pattern))
+        => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
+  <strategy> kt-always => noop ... </strategy>
+```
+
+### unfold
+
+```k
+  // <k> ... always(P) => P /\ wnext(always(P)) ... </k>
+  // This rule will pick one recursive/fixpoint and unfold it.
+  // One has to traverse the whole pattern.
+  // Here, I only did a simple special case that works for LTL-Ind.
+  syntax Strategy ::= "unfold"
+  rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
+        => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
+```
+
+Definition of Recursive Predicates
+==================================
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
