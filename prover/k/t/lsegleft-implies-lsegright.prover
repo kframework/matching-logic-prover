@@ -1,3 +1,4 @@
-\implies( \and( lsegleft (variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns )
-        , \and( lsegright(variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns )
-        )
+claim \implies( \and( lsegleft (variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns )
+              , \and( lsegright(variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns )
+              )
+strategy search-bound(4)

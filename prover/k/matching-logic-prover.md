@@ -1,9 +1,6 @@
 ```k
 requires "smtlib2.k"
 requires "substitution.k"
-
-module MATCHING-LOGIC-PROVER-SYNTAX
-  imports DOMAINS-SYNTAX
 ```
 
 Kore Sugar
@@ -13,6 +10,8 @@ The following is sugar for a post-sort-erasure first-order horn clause fragment
 of kore:
 
 ```k
+module KORE-SUGAR
+  imports DOMAINS-SYNTAX
   syntax Variable ::= variable(String)
                     | variable(String, Int) // Fresh Variables:
                                             // For easy debugging we allow variables to have names.
@@ -87,7 +86,7 @@ Kore Helpers
 
 ```k
 module KORE-HELPERS
-  imports MATCHING-LOGIC-PROVER-SYNTAX
+  imports KORE-SUGAR
   imports MAP
 
   syntax Bool ::= BasicPattern "in" BasicPatterns [function]
@@ -230,50 +229,48 @@ and values, passed to K's substitute.
 endmodule
 ```
 
+Configuration & Core Strategies
+===============================
+
 ```k
-module MATCHING-LOGIC-PROVER
-  imports DOMAINS
-  imports MATCHING-LOGIC-PROVER-SYNTAX
+module MATCHING-LOGIC-PROVER-CORE
+```
+
+```k
   imports KORE-HELPERS
   imports SUBSTITUTION
   imports SMTLIB2
 ```
 
-TODO: `type="List"` doesn't work for some reason. `type="Bag"` allows too much
-non-determinism and affects efficiency.
+Configuration
+-------------
+
+The configuration consists of a Assoc-Commutative bag of goals. Only goals
+marked `<active>` are executed to control the non-determinism in the system. The
+`<k>` cell contains the Matching Logic Pattern that is being proved. The
+`<strategy>` cell contains an imperative language that controls which proof
+rules are used to complete the goal. The trace cell stores a log of
+the strategies used in the search of a proof. Information here could be used
+for constructing a proof object.
 
 ```k
+  syntax Pgm
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
           <id> 0 </id>
           <active> true:Bool </active>
           <parent> -1 </parent>
-          <k> $PGM:Pattern </k>
-          <strategy> search-bound(4) ~> .K </strategy>
-          <trace> .K </trace> // Use as a debug log
+          <k> $PGM </k>
+          <strategy> .K </strategy>
+          <trace> .K </trace>
         </goal>
       </prover>
 ```
 
-Probable strategy for LTL-Ind example:
-
-```commented
-  configuration
-      <prover>
-        <goal multiplicity="*" type="Bag">
-          <active> true:Bool </active>
-          <id> 0 </id>
-          <parent> -1 </parent>
-          <k> $PGM:Pattern </k>
-          <strategy> (kt-always ; and-intro ; and-intro ; unfold) ~> .K </strategy>
-          <trace> .K </trace> // Use as a debug log
-        </goal>
-      </prover>
-```
 
 Strategy Language
-=================
+-----------------
 
 The "strategy" language is an imperative language for describing which proof rules
 to apply to complete the proof.
@@ -437,16 +434,32 @@ If-then-else-fi strategy is useful for implementing other strategies:
   syntax Strategy ::= "if" Bool "then" Strategy "else" Strategy "fi" [function]
   rule if true  then S1 else _  fi => S1
   rule if false then _  else S2 fi => S2
+endmodule
 ```
 
 Strategies for the Horn Clause fragment
 ---------------------------------------
 
+```k
+module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
+  imports INT-SYNTAX
+
+  syntax Strategy ::= "search-bound" "(" Int ")"
+                    | "right-unfold"
+                    | "direct-proof"
+                    | "kt"
+endmodule
+```
+
+```k
+module MATCHING-LOGIC-PROVER-HORN-CLAUSE
+  imports MATCHING-LOGIC-PROVER-CORE
+  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
+```
+
 ### Search Bound
 
 ```k
-  syntax Strategy ::= "search-bound" "(" Int ")"
-
   rule <strategy> search-bound(0) => fail </strategy>
   rule <strategy> search-bound(N)
                => direct-proof
@@ -464,8 +477,7 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 `A -> B \/ C` vs `(A -> B) \/ (A -> C)`).
 
 ```k
-  syntax Strategy ::= "right-unfold"
-                    | "right-unfold" "(" DisjunctiveForm ")"
+  syntax Strategy ::= "right-unfold" "(" DisjunctiveForm ")"
   rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
        <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
        <trace> .K => right-unfold ... </trace>
@@ -511,7 +523,6 @@ TODO: This should be applied to any active rule rather than just right-unfold:
 ### Direct proof
 
 ```k
-  syntax Strategy ::= "direct-proof"
   rule <k> GOAL </k>
        <strategy> direct-proof
                => if checkValid(GOAL)
@@ -532,14 +543,12 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
   rule checkValid(_) => false:Bool [owise]
 ```
 
-
 ### Knaster Tarski
 
 `ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
 (`ktForEachLRP` corresponds to `lprove_kt_aux`)
 
 ```k
-  syntax Strategy ::= "kt"
   rule <k> GOAL </k>
        <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
        <trace> .K => kt ... </trace>
@@ -715,66 +724,13 @@ goals, including both the premises and the conclusion:
     => AFF
 ```
 
-LTL Fragment
-============
-### and-intro
+### Definition of Recursive Predicates
 
-```k
-  /* |- A -> B /\ C
-   * =>
-   * |- A -> B
-   * |- A -> C
-   */
-  syntax Strategy ::= "and-intro"
-                    | "and-intro" "(" Patterns ")"
-  rule <k> \implies(LHS:Pattern, \and(Ps:Patterns)) </k>
-       <strategy> and-intro => and-intro(Ps) ... </strategy>
-
-  rule <strategy> and-intro(.Patterns) => success </strategy>
-  rule <strategy> and-intro(P:Pattern, Ps:Patterns)
-               => and-intro(P, .Patterns) & and-intro(Ps) ... </strategy>
-  requires Ps =/=K .Patterns
-  rule <k> \implies(LHS:Pattern, RHS:Pattern) => \implies(LHS, P) ... </k>
-       <strategy> and-intro(P, .Patterns) => noop ... </strategy>
-```
-
-### wnext-and
-
-```k
-  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
-  rule wnext(\and(.Patterns)) => \top()
-  rule wnext(\and(P:Pattern, Ps:Patterns))
-    => \and(wnext(P), wnext(\and(Ps)), .Patterns)
-```
-
-### kt-always
-
-```k
-  /* |- P -> always(Q)
-   * =>
-   * |- P -> Q /\ wnext(P)
-   */
-  syntax Strategy ::= "kt-always"
-
-  rule <k> \implies(P:Pattern, always(Q:Pattern))
-        => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
-  <strategy> kt-always => noop ... </strategy>
-```
-
-### unfold
-
-```k
-  // <k> ... always(P) => P /\ wnext(always(P)) ... </k>
-  // This rule will pick one recursive/fixpoint and unfold it.
-  // One has to traverse the whole pattern.
-  // Here, I only did a simple special case that works for LTL-Ind.
-  syntax Strategy ::= "unfold"
-  rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
-        => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
-```
-
-Definition of Recursive Predicates
-==================================
+TODO: Ideally, this would live as part of the test files, perhaps as `axioms`.
+However, we currently use this in two differnt directions, one for
+left-unfolding and the other for right unfolding. Each unfold rule would thus be
+equivalent to a set of axioms for each body: `BODY_i -> Predicate(ARGS)` and
+another axiom `Predicate(ARGS) -> or(BODIES)`.
 
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
@@ -917,7 +873,117 @@ Definition of Recursive Predicates
                    )
               )
 
+endmodule
+```
 
+LTL Fragment
+============
 
+### and-intro
+
+```k
+module MATCHING-LOGIC-PROVER-LTL-SYNTAX
+  syntax Strategy ::= "and-intro"
+  syntax Strategy ::= "unfold"
+  syntax Strategy ::= "kt-always"
+endmodule
+```
+
+```k
+module MATCHING-LOGIC-PROVER-LTL
+  imports MATCHING-LOGIC-PROVER-CORE
+  imports MATCHING-LOGIC-PROVER-LTL-SYNTAX
+
+  /* |- A -> B /\ C
+   * =>
+   * |- A -> B
+   * |- A -> C
+   */
+  syntax Strategy ::= "and-intro" "(" Patterns ")"
+  rule <k> \implies(LHS:Pattern, \and(Ps:Patterns)) </k>
+       <strategy> and-intro => and-intro(Ps) ... </strategy>
+
+  rule <strategy> and-intro(.Patterns) => success </strategy>
+  rule <strategy> and-intro(P:Pattern, Ps:Patterns)
+               => and-intro(P, .Patterns) & and-intro(Ps) ... </strategy>
+  requires Ps =/=K .Patterns
+  rule <k> \implies(LHS:Pattern, RHS:Pattern) => \implies(LHS, P) ... </k>
+       <strategy> and-intro(P, .Patterns) => noop ... </strategy>
+```
+
+### wnext-and
+
+```k
+  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
+  rule wnext(\and(.Patterns)) => \top()
+  rule wnext(\and(P:Pattern, Ps:Patterns))
+    => \and(wnext(P), wnext(\and(Ps)), .Patterns)
+```
+
+### kt-always
+
+```k
+  /* |- P -> always(Q)
+   * =>
+   * |- P -> Q /\ wnext(P)
+   */
+  rule <k> \implies(P:Pattern, always(Q:Pattern))
+        => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
+  <strategy> kt-always => noop ... </strategy>
+```
+
+### unfold
+
+```k
+  // <k> ... always(P) => P /\ wnext(always(P)) ... </k>
+  // This rule will pick one recursive/fixpoint and unfold it.
+  // One has to traverse the whole pattern.
+  // Here, I only did a simple special case that works for LTL-Ind.
+  rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
+        => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
+endmodule
+```
+
+Driver & Syntax
+===============
+
+The driver is responsible for loading prover files into the configuration.
+
+```k
+module MATCHING-LOGIC-PROVER-SYNTAX
+  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
+  imports MATCHING-LOGIC-PROVER-LTL-SYNTAX
+```
+
+TODO: Can't use "goal" here because K fails to parse the configuration
+
+```k
+  imports KORE-SUGAR
+  syntax Pgm ::= "claim" Pattern
+                 "strategy" Strategy
+endmodule
+```
+
+```k
+module MATCHING-LOGIC-PROVER-DRIVER
+  imports MATCHING-LOGIC-PROVER-SYNTAX
+  imports MATCHING-LOGIC-PROVER-CORE
+
+  rule <k> claim PATTERN
+           strategy STRAT
+        => PATTERN
+       </k>
+       <strategy> _ => STRAT </strategy>
+endmodule
+```
+
+Main Module
+===========
+
+```k
+module MATCHING-LOGIC-PROVER
+  imports MATCHING-LOGIC-PROVER-DRIVER
+  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE
+  imports MATCHING-LOGIC-PROVER-LTL
 endmodule
 ```

@@ -1,6 +1,7 @@
-\implies( \and( always( \implies(phi, wnext(phi)))
-              , phi
-              , .Patterns
+claim \implies( \and( always( \implies(phi, wnext(phi)))
+                    , phi
+                    , .Patterns
+                    )
+              , always(phi)
               )
-        , always(phi)
-        )
+strategy kt-always ; and-intro ; and-intro ; unfold
