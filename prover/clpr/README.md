@@ -175,7 +175,7 @@ ll(H,X,Y,F) ≡
 
 lr(H,X,Y,F) ≡
    X=Y /\ F=emptyset
-\/ lr(H,X,T,F1) /\ X>0 /\ X!=Y /\ Y=H[T] /\ T notin F1 /\ F=F1+{T}
+\/ lr(H,X,T,F1) /\ Y>0 /\ X!=Y /\ Y=H[T] /\ T notin F1 /\ F=F1+{T}
 
 Proof.
 
