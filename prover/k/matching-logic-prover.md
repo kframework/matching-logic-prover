@@ -970,11 +970,6 @@ module MATCHING-LOGIC-PROVER-SYNTAX
   imports MATCHING-LOGIC-PROVER-CORE-SYNTAX
   imports MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
   imports MATCHING-LOGIC-PROVER-LTL-SYNTAX
-```
-
-TODO: Can't use "goal" here because K fails to parse the configuration
-
-```k
   imports KORE-SUGAR
   syntax Pgm ::= "claim" Pattern
                  "strategy" Strategy
