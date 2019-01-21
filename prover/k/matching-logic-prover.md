@@ -765,41 +765,6 @@ equivalent to a set of axioms for each body: `BODY_i -> Predicate(ARGS)` and
 another axiom `Predicate(ARGS) -> or(BODIES)`.
 
 ```k
-  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
-  rule wnext(\and(.Patterns)) => \top() [anywhere]
-  rule wnext(\and(P:Pattern, Ps:Patterns))
-    => \and(wnext(P), wnext(\and(Ps)), .Patterns) [anywhere]
-```
-
-### kt-always
-
-```k
-  /* |- P -> always(Q)
-   * =>
-   * |- P -> Q /\ wnext(P)
-   */
-  syntax Strategy ::= "kt-always"
-
-  rule <k> \implies(P:Pattern, always(Q:Pattern))
-        => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
-  <strategy> kt-always => noop ... </strategy>
-```
-
-### unfold
-
-```k
-  // <k> ... always(P) => P /\ wnext(always(P)) ... </k>
-  // This rule will pick one recursive/fixpoint and unfold it.
-  // One has to traverse the whole pattern.
-  // Here, I only did a simple special case that works for LTL-Ind.
-  syntax Strategy ::= "unfold"
-  rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
-        => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
-```
-
-Definition of Recursive Predicates
-==================================
-```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
   /* lsegleft */
@@ -994,9 +959,10 @@ module MATCHING-LOGIC-PROVER-LTL
    * =>
    * |- P -> Q /\ wnext(P)
    */
+
   rule <k> \implies(P:Pattern, always(Q:Pattern))
         => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
-  <strategy> kt-always => noop ... </strategy>
+        <strategy> kt-always => noop ... </strategy>
 ```
 
 ### unfold
