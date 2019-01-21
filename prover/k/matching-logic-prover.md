@@ -242,7 +242,7 @@ module MATCHING-LOGIC-PROVER
 TODO: `type="List"` doesn't work for some reason. `type="Bag"` allows too much
 non-determinism and affects efficiency.
 
-```commented
+```k
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
@@ -258,7 +258,7 @@ non-determinism and affects efficiency.
 
 Probable strategy for LTL-Ind example:
 
-```k
+```commented
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
@@ -266,7 +266,7 @@ Probable strategy for LTL-Ind example:
           <id> 0 </id>
           <parent> -1 </parent>
           <k> $PGM:Pattern </k>
-          <strategy> kt-always ; and-intro ; and-intro ; unfold ~> .K </strategy>
+          <strategy> (kt-always ; and-intro ; and-intro ; unfold) ~> .K </strategy>
           <trace> .K </trace> // Use as a debug log
         </goal>
       </prover>
@@ -374,7 +374,7 @@ all succeed, it succeeds:
                <active> true:Bool </active>
                <parent> PARENT </parent>
                <strategy> S1 </strategy>
-               <k> GOAL:ImplicativeForm </k>
+               <k> GOAL:Pattern </k>
                <trace> TRACE </trace>
                ...
              </goal>
@@ -383,7 +383,7 @@ all succeed, it succeeds:
            <id> PARENT </id>
            <active> true => false </active>
            <strategy> ((S1 & S2) => S2 & goalStrat(!ID)) </strategy>
-           <k> GOAL:ImplicativeForm </k>
+           <k> GOAL:Pattern </k>
            <trace> TRACE </trace>
            ...
          </goal>
@@ -412,7 +412,7 @@ approach succeeds:
                <active> true:Bool </active>
                <parent> PARENT </parent>
                <strategy> S1 </strategy>
-               <k> GOAL:ImplicativeForm </k>
+               <k> GOAL:Pattern </k>
                <trace> TRACE </trace>
                ...
              </goal>
@@ -421,13 +421,13 @@ approach succeeds:
            <id> PARENT </id>
            <active> true => false </active>
            <strategy> (S1 | S2) => (S2 | goalStrat(!ID)) </strategy>
-           <k> GOAL:ImplicativeForm </k>
+           <k> GOAL:Pattern </k>
            <trace> TRACE </trace>
            ...
          </goal>
          ...
        </prover>
-    requires notBool(isResultStrategy(S1))
+    requires S1 =/=K noop andBool S1 =/=K fail andBool S1 =/=K success
      andBool S2 =/=K fail
 ```
 
@@ -735,7 +735,7 @@ LTL Fragment
                => and-intro(P, .Patterns) & and-intro(Ps) ... </strategy>
   requires Ps =/=K .Patterns
   rule <k> \implies(LHS:Pattern, RHS:Pattern) => \implies(LHS, P) ... </k>
-       <strategy> and-intro(P, .Patterns) => .K ... </strategy>
+       <strategy> and-intro(P, .Patterns) => noop ... </strategy>
 ```
 
 ### wnext-and
@@ -758,7 +758,7 @@ LTL Fragment
 
   rule <k> \implies(P:Pattern, always(Q:Pattern))
         => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
-  <strategy> kt-always => .K ... </strategy>
+  <strategy> kt-always => noop ... </strategy>
 ```
 
 ### unfold
