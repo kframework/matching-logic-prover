@@ -3,14 +3,20 @@
     <id>
       0
     </id>
+    <active>
+      true
+    </active>
     <parent>
       -1
     </parent>
     <k>
-      \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .Patterns ) , \and ( isEmpty ( variable ( "S" ) , .Patterns ) , .Patterns ) )
+      \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .Patterns ) , \and ( \equals ( variable ( "S" ) , emptyset ) , .Patterns ) )
     </k>
     <strategy>
       success
     </strategy>
+    <trace>
+      right-unfold
+    </trace>
   </goal>
 </prover>
