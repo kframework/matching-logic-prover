@@ -229,21 +229,8 @@ and values, passed to K's substitute.
 endmodule
 ```
 
-Configuration & Core Strategies
-===============================
-
-```k
-module MATCHING-LOGIC-PROVER-CORE
-```
-
-```k
-  imports KORE-HELPERS
-  imports SUBSTITUTION
-  imports SMTLIB2
-```
-
 Configuration
--------------
+=============
 
 The configuration consists of a Assoc-Commutative bag of goals. Only goals
 marked `<active>` are executed to control the non-determinism in the system. The
@@ -254,7 +241,13 @@ the strategies used in the search of a proof. Information here could be used
 for constructing a proof object.
 
 ```k
+module MATCHING-LOGIC-PROVER-CONFIGURATION
+  imports KORE-SUGAR
+  imports DOMAINS-SYNTAX
+
   syntax Pgm
+  syntax Strategy
+
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
@@ -266,19 +259,56 @@ for constructing a proof object.
           <trace> .K </trace>
         </goal>
       </prover>
+endmodule
 ```
 
-
-Strategy Language
------------------
+Core Strategy Language
+======================
 
 The "strategy" language is an imperative language for describing which proof rules
 to apply to complete the proof.
 
-`Strategy`s can be sequentially composed via the `;` operator.
+```k
+module MATCHING-LOGIC-PROVER-CORE-SYNTAX
+```
 
 ```k
   syntax Strategy ::= Strategy ";" Strategy [right]
+                    | "(" Strategy ")"      [bracket]
+                    | TerminalStrategy
+                    | ResultStrategy
+  syntax ResultStrategy ::= "noop"
+                          | Strategy "&" Strategy [right, format(%1%n%2  %3)]
+                          | Strategy "|" Strategy [right, format(%1%n%2  %3)]
+```
+
+TODO: Should we allow `success` and `fail` in the program syntax? All other
+strategies (assuming correct implementation) only allow for constructing a sound
+proof.
+
+```k
+  syntax TerminalStrategy ::= "success" | "fail"
+```
+
+```k
+endmodule
+```
+
+```k
+module MATCHING-LOGIC-PROVER-CORE
+  imports MATCHING-LOGIC-PROVER-CONFIGURATION
+```
+
+```k
+  imports MATCHING-LOGIC-PROVER-CORE-SYNTAX
+  imports KORE-HELPERS
+  imports SUBSTITUTION
+  imports SMTLIB2
+```
+
+`Strategy`s can be sequentially composed via the `;` operator.
+
+```k
   rule <strategy> (S ; T) ; U => S ; (T ; U) ... </strategy>
 ```
 
@@ -288,7 +318,6 @@ cooled back into the sequence strategy.
 
 ```k
   syntax ResultStrategy ::= "#hole"
-  syntax Strategy ::= ResultStrategy
   rule <strategy> S1 ; S2 => S1 ~> #hole ; S2 ... </strategy>
     requires notBool(isResultStrategy(S1))
   rule <strategy> S1:ResultStrategy ~> #hole ; S2 => S1 ; S2 ... </strategy>
@@ -297,7 +326,6 @@ cooled back into the sequence strategy.
 The `noop` (no operation) strategy is the unit for sequential composition:
 
 ```k
-  syntax ResultStrategy ::= "noop"
   rule <strategy> noop ; T => T ... </strategy>
 ```
 
@@ -305,16 +333,7 @@ The `success` and `fail` strategy indicate that a goal has been successfully
 proved, or that constructing a proof has failed.
 
 ```k
-  syntax TerminalStrategy ::= "success" | "fail"
-  syntax Strategy ::= TerminalStrategy
   rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
-```
-
-TODO: These two cause inifinite loops. Why?
-
-```commented
-  rule <strategy> success ~> (REST => .K) </strategy> requires REST =/=K .K
-  rule <strategy> fail    ~> (REST => .K) </strategy> requires REST =/=K .K
 ```
 
 The `goalStrat(Int)` strategy is used to establish a refernce to the result of another
@@ -358,7 +377,6 @@ of the main goal. The `&` strategy generates subgoals for each child strategy, a
 all succeed, it succeeds:
 
 ```k
-  syntax ResultStrategy ::= Strategy "&" Strategy [right, format(%1%n%2  %3)]
   rule <strategy> S & fail => fail ... </strategy>
   rule <strategy> fail & S => fail ... </strategy>
   rule <strategy> S & success => S ... </strategy>
@@ -394,8 +412,6 @@ The `|` strategy lets us try these different approaches, and succeeds if any one
 approach succeeds:
 
 ```k
-  syntax ResultStrategy ::= Strategy "|" Strategy  [right, format(%1%n%2  %3)]
-
   rule <strategy> S | fail => S ... </strategy>
   rule <strategy> fail | S => S ... </strategy>
   rule <strategy> S | success => success ... </strategy>
@@ -951,6 +967,7 @@ The driver is responsible for loading prover files into the configuration.
 
 ```k
 module MATCHING-LOGIC-PROVER-SYNTAX
+  imports MATCHING-LOGIC-PROVER-CORE-SYNTAX
   imports MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
   imports MATCHING-LOGIC-PROVER-LTL-SYNTAX
 ```
