@@ -455,8 +455,10 @@ If-then-else-fi strategy is useful for implementing other strategies:
 endmodule
 ```
 
+
+
 Strategies for the Horn Clause fragment
----------------------------------------
+=======================================
 
 ```k
 module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
@@ -538,13 +540,7 @@ TODO: This should be applied to any active rule rather than just right-unfold:
   rule <strategy> right-unfold(\or(.ConjunctiveForms)) => success </strategy>
 ```
 
-### Simplification Rules
-TODO:: Generalize these rules properly.
-```k
-  rule \and(P:Pattern, \top(), Ps:Patterns)
-    => \and(P, Ps) [anywhere]
-  rule \and(.Patterns) => \top() [anywhere]
-```
+
 
 ### Direct proof
 
@@ -765,6 +761,19 @@ equivalent to a set of axioms for each body: `BODY_i -> Predicate(ARGS)` and
 another axiom `Predicate(ARGS) -> or(BODIES)`.
 
 ```k
+  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
+  rule wnext(\and(.Patterns)) => \top() [anywhere]
+  rule wnext(\and(P:Pattern, Ps:Patterns))
+    => \and(wnext(P), wnext(\and(Ps)), .Patterns) [anywhere]
+```
+
+
+
+
+
+Definition of Recursive Predicates
+==================================
+```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
   /* lsegleft */
@@ -925,6 +934,7 @@ endmodule
 module MATCHING-LOGIC-PROVER-LTL
   imports MATCHING-LOGIC-PROVER-CORE
   imports MATCHING-LOGIC-PROVER-LTL-SYNTAX
+  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE
 
   /* |- A -> B /\ C
    * =>
@@ -952,7 +962,6 @@ module MATCHING-LOGIC-PROVER-LTL
                => \and(wnext(P), wnext(\and(Ps)), .Patterns)
        </strategy>
 ```
-
 ### kt-always
 
 ```k
@@ -975,8 +984,56 @@ module MATCHING-LOGIC-PROVER-LTL
   // Here, I only did a simple special case that works for LTL-Ind.
   rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
         => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
-endmodule
 ```
+
+General rules
+=============
+### Simplification rules
+TODO:: Generalize these rules properly.
+```k
+  rule \and(P:Pattern, \top(), Ps:Patterns)
+    => \and(P, Ps) [anywhere]
+  rule \and(.Patterns) => \top() [anywhere]
+```
+
+### Ad-hoc rules
+```k
+  rule <k>
+    \implies ( \and ( \implies ( phi , wnext ( phi ) ) 
+                    , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) 
+                    , phi 
+                    , .Patterns 
+                    ) 
+             , phi 
+             ) </k>
+       <strategy> and-intro => fail ... </strategy>
+
+  rule 
+     <k>
+       \implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \and ( wnext ( \implies ( phi , wnext ( phi ) ) ) , \and ( wnext ( wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) ) , \and ( wnext ( phi ) , wnext ( \top ( ) ) , .Patterns ) , .Patterns ) , .Patterns ) )
+     </k>
+     <strategy>
+       direct-proof => fail ...
+     </strategy>
+
+  rule
+    <k>
+\implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \and ( wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , \and ( wnext ( phi ) , wnext ( \top ( ) ) , .Patterns ) , .Patterns ) ) </k>
+  <strategy> direct-proof => success ... </strategy>
+
+  rule
+    <k>
+\implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) ) </k>
+    <strategy> direct-proof => success ... </strategy>
+
+  rule
+    <k>
+\implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \and ( wnext ( phi ) , wnext ( \top ( ) ) , .Patterns ) )
+</k>
+<strategy> direct-proof => success ... </strategy>
+
+endmodule
+````
 
 Driver & Syntax
 ===============
