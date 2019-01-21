@@ -4,4 +4,4 @@ claim \implies( \and( always( \implies(phi, wnext(phi)))
                     )
               , always(phi)
               )
-strategy kt-always ; and-intro ; and-intro ; unfold
+strategy kt-always ; and-intro ; (direct-proof | (and-intro ; unfold))
