@@ -455,8 +455,6 @@ If-then-else-fi strategy is useful for implementing other strategies:
 endmodule
 ```
 
-
-
 Strategies for the Horn Clause fragment
 =======================================
 
@@ -539,8 +537,6 @@ TODO: This should be applied to any active rule rather than just right-unfold:
        <strategy> right-unfold(\or(BODY, .ConjunctiveForms)) => noop ... </strategy>
   rule <strategy> right-unfold(\or(.ConjunctiveForms)) => success </strategy>
 ```
-
-
 
 ### Direct proof
 
@@ -752,27 +748,14 @@ goals, including both the premises and the conclusion:
     => AFF
 ```
 
-### Definition of Recursive Predicates
+Definition of Recursive Predicates
+==================================
 
 TODO: Ideally, this would live as part of the test files, perhaps as `axioms`.
 However, we currently use this in two differnt directions, one for
 left-unfolding and the other for right unfolding. Each unfold rule would thus be
 equivalent to a set of axioms for each body: `BODY_i -> Predicate(ARGS)` and
 another axiom `Predicate(ARGS) -> or(BODIES)`.
-
-```k
-  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
-  rule wnext(\and(.Patterns)) => \top() [anywhere]
-  rule wnext(\and(P:Pattern, Ps:Patterns))
-    => \and(wnext(P), wnext(\and(Ps)), .Patterns) [anywhere]
-```
-
-
-
-
-
-Definition of Recursive Predicates
-==================================
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
@@ -957,11 +940,11 @@ module MATCHING-LOGIC-PROVER-LTL
 
 ```k
   /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
-  rule <strategy> wnext(\and(.Patterns)) => \top() </strategy>
-  rule <strategy> wnext(\and(P:Pattern, Ps:Patterns))
-               => \and(wnext(P), wnext(\and(Ps)), .Patterns)
-       </strategy>
+  rule wnext(\and(.Patterns)) => \top() [anywhere]
+  rule wnext(\and(P:Pattern, Ps:Patterns))
+    => \and(wnext(P), wnext(\and(Ps)), .Patterns) [anywhere]
 ```
+
 ### kt-always
 
 ```k
@@ -988,7 +971,9 @@ module MATCHING-LOGIC-PROVER-LTL
 
 General rules
 =============
+
 ### Simplification rules
+
 TODO:: Generalize these rules properly.
 ```k
   rule \and(P:Pattern, \top(), Ps:Patterns)
@@ -997,6 +982,7 @@ TODO:: Generalize these rules properly.
 ```
 
 ### Ad-hoc rules
+
 ```k
   rule <k>
     \implies ( \and ( \implies ( phi , wnext ( phi ) ) 

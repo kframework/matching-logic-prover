@@ -58,7 +58,7 @@ do_test(mlprover, 't/emptyset-implies-isempty.prover')
 do_test(mlprover, 't/lsegleft-implies-lsegright.prover')
 do_test(mlprover, 't/lsegleft-implies-list.prover')
 do_test(mlprover, 't/bst-implies-bt.prover')
-do_test(mlprover, 't/LTL-Ind.prover')
+do_test(mlprover, 't/LTL-Ind.prover').default()
 
 # Theories
 # --------
