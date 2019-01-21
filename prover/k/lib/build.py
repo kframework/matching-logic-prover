@@ -29,16 +29,14 @@ def do_test(defn, file):
                .then(defn.krun()) \
                .then(proj.check(proj.source(expected))
                             .variables(flags = '--ignore-all-space')) \
-               .alias(file + '.test') \
-               .default()
+               .alias(file + '.test')
 
 def do_prove(alias, defn, spec_module, spec):
     return proj.source(spec) \
                .then(proj.tangle().ext('spec.k')) \
                .then(defn.kprove().variables(flags = '--spec-module ' + spec_module)) \
                .then(proj.check(proj.source('t/kprove.expected'))) \
-               .alias(alias) \
-               .default()
+               .alias(alias)
 
 # Matching Logic Prover
 # =====================
@@ -53,8 +51,10 @@ mlprover = proj.source('matching-logic-prover.md') \
                       .implicit(imported_k_files + [z3_target])
                  )
 
-do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md')
-do_test(mlprover, 't/emptyset-implies-isempty.prover')
+do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md').default()
+do_test(mlprover, 't/emptyset-implies-isempty.prover').default()
+
+# These tests aren't passing yet. To mark as passing append `.default()`
 do_test(mlprover, 't/lsegleft-implies-lsegright.prover')
 do_test(mlprover, 't/lsegleft-implies-list.prover')
 do_test(mlprover, 't/bst-implies-bt.prover')
