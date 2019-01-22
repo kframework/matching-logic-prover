@@ -576,7 +576,6 @@ Some "hard-wire" direct-proof rules.
 ```k
   rule <k> GOAL </k>
        <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
-       <trace> .K => kt ... </trace>
   syntax Strategy ::= ktForEachLRP(BasicPatterns)
   rule <strategy> ktForEachLRP(.Patterns)
                => fail
@@ -591,8 +590,9 @@ Some "hard-wire" direct-proof rules.
 (`ktOneLRP` corresponds to `lprove_kt/6`)
 
 ```k
-  syntax Strategy ::= ktOneLRP(BasicPattern) [function]
-  rule ktOneLRP(LRP) => ktForEachBody(LRP, unfold(LRP))
+  syntax Strategy ::= ktOneLRP(BasicPattern)
+  rule <strategy> ktOneLRP(LRP) => ktForEachBody(LRP, unfold(LRP)) ... </strategy>
+       <trace> .K => ktOneLRP(LRP) ... </trace>
 ```
 
 (`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
