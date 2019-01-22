@@ -10,13 +10,13 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .Patterns ) , \and ( \equals ( variable ( "S" ) , emptyset ) , .Patterns ) )
+      \implies ( \and ( \equals ( variable ( "S" ) , emptyset ) , .Patterns ) , \and ( isEmpty ( variable ( "S" ) , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success
     </strategy>
     <trace>
-      right-unfold
+      .
     </trace>
   </goal>
 </prover>
