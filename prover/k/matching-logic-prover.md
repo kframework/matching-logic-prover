@@ -799,7 +799,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                               , .Patterns
                               )
                    , \not(\equals(X, Y))
-                   , gt(X, 0)
+                   , gt(variable("Y", !I), 0)
                    , \equals(Y, select(H, variable("Y", !I)))
                    , \equals( F
                             , union( variable("F", !J)
