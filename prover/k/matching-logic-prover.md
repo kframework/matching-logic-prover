@@ -508,47 +508,34 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 `A -> B \/ C` vs `(A -> B) \/ (A -> C)`).
 
 ```k
-  syntax Strategy ::= "right-unfold" "(" DisjunctiveForm ")"
-  rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
-       <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
-       <trace> .K => right-unfold ... </trace>
-  rule <k>  \implies(LHS, \and(P, .Patterns)) </k>
-       <strategy>  right-unfold => fail ... </strategy>
-       <trace> .K => right-unfold ... </trace>
-    requires notBool(isPredicatePattern(P))
-  rule <k>  \implies(LHS, \and(R:Predicate(ARGS), .Patterns)) </k>
-       <strategy>  right-unfold => right-unfold(unfold(R(ARGS))) ... </strategy>
-       <trace> .K => right-unfold ... </trace>
-```
-
-TODO: This should be applied to any active rule rather than just right-unfold:
-
-```k
-  rule <k> \implies(LHS, \and(.Patterns)) </k>
-       <strategy> right-unfold
-               => success
+  syntax Strategy ::= "right-unfold-eachRRP" "(" BasicPatterns ")"
+                    | "right-unfold-eachBody" "(" BasicPattern "," DisjunctiveForm ")"
+  rule <strategy> right-unfold
+               => right-unfold-eachRRP(getPredicates(RHS))
                   ...
        </strategy>
-  rule <k> \implies(LHS, \and(P, Ps)) </k>
-       <strategy> right-unfold
-               => ( replaceGoal(\implies(LHS, \and(P, .Patterns)))
-                  & replaceGoal(\implies(LHS, \and(Ps)))
-                  ) ; right-unfold
+       <k> \implies(LHS, \and(RHS)) </k>
+  rule <strategy> right-unfold-eachRRP(P, PS)
+               => right-unfold-eachBody(P, unfold(P)) | right-unfold-eachRRP(PS)
                   ...
        </strategy>
-    requires Ps =/=K .Patterns
+  rule <strategy> right-unfold-eachRRP(.Patterns)
+               => fail
+                  ...
+       </strategy>
 ```
 
 ```k
-  rule <strategy> right-unfold(\or(BODY, BODIES:ConjunctiveForms))
-               => right-unfold(\or(BODY, .ConjunctiveForms))
-                | right-unfold(\or(BODIES))
+  rule <strategy> right-unfold-eachBody(RRP, \or(\and(BODY), BODIES:ConjunctiveForms))
+               => replaceGoal(\implies(LHS, \and((RHS -BasicPatterns (RRP, .Patterns)) ++BasicPatterns BODY)))
+                | right-unfold-eachBody(RRP, \or(BODIES))
                   ...
        </strategy>
-    requires BODIES =/=K .ConjunctiveForms
-  rule <k> \implies(LHS, RHS) => \implies(LHS, BODY) ... </k>
-       <strategy> right-unfold(\or(BODY, .ConjunctiveForms)) => noop ... </strategy>
-  rule <strategy> right-unfold(\or(.ConjunctiveForms)) => success </strategy>
+       <k> \implies(LHS, \and(RHS)) </k>
+  rule <strategy> right-unfold-eachBody(RRP, \or(.ConjunctiveForms))
+               => fail
+                  ...
+       </strategy>
 ```
 
 ### Direct proof
