@@ -562,6 +562,7 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 ```
 
 Some "hard-wire" direct-proof rules.
+
 ```k
   rule <k> \implies( \and (P1, P2, Phi, Ps) , Phi) </k>
        <strategy> direct-proof => success ... </strategy>
@@ -756,6 +757,7 @@ However, we currently use this in two differnt directions, one for
 left-unfolding and the other for right unfolding. Each unfold rule would thus be
 equivalent to a set of axioms for each body: `BODY_i -> Predicate(ARGS)` and
 another axiom `Predicate(ARGS) -> or(BODIES)`.
+
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
@@ -975,6 +977,7 @@ General rules
 ### Simplification rules
 
 TODO:: Generalize these rules properly.
+
 ```k
   rule \and(P:Pattern, \top(), Ps:Patterns)
     => \and(P, Ps) [anywhere]
