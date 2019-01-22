@@ -226,6 +226,19 @@ and values, passed to K's substitute.
 ```
 
 ```k
+  syntax BasicPatterns ::= getPredicates(Patterns)   [function]
+  rule getPredicates(.Patterns) => .Patterns
+  rule getPredicates(R:Predicate(ARGS), REST)
+    => R(ARGS), getPredicates(REST)
+  rule getPredicates(\and(Ps), REST)
+    =>                 getPredicates(Ps)
+       ++BasicPatterns getPredicates(REST)
+  rule getPredicates(PATTERN:BasicPattern, REST)
+    => getPredicates(REST)
+       [owise]
+```
+
+```k
 endmodule
 ```
 
