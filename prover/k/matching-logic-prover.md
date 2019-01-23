@@ -419,7 +419,8 @@ all succeed, it succeeds:
          </goal>
          ...
        </prover>
-    requires notBool(isResultStrategy(S1))
+    requires notBool(isTerminalStrategy(S1))
+     andBool notBool(isTerminalStrategy(S2))
 ```
 
 Similarly, there may be a different approaches to finding a proof for a goal.
@@ -455,8 +456,8 @@ approach succeeds:
          </goal>
          ...
        </prover>
-    requires S1 =/=K noop andBool S1 =/=K fail andBool S1 =/=K success
-     andBool S2 =/=K fail
+    requires notBool(isTerminalStrategy(S1))
+     andBool notBool(isTerminalStrategy(S2))
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:
