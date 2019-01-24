@@ -246,17 +246,19 @@ and values, passed to K's substitute.
   rule getLength(.Patterns) => 0
   rule getLength(P:BasicPattern, Ps) => 1 +Int getLength(Ps)
 
-  syntax BasicPattern ::= "getMember" "(" Int "," Patterns ")" [function]
-  rule getMember(1, (P:BasicPattern, Ps)) => P
+  syntax BasicPattern ::= "getMember" "(" Int "," BasicPatterns ")" [function]
+  rule getMember(0, (P:BasicPattern, Ps)) => P
   rule getMember(N, (P:BasicPattern, Ps)) => getMember(N -Int 1, Ps)
+    requires N >Int 0
 
   syntax Int ::= "getLength" "(" ConjunctiveForms ")" [function]
   rule getLength(.ConjunctiveForms) => 0
   rule getLength(CF:ConjunctiveForm, CFs) => 1 +Int getLength(CFs)
 
   syntax ConjunctiveForm ::= "getMember" "(" Int "," ConjunctiveForms ")" [function]
-  rule getMember(1, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => CF
+  rule getMember(0, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => CF
   rule getMember(N, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => getMember(N -Int 1, CFs)
+    requires N >Int 0
 ```
 
 ```k
