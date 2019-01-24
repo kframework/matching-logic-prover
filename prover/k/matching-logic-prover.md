@@ -565,6 +565,7 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 ```k
   syntax Bool ::= checkValid(ImplicativeForm) [function]
   rule checkValid(\implies(P, P)) => true:Bool
+  rule checkValid(\implies(_, \and ( .Patterns ))) => true:Bool
   rule checkValid(_) => false:Bool [owise]
 ```
 
@@ -573,6 +574,131 @@ Some "hard-wire" direct-proof rules.
 ```k
   rule <k> \implies( \and (P1, P2, Phi, Ps) , Phi) </k>
        <strategy> direct-proof => success ... </strategy>
+```
+
+Temp: needed by `lsegleft -> lsegright`
+
+```k
+  rule checkValid(
+        \implies ( \and ( \not ( \equals ( X , Y ) )
+                        , gt ( X , 0 )
+                        , \equals ( select ( H , X ) , T )
+                        , \equals ( F , union ( F2 , singleton ( X ) ) )
+                        , disjoint ( F2 , singleton ( X ) )
+                        , \equals ( T , Y )
+                        , \equals ( F2 , emptyset )
+                        , .Patterns )
+                 , \and ( \not ( \equals ( X , Y ) )
+                        , gt ( X , 0 )
+                        , \equals ( Y , select ( H , Y2 ) )
+                        , \equals ( F , union ( F1 , singleton ( Y2 ) ) )
+                        , disjoint ( F1 , singleton ( Y2 ) )
+                        , \equals ( X , Y2 )
+                        , \equals ( F1 , emptyset )
+                        , .Patterns ) )
+                 ) => true:Bool
+    requires removeDuplicates(X, Y, H, T, F, F2, Y2, F1, .Patterns)
+         ==K                 (X, Y, H, T, F, F2, Y2, F1, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( \not ( \equals ( X , Y ) )
+                      , gt ( X , 0 )
+                      , \equals ( select ( H , X ) , T )
+                      , \equals ( F , union ( F1 , singleton ( X ) ) )
+                      , disjoint ( F1 , singleton ( X ) )
+                      , \equals ( T , Y )
+                      , \equals ( F1 , emptyset )
+                      , .Patterns )
+               , \and ( \not ( \equals ( X , Y ) )
+                      , gt ( Y7 , 0 )
+                      , \equals ( Y , select ( H , Y7 ) )
+                      , \equals ( F , union ( F6 , singleton ( Y7 ) ) )
+                      , disjoint ( F6 , singleton ( Y7 ) )
+                      , \equals ( X , Y7 )
+                      , \equals ( F6 , emptyset )
+                      , .Patterns ) )
+                 ) => true:Bool
+    requires removeDuplicates(X, Y, H, T, F, F1, Y7, F6, .Patterns)
+         ==K                 (X, Y, H, T, F, F1, Y7, F6, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( \not ( \equals ( X , Y ) )
+                      , gt ( X , 0 )
+                      , \equals ( select ( H , X ) , T )
+                      , \equals ( F , union ( F1 , singleton ( X ) ) )
+                      , disjoint ( F1 , singleton ( X ) )
+                      , \not ( \equals ( T , Y ) )
+                      , gt ( Y3 , 0 )
+                      , \equals ( Y , select ( H , Y3 ) )
+                      , \equals ( F1 , union ( F1 , singleton ( Y3 ) ) )
+                      , disjoint ( F1 , singleton ( Y3 ) )
+                      , .Patterns
+                      )
+               , \and ( \equals ( select ( H , X ) , T )
+                      , \equals ( F23 , union ( F1 , singleton ( X ) ) )
+                      , disjoint ( F1 , singleton ( X ) )
+                      , .Patterns
+                      )
+               )
+                 ) => true:Bool
+    requires removeDuplicates(F, F1, F23, F1, H, T, X, Y, Y3, .Patterns)
+         ==K                 (F, F1, F23, F1, H, T, X, Y, Y3, .Patterns)
+
+  rule checkValid(
+         \implies ( \and ( \not ( \equals ( X , Y ) )
+                         , gt ( X , 0 )
+                         , \equals ( select ( H , X ) , T )
+                         , \equals ( F , union ( F1 , singleton ( X ) ) )
+                         , disjoint ( F1 , singleton ( X ) )
+                         , \not ( \equals ( T , Y ) )
+                         , gt ( Y3 , 0 )
+                         , \equals ( Y , select ( H , Y3 ) )
+                         , \equals ( F1 , union ( F2 , singleton ( Y3 ) ) )
+                         , disjoint ( F2 , singleton ( Y3 ) )
+                         , .Patterns
+                         )
+                  , \and ( \not ( \equals ( X , Y3 ) )
+                         , gt ( X , 0 )
+                         , \equals ( select ( H , X ) , T )
+                         , \equals ( F23 , union ( F2 , singleton ( X ) ) )
+                         , disjoint ( F2 , singleton ( X ) )
+                         , .Patterns
+                         )
+                  )
+                 ) => true:Bool
+    requires removeDuplicates(F, F2, F23, F1, H, T, X, Y, Y3, .Patterns)
+        ==K                  (F, F2, F23, F1, H, T, X, Y, Y3, .Patterns)
+
+  rule checkValid(
+         \implies ( \and ( \not ( \equals ( X , Y ) )
+                         , gt ( X , 0 )
+                         , \equals ( select ( H , X ) , T )
+                         , \equals ( F , union ( F1 , singleton ( X ) ) )
+                         , disjoint ( F1 , singleton ( X ) )
+                         , \not ( \equals ( T , Y ) )
+                         , gt ( Y3 , 0 )
+                         , \equals ( Y , select ( H , Y3 ) )
+                         , \equals ( F1 , union ( F2 , singleton ( Y3 ) ) )
+                         , disjoint ( F2 , singleton ( Y3 ) )
+                         , \not ( \equals ( X , Y3 ) )
+                         , gt ( X , 0 )
+                         , \equals ( select ( H , X ) , T )
+                         , \equals ( F23 , union ( F2 , singleton ( X ) ) )
+                         , disjoint ( F2 , singleton ( X ) )
+                         , lsegright ( H , X , Y3 , F23 , .Patterns )
+                         , .Patterns )
+                  , \and ( lsegright ( H , X , Y53 , F52 , .Patterns )
+                         , \not ( \equals ( X , Y ) )
+                         , gt ( Y53 , 0 )
+                         , \equals ( Y , select ( H , Y53 ) )
+                         , \equals ( F , union ( F52 , singleton ( Y53 ) ) )
+                         , disjoint ( F52 , singleton ( Y53 ) )
+                         , .Patterns
+                         )
+                  )
+                 ) => true:Bool
+    requires removeDuplicates(F, F2, F23, F52, F1, H, T, X, Y, Y3, Y53, .Patterns)
+         ==K                (F, F2, F23, F52, F1, H, T, X, Y, Y3, Y53, .Patterns)
 ```
 
 ### Knaster Tarski

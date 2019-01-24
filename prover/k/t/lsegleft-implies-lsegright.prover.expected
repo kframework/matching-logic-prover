@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( lsegleft ( variable ( "H" ) , variable ( "X" ) , variable ( "Y" ) , variable ( "F" ) , .Patterns ) , .Patterns ) , \and ( lsegright ( variable ( "H" ) , variable ( "X" ) , variable ( "Y" ) , variable ( "F" ) , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>

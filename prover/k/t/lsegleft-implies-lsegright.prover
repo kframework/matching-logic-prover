@@ -1,4 +1,14 @@
 claim \implies( \and( lsegleft (variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns )
               , \and( lsegright(variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns), .Patterns )
               )
-strategy search-bound(4)
+strategy search-bound(5)
+
+/*
+strategy kt ; ( ( right-unfold ; direct-proof )
+              | direct-proof
+              | kt ; ( (right-unfold ; right-unfold ; direct-proof )
+                     | direct-proof
+                     | right-unfold ; direct-proof
+                     )
+              )
+*/
