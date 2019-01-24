@@ -6,6 +6,9 @@ requires "substitution.k"
 Kore Sugar
 ==========
 
+TODO: We assume that all free variables in an ImplicativeForm that are in the RHS
+but not in the LHS are existential. This should be explicit.
+
 The following is sugar for a post-sort-erasure first-order horn clause fragment
 of kore:
 
