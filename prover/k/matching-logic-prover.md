@@ -509,34 +509,40 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 `A -> B \/ C` vs `(A -> B) \/ (A -> C)`).
 
 ```k
-  syntax Strategy ::= "right-unfold-eachRRP" "(" BasicPatterns ")"
+  syntax Strategy ::= "right-unfold-eachRRP" "(" BasicPatterns")"
                     | "right-unfold-eachBody" "(" BasicPattern "," DisjunctiveForm ")"
+                    | "right-unfold-oneBody"  "(" BasicPattern "," ConjunctiveForm ")"
   rule <strategy> right-unfold
                => right-unfold-eachRRP(getPredicates(RHS))
                   ...
        </strategy>
        <k> \implies(LHS, \and(RHS)) </k>
   rule <strategy> right-unfold-eachRRP(P, PS)
-               => right-unfold-eachBody(P, unfold(P)) | right-unfold-eachRRP(PS)
+               => right-unfold-eachBody(P, unfold(P))
+                | right-unfold-eachRRP(PS)
                   ...
        </strategy>
   rule <strategy> right-unfold-eachRRP(.Patterns)
                => fail
                   ...
        </strategy>
-```
-
-```k
   rule <strategy> right-unfold-eachBody(RRP, \or(\and(BODY), BODIES:ConjunctiveForms))
-               => replaceGoal(\implies(LHS, \and((RHS -BasicPatterns (RRP, .Patterns)) ++BasicPatterns BODY)))
+               => right-unfold-oneBody(RRP, \and(BODY))
                 | right-unfold-eachBody(RRP, \or(BODIES))
                   ...
        </strategy>
-       <k> \implies(LHS, \and(RHS)) </k>
   rule <strategy> right-unfold-eachBody(RRP, \or(.ConjunctiveForms))
                => fail
                   ...
        </strategy>
+```
+
+```k
+  rule <k> \implies(LHS, \and(RHS))
+        => \implies(LHS, \and((RHS -BasicPatterns (RRP, .Patterns)) ++BasicPatterns BODY))
+       </k>
+       <strategy> right-unfold-oneBody(RRP, \and(BODY)) => noop ... </strategy>
+       <trace> .K => right-unfold-oneBody(RRP, \and(BODY)) ... </trace>
 ```
 
 ### Direct proof
@@ -616,9 +622,6 @@ Some "hard-wire" direct-proof rules.
   syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm)                        // LRP, Body
 ```
 
-(Correspondence breaks down here; Though roughly, ktOneBodyPremises => lprove_kt_all_each_brp
-ktOneBodyPremise => lprove_kt_one_brp and the ktOneBodyConcl is split between the two)
-
 ```k
   syntax KItem ::= ktEachBRP(BasicPattern, ConjunctiveForm, BasicPatterns) // LRP, Body, BRPs
                  | ktOneBRP(BasicPattern, ConjunctiveForm, BasicPattern)   // LRP, Body, BRP
@@ -689,34 +692,36 @@ goals, including both the premises and the conclusion:
 ```k
                            // Body           , LRP         , Premises        , Conclusion frags
   syntax Strategy ::= ktGoals(ConjunctiveForm, BasicPattern, Patterns        , ConjunctiveForm)
+                    | ktPremise(ImplicativeForm)
   rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktBRPCollectResults(BODY, LRP)
                => ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
                   ...
        </strategy>
   rule <strategy> ktGoals(BODY, LRP, (PREMISE, PREMISES), CONCL_FRAG)
-               => replaceGoal(PREMISE) & ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
+               => ktPremise(PREMISE) & ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
                   ...
        </strategy>
+  rule <k> _ => PREMISE </k>
+       <strategy> ktPremise(PREMISE) => noop ... </strategy>
+       <trace> .K => ktPremise(PREMISE) ... </trace>
 ```
 
 ```k
-  rule <k> \implies(\and(LHS), RHS) ... </k>
+  rule <k> \implies(\and(LHS), RHS)
+        => \implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))
+                           ++BasicPatterns (BODY -BasicPatterns ?BRP_samehead)
+                           ++BasicPatterns CONCL_FRAGS
+                         )
+                   , RHS
+                   )
+           ...
+       </k>
        <strategy> ktGoals(\and(BODY), HEAD:RecursivePredicate(LRP_ARGS), .Patterns, \and(CONCL_FRAGS))
-               => replaceGoal(\implies( \and(                (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))
-                                             ++BasicPatterns (BODY -BasicPatterns ?BRP_samehead)
-                                             ++BasicPatterns CONCL_FRAGS
-                                            )
-                                      , RHS
-                             )        )
+               => noop
                   ...
        </strategy>
+       <trace> .K => "Conclusion" ... </trace>
      requires ?BRP_samehead ==K filterByConstructor(getRecursivePredicates(BODY), HEAD)
-```
-
-```k
-  syntax Strategy ::= replaceGoal(ImplicativeForm)
-  rule <k> _:ImplicativeForm => GOAL ... </k>
-       <strategy> replaceGoal(GOAL) => noop ... </strategy>
 ```
 
 ```k
