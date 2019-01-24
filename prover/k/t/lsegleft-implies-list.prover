@@ -1,4 +1,4 @@
-claim \implies( \and( lsegleft( variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns) 
+claim \implies( \and( lsegleft( variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns)
                     , list( variable("H"), variable("Y"), variable("G"), .Patterns)
                     , \equals( variable("K"), union(variable("F"), variable("G")))
                     , disjoint(variable("F"), variable("G"))
@@ -6,4 +6,10 @@ claim \implies( \and( lsegleft( variable("H"), variable("X"), variable("Y"), var
                     )
               , \and( list( variable("H"), variable("X"), variable("K"), .Patterns), .Patterns )
               )
-strategy search-bound(4)
+strategy search-bound(3)
+
+/*
+strategy kt(lsegleft) ; ( ( simplify ; direct-proof )
+                          | (right-unfold-Nth(0, 1) ; simplify ; direct-proof)
+                        )
+*/

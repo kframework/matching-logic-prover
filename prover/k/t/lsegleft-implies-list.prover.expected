@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( lsegleft ( variable ( "H" ) , variable ( "X" ) , variable ( "Y" ) , variable ( "F" ) , .Patterns ) , list ( variable ( "H" ) , variable ( "Y" ) , variable ( "G" ) , .Patterns ) , \equals ( variable ( "K" ) , union ( variable ( "F" ) , variable ( "G" ) ) ) , disjoint ( variable ( "F" ) , variable ( "G" ) ) , .Patterns ) , \and ( list ( variable ( "H" ) , variable ( "X" ) , variable ( "K" ) , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>
