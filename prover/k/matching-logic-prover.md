@@ -378,7 +378,7 @@ its result is replaced in the parent goal and the subgoal is removed.
   syntax K ::= replaceStrategyK(K, Strategy, Strategy) [function]
   rule replaceStrategyK(K1 ~> K2, F, T) => replaceStrategyK(K1, F, T) ~> replaceStrategyK(K2, F, T)
   rule replaceStrategyK(S:Strategy, F, T) => replaceStrategy(S, F, T)
- 
+
   syntax Strategy ::= replaceStrategy(Strategy, Strategy, Strategy) [function]
   rule replaceStrategy(S1 ; S2, F, T) => replaceStrategy(S1, F, T) ; replaceStrategy(S2, F, T)
   rule replaceStrategy(S1 & S2, F, T) => replaceStrategy(S1, F, T) & replaceStrategy(S2, F, T)
@@ -985,7 +985,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , disjoint(variable("F", !J1), variable("F", !J2))
                    , .Patterns
                    )
-              ) 
+              )
 
   /* bst */
   rule unfold(bst(H,X,F,MIN,MAX,.Patterns))
@@ -1111,25 +1111,24 @@ General rules
 TODO:: Generalize these rules properly.
 
 ```k
-  rule \and(P:Pattern, \top(), Ps:Patterns)
-    => \and(P, Ps) [anywhere]
-  rule \and(.Patterns) => \top() [anywhere]
+  rule <k> \and(P:Pattern, \top(), Ps:Patterns) => \and(P, Ps) </k>
+  rule <k> \and(.Patterns) => \top() </k>
 ```
 
 ### Ad-hoc rules
 
 ```k
   rule <k>
-    \implies ( \and ( \implies ( phi , wnext ( phi ) ) 
-                    , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) 
-                    , phi 
-                    , .Patterns 
-                    ) 
-             , phi 
+    \implies ( \and ( \implies ( phi , wnext ( phi ) )
+                    , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
+                    , phi
+                    , .Patterns
+                    )
+             , phi
              ) </k>
        <strategy> and-intro => fail ... </strategy>
 
-  rule 
+  rule
      <k>
        \implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \and ( wnext ( \implies ( phi , wnext ( phi ) ) ) , \and ( wnext ( wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) ) , \and ( wnext ( phi ) , wnext ( \top ( ) ) , .Patterns ) , .Patterns ) , .Patterns ) )
      </k>
