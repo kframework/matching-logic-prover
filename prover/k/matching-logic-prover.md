@@ -498,7 +498,7 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "simplify"
                     | "direct-proof"
-                    | "right-unfold"
+                    | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt" | kt(RecursivePredicate)
 endmodule
 ```
@@ -530,50 +530,6 @@ Remove trivial clauses from the right-hand-side:
 ```k
   rule <k> \implies(\and(LHS), \and(RHS)) => \implies(\and(LHS), \and(RHS -BasicPatterns LHS)) ... </k>
        <strategy> simplify => noop ... </strategy>
-```
-
-The strategy `right-unfold` can be highly nondeterministic, which makes debugging
-and keeping track of the proofs difficult. Here we define a deterministic
-strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
-(on the right-hand side) to its `N`th body. When `M` or `N` is out of range,
-`right-unfold(M,N) => fail`. 
-
-```k
-  syntax Strategy ::= "right-unfold-Nth" "(" Int "," Int ")"
-                    | "right-unfold-Nth-eachRRP"  "(" Int "," Int "," BasicPatterns")"
-                    | "right-unfold-Nth-eachBody" "(" Int "," Int "," BasicPattern "," DisjunctiveForm ")"
-                    | "right-unfold-Nth-oneBody"  "(" Int "," Int "," BasicPattern "," ConjunctiveForm ")"
-
-  rule <strategy> right-unfold-Nth (M,N) => fail ... </strategy>
-  requires (M <Int 0) orBool (N <Int 0)
-
-  rule <strategy> right-unfold-Nth (M,N) 
-               => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
-       ...</strategy>
-       <k> \implies(LHS,\and(RHS)) </k>
-
-  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
-  requires getLength(RRPs) <Int M
-
-  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
-               => right-unfold-Nth-eachBody(M, N, ?RRP, unfold(?RRP))
-       ...</strategy>
-  requires (getLength(RRPs) >=Int M) andBool (?RRP ==K getMember(M, RRPs))
-
-  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
-               => fail
-       ...</strategy>
-  requires (getLength(Bodies) >Int N)
-             
-  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
-               => right-unfold-Nth-oneBody(M, N, RRP, ?Body)
-       ...</strategy>
-  requires (getLength(Bodies) <=Int N)
-   andBool (?Body ==K getMember(N, Bodies))
-
-  rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
-               => right-unfold-oneBody(RRP, Body) ...
-       </strategy>
 ```
 
 ### Direct proof
@@ -773,6 +729,50 @@ Note that the resulting goals is stonger than the initial goal (i.e.
        <trace> .K => right-unfold-oneBody(RRP, \and(BODY)) ... </trace>
 ```
 
+### Right-Unfold-Nth
+
+The strategy `right-unfold` can be highly nondeterministic, which makes debugging
+and keeping track of the proofs difficult. Here we define a deterministic
+strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
+(on the right-hand side) to its `N`th body. When `M` or `N` is out of range,
+`right-unfold(M,N) => fail`. 
+
+```k
+  syntax Strategy ::= "right-unfold-Nth-eachRRP"  "(" Int "," Int "," BasicPatterns")"
+                    | "right-unfold-Nth-eachBody" "(" Int "," Int "," BasicPattern "," DisjunctiveForm ")"
+                    | "right-unfold-Nth-oneBody"  "(" Int "," Int "," BasicPattern "," ConjunctiveForm ")"
+
+  rule <strategy> right-unfold-Nth (M,N) => fail ... </strategy>
+  requires (M <Int 0) orBool (N <Int 0)
+
+  rule <strategy> right-unfold-Nth (M,N) 
+               => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
+       ...</strategy>
+       <k> \implies(LHS,\and(RHS)) </k>
+
+  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
+  requires getLength(RRPs) <Int M
+
+  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
+               => right-unfold-Nth-eachBody(M, N, ?RRP, unfold(?RRP))
+       ...</strategy>
+  requires (getLength(RRPs) >=Int M) andBool (?RRP ==K getMember(M, RRPs))
+
+  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
+               => fail
+       ...</strategy>
+  requires (getLength(Bodies) >Int N)
+             
+  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
+               => right-unfold-Nth-oneBody(M, N, RRP, ?Body)
+       ...</strategy>
+  requires (getLength(Bodies) <=Int N)
+   andBool (?Body ==K getMember(N, Bodies))
+
+  rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
+               => right-unfold-oneBody(RRP, Body) ...
+       </strategy>
+```
 
 ### Knaster Tarski
 
