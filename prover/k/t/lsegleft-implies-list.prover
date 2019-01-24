@@ -1,9 +1,9 @@
 claim \implies( \and( lsegleft( variable("H"), variable("X"), variable("Y"), variable("F"), .Patterns) 
-                  , list( variable("H"), variable("Y"), variable("G"), .Patterns)
-                  , \equals( variable("K"), union(variable("F"), variable("G")))
-                  , disjoint(variable("F"), variable("G"))
-                  , .Patterns
-                  )
-            , \and( list( variable("H"), variable("X"), variable("K"), .Patterns), .Patterns )
-            )
+                    , list( variable("H"), variable("Y"), variable("G"), .Patterns)
+                    , \equals( variable("K"), union(variable("F"), variable("G")))
+                    , disjoint(variable("F"), variable("G"))
+                    , .Patterns
+                    )
+              , \and( list( variable("H"), variable("X"), variable("K"), .Patterns), .Patterns )
+              )
 strategy search-bound(4)
