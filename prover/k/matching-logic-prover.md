@@ -685,10 +685,68 @@ Temp: needed by `lsegleft -> lsegright`
          ==K                 (F, F2, F23, F52, F1, H, T, X, Y, Y3, Y53, .Patterns)
 
   rule checkValid(
-         \implies ( 
-           \and ( \equals ( X , 0 ) , \equals ( F , emptyset ) , .Patterns ) , 
-           \and ( \equals ( X , 0 ) , \equals ( F , emptyset ) , .Patterns ) ))
-    => true:Bool
+         \implies ( \and ( list ( H , Y , G , .Patterns )
+                         , \equals ( K , union ( F , G ) )
+                         , disjoint ( F , G )
+                         , \equals ( X , Y )
+                         , \equals ( F , emptyset )
+                         , .Patterns
+                         )
+                  , \and ( list ( H , X , K , .Patterns )
+                         , .Patterns
+                         )
+                  )
+                ) => true:Bool
+      requires removeDuplicates(F, G, H, K, X, Y, .Patterns)
+           ==K                 (F, G, H, K, X, Y, .Patterns)
+
+  rule checkValid(
+          \implies ( \and ( list ( H , Y , G , .Patterns )
+                          , \equals ( K , union ( F , G ) )
+                          , disjoint ( F , G )
+                          , \not ( \equals ( X , Y ) )
+                          , gt ( X , 0 )
+                          , \equals ( select ( H , X ) , X3 )
+                          , \equals ( F , union ( F2 , singleton ( X ) ) )
+                          , disjoint ( F2 , singleton ( X ) )
+                          , .Patterns )
+                   , \and ( \equals ( K9 , union ( F2 , G ) )
+                          , disjoint ( F2 , G )
+                          , .Patterns )
+                   )
+                 ) => true:Bool
+    requires removeDuplicates(F, F2, G, H, K, K9, X, X3, Y, .Patterns)
+        ==K                  (F, F2, G, H, K, K9, X, X3, Y, .Patterns)
+
+
+  rule checkValid(
+      \implies ( \and ( list ( H , Y , G , .Patterns )
+                      , \equals ( K , union ( F , G ) )
+                      , disjoint ( F , G )
+                      , \not ( \equals ( X , Y ) )
+                      , gt ( X , 0 )
+                      , \equals ( select ( H , X ) , X3 )
+                      , \equals ( F , union ( F2 , singleton ( X ) ) )
+                      , disjoint ( F2 , singleton ( X ) )
+                      , list ( H , Y , G , .Patterns )
+                      , \equals ( K9 , union ( F2 , G ) )
+                      , disjoint ( F2 , G )
+                      , list ( H , X3 , K9 , .Patterns )
+                      , .Patterns
+                      )
+               , \and ( list ( H , X19 , F18 , .Patterns )
+                      , \equals ( select ( H , X ) , X19 )
+                      , \equals ( K , union ( F18 , singleton ( X ) ) )
+                      , disjoint ( F18 , singleton ( X ) )
+                      , .Patterns
+                      )
+               )
+                 ) => true:Bool
+    requires removeDuplicates(F, F18, F2, G, H, K, K9, X, X19, X3, Y, .Patterns)
+         ==K                 (F, F18, F2, G, H, K, K9, X, X19, X3, Y, .Patterns)
+
+
+
 ```
 
 ### Right Unfold
