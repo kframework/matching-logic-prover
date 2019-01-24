@@ -4,4 +4,4 @@ claim \implies( \and( bst(variable("H"), variable("X"), variable("F"), variable(
               , \and( bt( variable("H"), variable("X"), variable("F"), .Patterns), .Patterns )
               )
 
-strategy kt ; right-unfold-Nth(1, 1)
+strategy kt ; right-unfold-Nth(1,1)

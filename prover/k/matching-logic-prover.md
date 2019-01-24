@@ -761,12 +761,12 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
        ...</strategy>
-  requires (getLength(Bodies) >Int N)
+  requires getLength(Bodies) <Int N
              
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
                => right-unfold-Nth-oneBody(M, N, RRP, ?Body)
        ...</strategy>
-  requires (getLength(Bodies) <=Int N)
+  requires (getLength(Bodies) >=Int N)
    andBool (?Body ==K getMember(N, Bodies))
 
   rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
