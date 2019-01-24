@@ -475,12 +475,13 @@ Strategies for the Horn Clause fragment
 ```k
 module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
   imports INT-SYNTAX
+  imports KORE-SUGAR
 
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "simplify"
                     | "direct-proof"
                     | "right-unfold"
-                    | "kt"
+                    | "kt" | kt(RecursivePredicate)
 endmodule
 ```
 
@@ -707,12 +708,25 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 
 ### Knaster Tarski
 
+```k
+  rule <k> GOAL </k>
+       <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
+```
+
+```k
+  rule <k> GOAL </k>
+       <strategy> kt(RP:RecursivePredicate)
+               => ktForEachLRP(filterByConstructor( getLeftRecursivePredicates(GOAL)
+                                                  , RP
+                              )                   )
+                  ...
+       </strategy>
+```
+
 `ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
 (`ktForEachLRP` corresponds to `lprove_kt_aux`)
 
 ```k
-  rule <k> GOAL </k>
-       <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
   syntax Strategy ::= ktForEachLRP(BasicPatterns)
   rule <strategy> ktForEachLRP(.Patterns)
                => fail
