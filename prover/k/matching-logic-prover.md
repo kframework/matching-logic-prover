@@ -740,7 +740,7 @@ The strategy `right-unfold` can be highly nondeterministic, which makes debuggin
 and keeping track of the proofs difficult. Here we define a deterministic
 strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
 (on the right-hand side) to its `N`th body. When `M` or `N` is out of range,
-`right-unfold(M,N) => fail`. 
+`right-unfold(M,N) => fail`.
 
 ```k
   syntax Strategy ::= "right-unfold-Nth-eachRRP"  "(" Int "," Int "," BasicPatterns")"
@@ -750,7 +750,7 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
   rule <strategy> right-unfold-Nth (M,N) => fail ... </strategy>
   requires (M <Int 0) orBool (N <Int 0)
 
-  rule <strategy> right-unfold-Nth (M,N) 
+  rule <strategy> right-unfold-Nth (M,N)
                => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
        ...</strategy>
        <k> \implies(LHS,\and(RHS)) </k>
@@ -767,7 +767,7 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
                => fail
        ...</strategy>
   requires getLength(Bodies) <Int N
-             
+
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
                => right-unfold-Nth-oneBody(M, N, RRP, ?Body)
        ...</strategy>
