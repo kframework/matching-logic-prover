@@ -3,4 +3,7 @@ claim \implies( \and( bst(variable("H"), variable("X"), variable("F"), variable(
                     )
               , \and( bt( variable("H"), variable("X"), variable("F"), .Patterns), .Patterns )
               )
-strategy search-bound(4)
+
+strategy kt ; ( ( right-unfold ; direct-proof )
+              | ( right-unfold ; right-unfold ; right-unfold ; direct-proof )
+              )

@@ -239,6 +239,24 @@ and values, passed to K's substitute.
 ```
 
 ```k
+  syntax Int ::= "getLength" "(" BasicPatterns ")" [function]
+  rule getLength(.Patterns) => 0
+  rule getLength(P:BasicPattern, Ps) => 1 +Int getLength(Ps)
+
+  syntax BasicPattern ::= "getMember" "(" Int "," Patterns ")" [function]
+  rule getMember(1, (P:BasicPattern, Ps)) => P
+  rule getMember(N, (P:BasicPattern, Ps)) => getMember(N -Int 1, Ps)
+
+  syntax Int ::= "getLength" "(" ConjunctiveForms ")" [function]
+  rule getLength(.ConjunctiveForms) => 0
+  rule getLength(CF:ConjunctiveForm, CFs) => 1 +Int getLength(CFs)
+
+  syntax ConjunctiveForm ::= "getMember" "(" Int "," ConjunctiveForms ")" [function]
+  rule getMember(1, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => CF
+  rule getMember(N, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => getMember(N -Int 1, CFs)
+```
+
+```k
 endmodule
 ```
 
@@ -514,6 +532,50 @@ Remove trivial clauses from the right-hand-side:
        <strategy> simplify => noop ... </strategy>
 ```
 
+The strategy `right-unfold` can be highly nondeterministic, which makes debugging
+and keeping track of the proofs difficult. Here we define a deterministic
+strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
+(on the right-hand side) to its `N`th body. When `M` or `N` is out of range,
+`right-unfold(M,N) => fail`. 
+
+```k
+  syntax Strategy ::= "right-unfold-Nth" "(" Int "," Int ")"
+                    | "right-unfold-Nth-eachRRP"  "(" Int "," Int "," BasicPatterns")"
+                    | "right-unfold-Nth-eachBody" "(" Int "," Int "," BasicPattern "," DisjunctiveForm ")"
+                    | "right-unfold-Nth-oneBody"  "(" Int "," Int "," BasicPattern "," ConjunctiveForm ")"
+
+  rule <strategy> right-unfold-Nth (M,N) => fail ... </strategy>
+  requires (M <Int 0) orBool (N <Int 0)
+
+  rule <strategy> right-unfold-Nth (M,N) 
+               => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
+       ...</strategy>
+       <k> \implies(LHS,\and(RHS)) </k>
+
+  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
+  requires getLength(RRPs) <Int M
+
+  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
+               => right-unfold-Nth-eachBody(M, N, ?RRP, unfold(?RRP))
+       ...</strategy>
+  requires (getLength(RRPs) >=Int M) andBool (?RRP ==K getMember(M, RRPs))
+
+  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
+               => fail
+       ...</strategy>
+  requires (getLength(Bodies) >Int N)
+             
+  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
+               => right-unfold-Nth-oneBody(M, N, RRP, ?Body)
+       ...</strategy>
+  requires (getLength(Bodies) <=Int N)
+   andBool (?Body ==K getMember(N, Bodies))
+
+  rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
+               => right-unfold-oneBody(RRP, Body) ...
+       </strategy>
+```
+
 ### Direct proof
 
 ```k
@@ -660,6 +722,12 @@ Temp: needed by `lsegleft -> lsegright`
                  ) => true:Bool
     requires removeDuplicates(F, F2, F23, F52, F1, H, T, X, Y, Y3, Y53, .Patterns)
          ==K                 (F, F2, F23, F52, F1, H, T, X, Y, Y3, Y53, .Patterns)
+
+  rule checkValid(
+         \implies ( 
+           \and ( \equals ( X , 0 ) , \equals ( F , emptyset ) , .Patterns ) , 
+           \and ( \equals ( X , 0 ) , \equals ( F , emptyset ) , .Patterns ) ))
+    => true:Bool
 ```
 
 ### Right Unfold
