@@ -145,11 +145,10 @@ module KORE-HELPERS
 
   syntax Bool ::= BasicPatterns "notOccurFree" Patterns [function]
   rule .Patterns notOccurFree Qs => true
-  rule (X:Variable, .Patterns) notOccurFree Qs
-    => notBool(X in getFreeVariables(Qs))
-  rule (P:BasicPattern, Ps:BasicPatterns) notOccurFree Qs
-    => ((P, .Patterns) notOccurFree Qs) andBool (Ps notOccurFree Qs)
-  requires Ps =/=K .Patterns
+  rule (X:Variable, Ps:BasicPatterns) notOccurFree Qs
+    =>         notBool(X in getFreeVariables(Qs))
+       andBool (Ps notOccurFree Qs)
+    requires Ps =/=K .Patterns
 ```
 
 ```k
