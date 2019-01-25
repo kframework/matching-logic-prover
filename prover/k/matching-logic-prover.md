@@ -986,22 +986,22 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
        <k> \implies(LHS,\and(RHS)) </k>
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
-  requires getLength(RRPs) <Int M
+  requires getLength(RRPs) <=Int M
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
                => right-unfold-Nth-eachBody(M, N, getMember(M, RRPs), unfold(getMember(M, RRPs)))
        ...</strategy>
-  requires getLength(RRPs) >=Int M
+  requires getLength(RRPs) >Int M
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
        ...</strategy>
-  requires getLength(Bodies) <Int N
+  requires getLength(Bodies) <=Int N
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
                => right-unfold-Nth-oneBody(M, N, RRP, getMember(N, Bodies))
        ...</strategy>
-  requires getLength(Bodies) >=Int N
+  requires getLength(Bodies) >Int N
 
   rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
                => right-unfold-oneBody(RRP, Body) ...
