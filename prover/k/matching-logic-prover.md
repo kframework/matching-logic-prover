@@ -80,6 +80,7 @@ module KORE-SUGAR
                               | "list"
                               | "bt"
                               | "bst"
+                              | "find"
   syntax Predicate ::= "isEmpty"
 endmodule
 ```
@@ -135,6 +136,14 @@ module KORE-HELPERS
        ++BasicPatterns getFreeVariables(\or(CFs), .Patterns)
   rule getFreeVariables(\or(.ConjunctiveForms), .Patterns)
     => .Patterns
+
+  syntax Bool ::= BasicPatterns "notOccurFree" Patterns [function]
+  rule .Patterns notOccurFree Qs => true
+  rule (X:Variable, .Patterns) notOccurFree Qs
+    => notBool(X in getFreeVariables(Qs))
+  rule (P:BasicPattern, Ps:BasicPatterns) notOccurFree Qs
+    => ((P, .Patterns) notOccurFree Qs) andBool (Ps notOccurFree Qs)
+  requires Qs =/=K .Patterns
 ```
 
 ```k
@@ -798,6 +807,20 @@ Temp: needed by `lsegleft -> lsegright`
                  ) => true:Bool
     requires removeDuplicates(F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
          ==K (F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
+
+  rule checkValid(
+         \implies ( \and ( list ( H0 ,  X ,  F0 , .Patterns ) 
+                         , \equals (  X ,  OLDX ) 
+                         , \equals (  TMP , 0 ) 
+                         , .Patterns ) 
+                  , \and ( disjoint (  F1 ,  F2 ) 
+                         , \not ( isMember (  DATA ,  F1 ) ) 
+                         , \equals (  OLDX ,  X ) 
+                         , \equals (  F1 , emptyset ) 
+                         , .Patterns ) 
+                  )) => true:Bool
+  requires (F1, F2, DATA, .Patterns) notOccurFree (H0, X, F0, X, OLDX, TMP, .Patterns)
+         
 ```
 
 ### Right Unfold
@@ -870,8 +893,7 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
                => right-unfold-Nth-eachBody(M, N, ?RRP, unfold(?RRP))
        ...</strategy>
-  requires (?RRP ==K getMember(M, RRPs)) 
-   andBool getLength(RRPs) >=Int M 
+  requires (getLength(RRPs) >=Int M) andBool (?RRP ==K getMember(M, RRPs))  
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
@@ -1232,6 +1254,20 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , .Patterns
                    )
               )
+
+
+/* find */
+  rule unfold(find(DATA, RET, F, .Patterns))
+    => \or( \and( gt(RET, 0)
+                , \equals(RET, DATA)
+                , isMember(DATA, F)
+                , .Patterns
+                )
+          , \and( \equals(RET, 0)
+                , \not(isMember(DATA, F))
+                , .Patterns
+                )
+          )
 
 endmodule
 ```
