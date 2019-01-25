@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( bst ( variable ( "H" ) , variable ( "X" ) , variable ( "F" ) , variable ( "MIN" ) , variable ( "MAX" ) , .Patterns ) , .Patterns ) , \and ( bt ( variable ( "H" ) , variable ( "X" ) , variable ( "F" ) , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>

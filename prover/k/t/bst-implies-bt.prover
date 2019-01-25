@@ -3,5 +3,8 @@ claim \implies( \and( bst(variable("H"), variable("X"), variable("F"), variable(
                     )
               , \and( bt( variable("H"), variable("X"), variable("F"), .Patterns), .Patterns )
               )
-
-strategy kt ; right-unfold-Nth(1,1)
+strategy kt ; ( ( right-unfold-Nth(0,0) ; simplify ; direct-proof )
+              | ( right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; right-unfold-Nth(0,0) ; simplify ; direct-proof )
+              | direct-proof
+              | ( right-unfold-Nth(0,1) ) ; simplify ; direct-proof
+              )

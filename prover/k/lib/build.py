@@ -56,11 +56,11 @@ do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md').default()
 do_test(mlprover, 't/emptyset-implies-isempty.prover').default()
 do_test(mlprover, 't/lsegleft-implies-lsegright.prover').default()
 do_test(mlprover, 't/lsegleft-implies-list.prover').default()
+do_test(mlprover, 't/bst-implies-bt.prover').default()
 
 # Failing tests:
 # These tests aren't passing yet. To mark as passing append `.default()`
 # and move to above section.
-do_test(mlprover, 't/bst-implies-bt.prover')
 do_test(mlprover, 't/LTL-Ind.prover') # can be fixed
 
 # Theories
