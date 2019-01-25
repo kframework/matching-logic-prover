@@ -870,7 +870,8 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
                => right-unfold-Nth-eachBody(M, N, ?RRP, unfold(?RRP))
        ...</strategy>
-  requires (getLength(RRPs) >=Int M) andBool (?RRP ==K getMember(M, RRPs))
+  requires (?RRP ==K getMember(M, RRPs)) 
+   andBool getLength(RRPs) >=Int M 
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
