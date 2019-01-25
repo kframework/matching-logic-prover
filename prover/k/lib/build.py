@@ -44,19 +44,22 @@ def do_prove(alias, defn, spec_module, spec):
 imported_k_files = [ proj.source('kore.md').then(proj.tangle().output(proj.tangleddir('kore.k')))
                    , proj.source('smtlib2.md').then(proj.tangle().output(proj.tangleddir('smtlib2.k')))
                    ]
-mlprover = proj.source('matching-logic-prover.md') \
-            .then(proj.tangle().output(proj.tangleddir('matching-logic-prover.k'))) \
+prover_k = proj.source('matching-logic-prover.md') \
+               .then(proj.tangle().output(proj.tangleddir('matching-logic-prover.k')))
+mlprover = prover_k \
             .then(proj.kompile(backend = 'java')
                       .variables(directory = proj.builddir('matching-logic-prover'))
                       .implicit(imported_k_files + [z3_target])
                  )
 
-# Passing tests:
 do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md').default()
 do_test(mlprover, 't/emptyset-implies-isempty.prover').default()
+
+# List tests
 do_test(mlprover, 't/lsegleft-implies-lsegright.prover').default()
 do_test(mlprover, 't/lsegleft-implies-list.prover').default()
 do_test(mlprover, 't/sortedlist-implies-list.prover').default()
+
 do_test(mlprover, 't/bst-implies-bt.prover').default()
 do_test(mlprover, 't/find-before-loop.prover').default()
 do_test(mlprover, 't/find-in-loop.prover').default()
@@ -68,8 +71,6 @@ do_test(mlprover, 't/find-after-loop2.prover').default()
 # and move to above section.
 do_test(mlprover, 't/LTL-Ind.prover') # can be fixed
 
-
-
 # Theories
 # --------
 
@@ -79,3 +80,12 @@ lists = proj.source('lists.md') \
                       .variables(directory = proj.builddir('lists'))
                  ) \
             .alias('lists')
+
+# SMTLIB Translation
+# ==================
+
+smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
+                                      .variables(directory = proj.builddir('smt-testdriver'))
+                                      .implicit(imported_k_files + [z3_target])
+                                 )
+do_test(smtlib_testdriver, 't/test.smt').alias('smt-test')

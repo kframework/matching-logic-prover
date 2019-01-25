@@ -1591,3 +1591,11 @@ module MATCHING-LOGIC-PROVER
   imports MATCHING-LOGIC-PROVER-LTL
 endmodule
 ```
+
+```k
+module SMTLIB2-TEST-DRIVER
+  imports SMTLIB2
+  imports KORE-SUGAR
+  configuration <k> $PGM:Pattern </k>
+endmodule
+```
