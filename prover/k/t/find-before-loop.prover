@@ -1,16 +1,12 @@
-claim \implies( \and( list( variable("H0"), variable("X"), variable("F0"), .Patterns)
+claim \implies( \and( find-list( variable("H0"), variable("X"), variable("F0"), .Patterns)
                     , \equals( variable("X"), variable("OLDX") )
                     , \equals( variable("TMP"), 0 )
                     , .Patterns
                     )
-              , \and( lsegright( variable("H0"), variable("OLDX"), variable("X"), variable("F1"), .Patterns)
+              , \and( find-list-seg( variable("H0"), variable("OLDX"), variable("X"), variable("F1"), .Patterns)
                     , disjoint(variable("F1"), variable("F2"))
                     , \not(isMember(variable("DATA"), variable("F1")))
                     , .Patterns )
               )
 strategy right-unfold-Nth(0,0) ; direct-proof
 
-/*
-strategy kt(lsegright) ; ( ( simplify ; direct-proof )
-                        )
-*/

@@ -1,0 +1,24 @@
+claim \implies( \and( lsegright( variable("H0"), variable("OLDX"), variable("X"), variable("F1"), .Patterns)
+                    , list(variable("H0"), variable("X"), variable("F2"), .Patterns)
+                    , disjoint(variable("F1"), variable("F2"))
+                    , \not(isMember(variable("DATA"), variable("F1")))
+                    , gt(variable("X"), 0)
+                    , gt(variable("X"), variable("DATA"))
+                    , \equals(variable("X2"), select(variable("H0"), plus(variable("X"), 1)))
+                    , \equals(variable("F3"), add(variable("F1"), variable("X")))
+                    , \equals(variable("F4"), del(variable("F2"), variable("X")))
+                    , .Patterns
+                    )
+              , \and( lsegright( variable("H0"), variable("OLDX"), variable("X2"), variable("F3"), .Patterns)
+                    , list(variable("H0"), variable("X2"), variable("F4"), .Patterns)
+                    , disjoint(variable("F3"), variable("F4"))
+                    , \not(isMember(variable("DATA"), variable("F3")))
+                    , .Patterns )
+              )
+
+strategy right-unfold-Nth(0,0) ; direct-proof
+
+/*
+strategy kt(lsegright) ; ( ( simplify ; direct-proof )
+                        )
+*/

@@ -47,6 +47,8 @@ module KORE-SUGAR
                         | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // Set, Set
                         | "singleton"     "(" BasicPattern ")"                  // Int
                         | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, Set
+                        | "add"           "(" BasicPattern "," BasicPattern ")" // Set, Int
+                        | "del"           "(" BasicPattern "," BasicPattern ")" // Set, Int
 
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")"
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
@@ -80,7 +82,10 @@ module KORE-SUGAR
                               | "list"
                               | "bt"
                               | "bst"
-                              | "find"
+                              /* find */
+                              | "find-list-seg"
+                              | "find-list"
+                              | "find-find"
   syntax Predicate ::= "isEmpty"
 endmodule
 ```
@@ -172,6 +177,10 @@ module KORE-HELPERS
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(singleton(P1), .Patterns) => getFreeVariables(P1, .Patterns)
   rule getFreeVariables(isMember(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(add(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(del(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
 ```
 
@@ -808,8 +817,10 @@ Temp: needed by `lsegleft -> lsegright`
     requires removeDuplicates(F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
          ==K (F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
 
+/* find */
+
   rule checkValid(
-         \implies ( \and ( list ( H0 ,  X ,  F0 , .Patterns ) 
+         \implies ( \and ( find-list ( H0 ,  X ,  F0 , .Patterns ) 
                          , \equals (  X ,  OLDX ) 
                          , \equals (  TMP , 0 ) 
                          , .Patterns ) 
@@ -1255,9 +1266,50 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
               )
 
-
 /* find */
-  rule unfold(find(DATA, RET, F, .Patterns))
+
+  /* find-list-seg */
+  rule unfold(find-list-seg(H,X,Y,F,.Patterns))
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( find-list-seg( H
+                                  , X
+                                  , variable("Y", !I)
+                                  , variable("F", !J)
+                                  , .Patterns
+                                  )
+                   // , \not(\equals(X, Y))
+                   , gt(variable("Y", !I), 0)
+                   , \equals(Y, select(H, plus(variable("Y", !I), 1)))
+                   , \equals( F
+                            , add ( variable("F", !J)
+                                  , singleton(variable("Y", !I))
+                                  )
+                            )
+                   , \not(isMember(variable("Y", !I), variable("F", !J)))
+                   , .Patterns
+                   )
+             )
+
+  /* find-list */
+  rule unfold(find-list(H,X,F,.Patterns))
+       => \or( \and( \equals(X, 0)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( list(H,variable("X", !I),variable("F", !J),.Patterns)
+                   , gt(X,0)
+                   , \equals(select(H, plus(X, 1)), variable("X", !I))
+                   , \equals(F, add( variable("F", !J), X))
+                   , \not(isMember(X, variable("F", !J)))
+                   , .Patterns
+                   )
+             )
+
+  /* find-find */
+  rule unfold(find-find(DATA, RET, F, .Patterns))
     => \or( \and( gt(RET, 0)
                 , \equals(RET, DATA)
                 , isMember(DATA, F)
