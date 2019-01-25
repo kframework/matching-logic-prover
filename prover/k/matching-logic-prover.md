@@ -149,7 +149,7 @@ module KORE-HELPERS
     => notBool(X in getFreeVariables(Qs))
   rule (P:BasicPattern, Ps:BasicPatterns) notOccurFree Qs
     => ((P, .Patterns) notOccurFree Qs) andBool (Ps notOccurFree Qs)
-  requires Qs =/=K .Patterns
+  requires Ps =/=K .Patterns
 ```
 
 ```k
