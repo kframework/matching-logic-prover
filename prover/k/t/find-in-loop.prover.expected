@@ -1,0 +1,23 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , find-list ( variable ( "H0" ) , variable ( "X" ) , variable ( "F2" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , gt ( variable ( "X" ) , 0 ) , gt ( variable ( "X" ) , variable ( "DATA" ) ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
+    </k>
+    <strategy>
+         success
+      ~> #hole ; simplify ; direct-proof
+    </strategy>
+    <trace>
+      right-unfold-oneBody ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X2" ) , variable ( "F3" ) , .Patterns ) , \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
+    </trace>
+  </goal>
+</prover>

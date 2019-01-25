@@ -390,7 +390,7 @@ proved, or that constructing a proof has failed.
 
 ```k
   rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
-//  rule <strategy> T:TerminalStrategy ~> REST => T </strategy>
+//  rule <strategy> (T:TerminalStrategy ~> REST) => T </strategy>
 //    requires REST =/=K .K
 ```
 
@@ -836,31 +836,14 @@ Temp: needed by `lsegleft -> lsegright`
   requires (F1, F2, DATA, .Patterns) notOccurFree (H0, X, F0, X, OLDX, TMP, .Patterns)
 
   /* needed in find-in-loop */
-  rule checkValid(
-    \implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) 
-             , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) 
-             , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) 
-             , gt ( variable ( "X" ) , 0 ) 
-             , gt ( variable ( "X" ) , variable ( "DATA" ) ) 
-             , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) 
-             , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) 
-             , \equals ( variable ( "X" ) , 0 ) 
-             , \equals ( variable ( "F2" ) , emptyset ) 
-             , .Patterns ) 
-    , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) 
-    , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) 
-    , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) 
-    , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) 
-    , gt ( variable ( "Y" , 2 ) , 0 ) 
-    , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) 
-    , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) ,  variable ( "Y" , 2 )  ) ) 
-    , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) 
-    , .Patterns ) )) => true:Bool
 
   rule checkValid(
-    \implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , gt ( variable ( "X" ) , 0 ) , gt ( variable ( "X" ) , variable ( "DATA" ) ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) , list ( variable ( "H0" ) , variable ( "X" , 4 ) , variable ( "F" , 3 ) , .Patterns ) , gt ( variable ( "X" ) , 0 ) , \equals ( select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) , variable ( "X" , 4 ) ) , \equals ( variable ( "F2" ) , add ( variable ( "F" , 3 ) , variable ( "X" ) ) ) , \not ( isMember ( variable ( "X" ) , variable ( "F" , 3 ) ) ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
-    ) => true:Bool
-  
+\implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , gt ( variable ( "X" ) , 0 ) , gt ( variable ( "X" ) , variable ( "DATA" ) ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) , \equals ( variable ( "X" ) , 0 ) , \equals ( variable ( "F2" ) , emptyset ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
+  ) => true:Bool
+
+  rule checkValid(
+\implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , gt ( variable ( "X" ) , 0 ) , gt ( variable ( "X" ) , variable ( "DATA" ) ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) , list ( variable ( "H0" ) , variable ( "X" , 4 ) , variable ( "F" , 3 ) , .Patterns ) , gt ( variable ( "X" ) , 0 ) , \equals ( select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) , variable ( "X" , 4 ) ) , \equals ( variable ( "F2" ) , add ( variable ( "F" , 3 ) , variable ( "X" ) ) ) , \not ( isMember ( variable ( "X" ) , variable ( "F" , 3 ) ) ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
+  ) => true:Bool  
   
 ```
 
