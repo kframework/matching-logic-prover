@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( sortedlist ( variable ( "H" ) , variable ( "X" ) , variable ( "K" ) , variable ( "MAX" ) , .Patterns ) , .Patterns ) , \and ( list ( variable ( "H" ) , variable ( "X" ) , variable ( "K" ) , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>

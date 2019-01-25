@@ -80,6 +80,7 @@ module KORE-SUGAR
   syntax RecursivePredicate ::= "lsegleft"
                               | "lsegright"
                               | "list"
+                              | "sortedlist"
                               | "bt"
                               | "bst"
                               /* find */
@@ -820,6 +821,25 @@ Temp: needed by `lsegleft -> lsegright`
     requires removeDuplicates(F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
          ==K                 (F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
 
+  rule checkValid(
+      \implies ( \and ( gt ( X , 0 )
+                      , \equals ( select ( H , X ) , X3 )
+                      , \equals ( K , union ( F2 , singleton ( X ) ) )
+                      , disjoint ( F2 , singleton ( X ) )
+                      , \equals ( VAL4 , select ( H , plus ( X , 1 ) ) )
+                      , gt ( VAL4 , MAX )
+                      , list ( H , X3 , F2 , .Patterns )
+                      , .Patterns )
+               , \and ( list ( H , X27 , F26 , .Patterns )
+                      , \equals ( select ( H , X ) , X27 )
+                      , \equals ( K , union ( F26 , singleton ( X ) ) )
+                      , disjoint ( F26 , singleton ( X ) )
+                      , .Patterns )
+               )
+                 ) => true:Bool
+    requires removeDuplicates(F2, F26, H, K, MAX, VAL4, X, X27, X3, .Patterns)
+         ==K                 (F2, F26, H, K, MAX, VAL4, X, X27, X3, .Patterns)
+
 /* find */
 
   rule checkValid(
@@ -974,22 +994,22 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
        <k> \implies(LHS,\and(RHS)) </k>
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
-  requires getLength(RRPs) <=Int M
+    requires getLength(RRPs) <=Int M
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
                => right-unfold-Nth-eachBody(M, N, getMember(M, RRPs), unfold(getMember(M, RRPs)))
        ...</strategy>
-  requires getLength(RRPs) >Int M
+    requires getLength(RRPs) >Int M
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
        ...</strategy>
-  requires getLength(Bodies) <=Int N
+    requires getLength(Bodies) <=Int N
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
                => right-unfold-Nth-oneBody(M, N, RRP, getMember(N, Bodies))
        ...</strategy>
-  requires getLength(Bodies) >Int N
+    requires getLength(Bodies) >Int N
 
   rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
                => right-unfold-oneBody(RRP, Body) ...
@@ -1270,6 +1290,22 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
+  rule unfold(sortedlist(H, X, F, MIN:BasicPattern, .Patterns))
+    => \or( \and( \equals(X, 0)
+                , \equals(F, emptyset)
+                , .Patterns
+                )
+          , \and( sortedlist(H, variable("X", !I), variable("F", !J), MIN, .Patterns)
+                , gt(X, 0)
+                , \equals(select(H, X) , variable("X", !I))
+                , \equals(F , union(variable("F", !J), singleton(X)))
+                , disjoint(variable("F", !J), singleton(X))
+                , \equals(variable("VAL", !K) , select(H, plus(X, 1)))
+                , gt(variable("VAL", !K), MIN)
+                , .Patterns
+                )
+          )
+
   /* bt */
   rule unfold(bt(H,X,F,.Patterns))
        => \or( \and( \equals(X, 0)
@@ -1546,8 +1582,8 @@ module MATCHING-LOGIC-PROVER-DRIVER
 endmodule
 ```
 
-Main Module
-===========
+Main Modules
+============
 
 ```k
 module MATCHING-LOGIC-PROVER
