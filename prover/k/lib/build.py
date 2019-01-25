@@ -59,6 +59,8 @@ do_test(mlprover, 't/lsegleft-implies-list.prover').default()
 do_test(mlprover, 't/bst-implies-bt.prover').default()
 do_test(mlprover, 't/find-before-loop.prover').default()
 do_test(mlprover, 't/find-in-loop.prover').default()
+do_test(mlprover, 't/find-after-loop1.prover').default()
+do_test(mlprover, 't/find-after-loop2.prover').default()
 
 # Failing tests:
 # These tests aren't passing yet. To mark as passing append `.default()`
