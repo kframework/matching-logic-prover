@@ -390,6 +390,8 @@ proved, or that constructing a proof has failed.
 
 ```k
   rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
+//  rule <strategy> T:TerminalStrategy ~> REST => T </strategy>
+//    requires REST =/=K .K
 ```
 
 The `goalStrat(Int)` strategy is used to establish a refernce to the result of another
@@ -521,6 +523,7 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "simplify"
                     | "direct-proof"
+                    | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt" | kt(RecursivePredicate)
 endmodule
@@ -831,6 +834,91 @@ Temp: needed by `lsegleft -> lsegright`
                          , .Patterns ) 
                   )) => true:Bool
   requires (F1, F2, DATA, .Patterns) notOccurFree (H0, X, F0, X, OLDX, TMP, .Patterns)
+
+  /* needed in find-in-loop */
+  rule checkValid(
+    \implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) 
+             , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) 
+             , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) 
+             , gt ( variable ( "X" ) , 0 ) 
+             , gt ( variable ( "X" ) , variable ( "DATA" ) ) 
+             , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) 
+             , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) 
+             , \equals ( variable ( "X" ) , 0 ) 
+             , \equals ( variable ( "F2" ) , emptyset ) 
+             , .Patterns ) 
+    , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) 
+    , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) 
+    , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) 
+    , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) 
+    , gt ( variable ( "Y" , 2 ) , 0 ) 
+    , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) 
+    , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) ,  variable ( "Y" , 2 )  ) ) 
+    , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) 
+    , .Patterns ) )) => true:Bool
+
+  rule checkValid(
+    \implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , gt ( variable ( "X" ) , 0 ) , gt ( variable ( "X" ) , variable ( "DATA" ) ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) , list ( variable ( "H0" ) , variable ( "X" , 4 ) , variable ( "F" , 3 ) , .Patterns ) , gt ( variable ( "X" ) , 0 ) , \equals ( select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) , variable ( "X" , 4 ) ) , \equals ( variable ( "F2" ) , add ( variable ( "F" , 3 ) , variable ( "X" ) ) ) , \not ( isMember ( variable ( "X" ) , variable ( "F" , 3 ) ) ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
+    ) => true:Bool
+  
+  
+```
+
+### Left Unfold (incomplete)
+
+```k
+  syntax Strategy ::= "left-unfold-eachBody"  "(" BasicPattern "," DisjunctiveForm ")"
+                    | "left-unfold-oneBody"   "(" BasicPattern "," ConjunctiveForm ")"
+
+  rule <strategy> left-unfold-eachBody(LRP, \or(\and(BODY), BODIES:ConjunctiveForms))
+               => left-unfold-oneBody(LRP, \and(BODY))
+                & left-unfold-eachBody(LRP, \or(BODIES))
+                  ...
+       </strategy>
+  rule <strategy> left-unfold-eachBody(LRP, \or(.ConjunctiveForms))
+               => success 
+                  ...
+       </strategy>
+
+  rule <k> \implies(\and(LHS), RHS)
+        => \implies(\and((LHS -BasicPatterns (LRP, .Patterns)) ++BasicPatterns BODY), RHS)
+       </k>
+       <strategy> left-unfold-oneBody(LRP, \and(BODY)) => noop ... </strategy>
+       <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
+```
+
+### Left Unfold Nth
+
+Unfold the Nth predicates on the Left hand side into a conjunction of implicatations.
+The resulting goals are equivalent to the initial goal.
+
+```k
+  syntax Strategy ::= "left-unfold-Nth-eachLRP"  "(" Int "," BasicPatterns ")"
+                    | "left-unfold-Nth-eachBody" "(" Int "," BasicPattern "," DisjunctiveForm ")"
+                    | "left-unfold-Nth-oneBody"  "(" Int "," BasicPattern "," ConjunctiveForm ")"
+
+  rule <strategy> left-unfold-Nth(M)
+               => left-unfold-Nth-eachLRP(M, getPredicates(LHS))
+                  ...
+       </strategy>
+       <k> \implies(\and(LHS), RHS) </k> 
+
+  rule <strategy> left-unfold-Nth-eachLRP(M, PS)
+               => fail
+                  ...
+       </strategy>
+  requires M <Int 0 orBool M >=Int getLength(PS)
+
+  rule <strategy> left-unfold-Nth-eachLRP(M, PS)
+               => left-unfold-Nth-eachBody(M, getMember(M, PS), unfold(getMember(M, PS)))
+                  ...
+       </strategy>
+  requires 0 <=Int M andBool M <Int getLength(PS)
+
+  rule <strategy> left-unfold-Nth-eachBody(M, LRP, Bodies)
+               => left-unfold-eachBody(LRP, Bodies)
+                  ...
+       </strategy>
 ```
 
 ### Right Unfold
@@ -901,10 +989,9 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
   requires getLength(RRPs) <Int M
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
-               => right-unfold-Nth-eachBody(M, N, ?RRP, unfold(?RRP))
+               => right-unfold-Nth-eachBody(M, N, getMember(M, RRPs), unfold(getMember(M, RRPs)))
        ...</strategy>
-  requires ?RRP ==K getMember(M, RRPs)
-   andBool getLength(RRPs) >=Int M
+  requires getLength(RRPs) >=Int M
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
@@ -912,10 +999,9 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
   requires getLength(Bodies) <Int N
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
-               => right-unfold-Nth-oneBody(M, N, RRP, ?Body)
+               => right-unfold-Nth-oneBody(M, N, RRP, getMember(N, Bodies))
        ...</strategy>
-  requires (getLength(Bodies) >=Int N)
-   andBool (?Body ==K getMember(N, Bodies))
+  requires getLength(Bodies) >=Int N
 
   rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
                => right-unfold-oneBody(RRP, Body) ...
@@ -1283,7 +1369,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , \equals(Y, select(H, plus(variable("Y", !I), 1)))
                    , \equals( F
                             , add ( variable("F", !J)
-                                  , singleton(variable("Y", !I))
+                                  , variable("Y", !I)
                                   )
                             )
                    , \not(isMember(variable("Y", !I), variable("F", !J)))
