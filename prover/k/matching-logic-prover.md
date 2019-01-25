@@ -764,24 +764,24 @@ Temp: needed by `lsegleft -> lsegright`
          ==K                 (F, F18, F2, G, H, K, K9, X, X19, X3, Y, .Patterns)
 
   rule checkValid(
-      \implies ( \and ( gt ( X , 0 ) 
-                      , \equals ( select ( H , plus ( X , 1 ) ) , 0 ) 
-                      , \equals ( select ( H , plus ( X , 2 ) ) , 0 ) 
-                      , \equals ( MIN , X ) 
-                      , \equals ( MAX , X ) 
-                      , \equals ( F , singleton ( X ) ) 
-                      , .Patterns ) 
-               , \and ( \equals ( X26 , select ( H , plus ( X , 1 ) ) ) 
-                      , \equals ( X29 , select ( H , plus ( X , 2 ) ) ) 
-                      , \not ( isMember ( X , F28 ) ) 
-                      , \not ( isMember ( X , F27 ) ) 
-                      , \equals ( F , union ( singleton ( X ) , union ( F28 , F27 ) ) ) 
-                      , disjoint ( F28 , F27 ) 
-                      , \equals ( X26 , 0 ) 
-                      , \equals ( F28 , emptyset ) 
-                      , \equals ( X29 , 0 ) 
-                      , \equals ( F27 , emptyset ) 
-                      , .Patterns ) 
+      \implies ( \and ( gt ( X , 0 )
+                      , \equals ( select ( H , plus ( X , 1 ) ) , 0 )
+                      , \equals ( select ( H , plus ( X , 2 ) ) , 0 )
+                      , \equals ( MIN , X )
+                      , \equals ( MAX , X )
+                      , \equals ( F , singleton ( X ) )
+                      , .Patterns )
+               , \and ( \equals ( X26 , select ( H , plus ( X , 1 ) ) )
+                      , \equals ( X29 , select ( H , plus ( X , 2 ) ) )
+                      , \not ( isMember ( X , F28 ) )
+                      , \not ( isMember ( X , F27 ) )
+                      , \equals ( F , union ( singleton ( X ) , union ( F28 , F27 ) ) )
+                      , disjoint ( F28 , F27 )
+                      , \equals ( X26 , 0 )
+                      , \equals ( F28 , emptyset )
+                      , \equals ( X29 , 0 )
+                      , \equals ( F27 , emptyset )
+                      , .Patterns )
                )
                  ) => true:Bool
     requires removeDuplicates(F, F27, F28, H, MAX, MIN, X, X26, X29, .Patterns)
@@ -789,33 +789,33 @@ Temp: needed by `lsegleft -> lsegright`
 
 
   rule checkValid(
-        \implies ( \and ( gt ( X , 0 ) 
-                             , \equals ( select ( H , plus ( X , 1 ) ) , X2 ) 
-                             , \equals ( select ( H , plus ( X , 2 ) ) , X9 ) 
-                             , gt ( X , MAX6 ) 
-                             , gt ( MIN7 , X ) 
-                             , \equals ( MIN8 , MIN ) 
-                             , \equals ( MAX5 , MAX ) 
-                             , \not ( isMember ( X , F4 ) ) 
-                             , \not ( isMember ( X , F3 ) ) 
-                             , \equals ( F , union ( singleton ( X ) , union ( F4 , F3 ) ) ) 
-                             , disjoint ( F4 , F3 ) 
-                             , bt ( H , X9 , F3 , .Patterns ) 
-                             , bt ( H , X2 , F4 , .Patterns ) 
-                             , .Patterns ) 
-                 , \and ( bt ( H , X87 , F89 , .Patterns ) 
-                        , bt ( H , X90 , F88 , .Patterns ) 
-                        , \equals ( X87 , select ( H , plus ( X , 1 ) ) ) 
-                        , \equals ( X90 , select ( H , plus ( X , 2 ) ) ) 
-                        , \not ( isMember ( X , F89 ) ) 
-                        , \not ( isMember ( X , F88 ) ) 
-                        , \equals ( F , union ( singleton ( X ) , union ( F89 , F88 ) ) ) 
-                        , disjoint ( F89 , F88 ) 
-                        , .Patterns ) 
-                 ) 
+        \implies ( \and ( gt ( X , 0 )
+                             , \equals ( select ( H , plus ( X , 1 ) ) , X2 )
+                             , \equals ( select ( H , plus ( X , 2 ) ) , X9 )
+                             , gt ( X , MAX6 )
+                             , gt ( MIN7 , X )
+                             , \equals ( MIN8 , MIN )
+                             , \equals ( MAX5 , MAX )
+                             , \not ( isMember ( X , F4 ) )
+                             , \not ( isMember ( X , F3 ) )
+                             , \equals ( F , union ( singleton ( X ) , union ( F4 , F3 ) ) )
+                             , disjoint ( F4 , F3 )
+                             , bt ( H , X9 , F3 , .Patterns )
+                             , bt ( H , X2 , F4 , .Patterns )
+                             , .Patterns )
+                 , \and ( bt ( H , X87 , F89 , .Patterns )
+                        , bt ( H , X90 , F88 , .Patterns )
+                        , \equals ( X87 , select ( H , plus ( X , 1 ) ) )
+                        , \equals ( X90 , select ( H , plus ( X , 2 ) ) )
+                        , \not ( isMember ( X , F89 ) )
+                        , \not ( isMember ( X , F88 ) )
+                        , \equals ( F , union ( singleton ( X ) , union ( F89 , F88 ) ) )
+                        , disjoint ( F89 , F88 )
+                        , .Patterns )
+                 )
                  ) => true:Bool
     requires removeDuplicates(F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
-         ==K (F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
+         ==K                 (F, F3, F4, F88, F89, H, MAX, MAX5, MAX6, MIN, MIN7, MIN8, X, X2, X87, X9, X90, .Patterns)
 
 /* find */
 
@@ -831,7 +831,6 @@ Temp: needed by `lsegleft -> lsegright`
                          , .Patterns ) 
                   )) => true:Bool
   requires (F1, F2, DATA, .Patterns) notOccurFree (H0, X, F0, X, OLDX, TMP, .Patterns)
-         
 ```
 
 ### Right Unfold
@@ -904,7 +903,8 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
                => right-unfold-Nth-eachBody(M, N, ?RRP, unfold(?RRP))
        ...</strategy>
-  requires (getLength(RRPs) >=Int M) andBool (?RRP ==K getMember(M, RRPs))  
+  requires ?RRP ==K getMember(M, RRPs)
+   andBool getLength(RRPs) >=Int M
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
@@ -1189,10 +1189,8 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              , \and( list(H,variable("X", !I),variable("F", !J),.Patterns)
                    , gt(X,0)
-                   , \equals( select(H, X)
-                            , variable("X", !I))
-                   , \equals( F
-                            , union( variable("F", !J), singleton(X)))
+                   , \equals(select(H, X) , variable("X", !I))
+                   , \equals(F , union(variable("F", !J), singleton(X)))
                    , disjoint(variable("F", !J), singleton(X))
                    , .Patterns
                    )
