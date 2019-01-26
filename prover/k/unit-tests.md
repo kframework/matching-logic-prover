@@ -9,20 +9,20 @@ CheckSAT
 --------
 
 ```k
-  rule <k> Z3CheckSAT(SMTLIB2ToString((declare-const a Bool)
-                                      (assert (= a true))
-                                      (assert (= a false))))
+  rule <k> Z3CheckSAT(SMTLIB2ScriptToString((declare-const "a" Bool)
+                                            (assert (= "a" true))
+                                            (assert (= "a" false))))
         => "UNSAT"
        </k>
-  rule <k> Z3CheckSAT(SMTLIB2ToString((declare-const a Bool) (assert (= a false))))
+  rule <k> Z3CheckSAT(SMTLIB2ScriptToString((declare-const "a" Bool) (assert (= "a" false))))
         => "SAT"
        </k>
-  rule <k> Z3CheckSAT( SMTLIB2ToString( (declare-const a Int)
-                                        (declare-const b Int)
-                                        (declare-const n Int)
-                                        (assert (= b (* (^ a n) a)))
-                                        (assert (not (= b (^ a (+ n 1)))))
-                                      )
+  rule <k> Z3CheckSAT( SMTLIB2ScriptToString( (declare-const "a" Int)
+                                              (declare-const "b" Int)
+                                              (declare-const "n" Int)
+                                              (assert (= "b" (* (^ "a" "n") "a")))
+                                              (assert (not (= "b" (^ "a" (+ "n" 1)))))
+                                            )
                      )
          => "UNKNOWN"
        </k>
