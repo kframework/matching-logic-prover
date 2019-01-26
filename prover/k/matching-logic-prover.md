@@ -1595,10 +1595,11 @@ endmodule
 module SMTLIB2-TEST-DRIVER
   imports SMTLIB2
   imports KORE-SUGAR
-  configuration <k> $PGM:Pattern </k>
+
+  configuration <k> $PGM </k>
 
   syntax SMTLIB2Script ::= buildScriptDecl(BasicPatterns) [function]
   rule buildScriptDecl( .Patterns ) => .SMTLIB2Script
-  rule buildScriptDecl( variable(Name:String), Ps ) => (declare-const Name Int), buildScriptDecl(Ps)
+  rule buildScriptDecl( variable(Name:String), Ps ) => (declare-const Name Int) buildScriptDecl(Ps)
 endmodule
 ```

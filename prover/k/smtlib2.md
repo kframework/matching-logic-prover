@@ -20,7 +20,7 @@ module SMTLIB2
   syntax SMTLIB2Sort
   syntax SMTLIB2Command ::= "(" "declare-const" SMTLIB2Symbol SMTLIB2Sort ")"
                           | "(" "assert"        SMTLIB2Term               ")"
-  syntax SMTLIB2Script ::= List{SMTLIB2Command, ","}
+  syntax SMTLIB2Script ::= List{SMTLIB2Command, ""}
 ```
 
 These are defined in the theories:
@@ -49,10 +49,10 @@ Serialize to String:
   syntax String ::= SMTLIB2ToString(SMTLIB2Term)         [klabel(smtlib2_term_to_string), function]
                   | SMTLIB2ToString(SMTLIB2Sort)         [klabel(smtlib2_sort_to_string), function, hook(STRING.token2string)]
                   | SMTLIB2ToStringSymbol(SMTLIB2Symbol) [function, hook(STRING.token2string)]
-                  | SMTLIB2ToString(SMTLIB2Script)  [klabel(smtlib2_script_to_string), function]
+                  | SMTLIB2ToStringScript(SMTLIB2Script)  [klabel(smtlib2_script_to_string), function]
   rule SMTLIB2ToString( I:Int ) => Int2String(I)
   rule SMTLIB2ToString( Op:SMTLIB2Symbol ) => SMTLIB2ToStringSymbol( Op )
-  rule SMTLIB2ToString( S:String ) => S
+  rule SMTLIB2ToStringSymbol( S:String ) => S
   rule SMTLIB2ToString( ( ID:SMTLIB2QualIdentifier T1 ) )
     =>         "("
        +String SMTLIB2ToString(ID)
@@ -67,19 +67,19 @@ Serialize to String:
        +String " "
        +String SMTLIB2ToString(T2)
        +String ")"
-  rule SMTLIB2ToString( ( declare-const SYMBOL SORT ) )
+  rule SMTLIB2ToStringScript( ( declare-const SYMBOL SORT ) )
     =>         "( declare-const "
         +String SMTLIB2ToString(SYMBOL)
         +String " "
         +String SMTLIB2ToString(SORT  )
         +String ")"
-  rule SMTLIB2ToString( ( assert TERM ) )
+  rule SMTLIB2ToStringScript( ( assert TERM ) )
     =>         "( assert "
         +String SMTLIB2ToString(TERM)
         +String ")"
-  rule SMTLIB2ToString( .SMTLIB2Script ) => ""
-  rule SMTLIB2ToString( COMMAND, SCRIPT )
-    => SMTLIB2ToString( COMMAND ) +String "\n" +String SMTLIB2ToString( SCRIPT )
+  rule SMTLIB2ToStringScript( .SMTLIB2Script ) => ""
+  rule SMTLIB2ToStringScript( COMMAND SCRIPT )
+    => SMTLIB2ToStringScript( COMMAND ) +String "\n" +String SMTLIB2ToStringScript( SCRIPT )
 
   syntax String ::= Z3CheckSAT(String) [function, hook(Z3.checkSAT)]
 endmodule
