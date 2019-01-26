@@ -63,12 +63,11 @@ do_test(mlprover, 't/sortedlist-implies-list.prover').default()
 do_test(mlprover, 't/bst-implies-bt.prover').default()
 do_test(mlprover, 't/find-before-loop.prover').default()
 do_test(mlprover, 't/find-in-loop.prover').default()
-do_test(mlprover, 't/find-after-loop1.prover').default()
-do_test(mlprover, 't/find-after-loop2.prover').default()
 
-# Failing tests:
-# These tests aren't passing yet. To mark as passing append `.default()`
+# Failing tests: These tests aren't passing yet. To mark as passing append `.default()`
 # and move to above section.
+do_test(mlprover, 't/find-after-loop1.prover')
+do_test(mlprover, 't/find-after-loop2.prover')
 do_test(mlprover, 't/LTL-Ind.prover') # can be fixed
 
 # Theories
