@@ -1588,21 +1588,17 @@ module MATCHING-LOGIC-PROVER
   imports MATCHING-LOGIC-PROVER-DRIVER
   imports MATCHING-LOGIC-PROVER-HORN-CLAUSE
   imports MATCHING-LOGIC-PROVER-LTL
-  imports SMTLIB2
 endmodule
 ```
 
 ```k
 module SMTLIB2-TEST-DRIVER
-  imports MATCHING-LOGIC-PROVER
-  imports STRING
-  imports SMTLIB2-SYNTAX
-  
+  imports SMTLIB2
+  imports KORE-SUGAR
+  configuration <k> $PGM:Pattern </k>
+
   syntax SMTLIB2Script ::= buildScriptDecl(BasicPatterns) [function]
   rule buildScriptDecl( .Patterns ) => .SMTLIB2Script
   rule buildScriptDecl( variable(Name:String), Ps ) => (declare-const Name Int), buildScriptDecl(Ps)
-
-  
-  configuration <k> $PGM:String </k>
 endmodule
 ```
