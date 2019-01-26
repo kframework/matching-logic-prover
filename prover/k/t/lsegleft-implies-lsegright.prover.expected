@@ -10,7 +10,7 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( lsegleft ( variable ( "H" ) , variable ( "X" ) , variable ( "Y" ) , variable ( "F" ) , .Patterns ) , .Patterns ) , \and ( lsegright ( variable ( "H" ) , variable ( "X" ) , variable ( "Y" ) , variable ( "F" ) , .Patterns ) , .Patterns ) )
+      \implies ( \and ( lsegleft ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { Set } , .Patterns ) , .Patterns ) , \and ( lsegright ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { Set } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success

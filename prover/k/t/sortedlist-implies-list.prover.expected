@@ -10,7 +10,7 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( sortedlist ( variable ( "H" ) , variable ( "X" ) , variable ( "K" ) , variable ( "MAX" ) , .Patterns ) , .Patterns ) , \and ( list ( variable ( "H" ) , variable ( "X" ) , variable ( "K" ) , .Patterns ) , .Patterns ) )
+      \implies ( \and ( sortedlist ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { Set } , variable ( "MAX" ) { Int } , .Patterns ) , .Patterns ) , \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { Set } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success

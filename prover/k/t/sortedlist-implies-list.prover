@@ -1,5 +1,18 @@
-claim \implies( \and( sortedlist(variable("H"), variable("X"), variable("K"), variable("MAX"), .Patterns), .Patterns)
-              , \and( list( variable("H"), variable("X"), variable("K"), .Patterns), .Patterns )
+claim \implies( \and( sortedlist( variable("H") { ArrayIntInt }
+                                , variable("X") { Int }
+                                , variable("K") { Set }
+                                , variable("MAX") { Int }
+                                , .Patterns
+                                )
+                    , .Patterns
+                    )
+              , \and( list( variable("H") { ArrayIntInt }
+                          , variable("X") { Int }
+                          , variable("K") { Set }
+                          , .Patterns
+                          )
+                    , .Patterns
+                    )
               )
 strategy kt ; ( (right-unfold-Nth(0, 0) ; simplify ; direct-proof)
               | ( simplify ; direct-proof )

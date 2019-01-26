@@ -52,7 +52,6 @@ mlprover = prover_k \
                       .implicit(imported_k_files + [z3_target])
                  )
 
-do_prove('unit-tests', mlprover, 'UNIT-TESTS-SPEC', 'unit-tests.md').default()
 do_test(mlprover, 't/emptyset-implies-isempty.prover').default()
 
 # List tests
@@ -88,4 +87,6 @@ smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
                                                  , flags = "--main-module SMTLIB2-TEST-DRIVER --syntax-module SMTLIB2-TEST-DRIVER") 
                                       .implicit(imported_k_files + [z3_target])
                                  )
+
+do_prove('unit-tests', smtlib_testdriver, 'UNIT-TESTS-SPEC', 'unit-tests.md').default()
 do_test(smtlib_testdriver, 't/test.smt').alias('smt-test')

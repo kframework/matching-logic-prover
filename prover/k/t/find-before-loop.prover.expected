@@ -10,14 +10,14 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( find-list ( variable ( "H0" ) , variable ( "X" ) , variable ( "F0" ) , .Patterns ) , \equals ( variable ( "X" ) , variable ( "OLDX" ) ) , \equals ( variable ( "TMP" ) , 0 ) , .Patterns ) , \and ( disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , \equals ( variable ( "OLDX" ) , variable ( "X" ) ) , \equals ( variable ( "F1" ) , emptyset ) , .Patterns ) )
+      \implies ( \and ( find-list ( variable ( "H0" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F0" ) { Set } , .Patterns ) , \equals ( variable ( "X" ) { Int } , variable ( "OLDX" ) { Int } ) , \equals ( variable ( "TMP" ) { Int } , 0 ) , .Patterns ) , \and ( disjoint ( variable ( "F1" ) { Set } , variable ( "F2" ) { Set } ) , \not ( isMember ( variable ( "DATA" ) { Int } , variable ( "F1" ) { Set } ) ) , \equals ( variable ( "OLDX" ) { Int } , variable ( "X" ) { Int } ) , \equals ( variable ( "F1" ) { Set } , emptyset ) , .Patterns ) )
     </k>
     <strategy>
       success
     </strategy>
     <trace>
          direct-proof
-      ~> right-unfold-oneBody ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , \and ( \equals ( variable ( "OLDX" ) , variable ( "X" ) ) , \equals ( variable ( "F1" ) , emptyset ) , .Patterns ) )
+      ~> right-unfold-oneBody ( find-list-seg ( variable ( "H0" ) { ArrayIntInt } , variable ( "OLDX" ) { Int } , variable ( "X" ) { Int } , variable ( "F1" ) { Set } , .Patterns ) , \and ( \equals ( variable ( "OLDX" ) { Int } , variable ( "X" ) { Int } ) , \equals ( variable ( "F1" ) { Set } , emptyset ) , .Patterns ) )
     </trace>
   </goal>
 </prover>

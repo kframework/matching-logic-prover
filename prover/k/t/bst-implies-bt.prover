@@ -1,7 +1,13 @@
-claim \implies( \and( bst(variable("H"), variable("X"), variable("F"), variable("MIN"), variable("MAX"), .Patterns)
+claim \implies( \and( bst( variable("H") { ArrayIntInt }
+                         , variable("X") { Int }
+                         , variable("F") { Set }
+                         , variable("MIN") { Int }
+                         , variable("MAX") { Int }
+                         , .Patterns
+                         )
                     , .Patterns
                     )
-              , \and( bt( variable("H"), variable("X"), variable("F"), .Patterns), .Patterns )
+              , \and( bt( variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { Set }, .Patterns), .Patterns )
               )
 strategy search-bound(5)
 

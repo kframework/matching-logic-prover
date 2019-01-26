@@ -8,6 +8,7 @@ endmodule
 
 module SMTLIB2
   imports INT-SYNTAX
+  imports BOOL-SYNTAX
   imports STRING
 
   syntax SMTLIB2QualIdentifier ::= SMTLIB2Symbol
@@ -30,18 +31,18 @@ These are defined in the theories:
                          | "*"     [token]
                          | "+"     [token]
                          | "^"     [token]
-                         | "true"  [token]
-                         | "false" [token]
                          | "not"   [token]
                          | "or"    [token]
+                         | Bool
 ```
 
 Variables and Sorts:
 
 ```k
   syntax SMTLIB2Symbol ::= String
-  syntax SMTLIB2Sort ::= "Int"  [token]
-                       | "Bool" [token]
+  syntax SMTLIB2Sort ::= "Int"
+                       | "Bool"
+                       | "(" "Array" SMTLIB2Sort SMTLIB2Sort ")" 
 ```
 
 Concatenation:
@@ -56,11 +57,10 @@ Concatenation:
 Serialize to String:
 
 ```k
+  syntax String ::= SMTLIB2CommandToString(SMTLIB2Command)   [function]
+  syntax String ::= SMTLIB2ScriptToString(SMTLIB2Script)     [function]
+
   syntax String ::= SMTLIB2TermToString(SMTLIB2Term)         [function]
-                  | SMTLIB2SortToString(SMTLIB2Sort)         [function, hook(STRING.token2string)]
-                  | SMTLIB2SymbolToString(SMTLIB2Symbol)     [function, hook(STRING.token2string)]
-                  | SMTLIB2CommandToString(SMTLIB2Command)   [function]
-                  | SMTLIB2ScriptToString(SMTLIB2Script)     [function]
   rule SMTLIB2TermToString( I:Int ) => Int2String(I)
   rule SMTLIB2TermToString( Op:SMTLIB2Symbol ) => SMTLIB2SymbolToString( Op )
   rule SMTLIB2TermToString( ( ID:SMTLIB2QualIdentifier T1 ) )
@@ -68,7 +68,16 @@ Serialize to String:
   rule SMTLIB2TermToString( ( ID:SMTLIB2QualIdentifier T1 T2 ) )
     => "(" +String SMTLIB2TermToString(ID) +String " " +String SMTLIB2TermToString(T1) +String " " +String SMTLIB2TermToString(T2) +String ")"
 
+  syntax String ::= SMTLIB2SortToString(SMTLIB2Sort)         [function]
+  rule SMTLIB2SortToString( Int ) => "Int"
+  rule SMTLIB2SortToString( Bool ) => "Bool"
+  rule SMTLIB2SortToString( ( Array S1 S2 ) )
+    => "( Array " +String SMTLIB2SortToString(S1) +String " " +String SMTLIB2SortToString(S2) +String " )"
+
+  syntax String ::= SMTLIB2SymbolToString(SMTLIB2Symbol)     [function, hook(STRING.token2string)]
   rule SMTLIB2SymbolToString( S:String ) => S
+  rule SMTLIB2SymbolToString( true ) => "true"
+  rule SMTLIB2SymbolToString( false ) => "false"
 
   rule SMTLIB2CommandToString( ( declare-const SYMBOL SORT ) )
     => "( declare-const " +String SMTLIB2SymbolToString(SYMBOL) +String " " +String SMTLIB2SortToString(SORT) +String ")"

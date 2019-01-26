@@ -15,11 +15,18 @@ of kore:
 ```k
 module KORE-SUGAR
   imports DOMAINS-SYNTAX
-  syntax Variable ::= variable(String)
-                    | variable(String, Int) // Fresh Variables:
-                                            // For easy debugging we allow variables to have names.
-                                            // The `Int` can be used for generating fresh-variables.
+  syntax Sort ::= "Bool" | "Int" | "ArrayIntInt" | "Set"
+```
+
+We allow two "varieties" of variables: the first, identified by a String, is for use in defining claims;
+the second, identified by a String and an Int subscript is to be used for generating fresh variables.
+*The second variety must be used only in this scenario*.
+
+```k
+  syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
+                    | "variable" "(" String "," Int ")" "{" Sort "}"
   syntax KVariable ::= Variable
+
   syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
                          | Variable
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
@@ -39,7 +46,7 @@ module KORE-SUGAR
                         | "gt"     "(" BasicPattern "," BasicPattern ")" // Int Int
 
                         // Array{Int, Int}
-                        | "select" "(" BasicPattern "," BasicPattern ")"        // Array, Int
+                        | "select" "(" BasicPattern "," BasicPattern ")"        // ArrayIntInt, Int
 
                         // Set{Int}
                         | "union"         "(" BasicPattern "," BasicPattern ")" // Set, Set
@@ -221,11 +228,11 @@ and values, passed to K's substitute.
 
 ```k
   syntax Map ::= makeFreshSubstitution(BasicPatterns) [function] // Variables
-  rule makeFreshSubstitution(variable(S), REST)
-    => variable(S) |-> variable(S, !I)
+  rule makeFreshSubstitution(variable(N) { SORT }, REST)
+    => variable(N) { SORT } |-> variable(N, !I) { SORT }
        makeFreshSubstitution(REST)
-  rule makeFreshSubstitution(variable(S, J), REST)
-    => variable(S, J) |-> variable(S, !I)
+  rule makeFreshSubstitution(variable(N, J) { SORT }, REST)
+    => variable(N, J) { SORT } |-> variable(N, !I) { SORT }
        makeFreshSubstitution(REST)
   rule makeFreshSubstitution(.Patterns)
     => .Map
@@ -843,33 +850,90 @@ Temp: needed by `lsegleft -> lsegright`
 /* find */
 
   rule checkValid(
-         \implies ( \and ( find-list ( H0 ,  X ,  F0 , .Patterns ) 
-                         , \equals (  X ,  OLDX ) 
-                         , \equals (  TMP , 0 ) 
-                         , .Patterns ) 
-                  , \and ( disjoint (  F1 ,  F2 ) 
-                         , \not ( isMember (  DATA ,  F1 ) ) 
-                         , \equals (  OLDX ,  X ) 
-                         , \equals (  F1 , emptyset ) 
-                         , .Patterns ) 
+         \implies ( \and ( find-list ( H0 ,  X ,  F0 , .Patterns )
+                         , \equals (  X ,  OLDX )
+                         , \equals (  TMP , 0 )
+                         , .Patterns )
+                  , \and ( disjoint (  F1 ,  F2 )
+                         , \not ( isMember (  DATA ,  F1 ) )
+                         , \equals (  OLDX ,  X )
+                         , \equals (  F1 , emptyset )
+                         , .Patterns )
                   )) => true:Bool
   requires (F1, F2, DATA, .Patterns) notOccurFree (H0, X, F0, X, OLDX, TMP, .Patterns)
 
   /* needed in find-in-loop */
 
   rule checkValid(
-\implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , gt ( variable ( "X" ) , 0 ) , gt ( variable ( "X" ) , variable ( "DATA" ) ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) , \equals ( variable ( "X" ) , 0 ) , \equals ( variable ( "F2" ) , emptyset ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
-  ) => true:Bool
+            \implies ( \and ( find-list-seg ( H0 , OLDX , X , F1 , .Patterns )
+                            , disjoint ( F1 , F2 )
+                            , \not ( isMember ( DATA , F1 ) )
+                            , gt ( X , 0 )
+                            , gt ( X , DATA )
+                            , \equals ( X2 , select ( H0 , plus ( X , 1 ) ) )
+                            , \equals ( F3 , add ( F1 , X ) )
+                            , \equals ( F4 , del ( F2 , X ) )
+                            , \equals ( X , 0 )
+                            , \equals ( F2 , emptyset )
+                            , .Patterns )
+                     , \and ( find-list ( H0 , X2 , F4 , .Patterns )
+                            , disjoint ( F3 , F4 )
+                            , \not ( isMember ( DATA , F3 ) )
+                            , find-list-seg ( H0 , OLDX , Y_2 , F_1 , .Patterns )
+                            , gt ( Y_2 , 0 )
+                            , \equals ( X2 , select ( H0 , plus ( Y_2 , 1 ) ) )
+                            , \equals ( F3 , add ( F_1 , Y_2 ) )
+                            , \not ( isMember ( Y_2 , F_1 ) )
+                            , .Patterns )
+                     )
+            )
+        => true:Bool
+    requires removeDuplicates(DATA, F_1, F1, F2, F3, F4, H0, OLDX, X, X2, Y_2, .Patterns)
+         ==K                 (DATA, F_1, F1, F2, F3, F4, H0, OLDX, X, X2, Y_2, .Patterns)
 
   rule checkValid(
-\implies ( \and ( find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "X" ) , variable ( "F1" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F1" ) ) ) , gt ( variable ( "X" ) , 0 ) , gt ( variable ( "X" ) , variable ( "DATA" ) ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F1" ) , variable ( "X" ) ) ) , \equals ( variable ( "F4" ) , del ( variable ( "F2" ) , variable ( "X" ) ) ) , find-list ( variable ( "H0" ) , variable ( "X" , 4 ) , variable ( "F" , 3 ) , .Patterns ) , gt ( variable ( "X" ) , 0 ) , \equals ( select ( variable ( "H0" ) , plus ( variable ( "X" ) , 1 ) ) , variable ( "X" , 4 ) ) , \equals ( variable ( "F2" ) , add ( variable ( "F" , 3 ) , variable ( "X" ) ) ) , \not ( isMember ( variable ( "X" ) , variable ( "F" , 3 ) ) ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "X2" ) , variable ( "F4" ) , .Patterns ) , disjoint ( variable ( "F3" ) , variable ( "F4" ) ) , \not ( isMember ( variable ( "DATA" ) , variable ( "F3" ) ) ) , find-list-seg ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "Y" , 2 ) , variable ( "F" , 1 ) , .Patterns ) , gt ( variable ( "Y" , 2 ) , 0 ) , \equals ( variable ( "X2" ) , select ( variable ( "H0" ) , plus ( variable ( "Y" , 2 ) , 1 ) ) ) , \equals ( variable ( "F3" ) , add ( variable ( "F" , 1 ) , variable ( "Y" , 2 ) ) ) , \not ( isMember ( variable ( "Y" , 2 ) , variable ( "F" , 1 ) ) ) , .Patterns ) )
-  ) => true:Bool  
+            \implies ( \and ( find-list-seg ( H0 , OLDX , X , F1 , .Patterns )
+                            , disjoint ( F1 , F2 )
+                            , \not ( isMember ( DATA , F1 ) )
+                            , gt ( X , 0 )
+                            , gt ( X , DATA )
+                            , \equals ( X2 , select ( H0 , plus ( X , 1 ) ) )
+                            , \equals ( F3 , add ( F1 , X ) )
+                            , \equals ( F4 , del ( F2 , X ) )
+                            , find-list ( H0 , X_4 , F_3 , .Patterns )
+                            , gt ( X , 0 )
+                            , \equals ( select ( H0 , plus ( X , 1 ) ) , X_4 )
+                            , \equals ( F2 , add ( F_3 , X ) )
+                            , \not ( isMember ( X , F_3 ) )
+                            , .Patterns )
+                     , \and ( find-list ( H0 , X2 , F4 , .Patterns )
+                            , disjoint ( F3 , F4 )
+                            , \not ( isMember ( DATA , F3 ) )
+                            , find-list-seg ( H0 , OLDX , Y_2 , F_1 , .Patterns )
+                            , gt ( Y_2 , 0 )
+                            , \equals ( X2 , select ( H0 , plus ( Y_2 , 1 ) ) )
+                            , \equals ( F3 , add ( F_1 , Y_2 ) )
+                            , \not ( isMember ( Y_2 , F_1 ) )
+                            , .Patterns )
+                     )
+              ) => true:Bool
+    requires removeDuplicates(DATA, F_1, F_3, F1, F2, F3, F4, H0, OLDX, X, X_4, X2, Y_2, .Patterns)
+         ==K                 (DATA, F_1, F_3, F1, F2, F3, F4, H0, OLDX, X, X_4, X2, Y_2, .Patterns)
 
   /* used in find-after-loop1 */
   rule checkValid(
-\implies ( \and ( find-list ( variable ( "H0" ) , variable ( "X" ) , variable ( "F2" ) , .Patterns ) , disjoint ( variable ( "F1" ) , variable ( "F2" ) ) , \equals ( variable ( "F3" ) , union ( variable ( "F1" ) , variable ( "F2" ) ) ) , \equals ( variable ( "OLDX" ) , variable ( "X" ) ) , \equals ( variable ( "F1" ) , emptyset ) , .Patterns ) , \and ( find-list ( variable ( "H0" ) , variable ( "OLDX" ) , variable ( "F3" ) , .Patterns ) , .Patterns ) )
-  ) => true:Bool  
-  
+            \implies ( \and ( find-list ( H0 , X , F2 , .Patterns )
+                            , disjoint ( F1 , F2 )
+                            , \equals ( F3 , union ( F1 , F2 ) )
+                            , \equals ( OLDX , X )
+                            , \equals ( F1 , emptyset )
+                            , .Patterns )
+                     , \and ( find-list ( H0 , OLDX , F3 , .Patterns )
+                            , .Patterns ) )
+            ) => true:Bool
+    requires removeDuplicates(F1, F2, F3, H0, OLDX, X, .Patterns)
+         ==K                 (F1, F2, F3, H0, OLDX, X, .Patterns)
+
 ```
 
 ### Left Unfold (incomplete)
@@ -884,7 +948,7 @@ Temp: needed by `lsegleft -> lsegright`
                   ...
        </strategy>
   rule <strategy> left-unfold-eachBody(LRP, \or(.ConjunctiveForms))
-               => success 
+               => success
                   ...
        </strategy>
 
@@ -909,7 +973,7 @@ The resulting goals are equivalent to the initial goal.
                => left-unfold-Nth-eachLRP(M, getPredicates(LHS))
                   ...
        </strategy>
-       <k> \implies(\and(LHS), RHS) </k> 
+       <k> \implies(\and(LHS), RHS) </k>
 
   rule <strategy> left-unfold-Nth-eachLRP(M, PS)
                => fail
@@ -1228,20 +1292,20 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , .Patterns
                    )
              , \and( lsegleft( H
-                             , variable("X", !I)
+                             , variable("X", !I) { Int }
                              , Y
-                             , variable("F", !J)
+                             , variable("F", !J) { Set }
                              , .Patterns
                              )
                    , \not(\equals(X, Y))
                    , gt(X, 0)
                    , \equals( select(H, X)
-                            , variable("X", !I)
+                            , variable("X", !I) { Int }
                             )
                    , \equals( F
-                            , union(variable("F", !J) , singleton(X))
+                            , union(variable("F", !J) { Set } , singleton(X))
                             )
-                   , disjoint(variable("F", !J) , singleton(X))
+                   , disjoint(variable("F", !J) { Set } , singleton(X))
                    , .Patterns
                    )
              )
@@ -1254,20 +1318,20 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              , \and( lsegright( H
                               , X
-                              , variable("Y", !I)
-                              , variable("F", !J)
+                              , variable("Y", !I) { Int }
+                              , variable("F", !J) { Set }
                               , .Patterns
                               )
                    , \not(\equals(X, Y))
-                   , gt(variable("Y", !I), 0)
-                   , \equals(Y, select(H, variable("Y", !I)))
+                   , gt(variable("Y", !I) { Int }, 0)
+                   , \equals(Y, select(H, variable("Y", !I) { Int }))
                    , \equals( F
-                            , union( variable("F", !J)
-                                   , singleton(variable("Y", !I))
+                            , union( variable("F", !J) { Set }
+                                   , singleton(variable("Y", !I) { Int })
                                    )
                             )
-                   , disjoint( variable("F", !J)
-                             , singleton(variable("Y", !I))
+                   , disjoint( variable("F", !J) { Set }
+                             , singleton(variable("Y", !I) { Int })
                              )
                    , .Patterns
                    )
@@ -1281,11 +1345,11 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( list(H,variable("X", !I),variable("F", !J),.Patterns)
+             , \and( list(H,variable("X", !I) { Int },variable("F", !J) { Set },.Patterns)
                    , gt(X,0)
-                   , \equals(select(H, X) , variable("X", !I))
-                   , \equals(F , union(variable("F", !J), singleton(X)))
-                   , disjoint(variable("F", !J), singleton(X))
+                   , \equals(select(H, X) , variable("X", !I) { Int })
+                   , \equals(F , union(variable("F", !J) { Set }, singleton(X)))
+                   , disjoint(variable("F", !J) { Set }, singleton(X))
                    , .Patterns
                    )
              )
@@ -1295,13 +1359,13 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 , \equals(F, emptyset)
                 , .Patterns
                 )
-          , \and( sortedlist(H, variable("X", !I), variable("F", !J), MIN, .Patterns)
+          , \and( sortedlist(H, variable("X", !I) { Int }, variable("F", !J) { Set }, MIN, .Patterns)
                 , gt(X, 0)
-                , \equals(select(H, X) , variable("X", !I))
-                , \equals(F , union(variable("F", !J), singleton(X)))
-                , disjoint(variable("F", !J), singleton(X))
-                , \equals(variable("VAL", !K) , select(H, plus(X, 1)))
-                , gt(variable("VAL", !K), MIN)
+                , \equals(select(H, X) , variable("X", !I) { Int })
+                , \equals(F , union(variable("F", !J) { Set }, singleton(X)))
+                , disjoint(variable("F", !J) { Set }, singleton(X))
+                , \equals(variable("VAL", !K) { Int } , select(H, plus(X, 1)))
+                , gt(variable("VAL", !K) { Int }, MIN)
                 , .Patterns
                 )
           )
@@ -1312,19 +1376,19 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( bt(H, variable("X", !I1), variable("F", !J1), .Patterns)
-                   , bt(H, variable("X", !I2), variable("F", !J2), .Patterns)
+             , \and( bt(H, variable("X", !I1) { Int }, variable("F", !J1) { Set }, .Patterns)
+                   , bt(H, variable("X", !I2) { Int }, variable("F", !J2) { Set }, .Patterns)
                    , gt(X,0)
-                   , \equals( variable("X", !I1)
+                   , \equals( variable("X", !I1) { Int }
                             , select(H, plus(X, 1)))
-                   , \equals( variable("X", !I2)
+                   , \equals( variable("X", !I2) { Int }
                             , select(H, plus(X, 2)))
-                   , \not(isMember(X, variable("F", !J1)))
-                   , \not(isMember(X, variable("F", !J2)))
+                   , \not(isMember(X, variable("F", !J1) { Set }))
+                   , \not(isMember(X, variable("F", !J2) { Set }))
                    , \equals(F, union( singleton(X)
-                                     , union( variable("F", !J1)
-                                            , variable("F", !J2))))
-                   , disjoint(variable("F", !J1), variable("F", !J2))
+                                     , union( variable("F", !J1) { Set }
+                                            , variable("F", !J2) { Set })))
+                   , disjoint(variable("F", !J1) { Set }, variable("F", !J2) { Set })
                    , .Patterns
                    )
               )
@@ -1344,32 +1408,32 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , .Patterns
                    )
              , \and( bst( H
-                        , variable("X",   !I1)
-                        , variable("F",   !J1)
-                        , variable("MIN", !K1)
-                        , variable("MAX", !L1)
+                        , variable("X",   !I1) { Int }
+                        , variable("F",   !J1) { Set }
+                        , variable("MIN", !K1) { Int }
+                        , variable("MAX", !L1) { Int }
                         , .Patterns
                         )
                    , bst( H
-                        , variable("X",   !I2)
-                        , variable("F",   !J2)
-                        , variable("MIN", !K2)
-                        , variable("MAX", !L2)
+                        , variable("X",   !I2) { Int }
+                        , variable("F",   !J2) { Set }
+                        , variable("MIN", !K2) { Int }
+                        , variable("MAX", !L2) { Int }
                         , .Patterns
                         )
                    , gt(X,0)
-                   , \equals(select(H, plus(X, 1)), variable("X", !I1))
-                   , \equals(select(H, plus(X, 2)), variable("X", !I2))
-                   , gt(X, variable("MAX", !K1))
-                   , gt(variable("MIN", !L2), X)
-                   , \equals(variable("MIN", !L1), MIN)
-                   , \equals(variable("MAX", !K2), MAX)
-                   , \not(isMember(X, variable("F", !J1)))
-                   , \not(isMember(X, variable("F", !J2)))
+                   , \equals(select(H, plus(X, 1)), variable("X", !I1) { Int })
+                   , \equals(select(H, plus(X, 2)), variable("X", !I2) { Int })
+                   , gt(X, variable("MAX", !K1) { Int })
+                   , gt(variable("MIN", !L2) { Int }, X)
+                   , \equals(variable("MIN", !L1) { Int }, MIN)
+                   , \equals(variable("MAX", !K2) { Int }, MAX)
+                   , \not(isMember(X, variable("F", !J1) { Set }))
+                   , \not(isMember(X, variable("F", !J2) { Set }))
                    , \equals(F, union( singleton(X)
-                                     , union( variable("F", !J1)
-                                            , variable("F", !J2))))
-                   , disjoint(variable("F", !J1), variable("F", !J2))
+                                     , union( variable("F", !J1) { Set }
+                                            , variable("F", !J2) { Set })))
+                   , disjoint(variable("F", !J1) { Set }, variable("F", !J2) { Set })
                    , .Patterns
                    )
               )
@@ -1384,19 +1448,19 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              , \and( find-list-seg( H
                                   , X
-                                  , variable("Y", !I)
-                                  , variable("F", !J)
+                                  , variable("Y", !I) { Int }
+                                  , variable("F", !J) { Set }
                                   , .Patterns
                                   )
                    // , \not(\equals(X, Y))
-                   , gt(variable("Y", !I), 0)
-                   , \equals(Y, select(H, plus(variable("Y", !I), 1)))
+                   , gt(variable("Y", !I) { Int }, 0)
+                   , \equals(Y, select(H, plus(variable("Y", !I) { Int }, 1)))
                    , \equals( F
-                            , add ( variable("F", !J)
-                                  , variable("Y", !I)
+                            , add ( variable("F", !J) { Set }
+                                  , variable("Y", !I) { Int }
                                   )
                             )
-                   , \not(isMember(variable("Y", !I), variable("F", !J)))
+                   , \not(isMember(variable("Y", !I) { Int }, variable("F", !J) { Set }))
                    , .Patterns
                    )
              )
@@ -1407,11 +1471,11 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( find-list(H,variable("X", !I),variable("F", !J),.Patterns)
+             , \and( find-list(H, variable("X", !I) { Int }, variable("F", !J) { Set },.Patterns)
                    , gt(X,0)
-                   , \equals(select(H, plus(X, 1)), variable("X", !I))
-                   , \equals(F, add( variable("F", !J), X))
-                   , \not(isMember(X, variable("F", !J)))
+                   , \equals(select(H, plus(X, 1)), variable("X", !I) { Int })
+                   , \equals(F, add( variable("F", !J) { Set }, X))
+                   , \not(isMember(X, variable("F", !J) { Set }))
                    , .Patterns
                    )
              )
@@ -1614,9 +1678,10 @@ Implications of the form
   syntax SMTLIB2Script ::= assertConjunction(BasicPatterns) [function]
   rule assertConjunction(BP, BPs) => ( assert BasicPattern2SMTLIB2Term(BP) ) assertConjunction(BPs)
   rule assertConjunction(.Patterns) => .SMTLIB2Script
-  
+
   syntax SMTLIB2Script ::= refuteConjunction(BasicPatterns) [function]
   rule refuteConjunction(BPS) => ( assert refuteConjunctionBuildDisjunction(BPS) ) .SMTLIB2Script
+
   syntax SMTLIB2Term ::= refuteConjunctionBuildDisjunction(BasicPatterns) [function]
   rule refuteConjunctionBuildDisjunction(BP, BPs)
     => (or ( not BasicPattern2SMTLIB2Term(BP) )
@@ -1628,11 +1693,18 @@ Implications of the form
   syntax SMTLIB2Term ::= BasicPattern2SMTLIB2Term(BasicPattern) [function]
   rule BasicPattern2SMTLIB2Term(\equals(LHS, RHS))
     => ( = BasicPattern2SMTLIB2Term(LHS) BasicPattern2SMTLIB2Term(RHS) )
-  rule BasicPattern2SMTLIB2Term(variable(S))
+  rule BasicPattern2SMTLIB2Term(variable(S) { SORT })
     => S
+
+  syntax SMTLIB2Sort ::= MLSort2SMTLIB2Sort(Sort) [function]
+  rule MLSort2SMTLIB2Sort(Int:Sort) => Int:SMTLIB2Sort
+  rule MLSort2SMTLIB2Sort(Bool:Sort) => Bool:SMTLIB2Sort
+  rule MLSort2SMTLIB2Sort(ArrayIntInt) => ( Array Int Int )
 
   syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
   rule declareVariables( .Patterns ) => .SMTLIB2Script
-  rule declareVariables( variable(Name:String), Ps ) => (declare-const Name Int) declareVariables(Ps)
+  rule declareVariables( variable(Name:String) { SORT } , Ps )
+    => ( declare-const Name MLSort2SMTLIB2Sort(SORT) )
+       declareVariables(Ps)
 endmodule
 ```

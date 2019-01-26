@@ -2,7 +2,7 @@ Here, we write unit tests as reachability claims.
 
 ```k
 module UNIT-TESTS-SPEC
-  imports MATCHING-LOGIC-PROVER
+  imports SMTLIB2-TEST-DRIVER
 ```
 
 CheckSAT

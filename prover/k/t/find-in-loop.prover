@@ -1,27 +1,27 @@
 claim 
-\implies( \and( find-list-seg( variable("H0")
-                             , variable("OLDX")
-                             , variable("X")
-                             , variable("F1")
+\implies( \and( find-list-seg( variable("H0") { ArrayIntInt }
+                             , variable("OLDX") { Int }
+                             , variable("X") { Int }
+                             , variable("F1") { Set }
                              , .Patterns)
-              , find-list(variable("H0"), variable("X"), variable("F2"), .Patterns)
-              , disjoint(variable("F1"), variable("F2"))
-              , \not(isMember(variable("DATA"), variable("F1")))
-              , gt(variable("X"), 0)
-              , gt(variable("X"), variable("DATA"))
-              , \equals(variable("X2"), select(variable("H0"), plus(variable("X"), 1)))
-              , \equals(variable("F3"), add(variable("F1"), variable("X")))
-              , \equals(variable("F4"), del(variable("F2"), variable("X")))
+              , find-list(variable("H0") { ArrayIntInt }, variable("X") { Int }, variable("F2") { Set }, .Patterns)
+              , disjoint(variable("F1") { Set }, variable("F2") { Set })
+              , \not(isMember(variable("DATA") { Int }, variable("F1") { Set }))
+              , gt(variable("X") { Int }, 0)
+              , gt(variable("X") { Int }, variable("DATA") { Int })
+              , \equals(variable("X2") { Int }, select(variable("H0") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
+              , \equals(variable("F3") { Set }, add(variable("F1") { Set }, variable("X") { Int }))
+              , \equals(variable("F4") { Set }, del(variable("F2") { Set }, variable("X") { Int }))
               , .Patterns
               )
-        , \and( find-list-seg( variable("H0")
-                             , variable("OLDX")
-                             , variable("X2")
-                             , variable("F3")
+        , \and( find-list-seg( variable("H0") { ArrayIntInt }
+                             , variable("OLDX") { Int }
+                             , variable("X2") { Int }
+                             , variable("F3") { Set }
                              , .Patterns)
-              , find-list(variable("H0"), variable("X2"), variable("F4"), .Patterns)
-              , disjoint(variable("F3"), variable("F4"))
-              , \not(isMember(variable("DATA"), variable("F3")))
+              , find-list(variable("H0") { ArrayIntInt }, variable("X2") { Int }, variable("F4") { Set }, .Patterns)
+              , disjoint(variable("F3") { Set }, variable("F4") { Set })
+              , \not(isMember(variable("DATA") { Int }, variable("F3") { Set }))
               , .Patterns )
         )
 
