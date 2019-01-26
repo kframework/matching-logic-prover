@@ -126,7 +126,9 @@ module KORE-HELPERS
     requires BP1 in BP2s
   rule .Patterns -BasicPatterns BP2s => .Patterns
   rule BP1s -BasicPatterns .Patterns => BP1s
+```
 
+```k
   syntax BasicPatterns ::= getFreeVariables(Patterns) [function]
   rule getFreeVariables(.Patterns) => .Patterns
   rule getFreeVariables(P, Ps)
@@ -135,23 +137,15 @@ module KORE-HELPERS
     requires Ps =/=K .Patterns
   rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
   rule getFreeVariables(P:Predicate(ARGS) , .Patterns)   => getFreeVariables(ARGS)
+  rule getFreeVariables(\implies(LHS, RHS), .Patterns)
+    => getFreeVariables(LHS, .Patterns) ++BasicPatterns getFreeVariables(RHS, .Patterns)
   rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
-
   rule getFreeVariables(\or(CF, CFs),  .Patterns)
     =>                 getFreeVariables(CF, .Patterns)
        ++BasicPatterns getFreeVariables(\or(CFs), .Patterns)
   rule getFreeVariables(\or(.ConjunctiveForms), .Patterns)
     => .Patterns
 
-  syntax Bool ::= BasicPatterns "notOccurFree" Patterns [function]
-  rule .Patterns notOccurFree Qs => true
-  rule (X:Variable, Ps:BasicPatterns) notOccurFree Qs
-    =>         notBool(X in getFreeVariables(Qs))
-       andBool (Ps notOccurFree Qs)
-    requires Ps =/=K .Patterns
-```
-
-```k
   rule getFreeVariables(N:Int, .Patterns) => .Patterns
   rule getFreeVariables(emptyset, .Patterns) => .Patterns
   rule getFreeVariables(\top(), .Patterns) => .Patterns
@@ -182,6 +176,16 @@ module KORE-HELPERS
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(del(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
+```
+
+```k
+  syntax Bool ::= BasicPatterns "notOccurFree" Patterns [function]
+  rule .Patterns notOccurFree Qs => true
+  rule (X:Variable, .Patterns) notOccurFree Qs
+    => notBool(X in getFreeVariables(Qs))
+  rule (P:BasicPattern, Ps:BasicPatterns) notOccurFree Qs
+    => ((P, .Patterns) notOccurFree Qs) andBool (Ps notOccurFree Qs)
+    requires Ps =/=K .Patterns
 ```
 
 Returns a list of terms that are the application of the `Predicate`.
@@ -738,7 +742,6 @@ Temp: needed by `lsegleft -> lsegright`
     requires removeDuplicates(F, F2, G, H, K, K9, X, X3, Y, .Patterns)
         ==K                  (F, F2, G, H, K, K9, X, X3, Y, .Patterns)
 
-
   rule checkValid(
       \implies ( \and ( list ( H , Y , G , .Patterns )
                       , \equals ( K , union ( F , G ) )
@@ -788,7 +791,6 @@ Temp: needed by `lsegleft -> lsegright`
                  ) => true:Bool
     requires removeDuplicates(F, F27, F28, H, MAX, MIN, X, X26, X29, .Patterns)
          ==K                 (F, F27, F28, H, MAX, MIN, X, X26, X29, .Patterns)
-
 
   rule checkValid(
         \implies ( \and ( gt ( X , 0 )
@@ -1595,11 +1597,42 @@ endmodule
 module SMTLIB2-TEST-DRIVER
   imports SMTLIB2
   imports KORE-SUGAR
+  imports KORE-HELPERS
 
-  configuration <k> $PGM </k>
+  configuration <k> $PGM:K </k>
+```
 
-  syntax SMTLIB2Script ::= buildScriptDecl(BasicPatterns) [function]
-  rule buildScriptDecl( .Patterns ) => .SMTLIB2Script
-  rule buildScriptDecl( variable(Name:String), Ps ) => (declare-const Name Int) buildScriptDecl(Ps)
+Implications of the form
+
+```k
+  syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
+  rule ML2SMTLIB(\implies(\and(LHS), \and(RHS)))
+    => declareVariables(removeDuplicates(getFreeVariables(LHS))) ++SMTLIB2Script
+       assertConjunction(LHS) ++SMTLIB2Script
+       refuteConjunction(RHS)
+
+  syntax SMTLIB2Script ::= assertConjunction(BasicPatterns) [function]
+  rule assertConjunction(BP, BPs) => ( assert BasicPattern2SMTLIB2Term(BP) ) assertConjunction(BPs)
+  rule assertConjunction(.Patterns) => .SMTLIB2Script
+  
+  syntax SMTLIB2Script ::= refuteConjunction(BasicPatterns) [function]
+  rule refuteConjunction(BPS) => ( assert refuteConjunctionBuildDisjunction(BPS) ) .SMTLIB2Script
+  syntax SMTLIB2Term ::= refuteConjunctionBuildDisjunction(BasicPatterns) [function]
+  rule refuteConjunctionBuildDisjunction(BP, BPs)
+    => (or ( not BasicPattern2SMTLIB2Term(BP) )
+           refuteConjunctionBuildDisjunction(BPs)
+       )
+  rule refuteConjunctionBuildDisjunction(.Patterns)
+    => true:SMTLIB2Symbol
+
+  syntax SMTLIB2Term ::= BasicPattern2SMTLIB2Term(BasicPattern) [function]
+  rule BasicPattern2SMTLIB2Term(\equals(LHS, RHS))
+    => ( = BasicPattern2SMTLIB2Term(LHS) BasicPattern2SMTLIB2Term(RHS) )
+  rule BasicPattern2SMTLIB2Term(variable(S))
+    => S
+
+  syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
+  rule declareVariables( .Patterns ) => .SMTLIB2Script
+  rule declareVariables( variable(Name:String), Ps ) => (declare-const Name Int) declareVariables(Ps)
 endmodule
 ```

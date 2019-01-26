@@ -33,6 +33,7 @@ These are defined in the theories:
                          | "true"  [token]
                          | "false" [token]
                          | "not"   [token]
+                         | "or"    [token]
 ```
 
 Variables and Sorts:
@@ -43,43 +44,40 @@ Variables and Sorts:
                        | "Bool" [token]
 ```
 
+Concatenation:
+
+```k
+  syntax SMTLIB2Script ::= SMTLIB2Script "++SMTLIB2Script" SMTLIB2Script [function, right]
+  rule (COMMAND SCRIPT1) ++SMTLIB2Script SCRIPT2
+    => COMMAND (SCRIPT1 ++SMTLIB2Script SCRIPT2)
+  rule .SMTLIB2Script ++SMTLIB2Script SCRIPT2 => SCRIPT2
+```
+
 Serialize to String:
 
 ```k
-  syntax String ::= SMTLIB2ToString(SMTLIB2Term)         [klabel(smtlib2_term_to_string), function]
-                  | SMTLIB2ToString(SMTLIB2Sort)         [klabel(smtlib2_sort_to_string), function, hook(STRING.token2string)]
-                  | SMTLIB2ToStringSymbol(SMTLIB2Symbol) [function, hook(STRING.token2string)]
-                  | SMTLIB2ToStringScript(SMTLIB2Script)  [klabel(smtlib2_script_to_string), function]
-  rule SMTLIB2ToString( I:Int ) => Int2String(I)
-  rule SMTLIB2ToString( Op:SMTLIB2Symbol ) => SMTLIB2ToStringSymbol( Op )
-  rule SMTLIB2ToStringSymbol( S:String ) => S
-  rule SMTLIB2ToString( ( ID:SMTLIB2QualIdentifier T1 ) )
-    =>         "("
-       +String SMTLIB2ToString(ID)
-       +String " "
-       +String SMTLIB2ToString(T1)
-       +String ")"
-  rule SMTLIB2ToString( ( ID:SMTLIB2QualIdentifier T1 T2 ) )
-    =>         "("
-       +String SMTLIB2ToString(ID)
-       +String " "
-       +String SMTLIB2ToString(T1)
-       +String " "
-       +String SMTLIB2ToString(T2)
-       +String ")"
-  rule SMTLIB2ToStringScript( ( declare-const SYMBOL SORT ) )
-    =>         "( declare-const "
-        +String SMTLIB2ToString(SYMBOL)
-        +String " "
-        +String SMTLIB2ToString(SORT  )
-        +String ")"
-  rule SMTLIB2ToStringScript( ( assert TERM ) )
-    =>         "( assert "
-        +String SMTLIB2ToString(TERM)
-        +String ")"
-  rule SMTLIB2ToStringScript( .SMTLIB2Script ) => ""
-  rule SMTLIB2ToStringScript( COMMAND SCRIPT )
-    => SMTLIB2ToStringScript( COMMAND ) +String "\n" +String SMTLIB2ToStringScript( SCRIPT )
+  syntax String ::= SMTLIB2TermToString(SMTLIB2Term)         [function]
+                  | SMTLIB2SortToString(SMTLIB2Sort)         [function, hook(STRING.token2string)]
+                  | SMTLIB2SymbolToString(SMTLIB2Symbol)     [function, hook(STRING.token2string)]
+                  | SMTLIB2CommandToString(SMTLIB2Command)   [function]
+                  | SMTLIB2ScriptToString(SMTLIB2Script)     [function]
+  rule SMTLIB2TermToString( I:Int ) => Int2String(I)
+  rule SMTLIB2TermToString( Op:SMTLIB2Symbol ) => SMTLIB2SymbolToString( Op )
+  rule SMTLIB2TermToString( ( ID:SMTLIB2QualIdentifier T1 ) )
+    => "(" +String SMTLIB2TermToString(ID) +String " " +String SMTLIB2TermToString(T1) +String ")"
+  rule SMTLIB2TermToString( ( ID:SMTLIB2QualIdentifier T1 T2 ) )
+    => "(" +String SMTLIB2TermToString(ID) +String " " +String SMTLIB2TermToString(T1) +String " " +String SMTLIB2TermToString(T2) +String ")"
+
+  rule SMTLIB2SymbolToString( S:String ) => S
+
+  rule SMTLIB2CommandToString( ( declare-const SYMBOL SORT ) )
+    => "( declare-const " +String SMTLIB2SymbolToString(SYMBOL) +String " " +String SMTLIB2SortToString(SORT) +String ")"
+  rule SMTLIB2CommandToString( ( assert TERM ) )
+    => "( assert " +String SMTLIB2TermToString(TERM) +String ")"
+
+  rule SMTLIB2ScriptToString( .SMTLIB2Script ) => ""
+  rule SMTLIB2ScriptToString( COMMAND SCRIPT )
+    => SMTLIB2CommandToString( COMMAND ) +String "\n" +String SMTLIB2ScriptToString( SCRIPT )
 
   syntax String ::= Z3CheckSAT(String) [function, hook(Z3.checkSAT)]
 endmodule
