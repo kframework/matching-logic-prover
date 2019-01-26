@@ -359,7 +359,6 @@ module MATCHING-LOGIC-PROVER-CORE
   imports MATCHING-LOGIC-PROVER-CORE-SYNTAX
   imports KORE-HELPERS
   imports SUBSTITUTION
-  imports SMTLIB2
 ```
 
 `Strategy`s can be sequentially composed via the `;` operator.
@@ -1589,13 +1588,21 @@ module MATCHING-LOGIC-PROVER
   imports MATCHING-LOGIC-PROVER-DRIVER
   imports MATCHING-LOGIC-PROVER-HORN-CLAUSE
   imports MATCHING-LOGIC-PROVER-LTL
+  imports SMTLIB2
 endmodule
 ```
 
 ```k
 module SMTLIB2-TEST-DRIVER
-  imports SMTLIB2
-  imports KORE-SUGAR
-  configuration <k> $PGM:Pattern </k>
+  imports MATCHING-LOGIC-PROVER
+  imports STRING
+  imports SMTLIB2-SYNTAX
+  
+  syntax SMTLIB2Script ::= buildScriptDecl(BasicPatterns) [function]
+  rule buildScriptDecl( .Patterns ) => .SMTLIB2Script
+  rule buildScriptDecl( variable(Name:String), Ps ) => (declare-const Name Int), buildScriptDecl(Ps)
+
+  
+  configuration <k> $PGM:String </k>
 endmodule
 ```

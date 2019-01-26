@@ -20,8 +20,7 @@ module SMTLIB2
   syntax SMTLIB2Sort
   syntax SMTLIB2Command ::= "(" "declare-const" SMTLIB2Symbol SMTLIB2Sort ")"
                           | "(" "assert"        SMTLIB2Term               ")"
-  syntax SMTLIB2Script ::= SMTLIB2Command
-                         | SMTLIB2Command SMTLIB2Script
+  syntax SMTLIB2Script ::= List{SMTLIB2Command, ","}
 ```
 
 These are defined in the theories:
@@ -39,9 +38,7 @@ These are defined in the theories:
 Variables and Sorts:
 
 ```k
-  syntax SMTLIB2Symbol ::= "a" [token]
-                         | "b" [token]
-                         | "n" [token]
+  syntax SMTLIB2Symbol ::= String
   syntax SMTLIB2Sort ::= "Int"  [token]
                        | "Bool" [token]
 ```
@@ -54,7 +51,8 @@ Serialize to String:
                   | SMTLIB2ToStringSymbol(SMTLIB2Symbol) [function, hook(STRING.token2string)]
                   | SMTLIB2ToString(SMTLIB2Script)  [klabel(smtlib2_script_to_string), function]
   rule SMTLIB2ToString( I:Int ) => Int2String(I)
-  rule SMTLIB2ToString( S:SMTLIB2Symbol ) => SMTLIB2ToStringSymbol(S)
+  rule SMTLIB2ToString( Op:SMTLIB2Symbol ) => SMTLIB2ToStringSymbol( Op )
+  rule SMTLIB2ToString( S:String ) => S
   rule SMTLIB2ToString( ( ID:SMTLIB2QualIdentifier T1 ) )
     =>         "("
        +String SMTLIB2ToString(ID)
@@ -79,8 +77,9 @@ Serialize to String:
     =>         "( assert "
         +String SMTLIB2ToString(TERM)
         +String ")"
-  rule SMTLIB2ToString( COMMAND SCRIPT )
-    => SMTLIB2ToString( COMMAND ) +String SMTLIB2ToString( SCRIPT )
+  rule SMTLIB2ToString( .SMTLIB2Script ) => ""
+  rule SMTLIB2ToString( COMMAND, SCRIPT )
+    => SMTLIB2ToString( COMMAND ) +String "\n" +String SMTLIB2ToString( SCRIPT )
 
   syntax String ::= Z3CheckSAT(String) [function, hook(Z3.checkSAT)]
 endmodule

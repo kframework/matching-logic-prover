@@ -85,7 +85,8 @@ lists = proj.source('lists.md') \
 # ==================
 
 smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
-                                      .variables(directory = proj.builddir('smt-testdriver'))
+                                      .variables(directory = proj.builddir('smt-testdriver')
+                                                 , flags = "--main-module SMTLIB2-TEST-DRIVER --syntax-module SMTLIB2-TEST-DRIVER") 
                                       .implicit(imported_k_files + [z3_target])
                                  )
 do_test(smtlib_testdriver, 't/test.smt').alias('smt-test')
