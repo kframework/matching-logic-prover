@@ -1359,7 +1359,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 , \equals(F, emptyset)
                 , .Patterns
                 )
-          , \and( sortedlist(H, variable("X", !I) { Int }, variable("F", !J) { Set }, MIN, .Patterns)
+          , \and( sortedlist(H, variable("X", !I) { Int }, variable("F", !J) { Set }, variable("VAL", !K) { Int }, .Patterns)
                 , gt(X, 0)
                 , \equals(select(H, X) , variable("X", !I) { Int })
                 , \equals(F , union(variable("F", !J) { Set }, singleton(X)))
