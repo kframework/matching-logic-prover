@@ -1,10 +1,18 @@
-Z3CheckSAT(SMTLIB2ScriptToString(
-    ML2SMTLIB(\implies( \and( \equals(variable("a") { Int } , variable("b") { Int } )
-                            , \equals(variable("c") { Int } , variable("b") { Int } )
-                            , .Patterns
-                            )
-                      , \and( \equals(variable("a") { Int } , variable("c") { Int } )
-                            , .Patterns
-                            )
-             )        )
-))
+SMTLIB2ScriptToString(
+    ML2SMTLIB( \implies ( \and ( \not ( \equals ( variable("X") { Int } , variable("Y") { Int } ) )
+                        , gt ( variable("X") { Int } , 0 )
+                        , \equals ( select ( variable("H") { ArrayIntInt } , variable("X") { Int } ) , variable("T") { Int } )
+                        , \equals ( variable("F") { Set } , union ( variable("F2") { Set } , singleton ( variable("X") { Int } ) ) )
+                        , disjoint ( variable("F2") { Set } , singleton ( variable("X") { Int } ) )
+                        , \equals ( variable("T") { Int } , variable("Y") { Int } )
+                        , \equals ( variable("F2") { Set } , emptyset )
+                        , .Patterns )
+                 , \and ( \not ( \equals ( variable("X") { Int } , variable("Y") { Int } ) )
+                        , \equals ( variable("Y") { Int } , select ( variable("H") { ArrayIntInt } , variable("Y2") { Int } ) )
+                        , \equals ( variable("F") { Set } , union ( variable("F1") { Set } , singleton ( variable("Y2") { Int } ) ) )
+                        , disjoint ( variable("F1") { Set } , singleton ( variable("Y2") { Int } ) )
+                        , \equals ( variable("X") { Int } , variable("Y2") { Int } )
+                        , \equals ( variable("F1") { Set } , emptyset )
+                        , .Patterns ) )
+             )
+)

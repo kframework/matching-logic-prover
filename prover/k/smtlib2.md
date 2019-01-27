@@ -27,13 +27,22 @@ module SMTLIB2
 These are defined in the theories:
 
 ```k
+  syntax SMTLIB2Symbol ::= "not"   [token]
+                         | "or"    [token]
+                         | Bool
   syntax SMTLIB2Symbol ::= "="     [token]
                          | "*"     [token]
                          | "+"     [token]
                          | "^"     [token]
-                         | "not"   [token]
-                         | "or"    [token]
-                         | Bool
+                         | ">"     [token]
+  syntax SMTLIB2Symbol ::= "emptySet"  [token]
+                         | "singleton" [token]
+                         | "union"     [token]
+                         | "inters"    [token]
+                         | "in"        [token]
+                         // Will need to be in SMT prelude
+                         | "disjoint"  [token]
+  syntax SMTLIB2Symbol ::= "select" [token]
 ```
 
 Variables and Sorts:
@@ -42,6 +51,7 @@ Variables and Sorts:
   syntax SMTLIB2Symbol ::= String
   syntax SMTLIB2Sort ::= "Int"
                        | "Bool"
+                       | "(" "Set" SMTLIB2Sort ")"
                        | "(" "Array" SMTLIB2Sort SMTLIB2Sort ")" 
 ```
 
@@ -71,6 +81,8 @@ Serialize to String:
   syntax String ::= SMTLIB2SortToString(SMTLIB2Sort)         [function]
   rule SMTLIB2SortToString( Int ) => "Int"
   rule SMTLIB2SortToString( Bool ) => "Bool"
+  rule SMTLIB2SortToString( ( Set S ) )
+    => "( Set " +String SMTLIB2SortToString(S) +String " )"
   rule SMTLIB2SortToString( ( Array S1 S2 ) )
     => "( Array " +String SMTLIB2SortToString(S1) +String " " +String SMTLIB2SortToString(S2) +String " )"
 

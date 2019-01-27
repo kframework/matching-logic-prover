@@ -1693,12 +1693,20 @@ Implications of the form
   syntax SMTLIB2Term ::= BasicPattern2SMTLIB2Term(BasicPattern) [function]
   rule BasicPattern2SMTLIB2Term(\equals(LHS, RHS))
     => ( = BasicPattern2SMTLIB2Term(LHS) BasicPattern2SMTLIB2Term(RHS) )
-  rule BasicPattern2SMTLIB2Term(variable(S) { SORT })
-    => S
+  rule BasicPattern2SMTLIB2Term(variable(S) { SORT }) => S
+  rule BasicPattern2SMTLIB2Term(\not(P)) => ( not BasicPattern2SMTLIB2Term(P) )
+  rule BasicPattern2SMTLIB2Term(I:Int) => I
+  rule BasicPattern2SMTLIB2Term(emptyset) => emptySet
+  rule BasicPattern2SMTLIB2Term(singleton(P1)) => ( singleton BasicPattern2SMTLIB2Term(P1) )
+  rule BasicPattern2SMTLIB2Term(gt(P1, P2)) => ( > BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
+  rule BasicPattern2SMTLIB2Term(select(P1, P2)) => ( select BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
+  rule BasicPattern2SMTLIB2Term(union(P1, P2)) => ( union BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
+  rule BasicPattern2SMTLIB2Term(disjoint(P1, P2)) => ( disjoint BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
 
   syntax SMTLIB2Sort ::= MLSort2SMTLIB2Sort(Sort) [function]
   rule MLSort2SMTLIB2Sort(Int:Sort) => Int:SMTLIB2Sort
   rule MLSort2SMTLIB2Sort(Bool:Sort) => Bool:SMTLIB2Sort
+  rule MLSort2SMTLIB2Sort(Set:Sort) => ( Set Int )
   rule MLSort2SMTLIB2Sort(ArrayIntInt) => ( Array Int Int )
 
   syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
