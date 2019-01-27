@@ -1,7 +1,7 @@
 claim \implies( \and( sortedlist( variable("H") { ArrayIntInt }
                                 , variable("X") { Int }
                                 , variable("K") { Set }
-                                , variable("MAX") { Int }
+                                , variable("MIN") { Int }
                                 , .Patterns
                                 )
                     , .Patterns
