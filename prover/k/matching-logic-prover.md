@@ -85,6 +85,7 @@ the second, identified by a String and an Int subscript is to be used for genera
 
   /* examples */
   syntax RecursivePredicate ::= "lsegleft"
+                              | "sortedlsegleft"
                               | "lsegright"
                               | "list"
                               | "sortedlist"
@@ -531,8 +532,7 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-SUGAR
 
   syntax Strategy ::= "search-bound" "(" Int ")"
-                    | "simplify"
-                    | "direct-proof"
+                    | "simplify" | "substitute-equals-for-equals" | "direct-proof"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt" | kt(RecursivePredicate)
@@ -566,6 +566,36 @@ Remove trivial clauses from the right-hand-side:
 ```k
   rule <k> \implies(\and(LHS), \and(RHS)) => \implies(\and(LHS), \and(RHS -BasicPatterns LHS)) ... </k>
        <strategy> simplify => noop ... </strategy>
+```
+
+### Substitute Equals for equals
+
+```k
+  rule <k> \implies(\and(LHS), \and(RHS))
+        => \implies( \and(removeTrivialEqualities(LHS[?EQUALITY_SUBST]))
+                   , \and(removeTrivialEqualities(RHS[?EQUALITY_SUBST]))
+                   ) ...
+       </k>
+       <strategy> substitute-equals-for-equals ... </strategy>
+    requires ?EQUALITY_SUBST ==K makeEqualitySubstitution(LHS)
+     andBool ?EQUALITY_SUBST =/=K .Map
+
+  rule <k> \implies(\and(LHS), \and(RHS)) ... </k>
+       <strategy> substitute-equals-for-equals => simplify ... </strategy>
+    requires ?EQUALITY_SUBST ==K makeEqualitySubstitution(LHS)
+     andBool ?EQUALITY_SUBST ==K .Map
+
+  syntax Map ::= makeEqualitySubstitution(BasicPatterns) [function]
+  rule makeEqualitySubstitution(.Patterns) => .Map
+  rule makeEqualitySubstitution(\equals(X:Variable, T), Ps) => (X |-> T) .Map
+  rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
+    requires notBool(isVariable(T))
+  rule makeEqualitySubstitution((P, Ps:BasicPatterns)) => makeEqualitySubstitution(Ps) [owise]
+
+  syntax BasicPatterns ::= removeTrivialEqualities(BasicPatterns) [function]
+  rule removeTrivialEqualities(.Patterns) => .Patterns
+  rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
+  rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
 ```
 
 ### Direct proof
@@ -684,8 +714,75 @@ Temp: needed by `lsegleft -> lsegright`
                  ) => true:Bool
     requires removeDuplicates(F, F2, F23, F1, H, T, X, Y, Y3, .Patterns)
         ==K                  (F, F2, F23, F1, H, T, X, Y, Y3, .Patterns)
+        
+  rule checkValid(
+      \implies ( \and ( sortedlist ( H , Y , G , MIN2 , .Patterns ) 
+                      , \equals ( K , union ( F , G ) ) 
+                      , disjoint ( F , G ) 
+                      , \not ( gt ( MAX , MIN2 ) ) 
+                      , \not ( \equals ( X , Y ) ) 
+                      , gt ( X , 0 ) 
+                      , \equals ( select ( H , X ) , X_3 ) 
+                      , \equals ( F , union ( F_2 , singleton ( X ) ) ) 
+                      , disjoint ( F_2 , singleton ( X ) ) 
+                      , \equals ( VAL_4 , select ( H , plus ( X , 1 ) ) ) 
+                      , gt ( VAL_4 , MIN ) 
+                      , \not ( gt ( VAL_4 , MAX ) ) 
+                      , .Patterns )
+               , \and ( \equals ( K_10 , union ( F_2 , G ) ) 
+                      , disjoint ( F_2 , G ) 
+                      , .Patterns ) ) 
+               ) => true:Bool
+    requires removeDuplicates(F,  F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
+         ==K                 (F,  F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
+
+       
+  rule checkValid(
+      \implies ( \and ( sortedlist ( H , Y  , G , MIN2 , .Patterns )  
+                      , \equals ( K  , union ( F  , G  ) )  
+                      , disjoint ( F  , G  )  
+                      , \not ( gt ( MAX , MIN2 ) ) 
+                      , \equals ( X  , Y  )  
+                      , \equals ( F  , emptyset )  
+                      , .Patterns ) 
+               , \and ( sortedlist ( H  , X  , K  , MIN  , .Patterns ) 
+                      , .Patterns ) 
+               )
+                 ) => true:Bool
+    requires removeDuplicates(F, G, H, K, MAX, MIN, MIN2, X, Y, .Patterns)
+         ==K                 (F, G, H, K, MAX, MIN, MIN2, X, Y, .Patterns)
 
   rule checkValid(
+      \implies ( \and ( sortedlist ( H , Y , G , MIN2 , .Patterns ) 
+                      , \equals ( K , union ( F , G ) ) 
+                      , disjoint ( F , G ) 
+                      , \not ( gt ( MAX , MIN2 ) ) 
+                      , \not ( \equals ( X , Y ) ) 
+                      , gt ( X , 0 ) 
+                      , \equals ( select ( H , X ) , X_3 ) 
+                      , \equals ( F , union ( F_2 , singleton ( X ) ) ) 
+                      , disjoint ( F_2 , singleton ( X ) ) 
+                      , \equals ( VAL_4 , select ( H , plus ( X , 1 ) ) ) 
+                      , gt ( VAL_4 , MIN ) 
+                      , \not ( gt ( VAL_4 , MAX ) ) 
+                      , sortedlist ( H , Y , G , MIN2 , .Patterns ) 
+                      , \equals ( K_12 , union ( F_2 , G ) ) 
+                      , disjoint ( F_2 , G ) 
+                      , \not ( gt ( MAX , MIN2 ) ) 
+                      , sortedlist ( H , X_3 , K_12 , VAL_4 , .Patterns ) 
+                      , .Patterns )
+               , \and ( sortedlist ( H , X_27 , F_26 , VAL_28 , .Patterns ) 
+                      , \equals ( select ( H , X ) , X_27 ) 
+                      , \equals ( K , union ( F_26 , singleton ( X ) ) ) 
+                      , disjoint ( F_26 , singleton ( X ) ) 
+                      , \equals ( VAL_28 , select ( H , plus ( X , 1 ) ) ) 
+                      , gt ( VAL_28 , MIN ) 
+                      , .Patterns ) )
+                ) => true:Bool
+  requires removeDuplicates(F, F_2, F_26, G, H, K, K_12, MAX, MIN, MIN2, VAL_28, VAL_4, X, X_27, X_3, Y, .Patterns)
+       ==K                 (F, F_2, F_26, G, H, K, K_12, MAX, MIN, MIN2, VAL_28, VAL_4, X, X_27, X_3, Y, .Patterns)
+
+rule checkValid(
          \implies ( \and ( \not ( \equals ( X , Y ) )
                          , gt ( X , 0 )
                          , \equals ( select ( H , X ) , T )
@@ -1310,6 +1407,33 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
+  rule unfold(sortedlsegleft(H, X, Y, F, PREV_VAL, MAX, .Patterns))
+    => \or( \and( \equals(X, Y)
+                , \equals(F, emptyset)
+                , .Patterns
+                )
+          , \and( sortedlsegleft( H
+                                , variable("X", !I) { Int }
+                                , Y
+                                , variable("F", !J) { Set }
+                                , variable("VAL", !K) { Int }
+                                , MAX
+                                , .Patterns
+                                )
+                , \not(\equals(X, Y))
+                , gt(X, 0)
+                , \equals(select(H, X) , variable("X", !I) { Int })
+                , \equals(F , union(variable("F", !J) { Set }, singleton(X)))
+                , disjoint(variable("F", !J) { Set }, singleton(X))
+
+                , \equals(variable("VAL", !K) { Int } , select(H, plus(X, 1)))
+                // Strictly decreasing
+                , gt(variable("VAL", !K) { Int }, PREV_VAL)
+                , \not(gt(variable("VAL", !K) { Int }, MAX))
+                , .Patterns
+                )
+          )
+
   /* lsegright */
   rule unfold(lsegright(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
@@ -1354,7 +1478,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
-  rule unfold(sortedlist(H, X, F, MIN:BasicPattern, .Patterns))
+  rule unfold(sortedlist(H, X, F, PREV_VAL:BasicPattern, .Patterns))
     => \or( \and( \equals(X, 0)
                 , \equals(F, emptyset)
                 , .Patterns
@@ -1365,7 +1489,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 , \equals(F , union(variable("F", !J) { Set }, singleton(X)))
                 , disjoint(variable("F", !J) { Set }, singleton(X))
                 , \equals(variable("VAL", !K) { Int } , select(H, plus(X, 1)))
-                , gt(variable("VAL", !K) { Int }, MIN)
+                , gt(variable("VAL", !K) { Int }, PREV_VAL)
                 , .Patterns
                 )
           )
