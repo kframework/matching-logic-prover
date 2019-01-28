@@ -1,4 +1,4 @@
-claim \implies( \and( sortedlsegleft( variable("H") { ArrayIntInt } 
+claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt } 
                                     , variable("X") { Int } 
                                     , variable("Y") { Int } 
                                     , variable("F") { Set }
@@ -6,7 +6,7 @@ claim \implies( \and( sortedlsegleft( variable("H") { ArrayIntInt }
                                     , variable("MAX") { Int } 
                                     , .Patterns
                                     )
-                    , sortedlist( variable("H") { ArrayIntInt }
+                    , listSorted( variable("H") { ArrayIntInt }
                                 , variable("Y") { Int }
                                 , variable("G") { Set }
                                 , variable("MIN2") { Int }, .Patterns) 
@@ -16,20 +16,20 @@ claim \implies( \and( sortedlsegleft( variable("H") { ArrayIntInt }
 
                     , \not(gt(variable("MAX") { Int }, variable("MIN2") { Int }))
                     , .Patterns )
-              , \and( sortedlist( variable("H") { ArrayIntInt }
+              , \and( listSorted( variable("H") { ArrayIntInt }
                                 , variable("X") { Int }
                                 , variable("K") { Set }
                                 , variable("MIN") { Int }
                                 , .Patterns)
                     , .Patterns )
               )
-strategy kt(sortedlsegleft) ; ( ( simplify ; substitute-equals-for-equals ; direct-proof )
+strategy kt(listSegmentLeftSorted) ; ( ( simplify ; substitute-equals-for-equals ; direct-proof )
                               | ( simplify ; direct-proof )
                               | ( right-unfold-Nth(0, 1) ; simplify ; direct-proof )
                               )
 
 /*
-strategy kt(lsegleft) ; ( ( simplify ; direct-proof )
+strategy kt(listSegmentLeft) ; ( ( simplify ; direct-proof )
                           | (right-unfold-Nth(0, 1) ; simplify ; direct-proof)
                         )
 */

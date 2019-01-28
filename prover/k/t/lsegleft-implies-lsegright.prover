@@ -1,5 +1,5 @@
-claim \implies( \and( lsegleft (variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { Set }, .Patterns), .Patterns )
-              , \and( lsegright(variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { Set }, .Patterns), .Patterns )
+claim \implies( \and( listSegmentLeft (variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { Set }, .Patterns), .Patterns )
+              , \and( listSegmentRight(variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { Set }, .Patterns), .Patterns )
               )
 strategy search-bound(5)
 

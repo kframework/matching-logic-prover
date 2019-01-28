@@ -84,11 +84,11 @@ the second, identified by a String and an Int subscript is to be used for genera
                          | Pattern "," Patterns           [klabel(PatternCons), right]
 
   /* examples */
-  syntax RecursivePredicate ::= "lsegleft"
-                              | "sortedlsegleft"
-                              | "lsegright"
+  syntax RecursivePredicate ::= "listSegmentLeft"
+                              | "listSegmentLeftSorted"
+                              | "listSegmentRight"
                               | "list"
-                              | "sortedlist"
+                              | "listSorted"
                               | "bt"
                               | "bst"
                               /* find */
@@ -628,7 +628,7 @@ Some "hard-wire" direct-proof rules.
        <strategy> direct-proof => success ... </strategy>
 ```
 
-Temp: needed by `lsegleft -> lsegright`
+Temp: needed by `listSegmentLeft -> listSegmentRight`
 
 ```k
   rule checkValid(
@@ -716,7 +716,7 @@ Temp: needed by `lsegleft -> lsegright`
         ==K                  (F, F2, F23, F1, H, T, X, Y, Y3, .Patterns)
         
   rule checkValid(
-      \implies ( \and ( sortedlist ( H , Y , G , MIN2 , .Patterns ) 
+      \implies ( \and ( listSorted ( H , Y , G , MIN2 , .Patterns ) 
                       , \equals ( K , union ( F , G ) ) 
                       , disjoint ( F , G ) 
                       , \not ( gt ( MAX , MIN2 ) ) 
@@ -738,14 +738,14 @@ Temp: needed by `lsegleft -> lsegright`
 
        
   rule checkValid(
-      \implies ( \and ( sortedlist ( H , Y  , G , MIN2 , .Patterns )  
+      \implies ( \and ( listSorted ( H , Y  , G , MIN2 , .Patterns )  
                       , \equals ( K  , union ( F  , G  ) )  
                       , disjoint ( F  , G  )  
                       , \not ( gt ( MAX , MIN2 ) ) 
                       , \equals ( X  , Y  )  
                       , \equals ( F  , emptyset )  
                       , .Patterns ) 
-               , \and ( sortedlist ( H  , X  , K  , MIN  , .Patterns ) 
+               , \and ( listSorted ( H  , X  , K  , MIN  , .Patterns ) 
                       , .Patterns ) 
                )
                  ) => true:Bool
@@ -753,7 +753,7 @@ Temp: needed by `lsegleft -> lsegright`
          ==K                 (F, G, H, K, MAX, MIN, MIN2, X, Y, .Patterns)
 
   rule checkValid(
-      \implies ( \and ( sortedlist ( H , Y , G , MIN2 , .Patterns ) 
+      \implies ( \and ( listSorted ( H , Y , G , MIN2 , .Patterns ) 
                       , \equals ( K , union ( F , G ) ) 
                       , disjoint ( F , G ) 
                       , \not ( gt ( MAX , MIN2 ) ) 
@@ -765,13 +765,13 @@ Temp: needed by `lsegleft -> lsegright`
                       , \equals ( VAL_4 , select ( H , plus ( X , 1 ) ) ) 
                       , gt ( VAL_4 , MIN ) 
                       , \not ( gt ( VAL_4 , MAX ) ) 
-                      , sortedlist ( H , Y , G , MIN2 , .Patterns ) 
+                      , listSorted ( H , Y , G , MIN2 , .Patterns ) 
                       , \equals ( K_12 , union ( F_2 , G ) ) 
                       , disjoint ( F_2 , G ) 
                       , \not ( gt ( MAX , MIN2 ) ) 
-                      , sortedlist ( H , X_3 , K_12 , VAL_4 , .Patterns ) 
+                      , listSorted ( H , X_3 , K_12 , VAL_4 , .Patterns ) 
                       , .Patterns )
-               , \and ( sortedlist ( H , X_27 , F_26 , VAL_28 , .Patterns ) 
+               , \and ( listSorted ( H , X_27 , F_26 , VAL_28 , .Patterns ) 
                       , \equals ( select ( H , X ) , X_27 ) 
                       , \equals ( K , union ( F_26 , singleton ( X ) ) ) 
                       , disjoint ( F_26 , singleton ( X ) ) 
@@ -798,9 +798,9 @@ rule checkValid(
                          , \equals ( select ( H , X ) , T )
                          , \equals ( F23 , union ( F2 , singleton ( X ) ) )
                          , disjoint ( F2 , singleton ( X ) )
-                         , lsegright ( H , X , Y3 , F23 , .Patterns )
+                         , listSegmentRight ( H , X , Y3 , F23 , .Patterns )
                          , .Patterns )
-                  , \and ( lsegright ( H , X , Y53 , F52 , .Patterns )
+                  , \and ( listSegmentRight ( H , X , Y53 , F52 , .Patterns )
                          , gt ( Y53 , 0 )
                          , \equals ( Y , select ( H , Y53 ) )
                          , \equals ( F , union ( F52 , singleton ( Y53 ) ) )
@@ -1382,18 +1382,18 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
 ```k
   syntax DisjunctiveForm ::= "unfold" "(" BasicPattern ")" [function]
 
-  /* lsegleft */
-  rule unfold(lsegleft(H,X,Y,F,.Patterns))
+  /* listSegmentLeft */
+  rule unfold(listSegmentLeft(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( lsegleft( H
-                             , variable("X", !I) { Int }
-                             , Y
-                             , variable("F", !J) { Set }
-                             , .Patterns
-                             )
+             , \and( listSegmentLeft( H
+                                    , variable("X", !I) { Int }
+                                    , Y
+                                    , variable("F", !J) { Set }
+                                    , .Patterns
+                                    )
                    , \not(\equals(X, Y))
                    , gt(X, 0)
                    , \equals( select(H, X)
@@ -1407,19 +1407,19 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
-  rule unfold(sortedlsegleft(H, X, Y, F, PREV_VAL, MAX, .Patterns))
+  rule unfold(listSegmentLeftSorted(H, X, Y, F, PREV_VAL, MAX, .Patterns))
     => \or( \and( \equals(X, Y)
                 , \equals(F, emptyset)
                 , .Patterns
                 )
-          , \and( sortedlsegleft( H
-                                , variable("X", !I) { Int }
-                                , Y
-                                , variable("F", !J) { Set }
-                                , variable("VAL", !K) { Int }
-                                , MAX
-                                , .Patterns
-                                )
+          , \and( listSegmentLeftSorted( H
+                                       , variable("X", !I) { Int }
+                                       , Y
+                                       , variable("F", !J) { Set }
+                                       , variable("VAL", !K) { Int }
+                                       , MAX
+                                       , .Patterns
+                                       )
                 , \not(\equals(X, Y))
                 , gt(X, 0)
                 , \equals(select(H, X) , variable("X", !I) { Int })
@@ -1434,13 +1434,13 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 )
           )
 
-  /* lsegright */
-  rule unfold(lsegright(H,X,Y,F,.Patterns))
+  /* listSegmentRight */
+  rule unfold(listSegmentRight(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( lsegright( H
+             , \and( listSegmentRight( H
                               , X
                               , variable("Y", !I) { Int }
                               , variable("F", !J) { Set }
@@ -1478,12 +1478,12 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
-  rule unfold(sortedlist(H, X, F, PREV_VAL:BasicPattern, .Patterns))
+  rule unfold(listSorted(H, X, F, PREV_VAL:BasicPattern, .Patterns))
     => \or( \and( \equals(X, 0)
                 , \equals(F, emptyset)
                 , .Patterns
                 )
-          , \and( sortedlist(H, variable("X", !I) { Int }, variable("F", !J) { Set }, variable("VAL", !K) { Int }, .Patterns)
+          , \and( listSorted(H, variable("X", !I) { Int }, variable("F", !J) { Set }, variable("VAL", !K) { Int }, .Patterns)
                 , gt(X, 0)
                 , \equals(select(H, X) , variable("X", !I) { Int })
                 , \equals(F , union(variable("F", !J) { Set }, singleton(X)))

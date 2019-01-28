@@ -1,4 +1,4 @@
-claim \implies( \and( sortedlist( variable("H") { ArrayIntInt }
+claim \implies( \and( listSorted( variable("H") { ArrayIntInt }
                                 , variable("X") { Int }
                                 , variable("K") { Set }
                                 , variable("MIN") { Int }

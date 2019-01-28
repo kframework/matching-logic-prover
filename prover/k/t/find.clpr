@@ -40,7 +40,7 @@ unfold(find(DATA,RET,F),
 
 %  bb find-before-loop:
 %  pre: (list^(x) & (oldx l= x));
-%  post: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
+%  post: (list^(oldx) & ((listSegment^(oldx, x) & (~ (d i-in listSegment-keys^(oldx, x)))) * list^(x)));
 %  {
 %	  loc tmp := nil;
 %  }
@@ -63,8 +63,8 @@ run_before_loop :-
   printf("BEFORE PROVED.\n", []).
 
 %  bb find-in-loop:
-%  pre: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
-%  post: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
+%  pre: (list^(oldx) & ((listSegment^(oldx, x) & (~ (d i-in listSegment-keys^(oldx, x)))) * list^(x)));
+%  post: (list^(oldx) & ((listSegment^(oldx, x) & (~ (d i-in listSegment-keys^(oldx, x)))) * list^(x)));
 %  {
 %	  assume (! (x l== nil));
 %	  int xk := x.key;
@@ -99,8 +99,8 @@ run_in_loop :-
   printf("INV PROVED.\n", []).
 
 %  bb find-after-loop1:
-%  pre: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
-%  post: ((list^(oldx) & ((lseg^(oldx, ret) & (~ (d i-in lseg-keys^(oldx, ret)))) * list^(ret))) &
+%  pre: (list^(oldx) & ((listSegment^(oldx, x) & (~ (d i-in listSegment-keys^(oldx, x)))) * list^(x)));
+%  post: ((list^(oldx) & ((listSegment^(oldx, ret) & (~ (d i-in listSegment-keys^(oldx, ret)))) * list^(ret))) &
 %	  (((d i-in keys^(oldx)) & ((ret |-> int key: d) * true)) | ((~ (d i-in keys^(oldx))) & (ret l= nil)))) ;
 %  {
 %	  assume (x l== nil);
@@ -125,8 +125,8 @@ run_after_loop1 :-
   printf("AFTER1 PROVED.\n", []).
 
 %  bb find-after-loop2:
-%  pre: (list^(oldx) & ((lseg^(oldx, x) & (~ (d i-in lseg-keys^(oldx, x)))) * list^(x)));
-%  post: ((list^(oldx) & ((lseg^(oldx, ret) & (~ (d i-in lseg-keys^(oldx, ret)))) * list^(ret))) &
+%  pre: (list^(oldx) & ((listSegment^(oldx, x) & (~ (d i-in listSegment-keys^(oldx, x)))) * list^(x)));
+%  post: ((list^(oldx) & ((listSegment^(oldx, ret) & (~ (d i-in listSegment-keys^(oldx, ret)))) * list^(ret))) &
 %	  (((d i-in keys^(oldx)) & ((ret |-> int key: d) * true)) | ((~ (d i-in keys^(oldx))) & (ret l= nil)))) ;
 %  {
 %	  assume (! (x l== nil));
