@@ -43,6 +43,7 @@ the second, identified by a String and an Int subscript is to be used for genera
 
                         // Int
                         | "plus"   "(" BasicPattern "," BasicPattern ")" // Int Int
+                        | "minus"  "(" BasicPattern "," BasicPattern ")" // Int Int
                         | "gt"     "(" BasicPattern "," BasicPattern ")" // Int Int
 
                         // Array{Int, Int}
@@ -87,8 +88,10 @@ the second, identified by a String and an Int subscript is to be used for genera
   syntax RecursivePredicate ::= "listSegmentLeft"
                               | "listSegmentLeftSorted"
                               | "listSegmentRight"
-                              | "list"
                               | "listSorted"
+                              | "listSortedLength"
+                              | "listLength"
+                              | "list"
                               | "bt"
                               | "bst"
                               /* find */
@@ -736,7 +739,28 @@ Temp: needed by `listSegmentLeft -> listSegmentRight`
     requires removeDuplicates(F,  F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
          ==K                 (F,  F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
 
-       
+  rule checkValid(
+      \implies ( \and ( gt ( X , 0 ) 
+                      , \equals ( select ( H , X ) , X_3 ) 
+                      , \equals ( K , union ( F_2 , singleton ( X ) ) ) 
+                      , disjoint ( F_2 , singleton ( X ) ) 
+                      , \equals ( VAL_4 , select ( H , plus ( X , 1 ) ) ) 
+                      , gt ( VAL_4 , MIN ) 
+                      , gt ( Length , 0 ) 
+                      , \equals ( LENGTH_4 , minus ( Length , 1 ) ) 
+                      , listLength ( H , X_3 , F_2 , LENGTH_4 , .Patterns ) 
+                      , .Patterns ) 
+               , \and ( listLength ( H , X_31 , F_30 , LENGTH_32 , .Patterns ) 
+                      , \equals ( select ( H , X ) , X_31 ) 
+                      , \equals ( K , union ( F_30 , singleton ( X ) ) ) 
+                      , disjoint ( F_30 , singleton ( X ) ) 
+                      , \equals ( LENGTH_32 , minus ( Length , 1 ) ) 
+                      , .Patterns ) 
+               )       
+       ) => true
+  requires removeDuplicates(F_2, F_30, H, K, LENGTH_32, LENGTH_4, Length, MIN, VAL_4, X, X_3, X_31, .Patterns)
+       ==K                 (F_2, F_30, H, K, LENGTH_32, LENGTH_4, Length, MIN, VAL_4, X, X_3, X_31, .Patterns)
+
   rule checkValid(
       \implies ( \and ( listSorted ( H , Y  , G , MIN2 , .Patterns )  
                       , \equals ( K  , union ( F  , G  ) )  
@@ -1478,6 +1502,23 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
+  rule unfold(listLength(H,X,F, LENGTH,.Patterns))
+       => \or( \and( \equals(X, 0)
+                   , \equals(F, emptyset)
+                   , \equals(LENGTH, 0)
+                   , .Patterns
+                   )
+             , \and( listLength(H,variable("X", !I) { Int },variable("F", !J) { Set }, variable("LENGTH", !K) { Int }, .Patterns)
+                   , gt(X,0)
+                   , \equals(select(H, X) , variable("X", !I) { Int })
+                   , \equals(F , union(variable("F", !J) { Set }, singleton(X)))
+                   , disjoint(variable("F", !J) { Set }, singleton(X))
+                   , gt(LENGTH, 0)
+                   , \equals(variable("LENGTH", !K) { Int }, minus(LENGTH, 1))
+                   , .Patterns
+                   )
+             )
+
   rule unfold(listSorted(H, X, F, PREV_VAL:BasicPattern, .Patterns))
     => \or( \and( \equals(X, 0)
                 , \equals(F, emptyset)
@@ -1494,6 +1535,31 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 )
           )
 
+  rule unfold(listSortedLength(H, X, F, PREV_VAL, LENGTH, .Patterns))
+    => \or( \and( \equals(X, 0)
+                , \equals(F, emptyset)
+                , \equals(LENGTH, 0)
+                , .Patterns
+                )
+          , \and( listSortedLength(H
+                                  , variable("X", !I) { Int }
+                                  , variable("F", !J) { Set }
+                                  , variable("VAL", !K) { Int }
+                                  , variable("LENGTH", !K) { Int }
+                                  , .Patterns
+                                  )
+                , gt(X, 0)
+                , \equals(select(H, X) , variable("X", !I) { Int })
+                , \equals(F , union(variable("F", !J) { Set }, singleton(X)))
+                , disjoint(variable("F", !J) { Set }, singleton(X))
+                , \equals(variable("VAL", !K) { Int } , select(H, plus(X, 1)))
+                , gt(variable("VAL", !K) { Int }, PREV_VAL)
+                , gt(LENGTH, 0)
+                , \equals(variable("LENGTH", !K) { Int }, minus(LENGTH, 1))
+                , .Patterns
+                )
+          )
+          
   /* bt */
   rule unfold(bt(H,X,F,.Patterns))
        => \or( \and( \equals(X, 0)
