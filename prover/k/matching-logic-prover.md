@@ -15,6 +15,8 @@ of kore:
 ```k
 module KORE-SUGAR
   imports DOMAINS-SYNTAX
+  syntax Ints ::= List{Int, ","}
+
   syntax Sort ::= "Bool" | "Int" | "ArrayIntInt" | "Set"
 ```
 
@@ -284,6 +286,10 @@ and values, passed to K's substitute.
   rule getMember(N, (P:BasicPattern, Ps)) => getMember(N -Int 1, Ps)
     requires N >Int 0
 
+  syntax BasicPatterns ::= getMembers(Ints, BasicPatterns) [function]
+  rule getMembers((I, Is), Ps) => getMember(I, Ps), getMembers(Is, Ps)
+  rule getMembers(.Ints, Ps) => .Patterns
+
   syntax Int ::= getLength(ConjunctiveForms) [function]
   rule getLength(.ConjunctiveForms) => 0
   rule getLength(CF:ConjunctiveForm, CFs) => 1 +Int getLength(CFs)
@@ -538,7 +544,12 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
                     | "simplify" | "substitute-equals-for-equals" | "direct-proof"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
-                    | "kt" | kt(RecursivePredicate)
+                    | "kt" | "kt" "#" KTFilter "#" KTInstantiate
+
+  syntax KTFilter ::= head(RecursivePredicate)
+                    | ".KTFilter"
+  syntax KTInstantiate ::= "useAffectedHeuristic"
+                         | freshPositions(Ints)
 endmodule
 ```
 
@@ -1204,95 +1215,95 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
 ### Knaster Tarski
 
 ```k
+  rule <strategy> kt => kt # .KTFilter # useAffectedHeuristic ... </strategy>
   rule <k> GOAL </k>
-       <strategy> kt => ktForEachLRP(getLeftRecursivePredicates(GOAL)) ... </strategy>
-```
-
-```k
-  rule <k> GOAL </k>
-       <strategy> kt(RP:RecursivePredicate)
-               => ktForEachLRP(filterByConstructor( getLeftRecursivePredicates(GOAL)
-                                                  , RP
-                              )                   )
+       <strategy> kt # FILTER # INSTANTIATION
+               => getLeftRecursivePredicates(GOAL) ~> kt # FILTER # INSTANTIATION
+                  ...
+       </strategy>
+  rule <strategy> LRPs ~> kt # head(HEAD) # INSTANTIATION
+               => filterByConstructor(LRPs, HEAD) ~> kt # .KTFilter # INSTANTIATION
+                  ...
+       </strategy>
+  rule <strategy> LRPs ~> kt # .KTFilter # INSTANTIATION
+               => ktForEachLRP(LRPs, INSTANTIATION)
                   ...
        </strategy>
 ```
 
 `ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
-(`ktForEachLRP` corresponds to `lprove_kt_aux`)
 
 ```k
-  syntax Strategy ::= ktForEachLRP(BasicPatterns)
-  rule <strategy> ktForEachLRP(.Patterns)
-               => fail
-                  ...
-       </strategy>
-  rule <strategy> ktForEachLRP(LRP, LRPs)
-               => ktOneLRP(LRP) | ktForEachLRP(LRPs)
+  syntax Strategy ::= ktForEachLRP(BasicPatterns, KTInstantiate)
+  rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => fail ... </strategy>
+  rule <strategy> ktForEachLRP((LRP, LRPs), INSTANTIATION)
+               => ktLRP(LRP, INSTANTIATION) | ktForEachLRP(LRPs, INSTANTIATION)
                   ...
        </strategy>
 ```
 
-(`ktOneLRP` corresponds to `lprove_kt/6`)
+(`ktLRP` corresponds to `lprove_kt/6`)
 
 ```k
-  syntax Strategy ::= ktOneLRP(BasicPattern)
-  rule <strategy> ktOneLRP(LRP) => ktForEachBody(LRP, unfold(LRP)) ... </strategy>
-       <trace> .K => ktOneLRP(LRP) ... </trace>
+  syntax Strategy ::= ktLRP(BasicPattern, KTInstantiate)
+  rule <strategy> ktLRP(LRP, INSTANTIATION)
+               => ktForEachBody(LRP, unfold(LRP), INSTANTIATION) ...
+       </strategy>
+       <trace> .K => ktLRP(LRP, INSTANTIATION) ... </trace>
 ```
 
 (`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
 
 ```k
-  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm)
-  rule <strategy> ktForEachBody(LRP, \or(.ConjunctiveForms))
-               => success
-                  ...
-       </strategy>
-  rule <strategy> ktForEachBody(LRP, \or(BODY, BODIES))
-               => ktOneBody(LRP, BODY) & ktForEachBody(LRP, \or(BODIES))
-                  ...
-       </strategy>
-```
-
-(`ktOneBody` corresponds to `lprove_kt_one_body`)
-
-```k
-  syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm)                        // LRP, Body
+  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm, KTInstantiate) [function]
+  rule ktForEachBody(LRP, \or(.ConjunctiveForms), _) => success
+  rule ktForEachBody(LRP, \or(BODY, BODIES), INSTANTIATION)
+    => ktOneBody(LRP, BODY, INSTANTIATION)
+     & ktForEachBody(LRP, \or(BODIES), INSTANTIATION)
 ```
 
 ```k
-  syntax KItem ::= ktEachBRP(BasicPattern, ConjunctiveForm, BasicPatterns) // LRP, Body, BRPs
-                 | ktOneBRP(BasicPattern, ConjunctiveForm, BasicPattern)   // LRP, Body, BRP
+  syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm, KTInstantiate)
+```
+
+```k
+  syntax KItem ::= ktEachBRP(BasicPattern, ConjunctiveForm, BasicPatterns, KTInstantiate) // LRP, Body, BRPs
+                 | ktOneBRP(BasicPattern, ConjunctiveForm, BasicPattern, KTInstantiate)   // LRP, Body, BRP
                  | ktBRPResult(Patterns, ConjunctiveForm)
                  | ktBRPCollectResults(ConjunctiveForm, BasicPattern) // Body, LRP
-  rule <strategy> ktOneBody(LRP:RecursivePredicate(ARGS), BODY)
-               => ktEachBRP(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP))
+  rule <strategy> ktOneBody(LRP:RecursivePredicate(ARGS), BODY, INSTANTIATION)
+               => ktEachBRP(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP), INSTANTIATION)
                ~> ktBRPCollectResults(BODY, LRP(ARGS))
                   ...
        </strategy>
 ```
 
 ```k
-  rule <strategy> ktEachBRP(LRP, BODY, (BRP_samehead, BRPs_samehead))
-               => ktOneBRP(LRP, BODY, BRP_samehead)
-               ~> ktEachBRP(LRP, BODY, BRPs_samehead)
+  rule <strategy> ktEachBRP(LRP, BODY, (BRP_samehead, BRPs_samehead), INSTANTIATION)
+               => ktOneBRP(LRP, BODY, BRP_samehead, INSTANTIATION)
+               ~> ktEachBRP(LRP, BODY, BRPs_samehead, INSTANTIATION)
                   ...
        </strategy>
-  rule <strategy> ktEachBRP(LRP, BODY, .Patterns)
+  rule <strategy> ktEachBRP(LRP, BODY, .Patterns, INSTANTIATION)
                => ktBRPResult(.Patterns, \and(.Patterns)) ...
        </strategy>
 
   rule <k> \implies(\and(LHS), \and(RHS)) </k>
-       <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS))
+       <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS), INSTANTIATION)
                => ktBRPResult( (?Premise, .Patterns)
                              , \and(?LHS_UA ++BasicPatterns ?RHS_UAF)
                              )
                   ...
        </strategy>
+       <trace> .K
+            => ( "InstSubst" ~> ?InstSubst
+              ~> "PassiveVars" ~> ?PassiveVars
+               )
+               ...
+       </trace>
     requires ?USubst ==K zip(LRP_ARGS, BRP_ARGS)
-     andBool ?ASubst ==K makeFreshSubstitution(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS ))
-     andBool ?LHS_UA  ==K {(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ ?USubst ][ ?ASubst ]}:>BasicPatterns
+     andBool ?InstSubst ==K ktMakeInstantiationSubst(HEAD(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), \and(RHS)), INSTANTIATION)
+     andBool ?LHS_UA  ==K {(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ ?USubst ][ ?InstSubst ]}:>BasicPatterns
      andBool ?Premise ==K \implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns)) ++BasicPatterns
                                           (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
                                         )
@@ -1301,7 +1312,18 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
      andBool ?UnivVars ==K getFreeVariables(LHS)
      andBool ?ExVARS   ==K getFreeVariables(\and(RHS), .Patterns) -BasicPatterns ?UnivVars
      andBool ?FSubst   ==K makeFreshSubstitution(?ExVARS)
-     andBool ?RHS_UAF  ==K {RHS[?USubst][?ASubst][?FSubst]}:>BasicPatterns
+     andBool ?RHS_UAF  ==K {RHS[?USubst][?InstSubst][?FSubst]}:>BasicPatterns
+     andBool ?PassiveVars ==K getFreeVariables(LHS) -BasicPatterns LRP_ARGS
+
+
+  syntax Map ::= ktMakeInstantiationSubst(PredicatePattern, PredicatePattern, ImplicativeForm, KTInstantiate) [function]
+  rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), RHS), useAffectedHeuristic)
+    => makeFreshSubstitution(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS)
+                             -BasicPatterns (LRP_ARGS -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)) // Non-critical
+                            // TODO: !!!! This should use findAffectedVariables and not the Aux version
+                            )
+  rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGs), _, \implies(\and(LHS), RHS), freshPositions(POSITIONS))
+    => makeFreshSubstitution(getMembers(POSITIONS, getFreeVariables(LHS) -BasicPatterns LRP_ARGs)) // PassiveVars
 ```
 
 Two consecutive ktBRPResults are consolidated into a single one.
@@ -1319,8 +1341,8 @@ Two consecutive ktBRPResults are consolidated into a single one.
 `ktEachBRP`s are brought to the top of the cell:
 
 ```k
-  rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktEachBRP(LRP, BODY, BRPs_samehead)
-               => ktEachBRP(LRP, BODY, BRPs_samehead) ~> ktBRPResult(PREMISES, CONCL_FRAG)
+  rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktEachBRP(LRP, BODY, BRPs_samehead, INSTANTIATION)
+               => ktEachBRP(LRP, BODY, BRPs_samehead, INSTANTIATION) ~> ktBRPResult(PREMISES, CONCL_FRAG)
                   ...
        </strategy>
 ```
