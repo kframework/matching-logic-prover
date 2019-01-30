@@ -96,6 +96,11 @@ the second, identified by a String and an Int subscript is to be used for genera
                               | "list"
                               | "bt"
                               | "bst"
+                              | "dll"
+                              | "dllSegmentLeft"
+                              | "dllSegmentLeftLength"
+                              | "dllSegmentRight"
+                              | "dllSegmentRightLength"
                               /* find */
                               | "find-list-seg"
                               | "find-list"
@@ -1830,6 +1835,18 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , .Patterns
                    )
               )
+
+/* dll */
+
+  rule unfold(dll(H,X,F,.Patterns))
+       => \or( \and( \equals(X, 0)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( dll( H
+                        , variable("X", !I) { Int }
+                        , variable("F", !J) { Set }
+                        , .Patterns
 
 /* find */
 
