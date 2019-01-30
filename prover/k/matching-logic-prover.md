@@ -1396,6 +1396,11 @@ rule checkValid(
 \implies ( \and ( dll ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) , \not ( \equals ( variable ( "X" ) { Int } , variable ( "Y" ) { Int } ) ) , gt ( variable ( "X" ) { Int } , 0 ) , gt ( variable ( "X" , 3 ) { Int } , 0 ) , \equals ( variable ( "X" , 3 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 3 ) { Int } , 2 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 2 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , dll ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , .Patterns ) , \equals ( variable ( "K" , 9 ) { Set } , union ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) , dll ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 3 ) { Int } , variable ( "K" , 9 ) { Set } , .Patterns ) , .Patterns ) , \and ( dll ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 19 ) { Int } , variable ( "F" , 18 ) { Set } , .Patterns ) , gt ( variable ( "X" , 19 ) { Int } , 0 ) , \equals ( variable ( "X" , 19 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 19 ) { Int } , 2 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 18 ) { Set } ) ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" , 18 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , .Patterns ) )
 ) => true:Bool            
 
+
+  rule checkValid(
+\implies ( \and ( dllLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) , \equals ( variable ( "N" ) { Int } , plus ( variable ( "L" ) { Int } , variable ( "M" ) { Int } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) , \equals ( variable ( "X" ) { Int } , variable ( "Y" ) { Int } ) , \equals ( variable ( "L" ) { Int } , 0 ) , \equals ( variable ( "F" ) { Set } , emptyset ) , .Patterns ) , \and ( dllLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { Set } , variable ( "N" ) { Int } , .Patterns ) , .Patterns ) )
+) => true:Bool
+
 ```
 
 ### Left Unfold (incomplete)
@@ -2043,13 +2048,14 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( dll( H
+             , \and( dllLength( H
                         , variable("X", !I) { Int }
                         , variable("F", !J) { Set }
-                        , minus(L, 1)
+                        , variable("L", !K) { Int }
                         , .Patterns
                         )
                    , gt(X, 0)
+                   , \equals(variable("L", !K) { Int }, minus(L, 1))
                    , gt(variable("X", !I) { Int } , 0)
                    , \equals( variable("X", !I) { Int }
                             , select(H, plus(X, 1)))
@@ -2061,7 +2067,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
-  rule unfold(dllSegmentLeft(H,X,Y,F,.Patterns))
+  rule unfold(dllSegmentLeft(H,X,Y,F,L,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -2070,11 +2076,12 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                                    , variable("X", !I) { Int }
                                    , Y
                                    , variable("F", !J) { Set }
-                                   , minus(L, 1)
+                                   , variable("L", !K) { Int }
                                    , .Patterns
                                    )
                    , \not(\equals(X, Y))
                    , gt(X, 0)
+                   , \equals(variable("L", !K) { Int }, minus(L, 1))
                    , gt(variable("X", !I) { Int }, 0)
                    , \equals( variable("X", !I) { Int }
                             , select(H, plus(X, 1)))
@@ -2092,7 +2099,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( dllSegmentLeft( H
+             , \and( dllSegmentLeftLength( H
                                    , variable("X", !I) { Int }
                                    , Y
                                    , variable("F", !J) { Set }
