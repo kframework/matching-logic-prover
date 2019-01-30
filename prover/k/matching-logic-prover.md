@@ -1166,8 +1166,40 @@ rule checkValid(
                )
         ) => true
 
+  rule checkValid(
+      \implies ( \and ( list ( H , Y , F2 , .Patterns )
+                      , disjoint ( F1 , F2 )
+                      , \equals ( F , union ( F1 , F2 ) )
+                      , \equals ( X , Y )
+                      , \equals ( F1 , emptyset )
+                      , .Patterns )
+               , \and ( list ( H , X , F , .Patterns ) , .Patterns ) ) ) => true
+    requires removeDuplicates(F, F1, F2, H, X, Y, .Patterns)
+         ==K                 (F, F1, F2, H, X, Y, .Patterns)
 
   rule checkValid(
+        \implies ( \and ( list ( H , Y , G2 , .Patterns )
+                              , disjoint ( G1 , G2 )
+                              , \equals ( F , union ( G1 , G2 ) )
+                              , \not ( \equals ( X , Y ) )
+                              , gt ( Y_3 , 0 )
+                              , \equals ( Y , select ( H , Y_3 ) )
+                              , \equals ( G1 , union ( F_2 , singleton ( Y_3 ) ) )
+                              , disjoint ( F_2 , singleton ( Y_3 ) )
+                              , .Patterns )
+                        , \and ( disjoint ( F_2 , G2_10 )
+                               , \equals ( F , union ( F_2 , G2_10 ) )
+                               , list ( H , X_15 , F_14 , .Patterns )
+                               , \equals ( select ( H , Y_3 ) , X_15 )
+                               , \equals ( G2_10 , union ( F_14 , singleton ( Y_3 ) ) )
+                               , disjoint ( F_14 , singleton ( Y_3 ) )
+                               , .Patterns )
+                        )
+                 ) => true
+      requires removeDuplicates(F, F_14, F_2, G1, G2, G2_10, H, X, X_15, Y, Y_3, .Patterns)
+           ==K                 (F, F_14, F_2, G1, G2, G2_10, H, X, X_15, Y, Y_3, .Patterns)
+
+rule checkValid(
             \implies ( \and ( find-list-seg ( H0 , OLDX , X , F1 , .Patterns )
                             , disjoint ( F1 , F2 )
                             , \not ( isMember ( DATA , F1 ) )
@@ -1853,7 +1885,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
 Weakened left unfold / right unfold `\not(\equals(X, Y))` removed from recursive case,
 needed for `lr -> ll`.
 
-```k 
+```k
   rule unfold(listSegmentLeftWeak(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)

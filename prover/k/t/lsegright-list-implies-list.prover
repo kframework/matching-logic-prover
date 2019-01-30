@@ -1,0 +1,24 @@
+claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
+                                      , variable("X") { Int }
+                                      , variable("Y") { Int }
+                                      , variable("G1") { Set }
+                                      , .Patterns)
+                    , list( variable("H") { ArrayIntInt }
+                          , variable("Y") { Int }
+                          , variable("G2") { Set }
+                          , .Patterns
+                          )
+                    , disjoint(variable("G1") { Set }, variable("G2") { Set })
+                    , \equals(variable("F") { Set }, union(variable("G1") { Set }, variable("G2") { Set }))
+                    , .Patterns )
+              , \and( list( variable("H") { ArrayIntInt }
+                          , variable("X") { Int }
+                          , variable("F") { Set }
+                          , .Patterns)
+                    , .Patterns )
+              )
+
+strategy kt # head(listSegmentRight) # freshPositions(1)
+       ; ( ( simplify ; direct-proof )
+         | ( right-unfold-Nth(0, 1) ; simplify ; direct-proof )
+         )
