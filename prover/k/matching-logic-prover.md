@@ -100,6 +100,10 @@ the second, identified by a String and an Int subscript is to be used for genera
                               | "find-list-seg"
                               | "find-list"
                               | "find-find"
+
+                              // Weakened versions for `lr -> ll`
+                              | "listSegmentLeftWeak"
+                              | "listSegmentRightWeak"
   syntax Predicate ::= "isEmpty"
 endmodule
 ```
@@ -646,6 +650,37 @@ Temp: needed by `listSegmentLeft -> listSegmentRight`
 
 ```k
   rule checkValid(
+      \implies ( \and ( \not ( \equals ( Y_3 , select ( H , Y_3 ) ) )
+                      , gt ( Y_3 , 0 )
+                      , disjoint ( emptyset , singleton ( Y_3 ) )
+                      , .Patterns )
+               , \and ( \equals ( X_32 , select ( H , Y_3 ) )
+                      , \equals ( F_31 , emptyset )
+                      , .Patterns )
+               )
+               ) => true
+  requires removeDuplicates(H, Y_3, F_31, X_32, .Patterns)
+      ==K (H, Y_3, F_31, X_32, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( \not ( \equals ( X , Y ) )
+                      , gt ( Y_3 , 0 )
+                      , \equals ( Y , select ( H , Y_3 ) )
+                      , \equals ( F , union ( F_2 , singleton ( Y_3 ) ) )
+                      , disjoint ( F_2 , singleton ( Y_3 ) )
+                      , \not ( \equals ( X , Y_3 ) )
+                      , gt ( X , 0 )
+                      , .Patterns )
+               , \and ( \not ( \equals ( X_28 , Y ) )
+                      , \equals ( F_38 , union ( F_27 , singleton ( Y_3 ) ) )
+                      , disjoint ( F_27 , singleton ( Y_3 ) )
+                      , .Patterns )
+               )
+               ) => true
+  requires removeDuplicates(  F, F_2, F_27, F_38, H, X, X_28, Y, Y_3, .Patterns)
+       ==K (  F, F_2, F_27, F_38, H, X, X_28, Y, Y_3, .Patterns)
+
+  rule checkValid(
         \implies ( \and ( \not ( \equals ( X , Y ) )
                         , gt ( X , 0 )
                         , \equals ( select ( H , X ) , T )
@@ -664,6 +699,20 @@ Temp: needed by `listSegmentLeft -> listSegmentRight`
                  ) => true:Bool
     requires removeDuplicates(X, Y, H, T, F, F2, Y2, F1, .Patterns)
          ==K                 (X, Y, H, T, F, F2, Y2, F1, .Patterns)
+
+  rule checkValid(
+            \implies ( \and ( \not ( \equals ( Y_3 , select ( H , Y_3 ) ) )
+                                  , gt ( Y_3 , 0 )
+                                  , disjoint ( emptyset , singleton ( Y_3 ) )
+                                  , .Patterns )
+                     , \and ( \equals ( select ( H , Y_3 ) , variable ( "X" , 31 ) { Int } )
+                            , \equals ( union ( emptyset , singleton ( Y_3 ) ) , union ( variable ( "F" , 30 ) { Set } , singleton ( Y_3 ) ) )
+                            , disjoint ( variable ( "F" , 30 ) { Set } , singleton ( Y_3 ) )
+                            , \equals ( variable ( "X" , 31 ) { Int } , select ( H , Y_3 ) )
+                            , \equals ( variable ( "F" , 30 ) { Set } , emptyset )
+                            , .Patterns )
+                     )
+                  ) => true
 
   rule checkValid(
       \implies ( \and ( \not ( \equals ( X , Y ) )
@@ -747,8 +796,47 @@ Temp: needed by `listSegmentLeft -> listSegmentRight`
                       , disjoint ( F_2 , G )
                       , .Patterns ) )
                ) => true:Bool
-    requires removeDuplicates(F,  F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
-         ==K                 (F,  F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
+    requires removeDuplicates(F, F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
+         ==K                 (F, F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( \not ( \equals ( Y_3 , select ( H , Y_3 ) ) ) , gt ( Y_3 , 0 ) , disjoint ( emptyset , singleton ( Y_3 ) ) , .Patterns ) , \and ( \equals ( select ( H , Y_3 ) , variable ( "X" , 32 ) { Int } ) , \equals ( union ( emptyset , singleton ( Y_3 ) ) , union ( variable ( "F" , 31 ) { Set } , singleton ( Y_3 ) ) ) , disjoint ( variable ( "F" , 31 ) { Set } , singleton ( Y_3 ) ) , \equals ( variable ( "X" , 32 ) { Int } , select ( H , Y_3 ) ) , \equals ( variable ( "F" , 31 ) { Set } , emptyset ) , .Patterns ) )
+       ) => true
+
+
+  rule checkValid(
+\implies ( \and ( \not ( \equals ( Y_3 , select ( H , Y_3 ) ) )
+                      , gt ( Y_3 , 0 )
+                      , disjoint ( emptyset , singleton ( Y_3 ) )
+                      , .Patterns )
+               , \and ( \equals ( select ( H , Y_3 ) , variable ( "X" , 27 ) { Int } )
+                      , \equals ( union ( emptyset , singleton ( Y_3 ) ) , union ( variable ( "F" , 26 ) { Set } , singleton ( Y_3 ) ) )
+                      , disjoint ( variable ( "F" , 26 ) { Set } , singleton ( Y_3 ) )
+                      , \equals ( variable ( "X" , 27 ) { Int } , select ( H , Y_3 ) )
+                      , \equals ( variable ( "F" , 26 ) { Set } , emptyset )
+                      , .Patterns )
+               )
+                ) => true
+
+  rule checkValid(
+      \implies ( \and ( \not ( \equals ( X , Y ) )
+                      , gt ( Y_3 , 0 )
+                      , \equals ( K, select ( H , Y_3 ) )
+                      , \equals ( F , union ( F_2 , singleton ( Y_3 ) ) )
+                      , disjoint ( F_2 , singleton ( Y_3 ) )
+                      , \equals ( X , Y_3 )
+                      , \equals ( F_2 , emptyset )
+                      , .Patterns )
+               , \and ( gt ( X , 0 )
+                      , \equals ( select ( H , X ) , X_35 )
+                      , \equals ( F , union ( F_34 , singleton ( X ) ) )
+                      , disjoint ( F_34 , singleton ( X ) )
+                      , \equals ( X_35 , Y )
+                      , \equals ( F_34 , emptyset )
+                      , .Patterns )
+             )) => true
+ requires removeDuplicates(F, F_2, F_34, H, X, X_35, Y, Y_3, .Patterns)
+      ==K                 (F, F_2, F_34, H, X, X_35, Y, Y_3, .Patterns)
 
   rule checkValid(
       \implies ( \and ( gt ( X , 0 )
@@ -1022,6 +1110,62 @@ rule checkValid(
         => true:Bool
     requires removeDuplicates(DATA, F_1, F1, F2, F3, F4, H0, OLDX, X, X2, Y_2, .Patterns)
          ==K                 (DATA, F_1, F1, F2, F3, F4, H0, OLDX, X, X2, Y_2, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( gt ( Y_3 , 0 )
+                      , disjoint ( emptyset , singleton ( Y_3 ) )
+                      , .Patterns )
+               , \and ( \equals ( select ( H , Y_3 ) , variable ( "X" , 32 ) { Int } )
+                      , \equals ( union ( emptyset , singleton ( Y_3 ) ) , union ( variable ( "F" , 31 ) { Set } , singleton ( Y_3 ) ) )
+                      , disjoint ( variable ( "F" , 31 ) { Set } , singleton ( Y_3 ) )
+                      , \equals ( variable ( "X" , 32 ) { Int } , select ( H , Y_3 ) )
+                      , \equals ( variable ( "F" , 31 ) { Set } , emptyset )
+                      , .Patterns )
+               )
+       ) => true
+
+
+  rule checkValid(
+            \implies ( \and ( gt ( Y_3 , 0 )
+                                  , \equals ( Y , select ( H , Y_3 ) )
+                                  , \equals ( F , union ( F_2 , singleton ( Y_3 ) ) )
+                                  , disjoint ( F_2 , singleton ( Y_3 ) )
+                                  , gt ( X , 0 )
+                                  , \equals ( select ( H , X ) , X_28 )
+                                  , \equals ( F_2 , union ( F_27 , singleton ( X ) ) )
+                                  , disjoint ( F_27 , singleton ( X ) )
+                                  , gt ( Y_3 , 0 )
+                                  , \equals ( Y , select ( H , Y_3 ) )
+                                  , \equals ( F_38 , union ( F_27 , singleton ( Y_3 ) ) )
+                                  , disjoint ( F_27 , singleton ( Y_3 ) )
+                                  , listSegmentLeftWeak ( H , X_28 , Y , F_38 , .Patterns )
+                                  , .Patterns )
+                           , \and ( listSegmentLeftWeak ( H , X_56 , Y , F_55 , .Patterns )
+                                  , \equals ( select ( H , X ) , X_56  )
+                                  , \equals ( F , union ( F_55 , singleton ( X ) ) )
+                                  , disjoint ( F_55 , singleton ( X ) )
+                                  , .Patterns )
+                           )
+                ) => true
+            requires removeDuplicates(F, F_2, F_27, F_38, F_55, H, X, X_28, Y, Y_3, .Patterns)
+                 ==K                 (F, F_2, F_27, F_38, F_55, H, X, X_28, Y, Y_3, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( gt ( Y_3 , 0 )
+                      , \equals ( Y , select ( H , Y_3 ) )
+                      , \equals ( F , union ( F_2 , singleton ( Y_3 ) ) )
+                      , disjoint ( F_2 , singleton ( Y_3 ) )
+                      , gt ( X , 0 )
+                      , \equals ( select ( H , X ) , X_28 )
+                      , \equals ( F_2 , union ( F_27 , singleton ( X ) ) )
+                      , disjoint ( F_27 , singleton ( X ) )
+                      , .Patterns )
+               , \and ( \equals ( F_38 , union ( F_27 , singleton ( Y_3 ) ) )
+                      , disjoint ( F_27 , singleton ( Y_3 ) )
+                      , .Patterns )
+               )
+        ) => true
+
 
   rule checkValid(
             \implies ( \and ( find-list-seg ( H0 , OLDX , X , F1 , .Patterns )
@@ -1664,7 +1808,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                                   , variable("F", !J) { Set }
                                   , .Patterns
                                   )
-                   // , \not(\equals(X, Y))
+                // , \not(\equals(X, Y))
                    , gt(variable("Y", !I) { Int }, 0)
                    , \equals(Y, select(H, plus(variable("Y", !I) { Int }, 1)))
                    , \equals( F
@@ -1704,7 +1848,58 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 , .Patterns
                 )
           )
+```
 
+Weakened left unfold / right unfold `\not(\equals(X, Y))` removed from recursive case,
+needed for `lr -> ll`.
+
+```k 
+  rule unfold(listSegmentLeftWeak(H,X,Y,F,.Patterns))
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( listSegmentLeftWeak( H
+                                        , variable("X", !I) { Int }
+                                        , Y
+                                        , variable("F", !J) { Set }
+                                        , .Patterns
+                                        )
+                   , gt(X, 0)
+                   , \equals( select(H, X)
+                            , variable("X", !I) { Int }
+                            )
+                   , \equals( F
+                            , union(variable("F", !J) { Set } , singleton(X))
+                            )
+                   , disjoint(variable("F", !J) { Set } , singleton(X))
+                   , .Patterns
+                   )
+             )
+  rule unfold(listSegmentRightWeak(H,X,Y,F,.Patterns))
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( listSegmentRightWeak( H
+                                         , X
+                                         , variable("Y", !I) { Int }
+                                         , variable("F", !J) { Set }
+                                         , .Patterns
+                                         )
+                   , gt(variable("Y", !I) { Int }, 0)
+                   , \equals(Y, select(H, variable("Y", !I) { Int }))
+                   , \equals( F
+                            , union( variable("F", !J) { Set }
+                                   , singleton(variable("Y", !I) { Int })
+                                   )
+                            )
+                   , disjoint( variable("F", !J) { Set }
+                             , singleton(variable("Y", !I) { Int })
+                             )
+                   , .Patterns
+                   )
+             )
 endmodule
 ```
 
