@@ -72,6 +72,7 @@ do_test(mlprover, 't/find-in-loop.prover').default()
 # and move to above section.
 do_test(mlprover, 't/find-after-loop1.prover')
 do_test(mlprover, 't/find-after-loop2.prover')
+do_test(mlprover, 't/dllSegmentLeftLength-dllLength-implies-dllLength.prover')
 do_test(mlprover, 't/LTL-Ind.prover') # can be fixed
 
 # Theories
