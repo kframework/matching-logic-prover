@@ -2067,7 +2067,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    )
              )
 
-  rule unfold(dllSegmentLeft(H,X,Y,F,L,.Patterns))
+  rule unfold(dllSegmentLeft(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -2076,12 +2076,10 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                                    , variable("X", !I) { Int }
                                    , Y
                                    , variable("F", !J) { Set }
-                                   , variable("L", !K) { Int }
                                    , .Patterns
                                    )
                    , \not(\equals(X, Y))
                    , gt(X, 0)
-                   , \equals(variable("L", !K) { Int }, minus(L, 1))
                    , gt(variable("X", !I) { Int }, 0)
                    , \equals( variable("X", !I) { Int }
                             , select(H, plus(X, 1)))
@@ -2103,10 +2101,12 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                                    , variable("X", !I) { Int }
                                    , Y
                                    , variable("F", !J) { Set }
+                                   , variable("L", !K) { Int }
                                    , .Patterns
                                    )
                    , \not(\equals(X, Y))
                    , gt(X, 0)
+                   , \equals(variable("L", !K) { Int }, minus(L, 1))
                    , gt(variable("X", !I) { Int }, 0)
                    , \equals( variable("X", !I) { Int }
                             , select(H, plus(X, 1)))
