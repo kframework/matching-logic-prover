@@ -90,6 +90,7 @@ the second, identified by a String and an Int subscript is to be used for genera
   syntax RecursivePredicate ::= "listSegmentLeft"
                               | "listSegmentLeftSorted"
                               | "listSegmentRight"
+                              | "listSegmentRightLength"
                               | "listSorted"
                               | "listSortedLength"
                               | "listLength"
@@ -882,6 +883,22 @@ Temp: needed by `listSegmentLeft -> listSegmentRight`
          ==K                 (F, G, H, K, MAX, MIN, MIN2, X, Y, .Patterns)
 
   rule checkValid(
+      \implies ( \and ( listSegmentRightLength ( H , Y , Z , F2 , LENGTH2 , .Patterns ) 
+                      , \equals ( F , union ( F1 , F2 ) ) 
+                      , disjoint ( F1 , F2 ) 
+                      , \equals ( LENGTH , plus ( LENGTH1 , LENGTH2 ) ) 
+                      , \equals ( X , Y ) 
+                      , \equals ( F1 , emptyset ) 
+                      , \equals ( LENGTH1 , 0 ) 
+                      , .Patterns ) 
+               , \and ( listSegmentRightLength ( H , X , Z , F , LENGTH , .Patterns ) 
+                      , .Patterns ) 
+               ) )
+        => true
+    requires removeDuplicates(F, F1, F2, H, LENGTH, LENGTH1, LENGTH2, X, Y, Z, .Patterns)
+         ==K                 (F, F1, F2, H, LENGTH, LENGTH1, LENGTH2, X, Y, Z, .Patterns)
+    
+rule checkValid(
       \implies ( \and ( listSorted ( H , Y , G , MIN2 , .Patterns )
                       , \equals ( K , union ( F , G ) )
                       , disjoint ( F , G )
@@ -911,7 +928,36 @@ Temp: needed by `listSegmentLeft -> listSegmentRight`
   requires removeDuplicates(F, F_2, F_26, G, H, K, K_12, MAX, MIN, MIN2, VAL_28, VAL_4, X, X_27, X_3, Y, .Patterns)
        ==K                 (F, F_2, F_26, G, H, K, K_12, MAX, MIN, MIN2, VAL_28, VAL_4, X, X_27, X_3, Y, .Patterns)
 
-rule checkValid(
+  rule checkValid(
+      \implies ( \and ( listSegmentRightLength ( H , X , Y , FA , LA , .Patterns ) 
+                      , \equals ( F , union ( FA , FB ) ) 
+                      , disjoint ( FA , FB ) 
+                      , \equals ( LENGTH , plus ( LA , LB ) ) 
+                      , \not ( \equals ( Y , Z ) ) 
+                      , \equals ( LENGTH_2 , minus ( LB , 1 ) ) 
+                      , gt ( Y_3 , 0 ) 
+                      , \equals ( Z , select ( H , Y_3 ) ) 
+                      , \equals ( FB , union ( F_2 , singleton ( Y_3 ) ) ) 
+                      , disjoint ( F_2 , singleton ( Y_3 ) ) 
+                      , listSegmentRightLength ( H , X , Y , FA , LA , .Patterns ) 
+                      , \equals ( F_10 , union ( FA , F_2 ) ) 
+                      , disjoint ( FA , F_2 ) 
+                      , \equals ( LENGTH_9 , plus ( LA , LENGTH_2 ) ) 
+                      , listSegmentRightLength ( H , X , Y_3 , F_10 , LENGTH_9 , .Patterns ) 
+                      , .Patterns ) 
+               , \and ( listSegmentRightLength ( H , X , Y_25 , F_24 , LENGTH_24 , .Patterns ) 
+                      , \not ( \equals ( X , Z ) ) 
+                      , \equals ( LENGTH_24 , minus ( LENGTH , 1 ) ) 
+                      , gt ( Y_25 , 0 ) 
+                      , \equals ( Z , select ( H , Y_25 ) ) 
+                      , \equals ( F , union ( F_24 , singleton ( Y_25 ) ) ) 
+                      , disjoint ( F_24 , singleton ( Y_25 ) ) 
+                      , .Patterns ) 
+               )) => true
+    requires removeDuplicates( F , F_10 , F_2 , F_24 , FA , FB , H , LA , LB , LENGTH , LENGTH_2 , LENGTH_24 , LENGTH_9 , X , Y , Y_25 , Y_3 , Z , .Patterns)
+         ==K ( F , F_10 , F_2 , F_24 , FA , FB , H , LA , LB , LENGTH , LENGTH_2 , LENGTH_24 , LENGTH_9 , X , Y , Y_25 , Y_3 , Z , .Patterns)
+
+  rule checkValid(
          \implies ( \and ( \not ( \equals ( X , Y ) )
                          , gt ( X , 0 )
                          , \equals ( select ( H , X ) , T )
@@ -1130,6 +1176,61 @@ rule checkValid(
                )
        ) => true
 
+  rule checkValid(
+      \implies ( \and ( listSegmentRightLength ( H , X , Y , FA , LA , .Patterns )
+                       , \equals ( F , union ( FA , FB ) )  
+                       , disjoint ( FA , FB )  
+                       , \equals ( LENGTH , plus ( LA , LB ) )  
+                       , \equals ( Y , Z )  
+                       , \equals ( FB , emptyset )  
+                       , \equals ( LB , 0 )  
+                       , .Patterns ) 
+               , \and ( listSegmentRightLength ( H , X , Z , F , LENGTH , .Patterns ) 
+                      , .Patterns ) 
+               )
+       ) => true
+    requires removeDuplicates(F, FA, FB, H, LA, LB, LENGTH, X, Y, Z, .Patterns)
+         ==K                 (F, FA, FB, H, LA, LB, LENGTH, X, Y, Z, .Patterns)
+         
+  rule checkValid(
+      \implies ( \and ( listSegmentRightLength ( H , X , Y , FA , LA , .Patterns ) 
+                      , \equals ( F , union ( FA , FB ) ) 
+                      , disjoint ( FA , FB ) 
+                      , \equals ( LENGTH , plus ( LA , LB ) ) 
+                      , \not ( \equals ( Y , Z ) ) 
+                      , \equals ( LENGTH_2 , minus ( LB , 1 ) ) 
+                      , gt ( Y_3 , 0 ) 
+                      , \equals ( Z , select ( H , Y_3 ) ) 
+                      , \equals ( FB , union ( F_2 , singleton ( Y_3 ) ) ) 
+                      , disjoint ( F_2 , singleton ( Y_3 ) ) 
+                      , .Patterns ) 
+               , \and ( \equals ( F_10 , union ( FA , F_2 ) ) 
+                      , disjoint ( FA , F_2 ) 
+                      , \equals ( LENGTH_9 , plus ( LA , LENGTH_2 ) ) 
+                      , .Patterns ) 
+               )) => true
+    requires removeDuplicates(F, F_10, F_2, FA, FB, H, LA, LB, LENGTH, LENGTH_2, LENGTH_9, X, Y, Y_3, Z, .Patterns)
+         ==K                 (F, F_10, F_2, FA, FB, H, LA, LB, LENGTH, LENGTH_2, LENGTH_9, X, Y, Y_3, Z, .Patterns)
+
+  rule checkValid(
+            \implies ( \and ( listSegmentRightLength ( H , X , Y , FA , LA , .Patterns ) 
+                      , \equals ( F , union ( FA , FB ) ) 
+                      , disjoint ( FA , FB ) 
+                      , \equals ( LENGTH , plus ( LA , LB ) ) 
+                      , \not ( \equals ( Y , Z ) ) 
+                      , \equals ( LENGTH_2 , minus ( LB , 1 ) ) 
+                      , gt ( Y_3 , 0 ) 
+                      , \equals ( Z , select ( H , Y_3 ) ) 
+                      , \equals ( FB , union ( F_2 , singleton ( Y_3 ) ) ) 
+                      , disjoint ( F_2 , singleton ( Y_3 ) ) 
+                      , .Patterns ) 
+               , \and ( \equals ( F_10 , union ( FA , F_2 ) ) 
+                      , disjoint ( FA , F_2 ) 
+                      , \equals ( LENGTH_9 , plus ( LA , LENGTH_2 ) ) 
+                      , .Patterns ) 
+               )) => true
+     requires removeDuplicates(F, F_10, F_2, FA, FB, H, LA, LB, LENGTH, LENGTH_2, LENGTH_9, X, Y, Y_3, Z, .Patterns)
+          ==K                 (F, F_10, F_2, FA, FB, H, LA, LB, LENGTH, LENGTH_2, LENGTH_9, X, Y, Y_3, Z, .Patterns)
 
   rule checkValid(
             \implies ( \and ( gt ( Y_3 , 0 )
@@ -1725,6 +1826,35 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                               , .Patterns
                               )
                    , \not(\equals(X, Y))
+                   , gt(variable("Y", !I) { Int }, 0)
+                   , \equals(Y, select(H, variable("Y", !I) { Int }))
+                   , \equals( F
+                            , union( variable("F", !J) { Set }
+                                   , singleton(variable("Y", !I) { Int })
+                                   )
+                            )
+                   , disjoint( variable("F", !J) { Set }
+                             , singleton(variable("Y", !I) { Int })
+                             )
+                   , .Patterns
+                   )
+             )
+
+ rule unfold(listSegmentRightLength(H,X,Y,F,LENGTH,.Patterns))
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   , \equals(LENGTH, 0)
+                   , .Patterns
+                   )
+             , \and( listSegmentRightLength( H
+                                           , X
+                                           , variable("Y", !I) { Int }
+                                           , variable("F", !J) { Set }
+                                           , variable("LENGTH", !J) { Int }
+                                           , .Patterns
+                                           )
+                   , \not(\equals(X, Y))
+                   , \equals(variable("LENGTH", !J) { Int }, minus(LENGTH, 1))
                    , gt(variable("Y", !I) { Int }, 0)
                    , \equals(Y, select(H, variable("Y", !I) { Int }))
                    , \equals( F

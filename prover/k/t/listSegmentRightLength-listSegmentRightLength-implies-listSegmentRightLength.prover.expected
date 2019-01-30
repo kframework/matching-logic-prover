@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "FA" ) { Set } , variable ( "LA" ) { Int } , .Patterns ) , listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "FB" ) { Set } , variable ( "LB" ) { Int } , .Patterns ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "FA" ) { Set } , variable ( "FB" ) { Set } ) ) , disjoint ( variable ( "FA" ) { Set } , variable ( "FB" ) { Set } ) , \equals ( variable ( "LENGTH" ) { Int } , plus ( variable ( "LA" ) { Int } , variable ( "LB" ) { Int } ) ) , .Patterns ) , \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "F" ) { Set } , variable ( "LENGTH" ) { Int } , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>
