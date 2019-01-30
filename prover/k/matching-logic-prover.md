@@ -1248,6 +1248,52 @@ rule checkValid(
     requires removeDuplicates(F1, F2, F3, H0, OLDX, X, .Patterns)
          ==K                 (F1, F2, F3, H0, OLDX, X, .Patterns)
 
+  /* used in dll */
+  rule checkValid(
+            \implies ( \and ( dll ( variable ( "H" ) { ArrayIntInt } 
+                                  , variable ( "Y" ) { Int } 
+                                  , variable ( "G" ) { Set } 
+                                  , .Patterns ) 
+                            , \equals ( variable ( "K" ) { Set } 
+                            , union ( variable ( "F" ) { Set } 
+                                    , variable ( "G" ) { Set } ) ) 
+                            , disjoint ( variable ( "F" ) { Set } 
+                            , variable ( "G" ) { Set } ) 
+                            , \equals ( variable ( "X" ) { Int } 
+                                      , variable ( "Y" ) { Int } ) 
+                            , \equals ( variable ( "F" ) { Set } , emptyset ) 
+                            , .Patterns ) 
+                     , \and ( dll ( variable ( "H" ) { ArrayIntInt } 
+                                  , variable ( "X" ) { Int } 
+                                  , variable ( "K" ) { Set } 
+                                  , .Patterns ) 
+                            , .Patterns ) )
+              ) => true:Bool
+
+  rule checkValid(
+            \implies ( \and ( dll ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , .Patterns ) 
+                            , \equals ( variable ( "K" ) { Set } 
+                            , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) 
+                            , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) 
+                            , \not ( \equals ( variable ( "X" ) { Int } , variable ( "Y" ) { Int } ) ) 
+                            , gt ( variable ( "X" ) { Int } , 0 ) 
+                            , gt ( variable ( "X" , 3 ) { Int } , 0 ) 
+                            , \equals ( variable ( "X" , 3 ) { Int } 
+                                      , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) 
+                            , \equals ( variable ( "X" ) { Int } 
+                                      , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 3 ) { Int } , 2 ) ) ) 
+                            , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 2 ) { Set } ) ) 
+                            , \equals ( variable ( "F" ) { Set } 
+                                      , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) 
+                            , .Patterns ) 
+                     , \and ( \equals ( variable ( "K" , 9 ) { Set } , union ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) ) 
+                            , disjoint ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) , .Patterns ) )
+) => true:Bool   
+
+  rule checkValid(
+\implies ( \and ( dll ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) , \not ( \equals ( variable ( "X" ) { Int } , variable ( "Y" ) { Int } ) ) , gt ( variable ( "X" ) { Int } , 0 ) , gt ( variable ( "X" , 3 ) { Int } , 0 ) , \equals ( variable ( "X" , 3 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 3 ) { Int } , 2 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 2 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , dll ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , .Patterns ) , \equals ( variable ( "K" , 9 ) { Set } , union ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) , dll ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 3 ) { Int } , variable ( "K" , 9 ) { Set } , .Patterns ) , .Patterns ) , \and ( dll ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 19 ) { Int } , variable ( "F" , 18 ) { Set } , .Patterns ) , gt ( variable ( "X" , 19 ) { Int } , 0 ) , \equals ( variable ( "X" , 19 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 19 ) { Int } , 2 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 18 ) { Set } ) ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" , 18 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , .Patterns ) )
+) => true:Bool            
+
 ```
 
 ### Left Unfold (incomplete)
@@ -1847,6 +1893,66 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                         , variable("X", !I) { Int }
                         , variable("F", !J) { Set }
                         , .Patterns
+                        )
+                   , gt(X, 0)
+                   , gt(variable("X", !I) { Int } , 0)
+                   , \equals( variable("X", !I) { Int }
+                            , select(H, plus(X, 1)))
+                   , \equals( X
+                            , select(H, plus(variable("X", !I) { Int }, 2)))
+                   , \not(isMember(X, variable("F", !J) { Set }))
+                   , \equals(F, union(variable("F", !J) { Set }, singleton(X)))
+                   , .Patterns
+                   )
+             )
+
+  rule unfold(dllSegmentLeft(H,X,Y,F,.Patterns))
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( dllSegmentLeft( H
+                                   , variable("X", !I) { Int }
+                                   , Y
+                                   , variable("F", !J) { Set }
+                                   , .Patterns
+                                   )
+                   , \not(\equals(X, Y))
+                   , gt(X, 0)
+                   , gt(variable("X", !I) { Int }, 0)
+                   , \equals( variable("X", !I) { Int }
+                            , select(H, plus(X, 1)))
+                   , \equals( X
+                            , select(H, plus(variable("X", !I) { Int }, 2)))
+                   , \not(isMember(X, variable("F", !J) { Set }))
+                   , \equals(F, union(variable("F", !J) { Set }, singleton(X)))
+                   , .Patterns
+                   )
+             )
+
+  rule unfold(dllSegmentRight(H,X,Y,F,.Patterns))
+       => \or( \and( \equals(X, Y)
+                   , \equals(F, emptyset)
+                   , .Patterns
+                   )
+             , \and( dllSegmentRight( H
+                                    , X
+                                    , variable("Y", !I) { Int }
+                                    , variable("F", !J) { Set }
+                                    , .Patterns
+                                    )
+                   , gt(variable("Y", !I) { Int }, 0)
+                   , gt(Y, 0)
+                   , \equals( variable("Y", !I) { Int }
+                            , select(H, plus(Y, 2)))
+                   , \equals( Y
+                            , select(H, plus(variable("Y", !I) { Int }, 1)))
+                   , \not(isMember(variable("Y", !I) { Int }, variable("F", !J) { Set }))
+                   , \equals(F, union( variable("F", !J) { Set }
+                                     , singleton(variable("Y", !I) { Set })))
+                   , .Patterns
+                   )
+             )
 
 /* find */
 
