@@ -551,6 +551,7 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
                     | "kt" | "kt" "#" KTFilter "#" KTInstantiate
 
   syntax KTFilter ::= head(RecursivePredicate)
+                    | index(Int)
                     | ".KTFilter"
   syntax KTInstantiate ::= "useAffectedHeuristic"
                          | freshPositions(Ints)
@@ -1399,6 +1400,10 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
        </strategy>
   rule <strategy> LRPs ~> kt # head(HEAD) # INSTANTIATION
                => filterByConstructor(LRPs, HEAD) ~> kt # .KTFilter # INSTANTIATION
+                  ...
+       </strategy>
+  rule <strategy> LRPs:BasicPatterns ~> kt # index(I:Int) # INSTANTIATION
+               => getMember(I, LRPs), .Patterns ~> kt # .KTFilter # INSTANTIATION
                   ...
        </strategy>
   rule <strategy> LRPs ~> kt # .KTFilter # INSTANTIATION
