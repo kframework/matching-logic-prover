@@ -64,6 +64,7 @@ do_test(mlprover, 't/listSegmentRightLength-listSegmentRightLength-implies-listS
 do_test(mlprover, 't/lsegright-implies-lsegleft.prover').default()
 do_test(mlprover, 't/lsegright-list-implies-list.prover').default()
 do_test(mlprover, 't/dllSegmentLeft-dll-implies-dll.prover').default()
+do_test(mlprover, 't/dllSegmentLeftLength-dllLength-implies-dllLength.prover').default()
 do_test(mlprover, 't/bst-implies-bt.prover').default()
 do_test(mlprover, 't/find-before-loop.prover').default()
 do_test(mlprover, 't/find-in-loop.prover').default()
@@ -72,7 +73,6 @@ do_test(mlprover, 't/find-in-loop.prover').default()
 # and move to above section.
 do_test(mlprover, 't/find-after-loop1.prover')
 do_test(mlprover, 't/find-after-loop2.prover')
-do_test(mlprover, 't/dllSegmentLeftLength-dllLength-implies-dllLength.prover')
 do_test(mlprover, 't/LTL-Ind.prover') # can be fixed
 
 # Theories

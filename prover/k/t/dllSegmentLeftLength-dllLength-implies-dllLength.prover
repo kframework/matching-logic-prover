@@ -42,6 +42,6 @@ claim \implies( \and( dllSegmentLeftLength (
 
 strategy simplify ; kt 
        ; simplify 
-       ; ( direct-proof 
-         | noop
+       ; ( direct-proof  
+         | right-unfold-Nth(0,1) ; simplify ; direct-proof 
          )
