@@ -1,15 +1,15 @@
 
-claim \implies( \and( listSegmentRightWeak( variable("H") { ArrayIntInt }
+claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
                                       , variable("X") { Int }
                                       , variable("Y") { Int }
                                       , variable("F") { Set }
                                       , .Patterns)
                     , .Patterns )
-              , \and( listSegmentLeftWeak(variable("H") { ArrayIntInt }
-                           , variable("X") { Int }
-                           , variable("Y") { Int }
-                           , variable("F") { Set }
-                           , .Patterns)
+              , \and( listSegmentLeft(variable("H") { ArrayIntInt }
+                                     , variable("X") { Int }
+                                     , variable("Y") { Int }
+                                     , variable("F") { Set }
+                                     , .Patterns)
                     , .Patterns )
               )
 

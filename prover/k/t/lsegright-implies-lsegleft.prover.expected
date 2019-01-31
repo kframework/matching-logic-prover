@@ -10,7 +10,7 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( listSegmentRightWeak ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { Set } , .Patterns ) , .Patterns ) , \and ( listSegmentLeftWeak ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { Set } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( listSegmentRight ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { Set } , .Patterns ) , .Patterns ) , \and ( listSegmentLeft ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { Set } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success
