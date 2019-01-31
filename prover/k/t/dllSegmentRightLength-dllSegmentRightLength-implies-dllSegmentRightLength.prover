@@ -1,0 +1,45 @@
+claim \implies( \and( dllSegmentRightLength ( 
+                            variable("H") { ArrayIntInt }
+                          , variable("X") { Int }
+                          , variable("Y") { Int }
+                          , variable("F") { Set }
+                          , variable("L") { Int }
+                          , .Patterns
+                          )
+                    , dllSegmentRightLength ( 
+                            variable("H") { ArrayIntInt }
+                          , variable("Y") { Int }
+                          , variable("Z") { Int }
+                          , variable("G") { Set }
+                          , variable("M") { Int }
+                          , .Patterns
+                          )
+                    , \equals( variable("K") { Set }
+                             , union( variable("F") { Set }
+                                    , variable("G") { Set }))
+                    , disjoint( variable("F") { Set }
+                              , variable("G") { Set })
+                    , \equals( variable("N") { Int }
+                             , plus( variable("L") { Int }
+                                   , variable("M") { Int }))
+                    , .Patterns
+                    )
+              , \and( dllSegmentRightLength ( 
+                            variable("H") { ArrayIntInt }
+                          , variable("X") { Int }
+                          , variable("Z") { Int }
+                          , variable("K") { Set }
+                          , variable("N") { Int }
+                          , .Patterns
+                          )
+                     , .Patterns
+                     )
+              )
+
+strategy simplify ; kt ; simplify
+      ; ( direct-proof
+        | right-unfold-Nth(0,1) ; simplify ; direct-proof
+        | noop
+        )
+
+
