@@ -66,6 +66,7 @@ do_test(mlprover, 't/lsegright-list-implies-list.prover').default()
 do_test(mlprover, 't/dllSegmentLeft-dll-implies-dll.prover').default()
 do_test(mlprover, 't/dllSegmentLeftLength-dllLength-implies-dllLength.prover').default()
 do_test(mlprover, 't/bst-implies-bt.prover').default()
+do_test(mlprover, 't/avl-implies-bst.prover').default()
 do_test(mlprover, 't/find-before-loop.prover').default()
 do_test(mlprover, 't/find-in-loop.prover').default()
 

@@ -47,6 +47,7 @@ the second, identified by a String and an Int subscript is to be used for genera
                         | "plus"   "(" BasicPattern "," BasicPattern ")" // Int Int
                         | "minus"  "(" BasicPattern "," BasicPattern ")" // Int Int
                         | "gt"     "(" BasicPattern "," BasicPattern ")" // Int Int
+                        | "max"    "(" BasicPattern "," BasicPattern ")" // Int Int
 
                         // Array{Int, Int}
                         | "select" "(" BasicPattern "," BasicPattern ")"        // ArrayIntInt, Int
@@ -97,6 +98,7 @@ the second, identified by a String and an Int subscript is to be used for genera
                               | "list"
                               | "bt"
                               | "bst"
+                              | "avl"
                               | "dll"
                               | "dllLength"
                               | "dllSegmentLeft"
@@ -184,6 +186,8 @@ module KORE-HELPERS
   rule getFreeVariables(plus(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(gt(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(max(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(select(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
@@ -655,6 +659,16 @@ Some "hard-wire" direct-proof rules.
 ```
 
 Temp: needed by `listSegmentLeft -> listSegmentRight`
+
+Some not-too-ad-hoc ad-hoc SMT rules.
+
+```k
+  rule checkValid(
+            \implies( \and (Ps) , \and(.Patterns) )
+       ) => true:Bool
+```
+
+Some ad-hoc SMT rules.
 
 ```k
   rule checkValid(
@@ -1447,6 +1461,12 @@ requires removeDuplicates(F, F_18, F_2, G, H, K, K_9, X, X_19, X_3, Y, .Patterns
   rule checkValid(
 \implies ( \and ( dllLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) , \equals ( variable ( "N" ) { Int } , plus ( variable ( "L" ) { Int } , variable ( "M" ) { Int } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) , \not ( \equals ( variable ( "X" ) { Int } , variable ( "Y" ) { Int } ) ) , gt ( variable ( "X" ) { Int } , 0 ) , \equals ( variable ( "L" , 4 ) { Int } , minus ( variable ( "L" ) { Int } , 1 ) ) , gt ( variable ( "X" , 3 ) { Int } , 0 ) , \equals ( variable ( "X" , 3 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 3 ) { Int } , 2 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 2 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , dllLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Set } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" , 11 ) { Set } , union ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) ) , \equals ( variable ( "N" , 10 ) { Int } , plus ( variable ( "L" , 4 ) { Int } , variable ( "M" ) { Int } ) ) , disjoint ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) , dllLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 3 ) { Int } , variable ( "K" , 11 ) { Set } , variable ( "N" , 10 ) { Int } , .Patterns ) , .Patterns ) , \and ( dllLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 22 ) { Int } , variable ( "F" , 21 ) { Set } , variable ( "L" , 23 ) { Int } , .Patterns ) , \equals ( variable ( "L" , 23 ) { Int } , minus ( variable ( "N" ) { Int } , 1 ) ) , gt ( variable ( "X" , 22 ) { Int } , 0 ) , \equals ( variable ( "X" , 22 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 22 ) { Int } , 2 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 21 ) { Set } ) ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" , 21 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , .Patterns ) )
 ) => true:Bool
+
+/* avl */
+
+  rule checkValid(
+\implies ( \and ( gt ( variable ( "X" ) { Int } , 0 ) , \equals ( variable ( "Balance" ) { Int } , minus ( variable ( "H" , 11 ) { Int } , variable ( "H" , 10 ) { Int } ) ) , gt ( variable ( "Balance" ) { Int } , -2 ) , gt ( 2 , variable ( "Balance" ) { Int } ) , \equals ( variable ( "Height" ) { Int } , plus ( max ( variable ( "H" , 11 ) { Int } , variable ( "H" , 10 ) { Int } ) , 1 ) ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) , variable ( "X" , 3 ) { Int } ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 2 ) ) , variable ( "X" , 13 ) { Int } ) , gt ( variable ( "X" ) { Int } , variable ( "MAX" , 9 ) { Int } ) , gt ( variable ( "MIN" , 6 ) { Int } , variable ( "X" ) { Int } ) , \equals ( variable ( "MIN" , 7 ) { Int } , variable ( "MIN" ) { Int } ) , \equals ( variable ( "MAX" , 8 ) { Int } , variable ( "MAX" ) { Int } ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 5 ) { Set } ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 4 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( singleton ( variable ( "X" ) { Int } ) , union ( variable ( "F" , 5 ) { Set } , variable ( "F" , 4 ) { Set } ) ) ) , disjoint ( variable ( "F" , 5 ) { Set } , variable ( "F" , 4 ) { Set } ) , bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 13 ) { Int } , variable ( "F" , 4 ) { Set } , variable ( "MIN" , 6 ) { Int } , variable ( "MAX" , 8 ) { Int } , .Patterns ) , bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 3 ) { Int } , variable ( "F" , 5 ) { Set } , variable ( "MIN" , 7 ) { Int } , variable ( "MAX" , 9 ) { Int } , .Patterns ) , .Patterns ) , \and ( bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 100 ) { Int } , variable ( "F" , 102 ) { Set } , variable ( "MIN" , 104 ) { Int } , variable ( "MAX" , 106 ) { Int } , .Patterns ) , bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 107 ) { Int } , variable ( "F" , 101 ) { Set } , variable ( "MIN" , 103 ) { Int } , variable ( "MAX" , 105 ) { Int } , .Patterns ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) , variable ( "X" , 100 ) { Int } ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 2 ) ) , variable ( "X" , 107 ) { Int } ) , gt ( variable ( "X" ) { Int } , variable ( "MAX" , 106 ) { Int } ) , gt ( variable ( "MIN" , 103 ) { Int } , variable ( "X" ) { Int } ) , \equals ( variable ( "MIN" , 104 ) { Int } , variable ( "MIN" ) { Int } ) , \equals ( variable ( "MAX" , 105 ) { Int } , variable ( "MAX" ) { Int } ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 102 ) { Set } ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 101 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( singleton ( variable ( "X" ) { Int } ) , union ( variable ( "F" , 102 ) { Set } , variable ( "F" , 101 ) { Set } ) ) ) , disjoint ( variable ( "F" , 102 ) { Set } , variable ( "F" , 101 ) { Set } ) , .Patterns ) )
+) => true:Bool  
 ```
 
 ### Left Unfold (incomplete)
@@ -2050,10 +2070,76 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , gt(X,0)
                    , \equals(select(H, plus(X, 1)), variable("X", !I1) { Int })
                    , \equals(select(H, plus(X, 2)), variable("X", !I2) { Int })
-                   , gt(X, variable("MAX", !K1) { Int })
-                   , gt(variable("MIN", !L2) { Int }, X)
-                   , \equals(variable("MIN", !L1) { Int }, MIN)
-                   , \equals(variable("MAX", !K2) { Int }, MAX)
+                   , gt(X, variable("MAX", !L1) { Int })
+                   , gt(variable("MIN", !K2) { Int }, X)
+                   , \equals(variable("MIN", !K1) { Int }, MIN)
+                   , \equals(variable("MAX", !L2) { Int }, MAX)
+                   , \not(isMember(X, variable("F", !J1) { Set }))
+                   , \not(isMember(X, variable("F", !J2) { Set }))
+                   , \equals(F, union( singleton(X)
+                                     , union( variable("F", !J1) { Set }
+                                            , variable("F", !J2) { Set })))
+                   , disjoint(variable("F", !J1) { Set }, variable("F", !J2) { Set })
+                   , .Patterns
+                   )
+              )
+
+/* avl */
+
+  rule unfold(avl(H,X,F,MIN,MAX,Height,Balance,.Patterns))
+       => \or( \and( \equals(X,0)
+                   , \equals(F, emptyset)
+                   , \equals(Balance, 0)
+                   , \equals(Height, 0)
+                   , .Patterns
+                   )
+             , \and( gt(X,0)
+                   , \equals(select(H, plus(X, 1)), 0)
+                   , \equals(select(H, plus(X, 2)), 0)
+                   , \equals(MIN, X)
+                   , \equals(MAX, X)
+                   , \equals(Balance, 0)
+                   , \equals(Height, 1)
+                   , \equals(F, singleton(X))
+                   , .Patterns
+                   )
+             , \and( avl( H
+                        , variable("X",   !I1) { Int }
+                        , variable("F",   !J1) { Set }
+                        , variable("MIN", !K1) { Int }
+                        , variable("MAX", !L1) { Int }
+                        , variable("H",   !M1) { Int }
+                        , variable("B",   !N1) { Int }
+                        , .Patterns
+                        )
+                   , avl( H
+                        , variable("X",   !I2) { Int }
+                        , variable("F",   !J2) { Set }
+                        , variable("MIN", !K2) { Int }
+                        , variable("MAX", !L2) { Int }
+                        , variable("H",   !M2) { Int }
+                        , variable("B",   !N2) { Int }
+                        , .Patterns
+                        )
+                   , gt(X,0)
+                   , \equals( Balance 
+                            , minus( variable("H", !M1) { Int }
+                                   , variable("H", !M2) { Int }
+                                   )
+                            )
+                   , gt(Balance, -2)
+                   , gt(2, Balance)
+                   , \equals( Height
+                            , plus( max( variable("H", !M1) { Int }
+                                       , variable("H", !M2) { Int }
+                                       )
+                                   , 1))
+                   , \equals(select(H, plus(X, 1)), variable("X", !I1) { Int })
+                   , \equals(select(H, plus(X, 2)), variable("X", !I2) { Int })
+                   , gt(X, variable("MAX", !L1) { Int })
+                   , gt(variable("MIN", !K2) { Int }, X)
+                   , \equals(variable("MIN", !K1) { Int }, MIN)
+                   , \equals(variable("MAX", !L2) { Int }, MAX)
                    , \not(isMember(X, variable("F", !J1) { Set }))
                    , \not(isMember(X, variable("F", !J2) { Set }))
                    , \equals(F, union( singleton(X)
