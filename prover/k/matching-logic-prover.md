@@ -681,6 +681,60 @@ Some ad-hoc SMT rules.
       ==K (H, Y_3, F_31, X_32, .Patterns)
 
   rule checkValid(
+      \implies ( \and ( \equals ( F , union ( FA , singleton ( Y ) ) )
+                      , disjoint ( FA , singleton ( Y ) )
+                      , \equals ( Z , select ( H , Y ) )
+                      , \equals ( LENGTH , plus ( LA , 1 ) )
+                      , gt ( Y , 0 )
+                      , \equals ( X , Y )
+                      , \equals ( FA , emptyset )
+                      , \equals ( LA , 0 )
+                      , .Patterns )
+               , \and ( \equals ( LENGTH_6 , minus ( LENGTH , 1 ) )
+                      , gt ( Y_7 , 0 )
+                      , \equals ( Z , select ( H , Y_7 ) )
+                      , \equals ( F , union ( F_6 , singleton ( Y_7 ) ) )
+                      , disjoint ( F_6 , singleton ( Y_7 ) )
+                      , \equals ( X , Y_7 )
+                      , \equals ( F_6 , emptyset )
+                      , \equals ( LENGTH_6 , 0 )
+                      , .Patterns )
+               )) => true
+  requires removeDuplicates(F, F_6, FA, H, LA, LENGTH, LENGTH_6, X, Y, Y_7, Z, .Patterns)
+       ==K                 (F, F_6, FA, H, LA, LENGTH, LENGTH_6, X, Y, Y_7, Z, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( \equals ( F , union ( FA , singleton ( Y ) ) )
+                      , disjoint ( FA , singleton ( Y ) )
+                      , \equals ( Z , select ( H , Y ) )
+                      , \equals ( LENGTH , plus ( LA , 1 ) )
+                      , gt ( Y , 0 )
+                      , \equals ( LENGTH_2 , minus ( LA , 1 ) )
+                      , gt ( Y_3 , 0 )
+                      , \equals ( Y , select ( H , Y_3 ) )
+                      , \equals ( FA , union ( F_2 , singleton ( Y_3 ) ) )
+                      , disjoint ( F_2 , singleton ( Y_3 ) )
+                      , .Patterns )
+               , \and ( \equals ( F_15 , union ( F_2 , singleton ( Y_3 ) ) )
+                      , \equals ( Z_14 , select ( H , Y_3 ) )
+                      , \equals ( LENGTH_13 , plus ( LENGTH_2 , 1 ) )
+                      , .Patterns )
+               ) ) => true
+    requires removeDuplicates(F, F_15, F_2, FA, H, LA, LENGTH, LENGTH_13, LENGTH_2, Y, Y_3, Z, Z_14, .Patterns)
+         ==K                 (F, F_15, F_2, FA, H, LA, LENGTH, LENGTH_13, LENGTH_2, Y, Y_3, Z, Z_14, .Patterns)
+
+
+  rule checkValid(
+       \implies ( \and ( _ , _ , _ , _ , _ , _ , _ , _ , _ , _
+                       , \equals ( variable ( "F" , 15 ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "Y" , 3 ) { Int } ) ) ) 
+                       , _ , _ , _ , _ , _
+                       , \equals ( variable ( "F" , 15 ) { Set } , emptyset ) 
+                       , _
+                       , .Patterns ) 
+                , _ 
+                )) => true
+
+  rule checkValid(
       \implies ( \and ( gt ( Y_3 , 0 )
                       , \equals ( Y , select ( H , Y_3 ) )
                       , \equals ( F , union ( F_2 , singleton ( Y_3 ) ) )
@@ -1271,6 +1325,26 @@ rule checkValid(
                , \and ( list ( H , X , F , .Patterns ) , .Patterns ) ) ) => true
     requires removeDuplicates(F, F1, F2, H, X, Y, .Patterns)
          ==K                 (F, F1, F2, H, X, Y, .Patterns)
+
+  rule checkValid(
+      \implies ( \and ( listSegmentRightLength ( H , X , Y , FA , LA , .Patterns ) 
+                      , \equals ( F , union ( FA , singleton ( Y ) ) ) 
+                      , disjoint ( FA , singleton ( Y ) ) 
+                      , \equals ( Z , select ( H , Y ) ) 
+                      , \equals ( LENGTH , plus ( LA , 1 ) ) 
+                      , gt ( Y , 0 ) 
+                      , .Patterns ) 
+               , \and ( listSegmentRightLength ( H , X , Y_2 , F_1 , LENGTH_1 , .Patterns ) 
+                      , \equals ( LENGTH_1 , minus ( LENGTH , 1 ) ) 
+                      , gt ( Y_2 , 0 ) 
+                      , \equals ( Z , select ( H , Y_2 ) ) 
+                      , \equals ( F , union ( F_1 , singleton ( Y_2 ) ) ) 
+                      , disjoint ( F_1 , singleton ( Y_2 ) ) 
+                      , .Patterns ) 
+               )
+               ) => true
+    requires removeDuplicates(F, F_1, FA, H, LA, LENGTH_1, X, Y, Y_2, Z, .Patterns)
+         ==K                 (F, F_1, FA, H, LA, LENGTH_1, X, Y, Y_2, Z, .Patterns)
 
   rule checkValid(
         \implies ( \and ( list ( H , Y , G2 , .Patterns )
