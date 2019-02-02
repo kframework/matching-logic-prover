@@ -149,6 +149,14 @@ module KORE-HELPERS
     requires BP1 in BP2s
   rule .Patterns -BasicPatterns BP2s => .Patterns
   rule BP1s -BasicPatterns .Patterns => BP1s
+
+  syntax Patterns ::= Patterns "-Patterns" Patterns [function]
+  rule (P1, P1s) -Patterns P2s => P1, (P1s -Patterns P2s)
+    requires notBool(P1 in P2s)
+  rule (P1, P1s) -Patterns P2s =>      (P1s -Patterns P2s)
+    requires P1 in P2s
+  rule .Patterns -Patterns P2s => .Patterns
+  rule P1s -Patterns .Patterns => P1s
 ```
 
 ```k
@@ -591,7 +599,9 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE
 Remove trivial clauses from the right-hand-side:
 
 ```k
-  rule <k> \implies(\and(LHS), \and(RHS)) => \implies(\and(LHS), \and(RHS -BasicPatterns LHS)) ... </k>
+  rule <k> \implies(\and(LHS), \and(RHS))
+        => \implies(\and(LHS), \and(RHS -BasicPatterns LHS)) ...
+       </k>
        <strategy> simplify => noop ... </strategy>
 ```
 
@@ -2465,49 +2475,35 @@ General rules
 
 ### Simplification rules
 
-TODO:: Generalize these rules properly.
+
+TODO: These should be part of simplify
 
 ```k
-  rule <k> \and(P:Pattern, \top(), Ps:Patterns) => \and(P, Ps) </k>
-  rule <k> \and(.Patterns) => \top() </k>
+  rule \and(P, \and(Ps1:Patterns), Ps2)
+    => \and(P, (Ps1 ++Patterns Ps2)) [anywhere]
+
+  rule <k> \implies ( \and ( Ps1:Patterns ) 
+                    , P:Pattern
+                    )
+       </k>
+       <strategy> direct-proof => success ... </strategy>
+     requires (P, .Patterns) -Patterns Ps1 ==K .Patterns
+      andBool notBool(isConjunctiveForm(P))
+      andBool notBool(isBasicPatterns(Ps1))
 ```
 
 ### Ad-hoc rules
 
 ```k
-  rule <k>
-    \implies ( \and ( \implies ( phi , wnext ( phi ) )
-                    , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
+  rule <k> \implies ( \and ( \implies ( phi , wnext ( phi ) )
+                           , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
+                           , phi
+                           , .Patterns
+                           )
                     , phi
-                    , .Patterns
                     )
-             , phi
-             ) </k>
+       </k>
        <strategy> and-intro => fail ... </strategy>
-
-  rule
-     <k>
-       \implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \and ( wnext ( \implies ( phi , wnext ( phi ) ) ) , \and ( wnext ( wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) ) , \and ( wnext ( phi ) , wnext ( \top ( ) ) , .Patterns ) , .Patterns ) , .Patterns ) )
-     </k>
-     <strategy>
-       direct-proof => fail ...
-     </strategy>
-
-  rule
-    <k>
-\implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \and ( wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , \and ( wnext ( phi ) , wnext ( \top ( ) ) , .Patterns ) , .Patterns ) ) </k>
-  <strategy> direct-proof => success ... </strategy>
-
-  rule
-    <k>
-\implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) ) </k>
-    <strategy> direct-proof => success ... </strategy>
-
-  rule
-    <k>
-\implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \and ( wnext ( phi ) , wnext ( \top ( ) ) , .Patterns ) )
-</k>
-<strategy> direct-proof => success ... </strategy>
 
 endmodule
 ````
