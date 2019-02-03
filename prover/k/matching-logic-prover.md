@@ -149,7 +149,7 @@ module KORE-HELPERS
     requires BP1 in BP2s
   rule .Patterns -BasicPatterns BP2s => .Patterns
   rule BP1s -BasicPatterns .Patterns => BP1s
-
+  
   syntax Patterns ::= Patterns "-Patterns" Patterns [function]
   rule (P1, P1s) -Patterns P2s => P1, (P1s -Patterns P2s)
     requires notBool(P1 in P2s)
@@ -2470,9 +2470,6 @@ module MATCHING-LOGIC-PROVER-LTL
         => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
 ```
 
-General rules
-=============
-
 ### Simplification rules
 
 
@@ -2504,7 +2501,9 @@ TODO: These should be part of simplify
                     )
        </k>
        <strategy> and-intro => fail ... </strategy>
+```
 
+```k
 endmodule
 ````
 
