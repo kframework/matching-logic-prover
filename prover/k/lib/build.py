@@ -77,6 +77,8 @@ do_test(mlprover, 't/find-in-loop.prover').default()
 
 do_test(mlprover, 't/LTL-Ind.prover').default()
 
+do_test(mlprover, 't/sum-to-n.prover').default()
+
 # Failing tests: These tests aren't passing yet. To mark as passing append `.default()`
 # and move to above section.
 do_test(mlprover, 't/find-after-loop1.prover')

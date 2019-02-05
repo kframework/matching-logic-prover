@@ -46,11 +46,14 @@ the second, identified by a String and an Int subscript is to be used for genera
                         // Int
                         | "plus"   "(" BasicPattern "," BasicPattern ")" // Int Int
                         | "minus"  "(" BasicPattern "," BasicPattern ")" // Int Int
+                        | "mult"   "(" BasicPattern "," BasicPattern ")" // Int Int
+                        | "div"    "(" BasicPattern "," BasicPattern ")" // Int Int
                         | "gt"     "(" BasicPattern "," BasicPattern ")" // Int Int
                         | "max"    "(" BasicPattern "," BasicPattern ")" // Int Int
 
                         // Array{Int, Int}
-                        | "select" "(" BasicPattern "," BasicPattern ")"        // ArrayIntInt, Int
+                        | "select" "(" BasicPattern "," BasicPattern ")"                   // ArrayIntInt, Int -> Int
+                        | "store"  "(" BasicPattern "," BasicPattern "," BasicPattern ")"  // ArrayIntInt, Int, Int -> ArrayIntInt
 
                         // Set{Int}
                         | "union"         "(" BasicPattern "," BasicPattern ")" // Set, Set
@@ -109,8 +112,17 @@ the second, identified by a String and an Int subscript is to be used for genera
                               | "find-list-seg"
                               | "find-list"
                               | "find-find"
+                              /* Reachability / Sum to N */
+                              | "step"
+                              | "reachableInNSteps"
+                              | "sumToNPGM"
+                              | "sumToNState"
+                              | "sum"
 
-  syntax Predicate ::= "isEmpty"
+  syntax Int ::= "addr_S" [function] | "addr_N" [function]
+  syntax Int ::= "pc_init" [function]
+               | "pc_loop" [function]
+               | "pc_end"  [function]  syntax Predicate ::= "isEmpty"
 endmodule
 ```
 
@@ -149,7 +161,7 @@ module KORE-HELPERS
     requires BP1 in BP2s
   rule .Patterns -BasicPatterns BP2s => .Patterns
   rule BP1s -BasicPatterns .Patterns => BP1s
-  
+
   syntax Patterns ::= Patterns "-Patterns" Patterns [function]
   rule (P1, P1s) -Patterns P2s => P1, (P1s -Patterns P2s)
     requires notBool(P1 in P2s)
@@ -189,6 +201,10 @@ module KORE-HELPERS
   // as the application of a symbol to arguments (similar to how Predicate and RecursivePredicate
   // are), this would be easier. We would lose our compile time check on the arity though.
   rule getFreeVariables(plus(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(mult(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(div(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(gt(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
@@ -655,7 +671,20 @@ Returns true if negation is unsatisfiable, false if unknown or satisfiable:
 ```k
   syntax Bool ::= checkValid(ImplicativeForm) [function]
   rule checkValid(\implies(_, \and ( .Patterns ))) => true:Bool
+  rule checkValid(\implies(LHS:ConjunctiveForm, _)) => true
+    requires triviallyUnsatisfiable(LHS)
   rule checkValid(_) => false:Bool [owise]
+```
+
+```k
+  syntax Bool ::= triviallyUnsatisfiable(Pattern) [function]
+  rule triviallyUnsatisfiable(\equals(X:Int, Y:Int)) => X =/=Int Y
+  rule triviallyUnsatisfiable(\equals(0, 12)) => true
+  rule triviallyUnsatisfiable(\and(.Patterns)) => false
+  rule triviallyUnsatisfiable(\and(BP, BPs:BasicPatterns))
+    =>        triviallyUnsatisfiable(BP)
+       orBool triviallyUnsatisfiable(\and(BPs))
+  rule triviallyUnsatisfiable(_) => false [owise]
 ```
 
 Some "hard-wire" direct-proof rules.
@@ -736,12 +765,12 @@ Some ad-hoc SMT rules.
 
   rule checkValid(
        \implies ( \and ( _ , _ , _ , _ , _ , _ , _ , _ , _ , _
-                       , \equals ( variable ( "F" , 15 ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "Y" , 3 ) { Int } ) ) ) 
+                       , \equals ( variable ( "F" , 15 ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "Y" , 3 ) { Int } ) ) )
                        , _ , _ , _ , _ , _
-                       , \equals ( variable ( "F" , 15 ) { Set } , emptyset ) 
+                       , \equals ( variable ( "F" , 15 ) { Set } , emptyset )
                        , _
-                       , .Patterns ) 
-                , _ 
+                       , .Patterns )
+                , _
                 )) => true
 
   rule checkValid(
@@ -1337,20 +1366,20 @@ rule checkValid(
          ==K                 (F, F1, F2, H, X, Y, .Patterns)
 
   rule checkValid(
-      \implies ( \and ( listSegmentRightLength ( H , X , Y , FA , LA , .Patterns ) 
-                      , \equals ( F , union ( FA , singleton ( Y ) ) ) 
-                      , disjoint ( FA , singleton ( Y ) ) 
-                      , \equals ( Z , select ( H , Y ) ) 
-                      , \equals ( LENGTH , plus ( LA , 1 ) ) 
-                      , gt ( Y , 0 ) 
-                      , .Patterns ) 
-               , \and ( listSegmentRightLength ( H , X , Y_2 , F_1 , LENGTH_1 , .Patterns ) 
-                      , \equals ( LENGTH_1 , minus ( LENGTH , 1 ) ) 
-                      , gt ( Y_2 , 0 ) 
-                      , \equals ( Z , select ( H , Y_2 ) ) 
-                      , \equals ( F , union ( F_1 , singleton ( Y_2 ) ) ) 
-                      , disjoint ( F_1 , singleton ( Y_2 ) ) 
-                      , .Patterns ) 
+      \implies ( \and ( listSegmentRightLength ( H , X , Y , FA , LA , .Patterns )
+                      , \equals ( F , union ( FA , singleton ( Y ) ) )
+                      , disjoint ( FA , singleton ( Y ) )
+                      , \equals ( Z , select ( H , Y ) )
+                      , \equals ( LENGTH , plus ( LA , 1 ) )
+                      , gt ( Y , 0 )
+                      , .Patterns )
+               , \and ( listSegmentRightLength ( H , X , Y_2 , F_1 , LENGTH_1 , .Patterns )
+                      , \equals ( LENGTH_1 , minus ( LENGTH , 1 ) )
+                      , gt ( Y_2 , 0 )
+                      , \equals ( Z , select ( H , Y_2 ) )
+                      , \equals ( F , union ( F_1 , singleton ( Y_2 ) ) )
+                      , disjoint ( F_1 , singleton ( Y_2 ) )
+                      , .Patterns )
                )
                ) => true
     requires removeDuplicates(F, F_1, FA, H, LA, LENGTH_1, X, Y, Y_2, Z, .Patterns)
@@ -1465,16 +1494,16 @@ rule checkValid(
     requires removeDuplicates(F, F_2, G, H, K, K_9, X, X_3, Y, .Patterns)
          ==K                 (F, F_2, G, H, K, K_9, X, X_3, Y, .Patterns)
   rule checkValid(
-        \implies ( \and ( dllLength ( H , Y , G , M , .Patterns ) 
-                        , \equals ( K , union ( F , G ) ) 
-                        , \equals ( N , plus ( L , M ) ) 
-                        , disjoint ( F , G ) 
-                        , \equals ( X , Y ) 
-                        , \equals ( L , 0 ) 
-                        , \equals ( F , emptyset ) 
-                        , .Patterns ) 
-                 , \and ( dllLength ( H , X , K , N , .Patterns ) 
-                        , .Patterns ) 
+        \implies ( \and ( dllLength ( H , Y , G , M , .Patterns )
+                        , \equals ( K , union ( F , G ) )
+                        , \equals ( N , plus ( L , M ) )
+                        , disjoint ( F , G )
+                        , \equals ( X , Y )
+                        , \equals ( L , 0 )
+                        , \equals ( F , emptyset )
+                        , .Patterns )
+                 , \and ( dllLength ( H , X , K , N , .Patterns )
+                        , .Patterns )
                  )
 ) => true:Bool
     requires removeDuplicates( F, G, H, K, L, M, N, X, Y, .Patterns )
@@ -1520,21 +1549,139 @@ requires removeDuplicates(F, F_18, F_2, G, H, K, K_9, X, X_19, X_3, Y, .Patterns
 
   rule checkValid(
 \implies ( \and ( gt ( variable ( "X" ) { Int } , 0 ) , \equals ( variable ( "Balance" ) { Int } , minus ( variable ( "H" , 11 ) { Int } , variable ( "H" , 10 ) { Int } ) ) , gt ( variable ( "Balance" ) { Int } , -2 ) , gt ( 2 , variable ( "Balance" ) { Int } ) , \equals ( variable ( "Height" ) { Int } , plus ( max ( variable ( "H" , 11 ) { Int } , variable ( "H" , 10 ) { Int } ) , 1 ) ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) , variable ( "X" , 3 ) { Int } ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 2 ) ) , variable ( "X" , 13 ) { Int } ) , gt ( variable ( "X" ) { Int } , variable ( "MAX" , 9 ) { Int } ) , gt ( variable ( "MIN" , 6 ) { Int } , variable ( "X" ) { Int } ) , \equals ( variable ( "MIN" , 7 ) { Int } , variable ( "MIN" ) { Int } ) , \equals ( variable ( "MAX" , 8 ) { Int } , variable ( "MAX" ) { Int } ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 5 ) { Set } ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 4 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( singleton ( variable ( "X" ) { Int } ) , union ( variable ( "F" , 5 ) { Set } , variable ( "F" , 4 ) { Set } ) ) ) , disjoint ( variable ( "F" , 5 ) { Set } , variable ( "F" , 4 ) { Set } ) , bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 13 ) { Int } , variable ( "F" , 4 ) { Set } , variable ( "MIN" , 6 ) { Int } , variable ( "MAX" , 8 ) { Int } , .Patterns ) , bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 3 ) { Int } , variable ( "F" , 5 ) { Set } , variable ( "MIN" , 7 ) { Int } , variable ( "MAX" , 9 ) { Int } , .Patterns ) , .Patterns ) , \and ( bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 100 ) { Int } , variable ( "F" , 102 ) { Set } , variable ( "MIN" , 104 ) { Int } , variable ( "MAX" , 106 ) { Int } , .Patterns ) , bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 107 ) { Int } , variable ( "F" , 101 ) { Set } , variable ( "MIN" , 103 ) { Int } , variable ( "MAX" , 105 ) { Int } , .Patterns ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) , variable ( "X" , 100 ) { Int } ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 2 ) ) , variable ( "X" , 107 ) { Int } ) , gt ( variable ( "X" ) { Int } , variable ( "MAX" , 106 ) { Int } ) , gt ( variable ( "MIN" , 103 ) { Int } , variable ( "X" ) { Int } ) , \equals ( variable ( "MIN" , 104 ) { Int } , variable ( "MIN" ) { Int } ) , \equals ( variable ( "MAX" , 105 ) { Int } , variable ( "MAX" ) { Int } ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 102 ) { Set } ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 101 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( singleton ( variable ( "X" ) { Int } ) , union ( variable ( "F" , 102 ) { Set } , variable ( "F" , 101 ) { Set } ) ) ) , disjoint ( variable ( "F" , 102 ) { Set } , variable ( "F" , 101 ) { Set } ) , .Patterns ) )
-) => true:Bool  
+) => true:Bool
 
 /* dllSegmentRightLength */
 
   rule checkValid(
 \implies ( \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "G" ) { Set } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) , \equals ( variable ( "N" ) { Int } , plus ( variable ( "L" ) { Int } , variable ( "M" ) { Int } ) ) , \equals ( variable ( "X" ) { Int } , variable ( "Y" ) { Int } ) , \equals ( variable ( "F" ) { Set } , emptyset ) , \equals ( variable ( "L" ) { Int } , 0 ) , .Patterns ) , \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "K" ) { Set } , variable ( "N" ) { Int } , .Patterns ) , .Patterns ) )
-) => true:Bool  
+) => true:Bool
 
   rule checkValid(
 \implies ( \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "G" ) { Set } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) , \equals ( variable ( "N" ) { Int } , plus ( variable ( "L" ) { Int } , variable ( "M" ) { Int } ) ) , gt ( variable ( "X" ) { Int } , 0 ) , \equals ( variable ( "L" ) { Int } , plus ( 1 , variable ( "L" , 4 ) { Int } ) ) , gt ( variable ( "X" , 3 ) { Int } , 0 ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 3 ) { Int } , 2 ) ) ) , \equals ( variable ( "X" , 3 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 2 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , .Patterns ) , \and ( \equals ( variable ( "K" , 11 ) { Set } , union ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) , \equals ( variable ( "N" , 10 ) { Int } , plus ( variable ( "L" , 4 ) { Int } , variable ( "M" ) { Int } ) ) , .Patterns ) )
-) => true:Bool  
+) => true:Bool
 
   rule checkValid(
 \implies ( \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "G" ) { Set } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Set } ) , \equals ( variable ( "N" ) { Int } , plus ( variable ( "L" ) { Int } , variable ( "M" ) { Int } ) ) , gt ( variable ( "X" ) { Int } , 0 ) , \equals ( variable ( "L" ) { Int } , plus ( 1 , variable ( "L" , 4 ) { Int } ) ) , gt ( variable ( "X" , 3 ) { Int } , 0 ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 3 ) { Int } , 2 ) ) ) , \equals ( variable ( "X" , 3 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 2 ) { Set } ) ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "F" , 2 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "G" ) { Set } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" , 11 ) { Set } , union ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) ) , disjoint ( variable ( "F" , 2 ) { Set } , variable ( "G" ) { Set } ) , \equals ( variable ( "N" , 10 ) { Int } , plus ( variable ( "L" , 4 ) { Int } , variable ( "M" ) { Int } ) ) , dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 3 ) { Int } , variable ( "Z" ) { Int } , variable ( "K" , 11 ) { Set } , variable ( "N" , 10 ) { Int } , .Patterns ) , .Patterns ) , \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" , 22 ) { Int } , variable ( "Z" ) { Int } , variable ( "F" , 21 ) { Set } , variable ( "L" , 23 ) { Int } , .Patterns ) , \equals ( variable ( "N" ) { Int } , plus ( 1 , variable ( "L" , 23 ) { Int } ) ) , gt ( variable ( "X" , 22 ) { Int } , 0 ) , \equals ( variable ( "X" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" , 22 ) { Int } , 2 ) ) ) , \equals ( variable ( "X" , 22 ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 ) ) ) , \not ( isMember ( variable ( "X" ) { Int } , variable ( "F" , 21 ) { Set } ) ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" , 21 ) { Set } , singleton ( variable ( "X" ) { Int } ) ) ) , .Patterns ) )
-) => true:Bool  
+) => true:Bool
+
+// Sum to N
+
+  // Triggers triviallyUnsatisfiable (could be merged there)
+  rule plus(N:Int, M:Int) => M +Int N [anywhere]
+  rule select(store(H, I    , N), I:Int) => N [anywhere]
+  rule select(store(H, I:Int, N), J:Int) => select(H, J)
+    requires I =/=Int J [anywhere]
+  rule store(store(H, I, N), I, M) => store(H, I, M) [anywhere]
+
+  // LHS is inconsistant since PC does not point to expected opcode
+  rule checkValid(
+      \implies ( \and ( _
+                      , _
+                      , _
+                      , _
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_0  ) , VAL_0:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_1  ) , VAL_1:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_2  ) , VAL_2:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_3  ) , VAL_3:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_4  ) , VAL_4:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_5  ) , VAL_5:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_6  ) , VAL_6:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_7  ) , VAL_7:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_8  ) , VAL_8:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_9  ) , VAL_9:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_10 ) , VAL_10:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_11 ) , VAL_11:Int)
+                      , _
+                      , _
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , PC     ) , OP:Int )
+                      , _ )
+               , \and ( _ )
+               )) => true
+             // Hack to emulate pairs
+    requires notBool(\equals(PC, OP) in ( \equals(ADD_0 , VAL_0), \equals(ADD_1 , VAL_1), \equals(ADD_2 , VAL_2),  \equals(ADD_3 , VAL_3),
+                                          \equals(ADD_4 , VAL_4), \equals(ADD_5 , VAL_5), \equals(ADD_6 , VAL_6),  \equals(ADD_7 , VAL_7),
+                                          \equals(ADD_8 , VAL_8), \equals(ADD_9 , VAL_9), \equals(ADD_10, VAL_10), \equals(ADD_11, VAL_11),
+                                          .Patterns
+                                        ))
+  rule checkValid(
+      \implies ( \and ( _
+                      , _
+                      , _
+                      , _
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_0  ) , VAL_0:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_1  ) , VAL_1:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_2  ) , VAL_2:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_3  ) , VAL_3:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_4  ) , VAL_4:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_5  ) , VAL_5:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_6  ) , VAL_6:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_7  ) , VAL_7:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_8  ) , VAL_8:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_9  ) , VAL_9:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_10 ) , VAL_10:Int)
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , ADD_11 ) , VAL_11:Int)
+                      , _
+                      , _
+                      , _
+                      , _
+                      , _
+                      , \equals ( select ( variable ( "PGM" ) { ArrayIntInt } , PC     ) , OP:Int )
+                      , _ )
+               , \and ( _ )
+               )) => true
+             // Hack to emulate pairs
+    requires notBool(\equals(PC, OP) in ( \equals(ADD_0 , VAL_0), \equals(ADD_1 , VAL_1), \equals(ADD_2 , VAL_2),  \equals(ADD_3 , VAL_3),
+                                          \equals(ADD_4 , VAL_4), \equals(ADD_5 , VAL_5), \equals(ADD_6 , VAL_6),  \equals(ADD_7 , VAL_7),
+                                          \equals(ADD_8 , VAL_8), \equals(ADD_9 , VAL_9), \equals(ADD_10, VAL_10), \equals(ADD_11, VAL_11),
+                                          .Patterns
+                                        ))
+
+    rule checkValid(
+             \implies ( \and ( \equals ( variable ( "PC_INIT" ) { Int } , 0 )
+                      , \equals ( variable ( "PC_FINAL" ) { Int } , 12 )
+                      , \equals ( variable ( "N_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "S_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 1 ) )
+                      , gt ( select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) , 0 )
+                      , \equals ( variable ( "HEAP_NEXT" , 3 ) { ArrayIntInt } , store ( store ( variable ( "H_INIT" ) { ArrayIntInt } , 1 , plus ( select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) , select ( variable ( "H_INIT" ) { ArrayIntInt } , 1 ) ) ) , 2 , minus ( select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) , 1 ) ) )
+                      , gt ( variable ( "STEPS" ) { Int } , 0 )
+                      , \equals ( variable ( "N" , 3 ) { Int } , minus ( variable ( "STEPS" ) { Int } , 1 ) )
+                      , \equals ( variable ( "PC_INIT" ) { Int } , 0 )
+                      , \equals ( variable ( "PC_FINAL" ) { Int } , 12 )
+                      , \equals ( variable ( "N_INIT" , 6 ) { Int } , select ( variable ( "HEAP_NEXT" , 3 ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "S_INIT" , 5 ) { Int } , select ( variable ( "HEAP_NEXT" , 3 ) { ArrayIntInt } , 1 ) )
+                      , \equals ( variable ( "S_FINAL" , 9 ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 1 ) )
+                      , \equals ( variable ( "N_FINAL" , 11 ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "REDEX" , 10 ) { Int } , div ( mult ( variable ( "N_INIT" , 6 ) { Int } , plus ( variable ( "N_INIT" , 6 ) { Int } , 1 ) ) , 2 ) )
+                      , \equals ( variable ( "S_FINAL" , 9 ) { Int } , plus ( variable ( "S_INIT" , 5 ) { Int } , variable ( "REDEX" , 10 ) { Int } ) )
+                      , \equals ( variable ( "N_FINAL" , 11 ) { Int } , 0 )
+                      , .Patterns )
+               , \and ( \equals ( variable ( "S_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 1 ) )
+                      , \equals ( variable ( "N_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "REDEX" ) { Int } , div ( mult ( variable ( "N_INIT" ) { Int } , plus ( variable ( "N_INIT" ) { Int } , 1 ) ) , 2 ) )
+                      , \equals ( variable ( "S_FINAL" ) { Int } , plus ( variable ( "S_INIT" ) { Int } , variable ( "REDEX" ) { Int } ) )
+                      , \equals ( variable ( "N_FINAL" ) { Int } , 0 )
+                      , .Patterns )
+               )) => true
+
+   rule checkValid(
+      \implies ( \and ( \equals ( variable ( "PC_INIT" ) { Int } , 0 )
+                      , \equals ( variable ( "PC_FINAL" ) { Int } , 12 )
+                      , \equals ( variable ( "N_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "S_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 1 ) )
+                      , \equals ( select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) , 0 )
+                      , \equals ( variable ( "H_INIT" ) { ArrayIntInt } , variable ( "H_FINAL" ) { ArrayIntInt } )
+                      , \equals ( variable ( "PC_FINAL" ) { Int } , 12 )
+                      , \equals ( variable ( "STEPS" ) { Int } , 0 )
+                      , .Patterns )
+               , \and ( \equals ( variable ( "S_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 1 ) )
+                      , \equals ( variable ( "N_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "REDEX" ) { Int } , div ( mult ( variable ( "N_INIT" ) { Int } , plus ( variable ( "N_INIT" ) { Int } , 1 ) ) , 2 ) )
+                      , \equals ( variable ( "S_FINAL" ) { Int } , plus ( variable ( "S_INIT" ) { Int } , variable ( "REDEX" ) { Int } ) )
+                      , \equals ( variable ( "N_FINAL" ) { Int } , 0 )
+                      , .Patterns )
+               )
+      ) => true
 ```
 
 ### Left Unfold (incomplete)
@@ -2186,7 +2333,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                         , .Patterns
                         )
                    , gt(X,0)
-                   , \equals( Balance 
+                   , \equals( Balance
                             , minus( variable("H", !M1) { Int }
                                    , variable("H", !M2) { Int }
                                    )
@@ -2321,7 +2468,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , .Patterns
                    )
              , \and( dllSegmentRightLength( H
-                                    , variable("X", !I) { Int } 
+                                    , variable("X", !I) { Int }
                                     , Y
                                     , variable("F", !J) { Set }
                                     , variable("L", !K) { Int }
@@ -2332,7 +2479,7 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                    , gt(variable("X", !I) { Int }, 0)
                    , \equals( X
                             , select(H, plus(variable("X", !I) { Int }, 2)))
-                   , \equals( variable("X", !I) { Int } 
+                   , \equals( variable("X", !I) { Int }
                             , select(H, plus(X, 1)))
                    , \not(isMember(X, variable("F", !J) { Set }))
                    , \equals(F, union( variable("F", !J) { Set }
@@ -2392,6 +2539,187 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 )
           , \and( \equals(RET, 0)
                 , \not(isMember(DATA, F))
+                , .Patterns
+                )
+          )
+
+
+  rule checkValid(
+      \implies ( \and ( \equals ( variable ( "PC_INIT" ) { Int } , 0 )
+                      , \equals ( variable ( "PC_FINAL" ) { Int } , 12 )
+                      , \equals ( variable ( "N_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "S_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 1 ) )
+                      , gt ( select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) , 0 )
+                      , \equals ( variable ( "HEAP_NEXT" , 3 ) { ArrayIntInt } , store ( store ( variable ( "H_INIT" ) { ArrayIntInt } , 1 , plus ( select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) , select ( variable ( "H_INIT" ) { ArrayIntInt } , 1 ) ) ) , 2 , minus ( select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) , 1 ) ) )
+                      , gt ( variable ( "STEPS" ) { Int } , 0 )
+                      , \equals ( variable ( "N" , 3 ) { Int } , minus ( variable ( "STEPS" ) { Int } , 1 ) )
+                      , .Patterns )
+               , \and ( \equals ( variable ( "N_INIT" , 6 ) { Int } , select ( variable ( "HEAP_NEXT" , 3 ) { ArrayIntInt } , 2 ) )
+                      , \equals ( variable ( "S_INIT" , 5 ) { Int } , select ( variable ( "HEAP_NEXT" , 3 ) { ArrayIntInt } , 1 ) )
+                      , .Patterns )
+               )
+                 ) => true
+```
+
+```k
+  syntax Int ::= "add" [function]
+               | "assign" [function]
+               | "jump" [function]
+               | "increment" [function]
+               | "cjump" [function]
+               | "skip" [function]
+  rule skip => 1
+  rule add => 2
+  rule assign => 3
+  rule jump => 4
+  rule increment => 5
+  rule cjump => 6
+
+  syntax BasicPattern ::= opCodeIs(BasicPattern, BasicPattern, Int) [function]
+  rule opCodeIs(PC, PGM, OPCODE) => \equals(select(PGM, PC), OPCODE)
+  syntax BasicPattern ::= incrementPC(BasicPattern, BasicPattern, Int) [function]
+  rule incrementPC(PC_OLD, PC_NEW, N) => \equals(PC_NEW, plus(PC_OLD, N))
+
+  syntax BasicPattern ::= derefArg(BasicPattern, BasicPattern, Int) [function]
+  rule derefArg(PGM, PC, INDEX) => select(PGM, plus(PC, INDEX))
+
+  rule unfold(step(PGM, PC0, HEAP0, PC1, HEAP1, .Patterns))
+    => \or( \and( opCodeIs(PC0, PGM, skip)
+                , incrementPC(PC0, PC1, 1)
+                , \equals(HEAP1, HEAP0)
+                , .Patterns
+                )
+          , \and( opCodeIs(PC0, PGM, assign)
+                , incrementPC(PC0, PC1, 3)
+                , \equals(HEAP1, store(HEAP0, derefArg(PGM, PC0, 1), derefArg(PGM, PC0, 2)))
+                , .Patterns
+                )
+          , \and( opCodeIs(PC0, PGM, increment)
+                , incrementPC(PC0, PC1, 2)
+                , \equals(HEAP1, store(HEAP0, derefArg(PGM, PC0, 1), plus(derefArg(PGM, PC0, 1), 1)))
+                , .Patterns
+                )
+          , \and( opCodeIs(PC0, PGM, add)
+                , incrementPC(PC0, PC1, 3)
+                , \equals(HEAP1, store(HEAP0, derefArg(PGM, PC0, 1), plus(derefArg(PGM, PC0, 1), derefArg(PGM, PC0, 2))))
+                , .Patterns
+                )
+          , \and( opCodeIs(PC0, PGM, jump)
+                , \equals(PC1, derefArg(PGM, PC0, 1))
+                , \equals(HEAP1, HEAP0)
+                , .Patterns
+                )
+          , \and( opCodeIs(PC0, PGM, cjump)
+                , \equals(select(HEAP0, derefArg(PGM, PC0, 1)), 0)
+                , incrementPC(PC0, PC1, 3)
+                , \equals(HEAP1, HEAP0)
+                , .Patterns
+                )
+          , \and( opCodeIs(PC0, PGM, cjump)
+                , gt(select(HEAP0, derefArg(PGM, PC0, 1)), 0)
+                , \equals(PC1, derefArg(PGM, PC0, 2))
+                , \equals(HEAP1, HEAP0)
+                , .Patterns
+                )
+          )
+
+//  rule unfold(reachableInNSteps(PGM, PC_INIT, HEAP_INIT, PC_FINAL, HEAP_FINAL, N, .Patterns))
+//    => \or( \and( \equals(N, 0)
+//                , \equals(PC_INIT, PC_FINAL)
+//                , \equals(HEAP_INIT, HEAP_FINAL)
+//                , .Patterns
+//                )
+//          , \and( step( PGM
+//                      , PC_INIT
+//                      , HEAP_INIT
+//                      , variable("PC_NEXT", !I) { Int }
+//                      , variable("H_NEXT", !I) { ArrayIntInt }
+//                      , .Patterns
+//                      )
+//                , reachableInNSteps( PGM
+//                                   , variable("PC_NEXT", !I) { Int }
+//                                   , variable("H_NEXT", !I) { ArrayIntInt }
+//                                   , PC_FINAL
+//                                   , HEAP_FINAL
+//                                   , minus(N, 1)
+//                                   , .Patterns)
+//                , gt(N, 0)
+//                , .Patterns
+//                )
+//          )
+
+  rule unfold(reachableInNSteps(PGM, PC_INIT, HEAP_INIT, PC_FINAL, HEAP_FINAL, N, .Patterns))
+    => \or( \and( gt(select(HEAP_INIT, addr_N), 0)
+                , \equals( variable("HEAP_NEXT", !I) { ArrayIntInt }
+                         , store(
+                           store( HEAP_INIT
+                                , addr_S, plus(select(HEAP_INIT, addr_N) , select(HEAP_INIT, addr_S)))
+                                , addr_N, minus(select(HEAP_INIT, addr_N), 1))
+                         )
+                , gt(N, 0)
+                , \equals(variable("N", !I) { Int }, minus(N, 1))
+                , reachableInNSteps( PGM
+                                   , PC_INIT
+                                   , variable("HEAP_NEXT", !I) { ArrayIntInt }
+                                   , PC_FINAL, HEAP_FINAL
+                                   , variable("N", !I) { Int }, .Patterns)
+                , .Patterns
+                )
+          , \and( \equals(select(HEAP_INIT, addr_N), 0)
+                , \equals(HEAP_INIT, HEAP_FINAL)
+                , \equals(PC_FINAL, pc_end)
+                , \equals(N, 0)
+                , .Patterns
+                )
+          )
+
+  rule addr_S => 1
+  rule addr_N => 2
+
+
+  rule pc_init => 0
+  rule pc_loop => pc_init +Int 5
+  rule pc_end  => pc_loop +Int 7
+
+  rule unfold(sumToNPGM(PGM, .Patterns))
+    => \or( \and( \equals(select(PGM, pc_init +Int 0), cjump)
+                , \equals(select(PGM, pc_init +Int 1), addr_N)
+                , \equals(select(PGM, pc_init +Int 2), pc_loop)
+
+                , \equals(select(PGM, pc_init +Int 3), jump)
+                , \equals(select(PGM, pc_init +Int 4), pc_end)
+
+                , \equals(select(PGM, pc_loop +Int 0), add)
+                , \equals(select(PGM, pc_loop +Int 1), addr_S)
+                , \equals(select(PGM, pc_loop +Int 2), addr_N)
+
+                , \equals(select(PGM, pc_loop +Int 3), increment)
+                , \equals(select(PGM, pc_loop +Int 4), addr_N)
+
+                , \equals(select(PGM, pc_loop +Int 5), jump)
+                , \equals(select(PGM, pc_loop +Int 6), pc_init)
+
+                , .Patterns
+                )
+          )
+
+  rule unfold(sumToNState( HEAP , PC , N , S , .Patterns ))
+    => \or( \and( \equals(N, select(HEAP, addr_N))
+                , \equals(S, select(HEAP, addr_S))
+                , .Patterns
+                )
+          )
+  rule unfold(sum(LOWER, UPPER, INITIAL, PARTIAL_SUM, .Patterns))
+    => \or( \and( gt(LOWER, UPPER)
+                , \equals(PARTIAL_SUM, INITIAL)
+                , .Patterns
+                )
+          , \and( sum(LOWER, variable("UPPER", !I) { Int }, variable("INITIAL", !I) { Int }, PARTIAL_SUM, .Patterns)
+                , \equals( variable("UPPER", !I) { Int }
+                         , minus(UPPER, 1)
+                         )
+                , \equals(variable("INITIAL", !I) { Int }
+                         , plus(INITIAL, variable("UPPER", !I) { Int }))
                 , .Patterns
                 )
           )
@@ -2479,7 +2807,7 @@ TODO: These should be part of simplify
   rule \and(P, \and(Ps1:Patterns), Ps2)
     => \and(P, (Ps1 ++Patterns Ps2)) [anywhere]
 
-  rule <k> \implies ( \and ( Ps1:Patterns ) 
+  rule <k> \implies ( \and ( Ps1:Patterns )
                     , P:Pattern
                     )
        </k>
