@@ -64,7 +64,7 @@ the second, identified by a String and an Int subscript is to be used for genera
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")"
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
   syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")"
-  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")"
+  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [prefer]
 
   syntax Pattern ::= BasicPattern
                    | ConjunctiveForm
