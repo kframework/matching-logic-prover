@@ -6,11 +6,15 @@ requires "substitution.k"
 Kore Sugar
 ==========
 
+The Matching Logic Prover operates at the meta level, over a version of Kore
+that has sorts elided for convenience. There are also additional syntactical
+categories for formulae in particular standard forms (`ImplicativeForm`,
+`ConjunctiveForm`, ...), and `\and` and `\or` are represented as an associative
+list of subpatterns.
+
 TODO: We assume that all free variables in an ImplicativeForm that are in the RHS
 but not in the LHS are existential. This should be explicit.
 
-The following is sugar for a post-sort-erasure first-order horn clause fragment
-of kore:
 
 ```k
 module KORE-SUGAR
@@ -20,9 +24,10 @@ module KORE-SUGAR
   syntax Sort ::= "Bool" | "Int" | "ArrayIntInt" | "Set"
 ```
 
-We allow two "varieties" of variables: the first, identified by a String, is for use in defining claims;
-the second, identified by a String and an Int subscript is to be used for generating fresh variables.
-*The second variety must be used only in this scenario*.
+We allow two "varieties" of variables: the first, identified by a String, is for
+use in defining claims; the second, identified by a String and an Int subscript
+is to be used for generating fresh variables. *The second variety must be used
+only in this scenario*.
 
 ```k
   syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
@@ -128,6 +133,8 @@ endmodule
 
 Kore Helpers
 ============
+
+Here we define helpers for manipulating Kore formulae.
 
 ```k
 module KORE-HELPERS
@@ -343,13 +350,13 @@ endmodule
 Configuration
 =============
 
-The configuration consists of a Assoc-Commutative bag of goals. Only goals
+The configuration consists of a assoc-commutative bag of goals. Only goals
 marked `<active>` are executed to control the non-determinism in the system. The
-`<k>` cell contains the Matching Logic Pattern that is being proved. The
-`<strategy>` cell contains an imperative language that controls which proof
-rules are used to complete the goal. The trace cell stores a log of
-the strategies used in the search of a proof. Information here could be used
-for constructing a proof object.
+`<k>` cell contains the Matching Logic Pattern for which we are searching for a
+proof. The `<strategy>` cell contains an imperative language that controls which
+(high-level) proof rules are used to complete the goal. The `<trace>` cell
+stores a log of the strategies used in the search of a proof and other debug
+information. Eventually, this could be used for constructing a proof object.
 
 ```k
 module MATCHING-LOGIC-PROVER-CONFIGURATION
@@ -358,9 +365,7 @@ module MATCHING-LOGIC-PROVER-CONFIGURATION
 
   syntax Pgm
   syntax Strategy
-```
 
-```k
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
@@ -378,8 +383,11 @@ endmodule
 Core Strategy Language
 ======================
 
-The "strategy" language is an imperative language for describing which proof rules
-to apply to complete the proof.
+The "strategy" language is an imperative language for describing which
+high-level proof rules to try, in an attempt to find a proof.
+Strategies can be composed: by sequencing via the `;` strategy; 
+as alternatives picking the first one that succeeds via the `|` strategy;
+or, by requiring several strategies succeed.
 
 ```k
 module MATCHING-LOGIC-PROVER-CORE-SYNTAX
@@ -450,9 +458,9 @@ proved, or that constructing a proof has failed.
 //    requires REST =/=K .K
 ```
 
-The `goalStrat(Int)` strategy is used to establish a refernce to the result of another
-goal. It's argument holds the id of a subgoal. Once that subgoal has completed,
-its result is replaced in the parent goal and the subgoal is removed.
+The `goalStrat(Int)` strategy is used to establish a reference to the result of
+another goal. It's argument holds the id of a subgoal. Once that subgoal has
+completed, its result is replaced in the parent goal and the subgoal is removed.
 
 ```k
   syntax ResultStrategy ::= goalStrat(Int)
@@ -597,6 +605,9 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE
 ```
 
 ### Search Bound
+
+The `search-bound` strategy peforms a bounded depth-first search for a proof, applying
+`direct-proof`, `kt` and `right-unfold` strategies in turn.
 
 ```k
   rule <strategy> search-bound(0) => fail </strategy>
@@ -1709,8 +1720,8 @@ requires removeDuplicates(F, F_18, F_2, G, H, K, K_9, X, X_19, X_3, Y, .Patterns
 
 ### Left Unfold Nth
 
-Unfold the Nth predicates on the Left hand side into a conjunction of implicatations.
-The resulting goals are equivalent to the initial goal.
+Unfold the Nth predicates on the Left hand side into a conjunction of
+implicatations. The resulting goals are equivalent to the initial goal.
 
 ```k
   syntax Strategy ::= "left-unfold-Nth-eachLRP"  "(" Int "," BasicPatterns ")"
@@ -1786,11 +1797,10 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 
 ### Right-Unfold-Nth
 
-The strategy `right-unfold` can be highly nondeterministic, which makes debugging
-and keeping track of the proofs difficult. Here we define a deterministic
-strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
-(on the right-hand side) to its `N`th body. When `M` or `N` is out of range,
-`right-unfold(M,N) => fail`.
+Often, when debugging a proof, the user knows which predicate needs to be
+unfolded. Here we define a strategy `right-unfold-Nth(M, N)`, which unfolds the
+`M`th recursive predicate (on the right-hand side) to its `N`th body. When `M`
+or `N` is out of range, `right-unfold(M,N) => fail`.
 
 ```k
   syntax Strategy ::= "right-unfold-Nth-eachRRP"  "(" Int "," Int "," BasicPatterns")"
@@ -1829,6 +1839,10 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
 ```
 
 ### Knaster Tarski
+
+This high-level implementation of the Knaster Tarski rule attempts the applying
+the rule to each recursive predicate in turn. It also includes a heuristic
+for guessing an instantiation of the inductive hypothesis.
 
 ```k
   rule <strategy> kt => kt # .KTFilter # useAffectedHeuristic ... </strategy>
@@ -1934,7 +1948,6 @@ strategy `right-unfold-Nth(M, N)`, which unfolds the `M`th recursive predicate
      andBool ?FSubst   ==K makeFreshSubstitution(?ExVARS)
      andBool ?RHS_UAF  ==K {RHS[?USubst][?InstSubst][?FSubst]}:>BasicPatterns
      andBool ?PassiveVars ==K getFreeVariables(LHS) -BasicPatterns LRP_ARGS
-
 
   syntax Map ::= ktMakeInstantiationSubst(PredicatePattern, PredicatePattern, ImplicativeForm, KTInstantiate) [function]
   rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), RHS), useAffectedHeuristic)
