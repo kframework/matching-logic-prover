@@ -875,6 +875,10 @@ This high-level implementation of the Knaster Tarski rule attempts the applying
 the rule to each recursive predicate in turn. It also includes a heuristic
 for guessing an instantiation of the inductive hypothesis.
 
+This high-level implementation of the Knaster Tarski rule attempts the applying
+the rule to each recursive predicate in turn. It also includes a heuristic
+for guessing an instantiation of the inductive hypothesis.
+
 ```k
   rule <strategy> kt => kt # .KTFilter # useAffectedHeuristic ... </strategy>
   rule <k> GOAL </k>
