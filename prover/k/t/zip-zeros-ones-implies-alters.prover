@@ -37,7 +37,7 @@ strategy kt-gfp ; simplify
        ; right-unfold-Nth(5, 0) // zip
        ; right-unfold-Nth(5, 0) // zip
        ; right-unfold-Nth(3, 0) // zeros
-       ; simplify
+       ; simplify ; direct-proof
 
 
 /*
