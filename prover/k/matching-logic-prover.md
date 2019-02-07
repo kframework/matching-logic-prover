@@ -153,6 +153,11 @@ module KORE-HELPERS
   rule BP in (BP1, BP1s) => BP in BP1s requires BP =/=K BP1
   rule BP in .Patterns   => false
 
+  syntax Bool ::= Pattern "inPatterns" Patterns [function]
+  rule P inPatterns (P,  P1s) => true
+  rule P inPatterns (P1, P1s) => P inPatterns P1s requires P =/=K P1
+  rule P inPatterns .Patterns => false
+
   syntax BasicPatterns ::= BasicPatterns "++BasicPatterns" BasicPatterns [function, right]
   rule (BP1, BP1s) ++BasicPatterns BP2s => BP1, (BP1s ++BasicPatterns BP2s)
   rule .Patterns ++BasicPatterns BP2s => BP2s
@@ -392,7 +397,7 @@ Core Strategy Language
 
 The "strategy" language is an imperative language for describing which
 high-level proof rules to try, in an attempt to find a proof.
-Strategies can be composed: by sequencing via the `;` strategy; 
+Strategies can be composed: by sequencing via the `;` strategy;
 as alternatives picking the first one that succeeds via the `|` strategy;
 or, by requiring several strategies succeed.
 
@@ -674,7 +679,7 @@ Remove trivial clauses from the right-hand-side:
   rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
     requires notBool(isVariable(T))
   rule makeEqualitySubstitution((P, Ps:BasicPatterns)) => makeEqualitySubstitution(Ps) [owise]
-  
+
   syntax Map ::= makeExistentialSubstitution(BasicPatterns, BasicPatterns) [function]
   rule makeExistentialSubstitution(.Patterns, EVs) => .Map
   rule makeExistentialSubstitution((\equals(X:Variable, T), Ps), EVs) => (X |-> T) .Map
@@ -1930,7 +1935,11 @@ module MATCHING-LOGIC-PROVER-LTL
   // One has to traverse the whole pattern.
   // Here, I only did a simple special case that works for LTL-Ind.
   rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
-        => \implies( \and(P, wnext(always(P)), Ps) , Q) </k>
+        => \implies( \and(P, wnext(always(P)), Ps) , Q)
+       </k>
+       <active> true </active>
+       <strategy> left-unfold => noop ... </strategy>
+
 ```
 
 ### Simplification rules
@@ -1942,19 +1951,62 @@ TODO: These should be part of simplify
   rule \and(P, \and(Ps1:Patterns), Ps2)
     => \and(P, (Ps1 ++Patterns Ps2)) [anywhere]
 
-  rule <k> \implies ( \and ( Ps1:Patterns )
-                    , P:Pattern
-                    )
+  rule <k> \implies( \and(Ps1:Patterns)
+                   , P:Pattern
+                   )
        </k>
        <strategy> direct-proof => success ... </strategy>
-     requires (P, .Patterns) -Patterns Ps1 ==K .Patterns
-      andBool notBool(isConjunctiveForm(P))
-      andBool notBool(isBasicPatterns(Ps1))
+     requires P inPatterns Ps1
+
+  rule <k> \implies( _
+                   , \top()
+                   )
+       </k>
+       <strategy> direct-proof => success ... </strategy>
+
+  rule <k> \implies ( \and ( \implies ( phi , wnext ( phi ) )
+                           , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
+                           , phi , .Patterns )
+                    , wnext ( phi )
+                    )
+       </k>
+       <strategy>
+         direct-proof => success ...
+       </strategy>
+  rule <k> \implies( \and ( \implies ( phi , wnext ( phi ) )
+                          , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
+                          , phi , .Patterns )
+                   , wnext ( \implies ( phi , wnext ( phi ) ) )
+                   )
+       </k>
+       <strategy>
+         direct-proof => fail ...
+       </strategy>
+
+  rule <k> \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns )
+                    , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
+                    )
+       </k>
+       <strategy>
+         direct-proof => fail ...
+       </strategy>
+
+  rule <k> \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns )
+                    , wnext ( phi )
+                    )
+       </k>
+       <strategy>
+         direct-proof => fail ...
+       </strategy>
 ```
 
 ### Ad-hoc rules
 
 ```k
+  rule <k> \implies(_ , wnext ( \implies ( phi , wnext ( phi ) ) )) </k>
+       <active> true </active>
+       <strategy> and-intro => fail ... </strategy>
+
   rule <k> \implies ( \and ( \implies ( phi , wnext ( phi ) )
                            , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
                            , phi
@@ -1963,6 +2015,7 @@ TODO: These should be part of simplify
                     , phi
                     )
        </k>
+       <active> true </active>
        <strategy> and-intro => fail ... </strategy>
 ```
 

@@ -10,7 +10,7 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( \implies ( phi , wnext ( phi ) ) , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) ) , phi , .Patterns ) , \top ( ) )
+      \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns ) , \top ( ) )
     </k>
     <strategy>
       success
