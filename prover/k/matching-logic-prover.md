@@ -124,6 +124,12 @@ only in this scenario*.
                               | "sumToNPGM"
                               | "sumToNState"
                               | "sum"
+                              /* Streams */
+                              | "zeros"
+                              | "ones"
+                              | "alternating"
+                              | "zip"
+                              | "same"
 
   syntax Int ::= "addr_S" [function] | "addr_N" [function]
   syntax Int ::= "pc_init" [function]
@@ -589,7 +595,8 @@ module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
                     | "simplify" | "substitute-equals-for-equals" | "direct-proof"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
-                    | "kt" | "kt" "#" KTFilter "#" KTInstantiate
+                    | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
+                    | "kt-gfp" | "kt-gfp" "#" KTFilter "#" KTInstantiate
 
   syntax KTFilter ::= head(RecursivePredicate)
                     | index(Int)
@@ -647,10 +654,19 @@ Remove trivial clauses from the right-hand-side:
     requires ?EQUALITY_SUBST ==K makeEqualitySubstitution(LHS)
      andBool ?EQUALITY_SUBST =/=K .Map
 
+  rule <k> \implies(\and(LHS), \and(RHS))
+        => \implies( \and(removeTrivialEqualities(LHS[?EQUALITY_SUBST]))
+                   , \and(removeTrivialEqualities(RHS[?EQUALITY_SUBST]))
+                   ) ...
+       </k>
+       <strategy> substitute-equals-for-equals ... </strategy>
+    requires ?EQUALITY_SUBST ==K makeExistentialSubstitution(RHS, getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS))
+     andBool ?EQUALITY_SUBST =/=K .Map
+
   rule <k> \implies(\and(LHS), \and(RHS)) ... </k>
        <strategy> substitute-equals-for-equals => simplify ... </strategy>
-    requires ?EQUALITY_SUBST ==K makeEqualitySubstitution(LHS)
-     andBool ?EQUALITY_SUBST ==K .Map
+    requires .Map ==K makeEqualitySubstitution(LHS)
+     andBool .Map ==K makeExistentialSubstitution(RHS, getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS))
 
   syntax Map ::= makeEqualitySubstitution(BasicPatterns) [function]
   rule makeEqualitySubstitution(.Patterns) => .Map
@@ -658,6 +674,16 @@ Remove trivial clauses from the right-hand-side:
   rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
     requires notBool(isVariable(T))
   rule makeEqualitySubstitution((P, Ps:BasicPatterns)) => makeEqualitySubstitution(Ps) [owise]
+  
+  syntax Map ::= makeExistentialSubstitution(BasicPatterns, BasicPatterns) [function]
+  rule makeExistentialSubstitution(.Patterns, EVs) => .Map
+  rule makeExistentialSubstitution((\equals(X:Variable, T), Ps), EVs) => (X |-> T) .Map
+    requires X in EVs
+  rule makeExistentialSubstitution((\equals(T, X:Variable), Ps), EVs) => (X |-> T) .Map
+    requires X in EVs
+     andBool notBool(T in EVs)
+  rule makeExistentialSubstitution((P, Ps:BasicPatterns), EVs)
+    => makeExistentialSubstitution(Ps, EVs) [owise]
 
   syntax BasicPatterns ::= removeTrivialEqualities(BasicPatterns) [function]
   rule removeTrivialEqualities(.Patterns) => .Patterns
@@ -843,7 +869,7 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
        </strategy>
 ```
 
-### Knaster Tarski
+### Knaster Tarski (Least Fixed Point)
 
 This high-level implementation of the Knaster Tarski rule attempts the applying
 the rule to each recursive predicate in turn. It also includes a heuristic
@@ -1052,6 +1078,52 @@ goals, including both the premises and the conclusion:
        [owise]
   rule findAffectedVariablesAux(    AFF , .Patterns)
     => AFF
+```
+
+### Knaster Tarski (Greatest Fixed Points)
+
+TODO: Need `CorecursivePredicate` sort
+
+```k
+  rule <strategy> kt-gfp => kt-gfp # .KTFilter # useAffectedHeuristic ... </strategy>
+  rule <k> \implies(_, RHS:ConjunctiveForm) </k>
+       <strategy> kt-gfp # FILTER # INSTANTIATION
+               => getRecursivePredicates(RHS, .Patterns) ~> kt-gfp # FILTER # INSTANTIATION
+                  ...
+       </strategy>
+  rule <strategy> RRPs ~> kt-gfp # head(HEAD) # INSTANTIATION
+               => filterByConstructor(RRPs, HEAD) ~> kt-gfp # .KTFilter # INSTANTIATION
+                  ...
+       </strategy>
+  rule <strategy> RRPs:BasicPatterns ~> kt-gfp # index(I:Int) # INSTANTIATION
+               => getMember(I, RRPs), .Patterns ~> kt-gfp # .KTFilter # INSTANTIATION
+                  ...
+       </strategy>
+```
+
+```k
+  rule <k>    \implies(\and(LHS), \and(RHS))
+           => \implies(\and(LHS), \and({LHS[?USubst][?InstSubst]}:>BasicPatterns
+                                      ++BasicPatterns ?BODY_REST
+                                      ++BasicPatterns (RHS -BasicPatterns (HEAD:Predicate(RRP_ARGS), .Patterns))
+                      )               )
+       </k>
+       <strategy> HEAD(RRP_ARGS), .Patterns
+               ~> kt-gfp # .KTFilter # INSTANTIATION
+               => noop
+                  ...
+       </strategy>
+       <trace>
+         .K => "USubst"    ~> ?USubst
+            ~> "InstSubst" ~> ?InstSubst
+            ~> "BRP: " ~> HEAD(?BRP_ARGS)
+         ...
+       </trace>
+    requires \or(\and(?UNFOLD)) ==K unfold(HEAD(RRP_ARGS))
+     andBool HEAD(?BRP_ARGS), .Patterns ==K filterByConstructor(getRecursivePredicates(?UNFOLD), HEAD)
+     andBool ?BODY_REST ==K (?UNFOLD -Patterns (HEAD(?BRP_ARGS), .Patterns))
+     andBool ?USubst ==K zip(RRP_ARGS, ?BRP_ARGS)
+     andBool ?InstSubst ==K makeFreshSubstitution(getFreeVariables(LHS) -BasicPatterns getFreeVariables(RHS))
 ```
 
 Definition of Recursive Predicates
@@ -1741,6 +1813,51 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
                 , .Patterns
                 )
           )
+
+  rule unfold(zeros(HEAP, START, .Patterns))
+    => \or ( \and( \equals(select(HEAP, START), 0)
+                 , \equals(variable("NEXT", !I) { Int },  plus(START, 1))
+                 , zeros(HEAP, variable("NEXT", !I) { Int }, .Patterns)
+                 , .Patterns
+           )     )
+  rule unfold(ones(HEAP, START, .Patterns))
+    => \or ( \and( \equals(select(HEAP, START), 1)
+                 , \equals(variable("NEXT", !I) { Int },  plus(START, 1))
+                 , ones(HEAP, variable("NEXT", !I) { Int }, .Patterns)
+                 , .Patterns
+           )     )
+  rule unfold(alternating(HEAP, START, .Patterns))
+    => \or ( \and( alternating(HEAP, variable("NEXT", !I) { Int }, .Patterns)
+                 , \equals(select(HEAP,      START    ), 0)
+                 , \equals(select(HEAP, plus(START, 1)), 1)
+                 , \equals(variable("NEXT", !I) { Int },  plus(START, 2))
+                 , .Patterns
+           )     )
+
+  rule unfold(zip(HEAP0, START0, HEAP1, START1 // Input streams
+                 , HEAP, START                 // Output streams
+                 , .Patterns)
+             )
+    => \or ( \and( zip( HEAP1, START1
+                      , HEAP0, variable("NEXT0", !I) { Int }
+                      , HEAP,  variable("NEXT", !I) { Int }
+                      , .Patterns)
+                 , \equals(select(HEAP,      START    ), select(HEAP0, START0))
+                 , \equals(variable("NEXT0", !I) { Int },  plus(START0, 1))
+                 , \equals(variable("NEXT",  !I) { Int },  plus(START,  1))
+                 , .Patterns
+           )     )
+
+  rule unfold(same(HEAP0, START0, HEAP1, START1, .Patterns))
+    => \or( \and( same( HEAP0, variable("NEXT0", !I) { Int }
+                      , HEAP1, variable("NEXT1", !I) { Int }
+                      , .Patterns)
+                , \equals(select(HEAP0, START0), select(HEAP1, START1))
+                , \equals(select(HEAP0, plus(START0, 1)), select(HEAP1, plus(START1, 1)))
+                , \equals(variable("NEXT0", !I) { Int },  plus(START0, 2))
+                , \equals(variable("NEXT1", !I) { Int },  plus(START1, 2))
+                , .Patterns
+          )     )
 ```
 
 ```k

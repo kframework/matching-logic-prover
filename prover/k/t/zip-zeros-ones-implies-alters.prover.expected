@@ -1,0 +1,49 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( zeros ( variable ( "H0" ) { ArrayIntInt } , variable ( "S0" ) { Int } , .Patterns ) , ones ( variable ( "H1" ) { ArrayIntInt } , variable ( "S1" ) { Int } , .Patterns ) , alternating ( variable ( "HA" ) { ArrayIntInt } , variable ( "SA" ) { Int } , .Patterns ) , zip ( variable ( "H0" ) { ArrayIntInt } , variable ( "S0" ) { Int } , variable ( "H1" ) { ArrayIntInt } , variable ( "S1" ) { Int } , variable ( "HZ" ) { ArrayIntInt } , variable ( "SZ" ) { Int } , .Patterns ) , .Patterns ) , \and ( zeros ( variable ( "H0" , 8 ) { ArrayIntInt } , variable ( "S0" , 9 ) { Int } , .Patterns ) , ones ( variable ( "H1" , 10 ) { ArrayIntInt } , variable ( "S1" , 11 ) { Int } , .Patterns ) , zip ( variable ( "H0" , 8 ) { ArrayIntInt } , variable ( "S0" , 9 ) { Int } , variable ( "H1" , 10 ) { ArrayIntInt } , variable ( "S1" , 11 ) { Int } , variable ( "HZ" ) { ArrayIntInt } , variable ( "SZ" ) { Int } , .Patterns ) , \equals ( select ( variable ( "HZ" ) { ArrayIntInt } , variable ( "NEXT1" , 1 ) { Int } ) , select ( variable ( "H0" , 2 ) { ArrayIntInt } , variable ( "S0" , 3 ) { Int } ) ) , \equals ( variable ( "NEXT0" , 7 ) { Int } , plus ( variable ( "S0" , 3 ) { Int } , 1 ) ) , \equals ( variable ( "NEXT" , 7 ) { Int } , plus ( variable ( "NEXT1" , 1 ) { Int } , 1 ) ) , zeros ( variable ( "H0" , 2 ) { ArrayIntInt } , variable ( "S0" , 3 ) { Int } , .Patterns ) , alternating ( variable ( "HA" ) { ArrayIntInt } , variable ( "NEXT0" , 1 ) { Int } , .Patterns ) , \equals ( select ( variable ( "HA" ) { ArrayIntInt } , variable ( "SA" ) { Int } ) , select ( variable ( "HZ" ) { ArrayIntInt } , variable ( "SZ" ) { Int } ) ) , \equals ( select ( variable ( "HA" ) { ArrayIntInt } , plus ( variable ( "SA" ) { Int } , 1 ) ) , select ( variable ( "HZ" ) { ArrayIntInt } , plus ( variable ( "SZ" ) { Int } , 1 ) ) ) , \equals ( variable ( "NEXT0" , 1 ) { Int } , plus ( variable ( "SA" ) { Int } , 2 ) ) , \equals ( variable ( "NEXT1" , 1 ) { Int } , plus ( variable ( "SZ" ) { Int } , 2 ) ) , \equals ( select ( variable ( "H1" , 4 ) { ArrayIntInt } , variable ( "S1" , 5 ) { Int } ) , 1 ) , \equals ( variable ( "NEXT" , 6 ) { Int } , plus ( variable ( "S1" , 5 ) { Int } , 1 ) ) , ones ( variable ( "H1" , 4 ) { ArrayIntInt } , variable ( "NEXT" , 6 ) { Int } , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+         success
+      ~> #hole ; left-unfold-Nth ( 0 ) ; left-unfold-Nth ( 0 ) ; left-unfold-Nth ( 0 ) ; left-unfold-Nth ( 3 ) ; left-unfold-Nth ( 3 ) ; left-unfold-Nth ( 0 ) ; right-unfold-Nth ( 0 , 0 ) ; right-unfold-Nth ( 0 , 0 ) ; right-unfold-Nth ( 0 , 0 ) ; right-unfold-Nth ( 5 , 0 ) ; right-unfold-Nth ( 5 , 0 ) ; right-unfold-Nth ( 3 , 0 ) ; simplify ; direct-proof
+    </strategy>
+    <trace>
+         "USubst"
+      ~>    variable ( "H0" , 2 ) { ArrayIntInt } |-> variable ( "H1" , 4 ) { ArrayIntInt }
+      variable ( "H1" , 4 ) { ArrayIntInt } |-> variable ( "H0" , 2 ) { ArrayIntInt }
+      variable ( "HZ" ) { ArrayIntInt } |-> variable ( "HZ" ) { ArrayIntInt }
+      variable ( "NEXT1" , 1 ) { Int } |-> variable ( "NEXT" , 7 ) { Int }
+      variable ( "S0" , 3 ) { Int } |-> variable ( "S1" , 5 ) { Int }
+      variable ( "S1" , 5 ) { Int } |-> variable ( "NEXT0" , 7 ) { Int }
+      ~>    "InstSubst"
+      ~>    variable ( "H0" ) { ArrayIntInt } |-> variable ( "H0" , 8 ) { ArrayIntInt }
+      variable ( "H1" ) { ArrayIntInt } |-> variable ( "H1" , 10 ) { ArrayIntInt }
+      variable ( "S0" ) { Int } |-> variable ( "S0" , 9 ) { Int }
+      variable ( "S1" ) { Int } |-> variable ( "S1" , 11 ) { Int }
+      ~>    "BRP: "
+      ~>    zip ( variable ( "H1" , 4 ) { ArrayIntInt } , variable ( "S1" , 5 ) { Int } , variable ( "H0" , 2 ) { ArrayIntInt } , variable ( "NEXT0" , 7 ) { Int } , variable ( "HZ" ) { ArrayIntInt } , variable ( "NEXT" , 7 ) { Int } , .Patterns )
+      ~>    right-unfold-oneBody ( ones ( variable ( "H1" , 4 ) { ArrayIntInt } , variable ( "S1" , 5 ) { Int } , .Patterns ) , \and ( \equals ( select ( variable ( "H1" , 4 ) { ArrayIntInt } , variable ( "S1" , 5 ) { Int } ) , 1 ) , \equals ( variable ( "NEXT" , 6 ) { Int } , plus ( variable ( "S1" , 5 ) { Int } , 1 ) ) , ones ( variable ( "H1" , 4 ) { ArrayIntInt } , variable ( "NEXT" , 6 ) { Int } , .Patterns ) , .Patterns ) )
+      ~>    "USubst"
+      ~>    variable ( "HA" ) { ArrayIntInt } |-> variable ( "HA" ) { ArrayIntInt }
+      variable ( "HZ" ) { ArrayIntInt } |-> variable ( "HZ" ) { ArrayIntInt }
+      variable ( "SA" ) { Int } |-> variable ( "NEXT0" , 1 ) { Int }
+      variable ( "SZ" ) { Int } |-> variable ( "NEXT1" , 1 ) { Int }
+      ~>    "InstSubst"
+      ~>    variable ( "H0" ) { ArrayIntInt } |-> variable ( "H0" , 2 ) { ArrayIntInt }
+      variable ( "H1" ) { ArrayIntInt } |-> variable ( "H1" , 4 ) { ArrayIntInt }
+      variable ( "S0" ) { Int } |-> variable ( "S0" , 3 ) { Int }
+      variable ( "S1" ) { Int } |-> variable ( "S1" , 5 ) { Int }
+      ~>    "BRP: "
+      ~> same ( variable ( "HA" ) { ArrayIntInt } , variable ( "NEXT0" , 1 ) { Int } , variable ( "HZ" ) { ArrayIntInt } , variable ( "NEXT1" , 1 ) { Int } , .Patterns )
+    </trace>
+  </goal>
+</prover>
