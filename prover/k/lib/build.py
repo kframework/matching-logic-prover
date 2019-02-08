@@ -65,6 +65,7 @@ do_test(mlprover, 't/listSegmentRightLength-listSegmentRightLength-implies-listS
 do_test(mlprover, 't/listSegmentRightLength-appendone-implies-listSegmentRightLength.prover').default()
 do_test(mlprover, 't/lsegright-implies-lsegleft.prover').default()
 do_test(mlprover, 't/lsegright-list-implies-list.prover').default()
+do_test(mlprover, 't/listSortedLength-implies-listSorted.prover').default()
 
 do_test(mlprover, 't/dllSegmentLeft-dll-implies-dll.prover').default()
 do_test(mlprover, 't/dllSegmentLeftLength-dllLength-implies-dllLength.prover').default()

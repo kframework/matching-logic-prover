@@ -206,6 +206,29 @@ module DIRECT-PROOF-QUERIES
          ==K                 (F, F_2,  G,  H,  K,  K_10,  MAX,  MIN,  MIN2,  VAL_4,  X,  X_3,  Y, .Patterns)
 
   rule checkValid(
+        \implies ( \and ( gt ( X , 0 ) 
+                      , \equals ( select ( H , X ) , X_3 ) 
+                      , \equals ( K , union ( F_2 , singleton ( X ) ) ) 
+                      , disjoint ( F_2 , singleton ( X ) ) 
+                      , \equals ( VAL_4 , select ( H , plus ( X , 1 ) ) ) 
+                      , gt ( VAL_4 , MIN ) 
+                      , gt ( LENGTH , 0 ) 
+                      , \equals ( LENGTH_4 , minus ( LENGTH , 1 ) ) 
+                      , listSorted ( H , X_3 , F_2 , VAL_4 , .Patterns ) 
+                      , .Patterns ) 
+               , \and ( listSorted ( H , X_31 , F_30 , VAL_32 , .Patterns ) 
+                      , \equals ( select ( H , X ) , X_31 ) 
+                      , \equals ( K , union ( F_30 , singleton ( X ) ) ) 
+                      , disjoint ( F_30 , singleton ( X ) ) 
+                      , \equals ( VAL_32 , select ( H , plus ( X , 1 ) ) ) 
+                      , gt ( VAL_32 , MIN ) 
+                      , .Patterns ) 
+               )
+               ) => true
+    requires removeDuplicates(F_2, F_30, H, K, LENGTH_4, LENGTH, MIN, VAL_32, VAL_4, X, X_3, X_31, .Patterns)
+         ==K (F_2, F_30, H, K, LENGTH_4, LENGTH, MIN, VAL_32, VAL_4, X, X_3, X_31, .Patterns)
+
+  rule checkValid(
       \implies ( \and ( gt ( Y_3 , 0 ) 
                       , disjoint ( emptyset , singleton ( Y_3 ) ) 
                       , .Patterns ) 
