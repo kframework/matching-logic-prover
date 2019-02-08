@@ -1,22 +1,10 @@
-<prover>
-  <goal>
-    <id>
-      0
-    </id>
-    <active>
-      true
-    </active>
-    <parent>
-      -1
-    </parent>
-    <k>
-      \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns ) , \top ( ) )
-    </k>
-    <strategy>
-      success
-    </strategy>
-    <trace>
-      .
-    </trace>
-  </goal>
-</prover>
+claim \implies( \and( always( \implies(phi, wnext(phi)))
+                    , phi
+                    , .Patterns
+                    )
+              , always(phi)
+              )
+strategy kt-always ; and-intro ; ( direct-proof
+                                 | left-unfold ; direct-proof
+                                 )
+
