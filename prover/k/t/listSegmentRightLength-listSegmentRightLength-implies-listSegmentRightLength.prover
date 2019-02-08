@@ -27,8 +27,13 @@ claim \implies( \and( listSegmentRightLength( variable("H") { ArrayIntInt }
                    , .Patterns
                    )
               ) 
+
+strategy search-bound(5)
+
+/*
 strategy kt # index(1) # useAffectedHeuristic
          ; ( direct-proof
            | ( simplify ; direct-proof )
            | ( right-unfold-Nth(0, 1) ; simplify ; direct-proof ) 
            )
+*/

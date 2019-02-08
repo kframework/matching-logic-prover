@@ -10,12 +10,10 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( sumToNState ( variable ( "H_INIT" ) { ArrayIntInt } , variable ( "PC_INIT" ) { Int } , variable ( "N_INIT" ) { Int } , variable ( "S_INIT" ) { Int } , .Patterns ) , \equals ( variable ( "PC_INIT" ) { Int } , 0 ) , \equals ( variable ( "PC_FINAL" ) { Int } , 12 ) , reachableInNSteps ( variable ( "PGM" ) { ArrayIntInt } , variable ( "PC_INIT" ) { Int } , variable ( "H_INIT" ) { ArrayIntInt } , variable ( "PC_FINAL" ) { Int } , variable ( "H_FINAL" ) { ArrayIntInt } , variable ( "STEPS" ) { Int } , .Patterns ) , .Patterns ) , \and ( \equals ( variable ( "S_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 1 ) ) , \equals ( variable ( "N_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 2 ) ) , \equals ( variable ( "REDEX" ) { Int } , div ( mult ( variable ( "N_INIT" ) { Int } , plus ( variable ( "N_INIT" ) { Int } , 1 ) ) , 2 ) ) , \equals ( variable ( "S_FINAL" ) { Int } , plus ( variable ( "S_INIT" ) { Int } , variable ( "REDEX" ) { Int } ) ) , \equals ( variable ( "N_FINAL" ) { Int } , 0 ) , .Patterns ) )
+      \implies ( \and ( \equals ( variable ( "N_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) ) , \equals ( variable ( "S_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 1 ) ) , \equals ( variable ( "PC_INIT" ) { Int } , 0 ) , \equals ( variable ( "PC_FINAL" ) { Int } , 12 ) , reachableInNSteps ( variable ( "PGM" ) { ArrayIntInt } , variable ( "PC_INIT" ) { Int } , variable ( "H_INIT" ) { ArrayIntInt } , variable ( "PC_FINAL" ) { Int } , variable ( "H_FINAL" ) { ArrayIntInt } , variable ( "STEPS" ) { Int } , .Patterns ) , .Patterns ) , \and ( \equals ( variable ( "S_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 1 ) ) , \equals ( variable ( "N_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 2 ) ) , \equals ( variable ( "REDEX" ) { Int } , div ( mult ( variable ( "N_INIT" ) { Int } , plus ( variable ( "N_INIT" ) { Int } , 1 ) ) , 2 ) ) , \equals ( variable ( "S_FINAL" ) { Int } , plus ( variable ( "S_INIT" ) { Int } , variable ( "REDEX" ) { Int } ) ) , \equals ( variable ( "N_FINAL" ) { Int } , 0 ) , .Patterns ) )
     </k>
     <strategy>
-         success
-      ~> #hole ; kt # head ( reachableInNSteps ) # useAffectedHeuristic ; ( ( simplify ; direct-proof )
-      |  simplify )
+      success
     </strategy>
     <trace>
       .

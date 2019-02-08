@@ -10,14 +10,13 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "FA" ) { Set } , variable ( "LA" ) { Int } , .Patterns ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "FA" ) { Set } , singleton ( variable ( "Y" ) { Int } ) ) ) , disjoint ( variable ( "FA" ) { Set } , singleton ( variable ( "Y" ) { Int } ) ) , \equals ( variable ( "Z" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } ) ) , \equals ( variable ( "LENGTH" ) { Int } , plus ( variable ( "LA" ) { Int } , 1 ) ) , gt ( variable ( "Y" ) { Int } , 0 ) , .Patterns ) , \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" , 2 ) { Int } , variable ( "F" , 1 ) { Set } , variable ( "LENGTH" , 1 ) { Int } , .Patterns ) , \equals ( variable ( "LENGTH" , 1 ) { Int } , minus ( variable ( "LENGTH" ) { Int } , 1 ) ) , gt ( variable ( "Y" , 2 ) { Int } , 0 ) , \equals ( variable ( "Z" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" , 2 ) { Int } ) ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "F" , 1 ) { Set } , singleton ( variable ( "Y" , 2 ) { Int } ) ) ) , disjoint ( variable ( "F" , 1 ) { Set } , singleton ( variable ( "Y" , 2 ) { Int } ) ) , .Patterns ) )
+      \implies ( \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "FA" ) { Set } , variable ( "LA" ) { Int } , .Patterns ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "FA" ) { Set } , singleton ( variable ( "Y" ) { Int } ) ) ) , disjoint ( variable ( "FA" ) { Set } , singleton ( variable ( "Y" ) { Int } ) ) , \equals ( variable ( "Z" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } ) ) , \equals ( variable ( "LENGTH" ) { Int } , plus ( variable ( "LA" ) { Int } , 1 ) ) , gt ( variable ( "Y" ) { Int } , 0 ) , .Patterns ) , \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "F" ) { Set } , variable ( "LENGTH" ) { Int } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success
     </strategy>
     <trace>
-         direct-proof
-      ~> right-unfold-oneBody ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "F" ) { Set } , variable ( "LENGTH" ) { Int } , .Patterns ) , \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" , 2 ) { Int } , variable ( "F" , 1 ) { Set } , variable ( "LENGTH" , 1 ) { Int } , .Patterns ) , \equals ( variable ( "LENGTH" , 1 ) { Int } , minus ( variable ( "LENGTH" ) { Int } , 1 ) ) , gt ( variable ( "Y" , 2 ) { Int } , 0 ) , \equals ( variable ( "Z" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" , 2 ) { Int } ) ) , \equals ( variable ( "F" ) { Set } , union ( variable ( "F" , 1 ) { Set } , singleton ( variable ( "Y" , 2 ) { Int } ) ) ) , disjoint ( variable ( "F" , 1 ) { Set } , singleton ( variable ( "Y" , 2 ) { Int } ) ) , .Patterns ) )
+      .
     </trace>
   </goal>
 </prover>

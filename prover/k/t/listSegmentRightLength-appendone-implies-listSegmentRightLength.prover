@@ -22,4 +22,8 @@ claim \implies( \and( listSegmentRightLength( variable("H") { ArrayIntInt }
                    , .Patterns
                    )
               ) 
+strategy search-bound(3)
+
+/*
 strategy right-unfold-Nth(0, 1) ; simplify ; direct-proof
+*/

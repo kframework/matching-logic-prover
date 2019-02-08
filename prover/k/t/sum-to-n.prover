@@ -1,10 +1,5 @@
-claim \implies ( \and ( sumToNState( variable("H_INIT") { ArrayIntInt }
-                                   , variable("PC_INIT") { Int }
-                                   , variable("N_INIT") { Int }
-                                   , variable("S_INIT") { Int } 
-                                   , .Patterns
-                                   )
-
+claim \implies ( \and ( \equals(variable("N_INIT") { Int }, select(variable("H_INIT") { ArrayIntInt }, addr_N))
+                      , \equals(variable("S_INIT") { Int }, select(variable("H_INIT") { ArrayIntInt }, addr_S))
                       , \equals(variable("PC_INIT") { Int }, 0)
                       , \equals(variable("PC_FINAL") { Int }, 12)
 
@@ -31,8 +26,10 @@ claim \implies ( \and ( sumToNState( variable("H_INIT") { ArrayIntInt }
                       )
                )
 
-strategy left-unfold-Nth(0)
-       ; kt # head(reachableInNSteps) # useAffectedHeuristic
+strategy search-bound(3)
+/*
+strategy kt # head(reachableInNSteps) # useAffectedHeuristic
          ; ( ( simplify ; direct-proof )
            | simplify
            )
+*/

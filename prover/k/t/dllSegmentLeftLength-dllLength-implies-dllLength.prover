@@ -36,12 +36,13 @@ claim \implies( \and( dllSegmentLeftLength (
                     )
               )
 
-// strategy search-bound(5)
+strategy search-bound(3)
 
 
-
+/*
 strategy simplify ; kt 
        ; simplify 
        ; ( direct-proof  
          | right-unfold-Nth(0,1) ; simplify ; direct-proof 
          )
+*/

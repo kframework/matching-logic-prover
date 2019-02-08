@@ -23,14 +23,13 @@ claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt }
                                 , .Patterns)
                     , .Patterns )
               )
+
+strategy search-bound(5)
+
+/*
 strategy kt # head(listSegmentLeftSorted) # useAffectedHeuristic
        ; ( ( simplify ; substitute-equals-for-equals ; direct-proof )
          | ( simplify ; direct-proof )
          | ( right-unfold-Nth(0, 1) ; simplify ; direct-proof )
          )
-
-/*
-strategy kt(listSegmentLeft) ; ( ( simplify ; direct-proof )
-                          | (right-unfold-Nth(0, 1) ; simplify ; direct-proof)
-                        )
 */

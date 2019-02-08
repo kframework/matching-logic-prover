@@ -13,6 +13,9 @@ claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
                     , .Patterns )
               )
 
+strategy search-bound(5)
+
+/*
 strategy kt ; ( ( right-unfold-Nth(0, 0) ; simplify ; direct-proof )
               | ( direct-proof )
               | ( kt ; ( ( simplify ; right-unfold-Nth(0, 1) ; right-unfold-Nth(0, 0) ; substitute-equals-for-equals ; direct-proof)
@@ -23,3 +26,4 @@ strategy kt ; ( ( right-unfold-Nth(0, 0) ; simplify ; direct-proof )
                 )
               | ( noop )
               )
+*/

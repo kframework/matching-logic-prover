@@ -19,9 +19,9 @@ claim \implies( \and( avl( variable("H") { ArrayIntInt }
                     , .Patterns
                     )
               )
-// strategy search-bound(5)
+strategy search-bound(5)
 
-
+/*
 strategy simplify ; kt ; simplify
        ; ( (right-unfold-Nth(0,0) ; simplify ; direct-proof )
          | (right-unfold-Nth(0,1) ; simplify ; direct-proof )
@@ -29,3 +29,4 @@ strategy simplify ; kt ; simplify
          | (right-unfold-Nth(0,2) ; simplify ; direct-proof )
          | noop
          )
+*/

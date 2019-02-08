@@ -29,7 +29,7 @@ claim \implies( \and( dllSegmentLeft (
                     )
               )
 
-// strategy search-bound(5)
+strategy search-bound(5)
 
 /*
 strategy simplify 
@@ -37,10 +37,10 @@ strategy simplify
        ; ( direct-proof 
          | right-unfold-Nth(0,1) ; simplify ; direct-proof
          )
-*/
 
 strategy simplify 
        ; kt ; simplify
        ; ( direct-proof 
          | right-unfold ; simplify ; direct-proof
          )
+*/
