@@ -1,0 +1,38 @@
+module NAT
+
+import BOOL
+
+sort NAT
+
+// constructors
+function z : -> Nat
+function s : Nat -> Nat
+
+// Numeral notations.
+// One should feel free to numerals (e.g., 0,1,42,...)
+// as a concrete syntax to natural numbers, which are
+// then parsed (and translated) to the internal syntax
+// of constructors (e.g., z, s(z), s(s(s(.....s(z)...)))).
+// We assume that the concrete syntax of numerals
+// is "hardwired" in extkore, which is the same as in Maude
+// and Coq. In other words, the concrete syntax of numerals
+// is *not* something (pre-)defined.
+// In Maude, the concrete syntax of numerals is hardwired
+// and the parsed/translated terms (often represented in
+// a compact form using "iter" theory) are then hooked to
+// an efficient implimentation. 
+// In Coq, the same thing happens, except that Coq allows
+// users to define custom translations from numerals
+// to any inductive type (satisfying certain assumptions).
+// See https://coq.inria.fr/refman/user-extensions/syntax-extensions.html#numeral-notations
+// for details.
+
+// constructor axioms
+
+// The following is the axiom (Inductive Domain) for natural
+// numbers. Note that \mu is a binder that binds the set variable N 
+// in "0 \/ s(N)". In general, the scope of binders goes as far as
+// possible to the right, which is a convention as in lambda calculus.
+axiom \mu N . 0 \/ s(N)
+
+axiom 

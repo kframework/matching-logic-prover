@@ -1,0 +1,27 @@
+// DEFINEDNESS is parametric on two sorts. This is obtained
+// by taking two parameters of the *theory TRIV*, which contains
+// nothing but only a sort Elt. 
+module DEFINEDNESS{T::TRIV,T'::TRIV}
+// It is automatically assumed that ceil is parametric on
+// the same parameters (in the same order) as the theory does.
+symbol ceil(T.Elt):T'.Elt // T.Elt means the sort in theory T
+axiom ceil(x) // Note that the sort of x (i.e., X.Elt) is inferred.
+
+// I hope the following alias definitions work.
+// Alternatively, they can be "hardwired" in extkore. By default,
+// they are included, but can be optionally "switched off" if
+// the users do not want definedness in their theories (this is
+// commonly the case as in modal logics, when there's no definedness).
+alias floor(X) := !ceil(!X) // I use a set variable X here, meaning that
+                            // I want floor(P) to mean !ceil(!P) for
+                            // *all patterns* P, (i.e., not just set variables).
+                            // In other words, I'm *overloading* the set variable X
+                            // as a meta-variable of patterns.
+alias x \in Y := ceil(x /\ Y) // Note that x is an element variable.
+                              // This causes some questions:
+                              // (1) do we allow t \in Y for functional pattern t?
+                              // (2) do we allow X \in Y if X is not functional?
+alias X = Y := floor(X <-> Y)
+alias X != Y := !(X = Y)
+alias X [= Y := floor(X -> Y) // X is a subset of Y
+endmodule

@@ -1,0 +1,3 @@
+module TRIV
+sort Elt
+endmodule
