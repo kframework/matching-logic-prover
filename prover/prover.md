@@ -371,7 +371,7 @@ stores a log of the strategies used in the search of a proof and other debug
 information. Eventually, this could be used for constructing a proof object.
 
 ```k
-module MATCHING-LOGIC-PROVER-CONFIGURATION
+module PROVER-CONFIGURATION
   imports KORE-SUGAR
   imports DOMAINS-SYNTAX
 
@@ -402,7 +402,7 @@ as alternatives picking the first one that succeeds via the `|` strategy;
 or, by requiring several strategies succeed.
 
 ```k
-module MATCHING-LOGIC-PROVER-CORE-SYNTAX
+module PROVER-CORE-SYNTAX
 ```
 
 ```k
@@ -428,12 +428,12 @@ endmodule
 ```
 
 ```k
-module MATCHING-LOGIC-PROVER-CORE
-  imports MATCHING-LOGIC-PROVER-CONFIGURATION
+module PROVER-CORE
+  imports PROVER-CONFIGURATION
 ```
 
 ```k
-  imports MATCHING-LOGIC-PROVER-CORE-SYNTAX
+  imports PROVER-CORE-SYNTAX
   imports KORE-HELPERS
   imports SUBSTITUTION
 ```
@@ -592,7 +592,7 @@ Strategies for the Horn Clause fragment
 =======================================
 
 ```k
-module MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
+module PROVER-HORN-CLAUSE-SYNTAX
   imports INT-SYNTAX
   imports KORE-SUGAR
 
@@ -612,9 +612,9 @@ endmodule
 ```
 
 ```k
-module MATCHING-LOGIC-PROVER-HORN-CLAUSE
-  imports MATCHING-LOGIC-PROVER-CORE
-  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
+module PROVER-HORN-CLAUSE
+  imports PROVER-CORE
+  imports PROVER-HORN-CLAUSE-SYNTAX
 
   imports DIRECT-PROOF-QUERIES
 ```
@@ -1875,7 +1875,7 @@ LTL Fragment
 ### and-intro
 
 ```k
-module MATCHING-LOGIC-PROVER-LTL-SYNTAX
+module PROVER-LTL-SYNTAX
   syntax Strategy ::= "and-intro"
   syntax Strategy ::= "unfold"
   syntax Strategy ::= "kt-always"
@@ -1883,10 +1883,10 @@ endmodule
 ```
 
 ```k
-module MATCHING-LOGIC-PROVER-LTL
-  imports MATCHING-LOGIC-PROVER-CORE
-  imports MATCHING-LOGIC-PROVER-LTL-SYNTAX
-  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE
+module PROVER-LTL
+  imports PROVER-CORE
+  imports PROVER-LTL-SYNTAX
+  imports PROVER-HORN-CLAUSE
 
   /* |- A -> B /\ C
    * =>
@@ -2029,10 +2029,10 @@ Driver & Syntax
 The driver is responsible for loading prover files into the configuration.
 
 ```k
-module MATCHING-LOGIC-PROVER-SYNTAX
-  imports MATCHING-LOGIC-PROVER-CORE-SYNTAX
-  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE-SYNTAX
-  imports MATCHING-LOGIC-PROVER-LTL-SYNTAX
+module PROVER-SYNTAX
+  imports PROVER-CORE-SYNTAX
+  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports PROVER-LTL-SYNTAX
   imports KORE-SUGAR
   syntax Pgm ::= "claim" Pattern
                  "strategy" Strategy
@@ -2040,9 +2040,9 @@ endmodule
 ```
 
 ```k
-module MATCHING-LOGIC-PROVER-DRIVER
-  imports MATCHING-LOGIC-PROVER-SYNTAX
-  imports MATCHING-LOGIC-PROVER-CORE
+module PROVER-DRIVER
+  imports PROVER-SYNTAX
+  imports PROVER-CORE
 
   rule <k> claim PATTERN
            strategy STRAT
@@ -2056,10 +2056,10 @@ Main Modules
 ============
 
 ```k
-module MATCHING-LOGIC-PROVER
-  imports MATCHING-LOGIC-PROVER-DRIVER
-  imports MATCHING-LOGIC-PROVER-HORN-CLAUSE
-  imports MATCHING-LOGIC-PROVER-LTL
+module PROVER
+  imports PROVER-DRIVER
+  imports PROVER-HORN-CLAUSE
+  imports PROVER-LTL
 endmodule
 ```
 

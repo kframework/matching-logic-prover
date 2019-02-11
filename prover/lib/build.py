@@ -45,11 +45,11 @@ imported_k_files = [ proj.source('kore.md').then(proj.tangle().output(proj.tangl
                    , proj.source('smtlib2.md').then(proj.tangle().output(proj.tangleddir('smtlib2.k')))
                    , proj.source('direct-proof.md').then(proj.tangle().output(proj.tangleddir('direct-proof.k')))
                    ]
-prover_k = proj.source('matching-logic-prover.md') \
-               .then(proj.tangle().output(proj.tangleddir('matching-logic-prover.k')))
+prover_k = proj.source('prover.md') \
+               .then(proj.tangle().output(proj.tangleddir('prover.k')))
 mlprover = prover_k \
             .then(proj.kompile(backend = 'java')
-                      .variables(directory = proj.builddir('matching-logic-prover'))
+                      .variables(directory = proj.builddir('prover'))
                       .implicit(imported_k_files + [z3_target])
                  )
 
