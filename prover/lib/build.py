@@ -44,12 +44,13 @@ def do_prove(alias, defn, spec_module, spec):
 imported_k_files = [ proj.source('kore.md').then(proj.tangle().output(proj.tangleddir('kore.k')))
                    , proj.source('smtlib2.md').then(proj.tangle().output(proj.tangleddir('smtlib2.k')))
                    , proj.source('direct-proof.md').then(proj.tangle().output(proj.tangleddir('direct-proof.k')))
+                   , proj.source('predicate-definitions.md').then(proj.tangle().output(proj.tangleddir('predicate-definitions.k')))
                    ]
-prover_k = proj.source('matching-logic-prover.md') \
-               .then(proj.tangle().output(proj.tangleddir('matching-logic-prover.k')))
+prover_k = proj.source('prover.md') \
+               .then(proj.tangle().output(proj.tangleddir('prover.k')))
 mlprover = prover_k \
             .then(proj.kompile(backend = 'java')
-                      .variables(directory = proj.builddir('matching-logic-prover'))
+                      .variables(directory = proj.builddir('prover'))
                       .implicit(imported_k_files + [z3_target])
                  )
 
@@ -97,5 +98,4 @@ smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
                                       .implicit(imported_k_files + [z3_target])
                                  )
 
-do_prove('unit-tests', smtlib_testdriver, 'UNIT-TESTS-SPEC', 'unit-tests.md').default()
-do_test(smtlib_testdriver, 't/test.smt').alias('smt-test')
+do_prove('smtlib2-tests', smtlib_testdriver, 'SMTLIB2-TESTS-SPEC', 'smtlib2-tests.md').default()
