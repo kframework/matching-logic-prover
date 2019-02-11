@@ -1,13 +1,13 @@
 [submodule "prover/k/ext/kninja"]
-	path = prover/k/ext/kninja
+	path = prover/ext/kninja
 	url = https://github.com/nishantjr/kninja
 [submodule "prover/k/ext/k"]
-	path = prover/k/ext/k
+	path = prover/ext/k
 	url = https://github.com/kframework/k
 [submodule "prover/k/ext/pandoc-tangle"]
-	path = prover/k/ext/pandoc-tangle
+	path = prover/ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle
 [submodule "prover/k/ext/z3"]
-	path = prover/k/ext/z3
+	path = prover/ext/z3
 	url = https://github.com/Z3Prover/z3
     ignore = untracked
