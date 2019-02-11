@@ -1,0 +1,90 @@
+module IMP
+
+import BOOL
+// import MAP{Nat,Nat}
+// import K // import instances for all sorts
+
+// IMP abstract syntax as computation in <k>
+
+sort K
+// K is a flatten sort that swallow all PL syntax, as well as
+// mathematical domains such as lists, maps, etc.
+// In IMP, K contains only syntax. 
+// Note that the following way of dealing with production
+// rules and "subrules" is the same as in Ott, where only
+// the top-most syntactic category (in our case, it's K)
+// deserves a sort (in our case, it's also called K) while
+// all other sub-categories are defined by predicates. 
+
+// Here's how to systematically figure out what are the sub-categories
+// of K. At least this works for IMP.
+// Start with the configuration definition,
+// ... <k color="green"> $PGM:Pgm </k> ...,
+// which tells us that Pgm and all its subcategories belong to K.
+// Then, go through every semantic rules and check all the
+// rules "lhs => rhs". Both categories and their sub-categories of 
+// lhs and rhs are "included" in K.
+// For example, the K rule "int .Ids; S => S" rewrites
+// a Pgm to a Stmt, so Stmt is also included in K, as well as its
+// sub-category Block. Note that Stmt is *not a sub-categoty* of Pgm,
+// but yet we include it in K, because it may occur *during execution*
+// by the sort-non-preserving rule "int .Ids; S => S".
+// Finally, all categories in KResult are "included" in K.
+
+// In conclusion, the following sorts must be included in K:
+// Pgm, Stmt, Block, Id, Int, AExp, BExp, Bool
+// Note that we cannot re-use anything defined in NAT,BOOl,etc. 
+// Instead, we duplicate those definitions and re-define
+// them as follows, where everything is flattened over the sort K.
+
+// For each of these sorts, define a corresponding predicate is<Sort>
+function isAExp isBExp isBlock isStmt isPgm isInt isId isBool : K -> Bool
+function isKResult : K -> Bool
+
+// domains
+// the [_] is the truth bracket, [b] = (b = true), defined in BOOL.
+symbol Int Id Bool AExp BExp Stmt Block Pgm KResult : -> K
+axiom Int     = \exists k . k /\ [isInt(k)]
+axiom Id      = \exists k . k /\ [isId(k)]
+axiom Bool    = \exists k . k /\ [isBool(k)]
+axiom AExp    = \exists k . k /\ [isAExp(k)]
+axiom BExp    = \exists k . k /\ [isBExp(k)]
+axiom Stmt    = \exists k . k /\ [isStmt(k)]
+axiom Block   = \exists k . k /\ [isBlock(k)]
+axiom Pgm     = \exists k . k /\ [isPgm(k)]
+axiom KResult = \exists k . k /\ [isKResult(k)]
+
+// relation between domains
+axiom Int   [= AExp    // subset construct defined in DEFINEDNESS
+axiom Id    [= AExp
+axiom Bool  [= BExp
+axiom Block [= Stmt
+axiom Int   [= KResult
+axiom Bool  [= KResult
+
+
+
+
+
+// Int domain
+function z : -> K
+function s : K -> K
+symbol Int : -> K // the domain of Int
+axiom Int = \exists k . k /\ [isInt(k)]
+// An alternative way to write [isInt(x)] is
+// x \in Int, where _\in_ is the MmL membership construct defined
+// in DEFINEDNESS.
+
+// As in NAT, we assume we can use numerals as aliases for s and z.
+// So we can write 2 to mean s(s(z)).
+// "sort" infomation
+axiom z \in Int
+axiom x \in Int -> s(x) \in Int
+// constructor axioms, customized because of the flatten sort K.
+axiom [isInt(x)] /\ [isInt(y)] 
+   -> s(x) = s(y) -> x = y
+axiom [isInt(x)]
+   -> ! ( 0 /\ s(x) )
+axiom \exists k . k /\ isInt
+
+endmodule

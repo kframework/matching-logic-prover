@@ -1,0 +1,27 @@
+module REACHABILITY{T:TRIV} // parametric on a sort for configurations
+
+symbol onepath_next(T.Elt) : T.Elt
+alias * C := onepath_next(C)
+alias o C := ! * ! C
+// The following defines the alias "eventually <>C",
+// which needs some remarks. Firstly, C is a set variable,
+// meaning that it can be instantiate with any patterns
+// of sort Cfg (not just set variables). This is the same
+// as in DEFINEDNESS/floor.
+// Secondly, \mu is a binder that binds the set variable
+// X. Precisely speaking, X is not *the* set variable X,
+// but is a meta-variable for set variables of sort Cfg,
+// with the implicit assumption that it does not occur
+// free (i.e., fresh) in the pattern to which (the meta-variable
+// for patterns) C gets instantiated. In other words, if
+// one writes <> X, it desugars to \mu Y . X \/ * Y, and the
+// free set variable X should not be captured by the binder \mu.
+alias <> C := \mu X . C \/ * X
+alias [] C := \nu X . C /\ o X
+alias <>w C := \nu X . C \/ * X
+alias WF := \mu X . o X
+alias C =>+ C' := C -> * <>w C'
+alias C =>* C' := C -> <>w C'
+alias C =>1 C' := C -> * C'
+
+endmodule

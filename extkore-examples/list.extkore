@@ -1,0 +1,30 @@
+module LIST{T::TRIV}
+import NAT
+
+sort List // automatically parametric on T
+function nil : -> List
+function cons : T.Elt List -> List
+
+alias X::L := cons(X,L)
+
+// constructor axioms
+axiom \mu L . nil \/ cons(\top,L) // \top has sort Nat, inferred automatically
+axiom !(nil /\ cons(x,l))
+axiom cons(x,l) = cons(x',l') -> x=x' /\ l=l'
+
+function concat : List List -> List
+function append : List T.Elt -> List
+function rev : List -> List
+
+axiom concat(nil, l) = l
+axiom concat(cons(x,l),l') = cons(x,concat(l,l'))
+axiom append(nil,x) = cons(x,nil)
+axiom append(cons(x,l),x') = cons(x,append(l,x'))
+axiom rev(nil) = nil
+axiom rev(cons(x,l)) = append(rev(l),x)
+
+function len : List -> Nat // Note the return sort of len is not parametric
+axiom len(nil) = 0
+axiom len(cons(x,l)) = len(l)+1
+
+endmodule

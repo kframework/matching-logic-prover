@@ -1,5 +1,7 @@
 module NAT
 
+// By importing BOOL, which imports DEFINEDNESS, we obtain
+// all instances of the definedness symbols.
 import BOOL
 
 sort NAT
@@ -35,4 +37,46 @@ function s : Nat -> Nat
 // possible to the right, which is a convention as in lambda calculus.
 axiom \mu N . 0 \/ s(N)
 
-axiom 
+// no confusion, diff constructors
+axiom !(0 /\ s(x))  // Note the numeral 0 is translated (by extkore) to z
+// no confusion, same constructors
+axiom s(x) = s(y) -> x=y
+
+function plus minus mult : Nat Nat -> Nat
+partial-function div mod : Nat Nat -> Nat // partial function
+
+// mixfix alias definitions can take additional attributes 
+// for parsing.
+alias X + Y := plus(X, Y) [left prec 50]
+alias X - Y := minus(X, Y) [left prec 50]
+alias X * Y := mult(X, Y) [left prec 45]
+alias X / Y := div(X, Y) [left prec 45]
+alias X % Y := mod(X, Y) [left prec 45]
+
+function gt ge lt le : Nat Nat -> BOOL
+alias X > Y := gt(X,Y)
+alias X >= Y := ge(X,Y)
+alias X < Y := lt(X,Y)
+alias X <= Y := le(X,Y)
+
+// common axioms
+axiom 0 + y = y
+axiom s(x) + y = y
+axiom x - 0 = 0
+axiom 0 - y = 0
+axiom s(x) - s(y) = x-y
+axiom 0 * y = 0
+axiom s(x) * y = y + x*y
+axiom x/0 = \bot
+axiom x%0 = \bot
+// truth bracket [_] is defined in BOOL as
+// alias [B] := B = true
+axiom [y>0] -> [x = (x/y) * y + x%y] /\ [x%y >= 0] /\ [x%y < y]
+axiom [x>=y] = [y-x=0]
+axiom [x>y] = [x>=y] /\ x!=y // I personally don't like this axiom
+                             // It is confusing that ">=" is wrapped with
+                             // the truth bracket while "!=", the MmL
+                             // construct, used without the truth bracket.
+axiom x<=y = y>=x
+axiom x<y = y>x
+endmodule

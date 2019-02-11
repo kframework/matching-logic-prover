@@ -21,6 +21,7 @@ alias x \in Y := ceil(x /\ Y) // Note that x is an element variable.
                               // This causes some questions:
                               // (1) do we allow t \in Y for functional pattern t?
                               // (2) do we allow X \in Y if X is not functional?
+// Note that all aliases are (automatically) parametric on theories T and T'.
 alias X = Y := floor(X <-> Y)
 alias X != Y := !(X = Y)
 alias X [= Y := floor(X -> Y) // X is a subset of Y
