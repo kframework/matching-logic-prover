@@ -1,0 +1,14 @@
+claim \implies( \and( listSegmentLeft( variable("H") { ArrayIntInt } , variable("X") { Int } , variable("Y") { Int } , variable("F") { Set } , .Patterns) 
+                    , list( variable("H") { ArrayIntInt }, variable("Y") { Int }, variable("G") { Int }, .Patterns) 
+                    , \equals( variable("K") { Set }, union(variable("F") { Set }, variable("G") { Int })) 
+                    , disjoint(variable("F") { Set }, variable("G") { Int }) 
+                    , .Patterns )
+              , \and( list( variable("H") { ArrayIntInt }, variable("X") { Int }, variable("K") { Set }, .Patterns), .Patterns )
+              )
+strategy search-bound(3)
+
+/*
+strategy kt(listSegmentLeft) ; ( ( simplify ; direct-proof )
+                          | (right-unfold-Nth(0, 1) ; simplify ; direct-proof)
+                        )
+*/

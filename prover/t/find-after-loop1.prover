@@ -1,0 +1,22 @@
+claim 
+\implies( \and( find-list-seg( variable("H0")
+                             , variable("OLDX")
+                             , variable("X")
+                             , variable("F1")
+                             , .Patterns)
+              , find-list(variable("H0"), variable("X"), variable("F2"), .Patterns)
+              , disjoint(variable("F1"), variable("F2"))
+              , \equals(variable("F3"), union(variable("F1"), variable("F2")))
+              , .Patterns
+              )
+        , \and( find-list( variable("H0")
+                         , variable("OLDX")
+                         , variable("F3")
+                         , .Patterns)
+              , .Patterns )
+        )
+
+strategy simplify ; kt(find-list-seg) ; simplify 
+       ; ( direct-proof
+         | right-unfold-Nth(0,1) 
+         )

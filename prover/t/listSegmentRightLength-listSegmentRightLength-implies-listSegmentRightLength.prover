@@ -1,0 +1,39 @@
+claim \implies( \and( listSegmentRightLength( variable("H") { ArrayIntInt }
+                                            , variable("X") { Int } 
+                                            , variable("Y") { Int } 
+                                            , variable("FA") { Set } 
+                                            , variable("LA") { Int }
+                                            , .Patterns
+                                            ) 
+                    , listSegmentRightLength( variable("H") { ArrayIntInt } 
+                                            , variable("Y") { Int } 
+                                            , variable("Z") { Int } 
+                                            , variable("FB") { Set } 
+                                            , variable("LB") { Int }
+                                            , .Patterns
+                                            )
+                    , \equals(variable("F") { Set }, union(variable("FA") { Set }, variable("FB") { Set }))
+                    , disjoint(variable("FA") { Set }, variable("FB") { Set })
+                    , \equals(variable("LENGTH") { Int }, plus(variable("LA") { Int }, variable("LB") { Int }))
+                    , .Patterns
+                    )
+              , \and( listSegmentRightLength( variable("H") { ArrayIntInt } 
+                                            , variable("X") { Int } 
+                                            , variable("Z") { Int } 
+                                            , variable("F") { Set } 
+                                            , variable("LENGTH") { Int }
+                                            , .Patterns
+                                            )
+                   , .Patterns
+                   )
+              ) 
+
+strategy search-bound(5)
+
+/*
+strategy kt # index(1) # useAffectedHeuristic
+         ; ( direct-proof
+           | ( simplify ; direct-proof )
+           | ( right-unfold-Nth(0, 1) ; simplify ; direct-proof ) 
+           )
+*/

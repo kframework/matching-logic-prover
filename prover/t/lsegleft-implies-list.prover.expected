@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( listSegmentLeft ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { Set } , .Patterns ) , list ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { Set } , union ( variable ( "F" ) { Set } , variable ( "G" ) { Int } ) ) , disjoint ( variable ( "F" ) { Set } , variable ( "G" ) { Int } ) , .Patterns ) , \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { Set } , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>

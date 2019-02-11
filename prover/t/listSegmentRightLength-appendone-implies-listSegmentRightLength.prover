@@ -1,0 +1,29 @@
+claim \implies( \and( listSegmentRightLength( variable("H") { ArrayIntInt }
+                                            , variable("X") { Int } 
+                                            , variable("Y") { Int } 
+                                            , variable("FA") { Set } 
+                                            , variable("LA") { Int }
+                                            , .Patterns
+                                            ) 
+                    , \equals(variable("F") { Set }, union(variable("FA") { Set }, singleton(variable("Y") { Int })))
+                    , disjoint(variable("FA") { Set }, singleton(variable("Y") { Int }))
+                    , \equals(variable("Z") { Int }, select(variable("H") { ArrayIntInt }, variable("Y") { Int }))
+                    , \equals(variable("LENGTH") { Int }, plus(variable("LA") { Int }, 1))
+                    , gt(variable("Y") { Int }, 0)
+                    , .Patterns
+                    )
+              , \and( listSegmentRightLength( variable("H") { ArrayIntInt } 
+                                            , variable("X") { Int } 
+                                            , variable("Z") { Int } 
+                                            , variable("F") { Set } 
+                                            , variable("LENGTH") { Int }
+                                            , .Patterns
+                                            )
+                   , .Patterns
+                   )
+              ) 
+strategy search-bound(3)
+
+/*
+strategy right-unfold-Nth(0, 1) ; simplify ; direct-proof
+*/

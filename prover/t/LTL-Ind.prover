@@ -1,0 +1,10 @@
+claim \implies( \and( always( \implies(phi, wnext(phi)))
+                    , phi
+                    , .Patterns
+                    )
+              , always(phi)
+              )
+strategy kt-always ; and-intro ; ( direct-proof
+                                 | left-unfold ; direct-proof
+                                 )
+

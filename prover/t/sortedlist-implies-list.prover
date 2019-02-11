@@ -1,0 +1,25 @@
+claim \implies( \and( listSorted( variable("H") { ArrayIntInt }
+                                , variable("X") { Int }
+                                , variable("K") { Set }
+                                , variable("MIN") { Int }
+                                , .Patterns
+                                )
+                    , .Patterns
+                    )
+              , \and( list( variable("H") { ArrayIntInt }
+                          , variable("X") { Int }
+                          , variable("K") { Set }
+                          , .Patterns
+                          )
+                    , .Patterns
+                    )
+              )
+
+strategy search-bound(5)
+
+/*
+strategy kt ; ( (right-unfold-Nth(0, 0) ; simplify ; direct-proof)
+              | ( simplify ; direct-proof )
+              | (right-unfold-Nth(0, 1) ; simplify ; direct-proof)
+              )
+*/

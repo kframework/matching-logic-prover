@@ -1,0 +1,32 @@
+claim \implies( \and( avl( variable("H") { ArrayIntInt }
+                         , variable("X") { Int }
+                         , variable("F") { Set }
+                         , variable("MIN") { Int }
+                         , variable("MAX") { Int }
+                         , variable("Height") { Int }
+                         , variable("Balance") { Int }
+                         , .Patterns
+                         )
+                    , .Patterns
+                    )
+              , \and( bst( variable("H") { ArrayIntInt }
+                         , variable("X") { Int }
+                         , variable("F") { Set }
+                         , variable("MIN") { Int }
+                         , variable("MAX") { Int }
+                         , .Patterns
+                         )
+                    , .Patterns
+                    )
+              )
+strategy search-bound(5)
+
+/*
+strategy simplify ; kt ; simplify
+       ; ( (right-unfold-Nth(0,0) ; simplify ; direct-proof )
+         | (right-unfold-Nth(0,1) ; simplify ; direct-proof )
+         | direct-proof
+         | (right-unfold-Nth(0,2) ; simplify ; direct-proof )
+         | noop
+         )
+*/

@@ -1,0 +1,35 @@
+claim \implies ( \and ( \equals(variable("N_INIT") { Int }, select(variable("H_INIT") { ArrayIntInt }, addr_N))
+                      , \equals(variable("S_INIT") { Int }, select(variable("H_INIT") { ArrayIntInt }, addr_S))
+                      , \equals(variable("PC_INIT") { Int }, 0)
+                      , \equals(variable("PC_FINAL") { Int }, 12)
+
+                      , reachableInNSteps( variable("PGM") { ArrayIntInt }
+                                         , variable("PC_INIT") { Int }
+                                         , variable("H_INIT") { ArrayIntInt }
+                                         , variable("PC_FINAL") { Int }
+                                         , variable("H_FINAL") { ArrayIntInt }
+                                         , variable("STEPS") { Int }
+                                         , .Patterns
+                                         )
+                      , .Patterns
+                      )
+               , \and ( \equals(variable("S_FINAL") { Int }, select(variable("H_FINAL") { ArrayIntInt } , addr_S))
+                      , \equals(variable("N_FINAL") { Int }, select(variable("H_FINAL") { ArrayIntInt } , addr_N)) 
+                      , \equals(variable("REDEX") { Int }, div( mult( variable("N_INIT") { Int }
+                                                                    , plus( variable("N_INIT") { Int }, 1)
+                                                                    )
+                                                              , 2)
+                                                              )
+                      , \equals( variable("S_FINAL") { Int }, plus(variable("S_INIT") { Int }, variable("REDEX") { Int }))
+                      , \equals(variable("N_FINAL") { Int }, 0)
+                      , .Patterns
+                      )
+               )
+
+strategy search-bound(3)
+/*
+strategy kt # head(reachableInNSteps) # useAffectedHeuristic
+         ; ( ( simplify ; direct-proof )
+           | simplify
+           )
+*/

@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( \equals ( variable ( "N_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 2 ) ) , \equals ( variable ( "S_INIT" ) { Int } , select ( variable ( "H_INIT" ) { ArrayIntInt } , 1 ) ) , \equals ( variable ( "PC_INIT" ) { Int } , 0 ) , \equals ( variable ( "PC_FINAL" ) { Int } , 12 ) , reachableInNSteps ( variable ( "PGM" ) { ArrayIntInt } , variable ( "PC_INIT" ) { Int } , variable ( "H_INIT" ) { ArrayIntInt } , variable ( "PC_FINAL" ) { Int } , variable ( "H_FINAL" ) { ArrayIntInt } , variable ( "STEPS" ) { Int } , .Patterns ) , .Patterns ) , \and ( \equals ( variable ( "S_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 1 ) ) , \equals ( variable ( "N_FINAL" ) { Int } , select ( variable ( "H_FINAL" ) { ArrayIntInt } , 2 ) ) , \equals ( variable ( "REDEX" ) { Int } , div ( mult ( variable ( "N_INIT" ) { Int } , plus ( variable ( "N_INIT" ) { Int } , 1 ) ) , 2 ) ) , \equals ( variable ( "S_FINAL" ) { Int } , plus ( variable ( "S_INIT" ) { Int } , variable ( "REDEX" ) { Int } ) ) , \equals ( variable ( "N_FINAL" ) { Int } , 0 ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>

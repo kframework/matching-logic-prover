@@ -1,0 +1,22 @@
+claim \implies( \and( find-list( variable("H0") { ArrayIntInt }
+                               , variable("X") { Int }
+                               , variable("F0") { Set }
+                               , .Patterns
+                               )
+                    , \equals( variable("X") { Int }
+                               , variable("OLDX") { Int } )
+                    , \equals( variable("TMP") { Int }, 0 )
+                    , .Patterns
+                    )
+              , \and( find-list-seg( variable("H0") { ArrayIntInt }
+                                   , variable("OLDX") { Int }
+                                   , variable("X") { Int }
+                                   , variable("F1") { Set }
+                                   , .Patterns
+                                   )
+                    , disjoint(variable("F1") { Set }, variable("F2") { Set })
+                    , \not(isMember(variable("DATA") { Int } , variable("F1") { Set }))
+                    , .Patterns )
+              )
+strategy right-unfold-Nth(0,0) ; direct-proof
+

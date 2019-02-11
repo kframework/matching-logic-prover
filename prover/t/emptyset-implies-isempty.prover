@@ -1,0 +1,4 @@
+claim \implies( \and(\equals(variable("S") { Set }, emptyset), .Patterns)
+              , \and(isEmpty(variable("S") { Set }, .Patterns), .Patterns)
+              )
+strategy search-bound(4)

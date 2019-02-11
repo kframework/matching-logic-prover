@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      0
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      -1
+    </parent>
+    <k>
+      \implies ( \and ( avl ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { Set } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , variable ( "Height" ) { Int } , variable ( "Balance" ) { Int } , .Patterns ) , .Patterns ) , \and ( bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { Set } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>

@@ -1,0 +1,20 @@
+claim \implies( \and( bst( variable("H") { ArrayIntInt }
+                         , variable("X") { Int }
+                         , variable("F") { Set }
+                         , variable("MIN") { Int }
+                         , variable("MAX") { Int }
+                         , .Patterns
+                         )
+                    , .Patterns
+                    )
+              , \and( bt( variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { Set }, .Patterns), .Patterns )
+              )
+strategy search-bound(5)
+
+/*
+strategy kt ; ( ( right-unfold-Nth(0,0) ; simplify ; direct-proof )
+              | ( right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; right-unfold-Nth(0,0) ; simplify ; direct-proof )
+              | direct-proof
+              | ( right-unfold-Nth(0,1) ) ; simplify ; direct-proof
+              )
+*/

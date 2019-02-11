@@ -1,12 +1,6 @@
-# Matching logic prover
-
-The matching logic prover, or "the prover", has two main functionalities.
-* _Proof search_: given a theory and a proof obligation, search for a proof;
-* _Proof generation_: when a proof exists, generate a proof object that can
-  easily be checked by a _proof checker_.
-
-For PLDI 2018, we consider the following work.
-* An advanced proof search method that can find proofs for proof obligation
-  involving user-defined inductive predicates;
-* To be able to generate proof objects.
-
+After cloning this repository, run `git submodule update --init`. Then, run
+`./build`. To run unit tests only, run `./build unit-tests`. To run tests in the
+`t/` directory run `./build t/foo.test` (e.g.
+`t/lsegleft-implies-lsegright.prover.test`). To create a new test, edit the
+`lib/build.py` file and add a call to `do_test` with the appropriate expected
+output.

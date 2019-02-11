@@ -1,0 +1,29 @@
+claim 
+\implies( \and( find-list-seg( variable("H0") { ArrayIntInt }
+                             , variable("OLDX") { Int }
+                             , variable("X") { Int }
+                             , variable("F1") { Set }
+                             , .Patterns)
+              , find-list(variable("H0") { ArrayIntInt }, variable("X") { Int }, variable("F2") { Set }, .Patterns)
+              , disjoint(variable("F1") { Set }, variable("F2") { Set })
+              , \not(isMember(variable("DATA") { Int }, variable("F1") { Set }))
+              , gt(variable("X") { Int }, 0)
+              , gt(variable("X") { Int }, variable("DATA") { Int })
+              , \equals(variable("X2") { Int }, select(variable("H0") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
+              , \equals(variable("F3") { Set }, add(variable("F1") { Set }, variable("X") { Int }))
+              , \equals(variable("F4") { Set }, del(variable("F2") { Set }, variable("X") { Int }))
+              , .Patterns
+              )
+        , \and( find-list-seg( variable("H0") { ArrayIntInt }
+                             , variable("OLDX") { Int }
+                             , variable("X2") { Int }
+                             , variable("F3") { Set }
+                             , .Patterns)
+              , find-list(variable("H0") { ArrayIntInt }, variable("X2") { Int }, variable("F4") { Set }, .Patterns)
+              , disjoint(variable("F3") { Set }, variable("F4") { Set })
+              , \not(isMember(variable("DATA") { Int }, variable("F3") { Set }))
+              , .Patterns )
+        )
+
+strategy simplify ; right-unfold-Nth(0,1)  ; simplify ; left-unfold-Nth(1) 
+       ; simplify ; direct-proof 
