@@ -1,7 +1,0 @@
-% Change test_arr_0 to other tests to run them
-
-run :- test_1.
-
-:- consult('solver_main.clpr').
-
-:- run, halt.
