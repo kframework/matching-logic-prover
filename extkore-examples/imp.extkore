@@ -5,7 +5,7 @@ import DEFINEDNESS
 
 // All domains are "flattened" in sort #K.
 sort #K
-symbol Id Int Bool AExp BExp Block Stmt Pgm KResult : #K
+symbol Id Int Bool AExp BExp Block Stmt Pgm Ids KResult : #K
 
 // Containment relation between domains
 axiom Int   [= AExp    // subset construct defined in DEFINEDNESS
@@ -126,14 +126,135 @@ axiom x \in Int /\ y \in Int -> gt(x,y) = notBool(ge(y,x))
 axiom x \in Int /\ y \in Int -> le(x,y) = ge(y,x)
 axiom x \in Int /\ y \in Int -> lt(x,y) = gt(y,x)
 
+// PL syntax
+
 // AExp
 
 symbol dash(#K):#K
-symbol dvA
+axiom dash(Int) [= AExp   // sorting
+axiom !dash(!Int)         // domain
+axiom x \in Int -> \exists e . dash(x) = e                    // function
+axiom x \in Int /\ x' \in Int -> dash(x) = dash(x') -> x = x' // injective
+
+symbol divA(#K,#K):#K
+axiom divA(AExp,AExp) [= AExp
+axiom !divA(!AExp,\top)
+axiom !divA(\top,!AExp)
+axiom e1 \in AExp /\ e2 \in AExp -> \exists e . divA(e1,e2) = e
+... // injective
+
+symbol plusA(#K,#K):#K
+axiom plusA(AExp,AExp) [= AExp
+axiom !plusA(!AExp,\top)
+axiom !plusA(\top,!AExp)
+axiom e1 \in AExp /\ e2 \in AExp -> \exists e . plusA(e1,e2) = e
+... // injective
+
+// BExp
+
+symbol leA(#K,#K):#K
+axiom leA(AExp,AExp) [= BExp
+axiom !leA(!AExp,\top)
+axiom !leA(\top,!AExp)
+axiom e1 \in AExp /\ e2 \in AExp -> \exists e . leA(e1,e2) = e
+... // injective
+
+symbol notB(#K):#K
+axiom notB(BExp) [= BExp
+axiom !notB(!BExp)
+axiom e1 \in AExp -> \exists e . notB(e1) = e
+... // injective
+
+symbol addB(#K,#K):#K
+axiom addB(AExp,AExp) [= AExp
+axiom !addB(!AExp,\top)
+axiom !addB(\top,!AExp)
+axiom e1 \in AExp /\ e2 \in AExp -> \exists e . addB(e1,e2) = e
+... // injective
+
+// Block
+
+symbol emptyBlock:#K
+axiom emptyBlock [= Block
+axiom \exists b . emptyBlock = b
+
+symbol block:#K
+axiom block(Stmt) [= Block
+axiom !block(!Stmt)
+axiom s \in Stmt -> \exists b . block(s) = b
+... // injective
+
+// Stmt
+
+symbol asgn(#K,#K):#K
+axiom asgn(Id,AExp) [= Stmt
+axiom !asgn(!Id,\top)
+axiom !asgn(\top,!AExp)
+axiom id \in Id /\ e \in AExp -> \exists s . asgn(id,e) = s
+... // injective
+
+symbol ite(#K,#K,#K):#K
+axiom ite(BExp,Block,Block) [= Stmt
+axiom !ite(!BExp,\top,\top)
+axiom !ite(\top,!Block,\top)
+axiom !ite(\top,\top,!Block)
+axiom cond \in BExp /\ b1 \in Block /\ b2 \in Block 
+   -> \exists s . ite(cond,b1,b2) = s
+... // injective
+
+symbol while(#K,#K):#K
+axiom while(BExp,Block) [= Stmt
+axiom !while(!BExp,\top)
+axiom !while(\top,!Block)
+axiom cond \in BExp /\ b \in Block -> \exists s . while(cond,b) = s
+... // injective
+
+symbol seq(#K,#K):#K
+axiom seq(Stmt,Stmt) [= Stmt
+axiom !seq(!Stmt,\top)
+axiom !seq(\top,!Stmt)
+axiom s1 \in Stmt /\ s2 \in Stmt -> \exists s . seq(s1,s2) = s
+... // injective
+
+// Pgm
+
+symbol pgm(#K,#K):#K
+axiom pgm(Ids,Stmt) [= Pgm
+axiom !pgm(!Ids,\top)
+axiom !pgm(\top,!Stmt)
+axiom ids \in Ids /\ s \in Stmt -> \exists p . pgm(ids,s) = p
+... // injective
+
+// Lists and Ids
+// The part about Lists is generic and should go to some "main" module.
+symbol List(#K):#K // this looks uncomfortable. what is List(1)?
+symbol nil(#K):#K
+symbol cons(#K,#K):#K
+axiom nil(S) [= List(S)
+axiom cons(S) [= List(S)
 
 
+// inductive domains (terms)
+
+axiom AExp =lfp Int \/ Id \/ dash(Int) \/ divA(AExp,AExp) \/ plusA(AExp,AExp)
+axiom BExp =lfp Bool \/ leA(AExp,AExp) \/ notB(BExp) \/ andB(BExp,BExp)
+axiom Block =lfp emptyBlock \/ block(Stmt)
+  and Stmt =lfp Block \/ asgn(Id,Stmt) \/ ite(BExp,Block,Block) \/ seq(Stmt,Stmt)
+axiom Pgm = pgm(Ids,Stmt)
+
+// more #K stuffs
+
+symbol hole:#K // function
+symbol arrow(#K,#K):#K // cons-lists
+axiom k \in KResult -> arrow(k,K) = K
 
 
+// configurations
+
+sort Cfg
+symbol cfg(#K,Map):Cfg
+
+// semantic rules
 
 
 
