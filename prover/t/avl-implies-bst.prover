@@ -1,6 +1,6 @@
 claim \implies( \and( avl( variable("H") { ArrayIntInt }
                          , variable("X") { Int }
-                         , variable("F") { Set }
+                         , variable("F") { SetInt }
                          , variable("MIN") { Int }
                          , variable("MAX") { Int }
                          , variable("Height") { Int }
@@ -11,7 +11,7 @@ claim \implies( \and( avl( variable("H") { ArrayIntInt }
                     )
               , \and( bst( variable("H") { ArrayIntInt }
                          , variable("X") { Int }
-                         , variable("F") { Set }
+                         , variable("F") { SetInt }
                          , variable("MIN") { Int }
                          , variable("MAX") { Int }
                          , .Patterns

@@ -1,6 +1,6 @@
 claim \implies( \and( find-list( variable("H0") { ArrayIntInt }
                                , variable("X") { Int }
-                               , variable("F0") { Set }
+                               , variable("F0") { SetInt }
                                , .Patterns
                                )
                     , \equals( variable("X") { Int }
@@ -11,12 +11,14 @@ claim \implies( \and( find-list( variable("H0") { ArrayIntInt }
               , \and( find-list-seg( variable("H0") { ArrayIntInt }
                                    , variable("OLDX") { Int }
                                    , variable("X") { Int }
-                                   , variable("F1") { Set }
+                                   , variable("F1") { SetInt }
                                    , .Patterns
                                    )
-                    , disjoint(variable("F1") { Set }, variable("F2") { Set })
-                    , \not(isMember(variable("DATA") { Int } , variable("F1") { Set }))
+                    , disjoint(variable("F1") { SetInt }, variable("F2") { SetInt })
+                    , \not(isMember(variable("DATA") { Int } , variable("F1") { SetInt }))
                     , .Patterns )
               )
-strategy right-unfold-Nth(0,0) ; direct-proof
+
+strategy search-bound(2)
+// strategy right-unfold-Nth(0,0) ; direct-proof
 

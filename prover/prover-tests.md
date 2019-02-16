@@ -44,5 +44,6 @@ module PROVER-TESTS-SPEC
              ...
            </goal>
          </prover>
+         
 endmodule
 ```

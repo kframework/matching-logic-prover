@@ -17,7 +17,6 @@ list of subpatterns.
 TODO: We assume that all free variables in an ImplicativeForm that are in the RHS
 but not in the LHS are existential. This should be explicit.
 
-
 ```k
 module KORE-SUGAR
   imports INT-SYNTAX
@@ -25,7 +24,10 @@ module KORE-SUGAR
   imports SUBSTITUTION
   syntax Ints ::= List{Int, ","}
 
-  syntax Sort ::= "Bool" | "Int" | "ArrayIntInt" | "Set"
+  syntax Sort ::= "Bool"        [token]
+                | "Int"         [token]
+                | "ArrayIntInt" [token]
+                | "SetInt"         [token]
 ```
 
 We allow two "varieties" of variables: the first, identified by a String, is for
@@ -43,7 +45,7 @@ only in this scenario*.
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
   syntax RecursivePredicate
   syntax Predicate ::= RecursivePredicate
-  syntax PredicatePattern ::= Predicate "(" BasicPatterns ")"
+  syntax PredicatePattern ::= Predicate "(" BasicPatterns ")" [klabel(\apply)]
 
   syntax BasicPattern ::= AtomicPattern
                         | "\\top"    "(" ")"
@@ -65,18 +67,18 @@ only in this scenario*.
                         | "store"  "(" BasicPattern "," BasicPattern "," BasicPattern ")"  // ArrayIntInt, Int, Int -> ArrayIntInt
 
                         // Set{Int}
-                        | "union"         "(" BasicPattern "," BasicPattern ")" // Set, Set
-                        | "disjoint"      "(" BasicPattern "," BasicPattern ")" // Set, Set
-                        | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // Set, Set
+                        | "union"         "(" BasicPattern "," BasicPattern ")" // SetInt, SetInt
+                        | "disjoint"      "(" BasicPattern "," BasicPattern ")" // SetInt, SetInt
+                        | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // SetInt, SetInt
                         | "singleton"     "(" BasicPattern ")"                  // Int
-                        | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, Set
-                        | "add"           "(" BasicPattern "," BasicPattern ")" // Set, Int
-                        | "del"           "(" BasicPattern "," BasicPattern ")" // Set, Int
+                        | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, SetInt
+                        | "add"           "(" BasicPattern "," BasicPattern ")" // SetInt, Int
+                        | "del"           "(" BasicPattern "," BasicPattern ")" // SetInt, Int
 
-  syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")"
+  syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")" [klabel(\and)]
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
   syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")"
-  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [prefer]
+  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [prefer, klabel(\implies)]
 
   syntax Pattern ::= BasicPattern
                    | ConjunctiveForm
@@ -85,8 +87,8 @@ only in this scenario*.
 
                    // General syntax
                    | "phi"
-                   | "\\implies" "(" Pattern "," Pattern ")"
-                   | "\\and"     "(" Patterns ")"
+                   | "\\implies" "(" Pattern "," Pattern ")" [klabel(\implies)]
+                   | "\\and"     "(" Patterns ")"            [klabel(\and)]
                    | "\\not"     "(" Pattern ")"
 
                    // LTL&CTL concrete syntax
@@ -98,6 +100,13 @@ only in this scenario*.
                          | BasicPattern "," BasicPatterns [klabel(PatternCons), right]
   syntax Patterns      ::= BasicPatterns
                          | Pattern "," Patterns           [klabel(PatternCons), right]
+
+  syntax Sorts ::= List{Sort, ","} [klabel(Sorts)]
+  syntax SymbolDeclaration ::= "symbol" Predicate "{" "}" "(" Sorts ")" ":" Sort
+
+  // Defined in `predicate-definitions.md`
+  syntax DisjunctiveForm ::= unfold(BasicPattern) [function]
+  syntax SymbolDeclaration ::= getSymbolDeclaration(Predicate) [function]
 endmodule
 ```
 
@@ -110,6 +119,8 @@ Here we define helpers for manipulating Kore formulae.
 module KORE-HELPERS
   imports KORE-SUGAR
   imports MAP
+
+  syntax String ::= SortToString(Sort) [function, functional, hook(STRING.token2string)]
 
   syntax Bool ::= BasicPattern "in" BasicPatterns [function]
   rule BP in (BP,  BP1s) => true
@@ -134,7 +145,7 @@ module KORE-HELPERS
   rule removeDuplicates(BP, BPs) => BP, removeDuplicates(BPs)
   requires notBool(BP in BPs)
   rule removeDuplicates(BP, BPs) => removeDuplicates(BPs)
-  requires BP in BPs
+    requires BP in BPs
 
   syntax BasicPatterns ::= BasicPatterns "-BasicPatterns" BasicPatterns [function]
   rule (BP1, BP1s) -BasicPatterns BP2s => BP1, (BP1s -BasicPatterns BP2s)
@@ -190,17 +201,22 @@ module KORE-HELPERS
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(gt(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(minus(P1, P2), .Patterns)
+    => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(max(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(select(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(store(P1, P2, P3), .Patterns)
+    => getFreeVariables(P1, P2, P3, .Patterns)
   rule getFreeVariables(union(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(disjoint(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(singleton(P1), .Patterns) => getFreeVariables(P1, .Patterns)
+  rule getFreeVariables(singleton(P1), .Patterns)
+    => getFreeVariables(P1, .Patterns)
   rule getFreeVariables(isMember(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(add(P1, P2), .Patterns)
@@ -562,7 +578,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "direct-proof" // rules that the SMT-PROVER can't handle
-                    | "smt"
+                    | "smt-z3" | "smt-cvc4"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
@@ -580,8 +596,10 @@ endmodule
 module PROVER-HORN-CLAUSE
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
-
+  imports ML-TO-SMTLIB2
   imports DIRECT-PROOF-QUERIES
+  imports Z3
+  imports CVC4
 ```
 
 ### Search Bound
@@ -592,7 +610,7 @@ The `search-bound` strategy peforms a bounded depth-first search for a proof, ap
 ```k
   rule <strategy> search-bound(0) => fail </strategy>
   rule <strategy> search-bound(N)
-               => simplify ; ( ( instantiate-existentials ;  smt )
+               => simplify ; ( ( instantiate-existentials ; (smt-z3 | smt-cvc4) )
                              | direct-proof
                              | (kt           ; search-bound(N -Int 1))
                              | (right-unfold ; search-bound(N -Int 1))
@@ -707,14 +725,36 @@ Remove trivial clauses from the right-hand-side:
 
 ### SMT
 
-Invoke an SMT solver. Currently unimplemented.
+We can call into both CVC4 and Z3 to solve SMT queries:
 
 ```k
   rule <k> GOAL </k>
-       <strategy> smt
-               => fail ...
+       <strategy> smt-z3
+               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+                  then success
+                  else fail
+                  fi
+                  ...
        </strategy>
-       <trace> .K => smt ... </trace>
+       <trace> .K => smt-z3 ... </trace>
+
+  rule <k> GOAL </k>
+       <strategy> smt-z3 => fail </strategy>
+    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
+
+  rule <k> GOAL </k>
+       <strategy> smt-cvc4
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+                  then success
+                  else fail
+                  fi
+                  ...
+       </strategy>
+       <trace> .K => smt-cvc4 ... </trace>
+
+  rule <k> GOAL </k>
+       <strategy> smt-cvc4 => fail </strategy>
+    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
 ```
 
 ### Direct proof
@@ -1099,6 +1139,7 @@ goals, including both the premises and the conclusion:
     => findAffectedVariablesAux((X, AFF),                 REST )
     requires isVariable(X)
      andBool (AFF -BasicPatterns getFreeVariables(Y, .Patterns)) =/=K AFF
+     andBool notBool X in AFF
   rule findAffectedVariablesAux(    AFF , (COND,          REST))
     => findAffectedVariablesAux(    AFF ,                 REST )
        [owise]
@@ -1350,62 +1391,3 @@ module PROVER
 endmodule
 ```
 
-```k
-module SMTLIB2-TEST-DRIVER
-  imports SMTLIB2
-  imports KORE-SUGAR
-  imports KORE-HELPERS
-
-  configuration <k> $PGM:K </k>
-```
-
-Implications of the form
-
-```k
-  syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
-  rule ML2SMTLIB(\implies(\and(LHS), \and(RHS)))
-    => declareVariables(removeDuplicates(getFreeVariables(LHS))) ++SMTLIB2Script
-       assertConjunction(LHS) ++SMTLIB2Script
-       refuteConjunction(RHS)
-
-  syntax SMTLIB2Script ::= assertConjunction(BasicPatterns) [function]
-  rule assertConjunction(BP, BPs) => ( assert BasicPattern2SMTLIB2Term(BP) ) assertConjunction(BPs)
-  rule assertConjunction(.Patterns) => .SMTLIB2Script
-
-  syntax SMTLIB2Script ::= refuteConjunction(BasicPatterns) [function]
-  rule refuteConjunction(BPS) => ( assert refuteConjunctionBuildDisjunction(BPS) ) .SMTLIB2Script
-
-  syntax SMTLIB2Term ::= refuteConjunctionBuildDisjunction(BasicPatterns) [function]
-  rule refuteConjunctionBuildDisjunction(BP, BPs)
-    => (or ( not BasicPattern2SMTLIB2Term(BP) )
-           refuteConjunctionBuildDisjunction(BPs)
-       )
-  rule refuteConjunctionBuildDisjunction(.Patterns)
-    => true:SMTLIB2Symbol
-
-  syntax SMTLIB2Term ::= BasicPattern2SMTLIB2Term(BasicPattern) [function]
-  rule BasicPattern2SMTLIB2Term(\equals(LHS, RHS))
-    => ( = BasicPattern2SMTLIB2Term(LHS) BasicPattern2SMTLIB2Term(RHS) )
-  rule BasicPattern2SMTLIB2Term(variable(S) { SORT }) => S
-  rule BasicPattern2SMTLIB2Term(\not(P)) => ( not BasicPattern2SMTLIB2Term(P) )
-  rule BasicPattern2SMTLIB2Term(I:Int) => I
-  rule BasicPattern2SMTLIB2Term(emptyset) => emptySet
-  rule BasicPattern2SMTLIB2Term(singleton(P1)) => ( singleton BasicPattern2SMTLIB2Term(P1) )
-  rule BasicPattern2SMTLIB2Term(gt(P1, P2)) => ( > BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
-  rule BasicPattern2SMTLIB2Term(select(P1, P2)) => ( select BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
-  rule BasicPattern2SMTLIB2Term(union(P1, P2)) => ( union BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
-  rule BasicPattern2SMTLIB2Term(disjoint(P1, P2)) => ( disjoint BasicPattern2SMTLIB2Term(P1) BasicPattern2SMTLIB2Term(P2) )
-
-  syntax SMTLIB2Sort ::= MLSort2SMTLIB2Sort(Sort) [function]
-  rule MLSort2SMTLIB2Sort(Int:Sort) => Int:SMTLIB2Sort
-  rule MLSort2SMTLIB2Sort(Bool:Sort) => Bool:SMTLIB2Sort
-  rule MLSort2SMTLIB2Sort(Set:Sort) => ( Set Int )
-  rule MLSort2SMTLIB2Sort(ArrayIntInt) => ( Array Int Int )
-
-  syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
-  rule declareVariables( .Patterns ) => .SMTLIB2Script
-  rule declareVariables( variable(Name:String) { SORT } , Ps )
-    => ( declare-const Name MLSort2SMTLIB2Sort(SORT) )
-       declareVariables(Ps)
-endmodule
-```

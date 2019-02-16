@@ -2,13 +2,13 @@
 claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
                                       , variable("X") { Int }
                                       , variable("Y") { Int }
-                                      , variable("F") { Set }
+                                      , variable("F") { SetInt }
                                       , .Patterns)
                     , .Patterns )
               , \and( listSegmentLeft(variable("H") { ArrayIntInt }
                                      , variable("X") { Int }
                                      , variable("Y") { Int }
-                                     , variable("F") { Set }
+                                     , variable("F") { SetInt }
                                      , .Patterns)
                     , .Patterns )
               )
