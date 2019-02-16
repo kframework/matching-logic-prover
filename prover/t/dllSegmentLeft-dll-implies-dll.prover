@@ -2,27 +2,27 @@ claim \implies( \and( dllSegmentLeft (
                             variable("H") { ArrayIntInt }
                           , variable("X") { Int }
                           , variable("Y") { Int }
-                          , variable("F") { Set }
+                          , variable("F") { SetInt }
                           , .Patterns
                           )
                     , dll ( variable("H") { ArrayIntInt }
                           , variable("Y") { Int }
-                          , variable("G") { Set }
+                          , variable("G") { SetInt }
                           , .Patterns
                           )
-                    , \equals( variable("K") { Set }
-                             , union( variable("F") { Set }
-                                    , variable("G") { Set }
+                    , \equals( variable("K") { SetInt }
+                             , union( variable("F") { SetInt }
+                                    , variable("G") { SetInt }
                                     )
                              )
-                    , disjoint( variable("F") { Set }
-                              , variable("G") { Set }
+                    , disjoint( variable("F") { SetInt }
+                              , variable("G") { SetInt }
                               )
                     , .Patterns
                     )
               , \and( dll ( variable("H") { ArrayIntInt }
                           , variable("X") { Int }
-                          , variable("K") { Set }
+                          , variable("K") { SetInt }
                           , .Patterns
                           )
                     , .Patterns

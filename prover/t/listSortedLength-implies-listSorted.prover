@@ -1,6 +1,6 @@
 claim \implies( \and( listSortedLength( variable("H") { ArrayIntInt }
                                       , variable("X") { Int }
-                                      , variable("K") { Set }
+                                      , variable("K") { SetInt }
                                       , variable("MIN") { Int }
                                       , variable("Length") { Int }
                                       , .Patterns
@@ -9,7 +9,7 @@ claim \implies( \and( listSortedLength( variable("H") { ArrayIntInt }
                     )
               , \and( listSorted( variable("H") { ArrayIntInt }
                                 , variable("X") { Int }
-                                , variable("K") { Set }
+                                , variable("K") { SetInt }
                                 , variable("MIN") { Int }
                                 , .Patterns
                                 )
