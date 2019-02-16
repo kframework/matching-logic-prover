@@ -10,7 +10,7 @@
       -1
     </parent>
     <k>
-      \implies ( \and ( listSortedLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { Set } , variable ( "MIN" ) { Int } , variable ( "Length" ) { Int } , .Patterns ) , .Patterns ) , \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { Set } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( listSortedLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "Length" ) { Int } , .Patterns ) , .Patterns ) , \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success
