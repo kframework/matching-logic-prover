@@ -88,16 +88,6 @@ do_test(mlprover, 't/zip-zeros-ones-implies-alters.prover').default()
 do_test(mlprover, 't/find-after-loop1.prover')
 do_test(mlprover, 't/find-after-loop2.prover')
 
-# Theories
-# --------
-
-lists = proj.source('lists.md') \
-            .then(proj.tangle().output(proj.tangleddir('lists.k'))) \
-            .then(proj.kompile(backend = 'kore')
-                      .variables(directory = proj.builddir('lists'))
-                 ) \
-            .alias('lists')
-
 # SMTLIB Translation
 # ==================
 
