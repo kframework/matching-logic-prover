@@ -560,7 +560,9 @@ module PROVER-HORN-CLAUSE-SYNTAX
   imports PREDICATE-DEFINITIONS
 
   syntax Strategy ::= "search-bound" "(" Int ")"
-                    | "simplify" | "substitute-equals-for-equals" | "direct-proof"
+                    | "simplify" | "substitute-equals-for-equals"
+                    | "direct-proof" // rules that the SMT-PROVER can't handle
+                    | "smt"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
@@ -590,7 +592,8 @@ The `search-bound` strategy peforms a bounded depth-first search for a proof, ap
 ```k
   rule <strategy> search-bound(0) => fail </strategy>
   rule <strategy> search-bound(N)
-               => simplify ; ( direct-proof
+               => simplify ; ( smt
+                             | direct-proof
                              | (kt           ; search-bound(N -Int 1))
                              | (right-unfold ; search-bound(N -Int 1))
                              )
@@ -657,6 +660,18 @@ Remove trivial clauses from the right-hand-side:
   rule removeTrivialEqualities(.Patterns) => .Patterns
   rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
   rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
+```
+
+### SMT
+
+Invoke an SMT solver. Currently unimplemented.
+
+```k
+  rule <k> GOAL </k>
+       <strategy> smt
+               => fail ...
+       </strategy>
+       <trace> .K => smt ... </trace>
 ```
 
 ### Direct proof
