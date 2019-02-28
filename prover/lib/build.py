@@ -99,4 +99,3 @@ smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
                                  )
 
 do_prove('smtlib2-tests', smtlib_testdriver, 'SMTLIB2-TESTS-SPEC', 'smtlib2-tests.md').default()
-do_test(smtlib_testdriver, 't/test.smt').alias('smt-test')
