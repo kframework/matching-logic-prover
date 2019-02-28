@@ -98,5 +98,5 @@ smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
                                       .implicit(imported_k_files + [z3_target])
                                  )
 
-do_prove('unit-tests', smtlib_testdriver, 'UNIT-TESTS-SPEC', 'unit-tests.md').default()
+do_prove('smtlib2-tests', smtlib_testdriver, 'SMTLIB2-TESTS-SPEC', 'smtlib2-tests.md').default()
 do_test(smtlib_testdriver, 't/test.smt').alias('smt-test')
