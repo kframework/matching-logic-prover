@@ -44,6 +44,7 @@ def do_prove(alias, defn, spec_module, spec):
 imported_k_files = [ proj.source('kore.md').then(proj.tangle().output(proj.tangleddir('kore.k')))
                    , proj.source('smtlib2.md').then(proj.tangle().output(proj.tangleddir('smtlib2.k')))
                    , proj.source('direct-proof.md').then(proj.tangle().output(proj.tangleddir('direct-proof.k')))
+                   , proj.source('predicate-definitions.md').then(proj.tangle().output(proj.tangleddir('predicate-definitions.k')))
                    ]
 prover_k = proj.source('prover.md') \
                .then(proj.tangle().output(proj.tangleddir('prover.k')))
