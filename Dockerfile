@@ -7,7 +7,7 @@ RUN    ln --symbolic --no-dereference --force /usr/share/zoneinfo/$TZ /etc/local
 RUN    apt update                                                          \
     && apt upgrade --yes                                                   \
     && apt install --yes                                                   \
-           autoconf build-essential curl flex gcc libffi-dev libmpfr-dev   \
+           autoconf build-essential curl flex gcc git libffi-dev libmpfr-dev \
            libtool make maven ninja-build netcat openjdk-8-jdk pandoc      \
            pkg-config python3 python3-distutils zlib1g-dev
 
