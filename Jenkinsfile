@@ -17,7 +17,7 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh '''#!/bin/bash
-            cd prover && ./build
+            cd prover && ./build .build/local/bin/z3 && ./build
           '''
         }
       }
