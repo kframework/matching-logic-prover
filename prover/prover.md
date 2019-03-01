@@ -21,6 +21,7 @@ but not in the LHS are existential. This should be explicit.
 ```k
 module KORE-SUGAR
   imports DOMAINS-SYNTAX
+  imports SUBSTITUTION
   syntax Ints ::= List{Int, ","}
 
   syntax Sort ::= "Bool" | "Int" | "ArrayIntInt" | "Set"
@@ -34,8 +35,8 @@ only in this scenario*.
 ```k
   syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
                     | "variable" "(" String "," Int ")" "{" Sort "}"
-  syntax KVariable ::= Variable
-
+  syntax KVar ::= Variable
+  
   syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
                          | Variable
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
@@ -396,7 +397,6 @@ module PROVER-CORE
 ```k
   imports PROVER-CORE-SYNTAX
   imports KORE-HELPERS
-  imports SUBSTITUTION
 ```
 
 `Strategy`s can be sequentially composed via the `;` operator.
