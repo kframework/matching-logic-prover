@@ -20,7 +20,8 @@ but not in the LHS are existential. This should be explicit.
 
 ```k
 module KORE-SUGAR
-  imports DOMAINS-SYNTAX
+  imports INT-SYNTAX
+  imports STRING-SYNTAX
   imports SUBSTITUTION
   syntax Ints ::= List{Int, ","}
 
