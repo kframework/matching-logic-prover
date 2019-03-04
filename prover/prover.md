@@ -34,8 +34,8 @@ only in this scenario*.
 ```k
   syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
                     | "variable" "(" String "," Int ")" "{" Sort "}"
-  syntax KVariable ::= Variable
-
+  syntax KVar ::= Variable
+  
   syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
                          | Variable
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
