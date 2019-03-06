@@ -1,16 +1,45 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-set -eu
-base="$(cd "$(dirname "$0")"; pwd)"
-builddir="$base/.build" 
-prefix="$builddir/local"
+import os
+import subprocess
+import sys
 
-type -t ninja > /dev/null || fail "`ninja-build` not available. Giving up."
+# Bootstrapping
+# =============
 
-export PYTHONPATH="$base/ext/"
-export LD_LIBRARY_PATH="$prefix/lib:${LD_LIBRARY_PATH:-}"
-export PATH="$base/lib/:$prefix/bin:$PATH"
+# Make sure the KNinja repo is available.
+subprocess.check_call(['git', 'submodule', 'update', '--init'])
+extdir = 'ext'
+sys.path.append(os.path.join(os.path.dirname(__file__), extdir))
+from kninja import *
 
-python3 lib/build.py
-[[ $# -lt 1 ]] || [[ -- != $1 ]] || { shift ; exec "$@" ; }
-exec ninja -f .build/generated.ninja "$@"
+# Build
+# =====
+
+proj = KProject()
+prover = \
+    proj.definition( alias    = 'prover'
+                   , backend  = 'java'
+                   , main     = 'prover.md'
+                   , other    = ['direct-proof.md', 'kore.md', 'smtlib2.md', 'predicate-definitions.md']
+                   )
+smtlib_testdriver = \
+    proj.definition( alias    = 'smtlib-testdriver'
+                   , backend  = 'java'
+                   , main     = 'prover.md'
+                   , other    = ['direct-proof.md', 'kore.md', 'smtlib2.md', 'predicate-definitions.md']
+                   , flags = "--main-module SMTLIB2-TEST-DRIVER --syntax-module SMTLIB2-TEST-DRIVER"
+                   )
+
+# Matching Logic Prover
+# =====================
+
+prover.tests(glob = 't/*.prover')
+
+# SMTLIB Translation
+# ==================
+
+smtlib_testdriver.proofs( alias = 'smtlib2-tests'
+                        , glob  = proj.tangle('smtlib2-tests.md').path
+                        )
+proj.main()
