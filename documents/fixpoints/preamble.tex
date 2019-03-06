@@ -18,6 +18,7 @@
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{notation}[theorem]{Notation}
 
 \theoremstyle{definition}
@@ -64,9 +65,20 @@
 \newcommand{\gfp}{\mathrm{gfp}}
 
 % mathit font
+\newcommand{\State}{\mathit{State}}
+\newcommand{\init}{\mathit{init}}
+\newcommand{\boxit}{\mathit{box}}
+\newcommand{\succit}{\mathit{succ}}
 \newcommand{\listit}{\mathit{list}}
+\newcommand{\col}{\mathit{col}}
+\newcommand{\row}{\mathit{row}}
+
 \newcommand{\lsegleftit}{\mathit{ls\hspace{-0.02em}e\hspace{-0.04em}gleft}}
 \newcommand{\lsegrightit}{\mathit{ls\hspace{-0.02em}e\hspace{-0.04em}gright}}
+
+% mathsf font
+\newcommand{\LTL}{\mathsf{LTL}}
+\newcommand{\hLTL}{\mathsf{hLTL}}
 
 % mathbb font
 
@@ -179,8 +191,8 @@
 \newcommand{\rhobar}{\bar{\rho}}
 \newcommand{\rhobarp}{\widebar{\rhop}}
 
-
-
+\newcommand{\until}{\mathbin{U}}
+\newcommand{\slashslash}{//\xspace}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -238,7 +250,7 @@
 \newcommand{\SSS}{\mathcal{S}}
 
 % name of the proof rules
-\newcommand{\prule}[1]{\textsc{(#1)}}
+\newcommand{\prule}[1]{\textnormal{\textsc{(#1)}}}
 
 \newcommand{\modusponens}{\prule{Modus Ponens}\xspace}
 \newcommand{\universalgeneralization}{\prule{Universal Generalization}\xspace}
@@ -301,8 +313,8 @@
 \newcommand{\Label}{\textsc{Label}}
 \newcommand{\true}{\mathit{true}}
 \newcommand{\false}{\mathit{false}}
-\newcommand{\wnext}{{\medcirc}}
-\newcommand{\snext}{{\medbullet}}
+\newcommand{\wnext}{{\circ}}
+\newcommand{\snext}{{\bullet}}
 \newcommand{\sprev}{{\widebar{\snext}}}
 \newcommand{\wprev}{{\widebar{\wnext}}}
 \newcommand{\always}{{\square}}

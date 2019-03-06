@@ -2795,7 +2795,7 @@ Figure~\ref{fig_RLexample_proof}.
 The symbol ``$\Longleftarrow$'' in the proof should be read as
 ``to prove the above, it suffices to prove the below''.
 
-\begin{figure}
+\begin{figure}[h]
 	{
 		\small
 		\begin{align*}
@@ -2895,14 +2895,131 @@ The symbol ``$\Longleftarrow$'' in the proof should be read as
 
 \section{Instance: First-Order Logic with Least Fixpoints}
 
+\newpage
 \section{Instance: Separation Logic}
 
 
+\section{Instance: Logics for Specifying Hyperproperties}
 
 
+\newpage
+
+\section{Instance: HyperLTL}
 
 
+HyperLTL is an extension of LTL
+for specifying \emph{hyperproperties}, i.e., properties of systems.
+The \emph{syntax} of HyperLTL is parametric on
+\begin{itemize}
+\item a countable set $\AP$ of \emph{atomic propositions} denoted as $a$;
+\item an countably infinite set $V$ of \emph{path variables} denoted as 
+$\pi_1,\pi_2,\dots$.
+\end{itemize}
+HyperLTL \emph{formulas} is defined by the following grammar:
+\begin{align*}
+&\varphi \Coloneqq \forall \pi \ldot \varphi \mid
+                  \exists \pi \ldot \varphi \mid
+                  \psi
+& \text{\slashslash quantifiers only appear at the top level}
+\\
+&\psi \Coloneqq a_\pi \mid \neg \psi \mid \psi \vee \psi \mid \wnext \psi
+               \mid \psi \until \psi
+& \text{\slashslash quantifier-free formulas}
+\end{align*}
 
+An \emph{infinite trace} $\tau \in (\pset{\AP})^\omega$ is an infinite sequence 
+of subsets of atomic propositions.
+In HyperLTL, we only consider infinite traces, so we abbreviate ``infinite 
+traces'' as just ``traces''.
+We write $\tau[i]$ for mean the $i$th element of trace $\tau$.
+The semantics of HyperLTL is defined w.r.t. a  nonempty set of traces
+$T$ and a valuation $\Pi \colon V \to T$ as follows:
+\begin{itemize}
+\item $T,\Pi,i \vDash_\hLTL a_\pi$ iff $a \in \Pi(\pi)[i]$;
+\item $T,\Pi,i \vDash_\hLTL \neg \psi$ iff $T,\Pi,i \not\vDash_\hLTL \psi$;
+\item $T,\Pi,i \vDash_\hLTL \psi_1 \vee \psi_2$
+      iff $T,\Pi,i \vDash_\hLTL \psi_1$
+      or $T,\Pi,i \vDash_\hLTL \psi_2$;
+\item $T,\Pi,i \vDash_\hLTL \wnext \psi$ iff
+      $T,\Pi, i+1 \vDash_\hLTL \psi$;
+\item $T,\Pi,i \vDash_\hLTL \psi_1 \until \psi_2$ iff
+      there exists $j \ge i$ such that
+      $T,\Pi,j \vDash_\hLTL \psi_2$ and
+      for all $i \le k < j$ we have $T,\Pi,k \vDash_\hLTL \psi_1$;
+\item $T,\Pi,i \vDash_\hLTL \exists \pi \ldot \varphi$ iff
+      there exists $\tau \in T$ such that
+      $T,\Pi[\tau/\pi],i \vDash_\hLTL \varphi$;
+\item $T,\Pi,i \vDash_\hLTL \forall \pi \ldot \varphi$ iff
+      for all $\tau \in T$ we have
+      $T,\Pi[\tau/\pi],i \vDash_\hLTL \varphi$;
+\end{itemize}
+where $\Pi[\tau/\pi]$ denotes the valuation $\Pi'$ such that 
+$\Pi'(\pi) = \tau$ and $\Pi'(\pi') = \Pi(\pi)$ for all $\pi' \not\equiv \pi$.
+
+\subsection{Defining HyperLTL in ML}
+
+We define the signature
+$\sig^\hLTL = ( \{\State\} , \Var, \Sigma^\hLTL)$ such that
+$\Var$ contains all path variables in $V$ as \emph{element variables},
+and $\Sigma^\hLTL$ contains the following symbols:
+\begin{align*}
+&  \text{``one-path next''} && \snext \in \Sigma^\hLTL_{\State , \State}
+&& \text{``initial states''} && \init \in \Sigma^\hLTL_{\lambda , \State}
+\\
+&  \text{``atomic proposition''} && a \in \Sigma^\hLTL_{\lambda , \State}
+&& \text{``successor states''} && \succit \in \Sigma^\hLTL_{\State , \State}
+\\
+&  \text{``box''} && \boxit \in \Sigma^\hLTL_{\State , \State}
+&& \text{``column''} && \col \in \Sigma^\hLTL_{\State , \State}
+\end{align*}
+We assume all syntactic sugar that is defined for LTL.
+In particular, we have ``all-path'' next
+$\wnext \varphi \equiv \neg \snext \neg \varphi$ 
+and ``eventually'' $\eventually \varphi \equiv \mu X \ldot \varphi \vee \snext 
+X$.
+We define the $\sig^\hLTL$-theory $\Gamma^\hLTL$ that contains the following 
+axioms:
+\begin{align*}
+& \prule{Inf} \quad \snext \top
+&&  \prule{Succ} \quad \succit(x) = \exists y \ldot y \wedge (x \in \snext y)
+\\
+&  \prule{Lin} \quad \wnext \varphi \imp \snext \varphi
+&& \prule{Box} \quad \boxit(x) = 
+   \mu X \ldot \init \vee 
+   (\succit(X) \wedge \ceil{\eventually x \wedge \succit(X)})
+\\
+&&&  \prule{Column} \quad \col(x) = \boxit(x) \wedge \neg \boxit(\snext x)
+\end{align*}
+The pattern $\succit(x)$ is the inverse of $\snext$ and gives the set
+of successors of $x$.
+An intuitive illustration of $\boxit(x)$ and $\col(x)$ will be given later.
+
+\begin{lemma}
+\prule{Lin} implies that $\succit$ is a partial function,
+i.e., $\vdash \exists y \ldot \succit(x) \subseteq y$.
+\prule{Lin} and \prule{Inf} imply that $\succit$ is a total function,
+i.e., $\vdash \exists y \ldot \succit(x) = y$.
+\end{lemma}
+
+
+To capture HyperLTL syntax, we define the following syntactic sugar:
+\begin{align*}
+& a_\pi \equiv \col(a \wedge \mu X \ldot \pi \vee \succit(X))
+&& \forall \pi \ldot \varphi \equiv \forall \pi \ldot \pi \in \init \imp \varphi
+&& \exists \pi \ldot \varphi \equiv \exists \pi \ldot \pi \in \init \wedge 
+\varphi
+\end{align*}
+
+With the above syntactic sugar, all HyperLTL formulas are $\sig^\hLTL$-patterns
+of sort $\State$.
+
+\begin{lemma}
+$T,\Pi,i \vDash_\hLTL \varphi$ iff
+$\bracket{i} \subseteq \widebar{\rho_\Pi}(\varphi)$
+and
+$T,\Pi,i \not\vDash_\hLTL \varphi$ iff
+$\bracket{i} \cap \widebar{\rho_\Pi}(\varphi) = \emptyset$.
+\end{lemma}
 
 \section{Get Material From Here}
 
