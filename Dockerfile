@@ -10,6 +10,8 @@ RUN    apt update                                                          \
            autoconf build-essential curl flex gcc git libffi-dev libmpfr-dev \
            libtool make maven ninja-build netcat openjdk-8-jdk pandoc      \
            pkg-config python3 python3-distutils zlib1g-dev
+RUN  apt install --yes z3 cvc4
+
 RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
 ARG USER_ID=1000
@@ -17,6 +19,5 @@ ARG GROUP_ID=1000
 RUN    groupadd --gid $GROUP_ID user                                        \
     && useradd --create-home --uid $USER_ID --shell /bin/sh --gid user user
 USER $USER_ID:$GROUP_ID
-RUN  apt install cvc4
 
 ENV LC_ALL=C.UTF-8

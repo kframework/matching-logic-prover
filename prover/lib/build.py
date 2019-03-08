@@ -9,17 +9,6 @@ import os.path
 
 proj = KProject()
 
-build_z3_rule = proj.rule( name        = 'build-z3'
-                         , description = 'Building Z3'
-                         , command     = 'lib/build-z3 </dev/null "$z3_repo" "$prefix"'
-                         ) \
-                    .output(proj.builddir('local/bin/z3')) \
-                    .variables( pool = 'console'
-                              , z3_repo = 'ext/z3'
-                              , prefix  = proj.builddir('local/')
-                              )
-z3_target = proj.source('').then(build_z3_rule)
-
 # Helpers for running tests
 # -------------------------
 
@@ -51,7 +40,7 @@ prover_k = proj.source('prover.md') \
 mlprover = prover_k \
             .then(proj.kompile(backend = 'java')
                       .variables(directory = proj.builddir('prover'))
-                      .implicit(imported_k_files + [z3_target])
+                      .implicit(imported_k_files)
                  )
 
 do_test(mlprover, 't/emptyset-implies-isempty.prover').default()
@@ -97,6 +86,6 @@ do_prove('prover-tests', mlprover, 'PROVER-TESTS-SPEC', 'prover-tests.md').defau
 smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
                                       .variables(directory = proj.builddir('smt-testdriver')
                                                  , flags = "--main-module SMTLIB2-TEST-DRIVER --syntax-module SMTLIB2-TEST-DRIVER") 
-                                      .implicit(imported_k_files + [z3_target])
+                                      .implicit(imported_k_files)
                                  )
 do_prove('smtlib2-tests', smtlib_testdriver, 'SMTLIB2-TESTS-SPEC', 'smtlib2-tests.md').default()
