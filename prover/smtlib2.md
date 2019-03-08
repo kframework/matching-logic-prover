@@ -345,7 +345,7 @@ module Z3
   syntax SATResult ::= "Z3CheckSAT.parseResult" "(" KItem ")"                         [function]
 
   rule Z3CheckSAT(QUERY)
-    => Z3CheckSAT.doOpen(SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )" , ".build/z3-query.smt")
+    => Z3CheckSAT.doOpen(SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n" , ".build/z3-query.smt")
   rule Z3CheckSAT.doOpen  (Q,     FN)    => Z3CheckSAT.doWrite(Q, #open(FN, "w"), FN)
   rule Z3CheckSAT.doWrite (Q, FD, FN)    => Z3CheckSAT.doClose(Q, FD, FN, #write(FD, Q))
   rule Z3CheckSAT.doClose (Q, FD, FN, _) => Z3CheckSAT.doSystem(Q, FD, FN, #close(FD))
@@ -376,7 +376,7 @@ module CVC4
   rule CVC4CheckSAT(QUERY)
     => CVC4CheckSAT.doOpen( "( set-logic ALL_SUPPORTED ) \n "
                     +String SMTLIB2ScriptToString(QUERY)
-                    +String "\n( check-sat )"
+                    +String "\n( check-sat )\n"
                           , ".build/cvc4-query.smt"
                           )
   rule CVC4CheckSAT.doOpen  (Q,     FN)    => CVC4CheckSAT.doWrite(Q, #open(FN, "w"), FN)
