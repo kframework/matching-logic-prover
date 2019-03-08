@@ -13,13 +13,6 @@ pipeline {
         }
       }
     }
-    stage('Download SMT solvers') {
-      steps {
-        ansiColor('xterm') {
-          sh 'cd prover && ./lib/ci-dependencies'
-        }
-      }
-    }
     stage('SMTLIB Tests') {
       steps {
         ansiColor('xterm') {
