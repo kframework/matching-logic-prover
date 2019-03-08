@@ -17,7 +17,9 @@ pipeline {
       steps {
         ansiColor('xterm') {
           sh '''#!/bin/bash
-            cd prover && ./build -k 0
+                   cd prover \
+                && ./lib/ci-dependencies \
+                && PATH="$(pwd)/.build/local/bin/:$PATH" ./build -k 0
           '''
         }
       }

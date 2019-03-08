@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eu
+
+download_dir=.build/downloads
+local_prefix_dir=.build/local
+
+mkdir -p "$local_prefix_dir"
+
+z3_version=z3-4.8.4
+z3_basename="$z3_version.d6df51951f4c-x64-ubuntu-16.04"
+z3_zip="$z3_basename.zip"
+z3_url="https://github.com/Z3Prover/z3/releases/download/$z3_version/$z3_zip"
+mkdir -p "$download_dir"
+(  cd "$download_dir"
+   wget "$z3_url"
+   echo downloaded
+   unzip "$z3_zip"
+   echo unzipped
+)
+cp -r "$download_dir/$z3_basename"/* "$local_prefix_dir"
+
+cvc4_url="http://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.6-x86_64-linux-opt"
+wget "$cvc4_url" -O "$local_prefix_dir/bin/cvc4"
+chmod +x "$local_prefix_dir/bin/cvc4"
+

@@ -9,8 +9,7 @@ RUN    apt update                                                          \
     && apt install --yes                                                   \
            autoconf build-essential curl flex gcc git libffi-dev libmpfr-dev \
            libtool make maven ninja-build netcat openjdk-8-jdk pandoc      \
-           pkg-config python3 python3-distutils zlib1g-dev
-RUN  apt install --yes z3 cvc4
+           pkg-config python3 python3-distutils wget zlib1g-dev zip
 
 RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
