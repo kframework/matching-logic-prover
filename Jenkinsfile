@@ -13,15 +13,6 @@ pipeline {
         }
       }
     }
-    stage('Build Z3') {
-      steps {
-        ansiColor('xterm') {
-          sh '''#!/bin/bash
-            cd prover && ./build .build/local/bin/z3
-          '''
-        }
-      }
-    }
     stage('Test') {
       steps {
         ansiColor('xterm') {
