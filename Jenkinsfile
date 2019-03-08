@@ -13,14 +13,30 @@ pipeline {
         }
       }
     }
-    stage('Test') {
+    stage('Download SMT solvers') {
+      steps {
+        ansiColor('xterm') {
+          sh 'cd prover && ./lib/ci-dependencies'
+        }
+      }
+    }
+    stage('SMTLIB Tests') {
       steps {
         ansiColor('xterm') {
           sh '''#!/bin/bash
                    cd prover \
-                && ./lib/ci-dependencies \
+                && PATH="$(pwd)/.build/local/bin/:$PATH" ./build smtlib-testdriver
+             '''
+        }
+      }
+    }
+    stage('Prover Tests') {
+      steps {
+        ansiColor('xterm') {
+          sh '''#!/bin/bash
+                   cd prover \
                 && PATH="$(pwd)/.build/local/bin/:$PATH" ./build -k 0
-          '''
+             '''
         }
       }
     }
