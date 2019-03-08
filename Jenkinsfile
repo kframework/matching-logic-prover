@@ -25,7 +25,7 @@ pipeline {
         ansiColor('xterm') {
           sh '''#!/bin/bash
                    cd prover \
-                && PATH="$(pwd)/.build/local/bin/:$PATH" ./build smtlib-testdriver
+                && PATH="$(pwd)/.build/local/bin/:$PATH" ./build smtlib2-tests
              '''
         }
       }
