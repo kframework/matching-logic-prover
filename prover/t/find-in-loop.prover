@@ -27,5 +27,5 @@ claim
 
 strategy search-bound(3)
 
-// strategy simplify ; right-unfold-Nth(0,1)  ; simplify ; left-unfold-Nth(1) 
-//        ; simplify ; direct-proof 
+//strategy simplify ; right-unfold-Nth(0,1)  ; simplify ; left-unfold-Nth(1) 
+//       ; simplify ; instantiate-existentials ; smt-cvc4
