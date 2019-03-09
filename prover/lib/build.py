@@ -15,7 +15,7 @@ proj = KProject()
 def do_test(defn, file):
     expected = file + '.expected'
     return proj.source(file) \
-               .then(defn.krun()) \
+               .then(defn.krun().variables(flags = '--smt none')) \
                .then(proj.check(proj.source(expected))
                             .variables(flags = '--ignore-all-space')) \
                .alias(file + '.test')
