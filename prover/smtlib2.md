@@ -1,10 +1,8 @@
 ```k
 module SMTLIB2-SYNTAX
   imports SMTLIB2
-
-  // TODO: Fix regex
   syntax SMTLIB2SimpleSymbol ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*" [prec(1), notInRules, token, autoReject]
-
+  syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
 endmodule
 
 module SMTLIB2
@@ -14,14 +12,13 @@ module SMTLIB2
 
 // Tokens
   syntax SMTLIB2Numeral ::= Int
-  syntax SMTLIB2SimpleSymbol ::= "a" [token] | "b" [token] | "n" [token]
-                               | "x" [token] | "y" [token]
-                               | Bool
+  syntax SMTLIB2SimpleSymbol ::= Bool
   syntax SMTLIB2Symbol ::= SMTLIB2SimpleSymbol
 
 // S Expressions
   syntax SMTLIB2SpecConstant ::= SMTLIB2Numeral
-  syntax SMTLIB2SExpr ::= SMTLIB2SpecConstant | SMTLIB2Symbol
+  syntax SMTLIB2SExpr ::= SMTLIB2SpecConstant
+                        | SMTLIB2Symbol
                         | "(" SMTLIB2SExprList ")"
   syntax SMTLIB2SExprList ::= List{SMTLIB2SExpr, ""} [klabel(SMTLIB2SExprList)]
 
@@ -29,14 +26,12 @@ module SMTLIB2
   syntax SMTLIB2Index      ::= SMTLIB2Numeral | SMTLIB2Symbol
   syntax SMTLIB2IndexList  ::= List{SMTLIB2Index, ""} [klabel(SMTLIB2IndexList)]
   syntax SMTLIB2Identifier ::= SMTLIB2Symbol
-                        //   | "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
                              | "(" "underscore" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
 
 // Sorts
   syntax SMTLIB2Sort ::= SMTLIB2Identifier
                        | "(" SMTLIB2Identifier SMTLIB2SortList ")"
   syntax SMTLIB2SortList ::= List{SMTLIB2Sort, ""} [klabel(SMTLIB2SortList)]
-// Attibutes
 
 // Terms
   syntax SMTLIB2QualIdentifier ::= SMTLIB2Identifier
@@ -52,57 +47,45 @@ module SMTLIB2
 
 // Commands
   syntax SMTLIB2Command ::= "(" "assert"        SMTLIB2Term               ")"
-
                           | "(" "declare-const" SMTLIB2Symbol SMTLIB2Sort ")"
                           | "(" "declare-fun"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
-
                           | "(" "define-fun"    SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
                           | "(" "define-sort"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 ```
 
-These are defined in the theories:
-
 ```k
+  // Core symbols
   syntax SMTLIB2SimpleSymbol ::= "not"   [token]
                                | "or"    [token]
                                | "and"   [token]
-  syntax SMTLIB2SimpleSymbol ::= "="     [token]
-                               | "*"     [token]
+                               | "="     [token]
+                               
+  // Arithmetic
+  syntax SMTLIB2SimpleSymbol ::= "*"     [token]
                                | "+"     [token]
                                | "/"     [token]
                                | "-"     [token]
                                | "^"     [token]
                                | ">"     [token]
-  syntax SMTLIB2SimpleSymbol ::=
-                               // Used in SMTLIB2 defined theories 
-                                 "emptyset"     [token]
+                               
+  // Sets (defined by CVC4, but not Z3)
+  syntax SMTLIB2SimpleSymbol ::= "emptyset"     [token]
                                | "singleton"    [token]
                                | "union"        [token]
                                | "intersection" [token]
                                | "member"       [token]
 
-                               // Used in Preludes
-                               | "emptysetx"  [token]
-                               | "unionx"     [token]
-                               | "intersectx" [token]
-                               | "in"         [token]
-                               | "disjointx"  [token]
-
-                               // Z3 specific
-                               | "const"      [token]
-                               
+  // Extensional Arrays
   syntax SMTLIB2SimpleSymbol ::= "select" [token]
                                | "store"  [token]
                                | "map"    [token]
-```
-
-Sorts:
-
-```k
+                             
+  // Sorts
   syntax SMTLIB2SimpleSymbol ::= "Int" [token] | "Bool" [token]
                                | "Set" [token] | "Array" [token]
-                               | "SetInt" [token]
+
+  syntax CheckSATResult ::= "sat" | "unsat" | "unknown" "(" K ")"
 ```
 
 Concatenation:
@@ -205,8 +188,68 @@ Serialize to String:
   rule SMTLIB2ScriptToString( .SMTLIB2Script ) => ""
   rule SMTLIB2ScriptToString( COMMAND SCRIPT )
     => SMTLIB2CommandToString( COMMAND ) +String "\n" +String SMTLIB2ScriptToString( SCRIPT )
+endmodule
+```
 
-  syntax SATResult ::= "sat" | "unsat" | "unknown" "(" K ")"
+```k
+module Z3
+  imports SMTLIB2
+  imports K-IO
+
+  syntax CheckSATResult ::= Z3CheckSAT(SMTLIB2Script) [function]
+  syntax CheckSATResult ::= "Z3CheckSAT.doOpen"   "(" String "," String ")"                [function]
+  syntax CheckSATResult ::= "Z3CheckSAT.doWrite"  "(" String "," IOInt "," String ")"      [function]
+  syntax CheckSATResult ::= "Z3CheckSAT.doClose"  "(" String "," Int "," String "," K ")"  [function]
+  syntax CheckSATResult ::= "Z3CheckSAT.doSystem" "(" String "," Int "," String "," K ")"  [function]
+  syntax CheckSATResult ::= "Z3CheckSAT.parseResult" "(" KItem ")"                         [function]
+
+  rule Z3CheckSAT(QUERY)
+    => Z3CheckSAT.doOpen(SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n" , ".build/z3-query.smt")
+  rule Z3CheckSAT.doOpen  (Q,     FN)    => Z3CheckSAT.doWrite(Q, #open(FN, "w"), FN)
+  rule Z3CheckSAT.doWrite (Q, FD, FN)    => Z3CheckSAT.doClose(Q, FD, FN, #write(FD, Q))
+  rule Z3CheckSAT.doClose (Q, FD, FN, _) => Z3CheckSAT.doSystem(Q, FD, FN, #close(FD))
+  rule Z3CheckSAT.doSystem(Q, FD, FN, _) => Z3CheckSAT.parseResult(#system("z3 " +String FN))
+  rule Z3CheckSAT.parseResult(#systemResult(0, "sat", STDERR)) => sat
+  rule Z3CheckSAT.parseResult(#systemResult(0, "unsat", STDERR)) => unsat
+  rule Z3CheckSAT.parseResult(#systemResult(0, "unknown", STDERR)) => unknown(.K)
+
+  rule Z3CheckSAT.doWrite(_, E:IOError, _) => unknown(E)
+  rule Z3CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))
+    => unknown(#systemResult(I, STDOUT, STDERR))
+    requires I =/=Int 0
+endmodule
+```
+
+```k
+module CVC4
+  imports SMTLIB2
+  imports K-IO
+
+  syntax CheckSATResult ::= CVC4CheckSAT(SMTLIB2Script) [function]
+  syntax CheckSATResult ::= "CVC4CheckSAT.doOpen"   "(" String "," String ")"                [function]
+  syntax CheckSATResult ::= "CVC4CheckSAT.doWrite"  "(" String "," IOInt "," String ")"      [function]
+  syntax CheckSATResult ::= "CVC4CheckSAT.doClose"  "(" String "," Int "," String "," K ")"  [function]
+  syntax CheckSATResult ::= "CVC4CheckSAT.doSystem" "(" String "," Int "," String "," K ")"  [function]
+  syntax CheckSATResult ::= "CVC4CheckSAT.parseResult" "(" KItem ")"                         [function]
+
+  rule CVC4CheckSAT(QUERY)
+    => CVC4CheckSAT.doOpen( "( set-logic ALL_SUPPORTED ) \n "
+                    +String SMTLIB2ScriptToString(QUERY)
+                    +String "\n( check-sat )\n"
+                          , ".build/cvc4-query.smt"
+                          )
+  rule CVC4CheckSAT.doOpen  (Q,     FN)    => CVC4CheckSAT.doWrite(Q, #open(FN, "w"), FN)
+  rule CVC4CheckSAT.doWrite (Q, FD, FN)    => CVC4CheckSAT.doClose(Q, FD, FN, #write(FD, Q))
+  rule CVC4CheckSAT.doClose (Q, FD, FN, _) => CVC4CheckSAT.doSystem(Q, FD, FN, #close(FD))
+  rule CVC4CheckSAT.doSystem(Q, FD, FN, _) => CVC4CheckSAT.parseResult(#system("cvc4 --lang smt " +String FN))
+  rule CVC4CheckSAT.parseResult(#systemResult(0, "sat", STDERR)) => sat
+  rule CVC4CheckSAT.parseResult(#systemResult(0, "unsat", STDERR)) => unsat
+  rule CVC4CheckSAT.parseResult(#systemResult(0, "unknown", STDERR)) => unknown(.K)
+
+  rule CVC4CheckSAT.doWrite(_, E:IOError, _) => unknown(E)
+  rule CVC4CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))
+    => unknown(#systemResult(I, STDOUT, STDERR))
+    requires I =/=Int 0
 endmodule
 ```
 
@@ -286,7 +329,17 @@ module ML-TO-SMTLIB2
        VariablesToSMTLIB2SortedVarList(Cs)
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
-
+    
+  syntax SMTLIB2SimpleSymbol ::= "emptysetx"  [token]
+                               | "unionx"     [token]
+                               | "intersectx" [token]
+                               | "in"         [token]
+                               | "disjointx"  [token]
+                               | "const"      [token]
+                               | "SetInt"     [token]
+                               | "n"          [token]
+                               | "x"          [token]
+                               | "y"          [token]
   syntax SMTLIB2Script ::= "Z3Prelude" [function]
   rule Z3Prelude
     => ( ( define-sort SetInt (.SMTLIB2SortList) ( Array Int  Bool ) )
@@ -332,67 +385,6 @@ module ML-TO-SMTLIB2
 endmodule
 ```
 
-```k
-module Z3
-  imports SMTLIB2
-  imports K-IO
-
-  syntax SATResult ::= Z3CheckSAT(SMTLIB2Script) [function]
-  syntax SATResult ::= "Z3CheckSAT.doOpen"   "(" String "," String ")"                [function]
-  syntax SATResult ::= "Z3CheckSAT.doWrite"  "(" String "," IOInt "," String ")"      [function]
-  syntax SATResult ::= "Z3CheckSAT.doClose"  "(" String "," Int "," String "," K ")"  [function]
-  syntax SATResult ::= "Z3CheckSAT.doSystem" "(" String "," Int "," String "," K ")"  [function]
-  syntax SATResult ::= "Z3CheckSAT.parseResult" "(" KItem ")"                         [function]
-
-  rule Z3CheckSAT(QUERY)
-    => Z3CheckSAT.doOpen(SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n" , ".build/z3-query.smt")
-  rule Z3CheckSAT.doOpen  (Q,     FN)    => Z3CheckSAT.doWrite(Q, #open(FN, "w"), FN)
-  rule Z3CheckSAT.doWrite (Q, FD, FN)    => Z3CheckSAT.doClose(Q, FD, FN, #write(FD, Q))
-  rule Z3CheckSAT.doClose (Q, FD, FN, _) => Z3CheckSAT.doSystem(Q, FD, FN, #close(FD))
-  rule Z3CheckSAT.doSystem(Q, FD, FN, _) => Z3CheckSAT.parseResult(#system("z3 " +String FN))
-  rule Z3CheckSAT.parseResult(#systemResult(0, "sat", STDERR)) => sat
-  rule Z3CheckSAT.parseResult(#systemResult(0, "unsat", STDERR)) => unsat
-  rule Z3CheckSAT.parseResult(#systemResult(0, "unknown", STDERR)) => unknown(.K)
-
-  rule Z3CheckSAT.doWrite(_, E:IOError, _) => unknown(E)
-  rule Z3CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))
-    => unknown(#systemResult(I, STDOUT, STDERR))
-    requires I =/=Int 0
-endmodule
-```
-
-```k
-module CVC4
-  imports SMTLIB2
-  imports K-IO
-
-  syntax SATResult ::= CVC4CheckSAT(SMTLIB2Script) [function]
-  syntax SATResult ::= "CVC4CheckSAT.doOpen"   "(" String "," String ")"                [function]
-  syntax SATResult ::= "CVC4CheckSAT.doWrite"  "(" String "," IOInt "," String ")"      [function]
-  syntax SATResult ::= "CVC4CheckSAT.doClose"  "(" String "," Int "," String "," K ")"  [function]
-  syntax SATResult ::= "CVC4CheckSAT.doSystem" "(" String "," Int "," String "," K ")"  [function]
-  syntax SATResult ::= "CVC4CheckSAT.parseResult" "(" KItem ")"                         [function]
-
-  rule CVC4CheckSAT(QUERY)
-    => CVC4CheckSAT.doOpen( "( set-logic ALL_SUPPORTED ) \n "
-                    +String SMTLIB2ScriptToString(QUERY)
-                    +String "\n( check-sat )\n"
-                          , ".build/cvc4-query.smt"
-                          )
-  rule CVC4CheckSAT.doOpen  (Q,     FN)    => CVC4CheckSAT.doWrite(Q, #open(FN, "w"), FN)
-  rule CVC4CheckSAT.doWrite (Q, FD, FN)    => CVC4CheckSAT.doClose(Q, FD, FN, #write(FD, Q))
-  rule CVC4CheckSAT.doClose (Q, FD, FN, _) => CVC4CheckSAT.doSystem(Q, FD, FN, #close(FD))
-  rule CVC4CheckSAT.doSystem(Q, FD, FN, _) => CVC4CheckSAT.parseResult(#system("cvc4 --lang smt " +String FN))
-  rule CVC4CheckSAT.parseResult(#systemResult(0, "sat", STDERR)) => sat
-  rule CVC4CheckSAT.parseResult(#systemResult(0, "unsat", STDERR)) => unsat
-  rule CVC4CheckSAT.parseResult(#systemResult(0, "unknown", STDERR)) => unknown(.K)
-
-  rule CVC4CheckSAT.doWrite(_, E:IOError, _) => unknown(E)
-  rule CVC4CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))
-    => unknown(#systemResult(I, STDOUT, STDERR))
-    requires I =/=Int 0
-endmodule
-```
 Main
 ====
 

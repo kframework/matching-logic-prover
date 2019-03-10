@@ -3,6 +3,9 @@ Here, we write unit tests as reachability claims.
 ```k
 module SMTLIB2-TESTS-SPEC
   imports SMTLIB2-TEST-DRIVER
+  
+  syntax SMTLIB2SimpleSymbol ::= "a" [token] | "b" [token] | "n" [token]
+                               | "x" [token] | "y" [token]
 ```
 
 ```k
