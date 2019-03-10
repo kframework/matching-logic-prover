@@ -36,6 +36,7 @@ is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
 
 ```k
+  syntax KItem ::= Variable
   syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
                     | "variable" "(" String "," Int ")" "{" Sort "}"
   syntax KVar ::= Variable
