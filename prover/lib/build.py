@@ -78,6 +78,9 @@ do_test(mlprover, 't/sum-to-n.prover').default()
 do_test(mlprover, 't/find-after-loop1.prover')
 do_test(mlprover, 't/find-after-loop2.prover')
 
+# All-path reachability tests
+do_test(mlprover, 't/confluence-simple.prover')
+
 do_prove('prover-tests', mlprover, 'PROVER-TESTS-SPEC', 'prover-tests.md').default()
 
 # SMTLIB Translation

@@ -1352,6 +1352,55 @@ TODO: These should be part of simplify
 endmodule
 ````
 
+All-path Reachability
+=====================
+
+```k
+module ALL-PATH-REACHABILITY
+  imports PROVER-CORE
+  imports PROVER-HORN-CLAUSE
+  syntax AtomicPattern ::= "ctor" "(" String ")"
+  syntax BasicPattern  ::= AtomicPattern "=>" AtomicPattern
+                         | "reachesAll" "(" AtomicPattern "," AtomicPattern ")"
+  syntax Pattern       ::= "walways" "(" Pattern ")"
+
+  rule reachesAll(LHS, RHS) => \implies(LHS, walways(RHS)) [macro]
+
+  syntax Strategy ::= "all-path-reachability"
+                    | "replace-goal" "(" Pattern ")"
+
+  rule <k> _ => NEWGOAL </k>
+       <strategy> replace-goal(NEWGOAL) => noop ... </strategy>
+
+  rule <k> \implies(AXIOMS, \and(\implies(LHS, walways(RHS)), .Patterns)) </k>
+       <strategy>
+         all-path-reachability
+         => ( replace-goal(\implies(AXIOMS, \implies(LHS, RHS)))
+            | ( replace-goal(\implies(AXIOMS, \implies(LHS, snext(\top()))))
+              & replace-goal(\implies(AXIOMS, \implies(LHS, wnext(walways(RHS)))))
+              )
+            )
+            ; all-path-reachability
+            ...
+       </strategy>
+
+  rule <k> \implies(AXIOMS, \implies(ctor(C), ctor(C))) </k>
+       <strategy> all-path-reachability => success ... </strategy>
+
+  rule <k> \implies(AXIOMS, \implies(ctor(C1), ctor(C2))) </k>
+       <strategy> all-path-reachability => fail ... </strategy>
+    requires C1 =/=K C2
+
+  rule <k> \implies(\and(ctor(C) => _, _:Patterns), \implies(ctor(C), snext(\top()))) </k>
+       <strategy> all-path-reachability => success ... </strategy>
+
+  // TODO: need negative case for first axiom not matching
+```
+
+```k
+endmodule
+```
+
 Driver & Syntax
 ===============
 
@@ -1362,6 +1411,7 @@ module PROVER-SYNTAX
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports PROVER-LTL-SYNTAX
+  imports ALL-PATH-REACHABILITY
   imports KORE-SUGAR
   syntax Pgm ::= "claim" Pattern
                  "strategy" Strategy
@@ -1389,6 +1439,7 @@ module PROVER
   imports PROVER-DRIVER
   imports PROVER-HORN-CLAUSE
   imports PROVER-LTL
+  imports ALL-PATH-REACHABILITY
 endmodule
 ```
 

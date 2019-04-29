@@ -1,0 +1,8 @@
+// a => INT /\ a => NAT /\ NAT => INT -> a =>*all INT
+
+claim \implies( \and( ctor("a") => ctor("INT")
+                    , ctor("a") => ctor("NAT")
+                    , ctor("NAT") => ctor("INT"), .Patterns)
+              , \and(reachesAll(ctor("a"), ctor("INT")), .Patterns)
+              )
+strategy all-path-reachability

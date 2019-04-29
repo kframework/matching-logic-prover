@@ -1,5 +1,7 @@
+// S == emptyset -> isEmpty(S)
+
 claim \implies( \and(\equals(variable("S") { SetInt }, emptyset), .Patterns)
               , \and(isEmpty(variable("S") { SetInt }, .Patterns), .Patterns)
               )
-strategy search-bound(2) 
+strategy search-bound(2)
 // strategy right-unfold ; simplify ; instantiate-existentials ; smt-z3
