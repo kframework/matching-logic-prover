@@ -580,7 +580,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "direct-proof" // rules that the SMT-PROVER can't handle
-                    | "smt-z3" | "smt-cvc4"
+                    | "smt" | "smt-z3" | "smt-cvc4"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
@@ -612,7 +612,7 @@ The `search-bound` strategy peforms a bounded depth-first search for a proof, ap
 ```k
   rule <strategy> search-bound(0) => fail </strategy>
   rule <strategy> search-bound(N)
-               => simplify ; ( ( instantiate-existentials ; (smt-z3 | smt-cvc4) )
+               => simplify ; ( ( instantiate-existentials ; smt )
                              | direct-proof
                              | (kt           ; search-bound(N -Int 1))
                              | (right-unfold ; search-bound(N -Int 1))
@@ -757,6 +757,31 @@ We can call into both CVC4 and Z3 to solve SMT queries:
   rule <k> GOAL </k>
        <strategy> smt-cvc4 => fail </strategy>
     requires notBool isImplicativeForm(GOAL) =/=K .Patterns
+```
+
+We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
+
+```k
+  rule <k> GOAL </k>
+       <strategy> smt
+               => if ?CVC4RESULT ==K unsat
+                  then success
+                  else (if isUnknown(?CVC4RESULT)
+                        then smt-z3
+                        else fail
+                        fi
+                       )
+                  fi
+                  ...
+       </strategy>
+       <trace> .K => smt ... </trace>
+    requires ?CVC4RESULT ==K CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL))
+```
+
+```k
+  syntax Bool ::= isUnknown(CheckSATResult) [function]
+  rule isUnknown(unknown(_)) => true
+  rule isUnknown(_) => false [owise]
 ```
 
 ### Direct proof
