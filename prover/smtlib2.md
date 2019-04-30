@@ -33,6 +33,7 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(singleton(P1)) => ( singleton PatternToSMTLIB2Term(P1) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(gt(P1, P2)) => ( > PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(plus(P1, P2)) => ( + PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(max(P1, P2)) => ( max PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(minus(P1, P2)) => ( - PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(mult(P1, P2)) => ( * PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(div(P1, P2)) => ( / PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
@@ -88,6 +89,8 @@ module ML-TO-SMTLIB2
                                | "n"          [token]
                                | "x"          [token]
                                | "y"          [token]
+                               | "ite"        [token]
+                               | "max"        [token]
   syntax SMTLIB2Script ::= "Z3Prelude" [function]
   rule Z3Prelude
     => ( ( define-sort SetInt (.SMTLIB2SortList) ( Array Int  Bool ) )
@@ -97,6 +100,8 @@ module ML-TO-SMTLIB2
          ( define-fun unionx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map or ) x  y ) )
          ( define-fun intersectx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map and ) x  y ) )
          ( define-fun disjointx ( ( x SetInt )  ( y SetInt ) ) Bool ( = ( intersectx x  y ) emptysetx ) )
+
+         ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
 
   syntax SMTLIB2Script ::= "CVC4Prelude" [function]
@@ -107,6 +112,8 @@ module ML-TO-SMTLIB2
          ( define-fun unionx ( ( x SetInt )  ( y SetInt )  ) SetInt ( union x y  ) )  
          ( define-fun intersectx ( ( x SetInt )  ( y SetInt )  ) SetInt ( intersection x  y  ) )  
          ( define-fun disjointx ( ( x SetInt )  ( y SetInt )  ) Bool ( = ( intersectx x  y  ) emptysetx ) )
+
+         ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
 
   syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
