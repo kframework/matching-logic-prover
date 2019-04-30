@@ -175,11 +175,12 @@ module KORE-HELPERS
   rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
   rule getFreeVariables(P:Predicate(ARGS) , .Patterns)   => getFreeVariables(ARGS)
   rule getFreeVariables(\implies(LHS, RHS), .Patterns)
-    => getFreeVariables(LHS, .Patterns) ++BasicPatterns getFreeVariables(RHS, .Patterns)
+    => removeDuplicates(
+         getFreeVariables(LHS, .Patterns) ++BasicPatterns getFreeVariables(RHS, .Patterns))
   rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
   rule getFreeVariables(\or(CF, CFs),  .Patterns)
-    =>                 getFreeVariables(CF, .Patterns)
-       ++BasicPatterns getFreeVariables(\or(CFs), .Patterns)
+    => removeDuplicates(
+         getFreeVariables(CF, .Patterns) ++BasicPatterns getFreeVariables(\or(CFs), .Patterns))
   rule getFreeVariables(\or(.ConjunctiveForms), .Patterns)
     => .Patterns
 
