@@ -1394,6 +1394,10 @@ module ALL-PATH-REACHABILITY
   rule <k> \implies(\and(ctor(C) => _, _:Patterns), \implies(ctor(C), snext(\top()))) </k>
        <strategy> all-path-reachability => success ... </strategy>
 
+  rule \implies(\and(ctor(C1) => _, PS:Patterns), \implies(ctor(C2), snext(\top())))
+    => \implies(\and(PS), \implies(ctor(C2), snext(\top())))
+    requires C1 =/=K C2
+
   // TODO: need negative case for first axiom not matching
 ```
 
