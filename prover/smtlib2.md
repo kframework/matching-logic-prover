@@ -39,6 +39,7 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(div(P1, P2)) => ( / PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(select(P1, P2)) => ( select PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(isMember(P1, P2)) => ( in PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(add(P1, P2)) => ( setAdd PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(union(P1, P2)) => ( unionx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(disjoint(P1, P2)) => ( disjointx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(store(P1, P2, P3)) => ( store PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) PatternToSMTLIB2Term(P3) ):SMTLIB2Term
@@ -81,6 +82,7 @@ module ML-TO-SMTLIB2
     
   syntax SMTLIB2SimpleSymbol ::= "emptysetx"  [token]
                                | "unionx"     [token]
+                               | "singleton"  [token]
                                | "intersectx" [token]
                                | "in"         [token]
                                | "disjointx"  [token]
@@ -88,8 +90,10 @@ module ML-TO-SMTLIB2
                                | "SetInt"     [token]
                                | "n"          [token]
                                | "x"          [token]
+                               | "s"          [token]
                                | "y"          [token]
                                | "ite"        [token]
+                               | "setAdd"     [token]
                                | "max"        [token]
   syntax SMTLIB2Script ::= "Z3Prelude" [function]
   rule Z3Prelude
@@ -100,6 +104,7 @@ module ML-TO-SMTLIB2
          ( define-fun unionx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map or ) x  y ) )
          ( define-fun intersectx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map and ) x  y ) )
          ( define-fun disjointx ( ( x SetInt )  ( y SetInt ) ) Bool ( = ( intersectx x  y ) emptysetx ) )
+         ( define-fun setAdd ( ( s SetInt )  ( x Int ) ) SetInt ( unionx s ( singleton x ):SMTLIB2Term ) )
 
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
