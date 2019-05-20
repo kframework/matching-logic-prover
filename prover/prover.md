@@ -1084,12 +1084,12 @@ for guessing an instantiation of the inductive hypothesis.
 
   syntax Map ::= ktMakeInstantiationSubst(PredicatePattern, PredicatePattern, ImplicativeForm, KTInstantiate) [function]
   rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), RHS), useAffectedHeuristic)
-    => makeFreshSubstitution(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS)
+    => makeFreshSubstitution(removeDuplicates(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS))
                              -BasicPatterns (LRP_ARGS -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)) // Non-critical
                             // TODO: !!!! This should use findAffectedVariables and not the Aux version
                             )
   rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGs), _, \implies(\and(LHS), RHS), freshPositions(POSITIONS))
-    => makeFreshSubstitution(getMembers(POSITIONS, getFreeVariables(LHS) -BasicPatterns LRP_ARGs)) // PassiveVars
+    => makeFreshSubstitution(removeDuplicates(getMembers(POSITIONS, getFreeVariables(LHS) -BasicPatterns LRP_ARGs))) // PassiveVars
 ```
 
 Two consecutive ktBRPResults are consolidated into a single one.
