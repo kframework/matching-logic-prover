@@ -30,12 +30,13 @@ def do_prove(alias, defn, spec_module, spec):
 # Matching Logic Prover
 # =====================
 
-imported_k_files = [ proj.source('smtlib2.md').then(proj.tangle().output(proj.tangleddir('smtlib2.k')))
+prover_k = proj.source('prover.md').then(proj.tangle().output(proj.tangleddir('prover.k')))
+smt_k = proj.source('smt.md').then(proj.tangle().output(proj.tangleddir('smt.k')))
+imported_k_files = [ smt_k 
+                   , proj.source('smt-strategy.md').then(proj.tangle().output(proj.tangleddir('smt-strategy.k')))
                    , proj.source('direct-proof.md').then(proj.tangle().output(proj.tangleddir('direct-proof.k')))
                    , proj.source('predicate-definitions.md').then(proj.tangle().output(proj.tangleddir('predicate-definitions.k')))
                    ]
-prover_k = proj.source('prover.md') \
-               .then(proj.tangle().output(proj.tangleddir('prover.k')))
 mlprover = prover_k \
             .then(proj.kompile(backend = 'java')
                       .variables(directory = proj.builddir('prover'))
@@ -82,9 +83,9 @@ do_prove('prover-tests', mlprover, 'PROVER-TESTS-SPEC', 'prover-tests.md').defau
 # SMTLIB Translation
 # ==================
 
-smtlib_testdriver = prover_k.then(proj.kompile(backend = 'java')
-                                      .variables(directory = proj.builddir('smt-testdriver')
-                                                 , flags = "--main-module SMTLIB2-TEST-DRIVER --syntax-module SMTLIB2-TEST-DRIVER") 
-                                      .implicit(imported_k_files)
-                                 )
+smtlib_testdriver = smt_k.then(proj.kompile(backend = 'java')
+                                   .variables(directory = proj.builddir('smt-testdriver')
+                                              , flags = "--main-module SMT-TEST-DRIVER --syntax-module SMT-TEST-DRIVER") 
+                                   .implicit(imported_k_files)
+                              )
 do_prove('smtlib2-tests', smtlib_testdriver, 'SMTLIB2-TESTS-SPEC', 'smtlib2-tests.md').default()
