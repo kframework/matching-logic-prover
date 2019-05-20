@@ -11,10 +11,8 @@ claim \implies( \and( bst( variable("H") { ArrayIntInt }
               )
 strategy search-bound(5)
 
-/*
-strategy kt ; ( ( right-unfold-Nth(0,0) ; simplify ; direct-proof )
-              | ( right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; right-unfold-Nth(0,0) ; simplify ; direct-proof )
-              | direct-proof
-              | ( right-unfold-Nth(0,1) ) ; simplify ; direct-proof
-              )
-*/
+// strategy kt ; ( ( right-unfold-Nth(0,0) ; ( instantiate-existentials ; (smt-z3 | smt-cvc4) ) )
+//               | ( right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; right-unfold-Nth(0,0) ; ( instantiate-existentials ; (smt-z3 | smt-cvc4) ) )
+//               | ( instantiate-existentials ; (smt-z3 | smt-cvc4) )
+//               | ( right-unfold-Nth(0,1) ; ( instantiate-existentials ; (smt-z3 | smt-cvc4) ))
+//               )

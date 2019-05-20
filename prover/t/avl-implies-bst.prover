@@ -21,8 +21,10 @@ claim \implies( \and( avl( variable("H") { ArrayIntInt }
               )
 strategy search-bound(3)
 
-// strategy simplify ; kt ; simplify
-//        ; ( (right-unfold-Nth(0,0) ; simplify ; instantiate-existentials ; smt-cvc4 )
-//          | (right-unfold-Nth(0,1) ; simplify ; instantiate-existentials ; smt-cvc4 )
-//          | ( instantiate-existentials ; smt-cvc4 )
-//          )
+//strategy simplify ; kt ; simplify
+//       ; ( (right-unfold-Nth(0,0) ; simplify ; instantiate-existentials ; smt )
+//         | (right-unfold-Nth(0,1) ; simplify ; instantiate-existentials ; smt )
+//         | (instantiate-existentials ; smt )
+//         | (right-unfold-Nth(0,2) ; simplify ; instantiate-existentials ; smt )
+//         | noop
+//         )
