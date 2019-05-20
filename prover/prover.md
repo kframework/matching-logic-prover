@@ -1,5 +1,5 @@
 ```k
-requires "smtlib2.k"
+requires "smt-strategy.k"
 requires "substitution.k"
 requires "direct-proof.k"
 requires "predicate-definitions.k"
