@@ -446,8 +446,17 @@ proved, or that constructing a proof has failed.
 
 ```k
   rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
-//  rule <strategy> (T:TerminalStrategy ~> REST) => T </strategy>
-//    requires REST =/=K .K
+```
+
+TODO: Why does this not terminate? `success` followed by any strategies clears
+up the `<stratergy>` cell.
+
+```
+  rule <strategy> (T:TerminalStrategy ~> REST:K) => T </strategy>
+       <k> GOAL => .K </k>
+       <id> 0 </id>
+    requires REST =/=K .K
+     andBool GOAL =/=K .K
 ```
 
 The `goalStrat(Int)` strategy is used to establish a reference to the result of
