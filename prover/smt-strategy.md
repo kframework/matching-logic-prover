@@ -28,7 +28,8 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(variable(S) { SORT }) => {#parseToken("SMTLIB2SimpleSymbol", S)}:>SMTLIB2Term
   rule PatternToSMTLIB2Term(variable(S, I) { SORT }) => {#parseToken("SMTLIB2SimpleSymbol", S +String "_" +String Int2String(I))}:>SMTLIB2Term
   rule PatternToSMTLIB2Term(\not(P)) => ( not PatternToSMTLIB2Term(P) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(I:Int) => I
+  rule PatternToSMTLIB2Term(I:Int) => I                                 requires I >=Int 0
+  rule PatternToSMTLIB2Term(I:Int) => ( -:SMTLIB2Symbol (0 -Int I) ):SMTLIB2Term requires I  <Int 0
   rule PatternToSMTLIB2Term(emptyset) => emptysetx:SMTLIB2Term
   rule PatternToSMTLIB2Term(singleton(P1)) => ( singleton PatternToSMTLIB2Term(P1) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(gt(P1, P2)) => ( > PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
