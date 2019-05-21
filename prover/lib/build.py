@@ -41,7 +41,8 @@ mlprover = prover_k \
             .then(proj.kompile(backend = 'java')
                       .variables(directory = proj.builddir('prover'))
                       .implicit(imported_k_files)
-                 )
+                 ) \
+            .alias('prover')
 
 do_test(mlprover, 't/emptyset-implies-isempty.prover').default()
 
