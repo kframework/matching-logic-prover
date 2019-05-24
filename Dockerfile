@@ -29,4 +29,9 @@ RUN    groupadd --gid $GROUP_ID user                                        \
     && useradd --create-home --uid $USER_ID --shell /bin/sh --gid user user
 USER $USER_ID:$GROUP_ID
 
+ADD prover/ext/k/k-distribution/src/main/scripts/bin/k-configure-opam-dev prover/ext/k/k-distribution/src/main/scripts/bin/k-configure-opam-common /home/user/.tmp-opam/bin/
+ADD prover/ext/k/k-distribution/src/main/scripts/lib/opam  /home/user/.tmp-opam/lib/opam/
+RUN    cd /home/user \
+    && ./.tmp-opam/bin/k-configure-opam-dev
+
 ENV LC_ALL=C.UTF-8
