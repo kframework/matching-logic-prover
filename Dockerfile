@@ -7,9 +7,9 @@ RUN    ln --symbolic --no-dereference --force /usr/share/zoneinfo/$TZ /etc/local
 RUN    apt update                                                          \
     && apt upgrade --yes                                                   \
     && apt install --yes                                                   \
-           autoconf build-essential curl flex gcc git libffi-dev libmpfr-dev \
-           libtool make maven ninja-build netcat openjdk-8-jdk pandoc      \
-           pkg-config python python3 python3-distutils wget zlib1g-dev zip
+        autoconf curl flex gcc libffi-dev libmpfr-dev libtool make         \                                          
+        maven ninja-build opam openjdk-8-jdk pandoc pkg-config python3     \                                          
+        python-pygments python-recommonmark python-sphinx time zlib1g-dev
 
 RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
