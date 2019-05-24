@@ -27,11 +27,21 @@ def do_prove(alias, defn, spec_module, spec):
 # =====================
 
 prover = proj.definition( alias = 'prover'
-                        , backend = 'java'
+                        , backend = 'ocaml'
                         , main = 'prover.md'
-                        , other = ['smt.md', 'smt-strategy.md', 'direct-proof.md', 'predicate-definitions.md']
+                        , other = [ 'smt.md'
+                                  , 'strategies/smt.md'
+                                  , 'strategies/search-bound.md'
+                                  , 'strategies/simplification.md'
+                                  , 'strategies/knaster-tarski.md'
+                                  , 'strategies/unfolding.md'
+                                  , 'strategies/ltl.md'
+                                  , 'direct-proof.md'
+                                  , 'predicate-definitions.md'
+                                  ]
+                        , flags = '-O3 --non-strict'
+                        , runner_script = './prover'
                         )
-
 
 prover.tests(glob = 't/*.prover')
 
@@ -42,6 +52,7 @@ smtlib_testdriver = proj.definition( alias = 'smtlib'
                                    , backend = 'java'
                                    , main = 'smt.md'
                                    , flags = '--main-module SMT-TEST-DRIVER --syntax-module SMT-TEST-DRIVER'
+                                   , runner_script = './prover'
                                    )
 
 smtlib_testdriver.proofs( glob = proj.tangle('smtlib2-tests.md').path # TODO: FIXME

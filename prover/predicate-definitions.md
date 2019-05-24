@@ -10,8 +10,8 @@ another axiom `Predicate(ARGS) -> or(BODIES)`.
 ```k
 module PREDICATE-DEFINITIONS
   imports KORE-SUGAR
+  imports INT
 
-  /* examples */
   syntax RecursivePredicate ::= "listSegmentLeft"           [token]
                               | "listSegmentLeftSorted"     [token]
                               | "listSegmentRight"          [token]
@@ -52,6 +52,9 @@ module PREDICATE-DEFINITIONS
                | "pc_loop" [function]
                | "pc_end"  [function]
 
+  syntax SymbolDeclaration ::= getSymbolDeclaration(Predicate) [function]
+  syntax DisjunctiveForm ::= unfold(BasicPattern) [function]
+
   rule getSymbolDeclaration(listSegmentLeft)
     => symbol listSegmentLeft { } ( ArrayIntInt, Int, Int, SetInt ) : Bool
   rule unfold(listSegmentLeft(H,X,Y,F,.Patterns))
@@ -60,19 +63,19 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( listSegmentLeft( H
-                                    , variable("X", !I) { Int }
+                                    , variable("X", !I:Int) { Int }
                                     , Y
-                                    , variable("F", !J) { SetInt }
+                                    , variable("F", !I:Int) { SetInt }
                                     , .Patterns
                                     )
                    , gt(X, 0)
                    , \equals( select(H, X)
-                            , variable("X", !I) { Int }
+                            , variable("X", !I:Int) { Int }
                             )
                    , \equals( F
-                            , union(variable("F", !J) { SetInt } , singleton(X))
+                            , union(variable("F", !I:Int) { SetInt } , singleton(X))
                             )
-                   , disjoint(variable("F", !J) { SetInt } , singleton(X))
+                   , disjoint(variable("F", !I:Int) { SetInt } , singleton(X))
                    , .Patterns
                    )
              )
@@ -85,22 +88,22 @@ module PREDICATE-DEFINITIONS
                 , .Patterns
                 )
           , \and( listSegmentLeftSorted( H
-                                       , variable("X", !I) { Int }
+                                       , variable("X", !I:Int) { Int }
                                        , Y
-                                       , variable("F", !J) { SetInt }
-                                       , variable("VAL", !K) { Int }
+                                       , variable("F", !I:Int) { SetInt }
+                                       , variable("VAL", !I:Int) { Int }
                                        , MAX
                                        , .Patterns
                                        )
                 , gt(X, 0)
-                , \equals(select(H, X) , variable("X", !I) { Int })
-                , \equals(F , union(variable("F", !J) { SetInt }, singleton(X)))
-                , disjoint(variable("F", !J) { SetInt }, singleton(X))
+                , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
 
-                , \equals(variable("VAL", !K) { Int } , select(H, plus(X, 1)))
+                , \equals(variable("VAL", !I:Int) { Int } , select(H, plus(X, 1)))
                 // Strictly decreasing
-                , gt(variable("VAL", !K) { Int }, PREV_VAL)
-                , \not(gt(variable("VAL", !K) { Int }, MAX))
+                , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
+                , \not(gt(variable("VAL", !I:Int) { Int }, MAX))
                 , .Patterns
                 )
           )
@@ -115,19 +118,19 @@ module PREDICATE-DEFINITIONS
                    )
              , \and( listSegmentRight( H
                               , X
-                              , variable("Y", !I) { Int }
-                              , variable("F", !J) { SetInt }
+                              , variable("Y", !I:Int) { Int }
+                              , variable("F", !I:Int) { SetInt }
                               , .Patterns
                               )
-                   , gt(variable("Y", !I) { Int }, 0)
-                   , \equals(Y, select(H, variable("Y", !I) { Int }))
+                   , gt(variable("Y", !I:Int) { Int }, 0)
+                   , \equals(Y, select(H, variable("Y", !I:Int) { Int }))
                    , \equals( F
-                            , union( variable("F", !J) { SetInt }
-                                   , singleton(variable("Y", !I) { Int })
+                            , union( variable("F", !I:Int) { SetInt }
+                                   , singleton(variable("Y", !I:Int) { Int })
                                    )
                             )
-                   , disjoint( variable("F", !J) { SetInt }
-                             , singleton(variable("Y", !I) { Int })
+                   , disjoint( variable("F", !I:Int) { SetInt }
+                             , singleton(variable("Y", !I:Int) { Int })
                              )
                    , .Patterns
                    )
@@ -143,21 +146,21 @@ module PREDICATE-DEFINITIONS
                    )
              , \and( listSegmentRightLength( H
                                            , X
-                                           , variable("Y", !I) { Int }
-                                           , variable("F", !J) { SetInt }
-                                           , variable("LENGTH", !J) { Int }
+                                           , variable("Y", !I:Int) { Int }
+                                           , variable("F", !I:Int) { SetInt }
+                                           , variable("LENGTH", !I:Int) { Int }
                                            , .Patterns
                                            )
-                   , \equals(variable("LENGTH", !J) { Int }, minus(LENGTH, 1))
-                   , gt(variable("Y", !I) { Int }, 0)
-                   , \equals(Y, select(H, variable("Y", !I) { Int }))
+                   , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
+                   , gt(variable("Y", !I:Int) { Int }, 0)
+                   , \equals(Y, select(H, variable("Y", !I:Int) { Int }))
                    , \equals( F
-                            , union( variable("F", !J) { SetInt }
-                                   , singleton(variable("Y", !I) { Int })
+                            , union( variable("F", !I:Int) { SetInt }
+                                   , singleton(variable("Y", !I:Int) { Int })
                                    )
                             )
-                   , disjoint( variable("F", !J) { SetInt }
-                             , singleton(variable("Y", !I) { Int })
+                   , disjoint( variable("F", !I:Int) { SetInt }
+                             , singleton(variable("Y", !I:Int) { Int })
                              )
                    , .Patterns
                    )
@@ -165,7 +168,8 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(isEmpty)
     => symbol isEmpty { } ( SetInt ) : Bool
-  rule unfold(isEmpty(S, .Patterns)) => \or ( \and ( \equals(S, emptyset), .Patterns ) )
+  rule unfold(isEmpty(S, .Patterns))
+    => \or ( \and ( \equals(S, emptyset), .Patterns ) )
 
   /* list */
   rule getSymbolDeclaration(list)
@@ -175,11 +179,11 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( list(H,variable("X", !I) { Int },variable("F", !J) { SetInt },.Patterns)
+             , \and( list(H,variable("X", !I:Int) { Int },variable("F", !I:Int) { SetInt },.Patterns)
                    , gt(X,0)
-                   , \equals(select(H, X) , variable("X", !I) { Int })
-                   , \equals(F , union(variable("F", !J) { SetInt }, singleton(X)))
-                   , disjoint(variable("F", !J) { SetInt }, singleton(X))
+                   , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                   , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                   , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
                    , .Patterns
                    )
              )
@@ -187,21 +191,21 @@ module PREDICATE-DEFINITIONS
   rule getSymbolDeclaration(listLength)
     => symbol listLength { } (ArrayIntInt, Int, SetInt, Int) : Bool
   rule unfold(listLength(H,X,F, LENGTH,.Patterns))
-       => \or( \and( \equals(X, 0)
-                   , \equals(F, emptyset)
-                   , \equals(LENGTH, 0)
-                   , .Patterns
-                   )
-             , \and( listLength(H,variable("X", !I) { Int },variable("F", !J) { SetInt }, variable("LENGTH", !K) { Int }, .Patterns)
-                   , gt(X,0)
-                   , \equals(select(H, X) , variable("X", !I) { Int })
-                   , \equals(F , union(variable("F", !J) { SetInt }, singleton(X)))
-                   , disjoint(variable("F", !J) { SetInt }, singleton(X))
-                   , gt(LENGTH, 0)
-                   , \equals(variable("LENGTH", !K) { Int }, minus(LENGTH, 1))
-                   , .Patterns
-                   )
-             )
+    => \or( \and( \equals(X, 0)
+                , \equals(F, emptyset)
+                , \equals(LENGTH, 0)
+                , .Patterns
+                )
+          , \and( listLength(H,variable("X", !I:Int) { Int },variable("F", !I:Int) { SetInt }, variable("LENGTH", !I:Int) { Int }, .Patterns)
+                , gt(X,0)
+                , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                , gt(LENGTH, 0)
+                , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
+                , .Patterns
+                )
+          )
 
   rule getSymbolDeclaration(listSorted)
     => symbol listSorted { } (ArrayIntInt, Int, SetInt, Int) : Bool
@@ -210,13 +214,13 @@ module PREDICATE-DEFINITIONS
                 , \equals(F, emptyset)
                 , .Patterns
                 )
-          , \and( listSorted(H, variable("X", !I) { Int }, variable("F", !J) { SetInt }, variable("VAL", !K) { Int }, .Patterns)
+          , \and( listSorted(H, variable("X", !I:Int) { Int }, variable("F", !I:Int) { SetInt }, variable("VAL", !I:Int) { Int }, .Patterns)
                 , gt(X, 0)
-                , \equals(select(H, X) , variable("X", !I) { Int })
-                , \equals(F , union(variable("F", !J) { SetInt }, singleton(X)))
-                , disjoint(variable("F", !J) { SetInt }, singleton(X))
-                , \equals(variable("VAL", !K) { Int } , select(H, plus(X, 1)))
-                , gt(variable("VAL", !K) { Int }, PREV_VAL)
+                , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                , \equals(variable("VAL", !I:Int) { Int } , select(H, plus(X, 1)))
+                , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
                 , .Patterns
                 )
           )
@@ -230,20 +234,20 @@ module PREDICATE-DEFINITIONS
                 , .Patterns
                 )
           , \and( listSortedLength(H
-                                  , variable("X", !I) { Int }
-                                  , variable("F", !J) { SetInt }
-                                  , variable("VAL", !K) { Int }
-                                  , variable("LENGTH", !K) { Int }
+                                  , variable("X", !I:Int) { Int }
+                                  , variable("F", !I:Int) { SetInt }
+                                  , variable("VAL", !I:Int) { Int }
+                                  , variable("LENGTH", !I:Int) { Int }
                                   , .Patterns
                                   )
                 , gt(X, 0)
-                , \equals(select(H, X) , variable("X", !I) { Int })
-                , \equals(F , union(variable("F", !J) { SetInt }, singleton(X)))
-                , disjoint(variable("F", !J) { SetInt }, singleton(X))
-                , \equals(variable("VAL", !K) { Int } , select(H, plus(X, 1)))
-                , gt(variable("VAL", !K) { Int }, PREV_VAL)
+                , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                , \equals(variable("VAL", !I:Int) { Int } , select(H, plus(X, 1)))
+                , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
                 , gt(LENGTH, 0)
-                , \equals(variable("LENGTH", !K) { Int }, minus(LENGTH, 1))
+                , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
                 , .Patterns
                 )
           )
@@ -256,18 +260,18 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( bt(H, variable("X", !I1) { Int }, variable("F", !J1) { SetInt }, .Patterns)
-                   , bt(H, variable("X", !I2) { Int }, variable("F", !J2) { SetInt }, .Patterns)
+             , \and( bt(H, variable("X", !I1:Int) { Int }, variable("F", !J1) { SetInt }, .Patterns)
+                   , bt(H, variable("X", !I2:Int) { Int }, variable("F", !J2) { SetInt }, .Patterns)
                    , gt(X,0)
                    , \equals( variable("X", !I1) { Int }
                             , select(H, plus(X, 1)))
                    , \equals( variable("X", !I2) { Int }
                             , select(H, plus(X, 2)))
-                   , \not(isMember(X, variable("F", !J1) { SetInt }))
-                   , \not(isMember(X, variable("F", !J2) { SetInt }))
+                   , \not(isMember(X, variable("F", !J1:Int) { SetInt }))
+                   , \not(isMember(X, variable("F", !J2:Int) { SetInt }))
                    , \equals(F, union( singleton(X)
-                                     , union( variable("F", !J1) { SetInt }
-                                            , variable("F", !J2) { SetInt })))
+                                     , union( variable("F", !J1:Int) { SetInt }
+                                            , variable("F", !J2:Int) { SetInt })))
                    , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
                    , .Patterns
                    )
@@ -290,17 +294,17 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( bst( H
-                        , variable("X",   !I1) { Int }
-                        , variable("F",   !J1) { SetInt }
-                        , variable("MIN", !K1) { Int }
-                        , variable("MAX", !L1) { Int }
+                        , variable("X",   !I1:Int) { Int }
+                        , variable("F",   !J1:Int) { SetInt }
+                        , variable("MIN", !K1:Int) { Int }
+                        , variable("MAX", !L1:Int) { Int }
                         , .Patterns
                         )
                    , bst( H
-                        , variable("X",   !I2) { Int }
-                        , variable("F",   !J2) { SetInt }
-                        , variable("MIN", !K2) { Int }
-                        , variable("MAX", !L2) { Int }
+                        , variable("X",   !I2:Int) { Int }
+                        , variable("F",   !J2:Int) { SetInt }
+                        , variable("MIN", !K2:Int) { Int }
+                        , variable("MAX", !L2:Int) { Int }
                         , .Patterns
                         )
                    , gt(X,0)
@@ -341,21 +345,21 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( avl( H
-                        , variable("X",   !I1) { Int }
-                        , variable("F",   !J1) { SetInt }
-                        , variable("MIN", !K1) { Int }
-                        , variable("MAX", !L1) { Int }
-                        , variable("H",   !M1) { Int }
-                        , variable("B",   !N1) { Int }
+                        , variable("X",   !I1:Int) { Int }
+                        , variable("F",   !J1:Int) { SetInt }
+                        , variable("MIN", !K1:Int) { Int }
+                        , variable("MAX", !L1:Int) { Int }
+                        , variable("H",   !M1:Int) { Int }
+                        , variable("B",   !N1:Int) { Int }
                         , .Patterns
                         )
                    , avl( H
-                        , variable("X",   !I2) { Int }
-                        , variable("F",   !J2) { SetInt }
-                        , variable("MIN", !K2) { Int }
-                        , variable("MAX", !L2) { Int }
-                        , variable("H",   !M2) { Int }
-                        , variable("B",   !N2) { Int }
+                        , variable("X",   !I2:Int) { Int }
+                        , variable("F",   !J2:Int) { SetInt }
+                        , variable("MIN", !K2:Int) { Int }
+                        , variable("MAX", !L2:Int) { Int }
+                        , variable("H",   !M2:Int) { Int }
+                        , variable("B",   !N2:Int) { Int }
                         , .Patterns
                         )
                    , gt(X,0)
@@ -396,18 +400,18 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( dll( H
-                        , variable("X", !I) { Int }
-                        , variable("F", !J) { SetInt }
+                        , variable("X", !I:Int) { Int }
+                        , variable("F", !J:Int) { SetInt }
                         , .Patterns
                         )
                    , gt(X, 0)
-                   , gt(variable("X", !I) { Int } , 0)
-                   , \equals( variable("X", !I) { Int }
+                   , gt(variable("X", !I:Int) { Int } , 0)
+                   , \equals( variable("X", !I:Int) { Int }
                             , select(H, plus(X, 1)))
                    , \equals( X
-                            , select(H, plus(variable("X", !I) { Int }, 2)))
-                   , \not(isMember(X, variable("F", !J) { SetInt }))
-                   , \equals(F, union(variable("F", !J) { SetInt }, singleton(X)))
+                            , select(H, plus(variable("X", !I:Int) { Int }, 2)))
+                   , \not(isMember(X, variable("F", !J:Int) { SetInt }))
+                   , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
              )
@@ -421,20 +425,20 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( dllLength( H
-                        , variable("X", !I) { Int }
-                        , variable("F", !J) { SetInt }
-                        , variable("L", !K) { Int }
+                        , variable("X", !I:Int) { Int }
+                        , variable("F", !J:Int) { SetInt }
+                        , variable("L", !K:Int) { Int }
                         , .Patterns
                         )
                    , gt(X, 0)
-                   , \equals(variable("L", !K) { Int }, minus(L, 1))
-                   , gt(variable("X", !I) { Int } , 0)
-                   , \equals( variable("X", !I) { Int }
+                   , \equals(variable("L", !K:Int) { Int }, minus(L, 1))
+                   , gt(variable("X", !I:Int) { Int } , 0)
+                   , \equals( variable("X", !I:Int) { Int }
                             , select(H, plus(X, 1)))
                    , \equals( X
-                            , select(H, plus(variable("X", !I) { Int }, 2)))
-                   , \not(isMember(X, variable("F", !J) { SetInt }))
-                   , \equals(F, union(variable("F", !J) { SetInt }, singleton(X)))
+                            , select(H, plus(variable("X", !I:Int) { Int }, 2)))
+                   , \not(isMember(X, variable("F", !J:Int) { SetInt }))
+                   , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
              )
@@ -447,20 +451,20 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( dllSegmentLeft( H
-                                   , variable("X", !I) { Int }
+                                   , variable("X", !I:Int) { Int }
                                    , Y
-                                   , variable("F", !J) { SetInt }
+                                   , variable("F", !J:Int) { SetInt }
                                    , .Patterns
                                    )
                    , \not(\equals(X, Y))
                    , gt(X, 0)
-                   , gt(variable("X", !I) { Int }, 0)
-                   , \equals( variable("X", !I) { Int }
+                   , gt(variable("X", !I:Int) { Int }, 0)
+                   , \equals( variable("X", !I:Int) { Int }
                             , select(H, plus(X, 1)))
                    , \equals( X
-                            , select(H, plus(variable("X", !I) { Int }, 2)))
-                   , \not(isMember(X, variable("F", !J) { SetInt }))
-                   , \equals(F, union(variable("F", !J) { SetInt }, singleton(X)))
+                            , select(H, plus(variable("X", !I:Int) { Int }, 2)))
+                   , \not(isMember(X, variable("F", !J:Int) { SetInt }))
+                   , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
              )
@@ -474,22 +478,22 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( dllSegmentLeftLength( H
-                                   , variable("X", !I) { Int }
+                                   , variable("X", !I:Int) { Int }
                                    , Y
-                                   , variable("F", !J) { SetInt }
-                                   , variable("L", !K) { Int }
+                                   , variable("F", !J:Int) { SetInt }
+                                   , variable("L", !K:Int) { Int }
                                    , .Patterns
                                    )
                    , \not(\equals(X, Y))
                    , gt(X, 0)
-                   , \equals(variable("L", !K) { Int }, minus(L, 1))
-                   , gt(variable("X", !I) { Int }, 0)
-                   , \equals( variable("X", !I) { Int }
+                   , \equals(variable("L", !K:Int) { Int }, minus(L, 1))
+                   , gt(variable("X", !I:Int) { Int }, 0)
+                   , \equals( variable("X", !I:Int) { Int }
                             , select(H, plus(X, 1)))
                    , \equals( X
-                            , select(H, plus(variable("X", !I) { Int }, 2)))
-                   , \not(isMember(X, variable("F", !J) { SetInt }))
-                   , \equals(F, union(variable("F", !J) { SetInt }, singleton(X)))
+                            , select(H, plus(variable("X", !I:Int) { Int }, 2)))
+                   , \not(isMember(X, variable("F", !J:Int) { SetInt }))
+                   , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
              )
@@ -503,21 +507,21 @@ module PREDICATE-DEFINITIONS
                    , .Patterns
                    )
              , \and( dllSegmentRightLength( H
-                                    , variable("X", !I) { Int }
+                                    , variable("X", !I:Int) { Int }
                                     , Y
-                                    , variable("F", !J) { SetInt }
-                                    , variable("L", !K) { Int }
+                                    , variable("F", !J:Int) { SetInt }
+                                    , variable("L", !K:Int) { Int }
                                     , .Patterns
                                     )
                    , gt(X, 0)
-                   , \equals(L, plus(1, variable("L", !K) { Int }))
-                   , gt(variable("X", !I) { Int }, 0)
+                   , \equals(L, plus(1, variable("L", !K:Int) { Int }))
+                   , gt(variable("X", !I:Int) { Int }, 0)
                    , \equals( X
-                            , select(H, plus(variable("X", !I) { Int }, 2)))
-                   , \equals( variable("X", !I) { Int }
+                            , select(H, plus(variable("X", !I:Int) { Int }, 2)))
+                   , \equals( variable("X", !I:Int) { Int }
                             , select(H, plus(X, 1)))
-                   , \not(isMember(X, variable("F", !J) { SetInt }))
-                   , \equals(F, union( variable("F", !J) { SetInt }
+                   , \not(isMember(X, variable("F", !J:Int) { SetInt }))
+                   , \equals(F, union( variable("F", !J:Int) { SetInt }
                                      , singleton(X)))
                    , .Patterns
                    )
@@ -535,18 +539,18 @@ module PREDICATE-DEFINITIONS
                    )
              , \and( find-list-seg( H
                                   , X
-                                  , variable("Y", !I) { Int }
-                                  , variable("F", !J) { SetInt }
+                                  , variable("Y", !I:Int) { Int }
+                                  , variable("F", !J:Int) { SetInt }
                                   , .Patterns
                                   )
-                   , gt(variable("Y", !I) { Int }, 0)
-                   , \equals(Y, select(H, plus(variable("Y", !I) { Int }, 1)))
+                   , gt(variable("Y", !I:Int) { Int }, 0)
+                   , \equals(Y, select(H, plus(variable("Y", !I:Int) { Int }, 1)))
                    , \equals( F
-                            , add ( variable("F", !J) { SetInt }
-                                  , variable("Y", !I) { Int }
+                            , add ( variable("F", !J:Int) { SetInt }
+                                  , variable("Y", !I:Int) { Int }
                                   )
                             )
-                   , \not(isMember(variable("Y", !I) { Int }, variable("F", !J) { SetInt }))
+                   , \not(isMember(variable("Y", !I:Int) { Int }, variable("F", !J:Int) { SetInt }))
                    , .Patterns
                    )
              )
@@ -559,11 +563,11 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, emptyset)
                    , .Patterns
                    )
-             , \and( find-list(H, variable("X", !I) { Int }, variable("F", !J) { SetInt },.Patterns)
+             , \and( find-list(H, variable("X", !I:Int) { Int }, variable("F", !J:Int) { SetInt },.Patterns)
                    , gt(X,0)
-                   , \equals(select(H, plus(X, 1)), variable("X", !I) { Int })
-                   , \equals(F, add( variable("F", !J) { SetInt }, X))
-                   , \not(isMember(X, variable("F", !J) { SetInt }))
+                   , \equals(select(H, plus(X, 1)), variable("X", !I:Int) { Int })
+                   , \equals(F, add( variable("F", !J:Int) { SetInt }, X))
+                   , \not(isMember(X, variable("F", !J:Int) { SetInt }))
                    , .Patterns
                    )
              )
@@ -592,7 +596,7 @@ module PREDICATE-DEFINITIONS
                | "cjump" [function]
                | "skip" [function]
   rule skip => 1
-  rule add => 2
+  rule add:Int => 2
   rule assign => 3
   rule jump => 4
   rule increment => 5
@@ -652,19 +656,19 @@ module PREDICATE-DEFINITIONS
     => symbol reachableInNSteps { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
   rule unfold(reachableInNSteps(PGM, PC_INIT, HEAP_INIT, PC_FINAL, HEAP_FINAL, N, .Patterns))
     => \or( \and( gt(select(HEAP_INIT, addr_N), 0)
-                , \equals( variable("HEAP_NEXT", !I) { ArrayIntInt }
+                , \equals( variable("HEAP_NEXT", !I:Int) { ArrayIntInt }
                          , store(
                            store( HEAP_INIT
                                 , addr_S, plus(select(HEAP_INIT, addr_N) , select(HEAP_INIT, addr_S)))
                                 , addr_N, minus(select(HEAP_INIT, addr_N), 1))
                          )
                 , gt(N, 0)
-                , \equals(variable("N", !I) { Int }, minus(N, 1))
+                , \equals(variable("N", !I:Int) { Int }, minus(N, 1))
                 , reachableInNSteps( PGM
                                    , PC_INIT
-                                   , variable("HEAP_NEXT", !I) { ArrayIntInt }
+                                   , variable("HEAP_NEXT", !I:Int) { ArrayIntInt }
                                    , PC_FINAL, HEAP_FINAL
-                                   , variable("N", !I) { Int }, .Patterns)
+                                   , variable("N", !I:Int) { Int }, .Patterns)
                 , .Patterns
                 )
           , \and( \equals(select(HEAP_INIT, addr_N), 0)
@@ -723,12 +727,12 @@ module PREDICATE-DEFINITIONS
                 , \equals(PARTIAL_SUM, INITIAL)
                 , .Patterns
                 )
-          , \and( sum(LOWER, variable("UPPER", !I) { Int }, variable("INITIAL", !I) { Int }, PARTIAL_SUM, .Patterns)
-                , \equals( variable("UPPER", !I) { Int }
+          , \and( sum(LOWER, variable("UPPER", !I:Int) { Int }, variable("INITIAL", !I:Int) { Int }, PARTIAL_SUM, .Patterns)
+                , \equals( variable("UPPER", !I:Int) { Int }
                          , minus(UPPER, 1)
                          )
-                , \equals(variable("INITIAL", !I) { Int }
-                         , plus(INITIAL, variable("UPPER", !I) { Int }))
+                , \equals(variable("INITIAL", !I:Int) { Int }
+                         , plus(INITIAL, variable("UPPER", !I:Int) { Int }))
                 , .Patterns
                 )
           )
@@ -737,25 +741,25 @@ module PREDICATE-DEFINITIONS
     => symbol sum { } (ArrayIntInt, Int) : Bool
   rule unfold(zeros(HEAP, START, .Patterns))
     => \or ( \and( \equals(select(HEAP, START), 0)
-                 , \equals(variable("NEXT", !I) { Int },  plus(START, 1))
-                 , zeros(HEAP, variable("NEXT", !I) { Int }, .Patterns)
+                 , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
+                 , zeros(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , .Patterns
            )     )
   rule getSymbolDeclaration(ones)
     => symbol ones { } (ArrayIntInt, Int) : Bool
   rule unfold(ones(HEAP, START, .Patterns))
     => \or ( \and( \equals(select(HEAP, START), 1)
-                 , \equals(variable("NEXT", !I) { Int },  plus(START, 1))
-                 , ones(HEAP, variable("NEXT", !I) { Int }, .Patterns)
+                 , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
+                 , ones(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , .Patterns
            )     )
   rule getSymbolDeclaration(alternating)
     => symbol alternating { } (ArrayIntInt, Int) : Bool
   rule unfold(alternating(HEAP, START, .Patterns))
-    => \or ( \and( alternating(HEAP, variable("NEXT", !I) { Int }, .Patterns)
+    => \or ( \and( alternating(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , \equals(select(HEAP,      START    ), 0)
                  , \equals(select(HEAP, plus(START, 1)), 1)
-                 , \equals(variable("NEXT", !I) { Int },  plus(START, 2))
+                 , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 2))
                  , .Patterns
            )     )
 
@@ -766,25 +770,25 @@ module PREDICATE-DEFINITIONS
                  , .Patterns)
              )
     => \or ( \and( zip( HEAP1, START1
-                      , HEAP0, variable("NEXT0", !I) { Int }
-                      , HEAP,  variable("NEXT", !I) { Int }
+                      , HEAP0, variable("NEXT0", !I:Int) { Int }
+                      , HEAP,  variable("NEXT", !I:Int) { Int }
                       , .Patterns)
                  , \equals(select(HEAP,      START    ), select(HEAP0, START0))
-                 , \equals(variable("NEXT0", !I) { Int },  plus(START0, 1))
-                 , \equals(variable("NEXT",  !I) { Int },  plus(START,  1))
+                 , \equals(variable("NEXT0", !I:Int) { Int },  plus(START0, 1))
+                 , \equals(variable("NEXT",  !I:Int) { Int },  plus(START,  1))
                  , .Patterns
            )     )
 
   rule getSymbolDeclaration(same)
     => symbol same { } (ArrayIntInt, Int, ArrayIntInt, Int) : Bool
   rule unfold(same(HEAP0, START0, HEAP1, START1, .Patterns))
-    => \or( \and( same( HEAP0, variable("NEXT0", !I) { Int }
-                      , HEAP1, variable("NEXT1", !I) { Int }
+    => \or( \and( same( HEAP0, variable("NEXT0", !I:Int) { Int }
+                      , HEAP1, variable("NEXT1", !I:Int) { Int }
                       , .Patterns)
                 , \equals(select(HEAP0, START0), select(HEAP1, START1))
                 , \equals(select(HEAP0, plus(START0, 1)), select(HEAP1, plus(START1, 1)))
-                , \equals(variable("NEXT0", !I) { Int },  plus(START0, 2))
-                , \equals(variable("NEXT1", !I) { Int },  plus(START1, 2))
+                , \equals(variable("NEXT0", !I:Int) { Int },  plus(START0, 2))
+                , \equals(variable("NEXT1", !I:Int) { Int },  plus(START1, 2))
                 , .Patterns
           )     )
           

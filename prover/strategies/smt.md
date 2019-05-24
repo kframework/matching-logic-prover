@@ -1,5 +1,5 @@
 ```k
-requires "smt.k"
+requires "../smt.k"
 ```
 
 ML to SMTLIB2
@@ -11,6 +11,7 @@ module ML-TO-SMTLIB2
   imports SMTLIB2
   imports KORE-SUGAR
   imports KORE-HELPERS
+  imports PREDICATE-DEFINITIONS
   
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
   rule ML2SMTLIB(\implies(\and(LHS), \and(RHS)))
@@ -25,11 +26,11 @@ module ML-TO-SMTLIB2
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]
   rule PatternToSMTLIB2Term(\equals(LHS, RHS))
     => ( = PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(RHS) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(variable(S) { SORT }) => {#parseToken("SMTLIB2SimpleSymbol", S)}:>SMTLIB2Term
-  rule PatternToSMTLIB2Term(variable(S, I) { SORT }) => {#parseToken("SMTLIB2SimpleSymbol", S +String "_" +String Int2String(I))}:>SMTLIB2Term
+  rule PatternToSMTLIB2Term(variable(S) { SORT }) => StringToSMTLIB2SimpleSymbol(S)
+  rule PatternToSMTLIB2Term(variable(S, I) { SORT }) => StringToSMTLIB2SimpleSymbol(S +String "_" +String Int2String(I))
   rule PatternToSMTLIB2Term(\not(P)) => ( not PatternToSMTLIB2Term(P) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(I:Int) => I                                 requires I >=Int 0
-  rule PatternToSMTLIB2Term(I:Int) => ( -:SMTLIB2Symbol (0 -Int I) ):SMTLIB2Term requires I  <Int 0
+  rule PatternToSMTLIB2Term(I:Int) => I                                          requires I >=Int 0
+  rule PatternToSMTLIB2Term(I:Int) => ( #token("-", "SMTLIB2SimpleSymbol") absInt(I) ):SMTLIB2Term requires I  <Int 0
   rule PatternToSMTLIB2Term(emptyset) => emptysetx:SMTLIB2Term
   rule PatternToSMTLIB2Term(singleton(P1)) => ( singleton PatternToSMTLIB2Term(P1) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(gt(P1, P2)) => ( > PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
@@ -59,8 +60,7 @@ module ML-TO-SMTLIB2
 
   syntax SMTLIB2Symbol ::= SymbolToSMTLIB2Symbol(Predicate) [function]
   syntax String ::= SymbolToString(Predicate) [function, functional, hook(STRING.token2string)]
-  rule SymbolToSMTLIB2Symbol(P:Predicate)
-    => {#parseToken("SMTLIB2SimpleSymbol", SymbolToString(P))}:>SMTLIB2Symbol
+  rule SymbolToSMTLIB2Symbol(P:Predicate) => StringToSMTLIB2SimpleSymbol(SymbolToString(P))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
   rule SortToSMTLIB2Sort(Int:Sort) => Int:SMTLIB2Sort
@@ -74,10 +74,10 @@ module ML-TO-SMTLIB2
 
   syntax SMTLIB2SortedVarList ::= VariablesToSMTLIB2SortedVarList(BasicPatterns) [function]
   rule VariablesToSMTLIB2SortedVarList(variable(X) { S }, Cs)
-    => ( {#parseToken("SMTLIB2SimpleSymbol", X)}:>SMTLIB2Symbol  SortToSMTLIB2Sort(S) )
+    => ( StringToSMTLIB2SimpleSymbol(X)  SortToSMTLIB2Sort(S) )
        VariablesToSMTLIB2SortedVarList(Cs)
   rule VariablesToSMTLIB2SortedVarList(variable(X, I) { S }, Cs)
-    => ( {#parseToken("SMTLIB2SimpleSymbol", X +String "_" +String Int2String(I))}:>SMTLIB2Symbol  SortToSMTLIB2Sort(S) )
+    => ( StringToSMTLIB2SimpleSymbol(X +String "_" +String Int2String(I)) SortToSMTLIB2Sort(S) )
        VariablesToSMTLIB2SortedVarList(Cs)
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
@@ -127,14 +127,16 @@ module ML-TO-SMTLIB2
 
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
+       
+  syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
 
   syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
   rule declareVariables( .Patterns ) => .SMTLIB2Script
   rule declareVariables( variable(NAME:String) { SORT } , Ps )
-    => ( declare-const {#parseToken("SMTLIB2SimpleSymbol", NAME)}:>SMTLIB2Symbol SortToSMTLIB2Sort(SORT) )
+    => ( declare-const StringToSMTLIB2SimpleSymbol(NAME) SortToSMTLIB2Sort(SORT) )
        declareVariables(Ps)
   rule declareVariables( variable(NAME:String, I) { SORT } , Ps )
-    => ( declare-const {#parseToken("SMTLIB2SimpleSymbol", NAME +String "_" +String Int2String(I) )}:>SMTLIB2Symbol SortToSMTLIB2Sort(SORT) )
+    => ( declare-const StringToSMTLIB2SimpleSymbol(NAME +String "_" +String Int2String(I)) SortToSMTLIB2Sort(SORT) )
        declareVariables(Ps)
 
   syntax SMTLIB2Script ::= declareUninterpretedFunctions(BasicPatterns) [function]
@@ -151,6 +153,78 @@ module ML-TO-SMTLIB2
 ```k
 endmodule
 ```
+
+### SMT
+
+We can call into both CVC4 and Z3 to solve SMT queries:
+
+```k
+module STRATEGY-SMT
+  imports Z3
+  imports CVC4
+  imports PROVER-CORE
+  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports ML-TO-SMTLIB2
+  
+  rule <k> GOAL </k>
+       <strategy> smt-z3
+               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+                  then success
+                  else fail
+                  fi
+                  ...
+       </strategy>
+       <trace> .K => smt-z3 ... </trace>
+
+  rule <k> GOAL </k>
+       <strategy> smt-z3 => fail </strategy>
+    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
+
+  rule <k> GOAL </k>
+       <strategy> smt-cvc4
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+                  then success
+                  else fail
+                  fi
+                  ...
+       </strategy>
+       <trace> .K => smt-cvc4 ... </trace>
+
+  rule <k> GOAL </k>
+       <strategy> smt-cvc4 => fail </strategy>
+    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
+```
+
+We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
+
+```k
+  rule <k> GOAL </k>
+       <strategy> smt
+               => #fun( CVC4RESULT
+                     => if CVC4RESULT ==K unsat
+                        then success
+                        else (if isUnknown(CVC4RESULT)
+                              then smt-z3
+                              else fail
+                              fi
+                             )
+                        fi
+                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)))
+                  ...
+       </strategy>
+       <trace> .K => smt ... </trace>
+```
+
+```k
+  syntax Bool ::= isUnknown(CheckSATResult) [function]
+  rule isUnknown(unknown(_)) => true
+  rule isUnknown(_) => false [owise]
+```
+
+```k
+endmodule
+```
+
 
 Main
 ====
