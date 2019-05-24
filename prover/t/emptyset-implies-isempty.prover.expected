@@ -1,13 +1,13 @@
 <prover>
   <goal>
     <id>
-      0
+      root
     </id>
     <active>
       true
     </active>
     <parent>
-      -1
+      .
     </parent>
     <k>
       \implies ( \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , \and ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , .Patterns ) )

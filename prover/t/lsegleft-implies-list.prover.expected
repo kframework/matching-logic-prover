@@ -1,13 +1,13 @@
 <prover>
   <goal>
     <id>
-      0
+      root
     </id>
     <active>
       true
     </active>
     <parent>
-      -1
+      .
     </parent>
     <k>
       \implies ( \and ( listSegmentLeft ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , list ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { SetInt } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } ) , .Patterns ) , \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , .Patterns ) , .Patterns ) )
