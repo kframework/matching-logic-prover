@@ -1,5 +1,10 @@
 ```k
-requires "smt-strategy.k"
+requires "strategies/smt.k"
+requires "strategies/search-bound.k"
+requires "strategies/simplification.k"
+requires "strategies/knaster-tarski.k"
+requires "strategies/unfolding.k"
+requires "strategies/ltl.k"
 requires "substitution.k"
 requires "direct-proof.k"
 requires "predicate-definitions.k"
@@ -21,7 +26,6 @@ but not in the LHS are existential. This should be explicit.
 module KORE-SUGAR
   imports INT-SYNTAX
   imports STRING-SYNTAX
-  imports SUBSTITUTION
   syntax Ints ::= List{Int, ","}
 
   syntax Sort ::= "Bool"        [token]
@@ -39,42 +43,35 @@ only in this scenario*.
   syntax KItem ::= Variable
   syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
                     | "variable" "(" String "," Int ")" "{" Sort "}"
-  syntax KVar ::= Variable
   
   syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
                          | Variable
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
+
+  // TODO: We need a uniform interface for these:
   syntax RecursivePredicate
   syntax Predicate ::= RecursivePredicate
+  syntax FunctionSymbol ::= Predicate
+                          | UnaryFunctionSymbol
+                          | BinaryFunctionSymbol
+                          | TrinaryFunctionSymbol
   syntax PredicatePattern ::= Predicate "(" BasicPatterns ")" [klabel(\apply)]
+  syntax FunctionPattern ::= PredicatePattern
+                           | UnaryFunctionSymbol "(" BasicPattern ")" [klabel(\apply)]
+                           | BinaryFunctionSymbol "(" BasicPattern "," BasicPattern ")" [klabel(\apply)]
+                           | TrinaryFunctionSymbol "(" BasicPattern "," BasicPattern "," BasicPattern ")" [klabel(\apply)]
+  syntax UnaryFunctionSymbol ::= "singleton"
+  syntax BinaryFunctionSymbol ::= "plus"| "minus"| "mult"| "div"| "gt"| "max" // Arith
+                                | "union" | "disjoint" | "disjointUnion" | "isMember" | "add" | "del" // Sets
+                                | "select" // Arrays
+  syntax TrinaryFunctionSymbol ::= "store"
 
   syntax BasicPattern ::= AtomicPattern
+                        | FunctionPattern
                         | "\\top"    "(" ")"
                         | "\\bottom" "(" ")"
                         | "\\equals" "(" BasicPattern "," BasicPattern ")"
                         | "\\not"    "(" BasicPattern ")"
-                        | PredicatePattern
-
-                        // Int
-                        | "plus"   "(" BasicPattern "," BasicPattern ")" // Int Int
-                        | "minus"  "(" BasicPattern "," BasicPattern ")" // Int Int
-                        | "mult"   "(" BasicPattern "," BasicPattern ")" // Int Int
-                        | "div"    "(" BasicPattern "," BasicPattern ")" // Int Int
-                        | "gt"     "(" BasicPattern "," BasicPattern ")" // Int Int
-                        | "max"    "(" BasicPattern "," BasicPattern ")" // Int Int
-
-                        // Array{Int, Int}
-                        | "select" "(" BasicPattern "," BasicPattern ")"                   // ArrayIntInt, Int -> Int
-                        | "store"  "(" BasicPattern "," BasicPattern "," BasicPattern ")"  // ArrayIntInt, Int, Int -> ArrayIntInt
-
-                        // Set{Int}
-                        | "union"         "(" BasicPattern "," BasicPattern ")" // SetInt, SetInt
-                        | "disjoint"      "(" BasicPattern "," BasicPattern ")" // SetInt, SetInt
-                        | "disjointUnion" "(" BasicPattern "," BasicPattern ")" // SetInt, SetInt
-                        | "singleton"     "(" BasicPattern ")"                  // Int
-                        | "isMember"      "(" BasicPattern "," BasicPattern ")" // Int, SetInt
-                        | "add"           "(" BasicPattern "," BasicPattern ")" // SetInt, Int
-                        | "del"           "(" BasicPattern "," BasicPattern ")" // SetInt, Int
 
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")" [klabel(\and)]
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
@@ -104,10 +101,6 @@ only in this scenario*.
 
   syntax Sorts ::= List{Sort, ","} [klabel(Sorts)]
   syntax SymbolDeclaration ::= "symbol" Predicate "{" "}" "(" Sorts ")" ":" Sort
-
-  // Defined in `predicate-definitions.md`
-  syntax DisjunctiveForm ::= unfold(BasicPattern) [function]
-  syntax SymbolDeclaration ::= getSymbolDeclaration(Predicate) [function]
 endmodule
 ```
 
@@ -120,6 +113,7 @@ Here we define helpers for manipulating Kore formulae.
 module KORE-HELPERS
   imports KORE-SUGAR
   imports MAP
+  imports INT
 
   syntax String ::= SortToString(Sort) [function, functional, hook(STRING.token2string)]
 
@@ -271,10 +265,10 @@ and values, passed to K's substitute.
 ```k
   syntax Map ::= makeFreshSubstitution(BasicPatterns) [function] // Variables
   rule makeFreshSubstitution(variable(N) { SORT }, REST)
-    => variable(N) { SORT } |-> variable(N, !I) { SORT }
+    => variable(N) { SORT } |-> variable(N, !I:Int) { SORT }
        makeFreshSubstitution(REST)
   rule makeFreshSubstitution(variable(N, J) { SORT }, REST)
-    => variable(N, J) { SORT } |-> variable(N, !I) { SORT }
+    => variable(N, J) { SORT } |-> variable(N, !I:Int) { SORT }
        makeFreshSubstitution(REST)
   rule makeFreshSubstitution(.Patterns)
     => .Map
@@ -336,6 +330,36 @@ and values, passed to K's substitute.
     requires N >Int 0
 ```
 
+Substitution:
+
+```k
+  syntax BasicPattern ::= BasicPattern "[" Variable "/" BasicPattern "]" [function]
+  rule X:Variable[X/V] => V
+  rule X:Variable[Y/V] => X requires X =/=K Y
+  rule \top()[_/_] => \top()
+  rule \bottom()[_/_] => \bottom()
+  rule \equals(ARG1, ARG2) [X/V] => \equals(ARG1[X/V], ARG2[X/V])
+  rule \not(ARG) [X/V] => \not(ARG[X/V])
+  rule I:Int [X/V] => I
+  rule emptyset [X/V] => emptyset
+  rule (P:Predicate(ARGS)) [X/V] => P(ARGS[X/V])
+  rule (F:UnaryFunctionSymbol(ARG)) [X/V] => F(ARG[X/V])
+  rule (F:BinaryFunctionSymbol(ARG1, ARG2)) [X/V] => F(ARG1[X/V], ARG2[X/V])
+  rule (F:TrinaryFunctionSymbol(ARG1, ARG2, ARG3)) [X/V] => F(ARG1[X/V], (ARG2[X/V]), (ARG3[X/V]))
+  
+  syntax BasicPattern ::= BasicPattern "[" Map "]" [function]
+  rule BP:BasicPattern[ (X |-> V):Map REST:Map ] => BP[X/V][REST:Map]
+  rule BP:BasicPattern[ .Map ] => BP
+
+  syntax BasicPatterns ::= BasicPatterns "[" Map "]" [function]
+  rule (BP, BPs)[SUBST] => BP[SUBST], (BPs[SUBST])
+  rule .Patterns[SUBST] => .Patterns
+
+  syntax BasicPatterns ::= BasicPatterns "[" Variable "/" BasicPattern "]" [function]
+  rule (BP, BPs)[X/V] => BP[X/V], (BPs[X/V])
+  rule .Patterns[X/V] => .Patterns
+```
+
 ```k
 endmodule
 ```
@@ -358,12 +382,12 @@ module PROVER-CONFIGURATION
 
   syntax Pgm
   syntax Strategy
-
+  
   syntax GoalId ::= "root" | Int
 
   configuration
       <prover>
-        <goal multiplicity="*" type="Bag">
+        <goal multiplicity="*" type="Set">
           <id> root </id>
           <active> true:Bool </active>
           <parent> .K </parent>
@@ -417,7 +441,6 @@ module PROVER-CORE
 
 ```k
   imports PROVER-CORE-SYNTAX
-  imports KORE-HELPERS
 ```
 
 `Strategy`s can be sequentially composed via the `;` operator.
@@ -486,9 +509,12 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
 
 ```k
   syntax K ::= replaceStrategyK(K, Strategy, Strategy) [function]
-  rule replaceStrategyK(K1 ~> K2, F, T) => replaceStrategyK(K1, F, T) ~> replaceStrategyK(K2, F, T)
-  rule replaceStrategyK(S:Strategy, F, T) => replaceStrategy(S, F, T)
+  rule replaceStrategyK(K1:Strategy ~> K2, F, T)
+    => replaceStrategy(K1, F, T) ~> replaceStrategyK(K2, F, T)
+  rule replaceStrategyK(.K, F, T) => .K
+```
 
+```k
   syntax Strategy ::= replaceStrategy(Strategy, Strategy, Strategy) [function]
   rule replaceStrategy(S1 ; S2, F, T) => replaceStrategy(S1, F, T) ; replaceStrategy(S2, F, T)
   rule replaceStrategy(S1 & S2, F, T) => replaceStrategy(S1, F, T) & replaceStrategy(S2, F, T)
@@ -522,7 +548,7 @@ all succeed, it succeeds:
          <goal>
            <id> PARENT </id>
            <active> true => false </active>
-           <strategy> ((S1 & S2) => S2 & goalStrat(!ID)) </strategy>
+           <strategy> ((S1 & S2) => S2 & goalStrat(!ID:Int)) </strategy>
            <k> GOAL:Pattern </k>
            <trace> TRACE </trace>
            ...
@@ -559,7 +585,7 @@ approach succeeds:
          <goal>
            <id> PARENT </id>
            <active> true => false </active>
-           <strategy> (S1 | S2) => (S2 | goalStrat(!ID)) </strategy>
+           <strategy> (S1 | S2) => (S2 | goalStrat(!ID:Int)) </strategy>
            <k> GOAL:Pattern </k>
            <trace> TRACE </trace>
            ...
@@ -605,790 +631,6 @@ module PROVER-HORN-CLAUSE-SYNTAX
 endmodule
 ```
 
-```k
-module PROVER-HORN-CLAUSE
-  imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
-  imports ML-TO-SMTLIB2
-  imports DIRECT-PROOF-QUERIES
-  imports Z3
-  imports CVC4
-```
-
-### Search Bound
-
-The `search-bound` strategy peforms a bounded depth-first search for a proof, applying
-`direct-proof`, `kt` and `right-unfold` strategies in turn.
-
-```k
-  rule <strategy> search-bound(0) => fail </strategy>
-  rule <strategy> search-bound(N)
-               => simplify ; ( ( instantiate-existentials ; smt )
-                             | direct-proof
-                             | (kt           ; search-bound(N -Int 1))
-                             | (right-unfold ; search-bound(N -Int 1))
-                             )
-                  ...
-       </strategy>
-    requires N >Int 0
-```
-
-### Simplify
-
-Remove trivial clauses from the right-hand-side:
-
-```k
-  rule <k> \implies(\and(LHS), \and(RHS))
-        => \implies(\and(LHS), \and(RHS -BasicPatterns LHS)) ...
-       </k>
-       <strategy> simplify => noop ... </strategy>
-```
-
-### Instantiate Existials
-
-       LHS -> \exists x. x = t(...) /\ REST
-    => LHS /\ x = t(...) -> REST
-
-```k
-  rule <k> \implies(\and(LHS), \and(RHS))
-        => \implies( \and(LHS ++BasicPatterns ?INSTANTIATION)
-                   , \and(RHS -BasicPatterns ?INSTANTIATION)
-                   )
-       </k>
-       <strategy> instantiate-existentials ... </strategy>
-    requires ?INSTANTIATION:BasicPatterns
-         ==K getAtomForcingInstantiation( RHS
-                                        , getFreeVariables(LHS)
-                                        , getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS)
-                                        )
-     andBool ?INSTANTIATION:BasicPatterns =/=K .Patterns
-
-  rule <k> \implies(\and(LHS), \and(RHS))
-       </k>
-       <strategy> instantiate-existentials => noop ... </strategy>
-    requires .Patterns
-         ==K getAtomForcingInstantiation( RHS
-                                        , getFreeVariables(LHS)
-                                        , getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS)
-                                        )
-
-  syntax BasicPatterns ::= getAtomForcingInstantiation(BasicPatterns, BasicPatterns, BasicPatterns) [function]
-  rule getAtomForcingInstantiation((\equals(X:Variable, P), Ps), FREE, EXISTENTIAL)
-    => \equals(X:Variable, P), .Patterns
-    requires X inPatterns EXISTENTIAL
-     andBool getFreeVariables(P, .Patterns) -BasicPatterns EXISTENTIAL ==K getFreeVariables(P, .Patterns)
-  rule getAtomForcingInstantiation((\equals(P, X:Variable), Ps), FREE, EXISTENTIAL)
-    => \equals(X:Variable, P), .Patterns
-    requires X inPatterns EXISTENTIAL
-     andBool getFreeVariables(P, .Patterns) -BasicPatterns EXISTENTIAL ==K getFreeVariables(P, .Patterns)
-  rule getAtomForcingInstantiation((P, Ps), FREE, EXISTENTIAL)
-    => getAtomForcingInstantiation(Ps, FREE, EXISTENTIAL) [owise]
-  rule getAtomForcingInstantiation(.Patterns, FREE, EXISTENTIAL)
-    => .Patterns
-```
-
-### Substitute Equals for equals
-
-```k
-  rule <k> \implies(\and(LHS), \and(RHS))
-        => \implies( \and(removeTrivialEqualities(LHS[?EQUALITY_SUBST]))
-                   , \and(removeTrivialEqualities(RHS[?EQUALITY_SUBST]))
-                   ) ...
-       </k>
-       <strategy> substitute-equals-for-equals ... </strategy>
-    requires ?EQUALITY_SUBST ==K makeEqualitySubstitution(LHS)
-     andBool ?EQUALITY_SUBST =/=K .Map
-
-  rule <k> \implies(\and(LHS), \and(RHS))
-        => \implies( \and(removeTrivialEqualities(LHS[?EQUALITY_SUBST]))
-                   , \and(removeTrivialEqualities(RHS[?EQUALITY_SUBST]))
-                   ) ...
-       </k>
-       <strategy> substitute-equals-for-equals ... </strategy>
-    requires ?EQUALITY_SUBST ==K makeExistentialSubstitution(RHS, getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS))
-     andBool ?EQUALITY_SUBST =/=K .Map
-
-  rule <k> \implies(\and(LHS), \and(RHS)) ... </k>
-       <strategy> substitute-equals-for-equals => simplify ... </strategy>
-    requires .Map ==K makeEqualitySubstitution(LHS)
-     andBool .Map ==K makeExistentialSubstitution(RHS, getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS))
-
-  syntax Map ::= makeEqualitySubstitution(BasicPatterns) [function]
-  rule makeEqualitySubstitution(.Patterns) => .Map
-  rule makeEqualitySubstitution(\equals(X:Variable, T), Ps) => (X |-> T) .Map
-  rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
-    requires notBool(isVariable(T))
-  rule makeEqualitySubstitution((P, Ps:BasicPatterns)) => makeEqualitySubstitution(Ps) [owise]
-
-  syntax Map ::= makeExistentialSubstitution(BasicPatterns, BasicPatterns) [function]
-  rule makeExistentialSubstitution(.Patterns, EVs) => .Map
-  rule makeExistentialSubstitution((\equals(X:Variable, T), Ps), EVs) => (X |-> T) .Map
-    requires X in EVs
-  rule makeExistentialSubstitution((\equals(T, X:Variable), Ps), EVs) => (X |-> T) .Map
-    requires X in EVs
-     andBool notBool(T in EVs)
-  rule makeExistentialSubstitution((P, Ps:BasicPatterns), EVs)
-    => makeExistentialSubstitution(Ps, EVs) [owise]
-
-  syntax BasicPatterns ::= removeTrivialEqualities(BasicPatterns) [function]
-  rule removeTrivialEqualities(.Patterns) => .Patterns
-  rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
-  rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
-```
-
-### SMT
-
-We can call into both CVC4 and Z3 to solve SMT queries:
-
-```k
-  rule <k> GOAL </k>
-       <strategy> smt-z3
-               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
-                  then success
-                  else fail
-                  fi
-                  ...
-       </strategy>
-       <trace> .K => smt-z3 ... </trace>
-
-  rule <k> GOAL </k>
-       <strategy> smt-z3 => fail </strategy>
-    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
-
-  rule <k> GOAL </k>
-       <strategy> smt-cvc4
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
-                  then success
-                  else fail
-                  fi
-                  ...
-       </strategy>
-       <trace> .K => smt-cvc4 ... </trace>
-
-  rule <k> GOAL </k>
-       <strategy> smt-cvc4 => fail </strategy>
-    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
-```
-
-We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
-
-```k
-  rule <k> GOAL </k>
-       <strategy> smt
-               => if ?CVC4RESULT ==K unsat
-                  then success
-                  else (if isUnknown(?CVC4RESULT)
-                        then smt-z3
-                        else fail
-                        fi
-                       )
-                  fi
-                  ...
-       </strategy>
-       <trace> .K => smt ... </trace>
-    requires ?CVC4RESULT ==K CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL))
-```
-
-```k
-  syntax Bool ::= isUnknown(CheckSATResult) [function]
-  rule isUnknown(unknown(_)) => true
-  rule isUnknown(_) => false [owise]
-```
-
-### Direct proof
-
-```k
-  rule <k> GOAL </k>
-       <strategy> direct-proof
-               => if checkValid(GOAL)
-                  then success
-                  else fail
-                  fi
-                  ...
-       </strategy>
-       <trace> .K => direct-proof ... </trace>
-```
-
-TODO: Stubbed: Should translate to SMTLIB queries.
-Returns true if negation is unsatisfiable, false if unknown or satisfiable:
-
-```k
-  rule checkValid(\implies(_, \and ( .Patterns ))) => true:Bool
-  rule checkValid(\implies(LHS:ConjunctiveForm, _)) => true
-    requires triviallyUnsatisfiable(LHS)
-  rule checkValid(_) => false:Bool [owise]
-```
-
-```k
-  syntax Bool ::= triviallyUnsatisfiable(Pattern) [function]
-  rule triviallyUnsatisfiable(\equals(X:Int, Y:Int)) => X =/=Int Y
-  rule triviallyUnsatisfiable(\equals(0, 12)) => true
-  rule triviallyUnsatisfiable(\and(.Patterns)) => false
-  rule triviallyUnsatisfiable(\and(BP, BPs:BasicPatterns))
-    =>        triviallyUnsatisfiable(BP)
-       orBool triviallyUnsatisfiable(\and(BPs))
-  rule triviallyUnsatisfiable(_) => false [owise]
-```
-
-### Left Unfold (incomplete)
-
-```k
-  syntax Strategy ::= "left-unfold-eachBody"  "(" BasicPattern "," DisjunctiveForm ")"
-                    | "left-unfold-oneBody"   "(" BasicPattern "," ConjunctiveForm ")"
-
-  rule <strategy> left-unfold-eachBody(LRP, \or(\and(BODY), BODIES:ConjunctiveForms))
-               => left-unfold-oneBody(LRP, \and(BODY))
-                & left-unfold-eachBody(LRP, \or(BODIES))
-                  ...
-       </strategy>
-  rule <strategy> left-unfold-eachBody(LRP, \or(.ConjunctiveForms))
-               => success
-                  ...
-       </strategy>
-
-  rule <k> \implies(\and(LHS), RHS)
-        => \implies(\and((LHS -BasicPatterns (LRP, .Patterns)) ++BasicPatterns BODY), RHS)
-       </k>
-       <strategy> left-unfold-oneBody(LRP, \and(BODY)) => noop ... </strategy>
-       <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
-```
-
-### Left Unfold Nth
-
-Unfold the Nth predicates on the Left hand side into a conjunction of
-implicatations. The resulting goals are equivalent to the initial goal.
-
-```k
-  syntax Strategy ::= "left-unfold-Nth-eachLRP"  "(" Int "," BasicPatterns ")"
-                    | "left-unfold-Nth-eachBody" "(" Int "," BasicPattern "," DisjunctiveForm ")"
-                    | "left-unfold-Nth-oneBody"  "(" Int "," BasicPattern "," ConjunctiveForm ")"
-
-  rule <strategy> left-unfold-Nth(M)
-               => left-unfold-Nth-eachLRP(M, getPredicates(LHS))
-                  ...
-       </strategy>
-       <k> \implies(\and(LHS), RHS) </k>
-
-  rule <strategy> left-unfold-Nth-eachLRP(M, PS)
-               => fail
-                  ...
-       </strategy>
-  requires M <Int 0 orBool M >=Int getLength(PS)
-
-  rule <strategy> left-unfold-Nth-eachLRP(M, PS)
-               => left-unfold-Nth-eachBody(M, getMember(M, PS), unfold(getMember(M, PS)))
-                  ...
-       </strategy>
-  requires 0 <=Int M andBool M <Int getLength(PS)
-
-  rule <strategy> left-unfold-Nth-eachBody(M, LRP, Bodies)
-               => left-unfold-eachBody(LRP, Bodies)
-                  ...
-       </strategy>
-```
-
-### Right Unfold
-
-Unfold the predicates on the Right hand side into a disjunction of implications.
-Note that the resulting goals is stonger than the initial goal (i.e.
-`A -> B \/ C` vs `(A -> B) \/ (A -> C)`).
-
-```k
-  syntax Strategy ::= "right-unfold-eachRRP" "(" BasicPatterns")"
-                    | "right-unfold-eachBody" "(" BasicPattern "," DisjunctiveForm ")"
-                    | "right-unfold-oneBody"  "(" BasicPattern "," ConjunctiveForm ")"
-  rule <strategy> right-unfold
-               => right-unfold-eachRRP(getPredicates(RHS))
-                  ...
-       </strategy>
-       <k> \implies(LHS, \and(RHS)) </k>
-  rule <strategy> right-unfold-eachRRP(P, PS)
-               => right-unfold-eachBody(P, unfold(P))
-                | right-unfold-eachRRP(PS)
-                  ...
-       </strategy>
-  rule <strategy> right-unfold-eachRRP(.Patterns)
-               => fail
-                  ...
-       </strategy>
-  rule <strategy> right-unfold-eachBody(RRP, \or(\and(BODY), BODIES:ConjunctiveForms))
-               => right-unfold-oneBody(RRP, \and(BODY))
-                | right-unfold-eachBody(RRP, \or(BODIES))
-                  ...
-       </strategy>
-  rule <strategy> right-unfold-eachBody(RRP, \or(.ConjunctiveForms))
-               => fail
-                  ...
-       </strategy>
-```
-
-```k
-  rule <k> \implies(LHS, \and(RHS))
-        => \implies(LHS, \and((RHS -BasicPatterns (RRP, .Patterns)) ++BasicPatterns BODY))
-       </k>
-       <strategy> right-unfold-oneBody(RRP, \and(BODY)) => noop ... </strategy>
-       <trace> .K => right-unfold-oneBody(RRP, \and(BODY)) ... </trace>
-```
-
-### Right-Unfold-Nth
-
-Often, when debugging a proof, the user knows which predicate needs to be
-unfolded. Here we define a strategy `right-unfold-Nth(M, N)`, which unfolds the
-`M`th recursive predicate (on the right-hand side) to its `N`th body. When `M`
-or `N` is out of range, `right-unfold(M,N) => fail`.
-
-```k
-  syntax Strategy ::= "right-unfold-Nth-eachRRP"  "(" Int "," Int "," BasicPatterns")"
-                    | "right-unfold-Nth-eachBody" "(" Int "," Int "," BasicPattern "," DisjunctiveForm ")"
-                    | "right-unfold-Nth-oneBody"  "(" Int "," Int "," BasicPattern "," ConjunctiveForm ")"
-
-  rule <strategy> right-unfold-Nth (M,N) => fail ... </strategy>
-  requires (M <Int 0) orBool (N <Int 0)
-
-  rule <strategy> right-unfold-Nth (M,N)
-               => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
-       ...</strategy>
-       <k> \implies(LHS,\and(RHS)) </k>
-
-  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
-    requires getLength(RRPs) <=Int M
-
-  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
-               => right-unfold-Nth-eachBody(M, N, getMember(M, RRPs), unfold(getMember(M, RRPs)))
-       ...</strategy>
-    requires getLength(RRPs) >Int M
-
-  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
-               => fail
-       ...</strategy>
-    requires getLength(Bodies) <=Int N
-
-  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
-               => right-unfold-Nth-oneBody(M, N, RRP, getMember(N, Bodies))
-       ...</strategy>
-    requires getLength(Bodies) >Int N
-
-  rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
-               => right-unfold-oneBody(RRP, Body) ...
-       </strategy>
-```
-
-### Knaster Tarski (Least Fixed Point)
-
-This high-level implementation of the Knaster Tarski rule attempts the applying
-the rule to each recursive predicate in turn. It also includes a heuristic
-for guessing an instantiation of the inductive hypothesis.
-
-```k
-  rule <strategy> kt => kt # .KTFilter # useAffectedHeuristic ... </strategy>
-  rule <k> GOAL </k>
-       <strategy> kt # FILTER # INSTANTIATION
-               => getLeftRecursivePredicates(GOAL) ~> kt # FILTER # INSTANTIATION
-                  ...
-       </strategy>
-  rule <strategy> LRPs ~> kt # head(HEAD) # INSTANTIATION
-               => filterByConstructor(LRPs, HEAD) ~> kt # .KTFilter # INSTANTIATION
-                  ...
-       </strategy>
-  rule <strategy> LRPs:BasicPatterns ~> kt # index(I:Int) # INSTANTIATION
-               => getMember(I, LRPs), .Patterns ~> kt # .KTFilter # INSTANTIATION
-                  ...
-       </strategy>
-  rule <strategy> LRPs ~> kt # .KTFilter # INSTANTIATION
-               => ktForEachLRP(LRPs, INSTANTIATION)
-                  ...
-       </strategy>
-```
-
-`ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
-
-```k
-  syntax Strategy ::= ktForEachLRP(BasicPatterns, KTInstantiate)
-  rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => fail ... </strategy>
-  rule <strategy> ktForEachLRP((LRP, LRPs), INSTANTIATION)
-               => ktLRP(LRP, INSTANTIATION) | ktForEachLRP(LRPs, INSTANTIATION)
-                  ...
-       </strategy>
-```
-
-(`ktLRP` corresponds to `lprove_kt/6`)
-
-```k
-  syntax Strategy ::= ktLRP(BasicPattern, KTInstantiate)
-  rule <strategy> ktLRP(LRP, INSTANTIATION)
-               => ktForEachBody(LRP, unfold(LRP), INSTANTIATION) ...
-       </strategy>
-       <trace> .K => ktLRP(LRP, INSTANTIATION) ... </trace>
-```
-
-(`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
-
-```k
-  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm, KTInstantiate) [function]
-  rule ktForEachBody(LRP, \or(.ConjunctiveForms), _) => success
-  rule ktForEachBody(LRP, \or(BODY, BODIES), INSTANTIATION)
-    => ktOneBody(LRP, BODY, INSTANTIATION)
-     & ktForEachBody(LRP, \or(BODIES), INSTANTIATION)
-```
-
-```k
-  syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm, KTInstantiate)
-```
-
-```k
-  syntax KItem ::= ktEachBRP(BasicPattern, ConjunctiveForm, BasicPatterns, KTInstantiate) // LRP, Body, BRPs
-                 | ktOneBRP(BasicPattern, ConjunctiveForm, BasicPattern, KTInstantiate)   // LRP, Body, BRP
-                 | ktBRPResult(Patterns, ConjunctiveForm)
-                 | ktBRPCollectResults(ConjunctiveForm, BasicPattern) // Body, LRP
-  rule <strategy> ktOneBody(LRP:RecursivePredicate(ARGS), BODY, INSTANTIATION)
-               => ktEachBRP(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP), INSTANTIATION)
-               ~> ktBRPCollectResults(BODY, LRP(ARGS))
-                  ...
-       </strategy>
-```
-
-```k
-  rule <strategy> ktEachBRP(LRP, BODY, (BRP_samehead, BRPs_samehead), INSTANTIATION)
-               => ktOneBRP(LRP, BODY, BRP_samehead, INSTANTIATION)
-               ~> ktEachBRP(LRP, BODY, BRPs_samehead, INSTANTIATION)
-                  ...
-       </strategy>
-  rule <strategy> ktEachBRP(LRP, BODY, .Patterns, INSTANTIATION)
-               => ktBRPResult(.Patterns, \and(.Patterns)) ...
-       </strategy>
-
-  rule <k> \implies(\and(LHS), \and(RHS)) </k>
-       <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS), INSTANTIATION)
-               => ktBRPResult( (?Premise, .Patterns)
-                             , \and(?LHS_UA ++BasicPatterns ?RHS_UAF)
-                             )
-                  ...
-       </strategy>
-       <trace> .K
-            => ( "InstSubst" ~> ?InstSubst
-              ~> "PassiveVars" ~> ?PassiveVars
-               )
-               ...
-       </trace>
-    requires ?USubst ==K zip(LRP_ARGS, BRP_ARGS)
-     andBool ?InstSubst ==K ktMakeInstantiationSubst(HEAD(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), \and(RHS)), INSTANTIATION)
-     andBool ?LHS_UA  ==K {(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ ?USubst ][ ?InstSubst ]}:>BasicPatterns
-     andBool ?Premise ==K \implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns)) ++BasicPatterns
-                                          (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
-                                        )
-                                  , \and(?LHS_UA)
-                                  )
-     andBool ?UnivVars ==K getFreeVariables(LHS)
-     andBool ?ExVARS   ==K getFreeVariables(\and(RHS), .Patterns) -BasicPatterns ?UnivVars
-     andBool ?FSubst   ==K makeFreshSubstitution(?ExVARS)
-     andBool ?RHS_UAF  ==K {RHS[?USubst][?InstSubst][?FSubst]}:>BasicPatterns
-     andBool ?PassiveVars ==K getFreeVariables(LHS) -BasicPatterns LRP_ARGS
-
-  syntax Map ::= ktMakeInstantiationSubst(PredicatePattern, PredicatePattern, ImplicativeForm, KTInstantiate) [function]
-  rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), RHS), useAffectedHeuristic)
-    => makeFreshSubstitution(removeDuplicates(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS))
-                             -BasicPatterns (LRP_ARGS -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)) // Non-critical
-                            // TODO: !!!! This should use findAffectedVariables and not the Aux version
-                            )
-  rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGs), _, \implies(\and(LHS), RHS), freshPositions(POSITIONS))
-    => makeFreshSubstitution(removeDuplicates(getMembers(POSITIONS, getFreeVariables(LHS) -BasicPatterns LRP_ARGs))) // PassiveVars
-```
-
-Two consecutive ktBRPResults are consolidated into a single one.
-
-```k
-  rule <strategy>    ktBRPResult(PREMISES1, \and(CONCL_FRAGS1))
-                  ~> ktBRPResult(PREMISES2, \and(CONCL_FRAGS2))
-               => ktBRPResult( PREMISES1 ++Patterns PREMISES2
-                             , \and(CONCL_FRAGS1 ++BasicPatterns CONCL_FRAGS2)
-                             )
-                  ...
-       </strategy>
-```
-
-`ktEachBRP`s are brought to the top of the cell:
-
-```k
-  rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktEachBRP(LRP, BODY, BRPs_samehead, INSTANTIATION)
-               => ktEachBRP(LRP, BODY, BRPs_samehead, INSTANTIATION) ~> ktBRPResult(PREMISES, CONCL_FRAG)
-                  ...
-       </strategy>
-```
-
-Finally, once we encounter `ktBRPCollectResults`, we build a strategy for KT
-goals, including both the premises and the conclusion:
-
-```k
-                           // Body           , LRP         , Premises        , Conclusion frags
-  syntax Strategy ::= ktGoals(ConjunctiveForm, BasicPattern, Patterns        , ConjunctiveForm)
-                    | ktPremise(ImplicativeForm)
-  rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktBRPCollectResults(BODY, LRP)
-               => ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
-                  ...
-       </strategy>
-  rule <strategy> ktGoals(BODY, LRP, (PREMISE, PREMISES), CONCL_FRAG)
-               => ktPremise(PREMISE) & ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
-                  ...
-       </strategy>
-  rule <k> _ => PREMISE </k>
-       <strategy> ktPremise(PREMISE) => noop ... </strategy>
-       <trace> .K => ktPremise(PREMISE) ... </trace>
-```
-
-```k
-  rule <k> \implies(\and(LHS), RHS)
-        => \implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))
-                           ++BasicPatterns (BODY -BasicPatterns ?BRP_samehead)
-                           ++BasicPatterns CONCL_FRAGS
-                         )
-                   , RHS
-                   )
-           ...
-       </k>
-       <strategy> ktGoals(\and(BODY), HEAD:RecursivePredicate(LRP_ARGS), .Patterns, \and(CONCL_FRAGS))
-               => noop
-                  ...
-       </strategy>
-       <trace> .K => "Conclusion" ... </trace>
-     requires ?BRP_samehead ==K filterByConstructor(getRecursivePredicates(BODY), HEAD)
-```
-
-```k
-  syntax BasicPatterns        // Critical       Conds
-    ::= findAffectedVariablesAux(BasicPatterns, BasicPatterns)             [function]
-      | findAffectedVariables(BasicPatterns, BasicPatterns, BasicPatterns) [function]
-  rule findAffectedVariables(AFF, NONCRIT, CONDS)
-    => AFF -BasicPatterns NONCRIT
-    requires findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS) -BasicPatterns NONCRIT
-         ==K AFF -BasicPatterns NONCRIT
-  // TODO: Why doesn't `owise` work here?
-  rule findAffectedVariables(AFF, NONCRIT, CONDS)
-    => findAffectedVariables( findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS)
-                            , NONCRIT
-                            , CONDS
-                            )
-    requires findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS) -BasicPatterns NONCRIT
-         =/=K AFF -BasicPatterns NONCRIT
-  rule findAffectedVariablesAux(    AFF , (\equals(X, Y), REST))
-    => findAffectedVariablesAux((X, AFF),                 REST )
-    requires isVariable(X)
-     andBool AFF =/=K (AFF -BasicPatterns getFreeVariables(Y, .Patterns))
-  rule findAffectedVariablesAux(    AFF , (\equals(Y, X), REST))
-    => findAffectedVariablesAux((X, AFF),                 REST )
-    requires isVariable(X)
-     andBool (AFF -BasicPatterns getFreeVariables(Y, .Patterns)) =/=K AFF
-     andBool notBool X in AFF
-  rule findAffectedVariablesAux(    AFF , (COND,          REST))
-    => findAffectedVariablesAux(    AFF ,                 REST )
-       [owise]
-  rule findAffectedVariablesAux(    AFF , .Patterns)
-    => AFF
-```
-
-### Knaster Tarski (Greatest Fixed Points)
-
-TODO: Need `CorecursivePredicate` sort
-
-```k
-  rule <strategy> kt-gfp => kt-gfp # .KTFilter # useAffectedHeuristic ... </strategy>
-  rule <k> \implies(_, RHS:ConjunctiveForm) </k>
-       <strategy> kt-gfp # FILTER # INSTANTIATION
-               => getRecursivePredicates(RHS, .Patterns) ~> kt-gfp # FILTER # INSTANTIATION
-                  ...
-       </strategy>
-  rule <strategy> RRPs ~> kt-gfp # head(HEAD) # INSTANTIATION
-               => filterByConstructor(RRPs, HEAD) ~> kt-gfp # .KTFilter # INSTANTIATION
-                  ...
-       </strategy>
-  rule <strategy> RRPs:BasicPatterns ~> kt-gfp # index(I:Int) # INSTANTIATION
-               => getMember(I, RRPs), .Patterns ~> kt-gfp # .KTFilter # INSTANTIATION
-                  ...
-       </strategy>
-```
-
-```k
-  rule <k>    \implies(\and(LHS), \and(RHS))
-           => \implies(\and(LHS), \and({LHS[?USubst][?InstSubst]}:>BasicPatterns
-                                      ++BasicPatterns ?BODY_REST
-                                      ++BasicPatterns (RHS -BasicPatterns (HEAD:Predicate(RRP_ARGS), .Patterns))
-                      )               )
-       </k>
-       <strategy> HEAD(RRP_ARGS), .Patterns
-               ~> kt-gfp # .KTFilter # INSTANTIATION
-               => noop
-                  ...
-       </strategy>
-       <trace>
-         .K => "USubst"    ~> ?USubst
-            ~> "InstSubst" ~> ?InstSubst
-            ~> "BRP: " ~> HEAD(?BRP_ARGS)
-         ...
-       </trace>
-    requires \or(\and(?UNFOLD)) ==K unfold(HEAD(RRP_ARGS))
-     andBool HEAD(?BRP_ARGS), .Patterns ==K filterByConstructor(getRecursivePredicates(?UNFOLD), HEAD)
-     andBool ?BODY_REST ==K (?UNFOLD -Patterns (HEAD(?BRP_ARGS), .Patterns))
-     andBool ?USubst ==K zip(RRP_ARGS, ?BRP_ARGS)
-     andBool ?InstSubst ==K makeFreshSubstitution(getFreeVariables(LHS) -BasicPatterns getFreeVariables(RHS))
-```
-
-```k
-endmodule
-```
-
-LTL Fragment
-============
-
-### and-intro
-
-```k
-module PROVER-LTL-SYNTAX
-  syntax Strategy ::= "and-intro"
-  syntax Strategy ::= "unfold"
-  syntax Strategy ::= "kt-always"
-endmodule
-```
-
-```k
-module PROVER-LTL
-  imports PROVER-CORE
-  imports PROVER-LTL-SYNTAX
-  imports PROVER-HORN-CLAUSE
-
-  /* |- A -> B /\ C
-   * =>
-   * |- A -> B
-   * |- A -> C
-   */
-  syntax Strategy ::= "and-intro" "(" Patterns ")"
-  rule <k> \implies(LHS:Pattern, \and(Ps:Patterns)) </k>
-       <strategy> and-intro => and-intro(Ps) ... </strategy>
-
-  rule <strategy> and-intro(.Patterns) => success </strategy>
-  rule <strategy> and-intro(P:Pattern, Ps:Patterns)
-               => and-intro(P, .Patterns) & and-intro(Ps) ... </strategy>
-  requires Ps =/=K .Patterns
-  rule <k> \implies(LHS:Pattern, RHS:Pattern) => \implies(LHS, P) ... </k>
-       <strategy> and-intro(P, .Patterns) => noop ... </strategy>
-```
-
-### wnext-and
-
-```k
-  /* wnext(P /\ Q) => wnext(P) /\ wnext(Q) */
-  rule wnext(\and(.Patterns)) => \top() [anywhere]
-  rule wnext(\and(P:Pattern, Ps:Patterns))
-    => \and(wnext(P), wnext(\and(Ps)), .Patterns) [anywhere]
-```
-
-### kt-always
-
-```k
-  /* |- P -> always(Q)
-   * =>
-   * |- P -> Q /\ wnext(P)
-   */
-
-  rule <k> \implies(P:Pattern, always(Q:Pattern))
-        => \implies(P, \and(Q, wnext(P), .Patterns)) </k>
-        <strategy> kt-always => noop ... </strategy>
-```
-
-### unfold
-
-```k
-  // <k> ... always(P) => P /\ wnext(always(P)) ... </k>
-  // This rule will pick one recursive/fixpoint and unfold it.
-  // One has to traverse the whole pattern.
-  // Here, I only did a simple special case that works for LTL-Ind.
-  rule <k> \implies( \and(always(P), Ps:Patterns) , Q )
-        => \implies( \and(P, wnext(always(P)), Ps) , Q)
-       </k>
-       <active> true </active>
-       <strategy> left-unfold => noop ... </strategy>
-
-```
-
-### Simplification rules
-
-
-TODO: These should be part of simplify
-
-```k
-  rule \and(P, \and(Ps1:Patterns), Ps2)
-    => \and(P, (Ps1 ++Patterns Ps2)) [anywhere]
-
-  rule <k> \implies( \and(Ps1:Patterns)
-                   , P:Pattern
-                   )
-       </k>
-       <strategy> direct-proof => success ... </strategy>
-     requires P inPatterns Ps1
-
-  rule <k> \implies( _
-                   , \top()
-                   )
-       </k>
-       <strategy> direct-proof => success ... </strategy>
-
-  rule <k> \implies ( \and ( \implies ( phi , wnext ( phi ) )
-                           , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
-                           , phi , .Patterns )
-                    , wnext ( phi )
-                    )
-       </k>
-       <strategy>
-         direct-proof => success ...
-       </strategy>
-  rule <k> \implies( \and ( \implies ( phi , wnext ( phi ) )
-                          , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
-                          , phi , .Patterns )
-                   , wnext ( \implies ( phi , wnext ( phi ) ) )
-                   )
-       </k>
-       <strategy>
-         direct-proof => fail ...
-       </strategy>
-
-  rule <k> \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns )
-                    , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
-                    )
-       </k>
-       <strategy>
-         direct-proof => fail ...
-       </strategy>
-
-  rule <k> \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns )
-                    , wnext ( phi )
-                    )
-       </k>
-       <strategy>
-         direct-proof => fail ...
-       </strategy>
-```
-
-### Ad-hoc rules
-
-```k
-  rule <k> \implies(_ , wnext ( \implies ( phi , wnext ( phi ) ) )) </k>
-       <active> true </active>
-       <strategy> and-intro => fail ... </strategy>
-
-  rule <k> \implies ( \and ( \implies ( phi , wnext ( phi ) )
-                           , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
-                           , phi
-                           , .Patterns
-                           )
-                    , phi
-                    )
-       </k>
-       <active> true </active>
-       <strategy> and-intro => fail ... </strategy>
-```
-
-```k
-endmodule
-````
-
 Driver & Syntax
 ===============
 
@@ -1424,7 +666,13 @@ Main Modules
 ```k
 module PROVER
   imports PROVER-DRIVER
-  imports PROVER-HORN-CLAUSE
+//  imports PROVER-HORN-CLAUSE
+  imports STRATEGY-SMT
+  imports STRATEGY-SEARCH-BOUND
+  imports STRATEGY-SIMPLIFICATION
+  imports STRATEGY-DIRECT-PROOF
+  imports STRATEGY-KNASTER-TARSKI
+
   imports PROVER-LTL
 endmodule
 ```

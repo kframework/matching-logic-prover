@@ -24,10 +24,12 @@ claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt }
                     , .Patterns )
               )
 
-strategy search-bound(4)
+strategy search-bound(3)
 
-// strategy kt # head(listSegmentLeftSorted) # useAffectedHeuristic
-//        ; ( ( simplify ; substitute-equals-for-equals ; instantiate-existentials ; smt )
-//          | ( simplify ; instantiate-existentials ; smt )
-//          | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt )
-//          )
+/*
+strategy kt # head(listSegmentLeftSorted) # useAffectedHeuristic
+       ; ( ( simplify ; instantiate-existentials ; smt )
+         | ( simplify ; instantiate-existentials ; smt )
+         | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt )
+         )
+*/
