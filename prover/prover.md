@@ -359,12 +359,14 @@ module PROVER-CONFIGURATION
   syntax Pgm
   syntax Strategy
 
+  syntax GoalId ::= "root" | Int
+
   configuration
       <prover>
         <goal multiplicity="*" type="Bag">
-          <id> 0 </id>
+          <id> root </id>
           <active> true:Bool </active>
-          <parent> -1 </parent>
+          <parent> .K </parent>
           <k> $PGM </k>
           <strategy> .K </strategy>
           <trace> .K </trace>
@@ -459,12 +461,12 @@ up the `<stratergy>` cell.
      andBool GOAL =/=K .K
 ```
 
-The `goalStrat(Int)` strategy is used to establish a reference to the result of
+The `goalStrat(GoalId)` strategy is used to establish a reference to the result of
 another goal. It's argument holds the id of a subgoal. Once that subgoal has
 completed, its result is replaced in the parent goal and the subgoal is removed.
 
 ```k
-  syntax ResultStrategy ::= goalStrat(Int)
+  syntax ResultStrategy ::= goalStrat(GoalId)
   rule <prover>
          <goal> <id> PID </id>
                 <active> _ => true </active>

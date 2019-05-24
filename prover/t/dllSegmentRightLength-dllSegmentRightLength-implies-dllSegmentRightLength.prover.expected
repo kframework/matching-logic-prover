@@ -1,13 +1,13 @@
 <prover>
   <goal>
     <id>
-      0
+      root
     </id>
     <active>
       true
     </active>
     <parent>
-      -1
+      .
     </parent>
     <k>
       \implies ( \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , variable ( "L" ) { Int } , .Patterns ) , dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "G" ) { SetInt } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } ) , \equals ( variable ( "N" ) { Int } , plus ( variable ( "L" ) { Int } , variable ( "M" ) { Int } ) ) , .Patterns ) , \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "K" ) { SetInt } , variable ( "N" ) { Int } , .Patterns ) , .Patterns ) )
