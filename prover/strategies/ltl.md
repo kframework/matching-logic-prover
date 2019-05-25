@@ -6,6 +6,7 @@ LTL Fragment
 ```k
 module PROVER-LTL-SYNTAX
   syntax Strategy ::= "and-intro"
+  syntax Strategy ::= "flatten-conjunctions"
   syntax Strategy ::= "unfold"
   syntax Strategy ::= "kt-always"
 endmodule
@@ -16,6 +17,7 @@ module PROVER-LTL
   imports PROVER-CORE
   imports PROVER-LTL-SYNTAX
   imports PROVER-HORN-CLAUSE
+  imports KORE-HELPERS
 
   /* |- A -> B /\ C
    * =>
@@ -32,6 +34,36 @@ module PROVER-LTL
   requires Ps =/=K .Patterns
   rule <k> \implies(LHS:Pattern, RHS:Pattern) => \implies(LHS, P) ... </k>
        <strategy> and-intro(P, .Patterns) => noop ... </strategy>
+
+  rule <k> \implies (_ , RHS) </k>
+       <active> true </active>
+       <strategy> and-intro => noop ... </strategy>
+    requires notBool isConjunction(RHS)
+  syntax Bool ::= isConjunction(Pattern) [function]
+  rule isConjunction(\and(_)) => true
+  rule isConjunction(_) => false [owise]
+
+  rule <k> \implies(\and(LHS), \and(RHS))
+        => \implies(\and(flattenConjunctions(LHS)), \and(flattenConjunctions(RHS)))
+       </k>
+       <strategy> flatten-conjunctions => noop ... </strategy>
+  rule <k> \implies(\and(LHS), RHS)
+        => \implies(\and(flattenConjunctions(LHS)), RHS)
+       </k>
+       <strategy> flatten-conjunctions => noop ... </strategy>
+    requires notBool isConjunction(RHS)
+  rule <k> \implies(LHS, \and(RHS))
+        => \implies(LHS, \and(flattenConjunctions(RHS)))
+       </k>
+       <strategy> flatten-conjunctions => noop ... </strategy>
+    requires notBool isConjunction(LHS)
+  syntax Patterns ::= flattenConjunctions(Patterns) [function]
+  rule flattenConjunctions(\and(PATTERNS), REST)
+    => flattenConjunctions((PATTERNS)) ++Patterns flattenConjunctions(REST)
+  rule flattenConjunctions(P, REST)
+    => P, flattenConjunctions(REST) [owise]
+  rule flattenConjunctions(.Patterns)
+    => .Patterns
 ```
 
 ### wnext-and
@@ -68,31 +100,16 @@ module PROVER-LTL
        </k>
        <active> true </active>
        <strategy> left-unfold => noop ... </strategy>
-
 ```
 
 ### Simplification rules
 
-
 TODO: These should be part of simplify
 
 ```k
-  rule \and(P, \and(Ps1:Patterns), Ps2)
-    => \and(P, (Ps1 ++Patterns Ps2)) [anywhere]
-
-  rule <k> \implies( \and(Ps1:Patterns)
-                   , P:Pattern
-                   )
-       </k>
-       <strategy> direct-proof => success ... </strategy>
-     requires P inPatterns Ps1
-
-  rule <k> \implies( _
-                   , \top()
-                   )
-       </k>
-       <strategy> direct-proof => success ... </strategy>
-
+//  rule \and(P, \and(Ps1:Patterns), Ps2)
+//    => \and(P, (Ps1 ++Patterns Ps2)) [anywhere]
+//
   rule <k> \implies ( \and ( \implies ( phi , wnext ( phi ) )
                            , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
                            , phi , .Patterns )
@@ -102,50 +119,11 @@ TODO: These should be part of simplify
        <strategy>
          direct-proof => success ...
        </strategy>
-  rule <k> \implies( \and ( \implies ( phi , wnext ( phi ) )
-                          , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
-                          , phi , .Patterns )
-                   , wnext ( \implies ( phi , wnext ( phi ) ) )
-                   )
-       </k>
-       <strategy>
-         direct-proof => fail ...
-       </strategy>
-
-  rule <k> \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns )
-                    , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
-                    )
-       </k>
-       <strategy>
-         direct-proof => fail ...
-       </strategy>
-
-  rule <k> \implies ( \and ( always ( \implies ( phi , wnext ( phi ) ) ) , phi , .Patterns )
-                    , wnext ( phi )
-                    )
-       </k>
-       <strategy>
-         direct-proof => fail ...
-       </strategy>
 ```
 
 ### Ad-hoc rules
 
 ```k
-//  rule <k> \implies(_ , wnext ( \implies ( phi , wnext ( phi ) ) )) </k>
-//       <active> true </active>
-//       <strategy> and-intro => fail ... </strategy>
-
-  rule <k> \implies ( \and ( \implies ( phi , wnext ( phi ) )
-                           , wnext ( always ( \implies ( phi , wnext ( phi ) ) ) )
-                           , phi
-                           , .Patterns
-                           )
-                    , phi
-                    )
-       </k>
-       <active> true </active>
-       <strategy> and-intro => fail ... </strategy>
 ```
 
 ```k
