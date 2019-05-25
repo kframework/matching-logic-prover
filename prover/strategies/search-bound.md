@@ -11,7 +11,6 @@ module STRATEGY-SEARCH-BOUND
   rule <strategy> search-bound(0) => fail </strategy>
   rule <strategy> search-bound(N)
                => simplify ; ( ( instantiate-existentials ; smt )
-                             | direct-proof
                              | (kt           ; search-bound(N -Int 1))
                              | (right-unfold ; search-bound(N -Int 1))
                              )
