@@ -2,6 +2,8 @@ fmod CHECKER is
 
 protecting NAT . 
 
+---- basic AML patterns
+
 sorts ElementVariable SetVariable ConstantSymbol .
 
 op ev : Nat -> ElementVariable [ctor] .
@@ -16,6 +18,8 @@ op \bottom : -> Pattern [ctor] .
 op \implies : Pattern Pattern -> Pattern [ctor] .
 op \exists : Nat Pattern -> Pattern [ctor] .
 op \mu : Nat Pattern -> Pattern [ctor] .
+
+---- free variables, substitution, alpha-equivalence, etc.
 
 sort VariableSet . subsort ElementVariable SetVariable < VariableSet .
 op . : -> VariableSet [ctor] .
@@ -111,10 +115,17 @@ ceq \mu(VN,P) =a= \mu(VN',P') = P[sv(VN'') / sv(VN)] =a= P'[sv(VN'') / sv(VN')]
  if VN'' := fresh(fv(P) fv(P')) .
 eq P =a= Q = false [owise] .
 
+---- Hilbert proofs
+
 sorts Theorem Rule .
 
+---- theorems are numbered for easy reference.
+---- TODO:: check theorem ids are distinct.
 op `(_`)_by_ : Nat Pattern Rule -> Theorem [ctor prec 90 format (b d d os d d d)] .
 
+
+---- basic AML proof rules
+---- note that "axiom" means a theorem is assumed as an axiom (i.e., automatically proof check).
 op axiom : -> Rule .
 ops prop1 prop2 prop3 : -> Rule .
 op mp`(_,_`) : Nat Nat -> Rule .
@@ -128,17 +139,24 @@ op sv-subst`(_,_`) : Nat Pattern -> Rule .
 op prefixpoint : -> Rule .
 op kt`(_`) : Nat -> Rule .
 
+---- positions (in applications)
+
 sort Position .
 ops . l r : -> Position [ctor] .
 op __ : Position Position -> Position [assoc id: . ctor] .
 
+---- get sub-pattern (get stuck if not application pattern)
 op _[_] : Pattern Position -> Pattern .
 
 vars Pos PosP PosQ : Position .
 eq P[ . ] = P .
 eq \app(P,Q)[ l Pos ] = P[Pos] .
 eq \app(P,Q)[ r Pos ] = Q[Pos] .
+---- get stuck otherwise.
 
+
+---- theorems are patterns in a Hilbert proof, annotated with their ids and
+---- how they are proved.
 
 sorts Theorems . subsort Theorem < Theorems .
 op . : -> Theorems .
@@ -147,13 +165,19 @@ op __ : Theorems Theorems -> Theorems [assoc id: . ctor format (d ni d) prec 100
 sort Proof .
 op proof_ : Theorems -> Proof [ctor format (d n d) prec 110] .
 
+---- check is a marker denoting the part of the proof that has been checked.
+---- initially, check appears at the beginning of the proof, and goes down
+---- theorem by theorem, until it reaches the end, which indicates proof check.
 op check : -> Theorem [format(r o)] .
+
+---- flag, denoting that proof checked.
 op checked : -> Proof [format(g o)] .
 
-vars RL RL' RL'' : Rule . 
-vars PTs QTs RTs PTs' QTs' RTs' PTs'' : Theorems .
+vars RL RL' RL'' : Rule . vars PTs QTs RTs PTs' QTs' RTs' PTs'' : Theorems .
 
 eq proof PTs check = checked .
+
+---- checking basic AML rules.
 
 eq proof PTs
          check
