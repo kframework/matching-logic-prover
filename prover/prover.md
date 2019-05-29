@@ -1,13 +1,13 @@
 ```k
-requires "strategies/smt.k"
+requires "predicate-definitions.k"
+requires "strategies/direct-proof.k"
+requires "strategies/knaster-tarski.k"
+requires "strategies/ltl.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
-requires "strategies/knaster-tarski.k"
+requires "strategies/smt.k"
 requires "strategies/unfolding.k"
-requires "strategies/ltl.k"
 requires "substitution.k"
-requires "direct-proof.k"
-requires "predicate-definitions.k"
 ```
 
 Kore Sugar

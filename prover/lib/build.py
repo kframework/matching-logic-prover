@@ -36,7 +36,7 @@ prover = proj.definition( alias = 'prover'
                                   , 'strategies/knaster-tarski.md'
                                   , 'strategies/unfolding.md'
                                   , 'strategies/ltl.md'
-                                  , 'direct-proof.md'
+                                  , 'strategies/direct-proof.md'
                                   , 'predicate-definitions.md'
                                   ]
                         , flags = '-O3 --non-strict'
