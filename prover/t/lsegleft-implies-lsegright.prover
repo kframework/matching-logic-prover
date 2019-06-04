@@ -2,6 +2,7 @@ claim \implies( \and( listSegmentLeft (variable("H") { ArrayIntInt } , variable(
               , \and( listSegmentRight(variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }) )
               )
 strategy search-bound(5)
+
 /*
 strategy kt ; simplify ; ( (right-unfold ; instantiate-existentials ; smt)
                          | ( smt )
@@ -11,3 +12,4 @@ strategy kt ; simplify ; ( (right-unfold ; instantiate-existentials ; smt)
                                 )
                          )
 */
+

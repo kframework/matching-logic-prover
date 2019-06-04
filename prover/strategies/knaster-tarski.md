@@ -39,23 +39,81 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= ktForEachLRP(Patterns, KTInstantiate)
   rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => fail ... </strategy>
   rule <strategy> ktForEachLRP((LRP, LRPs), INSTANTIATION)
-               => ktLRP(LRP, INSTANTIATION) | ktForEachLRP(LRPs, INSTANTIATION)
+               => ( kt-wrap(LRP) ; kt-forall-intro ; kt-unfold
+                  ; lift-or ; and-split ; remove-lhs-existential
+                  ; #hole
+                  )
+                  | ktForEachLRP(LRPs, INSTANTIATION)
                   ...
        </strategy>
 ```
-
-(`ktLRP` corresponds to `lprove_kt/6`)
 
 ```k
-  syntax Strategy ::= ktLRP(Pattern, KTInstantiate)
-  rule <strategy> ktLRP(LRP, INSTANTIATION)
-               => ktForEachBody(LRP, unfold(LRP), INSTANTIATION)
-                  ...
-       </strategy>
-       <trace> .K => ktLRP(LRP, INSTANTIATION) ... </trace>
+  syntax Variable ::= "#hole"
+  syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
+  rule getFreeVariables(#hole, .Patterns) => .Patterns
+  rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
+    => getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns)
 ```
 
-(`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
+```k
+  syntax Strategy ::= "kt-wrap" "(" Pattern ")"
+  rule <k> \implies(LHS:Pattern, RHS)
+        => \implies(LRP, implicationContext(LHS[LRP/#hole], RHS))
+       </k>
+       <strategy> kt-wrap(LRP) => noop ... </strategy>
+       <trace> .K => kt-wrap(LRP)  ... </trace>
+```
+
+```k
+  syntax Strategy ::= "kt-forall-intro"
+  rule <k> \implies(LHS, RHS) #as GOAL
+        => \implies( LHS
+                   , \forall { getUniversalVariables(GOAL) -Patterns getFreeVariables(LHS, .Patterns) }
+                             RHS
+                   )
+       </k>
+       <strategy> kt-forall-intro => noop ... </strategy>
+```
+
+```k
+  syntax Strategy ::= "kt-unfold"
+  rule <k> \implies( LRP:RecursivePredicate(ARGS) #as LHS
+                =>   substituteBRPs(unfold(LHS), LRP, ARGS, RHS)
+                   , RHS
+                   )
+       </k> 
+       <strategy> kt-unfold => noop ... </strategy>
+
+                             // unfolded fixed point, HEAD, LRP variables, Pattern
+  syntax Pattern  ::= substituteBRPs  (Pattern,  RecursivePredicate, Patterns, Pattern) [function]
+
+  rule substituteBRPs(P:Int, RP, Vs, RHS) => P 
+  rule substituteBRPs(P:Variable, RP, Vs, RHS) => P 
+  rule substituteBRPs(P:Symbol, RP, Vs, RHS) => P 
+  rule substituteBRPs(S:Symbol(ARGS) #as P, RP, Vs, RHS) => P 
+    requires S =/=K RP
+  rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, RHS) => RHS[zip(ARGS, BODY_ARGS)]
+ 
+  rule substituteBRPs(\top(), RP, Vs, RHS) => \top()
+  rule substituteBRPs(\bottom(), RP, Vs, RHS) => \bottom()
+  rule substituteBRPs(\equals(P1, P2), RP, Vs, RHS)
+    => \equals( substituteBRPs(P1, RP, Vs, RHS)
+              , substituteBRPs(P2, RP, Vs, RHS)
+              )
+
+  rule substituteBRPs(\or(Ps), RP, Vs, RHS)  => \or(substituteBRPsPs(Ps, RP, Vs, RHS))
+  rule substituteBRPs(\and(Ps), RP, Vs, RHS) => \and(substituteBRPsPs(Ps, RP, Vs, RHS))
+
+  rule substituteBRPs(\exists { E } C, RP, Vs, RHS)
+    => \exists { E } substituteBRPs(C, RP, Vs, RHS)
+  rule substituteBRPs(\forall { E } C, RP, Vs, RHS)
+    => \forall { E } substituteBRPs(C, RP, Vs, RHS)
+
+  syntax Patterns ::= substituteBRPsPs(Patterns, RecursivePredicate, Patterns, Pattern) [function]
+  rule substituteBRPsPs(.Patterns, RP, Vs, RHS) => .Patterns
+  rule substituteBRPsPs((P, Ps), RP, Vs, RHS) => substituteBRPs(P, RP, Vs, RHS), substituteBRPsPs(Ps, RP, Vs, RHS):Patterns
+```
 
 ```k
   syntax Strategy ::= ktForEachBody(Pattern, Pattern, KTInstantiate)
@@ -99,19 +157,19 @@ for guessing an instantiation of the inductive hypothesis.
                => ktBRPResult( (\implies( \and( (LHS -Patterns (HEAD(LRP_ARGS), .Patterns)) ++Patterns
                                                 (BODY -Patterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
                                               )
-                                        , \exists {(listToBasicPatterns(values(INST_SUBST)) -Patterns getUniversalVariables(GOAL))} \and({(LHS -Patterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>Patterns)
+                                        , \exists {(listToPatterns(values(INST_SUBST)) -Patterns getUniversalVariables(GOAL))}
+                                          \and((LHS -Patterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ])
                                         ), .Patterns)
-                             , \exists { E1 ++Patterns (listToBasicPatterns(values(INST_SUBST)) -Patterns getUniversalVariables(GOAL))}
+                             , \exists { E1 ++Patterns (listToPatterns(values(INST_SUBST)) -Patterns getUniversalVariables(GOAL))}
                                \and( {(LHS -Patterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>Patterns
                      ++Patterns {RHS[zip(LRP_ARGS, BRP_ARGS)][INST_SUBST]}:>Patterns)
                              )
                   ...
        </strategy>
-       <trace> .K => "INST"  ... </trace>
 
-  syntax Patterns ::= listToBasicPatterns(List) [function]
-  rule listToBasicPatterns(.List) => .Patterns
-  rule listToBasicPatterns(ListItem(L) Ls) => L, listToBasicPatterns(Ls)
+  syntax Patterns ::= listToPatterns(List) [function]
+  rule listToPatterns(.List) => .Patterns
+  rule listToPatterns(ListItem(L) Ls) => L, listToPatterns(Ls)
 
   syntax Map ::= ktMakeInstantiationSubst(Pattern, Pattern, Pattern, KTInstantiate) [function]
   rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), RHS), useAffectedHeuristic)

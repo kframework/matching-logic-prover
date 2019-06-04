@@ -21,6 +21,7 @@ module PROVER-CORE-SYNTAX
                           | TerminalStrategy
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
+  syntax Strategy ::= "or-split" | "and-split"
 ```
 
 TODO: Should we allow `success` and `fail` in the program syntax? All other
@@ -177,6 +178,50 @@ approach succeeds:
      andBool notBool(isTerminalStrategy(S2))
 ```
 
+Internal strategy used to implement `or-split` and `and-split`.
+
+```k
+  syntax Strategy ::= "replace-goal" "(" Pattern ")"
+  rule <k> _ => NEWGOAL </k>
+       <strategy> replace-goal(NEWGOAL) => noop ... </strategy>
+```
+
+`or-split`: disjunction of implications:
+
+```
+                GOAL-1
+    -------------------------------
+        \or(GOAL-1, ..., GOAL-N)
+```
+
+```k
+  rule <k> \or(GOALS) </k>
+       <strategy> or-split => #orSplit(GOALS) ... </strategy>
+
+  syntax Strategy ::= "#orSplit" "(" Patterns ")" [function]
+  rule #orSplit(.Patterns) => noop
+  rule #orSplit(P, .Patterns) => replace-goal(P)
+  rule #orSplit(P, Ps) => replace-goal(P) | #orSplit(Ps) [owise]
+```
+
+`and-split`: conjunction of implications:
+
+```
+    GOAL-1         ...         GOAL-N
+    ---------------------------------
+        \and(GOAL-1, ..., GOAL-N)
+```
+
+```k
+  rule <k> \and(GOALS) </k>
+       <strategy> and-split => #andSplit(GOALS) ... </strategy>
+
+  syntax Strategy ::= "#andSplit" "(" Patterns ")" [function]
+  rule #andSplit(.Patterns) => noop
+  rule #andSplit(P:Pattern, .Patterns) => replace-goal(P)
+  rule #andSplit(P:Pattern, Ps) => replace-goal(P) & #andSplit(Ps) [owise]
+```
+
 If-then-else-fi strategy is useful for implementing other strategies:
 
 ```k
@@ -185,4 +230,3 @@ If-then-else-fi strategy is useful for implementing other strategies:
   rule if false then _  else S2 fi => S2
 endmodule
 ```
-

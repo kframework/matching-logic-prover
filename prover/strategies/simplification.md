@@ -7,13 +7,56 @@ module STRATEGY-SIMPLIFICATION
   imports KORE-HELPERS
 ```
 
-### Simplify
+### remove-lhs-existential
 
-Remove trivial clauses from the right-hand-side:
+```
+         phi -> psi
+  ----------------------- 
+  (\exists x. phi) -> psi
+```
 
 ```k
-  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS))
-       </k>
+  rule <k> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </k>
+       <strategy> remove-lhs-existential => noop ... </strategy>
+```
+
+### lift-or
+
+Lift `\or`s on the left hand sides of implications
+
+```
+  (A -> RHS) /\ (B -> RHS)
+  ------------------------
+        A \/ B -> RHS
+```
+
+```k
+  rule <k> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </k>
+       <strategy> lift-or => noop ... </strategy> 
+
+  syntax Patterns ::= "#liftOr" "(" Patterns "," Pattern ")" [function]
+  rule #liftOr(.Patterns, RHS) => .Patterns
+  rule #liftOr((LHS, LHSs), RHS) => \implies(LHS, RHS), #liftOr(LHSs, RHS)
+```
+
+### Simplify
+
+
+>       phi(x, y) -> psi(y)
+> -------------------------------
+> \exists X . phi(x, y) -> psi(y)
+
+```k
+  rule <k> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </k>
+       <strategy> simplify ... </strategy>
+```
+
+>    LHS /\ phi -> RHS
+> ------------------------
+> LHS /\ phi -> RHS /\ phi
+
+```k
+  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </k>
        <strategy> simplify => noop ... </strategy>
 ```
 
@@ -72,3 +115,4 @@ Remove trivial clauses from the right-hand-side:
 ```k
 endmodule
 ```
+
