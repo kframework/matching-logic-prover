@@ -12,7 +12,7 @@ module ML-TO-SMTLIB2
   imports KORE-SUGAR
   imports KORE-HELPERS
   imports PREDICATE-DEFINITIONS
-  
+
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
   rule ML2SMTLIB(\implies(\and(LHS), \and(RHS)))
     => declareVariables(removeDuplicates(getFreeVariables(LHS))) ++SMTLIB2Script
@@ -81,7 +81,7 @@ module ML-TO-SMTLIB2
        VariablesToSMTLIB2SortedVarList(Cs)
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
-    
+
   syntax SMTLIB2SimpleSymbol ::= "emptysetx"  [token]
                                | "unionx"     [token]
                                | "singleton"  [token]
@@ -116,18 +116,18 @@ module ML-TO-SMTLIB2
 
   syntax SMTLIB2Script ::= "CVC4Prelude" [function]
   rule CVC4Prelude
-    => ( ( define-sort SetInt (.SMTLIB2SortList) ( Set Int ) )  
-         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( as emptyset SetInt ) )  
-         ( define-fun in ( ( n Int )  ( x SetInt )  ) Bool ( member n  x) )  
-         ( define-fun unionx ( ( x SetInt )  ( y SetInt )  ) SetInt ( union x y  ) )  
-         ( define-fun intersectx ( ( x SetInt )  ( y SetInt )  ) SetInt ( intersection x  y  ) )  
+    => ( ( define-sort SetInt (.SMTLIB2SortList) ( Set Int ) )
+         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( as emptyset SetInt ) )
+         ( define-fun in ( ( n Int )  ( x SetInt )  ) Bool ( member n  x) )
+         ( define-fun unionx ( ( x SetInt )  ( y SetInt )  ) SetInt ( union x y  ) )
+         ( define-fun intersectx ( ( x SetInt )  ( y SetInt )  ) SetInt ( intersection x  y  ) )
          ( define-fun disjointx ( ( x SetInt )  ( y SetInt )  ) Bool ( = ( intersectx x  y  ) emptysetx ) )
          ( define-fun setAdd ( ( s SetInt )  ( x Int ) ) SetInt ( unionx s ( singleton x ):SMTLIB2Term ) )
          ( define-fun setDel ( ( s SetInt )  ( x Int ) ) SetInt ( setminus s ( singleton x ):SMTLIB2Term ) )
 
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
-       
+
   syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
 
   syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
@@ -144,7 +144,7 @@ module ML-TO-SMTLIB2
   rule declareUninterpretedFunctions( S:Predicate(ARGS), Fs )
     => SymbolDeclarationToSMTLIB2FunctionDeclaration(getSymbolDeclaration(S))
        declareUninterpretedFunctions( Fs -BasicPatterns filterByConstructor(Fs, S))
-       
+
   syntax SMTLIB2Command ::= SymbolDeclarationToSMTLIB2FunctionDeclaration(SymbolDeclaration) [function]
   rule SymbolDeclarationToSMTLIB2FunctionDeclaration(symbol NAME { } ( ARGS ) : RET)
     => ( declare-fun SymbolToSMTLIB2Symbol(NAME) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(RET) )
@@ -165,7 +165,7 @@ module STRATEGY-SMT
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports ML-TO-SMTLIB2
-  
+
   rule <k> GOAL </k>
        <strategy> smt-z3
                => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat

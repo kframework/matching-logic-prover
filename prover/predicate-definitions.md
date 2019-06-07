@@ -791,7 +791,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(variable("NEXT1", !I:Int) { Int },  plus(START1, 2))
                 , .Patterns
           )     )
-          
+
 endmodule
 ```
 

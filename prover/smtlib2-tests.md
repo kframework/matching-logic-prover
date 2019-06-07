@@ -4,7 +4,7 @@ requires "tangled/smt.k"
 
 module SMTLIB2-TESTS-SPEC
   imports SMT-TEST-DRIVER
-  
+
   syntax SMTLIB2SimpleSymbol ::= "a" [token]
                                | "b" [token]
                                | "c" [token]
@@ -20,7 +20,7 @@ module SMTLIB2-TESTS-SPEC
        </k>
        <z3>   .K => sat </z3>
        <cvc4> .K => sat </cvc4>
-       
+
   rule <k> (declare-const a Bool)
            (assert (= a true))
            (assert (= a false))

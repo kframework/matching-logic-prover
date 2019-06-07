@@ -25,7 +25,7 @@ Remove trivial clauses from the right-hand-side:
 
 ```k
   rule <k> \implies(\and(LHS), \and(RHS))
-        => #fun( INSTANTIATION => 
+        => #fun( INSTANTIATION =>
                    \implies( \and(LHS ++BasicPatterns INSTANTIATION)
                            , \and(RHS -BasicPatterns INSTANTIATION)
                            )

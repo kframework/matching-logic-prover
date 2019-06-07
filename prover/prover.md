@@ -43,7 +43,7 @@ only in this scenario*.
   syntax KItem ::= Variable
   syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
                     | "variable" "(" String "," Int ")" "{" Sort "}"
-  
+
   syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
                          | Variable
                          | "emptyset"       // Sugar for "\emptyset { T } ()"
@@ -346,7 +346,7 @@ Substitution:
   rule (F:UnaryFunctionSymbol(ARG)) [X/V] => F(ARG[X/V])
   rule (F:BinaryFunctionSymbol(ARG1, ARG2)) [X/V] => F(ARG1[X/V], ARG2[X/V])
   rule (F:TrinaryFunctionSymbol(ARG1, ARG2, ARG3)) [X/V] => F(ARG1[X/V], (ARG2[X/V]), (ARG3[X/V]))
-  
+
   syntax BasicPattern ::= BasicPattern "[" Map "]" [function]
   rule BP:BasicPattern[ (X |-> V):Map REST:Map ] => BP[X/V][REST:Map]
   rule BP:BasicPattern[ .Map ] => BP
@@ -382,7 +382,7 @@ module PROVER-CONFIGURATION
 
   syntax Pgm
   syntax Strategy
-  
+
   syntax GoalId ::= "root" | Int
 
   configuration
