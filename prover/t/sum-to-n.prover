@@ -13,7 +13,8 @@ claim \implies ( \and ( \equals(variable("N_INIT") { Int }, select(variable("H_I
                                          )
                       , .Patterns
                       )
-               , \and ( \equals(variable("S_FINAL") { Int }, select(variable("H_FINAL") { ArrayIntInt } , addr_S))
+               , \exists { variable("REDEX") { Int }, variable("N_FINAL") { Int }, variable("S_FINAL") { Int }, .Patterns}
+                 \and ( \equals(variable("S_FINAL") { Int }, select(variable("H_FINAL") { ArrayIntInt } , addr_S))
                       , \equals(variable("N_FINAL") { Int }, select(variable("H_FINAL") { ArrayIntInt } , addr_N)) 
                       , \equals(variable("REDEX") { Int }, div( mult( variable("N_INIT") { Int }
                                                                     , plus( variable("N_INIT") { Int }, 1)

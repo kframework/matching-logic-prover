@@ -10,7 +10,7 @@
       .
     </parent>
     <k>
-      \implies ( \and ( bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , .Patterns ) , .Patterns ) , \and ( bt ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( bt ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success

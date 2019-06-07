@@ -3,13 +3,14 @@ Definition of Recursive Predicates
 
 TODO: Ideally, this would live as part of the test files, perhaps as `axioms`.
 However, we currently use this in two differnt directions, one for
-left-unfolding and the other for right unfolding. Each unfold rule would thus be
+left-unfolding and the other for right unfolding. Each unfolddef rule would thus be
 equivalent to a set of axioms for each body: `BODY_i -> Predicate(ARGS)` and
 another axiom `Predicate(ARGS) -> or(BODIES)`.
 
 ```k
 module PREDICATE-DEFINITIONS
   imports KORE-SUGAR
+  imports KORE-HELPERS
   imports INT
 
   syntax RecursivePredicate ::= "listSegmentLeft"           [token]
@@ -54,37 +55,45 @@ module PREDICATE-DEFINITIONS
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Predicate) [function]
   syntax DisjunctiveForm ::= unfold(BasicPattern) [function]
+  rule unfold(P) => addExistentials(unfolddef(P), getFreeVariables(P, .Patterns))
+
+  syntax DisjunctiveForm ::= addExistentials(DisjunctiveForm, BasicPatterns) [function]
+  rule addExistentials(\or(Cs), VARS) => \or(addExistentials(Cs, VARS))
+  syntax ConjunctiveForms ::= addExistentials(ConjunctiveForms, BasicPatterns) [function]
+  rule addExistentials((\and(BODY), REST), VARS)
+    => \exists { getFreeVariables(BODY) -BasicPatterns VARS } \and(BODY)
+     , addExistentials(REST, VARS)
+  rule addExistentials(.ConjunctiveForms, VARS)
+    => .ConjunctiveForms
+  syntax DisjunctiveForm ::= unfolddef(BasicPattern) [function]
 
   rule getSymbolDeclaration(listSegmentLeft)
     => symbol listSegmentLeft { } ( ArrayIntInt, Int, Int, SetInt ) : Bool
-  rule unfold(listSegmentLeft(H,X,Y,F,.Patterns))
-       => \or( \and( \equals(X, Y)
-                   , \equals(F, emptyset)
-                   , .Patterns
-                   )
-             , \and( listSegmentLeft( H
-                                    , variable("X", !I:Int) { Int }
-                                    , Y
-                                    , variable("F", !I:Int) { SetInt }
-                                    , .Patterns
-                                    )
-                   , gt(X, 0)
-                   , \equals( select(H, X)
-                            , variable("X", !I:Int) { Int }
-                            )
-                   , \equals( F
-                            , union(variable("F", !I:Int) { SetInt } , singleton(X))
-                            )
-                   , disjoint(variable("F", !I:Int) { SetInt } , singleton(X))
-                   , .Patterns
-                   )
-             )
+  rule unfolddef(listSegmentLeft(H,X,Y,F,.Patterns))
+    => \or( \and( \equals(X, Y)
+                , \equals(F, emptyset)
+                , .Patterns
+                )
+          , \and( gt(X, 0)
+                , listSegmentLeft( H
+                                 , variable("X", !I:Int) { Int }
+                                 , Y
+                                 , variable("F", !I:Int) { SetInt }
+                                 , .Patterns
+                                 )
+                , \equals(select(H, X), variable("X", !I:Int) { Int })
+                , \equals(F, union(variable("F", !I:Int) { SetInt } , singleton(X)))
+                , disjoint(variable("F", !I:Int) { SetInt } , singleton(X))
+                , .Patterns
+                )
+          )
 
   rule getSymbolDeclaration(listSegmentLeftSorted)
     => symbol listSegmentLeftSorted { } ( ArrayIntInt, Int, Int, SetInt, Int, Int ) : Bool
-  rule unfold(listSegmentLeftSorted(H, X, Y, F, PREV_VAL, MAX, .Patterns))
+  rule unfolddef(listSegmentLeftSorted(H, X, Y, F, PREV_VAL, MAX, .Patterns))
     => \or( \and( \equals(X, Y)
                 , \equals(F, emptyset)
+                , \not(gt(PREV_VAL, MAX))
                 , .Patterns
                 )
           , \and( listSegmentLeftSorted( H
@@ -111,7 +120,7 @@ module PREDICATE-DEFINITIONS
   /* listSegmentRight */
   rule getSymbolDeclaration(listSegmentRight)
     => symbol listSegmentRight { } ( ArrayIntInt, Int, Int, SetInt ) : Bool
-  rule unfold(listSegmentRight(H,X,Y,F,.Patterns))
+  rule unfolddef(listSegmentRight(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -138,7 +147,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(listSegmentRightLength)
     => symbol listSegmentRightLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
-  rule unfold(listSegmentRightLength(H,X,Y,F,LENGTH,.Patterns))
+  rule unfolddef(listSegmentRightLength(H,X,Y,F,LENGTH,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , \equals(LENGTH, 0)
@@ -168,13 +177,13 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(isEmpty)
     => symbol isEmpty { } ( SetInt ) : Bool
-  rule unfold(isEmpty(S, .Patterns))
+  rule unfolddef(isEmpty(S, .Patterns))
     => \or ( \and ( \equals(S, emptyset), .Patterns ) )
 
   /* list */
   rule getSymbolDeclaration(list)
     => symbol list { } (ArrayIntInt, Int, SetInt) : Bool
-  rule unfold(list(H,X,F,.Patterns))
+  rule unfolddef(list(H,X,F,.Patterns))
        => \or( \and( \equals(X, 0)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -190,7 +199,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(listLength)
     => symbol listLength { } (ArrayIntInt, Int, SetInt, Int) : Bool
-  rule unfold(listLength(H,X,F, LENGTH,.Patterns))
+  rule unfolddef(listLength(H,X,F, LENGTH,.Patterns))
     => \or( \and( \equals(X, 0)
                 , \equals(F, emptyset)
                 , \equals(LENGTH, 0)
@@ -209,7 +218,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(listSorted)
     => symbol listSorted { } (ArrayIntInt, Int, SetInt, Int) : Bool
-  rule unfold(listSorted(H, X, F, PREV_VAL:BasicPattern, .Patterns))
+  rule unfolddef(listSorted(H, X, F, PREV_VAL:BasicPattern, .Patterns))
     => \or( \and( \equals(X, 0)
                 , \equals(F, emptyset)
                 , .Patterns
@@ -227,7 +236,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(listSortedLength)
     => symbol listSortedLength { } (ArrayIntInt, Int, SetInt, Int, Int) : Bool
-  rule unfold(listSortedLength(H, X, F, PREV_VAL, LENGTH, .Patterns))
+  rule unfolddef(listSortedLength(H, X, F, PREV_VAL, LENGTH, .Patterns))
     => \or( \and( \equals(X, 0)
                 , \equals(F, emptyset)
                 , \equals(LENGTH, 0)
@@ -255,7 +264,7 @@ module PREDICATE-DEFINITIONS
   /* bt */
   rule getSymbolDeclaration(bt)
     => symbol bt { } (ArrayIntInt, Int, SetInt) : Bool
-  rule unfold(bt(H,X,F,.Patterns))
+  rule unfolddef(bt(H,X,F,.Patterns))
        => \or( \and( \equals(X, 0)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -280,7 +289,7 @@ module PREDICATE-DEFINITIONS
   /* bst */
   rule getSymbolDeclaration(bst)
     => symbol bst { } (ArrayIntInt, Int, SetInt, Int, Int) : Bool
-  rule unfold(bst(H,X,F,MIN,MAX,.Patterns))
+  rule unfolddef(bst(H,X,F,MIN,MAX,.Patterns))
        => \or( \and( \equals(X,0)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -327,7 +336,7 @@ module PREDICATE-DEFINITIONS
 /* avl */
   rule getSymbolDeclaration(avl)
     => symbol avl { } (ArrayIntInt, Int, SetInt, Int, Int, Int, Int) : Bool
-  rule unfold(avl(H,X,F,MIN,MAX,Height,Balance,.Patterns))
+  rule unfolddef(avl(H,X,F,MIN,MAX,Height,Balance,.Patterns))
        => \or( \and( \equals(X,0)
                    , \equals(F, emptyset)
                    , \equals(Balance, 0)
@@ -394,7 +403,7 @@ module PREDICATE-DEFINITIONS
 /* dll */
   rule getSymbolDeclaration(dll)
     => symbol dll { } (ArrayIntInt, Int, SetInt) : Bool
-  rule unfold(dll(H,X,F,.Patterns))
+  rule unfolddef(dll(H,X,F,.Patterns))
        => \or( \and( \equals(X, 0)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -418,7 +427,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(dllLength)
     => symbol dllLength { } (ArrayIntInt, Int, SetInt, Int) : Bool
-  rule unfold(dllLength(H,X,F,L,.Patterns))
+  rule unfolddef(dllLength(H,X,F,L,.Patterns))
        => \or( \and( \equals(X, 0)
                    , \equals(L, 0)
                    , \equals(F, emptyset)
@@ -445,7 +454,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(dllSegmentLeft)
     => symbol dllSegmentLeft { } (ArrayIntInt, Int, Int, SetInt) : Bool
-  rule unfold(dllSegmentLeft(H,X,Y,F,.Patterns))
+  rule unfolddef(dllSegmentLeft(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -471,7 +480,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(dllSegmentLeftLength)
     => symbol dllSegmentLeftLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
-  rule unfold(dllSegmentLeftLength(H,X,Y,F,L,.Patterns))
+  rule unfolddef(dllSegmentLeftLength(H,X,Y,F,L,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(L, 0)
                    , \equals(F, emptyset)
@@ -500,7 +509,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(dllSegmentRightLength)
     => symbol dllSegmentRightLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
-  rule unfold(dllSegmentRightLength(H,X,Y,F,L,.Patterns))
+  rule unfolddef(dllSegmentRightLength(H,X,Y,F,L,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , \equals(L, 0)
@@ -532,7 +541,7 @@ module PREDICATE-DEFINITIONS
   /* find-list-seg */
   rule getSymbolDeclaration(find-list-seg)
     => symbol find-list-seg { } (ArrayIntInt, Int, Int, SetInt) : Bool
-  rule unfold(find-list-seg(H,X,Y,F,.Patterns))
+  rule unfolddef(find-list-seg(H,X,Y,F,.Patterns))
        => \or( \and( \equals(X, Y)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -558,7 +567,7 @@ module PREDICATE-DEFINITIONS
   /* find-list */
   rule getSymbolDeclaration(find-list)
     => symbol find-list { } (ArrayIntInt, Int, SetInt) : Bool
-  rule unfold(find-list(H,X,F,.Patterns))
+  rule unfolddef(find-list(H,X,F,.Patterns))
        => \or( \and( \equals(X, 0)
                    , \equals(F, emptyset)
                    , .Patterns
@@ -575,7 +584,7 @@ module PREDICATE-DEFINITIONS
   /* find-find */
   rule getSymbolDeclaration(find-find)
     => symbol find-find { } (Int, Int, SetInt) : Bool
-  rule unfold(find-find(DATA, RET, F, .Patterns))
+  rule unfolddef(find-find(DATA, RET, F, .Patterns))
     => \or( \and( gt(RET, 0)
                 , \equals(RET, DATA)
                 , isMember(DATA, F)
@@ -612,7 +621,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(step)
     => symbol step { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt) : Bool
-  rule unfold(step(PGM, PC0, HEAP0, PC1, HEAP1, .Patterns))
+  rule unfolddef(step(PGM, PC0, HEAP0, PC1, HEAP1, .Patterns))
     => \or( \and( opCodeIs(PC0, PGM, skip)
                 , incrementPC(PC0, PC1, 1)
                 , \equals(HEAP1, HEAP0)
@@ -654,7 +663,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(reachableInNSteps)
     => symbol reachableInNSteps { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
-  rule unfold(reachableInNSteps(PGM, PC_INIT, HEAP_INIT, PC_FINAL, HEAP_FINAL, N, .Patterns))
+  rule unfolddef(reachableInNSteps(PGM, PC_INIT, HEAP_INIT, PC_FINAL, HEAP_FINAL, N, .Patterns))
     => \or( \and( gt(select(HEAP_INIT, addr_N), 0)
                 , \equals( variable("HEAP_NEXT", !I:Int) { ArrayIntInt }
                          , store(
@@ -689,7 +698,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(sumToNPGM)
     => symbol sumToNPGM { } (ArrayIntInt) : Bool
-  rule unfold(sumToNPGM(PGM, .Patterns))
+  rule unfolddef(sumToNPGM(PGM, .Patterns))
     => \or( \and( \equals(select(PGM, pc_init +Int 0), cjump)
                 , \equals(select(PGM, pc_init +Int 1), addr_N)
                 , \equals(select(PGM, pc_init +Int 2), pc_loop)
@@ -713,7 +722,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(sumToNState)
     => symbol sumToNState { } (ArrayIntInt, Int, Int, Int) : Bool
-  rule unfold(sumToNState( HEAP , PC , N , S , .Patterns ))
+  rule unfolddef(sumToNState( HEAP , PC , N , S , .Patterns ))
     => \or( \and( \equals(N, select(HEAP, addr_N))
                 , \equals(S, select(HEAP, addr_S))
                 , .Patterns
@@ -722,7 +731,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(sum)
     => symbol sum { } (Int, Int, Int, Int) : Bool
-  rule unfold(sum(LOWER, UPPER, INITIAL, PARTIAL_SUM, .Patterns))
+  rule unfolddef(sum(LOWER, UPPER, INITIAL, PARTIAL_SUM, .Patterns))
     => \or( \and( gt(LOWER, UPPER)
                 , \equals(PARTIAL_SUM, INITIAL)
                 , .Patterns
@@ -739,7 +748,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(sum)
     => symbol sum { } (ArrayIntInt, Int) : Bool
-  rule unfold(zeros(HEAP, START, .Patterns))
+  rule unfolddef(zeros(HEAP, START, .Patterns))
     => \or ( \and( \equals(select(HEAP, START), 0)
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
                  , zeros(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
@@ -747,7 +756,7 @@ module PREDICATE-DEFINITIONS
            )     )
   rule getSymbolDeclaration(ones)
     => symbol ones { } (ArrayIntInt, Int) : Bool
-  rule unfold(ones(HEAP, START, .Patterns))
+  rule unfolddef(ones(HEAP, START, .Patterns))
     => \or ( \and( \equals(select(HEAP, START), 1)
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
                  , ones(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
@@ -755,7 +764,7 @@ module PREDICATE-DEFINITIONS
            )     )
   rule getSymbolDeclaration(alternating)
     => symbol alternating { } (ArrayIntInt, Int) : Bool
-  rule unfold(alternating(HEAP, START, .Patterns))
+  rule unfolddef(alternating(HEAP, START, .Patterns))
     => \or ( \and( alternating(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , \equals(select(HEAP,      START    ), 0)
                  , \equals(select(HEAP, plus(START, 1)), 1)
@@ -765,7 +774,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(zip)
     => symbol zip { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
-  rule unfold(zip(HEAP0, START0, HEAP1, START1 // Input streams
+  rule unfolddef(zip(HEAP0, START0, HEAP1, START1 // Input streams
                  , HEAP, START                 // Output streams
                  , .Patterns)
              )
@@ -781,7 +790,7 @@ module PREDICATE-DEFINITIONS
 
   rule getSymbolDeclaration(same)
     => symbol same { } (ArrayIntInt, Int, ArrayIntInt, Int) : Bool
-  rule unfold(same(HEAP0, START0, HEAP1, START1, .Patterns))
+  rule unfolddef(same(HEAP0, START0, HEAP1, START1, .Patterns))
     => \or( \and( same( HEAP0, variable("NEXT0", !I:Int) { Int }
                       , HEAP1, variable("NEXT1", !I:Int) { Int }
                       , .Patterns)

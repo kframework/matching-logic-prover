@@ -8,7 +8,8 @@ claim \implies( \and( find-list( variable("H0") { ArrayIntInt }
                     , \equals( variable("TMP") { Int }, 0 )
                     , .Patterns
                     )
-              , \and( find-list-seg( variable("H0") { ArrayIntInt }
+              , \exists { variable("F1") { SetInt }, variable("F2") { SetInt }, variable("DATA") { Int }, .Patterns }
+                \and( find-list-seg( variable("H0") { ArrayIntInt }
                                    , variable("OLDX") { Int }
                                    , variable("X") { Int }
                                    , variable("F1") { SetInt }

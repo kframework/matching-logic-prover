@@ -11,8 +11,8 @@ module PROVER-HORN-CLAUSE
   syntax Strategy ::= "left-unfold-eachBody"  "(" BasicPattern "," DisjunctiveForm ")"
                     | "left-unfold-oneBody"   "(" BasicPattern "," ConjunctiveForm ")"
 
-  rule <strategy> left-unfold-eachBody(LRP, \or(\and(BODY), BODIES:ConjunctiveForms))
-               => left-unfold-oneBody(LRP, \and(BODY))
+  rule <strategy> left-unfold-eachBody(LRP, \or(BODY, BODIES:ConjunctiveForms))
+               => left-unfold-oneBody(LRP, BODY)
                 & left-unfold-eachBody(LRP, \or(BODIES))
                   ...
        </strategy>
@@ -24,7 +24,7 @@ module PROVER-HORN-CLAUSE
   rule <k> \implies(\and(LHS), RHS)
         => \implies(\and((LHS -BasicPatterns (LRP, .Patterns)) ++BasicPatterns BODY), RHS)
        </k>
-       <strategy> left-unfold-oneBody(LRP, \and(BODY)) => noop ... </strategy>
+       <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
 ```
 
@@ -76,7 +76,7 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => right-unfold-eachRRP(getPredicates(RHS))
                   ...
        </strategy>
-       <k> \implies(LHS, \and(RHS)) </k>
+       <k> \implies(LHS, \exists { _ } \and(RHS)) </k>
   rule <strategy> right-unfold-eachRRP(P, PS)
                => right-unfold-eachBody(P, unfold(P))
                 | right-unfold-eachRRP(PS)
@@ -86,8 +86,8 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => fail
                   ...
        </strategy>
-  rule <strategy> right-unfold-eachBody(RRP, \or(\and(BODY), BODIES:ConjunctiveForms))
-               => right-unfold-oneBody(RRP, \and(BODY))
+  rule <strategy> right-unfold-eachBody(RRP, \or(BODY, BODIES:ConjunctiveForms))
+               => right-unfold-oneBody(RRP, BODY)
                 | right-unfold-eachBody(RRP, \or(BODIES))
                   ...
        </strategy>
@@ -98,11 +98,12 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 ```
 
 ```k
-  rule <k> \implies(LHS, \and(RHS))
-        => \implies(LHS, \and((RHS -BasicPatterns (RRP, .Patterns)) ++BasicPatterns BODY))
+  rule <k> \implies(LHS, \exists { E1 } \and(RHS))
+        => \implies(LHS, \exists { E1 ++BasicPatterns E2 }
+                         \and((RHS -BasicPatterns (RRP, .Patterns)) ++BasicPatterns BODY))
        </k>
-       <strategy> right-unfold-oneBody(RRP, \and(BODY)) => noop ... </strategy>
-       <trace> .K => right-unfold-oneBody(RRP, \and(BODY)) ... </trace>
+       <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
+       <trace> .K => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) ... </trace>
 ```
 
 ### Right-Unfold-Nth
@@ -122,29 +123,34 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
 
   rule <strategy> right-unfold-Nth (M,N)
                => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
-       ...</strategy>
-       <k> \implies(LHS,\and(RHS)) </k>
+                  ...
+       </strategy>
+       <k> \implies(LHS,\exists {_ } \and(RHS)) </k>
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
     requires getLength(RRPs) <=Int M
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
                => right-unfold-Nth-eachBody(M, N, getMember(M, RRPs), unfold(getMember(M, RRPs)))
-       ...</strategy>
+                  ...
+       </strategy>
     requires getLength(RRPs) >Int M
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => fail
-       ...</strategy>
+                  ...
+       </strategy>
     requires getLength(Bodies) <=Int N
 
   rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
                => right-unfold-Nth-oneBody(M, N, RRP, getMember(N, Bodies))
-       ...</strategy>
+                  ...
+       </strategy>
     requires getLength(Bodies) >Int N
 
   rule <strategy> right-unfold-Nth-oneBody(M, N, RRP, Body)
-               => right-unfold-oneBody(RRP, Body) ...
+               => right-unfold-oneBody(RRP, Body)
+                  ...
        </strategy>
 ```
 

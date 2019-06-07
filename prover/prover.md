@@ -74,6 +74,7 @@ only in this scenario*.
                         | "\\not"    "(" BasicPattern ")"
 
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")" [klabel(\and)]
+                           | "\\exists" "{" BasicPatterns "}" ConjunctiveForm [klabel(\exists)]
   syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
   syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")"
   syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [prefer, klabel(\implies)]
@@ -88,6 +89,7 @@ only in this scenario*.
                    | "\\implies" "(" Pattern "," Pattern ")" [klabel(\implies)]
                    | "\\and"     "(" Patterns ")"            [klabel(\and)]
                    | "\\not"     "(" Pattern ")"
+
 
                    // LTL&CTL concrete syntax
                    | "wnext" "(" Pattern ")"
@@ -178,6 +180,9 @@ module KORE-HELPERS
   rule getFreeVariables(\or(.ConjunctiveForms), .Patterns)
     => .Patterns
 
+  rule getFreeVariables(\exists { EXISTENTIALS } P,  .Patterns)
+    => getFreeVariables(P, .Patterns) -BasicPatterns EXISTENTIALS
+
   rule getFreeVariables(N:Int, .Patterns) => .Patterns
   rule getFreeVariables(emptyset, .Patterns) => .Patterns
   rule getFreeVariables(\top(), .Patterns) => .Patterns
@@ -219,6 +224,13 @@ module KORE-HELPERS
     => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(del(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
+
+  syntax BasicPatterns ::= getUniversalVariables(ImplicativeForm) [function]
+  rule getUniversalVariables(GOAL) => getFreeVariables(GOAL, .Patterns)
+
+  syntax BasicPatterns ::= getExistentialVariables(ImplicativeForm) [function]
+  rule getExistentialVariables(\implies(\and(LHS), \exists { EXISTENTIALS } \and(RHS)) #as GOAL)
+    => EXISTENTIALS
 ```
 
 ```k
@@ -286,8 +298,9 @@ and values, passed to K's substitute.
   rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
     => R(ARGS), getRecursivePredicates(REST)
   rule getRecursivePredicates(\and(Ps), REST)
-    =>                 getRecursivePredicates(Ps)
-       ++BasicPatterns getRecursivePredicates(REST)
+    => getRecursivePredicates(Ps) ++BasicPatterns getRecursivePredicates(REST)
+  rule getRecursivePredicates(\exists { _ } \and(Ps), REST)
+    => getRecursivePredicates(Ps) ++BasicPatterns getRecursivePredicates(REST)
   rule getRecursivePredicates(PATTERN:BasicPattern, REST)
     => getRecursivePredicates(REST)
        [owise]
@@ -299,8 +312,9 @@ and values, passed to K's substitute.
   rule getPredicates(R:Predicate(ARGS), REST)
     => R(ARGS), getPredicates(REST)
   rule getPredicates(\and(Ps), REST)
-    =>                 getPredicates(Ps)
-       ++BasicPatterns getPredicates(REST)
+    => getPredicates(Ps) ++BasicPatterns getPredicates(REST)
+  rule getPredicates(\exists { _ } \and(Ps), REST)
+    => getPredicates(Ps) ++BasicPatterns getRecursivePredicates(REST)
   rule getPredicates(PATTERN:BasicPattern, REST)
     => getPredicates(REST)
        [owise]
@@ -657,6 +671,15 @@ module PROVER-DRIVER
         => PATTERN
        </k>
        <strategy> _ => STRAT </strategy>
+```
+
+Normalize ImplicativeForms:
+
+```k
+  rule <k> \implies(LHS, \and(RHS):ConjunctiveForm => \exists { .Patterns } \and(RHS)) </k>
+```
+
+```k
 endmodule
 ```
 

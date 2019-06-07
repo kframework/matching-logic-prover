@@ -91,28 +91,27 @@ for guessing an instantiation of the inductive hypothesis.
                   ...
        </strategy>
   rule <strategy> ktEachBRP(LRP, BODY, .Patterns, INSTANTIATION)
-               => ktBRPResult(.Patterns, \and(.Patterns)) ...
+               => ktBRPResult(.Patterns, \exists { .Patterns } \and(.Patterns)) ...
        </strategy>
 
-  rule <k> \implies(\and(LHS), \and(RHS)) #as GOAL </k>
-       <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \and(BODY), HEAD(BRP_ARGS), INST_SUBST)
+  rule <k> \implies(\and(LHS), \exists { E1 } \and(RHS)) #as GOAL </k>
+       <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \exists { E2 } \and(BODY), HEAD(BRP_ARGS), INST_SUBST)
                => ktBRPResult( (\implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns)) ++BasicPatterns
-                                          (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
-                                        )
-                                  , \and({(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>BasicPatterns)
-                                  ), .Patterns)
-                             , \and( {(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>BasicPatterns
-                     ++BasicPatterns {RHS[zip(LRP_ARGS, BRP_ARGS)][INST_SUBST][makeFreshSubstitution(getExistentialVariables(GOAL))]}:>BasicPatterns)
+                                                (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
+                                              )
+                                        , \exists {(listToBasicPatterns(values(INST_SUBST)) -BasicPatterns getUniversalVariables(GOAL))} \and({(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>BasicPatterns)
+                                        ), .Patterns)
+                             , \exists { E1 ++BasicPatterns (listToBasicPatterns(values(INST_SUBST)) -BasicPatterns getUniversalVariables(GOAL))}
+                               \and( {(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>BasicPatterns
+                     ++BasicPatterns {RHS[zip(LRP_ARGS, BRP_ARGS)][INST_SUBST]}:>BasicPatterns)
                              )
                   ...
        </strategy>
+       <trace> .K => "INST"  ... </trace>
 
-  syntax BasicPatterns ::= getUniversalVariables(ImplicativeForm) [function]
-  rule getUniversalVariables(\implies(\and(LHS), \and(RHS))) => getFreeVariables(LHS)
-
-  syntax BasicPatterns ::= getExistentialVariables(ImplicativeForm) [function]
-  rule getExistentialVariables(\implies(\and(LHS), \and(RHS)) #as GOAL)
-    => getFreeVariables(RHS) -BasicPatterns getUniversalVariables(GOAL)
+  syntax BasicPatterns ::= listToBasicPatterns(List) [function]
+  rule listToBasicPatterns(.List) => .Patterns
+  rule listToBasicPatterns(ListItem(L) Ls) => L, listToBasicPatterns(Ls)
 
   syntax Map ::= ktMakeInstantiationSubst(PredicatePattern, PredicatePattern, ImplicativeForm, KTInstantiate) [function]
   rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), RHS), useAffectedHeuristic)
@@ -127,10 +126,11 @@ for guessing an instantiation of the inductive hypothesis.
 Two consecutive ktBRPResults are consolidated into a single one.
 
 ```k
-  rule <strategy>    ktBRPResult(PREMISES1, \and(CONCL_FRAGS1))
-                  ~> ktBRPResult(PREMISES2, \and(CONCL_FRAGS2))
+  rule <strategy>    ktBRPResult(PREMISES1, \exists {E1 } \and(CONCL_FRAGS1))
+                  ~> ktBRPResult(PREMISES2, \exists {E2 } \and(CONCL_FRAGS2))
                => ktBRPResult( PREMISES1 ++Patterns PREMISES2
-                             , \and(CONCL_FRAGS1 ++BasicPatterns CONCL_FRAGS2)
+                             , \exists { removeDuplicates( E1 ++BasicPatterns E2 ) }
+                               \and(CONCL_FRAGS1 ++BasicPatterns CONCL_FRAGS2)
                              )
                   ...
        </strategy>
@@ -175,7 +175,7 @@ goals, including both the premises and the conclusion:
                    )
            ...
        </k>
-       <strategy> ktGoals(\and(BODY), HEAD:RecursivePredicate(LRP_ARGS), .Patterns, \and(CONCL_FRAGS))
+       <strategy> ktGoals(\exists { _ } \and(BODY), HEAD:RecursivePredicate(LRP_ARGS), .Patterns, \exists { _ } \and(CONCL_FRAGS))
                => noop
                   ...
        </strategy>

@@ -14,11 +14,11 @@ module ML-TO-SMTLIB2
   imports PREDICATE-DEFINITIONS
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
-  rule ML2SMTLIB(\implies(\and(LHS), \and(RHS)))
-    => declareVariables(removeDuplicates(getFreeVariables(LHS))) ++SMTLIB2Script
+  rule ML2SMTLIB(\implies(\and(LHS), \exists { _ } \and(RHS)) #as GOAL )
+    => declareVariables(getUniversalVariables(GOAL)) ++SMTLIB2Script
        declareUninterpretedFunctions(removeDuplicates(getPredicates(LHS ++BasicPatterns RHS))) ++SMTLIB2Script
        ( assert PatternToSMTLIB2Term(\and(LHS)) ) ++SMTLIB2Script
-       ( assert (forall (VariablesToSMTLIB2SortedVarList(variable("dummyVar") { Bool }, (getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS))))
+       ( assert (forall (VariablesToSMTLIB2SortedVarList(variable("dummyVar") { Bool }, getExistentialVariables(GOAL)))
                           ( not PatternToSMTLIB2Term(\and(RHS)) )
        )        )
 
@@ -182,10 +182,11 @@ module STRATEGY-SMT
 
   rule <k> GOAL </k>
        <strategy> smt-cvc4
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
-                  then success
-                  else fail
-                  fi
+               => (CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL))
+             //   => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+             //      then success
+             //      else fail
+             //      fi
                   ...
        </strategy>
        <trace> .K => smt-cvc4 ... </trace>

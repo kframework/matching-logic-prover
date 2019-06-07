@@ -10,7 +10,7 @@
       .
     </parent>
     <k>
-      \implies ( \and ( find-list ( variable ( "H0" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F0" ) { SetInt } , .Patterns ) , \equals ( variable ( "X" ) { Int } , variable ( "OLDX" ) { Int } ) , \equals ( variable ( "TMP" ) { Int } , 0 ) , .Patterns ) , \and ( find-list-seg ( variable ( "H0" ) { ArrayIntInt } , variable ( "OLDX" ) { Int } , variable ( "X" ) { Int } , variable ( "F1" ) { SetInt } , .Patterns ) , disjoint ( variable ( "F1" ) { SetInt } , variable ( "F2" ) { SetInt } ) , \not ( isMember ( variable ( "DATA" ) { Int } , variable ( "F1" ) { SetInt } ) ) , .Patterns ) )
+      \implies ( \and ( find-list ( variable ( "H0" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F0" ) { SetInt } , .Patterns ) , \equals ( variable ( "X" ) { Int } , variable ( "OLDX" ) { Int } ) , \equals ( variable ( "TMP" ) { Int } , 0 ) , .Patterns ) , \exists { variable ( "F1" ) { SetInt } , variable ( "F2" ) { SetInt } , variable ( "DATA" ) { Int } , .Patterns } \and ( find-list-seg ( variable ( "H0" ) { ArrayIntInt } , variable ( "OLDX" ) { Int } , variable ( "X" ) { Int } , variable ( "F1" ) { SetInt } , .Patterns ) , disjoint ( variable ( "F1" ) { SetInt } , variable ( "F2" ) { SetInt } ) , \not ( isMember ( variable ( "DATA" ) { Int } , variable ( "F1" ) { SetInt } ) ) , .Patterns ) )
     </k>
     <strategy>
       success

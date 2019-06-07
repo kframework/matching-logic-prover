@@ -12,8 +12,7 @@ module STRATEGY-SIMPLIFICATION
 Remove trivial clauses from the right-hand-side:
 
 ```k
-  rule <k> \implies(\and(LHS), \and(RHS))
-        => \implies(\and(LHS), \and(RHS -BasicPatterns LHS)) ...
+  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -BasicPatterns LHS))
        </k>
        <strategy> simplify => noop ... </strategy>
 ```
@@ -24,28 +23,35 @@ Remove trivial clauses from the right-hand-side:
     => LHS /\ x = t(...) -> REST
 
 ```k
-  rule <k> \implies(\and(LHS), \and(RHS))
+  rule <k> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL
         => #fun( INSTANTIATION =>
                    \implies( \and(LHS ++BasicPatterns INSTANTIATION)
-                           , \and(RHS -BasicPatterns INSTANTIATION)
+                           , \exists { EXIST -BasicPatterns getFreeVariables(INSTANTIATION) }
+                             \and(RHS -BasicPatterns INSTANTIATION)
                            )
                )
                ( getAtomForcingInstantiation( RHS
-                                            , getFreeVariables(LHS)
-                                            , getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS)
+                                            , getUniversalVariables(GOAL)
+                                            , getExistentialVariables(GOAL)
                                             )
                )
        </k>
        <strategy> instantiate-existentials ... </strategy>
+       <trace> .K => ( getAtomForcingInstantiation( RHS
+                                            , getUniversalVariables(GOAL)
+                                            , getExistentialVariables(GOAL)
+                                            )
+               )
+               ...
+       </trace>
        [owise]
 
-  rule <k> \implies(\and(LHS), \and(RHS))
-       </k>
+  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS)) #as GOAL </k>
        <strategy> instantiate-existentials => noop ... </strategy>
     requires .Patterns
          ==K getAtomForcingInstantiation( RHS
-                                        , getFreeVariables(LHS)
-                                        , getFreeVariables(RHS) -BasicPatterns getFreeVariables(LHS)
+                                        , getUniversalVariables(GOAL)
+                                        , getExistentialVariables(GOAL)
                                         )
 
   syntax BasicPatterns ::= getAtomForcingInstantiation(BasicPatterns, BasicPatterns, BasicPatterns) [function]

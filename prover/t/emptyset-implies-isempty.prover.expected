@@ -10,7 +10,7 @@
       .
     </parent>
     <k>
-      \implies ( \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , \and ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success
