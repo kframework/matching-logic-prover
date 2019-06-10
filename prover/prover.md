@@ -230,7 +230,7 @@ module KORE-HELPERS
   rule getFreeVariables(del(P1, P2), .Patterns)
     => getFreeVariables(P1, P2, .Patterns)
 
-  syntax BasicPatterns ::= getUniversalVariables(ImplicativeForm) [function]
+  syntax BasicPatterns ::= getUniversalVariables(Pattern) [function]
   rule getUniversalVariables(GOAL) => getFreeVariables(GOAL, .Patterns)
 
   syntax BasicPatterns ::= getExistentialVariables(ImplicativeForm) [function]
