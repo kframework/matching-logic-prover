@@ -352,29 +352,40 @@ and values, passed to K's substitute.
 Substitution:
 
 ```k
-  syntax BasicPattern ::= BasicPattern "[" Variable "/" BasicPattern "]" [function]
-  rule X:Variable[X/V] => V
+  syntax Pattern ::= Pattern "[" Variable "/" BasicPattern "]" [function]
+  rule X[X/V] => V
   rule X:Variable[Y/V] => X requires X =/=K Y
   rule \top()[_/_] => \top()
   rule \bottom()[_/_] => \bottom()
-  rule \equals(ARG1, ARG2) [X/V] => \equals(ARG1[X/V], ARG2[X/V])
+  rule \equals(ARG1, ARG2) [X/V] => \equals({ARG1[X/V]}:>BasicPattern, {ARG2[X/V]}:>BasicPattern)
   rule \not(ARG) [X/V] => \not(ARG[X/V])
+    requires ARG =/=K X
+  rule \and(ARG:BasicPatterns)[X/V] => \and({ARG[X/V]}:>BasicPatterns)
   rule I:Int [X/V] => I
   rule emptyset [X/V] => emptyset
-  rule (P:Predicate(ARGS)) [X/V] => P(ARGS[X/V])
-  rule (F:UnaryFunctionSymbol(ARG)) [X/V] => F(ARG[X/V])
-  rule (F:BinaryFunctionSymbol(ARG1, ARG2)) [X/V] => F(ARG1[X/V], ARG2[X/V])
-  rule (F:TrinaryFunctionSymbol(ARG1, ARG2, ARG3)) [X/V] => F(ARG1[X/V], (ARG2[X/V]), (ARG3[X/V]))
 
-  syntax BasicPattern ::= BasicPattern "[" Map "]" [function]
-  rule BP:BasicPattern[ (X |-> V):Map REST:Map ] => BP[X/V][REST:Map]
-  rule BP:BasicPattern[ .Map ] => BP
+  rule (P:Predicate(ARGS)                         #as T:Pattern) [X/V]
+    => P({ARGS[X/V]}:>BasicPatterns)
+    requires T =/=K X
+  rule (F:UnaryFunctionSymbol(ARG)                #as T:Pattern) [X/V]
+    => F({ARG[X/V]}:>BasicPattern)
+    requires T =/=K X
+  rule (F:BinaryFunctionSymbol(ARG1, ARG2)        #as T:Pattern) [X/V]
+    => F({ARG1[X/V]}:>BasicPattern, {ARG2[X/V]}:>BasicPattern)
+    requires T =/=K X
+  rule (F:TrinaryFunctionSymbol(ARG1, ARG2, ARG3) #as T:Pattern) [X/V]
+    => F({ARG1[X/V]}:>BasicPattern, {ARG2[X/V]}:>BasicPattern, {ARG3[X/V]}:>BasicPattern)
+    requires T =/=K X
 
-  syntax BasicPatterns ::= BasicPatterns "[" Map "]" [function]
+  syntax Pattern ::= Pattern "[" Map "]" [function]
+  rule BP:Pattern[ (X |-> V):Map REST:Map ] => BP[X/V][REST:Map]
+  rule BP:Pattern[ .Map ] => BP
+
+  syntax Patterns ::= Patterns "[" Map "]" [function]
   rule (BP, BPs)[SUBST] => BP[SUBST], (BPs[SUBST])
   rule .Patterns[SUBST] => .Patterns
 
-  syntax BasicPatterns ::= BasicPatterns "[" Variable "/" BasicPattern "]" [function]
+  syntax Patterns ::= Patterns "[" BasicPattern "/" BasicPattern "]" [function]
   rule (BP, BPs)[X/V] => BP[X/V], (BPs[X/V])
   rule .Patterns[X/V] => .Patterns
 ```
