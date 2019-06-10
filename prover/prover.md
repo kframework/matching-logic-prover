@@ -326,10 +326,6 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax Int ::= getLength(BasicPatterns) [function]
-  rule getLength(.Patterns) => 0
-  rule getLength(P:BasicPattern, Ps) => 1 +Int getLength(Ps)
-
   syntax BasicPattern ::= getMember(Int, BasicPatterns) [function]
   rule getMember(0, (P:BasicPattern, Ps)) => P
   rule getMember(N, (P:BasicPattern, Ps)) => getMember(N -Int 1, Ps)
@@ -339,9 +335,9 @@ and values, passed to K's substitute.
   rule getMembers((I, Is), Ps) => getMember(I, Ps), getMembers(Is, Ps)
   rule getMembers(.Ints, Ps) => .Patterns
 
-  syntax Int ::= getLength(ConjunctiveForms) [function]
-  rule getLength(.ConjunctiveForms) => 0
-  rule getLength(CF:ConjunctiveForm, CFs) => 1 +Int getLength(CFs)
+  syntax Int ::= getLength(Patterns) [function]
+  rule getLength(.Patterns) => 0
+  rule getLength(P, Ps) => 1 +Int getLength(Ps)
 
   syntax ConjunctiveForm ::= getMember(Int, ConjunctiveForms) [function]
   rule getMember(0, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => CF
