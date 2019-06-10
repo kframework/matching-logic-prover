@@ -75,8 +75,8 @@ only in this scenario*.
 
   syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")" [klabel(\and)]
                            | "\\exists" "{" BasicPatterns "}" ConjunctiveForm [klabel(\exists)]
-  syntax ConjunctiveForms ::= List{ConjunctiveForm, ","}
-  syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")"
+
+  syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")" [klabel(\or)]
   syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [prefer, klabel(\implies)]
 
   syntax Pattern ::= BasicPattern
@@ -90,15 +90,20 @@ only in this scenario*.
                    | "\\and"     "(" Patterns ")"            [klabel(\and)]
                    | "\\not"     "(" Pattern ")"
 
+                   | "\\forall" "{" BasicPatterns "}" Pattern [klabel(\forall)]
 
                    // LTL&CTL concrete syntax
                    | "wnext" "(" Pattern ")"
                    | "snext" "(" Pattern ")"
                    | "always" "(" Pattern ")"
 
-  syntax BasicPatterns ::= ".Patterns"
+  syntax BasicPatterns ::= ".Patterns" [klabel(.Patterns)]
                          | BasicPattern "," BasicPatterns [klabel(PatternCons), right]
+  syntax ConjunctiveForms ::= ".Patterns" [klabel(.Patterns)]
+                            | ".ConjunctiveForms" [klabel(.Patterns)]
+                            | ConjunctiveForm "," ConjunctiveForms [klabel(PatternCons), right]
   syntax Patterns      ::= BasicPatterns
+                         | ConjunctiveForms
                          | Pattern "," Patterns           [klabel(PatternCons), right]
 
   syntax Sorts ::= List{Sort, ","} [klabel(Sorts)]

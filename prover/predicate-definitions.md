@@ -86,7 +86,7 @@ module PREDICATE-DEFINITIONS
                 , disjoint(variable("F", !I:Int) { SetInt } , singleton(X))
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule getSymbolDeclaration(listSegmentLeftSorted)
     => symbol listSegmentLeftSorted { } ( ArrayIntInt, Int, Int, SetInt, Int, Int ) : Bool
@@ -115,7 +115,7 @@ module PREDICATE-DEFINITIONS
                 , \not(gt(variable("VAL", !I:Int) { Int }, MAX))
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   /* listSegmentRight */
   rule getSymbolDeclaration(listSegmentRight)
@@ -143,7 +143,7 @@ module PREDICATE-DEFINITIONS
                              )
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   rule getSymbolDeclaration(listSegmentRightLength)
     => symbol listSegmentRightLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
@@ -173,12 +173,12 @@ module PREDICATE-DEFINITIONS
                              )
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   rule getSymbolDeclaration(isEmpty)
     => symbol isEmpty { } ( SetInt ) : Bool
   rule unfolddef(isEmpty(S, .Patterns))
-    => \or ( \and ( \equals(S, emptyset), .Patterns ) )
+    => \or ( \and ( \equals(S, emptyset), .Patterns ) , .ConjunctiveForms)
 
   /* list */
   rule getSymbolDeclaration(list)
@@ -195,7 +195,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   rule getSymbolDeclaration(listLength)
     => symbol listLength { } (ArrayIntInt, Int, SetInt, Int) : Bool
@@ -214,7 +214,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule getSymbolDeclaration(listSorted)
     => symbol listSorted { } (ArrayIntInt, Int, SetInt, Int) : Bool
@@ -232,7 +232,7 @@ module PREDICATE-DEFINITIONS
                 , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule getSymbolDeclaration(listSortedLength)
     => symbol listSortedLength { } (ArrayIntInt, Int, SetInt, Int, Int) : Bool
@@ -259,7 +259,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   /* bt */
   rule getSymbolDeclaration(bt)
@@ -284,7 +284,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
                    , .Patterns
                    )
-              )
+              , .ConjunctiveForms)
 
   /* bst */
   rule getSymbolDeclaration(bst)
@@ -331,7 +331,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
                    , .Patterns
                    )
-              )
+              , .ConjunctiveForms)
 
 /* avl */
   rule getSymbolDeclaration(avl)
@@ -398,7 +398,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
                    , .Patterns
                    )
-              )
+              , .ConjunctiveForms)
 
 /* dll */
   rule getSymbolDeclaration(dll)
@@ -423,7 +423,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   rule getSymbolDeclaration(dllLength)
     => symbol dllLength { } (ArrayIntInt, Int, SetInt, Int) : Bool
@@ -450,7 +450,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   rule getSymbolDeclaration(dllSegmentLeft)
     => symbol dllSegmentLeft { } (ArrayIntInt, Int, Int, SetInt) : Bool
@@ -476,7 +476,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   rule getSymbolDeclaration(dllSegmentLeftLength)
     => symbol dllSegmentLeftLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
@@ -505,7 +505,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   rule getSymbolDeclaration(dllSegmentRightLength)
     => symbol dllSegmentRightLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
@@ -534,7 +534,7 @@ module PREDICATE-DEFINITIONS
                                      , singleton(X)))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
 /* find */
 
@@ -562,7 +562,7 @@ module PREDICATE-DEFINITIONS
                    , \not(isMember(variable("Y", !I:Int) { Int }, variable("F", !J:Int) { SetInt }))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   /* find-list */
   rule getSymbolDeclaration(find-list)
@@ -579,7 +579,7 @@ module PREDICATE-DEFINITIONS
                    , \not(isMember(X, variable("F", !J:Int) { SetInt }))
                    , .Patterns
                    )
-             )
+             , .ConjunctiveForms)
 
   /* find-find */
   rule getSymbolDeclaration(find-find)
@@ -594,7 +594,7 @@ module PREDICATE-DEFINITIONS
                 , \not(isMember(DATA, F))
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 ```
 
 ```k
@@ -659,7 +659,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(HEAP1, HEAP0)
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule getSymbolDeclaration(reachableInNSteps)
     => symbol reachableInNSteps { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
@@ -686,7 +686,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(N, 0)
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule addr_S => 1
   rule addr_N => 2
@@ -718,7 +718,7 @@ module PREDICATE-DEFINITIONS
 
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule getSymbolDeclaration(sumToNState)
     => symbol sumToNState { } (ArrayIntInt, Int, Int, Int) : Bool
@@ -727,7 +727,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(S, select(HEAP, addr_S))
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule getSymbolDeclaration(sum)
     => symbol sum { } (Int, Int, Int, Int) : Bool
@@ -744,7 +744,7 @@ module PREDICATE-DEFINITIONS
                          , plus(INITIAL, variable("UPPER", !I:Int) { Int }))
                 , .Patterns
                 )
-          )
+          , .ConjunctiveForms)
 
   rule getSymbolDeclaration(sum)
     => symbol sum { } (ArrayIntInt, Int) : Bool
@@ -753,7 +753,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
                  , zeros(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , .Patterns
-           )     )
+           )     , .ConjunctiveForms)
   rule getSymbolDeclaration(ones)
     => symbol ones { } (ArrayIntInt, Int) : Bool
   rule unfolddef(ones(HEAP, START, .Patterns))
@@ -761,7 +761,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
                  , ones(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , .Patterns
-           )     )
+           )     , .ConjunctiveForms)
   rule getSymbolDeclaration(alternating)
     => symbol alternating { } (ArrayIntInt, Int) : Bool
   rule unfolddef(alternating(HEAP, START, .Patterns))
@@ -770,7 +770,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(select(HEAP, plus(START, 1)), 1)
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 2))
                  , .Patterns
-           )     )
+           )     , .ConjunctiveForms)
 
   rule getSymbolDeclaration(zip)
     => symbol zip { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
@@ -786,7 +786,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(variable("NEXT0", !I:Int) { Int },  plus(START0, 1))
                  , \equals(variable("NEXT",  !I:Int) { Int },  plus(START,  1))
                  , .Patterns
-           )     )
+           )     , .ConjunctiveForms)
 
   rule getSymbolDeclaration(same)
     => symbol same { } (ArrayIntInt, Int, ArrayIntInt, Int) : Bool
@@ -799,7 +799,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(variable("NEXT0", !I:Int) { Int },  plus(START0, 2))
                 , \equals(variable("NEXT1", !I:Int) { Int },  plus(START1, 2))
                 , .Patterns
-          )     )
+          )     , .ConjunctiveForms)
 
 endmodule
 ```
