@@ -77,7 +77,7 @@ only in this scenario*.
                            | "\\exists" "{" BasicPatterns "}" ConjunctiveForm [klabel(\exists)]
 
   syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")" [klabel(\or)]
-  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [prefer, klabel(\implies)]
+  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [klabel(\implies)]
 
   syntax Pattern ::= BasicPattern
                    | ConjunctiveForm
