@@ -10,7 +10,7 @@
       .
     </parent>
     <k>
-      \implies ( \and ( listSegmentLeft ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , list ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { SetInt } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } ) , .Patterns ) , \exists { .Patterns } \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( listSegmentLeft ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , list ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { SetInt } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success
