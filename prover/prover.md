@@ -2,7 +2,6 @@
 requires "predicate-definitions.k"
 requires "strategies/direct-proof.k"
 requires "strategies/knaster-tarski.k"
-requires "strategies/ltl.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
@@ -50,11 +49,6 @@ only in this scenario*.
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(\exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(\forall)]
                    
-                    // LTL&CTL concrete syntax
-                    | "phi"
-                    | "wnext" "(" Pattern ")"
-                    | "snext" "(" Pattern ")"
-                    | "always" "(" Pattern ")"
 
   syntax Symbol ::= "emptyset"
   syntax Symbol ::= "singleton"
@@ -547,7 +541,6 @@ The driver is responsible for loading prover files into the configuration.
 module PROVER-SYNTAX
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
-  imports PROVER-LTL-SYNTAX
   imports KORE-SUGAR
   syntax Pgm ::= "claim" Pattern
                  "strategy" Strategy
@@ -582,14 +575,11 @@ Main Modules
 ```k
 module PROVER
   imports PROVER-DRIVER
-//  imports PROVER-HORN-CLAUSE
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION
   imports STRATEGY-DIRECT-PROOF
   imports STRATEGY-KNASTER-TARSKI
-
-  imports PROVER-LTL
 endmodule
 ```
 
