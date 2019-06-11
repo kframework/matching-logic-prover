@@ -182,11 +182,10 @@ module STRATEGY-SMT
 
   rule <k> GOAL </k>
        <strategy> smt-cvc4
-               => (CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL))
-             //   => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
-             //      then success
-             //      else fail
-             //      fi
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+                  then success
+                  else fail
+                  fi
                   ...
        </strategy>
        <trace> .K => smt-cvc4 ... </trace>
