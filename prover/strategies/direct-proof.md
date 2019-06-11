@@ -14,7 +14,7 @@ module STRATEGY-DIRECT-PROOF
 ```
 
 ```k
-  rule <k> \implies(LHS:ConjunctiveForm, _) </k>
+  rule <k> \implies(LHS, _) </k>
        <strategy> direct-proof => success  ... </strategy>
        <trace> .K => direct-proof ... </trace>
     requires triviallyUnsatisfiable(LHS)
@@ -22,7 +22,7 @@ module STRATEGY-DIRECT-PROOF
   syntax Bool ::= triviallyUnsatisfiable(Pattern) [function]
   rule triviallyUnsatisfiable(\equals(X:Int, Y:Int)) => X =/=Int Y
   rule triviallyUnsatisfiable(\and(.Patterns)) => false
-  rule triviallyUnsatisfiable(\and(BP, BPs:BasicPatterns))
+  rule triviallyUnsatisfiable(\and(BP, BPs:Patterns))
     =>        triviallyUnsatisfiable(BP)
        orBool triviallyUnsatisfiable(\and(BPs))
   rule triviallyUnsatisfiable(_) => false [owise]
@@ -36,7 +36,7 @@ module STRATEGY-DIRECT-PROOF
                    )
        </k>
        <strategy> direct-proof => success ... </strategy>
-     requires P inPatterns Ps1
+     requires P in Ps1
   rule <k> \implies(_, \top()) </k>
        <strategy> direct-proof => success ... </strategy>
 

@@ -1,6 +1,5 @@
 claim \implies( \and( always( \implies(phi, wnext(phi)))
                     , phi
-                    , .Patterns
                     )
               , always(phi)
               )
@@ -8,4 +7,3 @@ strategy kt-always ; and-intro ; flatten-conjunctions
                                ; ( direct-proof
                                  | and-intro ; left-unfold ; direct-proof
                                  )
-

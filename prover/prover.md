@@ -13,15 +13,6 @@ requires "substitution.k"
 Kore Sugar
 ==========
 
-The Matching Logic Prover operates at the meta level, over a version of Kore
-that has sorts elided for convenience. There are also additional syntactical
-categories for formulae in particular standard forms (`ImplicativeForm`,
-`ConjunctiveForm`, ...), and `\and` and `\or` are represented as an associative
-list of subpatterns.
-
-TODO: We assume that all free variables in an ImplicativeForm that are in the RHS
-but not in the LHS are existential. This should be explicit.
-
 ```k
 module KORE-SUGAR
   imports INT-SYNTAX
@@ -34,80 +25,51 @@ module KORE-SUGAR
                 | "SetInt"         [token]
 ```
 
-We allow two "varieties" of variables: the first, identified by a String, is for
+We allow two "variaties" of variables: the first, identified by a String, is for
 use in defining claims; the second, identified by a String and an Int subscript
 is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
 
 ```k
-  syntax KItem ::= Variable
   syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
                     | "variable" "(" String "," Int ")" "{" Sort "}"
+  syntax Pattern ::= Int
+                   | Variable
+                   | Symbol
+                   | Symbol "(" Patterns ")"                    [klabel(\apply)]
 
-  syntax AtomicPattern ::= Int              // Sugar for \dv{ "number", "Int" }
-                         | Variable
-                         | "emptyset"       // Sugar for "\emptyset { T } ()"
+                   | "\\top"    "(" ")"                         [klabel(\top)]
+                   | "\\bottom" "(" ")"                         [klabel(\bottom)]
+                   | "\\equals" "(" Pattern "," Pattern ")"     [klabel(\equals)]
+                   | "\\not"    "(" Pattern ")"                 [klabel(\not)]
 
-  // TODO: We need a uniform interface for these:
+                   | "\\and"    "(" Patterns ")"                [klabel(\and)]
+                   | "\\or"     "(" Patterns ")"                [klabel(\or)]
+                   | "\\implies" "(" Pattern "," Pattern ")"    [klabel(\implies)]
+
+                   | "\\exists" "{" Patterns "}" Pattern        [klabel(\exists)]
+                   | "\\forall" "{" Patterns "}" Pattern        [klabel(\forall)]
+                   
+                    // LTL&CTL concrete syntax
+                    | "phi"
+                    | "wnext" "(" Pattern ")"
+                    | "snext" "(" Pattern ")"
+                    | "always" "(" Pattern ")"
+
+  syntax Symbol ::= "emptyset"
+  syntax Symbol ::= "singleton"
+  syntax Symbol ::= "plus"| "minus"| "mult"| "div"| "gt"| "max" // Arith
+                  | "union" | "disjoint" | "disjointUnion" | "isMember" | "add" | "del" // Sets
+                  | "select" // Arrays
+  syntax Symbol ::= "store"
+  syntax Symbol ::= Predicate
   syntax RecursivePredicate
   syntax Predicate ::= RecursivePredicate
-  syntax FunctionSymbol ::= Predicate
-                          | UnaryFunctionSymbol
-                          | BinaryFunctionSymbol
-                          | TrinaryFunctionSymbol
-  syntax PredicatePattern ::= Predicate "(" BasicPatterns ")" [klabel(\apply)]
-  syntax FunctionPattern ::= PredicatePattern
-                           | UnaryFunctionSymbol "(" BasicPattern ")" [klabel(\apply)]
-                           | BinaryFunctionSymbol "(" BasicPattern "," BasicPattern ")" [klabel(\apply)]
-                           | TrinaryFunctionSymbol "(" BasicPattern "," BasicPattern "," BasicPattern ")" [klabel(\apply)]
-  syntax UnaryFunctionSymbol ::= "singleton"
-  syntax BinaryFunctionSymbol ::= "plus"| "minus"| "mult"| "div"| "gt"| "max" // Arith
-                                | "union" | "disjoint" | "disjointUnion" | "isMember" | "add" | "del" // Sets
-                                | "select" // Arrays
-  syntax TrinaryFunctionSymbol ::= "store"
 
-  syntax BasicPattern ::= AtomicPattern
-                        | FunctionPattern
-                        | "\\top"    "(" ")"
-                        | "\\bottom" "(" ")"
-                        | "\\equals" "(" BasicPattern "," BasicPattern ")"
-                        | "\\not"    "(" BasicPattern ")"
+  syntax Patterns ::= List{Pattern, ","}                        [klabel(Patterns)]
+  syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
 
-  syntax ConjunctiveForm ::= "\\and"     "(" BasicPatterns ")" [klabel(\and)]
-                           | "\\exists" "{" BasicPatterns "}" ConjunctiveForm [klabel(\exists)]
-
-  syntax DisjunctiveForm ::= "\\or"      "(" ConjunctiveForms ")" [klabel(\or)]
-  syntax ImplicativeForm ::= "\\implies" "(" ConjunctiveForm "," ConjunctiveForm ")" [klabel(\implies)]
-
-  syntax Pattern ::= BasicPattern
-                   | ConjunctiveForm
-                   | DisjunctiveForm
-                   | ImplicativeForm
-
-                   // General syntax
-                   | "phi"
-                   | "\\implies" "(" Pattern "," Pattern ")" [klabel(\implies)]
-                   | "\\and"     "(" Patterns ")"            [klabel(\and)]
-                   | "\\not"     "(" Pattern ")"
-
-                   | "\\forall" "{" BasicPatterns "}" Pattern [klabel(\forall)]
-
-                   // LTL&CTL concrete syntax
-                   | "wnext" "(" Pattern ")"
-                   | "snext" "(" Pattern ")"
-                   | "always" "(" Pattern ")"
-
-  syntax BasicPatterns ::= ".Patterns" [klabel(.Patterns)]
-                         | BasicPattern "," BasicPatterns [klabel(PatternCons), right]
-  syntax ConjunctiveForms ::= ".Patterns" [klabel(.Patterns)]
-                            | ".ConjunctiveForms" [klabel(.Patterns)]
-                            | ConjunctiveForm "," ConjunctiveForms [klabel(PatternCons), right]
-  syntax Patterns      ::= BasicPatterns
-                         | ConjunctiveForms
-                         | Pattern "," Patterns           [klabel(PatternCons), right]
-
-  syntax Sorts ::= List{Sort, ","} [klabel(Sorts)]
-  syntax SymbolDeclaration ::= "symbol" Predicate "{" "}" "(" Sorts ")" ":" Sort
+  syntax SymbolDeclaration ::= "symbol" Symbol "{" "}" "(" Sorts ")" ":" Sort
 endmodule
 ```
 
@@ -124,38 +86,21 @@ module KORE-HELPERS
 
   syntax String ::= SortToString(Sort) [function, functional, hook(STRING.token2string)]
 
-  syntax Bool ::= BasicPattern "in" BasicPatterns [function]
-  rule BP in (BP,  BP1s) => true
-  rule BP in (BP1, BP1s) => BP in BP1s requires BP =/=K BP1
-  rule BP in .Patterns   => false
-
-  syntax Bool ::= Pattern "inPatterns" Patterns [function]
-  rule P inPatterns (P,  P1s) => true
-  rule P inPatterns (P1, P1s) => P inPatterns P1s requires P =/=K P1
-  rule P inPatterns .Patterns => false
-
-  syntax BasicPatterns ::= BasicPatterns "++BasicPatterns" BasicPatterns [function, right]
-  rule (BP1, BP1s) ++BasicPatterns BP2s => BP1, (BP1s ++BasicPatterns BP2s)
-  rule .Patterns ++BasicPatterns BP2s => BP2s
+  syntax Bool ::= Pattern "in" Patterns [function]
+  rule P in (P,  P1s) => true
+  rule P in (P1, P1s) => P in P1s requires P =/=K P1
+  rule P in .Patterns => false
 
   syntax Patterns ::= Patterns "++Patterns" Patterns [function, right]
-  rule (BP1, BP1s) ++Patterns BP2s => BP1, (BP1s ++Patterns BP2s)
-  rule .Patterns ++Patterns BP2s => BP2s
+  rule (P1, P1s) ++Patterns P2s => P1, (P1s ++Patterns P2s)
+  rule .Patterns ++Patterns P2s => P2s
 
-  syntax BasicPatterns ::= removeDuplicates(BasicPatterns) [function]
+  syntax Patterns ::= removeDuplicates(Patterns) [function]
   rule removeDuplicates(.Patterns) => .Patterns
-  rule removeDuplicates(BP, BPs) => BP, removeDuplicates(BPs)
-  requires notBool(BP in BPs)
-  rule removeDuplicates(BP, BPs) => removeDuplicates(BPs)
-    requires BP in BPs
-
-  syntax BasicPatterns ::= BasicPatterns "-BasicPatterns" BasicPatterns [function]
-  rule (BP1, BP1s) -BasicPatterns BP2s => BP1, (BP1s -BasicPatterns BP2s)
-    requires notBool(BP1 in BP2s)
-  rule (BP1, BP1s) -BasicPatterns BP2s =>      (BP1s -BasicPatterns BP2s)
-    requires BP1 in BP2s
-  rule .Patterns -BasicPatterns BP2s => .Patterns
-  rule BP1s -BasicPatterns .Patterns => BP1s
+  rule removeDuplicates(P, Ps) => P, removeDuplicates(Ps)
+  requires notBool(P in Ps)
+  rule removeDuplicates(P, Ps) => removeDuplicates(Ps)
+    requires P in Ps
 
   syntax Patterns ::= Patterns "-Patterns" Patterns [function]
   rule (P1, P1s) -Patterns P2s => P1, (P1s -Patterns P2s)
@@ -167,107 +112,55 @@ module KORE-HELPERS
 ```
 
 ```k
-  syntax BasicPatterns ::= getFreeVariables(Patterns) [function]
+  syntax Patterns ::= getFreeVariables(Patterns) [function]
   rule getFreeVariables(.Patterns) => .Patterns
   rule getFreeVariables(P, Ps)
-    => removeDuplicates(
-         getFreeVariables(P, .Patterns) ++BasicPatterns getFreeVariables(Ps))
+    => removeDuplicates(getFreeVariables(P, .Patterns) ++Patterns getFreeVariables(Ps))
     requires Ps =/=K .Patterns
-  rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
-  rule getFreeVariables(P:Predicate(ARGS) , .Patterns)   => getFreeVariables(ARGS)
-  rule getFreeVariables(\implies(LHS, RHS), .Patterns)
-    => removeDuplicates(
-         getFreeVariables(LHS, .Patterns) ++BasicPatterns getFreeVariables(RHS, .Patterns))
-  rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
-  rule getFreeVariables(\or(CF, CFs),  .Patterns)
-    => removeDuplicates(
-         getFreeVariables(CF, .Patterns) ++BasicPatterns getFreeVariables(\or(CFs), .Patterns))
-  rule getFreeVariables(\or(.ConjunctiveForms), .Patterns)
-    => .Patterns
-
-  rule getFreeVariables(\exists { EXISTENTIALS } P,  .Patterns)
-    => getFreeVariables(P, .Patterns) -BasicPatterns EXISTENTIALS
 
   rule getFreeVariables(N:Int, .Patterns) => .Patterns
-  rule getFreeVariables(emptyset, .Patterns) => .Patterns
+  rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
+  rule getFreeVariables(S:Symbol, .Patterns) => .Patterns
+  rule getFreeVariables(S:Symbol(ARGS) , .Patterns) => getFreeVariables(ARGS)
+
   rule getFreeVariables(\top(), .Patterns) => .Patterns
   rule getFreeVariables(\bottom(), .Patterns) => .Patterns
+  rule getFreeVariables(\equals(P1, P2), .Patterns) => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(\not(P), .Patterns) => getFreeVariables(P, .Patterns)
-  rule getFreeVariables(\equals(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
 
-  // TODO: Defining these for each symbol is tiring. If `select` etc were defined
-  // as the application of a symbol to arguments (similar to how Predicate and RecursivePredicate
-  // are), this would be easier. We would lose our compile time check on the arity though.
-  rule getFreeVariables(plus(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(mult(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(div(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(gt(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(minus(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(max(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(select(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(store(P1, P2, P3), .Patterns)
-    => getFreeVariables(P1, P2, P3, .Patterns)
-  rule getFreeVariables(union(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(disjoint(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(disjointUnion(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(singleton(P1), .Patterns)
-    => getFreeVariables(P1, .Patterns)
-  rule getFreeVariables(isMember(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(add(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
-  rule getFreeVariables(del(P1, P2), .Patterns)
-    => getFreeVariables(P1, P2, .Patterns)
+  rule getFreeVariables(\implies(LHS, RHS), .Patterns) => getFreeVariables(LHS, RHS, .Patterns)
+  rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
+  rule getFreeVariables(\or(Ps),  .Patterns) => getFreeVariables(Ps)
 
-  syntax BasicPatterns ::= getUniversalVariables(Pattern) [function]
+  rule getFreeVariables(\exists { EXISTENTIALS } P,  .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns EXISTENTIALS
+
+// TODO: These seem specific to implication. Perhaps they need better names?
+  syntax Patterns ::= getUniversalVariables(Pattern) [function]
   rule getUniversalVariables(GOAL) => getFreeVariables(GOAL, .Patterns)
-
-  syntax BasicPatterns ::= getExistentialVariables(ImplicativeForm) [function]
+  syntax Patterns ::= getExistentialVariables(Pattern) [function]
   rule getExistentialVariables(\implies(\and(LHS), \exists { EXISTENTIALS } \and(RHS)) #as GOAL)
     => EXISTENTIALS
 ```
 
-```k
-  syntax Bool ::= BasicPatterns "notOccurFree" Patterns [function]
-  rule .Patterns notOccurFree Qs => true
-  rule (X:Variable, .Patterns) notOccurFree Qs
-    => notBool(X in getFreeVariables(Qs))
-  rule (P:BasicPattern, Ps:BasicPatterns) notOccurFree Qs
-    => ((P, .Patterns) notOccurFree Qs) andBool (Ps notOccurFree Qs)
-    requires Ps =/=K .Patterns
-```
-
-Returns a list of terms that are the application of the `Predicate`.
+Filters a list of patterns, returning the ones that are applications of the symbol:
 
 ```k
-  syntax BasicPatterns ::= filterByConstructor(BasicPatterns, Predicate) [function]
-  rule filterByConstructor(.Patterns, CTOR) => .Patterns
-  rule filterByConstructor((P:Predicate (Ps) , Rest), P)
-    => (P:Predicate (Ps)), filterByConstructor(Rest, P)
-  rule filterByConstructor((Q:Predicate (Qs) , Rest), P)
+  syntax Patterns ::= filterByConstructor(Patterns, Symbol) [function]
+  rule filterByConstructor(.Patterns, S) => .Patterns
+  rule filterByConstructor((P:Symbol (Ps) , Rest), P)
+    => (P:Symbol (Ps)), filterByConstructor(Rest, P)
+  rule filterByConstructor((Q:Symbol (Qs) , Rest), P)
     => filterByConstructor(Rest, P)
-  requires P =/=K Q
-  rule filterByConstructor((Q, Rest), P)
-    => filterByConstructor(Rest, P)
-       [owise]
+    requires P =/=K Q
+  rule filterByConstructor((Q, Rest), P) => filterByConstructor(Rest, P) [owise]
 ```
 
 zip: Take two lists and return a map. This can be used to take a list of variables
 and values, passed to K's substitute.
 
 ```k
-  syntax Map ::= zip(BasicPatterns, BasicPatterns) [function]
+  syntax Map ::= zip(Patterns, Patterns) [function]
   rule zip((L, Ls), (R, Rs)) => (L |-> R) zip(Ls, Rs)
   rule zip(.Patterns, .Patterns) => .Map
 
@@ -280,7 +173,7 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax Map ::= makeFreshSubstitution(BasicPatterns) [function] // Variables
+  syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
   rule makeFreshSubstitution(variable(N) { SORT }, REST)
     => variable(N) { SORT } |-> variable(N, !I:Int) { SORT }
        makeFreshSubstitution(REST)
@@ -292,96 +185,84 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax BasicPatterns ::= getLeftRecursivePredicates(ImplicativeForm) [function]
-  rule getLeftRecursivePredicates(\implies(\and(LHS), RHS))
-    => getRecursivePredicates(LHS)
+  syntax Patterns ::= getLeftRecursivePredicates(Pattern) [function]
+  rule getLeftRecursivePredicates(\implies(\and(LHS), RHS)) => getRecursivePredicates(LHS)
 ```
 
 ```k
-  syntax BasicPatterns ::= getRecursivePredicates(Patterns)   [function]
+  syntax Patterns ::= getRecursivePredicates(Patterns)   [function]
   rule getRecursivePredicates(.Patterns) => .Patterns
   rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
     => R(ARGS), getRecursivePredicates(REST)
   rule getRecursivePredicates(\and(Ps), REST)
-    => getRecursivePredicates(Ps) ++BasicPatterns getRecursivePredicates(REST)
+    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
   rule getRecursivePredicates(\exists { _ } \and(Ps), REST)
-    => getRecursivePredicates(Ps) ++BasicPatterns getRecursivePredicates(REST)
-  rule getRecursivePredicates(PATTERN:BasicPattern, REST)
+    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
+  rule getRecursivePredicates(PATTERN, REST)
     => getRecursivePredicates(REST)
        [owise]
 ```
 
 ```k
-  syntax BasicPatterns ::= getPredicates(Patterns)   [function]
+  syntax Patterns ::= getPredicates(Patterns)   [function]
   rule getPredicates(.Patterns) => .Patterns
   rule getPredicates(R:Predicate(ARGS), REST)
     => R(ARGS), getPredicates(REST)
   rule getPredicates(\and(Ps), REST)
-    => getPredicates(Ps) ++BasicPatterns getPredicates(REST)
+    => getPredicates(Ps) ++Patterns getPredicates(REST)
   rule getPredicates(\exists { _ } \and(Ps), REST)
-    => getPredicates(Ps) ++BasicPatterns getRecursivePredicates(REST)
-  rule getPredicates(PATTERN:BasicPattern, REST)
+    => getPredicates(Ps) ++Patterns getRecursivePredicates(REST)
+  rule getPredicates(PATTERN, REST)
     => getPredicates(REST)
        [owise]
 ```
 
 ```k
-  syntax BasicPattern ::= getMember(Int, BasicPatterns) [function]
-  rule getMember(0, (P:BasicPattern, Ps)) => P
-  rule getMember(N, (P:BasicPattern, Ps)) => getMember(N -Int 1, Ps)
+  syntax Pattern ::= getMember(Int, Patterns) [function]
+  rule getMember(0, (P:Pattern, Ps)) => P
+  rule getMember(N, (P:Pattern, Ps)) => getMember(N -Int 1, Ps)
     requires N >Int 0
 
-  syntax BasicPatterns ::= getMembers(Ints, BasicPatterns) [function]
+  syntax Patterns ::= getMembers(Ints, Patterns) [function]
   rule getMembers((I, Is), Ps) => getMember(I, Ps), getMembers(Is, Ps)
   rule getMembers(.Ints, Ps) => .Patterns
 
   syntax Int ::= getLength(Patterns) [function]
   rule getLength(.Patterns) => 0
   rule getLength(P, Ps) => 1 +Int getLength(Ps)
-
-  syntax ConjunctiveForm ::= getMember(Int, ConjunctiveForms) [function]
-  rule getMember(0, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => CF
-  rule getMember(N, (CF:ConjunctiveForm, CFs:ConjunctiveForms)) => getMember(N -Int 1, CFs)
-    requires N >Int 0
 ```
 
 Substitution:
 
 ```k
-  syntax Pattern ::= Pattern "[" Variable "/" BasicPattern "]" [function]
-  rule X[X/V] => V
-  rule X:Variable[Y/V] => X requires X =/=K Y
-  rule \top()[_/_] => \top()
-  rule \bottom()[_/_] => \bottom()
-  rule \equals(ARG1, ARG2) [X/V] => \equals({ARG1[X/V]}:>BasicPattern, {ARG2[X/V]}:>BasicPattern)
-  rule \not(ARG) [X/V] => \not(ARG[X/V])
-    requires ARG =/=K X
-  rule \and(ARG:BasicPatterns)[X/V] => \and({ARG[X/V]}:>BasicPatterns)
-  rule I:Int [X/V] => I
-  rule emptyset [X/V] => emptyset
+  syntax Pattern ::= Pattern "[" Variable "/" Pattern "]" [function, klabel(subst)]
+  syntax Pattern ::= subst(Pattern, Variable, Pattern)    [function, klabel(subst)]
+  rule subst(X,X,V) => V
+  rule subst(X:Variable,Y,V) => X requires X =/=K Y
+  rule subst(\top(),_,_) => \top()
+  rule subst(\bottom(),_,_) => \bottom()
+  rule subst(I:Int, X, V) => I
+  rule subst(emptyset, X, V) => emptyset
+  rule subst(\equals(ARG1, ARG2):Pattern, X, V) => \equals(ARG1[X/V], ARG2[X/V]):Pattern
+  rule subst(\not(ARG):Pattern, X:Variable, V:Pattern) => \not(subst(ARG, X, V)):Pattern
+  rule subst(\and(ARG):Pattern, X:Variable, V:Pattern) => \and(ARG[X/V]):Pattern
 
-  rule (P:Predicate(ARGS)                         #as T:Pattern) [X/V]
-    => P({ARGS[X/V]}:>BasicPatterns)
-    requires T =/=K X
-  rule (F:UnaryFunctionSymbol(ARG)                #as T:Pattern) [X/V]
-    => F({ARG[X/V]}:>BasicPattern)
-    requires T =/=K X
-  rule (F:BinaryFunctionSymbol(ARG1, ARG2)        #as T:Pattern) [X/V]
-    => F({ARG1[X/V]}:>BasicPattern, {ARG2[X/V]}:>BasicPattern)
-    requires T =/=K X
-  rule (F:TrinaryFunctionSymbol(ARG1, ARG2, ARG3) #as T:Pattern) [X/V]
-    => F({ARG1[X/V]}:>BasicPattern, {ARG2[X/V]}:>BasicPattern, {ARG3[X/V]}:>BasicPattern)
+  rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
 
-  syntax Pattern ::= Pattern "[" Map "]" [function]
-  rule BP:Pattern[ (X |-> V):Map REST:Map ] => BP[X/V][REST:Map]
-  rule BP:Pattern[ .Map ] => BP
+  syntax Pattern ::= Pattern "[" Map "]"     [function, klabel(substMap)]
+  syntax Pattern ::= substMap(Pattern,  Map) [function, klabel(substMap)]
+  rule substMap(BP, ((X |-> V):Map REST))
+    => substMap(subst(BP,X,V), REST:Map)
+  rule substMap(BP, .Map) => BP
 
-  syntax Patterns ::= Patterns "[" Map "]" [function]
-  rule (BP, BPs)[SUBST] => BP[SUBST], (BPs[SUBST])
+  syntax Patterns ::= Patterns "[" Map "]"         [function, klabel(substPatternsMap)]
+  syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
+  rule substPatternsMap((BP, BPs), SUBST) => substMap(BP, SUBST)
+                                        , substPatternsMap(BPs, SUBST)
   rule .Patterns[SUBST] => .Patterns
 
-  syntax Patterns ::= Patterns "[" BasicPattern "/" BasicPattern "]" [function]
+  syntax Patterns ::= Patterns "[" Pattern "/" Pattern "]" [function]
   rule (BP, BPs)[X/V] => BP[X/V], (BPs[X/V])
   rule .Patterns[X/V] => .Patterns
 ```
@@ -688,7 +569,7 @@ module PROVER-DRIVER
 Normalize ImplicativeForms:
 
 ```k
-  rule <k> \implies(LHS, \and(RHS):ConjunctiveForm => \exists { .Patterns } \and(RHS)) </k>
+  rule <k> \implies(LHS, \and(RHS) => \exists { .Patterns } \and(RHS)) </k>
 ```
 
 ```k

@@ -4,28 +4,23 @@ claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt }
                                     , variable("F") { SetInt }
                                     , variable("MIN") { Int }
                                     , variable("MAX") { Int } 
-                                    , .Patterns
                                     )
                     , listSorted( variable("H") { ArrayIntInt }
                                 , variable("Y") { Int }
                                 , variable("G") { SetInt }
-                                , variable("MIN2") { Int }, .Patterns) 
-
+                                , variable("MIN2") { Int }) 
                     , \equals( variable("K") { SetInt }, union(variable("F") { SetInt }, variable("G") { SetInt })) 
                     , disjoint(variable("F") { SetInt }, variable("G") { SetInt }) 
-
                     , \not(gt(variable("MAX") { Int }, variable("MIN2") { Int }))
-                    , .Patterns )
+                     )
               , \and( listSorted( variable("H") { ArrayIntInt }
                                 , variable("X") { Int }
                                 , variable("K") { SetInt }
                                 , variable("MIN") { Int }
-                                , .Patterns)
-                    , .Patterns )
+                                )
+                     )
               )
-
 // strategy search-bound(4)
-
 strategy kt # head(listSegmentLeftSorted) # useAffectedHeuristic
        ; ( ( simplify ; instantiate-existentials ; smt )
          | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt )

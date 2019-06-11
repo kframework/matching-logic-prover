@@ -4,7 +4,6 @@ claim \implies( \and( dllSegmentRightLength (
                           , variable("Y") { Int }
                           , variable("F") { SetInt }
                           , variable("L") { Int }
-                          , .Patterns
                           )
                     , dllSegmentRightLength ( 
                             variable("H") { ArrayIntInt }
@@ -12,7 +11,6 @@ claim \implies( \and( dllSegmentRightLength (
                           , variable("Z") { Int }
                           , variable("G") { SetInt }
                           , variable("M") { Int }
-                          , .Patterns
                           )
                     , \equals( variable("K") { SetInt }
                              , union( variable("F") { SetInt }
@@ -22,7 +20,6 @@ claim \implies( \and( dllSegmentRightLength (
                     , \equals( variable("N") { Int }
                              , plus( variable("L") { Int }
                                    , variable("M") { Int }))
-                    , .Patterns
                     )
               , \and( dllSegmentRightLength ( 
                             variable("H") { ArrayIntInt }
@@ -30,18 +27,12 @@ claim \implies( \and( dllSegmentRightLength (
                           , variable("Z") { Int }
                           , variable("K") { SetInt }
                           , variable("N") { Int }
-                          , .Patterns
                           )
-                     , .Patterns
                      )
               )
-
 strategy search-bound(3)
-
 // strategy simplify ; kt ; simplify
 //       ; ( direct-proof
 //         | right-unfold-Nth(0,1) ; simplify ; direct-proof
 //         | noop
 //         )
-
-

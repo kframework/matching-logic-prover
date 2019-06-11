@@ -3,14 +3,11 @@ claim \implies( \and( bst( variable("H") { ArrayIntInt }
                          , variable("F") { SetInt }
                          , variable("MIN") { Int }
                          , variable("MAX") { Int }
-                         , .Patterns
                          )
-                    , .Patterns
                     )
-              , \and( bt( variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, .Patterns), .Patterns )
+              , \and( bt( variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }) )
               )
 strategy search-bound(5)
-
 // strategy kt ; ( ( right-unfold-Nth(0,0) ; ( instantiate-existentials ; (smt-z3 | smt-cvc4) ) )
 //               | ( right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; right-unfold-Nth(0,0) ; ( instantiate-existentials ; (smt-z3 | smt-cvc4) ) )
 //               | ( instantiate-existentials ; (smt-z3 | smt-cvc4) )

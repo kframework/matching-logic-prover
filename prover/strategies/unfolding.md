@@ -8,21 +8,21 @@ module PROVER-HORN-CLAUSE
 ### Left Unfold (incomplete)
 
 ```k
-  syntax Strategy ::= "left-unfold-eachBody"  "(" BasicPattern "," DisjunctiveForm ")"
-                    | "left-unfold-oneBody"   "(" BasicPattern "," ConjunctiveForm ")"
+  syntax Strategy ::= "left-unfold-eachBody"  "(" Pattern "," Pattern ")"
+                    | "left-unfold-oneBody"   "(" Pattern "," Pattern ")"
 
-  rule <strategy> left-unfold-eachBody(LRP, \or(BODY, BODIES:ConjunctiveForms))
+  rule <strategy> left-unfold-eachBody(LRP, \or(BODY, BODIES))
                => left-unfold-oneBody(LRP, BODY)
                 & left-unfold-eachBody(LRP, \or(BODIES))
                   ...
        </strategy>
-  rule <strategy> left-unfold-eachBody(LRP, \or(.ConjunctiveForms))
+  rule <strategy> left-unfold-eachBody(LRP, \or(.Patterns))
                => success
                   ...
        </strategy>
 
   rule <k> \implies(\and(LHS), RHS)
-        => \implies(\and((LHS -BasicPatterns (LRP, .Patterns)) ++BasicPatterns BODY), RHS)
+        => \implies(\and((LHS -Patterns (LRP, .Patterns)) ++Patterns BODY), RHS)
        </k>
        <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
@@ -34,9 +34,9 @@ Unfold the Nth predicates on the Left hand side into a conjunction of
 implicatations. The resulting goals are equivalent to the initial goal.
 
 ```k
-  syntax Strategy ::= "left-unfold-Nth-eachLRP"  "(" Int "," BasicPatterns ")"
-                    | "left-unfold-Nth-eachBody" "(" Int "," BasicPattern "," DisjunctiveForm ")"
-                    | "left-unfold-Nth-oneBody"  "(" Int "," BasicPattern "," ConjunctiveForm ")"
+  syntax Strategy ::= "left-unfold-Nth-eachLRP"  "(" Int "," Patterns ")"
+                    | "left-unfold-Nth-eachBody" "(" Int "," Pattern "," Pattern ")"
+                    | "left-unfold-Nth-oneBody"  "(" Int "," Pattern "," Pattern ")"
 
   rule <strategy> left-unfold-Nth(M)
                => left-unfold-Nth-eachLRP(M, getPredicates(LHS))
@@ -69,9 +69,9 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 `A -> B \/ C` vs `(A -> B) \/ (A -> C)`).
 
 ```k
-  syntax Strategy ::= "right-unfold-eachRRP" "(" BasicPatterns")"
-                    | "right-unfold-eachBody" "(" BasicPattern "," DisjunctiveForm ")"
-                    | "right-unfold-oneBody"  "(" BasicPattern "," ConjunctiveForm ")"
+  syntax Strategy ::= "right-unfold-eachRRP" "(" Patterns")"
+                    | "right-unfold-eachBody" "(" Pattern "," Pattern ")"
+                    | "right-unfold-oneBody"  "(" Pattern "," Pattern ")"
   rule <strategy> right-unfold
                => right-unfold-eachRRP(getPredicates(RHS))
                   ...
@@ -86,12 +86,12 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => fail
                   ...
        </strategy>
-  rule <strategy> right-unfold-eachBody(RRP, \or(BODY, BODIES:ConjunctiveForms))
+  rule <strategy> right-unfold-eachBody(RRP, \or(BODY, BODIES))
                => right-unfold-oneBody(RRP, BODY)
                 | right-unfold-eachBody(RRP, \or(BODIES))
                   ...
        </strategy>
-  rule <strategy> right-unfold-eachBody(RRP, \or(.ConjunctiveForms))
+  rule <strategy> right-unfold-eachBody(RRP, \or(.Patterns))
                => fail
                   ...
        </strategy>
@@ -99,8 +99,8 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 
 ```k
   rule <k> \implies(LHS, \exists { E1 } \and(RHS))
-        => \implies(LHS, \exists { E1 ++BasicPatterns E2 }
-                         \and((RHS -BasicPatterns (RRP, .Patterns)) ++BasicPatterns BODY))
+        => \implies(LHS, \exists { E1 ++Patterns E2 }
+                         \and((RHS -Patterns (RRP, .Patterns)) ++Patterns BODY))
        </k>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
        <trace> .K => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) ... </trace>
@@ -114,9 +114,9 @@ unfolded. Here we define a strategy `right-unfold-Nth(M, N)`, which unfolds the
 or `N` is out of range, `right-unfold(M,N) => fail`.
 
 ```k
-  syntax Strategy ::= "right-unfold-Nth-eachRRP"  "(" Int "," Int "," BasicPatterns")"
-                    | "right-unfold-Nth-eachBody" "(" Int "," Int "," BasicPattern "," DisjunctiveForm ")"
-                    | "right-unfold-Nth-oneBody"  "(" Int "," Int "," BasicPattern "," ConjunctiveForm ")"
+  syntax Strategy ::= "right-unfold-Nth-eachRRP"  "(" Int "," Int "," Patterns")"
+                    | "right-unfold-Nth-eachBody" "(" Int "," Int "," Pattern "," Pattern ")"
+                    | "right-unfold-Nth-oneBody"  "(" Int "," Int "," Pattern "," Pattern ")"
 
   rule <strategy> right-unfold-Nth (M,N) => fail ... </strategy>
   requires (M <Int 0) orBool (N <Int 0)
@@ -130,7 +130,7 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
     requires getLength(RRPs) <=Int M
 
-  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:BasicPatterns)
+  rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs:Patterns)
                => right-unfold-Nth-eachBody(M, N, getMember(M, RRPs), unfold(getMember(M, RRPs)))
                   ...
        </strategy>
@@ -142,7 +142,7 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
        </strategy>
     requires getLength(Bodies) <=Int N
 
-  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies:ConjunctiveForms))
+  rule <strategy> right-unfold-Nth-eachBody(M, N, RRP, \or(Bodies))
                => right-unfold-Nth-oneBody(M, N, RRP, getMember(N, Bodies))
                   ...
        </strategy>
