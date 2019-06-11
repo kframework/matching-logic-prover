@@ -1,5 +1,5 @@
 ```k
-module PROVER-HORN-CLAUSE
+module STRATEGY-UNFOLDING
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-HELPERS

@@ -1,6 +1,5 @@
 ```k
 requires "predicate-definitions.k"
-requires "strategies/direct-proof.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
@@ -578,7 +577,7 @@ module PROVER
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION
-  imports STRATEGY-DIRECT-PROOF
+  imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
 endmodule
 ```
