@@ -12,7 +12,7 @@ module STRATEGY-SIMPLIFICATION
 Remove trivial clauses from the right-hand-side:
 
 ```k
-  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -BasicPatterns LHS))
+  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS))
        </k>
        <strategy> simplify => noop ... </strategy>
 ```
@@ -25,9 +25,9 @@ Remove trivial clauses from the right-hand-side:
 ```k
   rule <k> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL
         => #fun( INSTANTIATION =>
-                   \implies( \and(LHS ++BasicPatterns INSTANTIATION)
-                           , \exists { EXIST -BasicPatterns getFreeVariables(INSTANTIATION) }
-                             \and(RHS -BasicPatterns INSTANTIATION)
+                   \implies( \and(LHS ++Patterns INSTANTIATION)
+                           , \exists { EXIST -Patterns getFreeVariables(INSTANTIATION) }
+                             \and(RHS -Patterns INSTANTIATION)
                            )
                )
                ( getAtomForcingInstantiation( RHS
@@ -54,18 +54,18 @@ Remove trivial clauses from the right-hand-side:
                                         , getExistentialVariables(GOAL)
                                         )
 
-  syntax BasicPatterns ::= getAtomForcingInstantiation(BasicPatterns, BasicPatterns, BasicPatterns) [function]
-  rule getAtomForcingInstantiation((\equals(X:Variable, P), Ps), FREE, EXISTENTIAL)
+  syntax Patterns ::= getAtomForcingInstantiation(Patterns, Patterns, Patterns) [function]
+  rule getAtomForcingInstantiation((\equals(X:Variable, P), Ps), FREE, EXISTENTIALS)
     => \equals(X:Variable, P), .Patterns
-    requires X inPatterns EXISTENTIAL
-     andBool getFreeVariables(P, .Patterns) -BasicPatterns EXISTENTIAL ==K getFreeVariables(P, .Patterns)
-  rule getAtomForcingInstantiation((\equals(P, X:Variable), Ps), FREE, EXISTENTIAL)
+    requires X in EXISTENTIALS
+     andBool getFreeVariables(P, .Patterns) -Patterns EXISTENTIALS ==K getFreeVariables(P, .Patterns)
+  rule getAtomForcingInstantiation((\equals(P, X:Variable), Ps), FREE, EXISTENTIALS)
     => \equals(X:Variable, P), .Patterns
-    requires X inPatterns EXISTENTIAL
-     andBool getFreeVariables(P, .Patterns) -BasicPatterns EXISTENTIAL ==K getFreeVariables(P, .Patterns)
-  rule getAtomForcingInstantiation((P, Ps), FREE, EXISTENTIAL)
-    => getAtomForcingInstantiation(Ps, FREE, EXISTENTIAL) [owise]
-  rule getAtomForcingInstantiation(.Patterns, FREE, EXISTENTIAL)
+    requires X in EXISTENTIALS
+     andBool getFreeVariables(P, .Patterns) -Patterns EXISTENTIALS ==K getFreeVariables(P, .Patterns)
+  rule getAtomForcingInstantiation((P, Ps), FREE, EXISTENTIALS)
+    => getAtomForcingInstantiation(Ps, FREE, EXISTENTIALS) [owise]
+  rule getAtomForcingInstantiation(.Patterns, FREE, EXISTENTIALS)
     => .Patterns
 ```
 

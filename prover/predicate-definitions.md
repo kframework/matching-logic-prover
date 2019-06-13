@@ -54,18 +54,20 @@ module PREDICATE-DEFINITIONS
                | "pc_end"  [function]
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Predicate) [function]
-  syntax DisjunctiveForm ::= unfold(BasicPattern) [function]
+  syntax Pattern ::= unfold(Pattern) [function]
   rule unfold(P) => addExistentials(unfolddef(P), getFreeVariables(P, .Patterns))
 
-  syntax DisjunctiveForm ::= addExistentials(DisjunctiveForm, BasicPatterns) [function]
+  syntax Pattern ::= addExistentials(Pattern, Patterns) [function]
   rule addExistentials(\or(Cs), VARS) => \or(addExistentials(Cs, VARS))
-  syntax ConjunctiveForms ::= addExistentials(ConjunctiveForms, BasicPatterns) [function]
+
+  syntax Patterns ::= addExistentials(Patterns, Patterns) [function]
   rule addExistentials((\and(BODY), REST), VARS)
-    => \exists { getFreeVariables(BODY) -BasicPatterns VARS } \and(BODY)
+    => \exists { getFreeVariables(BODY) -Patterns VARS } \and(BODY)
      , addExistentials(REST, VARS)
-  rule addExistentials(.ConjunctiveForms, VARS)
-    => .ConjunctiveForms
-  syntax DisjunctiveForm ::= unfolddef(BasicPattern) [function]
+  rule addExistentials(.Patterns, VARS)
+    => .Patterns
+
+  syntax Pattern ::= unfolddef(Pattern) [function]
 
   rule getSymbolDeclaration(listSegmentLeft)
     => symbol listSegmentLeft { } ( ArrayIntInt, Int, Int, SetInt ) : Bool
@@ -86,7 +88,7 @@ module PREDICATE-DEFINITIONS
                 , disjoint(variable("F", !I:Int) { SetInt } , singleton(X))
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule getSymbolDeclaration(listSegmentLeftSorted)
     => symbol listSegmentLeftSorted { } ( ArrayIntInt, Int, Int, SetInt, Int, Int ) : Bool
@@ -115,7 +117,7 @@ module PREDICATE-DEFINITIONS
                 , \not(gt(variable("VAL", !I:Int) { Int }, MAX))
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   /* listSegmentRight */
   rule getSymbolDeclaration(listSegmentRight)
@@ -143,7 +145,7 @@ module PREDICATE-DEFINITIONS
                              )
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   rule getSymbolDeclaration(listSegmentRightLength)
     => symbol listSegmentRightLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
@@ -173,12 +175,12 @@ module PREDICATE-DEFINITIONS
                              )
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   rule getSymbolDeclaration(isEmpty)
     => symbol isEmpty { } ( SetInt ) : Bool
   rule unfolddef(isEmpty(S, .Patterns))
-    => \or ( \and ( \equals(S, emptyset), .Patterns ) )
+    => \or ( \and ( \equals(S, emptyset), .Patterns ) , .Patterns)
 
   /* list */
   rule getSymbolDeclaration(list)
@@ -195,7 +197,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   rule getSymbolDeclaration(listLength)
     => symbol listLength { } (ArrayIntInt, Int, SetInt, Int) : Bool
@@ -214,11 +216,11 @@ module PREDICATE-DEFINITIONS
                 , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule getSymbolDeclaration(listSorted)
     => symbol listSorted { } (ArrayIntInt, Int, SetInt, Int) : Bool
-  rule unfolddef(listSorted(H, X, F, PREV_VAL:BasicPattern, .Patterns))
+  rule unfolddef(listSorted(H, X, F, PREV_VAL:Pattern, .Patterns))
     => \or( \and( \equals(X, 0)
                 , \equals(F, emptyset)
                 , .Patterns
@@ -232,7 +234,7 @@ module PREDICATE-DEFINITIONS
                 , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule getSymbolDeclaration(listSortedLength)
     => symbol listSortedLength { } (ArrayIntInt, Int, SetInt, Int, Int) : Bool
@@ -259,7 +261,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   /* bt */
   rule getSymbolDeclaration(bt)
@@ -284,7 +286,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
                    , .Patterns
                    )
-              )
+              , .Patterns)
 
   /* bst */
   rule getSymbolDeclaration(bst)
@@ -331,7 +333,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
                    , .Patterns
                    )
-              )
+              , .Patterns)
 
 /* avl */
   rule getSymbolDeclaration(avl)
@@ -398,7 +400,7 @@ module PREDICATE-DEFINITIONS
                    , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
                    , .Patterns
                    )
-              )
+              , .Patterns)
 
 /* dll */
   rule getSymbolDeclaration(dll)
@@ -423,7 +425,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   rule getSymbolDeclaration(dllLength)
     => symbol dllLength { } (ArrayIntInt, Int, SetInt, Int) : Bool
@@ -450,7 +452,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   rule getSymbolDeclaration(dllSegmentLeft)
     => symbol dllSegmentLeft { } (ArrayIntInt, Int, Int, SetInt) : Bool
@@ -476,7 +478,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   rule getSymbolDeclaration(dllSegmentLeftLength)
     => symbol dllSegmentLeftLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
@@ -505,7 +507,7 @@ module PREDICATE-DEFINITIONS
                    , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   rule getSymbolDeclaration(dllSegmentRightLength)
     => symbol dllSegmentRightLength { } (ArrayIntInt, Int, Int, SetInt, Int) : Bool
@@ -534,7 +536,7 @@ module PREDICATE-DEFINITIONS
                                      , singleton(X)))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
 /* find */
 
@@ -562,7 +564,7 @@ module PREDICATE-DEFINITIONS
                    , \not(isMember(variable("Y", !I:Int) { Int }, variable("F", !J:Int) { SetInt }))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   /* find-list */
   rule getSymbolDeclaration(find-list)
@@ -579,7 +581,7 @@ module PREDICATE-DEFINITIONS
                    , \not(isMember(X, variable("F", !J:Int) { SetInt }))
                    , .Patterns
                    )
-             )
+             , .Patterns)
 
   /* find-find */
   rule getSymbolDeclaration(find-find)
@@ -594,29 +596,29 @@ module PREDICATE-DEFINITIONS
                 , \not(isMember(DATA, F))
                 , .Patterns
                 )
-          )
+          , .Patterns)
 ```
 
 ```k
-  syntax Int ::= "add" [function]
+  syntax Int ::= "addOp" [function]
                | "assign" [function]
                | "jump" [function]
                | "increment" [function]
                | "cjump" [function]
                | "skip" [function]
   rule skip => 1
-  rule add:Int => 2
+  rule addOp => 2
   rule assign => 3
   rule jump => 4
   rule increment => 5
   rule cjump => 6
 
-  syntax BasicPattern ::= opCodeIs(BasicPattern, BasicPattern, Int) [function]
+  syntax Pattern ::= opCodeIs(Pattern, Pattern, Int) [function]
   rule opCodeIs(PC, PGM, OPCODE) => \equals(select(PGM, PC), OPCODE)
-  syntax BasicPattern ::= incrementPC(BasicPattern, BasicPattern, Int) [function]
+  syntax Pattern ::= incrementPC(Pattern, Pattern, Int) [function]
   rule incrementPC(PC_OLD, PC_NEW, N) => \equals(PC_NEW, plus(PC_OLD, N))
 
-  syntax BasicPattern ::= derefArg(BasicPattern, BasicPattern, Int) [function]
+  syntax Pattern ::= derefArg(Pattern, Pattern, Int) [function]
   rule derefArg(PGM, PC, INDEX) => select(PGM, plus(PC, INDEX))
 
   rule getSymbolDeclaration(step)
@@ -637,7 +639,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(HEAP1, store(HEAP0, derefArg(PGM, PC0, 1), plus(derefArg(PGM, PC0, 1), 1)))
                 , .Patterns
                 )
-          , \and( opCodeIs(PC0, PGM, add)
+          , \and( opCodeIs(PC0, PGM, addOp)
                 , incrementPC(PC0, PC1, 3)
                 , \equals(HEAP1, store(HEAP0, derefArg(PGM, PC0, 1), plus(derefArg(PGM, PC0, 1), derefArg(PGM, PC0, 2))))
                 , .Patterns
@@ -659,7 +661,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(HEAP1, HEAP0)
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule getSymbolDeclaration(reachableInNSteps)
     => symbol reachableInNSteps { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
@@ -686,7 +688,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(N, 0)
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule addr_S => 1
   rule addr_N => 2
@@ -706,7 +708,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(select(PGM, pc_init +Int 3), jump)
                 , \equals(select(PGM, pc_init +Int 4), pc_end)
 
-                , \equals(select(PGM, pc_loop +Int 0), add)
+                , \equals(select(PGM, pc_loop +Int 0), addOp)
                 , \equals(select(PGM, pc_loop +Int 1), addr_S)
                 , \equals(select(PGM, pc_loop +Int 2), addr_N)
 
@@ -718,7 +720,7 @@ module PREDICATE-DEFINITIONS
 
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule getSymbolDeclaration(sumToNState)
     => symbol sumToNState { } (ArrayIntInt, Int, Int, Int) : Bool
@@ -727,7 +729,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(S, select(HEAP, addr_S))
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule getSymbolDeclaration(sum)
     => symbol sum { } (Int, Int, Int, Int) : Bool
@@ -744,7 +746,7 @@ module PREDICATE-DEFINITIONS
                          , plus(INITIAL, variable("UPPER", !I:Int) { Int }))
                 , .Patterns
                 )
-          )
+          , .Patterns)
 
   rule getSymbolDeclaration(sum)
     => symbol sum { } (ArrayIntInt, Int) : Bool
@@ -753,7 +755,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
                  , zeros(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , .Patterns
-           )     )
+           )     , .Patterns)
   rule getSymbolDeclaration(ones)
     => symbol ones { } (ArrayIntInt, Int) : Bool
   rule unfolddef(ones(HEAP, START, .Patterns))
@@ -761,7 +763,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 1))
                  , ones(HEAP, variable("NEXT", !I:Int) { Int }, .Patterns)
                  , .Patterns
-           )     )
+           )     , .Patterns)
   rule getSymbolDeclaration(alternating)
     => symbol alternating { } (ArrayIntInt, Int) : Bool
   rule unfolddef(alternating(HEAP, START, .Patterns))
@@ -770,7 +772,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(select(HEAP, plus(START, 1)), 1)
                  , \equals(variable("NEXT", !I:Int) { Int },  plus(START, 2))
                  , .Patterns
-           )     )
+           )     , .Patterns)
 
   rule getSymbolDeclaration(zip)
     => symbol zip { } (ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
@@ -786,7 +788,7 @@ module PREDICATE-DEFINITIONS
                  , \equals(variable("NEXT0", !I:Int) { Int },  plus(START0, 1))
                  , \equals(variable("NEXT",  !I:Int) { Int },  plus(START,  1))
                  , .Patterns
-           )     )
+           )     , .Patterns)
 
   rule getSymbolDeclaration(same)
     => symbol same { } (ArrayIntInt, Int, ArrayIntInt, Int) : Bool
@@ -799,7 +801,7 @@ module PREDICATE-DEFINITIONS
                 , \equals(variable("NEXT0", !I:Int) { Int },  plus(START0, 2))
                 , \equals(variable("NEXT1", !I:Int) { Int },  plus(START1, 2))
                 , .Patterns
-          )     )
+          )     , .Patterns)
 
 endmodule
 ```

@@ -4,14 +4,12 @@ claim \implies( \and( dllSegmentLeftLength (
                           , variable("Y") { Int }
                           , variable("F") { SetInt }
                           , variable("L") { Int }
-                          , .Patterns
                           )
                     , dllLength 
                           ( variable("H") { ArrayIntInt }
                           , variable("Y") { Int }
                           , variable("G") { SetInt }
                           , variable("M") { Int }
-                          , .Patterns
                           )
                     , \equals( variable("K") { SetInt }
                              , union( variable("F") { SetInt }
@@ -23,21 +21,16 @@ claim \implies( \and( dllSegmentLeftLength (
                     , disjoint( variable("F") { SetInt }
                               , variable("G") { SetInt }
                               )
-                    , .Patterns
                     )
               , \and( dllLength (
                             variable("H") { ArrayIntInt }
                           , variable("X") { Int }
                           , variable("K") { SetInt }
                           , variable("N") { Int }
-                          , .Patterns
                           )
-                    , .Patterns
                     )
               )
-
 strategy search-bound(3)
-
 /*
 strategy simplify ; kt 
        ; ( simplify ; instantiate-existentials ; smt  

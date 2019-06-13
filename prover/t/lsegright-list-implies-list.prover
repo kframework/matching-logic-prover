@@ -2,32 +2,27 @@ claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
                                       , variable("X") { Int }
                                       , variable("Y") { Int }
                                       , variable("G1") { SetInt }
-                                      , .Patterns)
+                                      )
                     , list( variable("H") { ArrayIntInt }
                           , variable("Y") { Int }
                           , variable("G2") { SetInt }
-                          , .Patterns
                           )
                     , disjoint(variable("G1") { SetInt }, variable("G2") { SetInt })
                     , \equals(variable("F") { SetInt }, union(variable("G1") { SetInt }, variable("G2") { SetInt }))
-                    , .Patterns )
+                     )
               , \and( list( variable("H") { ArrayIntInt }
                           , variable("X") { Int }
                           , variable("F") { SetInt }
-                          , .Patterns)
-                    , .Patterns )
+                          )
+                     )
               )
-
 strategy kt # head(listSegmentRight) # freshPositions(1) ; search-bound(4)
-
-
 /* 
 strategy kt # head(listSegmentRight) # freshPositions(1)
        ; ( ( simplify ; instantiate-existentials ; smt-z3 )
          | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials  )
          | noop
          )
-
        ; ( ( simplify ; instantiate-existentials ; smt )
          | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt )
          )

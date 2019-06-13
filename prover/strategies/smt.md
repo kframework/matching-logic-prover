@@ -16,7 +16,7 @@ module ML-TO-SMTLIB2
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
   rule ML2SMTLIB(\implies(\and(LHS), \exists { _ } \and(RHS)) #as GOAL )
     => declareVariables(getUniversalVariables(GOAL)) ++SMTLIB2Script
-       declareUninterpretedFunctions(removeDuplicates(getPredicates(LHS ++BasicPatterns RHS))) ++SMTLIB2Script
+       declareUninterpretedFunctions(removeDuplicates(getPredicates(LHS ++Patterns RHS))) ++SMTLIB2Script
        ( assert PatternToSMTLIB2Term(\and(LHS)) ) ++SMTLIB2Script
        ( assert (forall (VariablesToSMTLIB2SortedVarList(variable("dummyVar") { Bool }, getExistentialVariables(GOAL)))
                           ( not PatternToSMTLIB2Term(\and(RHS)) )
@@ -72,7 +72,7 @@ module ML-TO-SMTLIB2
   rule SortsToSMTLIB2SortList(S, Ss) => SortToSMTLIB2Sort(S) SortsToSMTLIB2SortList(Ss)
   rule SortsToSMTLIB2SortList(.Sorts) => .SMTLIB2SortList
 
-  syntax SMTLIB2SortedVarList ::= VariablesToSMTLIB2SortedVarList(BasicPatterns) [function]
+  syntax SMTLIB2SortedVarList ::= VariablesToSMTLIB2SortedVarList(Patterns) [function]
   rule VariablesToSMTLIB2SortedVarList(variable(X) { S }, Cs)
     => ( StringToSMTLIB2SimpleSymbol(X)  SortToSMTLIB2Sort(S) )
        VariablesToSMTLIB2SortedVarList(Cs)
@@ -130,7 +130,7 @@ module ML-TO-SMTLIB2
 
   syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
 
-  syntax SMTLIB2Script ::= declareVariables(BasicPatterns) [function]
+  syntax SMTLIB2Script ::= declareVariables(Patterns) [function]
   rule declareVariables( .Patterns ) => .SMTLIB2Script
   rule declareVariables( variable(NAME:String) { SORT } , Ps )
     => ( declare-const StringToSMTLIB2SimpleSymbol(NAME) SortToSMTLIB2Sort(SORT) )
@@ -139,11 +139,11 @@ module ML-TO-SMTLIB2
     => ( declare-const StringToSMTLIB2SimpleSymbol(NAME +String "_" +String Int2String(I)) SortToSMTLIB2Sort(SORT) )
        declareVariables(Ps)
 
-  syntax SMTLIB2Script ::= declareUninterpretedFunctions(BasicPatterns) [function]
+  syntax SMTLIB2Script ::= declareUninterpretedFunctions(Patterns) [function]
   rule declareUninterpretedFunctions( .Patterns ) => .SMTLIB2Script
   rule declareUninterpretedFunctions( S:Predicate(ARGS), Fs )
     => SymbolDeclarationToSMTLIB2FunctionDeclaration(getSymbolDeclaration(S))
-       declareUninterpretedFunctions( Fs -BasicPatterns filterByConstructor(Fs, S))
+       declareUninterpretedFunctions( Fs -Patterns filterByConstructor(Fs, S))
 
   syntax SMTLIB2Command ::= SymbolDeclarationToSMTLIB2FunctionDeclaration(SymbolDeclaration) [function]
   rule SymbolDeclarationToSMTLIB2FunctionDeclaration(symbol NAME { } ( ARGS ) : RET)
@@ -178,22 +178,16 @@ module STRATEGY-SMT
 
   rule <k> GOAL </k>
        <strategy> smt-z3 => fail </strategy>
-    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
 
   rule <k> GOAL </k>
        <strategy> smt-cvc4
-               => (CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL))
-             //   => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
-             //      then success
-             //      else fail
-             //      fi
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+                  then success
+                  else fail
+                  fi
                   ...
        </strategy>
        <trace> .K => smt-cvc4 ... </trace>
-
-  rule <k> GOAL </k>
-       <strategy> smt-cvc4 => fail </strategy>
-    requires notBool isImplicativeForm(GOAL) =/=K .Patterns
 ```
 
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
@@ -237,12 +231,12 @@ module SMTLIB2-TEST-DRIVER
   imports Z3
   imports CVC4
 
-  configuration <k> $PGM:ImplicativeForm </k>
+  configuration <k> $PGM:Pattern </k>
                 <smt> .K </smt>
                 <z3> .K </z3>
                 <cvc4> .K </cvc4>
 
-  rule <k> IMPL:ImplicativeForm </k>
+  rule <k> IMPL </k>
        <smt> .K => ML2SMTLIB(IMPL) </smt>
   rule <smt> SCRIPT:SMTLIB2Script </smt>
        <z3> .K => Z3CheckSAT(Z3Prelude ++SMTLIB2Script SCRIPT) </z3>

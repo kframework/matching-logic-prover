@@ -1,20 +1,17 @@
-
 claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
                                       , variable("X") { Int }
                                       , variable("Y") { Int }
                                       , variable("F") { SetInt }
-                                      , .Patterns)
-                    , .Patterns )
+                                      )
+                     )
               , \and( listSegmentLeft(variable("H") { ArrayIntInt }
                                      , variable("X") { Int }
                                      , variable("Y") { Int }
                                      , variable("F") { SetInt }
-                                     , .Patterns)
-                    , .Patterns )
+                                     )
+                     )
               )
-
 strategy search-bound(5)
-
 /*
 strategy kt ; ( ( right-unfold-Nth(0, 0) ; simplify ; direct-proof )
               | ( direct-proof )

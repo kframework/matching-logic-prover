@@ -19,15 +19,15 @@ for guessing an instantiation of the inductive hypothesis.
                => getLeftRecursivePredicates(GOAL) ~> kt # FILTER # INSTANTIATION
                   ...
        </strategy>
-  rule <strategy> LRPs:BasicPatterns ~> kt # head(HEAD) # INSTANTIATION
+  rule <strategy> LRPs:Patterns ~> kt # head(HEAD) # INSTANTIATION
                => filterByConstructor(LRPs, HEAD) ~> kt # .KTFilter # INSTANTIATION
                   ...
        </strategy>
-  rule <strategy> LRPs:BasicPatterns ~> kt # index(I:Int) # INSTANTIATION
+  rule <strategy> LRPs:Patterns ~> kt # index(I:Int) # INSTANTIATION
                => getMember(I, LRPs), .Patterns ~> kt # .KTFilter # INSTANTIATION
                   ...
        </strategy>
-  rule <strategy> LRPs:BasicPatterns ~> kt # .KTFilter # INSTANTIATION
+  rule <strategy> LRPs:Patterns ~> kt # .KTFilter # INSTANTIATION
                => ktForEachLRP(LRPs, INSTANTIATION)
                   ...
        </strategy>
@@ -36,7 +36,7 @@ for guessing an instantiation of the inductive hypothesis.
 `ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
 
 ```k
-  syntax Strategy ::= ktForEachLRP(BasicPatterns, KTInstantiate)
+  syntax Strategy ::= ktForEachLRP(Patterns, KTInstantiate)
   rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => fail ... </strategy>
   rule <strategy> ktForEachLRP((LRP, LRPs), INSTANTIATION)
                => ktLRP(LRP, INSTANTIATION) | ktForEachLRP(LRPs, INSTANTIATION)
@@ -47,7 +47,7 @@ for guessing an instantiation of the inductive hypothesis.
 (`ktLRP` corresponds to `lprove_kt/6`)
 
 ```k
-  syntax Strategy ::= ktLRP(BasicPattern, KTInstantiate)
+  syntax Strategy ::= ktLRP(Pattern, KTInstantiate)
   rule <strategy> ktLRP(LRP, INSTANTIATION)
                => ktForEachBody(LRP, unfold(LRP), INSTANTIATION)
                   ...
@@ -58,8 +58,8 @@ for guessing an instantiation of the inductive hypothesis.
 (`ktForEachBody` corresponds to `lprove_kt_all_bodies`)
 
 ```k
-  syntax Strategy ::= ktForEachBody(BasicPattern, DisjunctiveForm, KTInstantiate)
-  rule <strategy> ktForEachBody(LRP, \or(.ConjunctiveForms), _) => success ... </strategy>
+  syntax Strategy ::= ktForEachBody(Pattern, Pattern, KTInstantiate)
+  rule <strategy> ktForEachBody(LRP, \or(.Patterns), _) => success ... </strategy>
   rule <strategy> ktForEachBody(LRP, \or(BODY, BODIES), INSTANTIATION)
                => ktOneBody(LRP, BODY, INSTANTIATION)
                 & ktForEachBody(LRP, \or(BODIES), INSTANTIATION)
@@ -68,14 +68,14 @@ for guessing an instantiation of the inductive hypothesis.
 ```
 
 ```k
-  syntax Strategy ::= ktOneBody(BasicPattern, ConjunctiveForm, KTInstantiate)
+  syntax Strategy ::= ktOneBody(Pattern, Pattern, KTInstantiate)
 ```
 
 ```k
-  syntax KItem ::= ktEachBRP(BasicPattern, ConjunctiveForm, BasicPatterns, KTInstantiate) // LRP, Body, BRPs
-                 | ktOneBRP(BasicPattern, ConjunctiveForm, BasicPattern, Map)   // LRP, Body, BRP, Instantiation substitution
-                 | ktBRPResult(Patterns, ConjunctiveForm)
-                 | ktBRPCollectResults(ConjunctiveForm, BasicPattern) // Body, LRP
+  syntax KItem ::= ktEachBRP(Pattern, Pattern, Patterns, KTInstantiate) // LRP, Body, BRPs
+                 | ktOneBRP(Pattern, Pattern, Pattern, Map)   // LRP, Body, BRP, Instantiation substitution
+                 | ktBRPResult(Patterns, Pattern)
+                 | ktBRPCollectResults(Pattern, Pattern) // Body, LRP
   rule <strategy> ktOneBody(LRP:RecursivePredicate(ARGS), BODY, INSTANTIATION)
                => ktEachBRP(LRP(ARGS), BODY, filterByConstructor(getRecursivePredicates(BODY, .Patterns), LRP), INSTANTIATION)
                ~> ktBRPCollectResults(BODY, LRP(ARGS))
@@ -96,41 +96,41 @@ for guessing an instantiation of the inductive hypothesis.
 
   rule <k> \implies(\and(LHS), \exists { E1 } \and(RHS)) #as GOAL </k>
        <strategy> ktOneBRP(HEAD:RecursivePredicate(LRP_ARGS), \exists { E2 } \and(BODY), HEAD(BRP_ARGS), INST_SUBST)
-               => ktBRPResult( (\implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns)) ++BasicPatterns
-                                                (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
+               => ktBRPResult( (\implies( \and( (LHS -Patterns (HEAD(LRP_ARGS), .Patterns)) ++Patterns
+                                                (BODY -Patterns filterByConstructor(getRecursivePredicates(BODY), HEAD)) // BRPs_diffhead + BCPs
                                               )
-                                        , \exists {(listToBasicPatterns(values(INST_SUBST)) -BasicPatterns getUniversalVariables(GOAL))} \and({(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>BasicPatterns)
+                                        , \exists {(listToBasicPatterns(values(INST_SUBST)) -Patterns getUniversalVariables(GOAL))} \and({(LHS -Patterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>Patterns)
                                         ), .Patterns)
-                             , \exists { E1 ++BasicPatterns (listToBasicPatterns(values(INST_SUBST)) -BasicPatterns getUniversalVariables(GOAL))}
-                               \and( {(LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>BasicPatterns
-                     ++BasicPatterns {RHS[zip(LRP_ARGS, BRP_ARGS)][INST_SUBST]}:>BasicPatterns)
+                             , \exists { E1 ++Patterns (listToBasicPatterns(values(INST_SUBST)) -Patterns getUniversalVariables(GOAL))}
+                               \and( {(LHS -Patterns (HEAD(LRP_ARGS), .Patterns))[ zip(LRP_ARGS, BRP_ARGS) ][ INST_SUBST ]}:>Patterns
+                     ++Patterns {RHS[zip(LRP_ARGS, BRP_ARGS)][INST_SUBST]}:>Patterns)
                              )
                   ...
        </strategy>
        <trace> .K => "INST"  ... </trace>
 
-  syntax BasicPatterns ::= listToBasicPatterns(List) [function]
+  syntax Patterns ::= listToBasicPatterns(List) [function]
   rule listToBasicPatterns(.List) => .Patterns
   rule listToBasicPatterns(ListItem(L) Ls) => L, listToBasicPatterns(Ls)
 
-  syntax Map ::= ktMakeInstantiationSubst(PredicatePattern, PredicatePattern, ImplicativeForm, KTInstantiate) [function]
+  syntax Map ::= ktMakeInstantiationSubst(Pattern, Pattern, Pattern, KTInstantiate) [function]
   rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGS), HEAD(BRP_ARGS), \implies(\and(LHS), RHS), useAffectedHeuristic)
-    => makeFreshSubstitution(removeDuplicates(findAffectedVariablesAux(LRP_ARGS -BasicPatterns BRP_ARGS, LHS))
-                             -BasicPatterns (LRP_ARGS -BasicPatterns (LRP_ARGS -BasicPatterns BRP_ARGS)) // Non-critical
+    => makeFreshSubstitution(removeDuplicates(findAffectedVariablesAux(LRP_ARGS -Patterns BRP_ARGS, LHS))
+                             -Patterns (LRP_ARGS -Patterns (LRP_ARGS -Patterns BRP_ARGS)) // Non-critical
                             // TODO: !!!! This should use findAffectedVariables and not the Aux version
                             )
   rule ktMakeInstantiationSubst(HEAD:Predicate(LRP_ARGs), _, \implies(\and(LHS), RHS), freshPositions(POSITIONS))
-    => makeFreshSubstitution(removeDuplicates(getMembers(POSITIONS, getFreeVariables(LHS) -BasicPatterns LRP_ARGs))) // PassiveVars
+    => makeFreshSubstitution(removeDuplicates(getMembers(POSITIONS, getFreeVariables(LHS) -Patterns LRP_ARGs))) // PassiveVars
 ```
 
 Two consecutive ktBRPResults are consolidated into a single one.
 
 ```k
-  rule <strategy>    ktBRPResult(PREMISES1, \exists {E1 } \and(CONCL_FRAGS1))
-                  ~> ktBRPResult(PREMISES2, \exists {E2 } \and(CONCL_FRAGS2))
+  rule <strategy>    ktBRPResult(PREMISES1, \exists {E1} \and(CONCL_FRAGS1))
+                  ~> ktBRPResult(PREMISES2, \exists {E2} \and(CONCL_FRAGS2))
                => ktBRPResult( PREMISES1 ++Patterns PREMISES2
-                             , \exists { removeDuplicates( E1 ++BasicPatterns E2 ) }
-                               \and(CONCL_FRAGS1 ++BasicPatterns CONCL_FRAGS2)
+                             , \exists { removeDuplicates( E1 ++Patterns E2 ) }
+                               \and(CONCL_FRAGS1 ++Patterns CONCL_FRAGS2)
                              )
                   ...
        </strategy>
@@ -150,8 +150,8 @@ goals, including both the premises and the conclusion:
 
 ```k
                            // Body           , LRP         , Premises        , Conclusion frags
-  syntax Strategy ::= ktGoals(ConjunctiveForm, BasicPattern, Patterns        , ConjunctiveForm)
-                    | ktPremise(ImplicativeForm)
+  syntax Strategy ::= ktGoals(Pattern, Pattern, Patterns        , Pattern)
+                    | ktPremise(Pattern)
   rule <strategy> ktBRPResult(PREMISES, CONCL_FRAG) ~> ktBRPCollectResults(BODY, LRP)
                => ktGoals(BODY, LRP, PREMISES, CONCL_FRAG)
                   ...
@@ -167,9 +167,9 @@ goals, including both the premises and the conclusion:
 
 ```k
   rule <k> \implies(\and(LHS), RHS)
-        => \implies( \and( (LHS -BasicPatterns (HEAD(LRP_ARGS), .Patterns))
-                           ++BasicPatterns (BODY -BasicPatterns filterByConstructor(getRecursivePredicates(BODY), HEAD))
-                           ++BasicPatterns CONCL_FRAGS
+        => \implies( \and( (LHS -Patterns (HEAD(LRP_ARGS), .Patterns))
+                           ++Patterns (BODY -Patterns filterByConstructor(getRecursivePredicates(BODY), HEAD))
+                           ++Patterns CONCL_FRAGS
                          )
                    , RHS
                    )
@@ -183,29 +183,29 @@ goals, including both the premises and the conclusion:
 ```
 
 ```k
-  syntax BasicPatterns        // Critical       Conds
-    ::= findAffectedVariablesAux(BasicPatterns, BasicPatterns)             [function]
-      | findAffectedVariables(BasicPatterns, BasicPatterns, BasicPatterns) [function]
+  syntax Patterns        // Critical       Conds
+    ::= findAffectedVariablesAux(Patterns, Patterns)             [function]
+      | findAffectedVariables(Patterns, Patterns, Patterns) [function]
   rule findAffectedVariables(AFF, NONCRIT, CONDS)
-    => AFF -BasicPatterns NONCRIT
-    requires findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS) -BasicPatterns NONCRIT
-         ==K AFF -BasicPatterns NONCRIT
+    => AFF -Patterns NONCRIT
+    requires findAffectedVariablesAux(AFF -Patterns NONCRIT, CONDS) -Patterns NONCRIT
+         ==K AFF -Patterns NONCRIT
   // TODO: Why doesn't `owise` work here?
   rule findAffectedVariables(AFF, NONCRIT, CONDS)
-    => findAffectedVariables( findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS)
+    => findAffectedVariables( findAffectedVariablesAux(AFF -Patterns NONCRIT, CONDS)
                             , NONCRIT
                             , CONDS
                             )
-    requires findAffectedVariablesAux(AFF -BasicPatterns NONCRIT, CONDS) -BasicPatterns NONCRIT
-         =/=K AFF -BasicPatterns NONCRIT
+    requires findAffectedVariablesAux(AFF -Patterns NONCRIT, CONDS) -Patterns NONCRIT
+         =/=K AFF -Patterns NONCRIT
   rule findAffectedVariablesAux(    AFF , (\equals(X, Y), REST))
     => findAffectedVariablesAux((X, AFF),                 REST )
     requires isVariable(X)
-     andBool AFF =/=K (AFF -BasicPatterns getFreeVariables(Y, .Patterns))
+     andBool AFF =/=K (AFF -Patterns getFreeVariables(Y, .Patterns))
   rule findAffectedVariablesAux(    AFF , (\equals(Y, X), REST))
     => findAffectedVariablesAux((X, AFF),                 REST )
     requires isVariable(X)
-     andBool (AFF -BasicPatterns getFreeVariables(Y, .Patterns)) =/=K AFF
+     andBool (AFF -Patterns getFreeVariables(Y, .Patterns)) =/=K AFF
      andBool notBool X in AFF
   rule findAffectedVariablesAux(    AFF , (COND,          REST))
     => findAffectedVariablesAux(    AFF ,                 REST )
@@ -220,7 +220,7 @@ TODO: Need `CorecursivePredicate` sort
 
 ```k
   rule <strategy> kt-gfp => kt-gfp # .KTFilter # useAffectedHeuristic ... </strategy>
-  rule <k> \implies(_, RHS:ConjunctiveForm) </k>
+  rule <k> \implies(_, RHS:Pattern) </k>
        <strategy> kt-gfp # FILTER # INSTANTIATION
                => getRecursivePredicates(RHS, .Patterns) ~> kt-gfp # FILTER # INSTANTIATION
                   ...
@@ -229,7 +229,7 @@ TODO: Need `CorecursivePredicate` sort
 //               => filterByConstructor(RRPs, HEAD) ~> kt-gfp # .KTFilter # INSTANTIATION
 //                  ...
 //       </strategy>
-  rule <strategy> RRPs:BasicPatterns ~> kt-gfp # index(I:Int) # INSTANTIATION
+  rule <strategy> RRPs:Patterns ~> kt-gfp # index(I:Int) # INSTANTIATION
                => getMember(I, RRPs), .Patterns ~> kt-gfp # .KTFilter # INSTANTIATION
                   ...
        </strategy>
@@ -237,9 +237,9 @@ TODO: Need `CorecursivePredicate` sort
 
 ```k
 //  rule <k>    \implies(\and(LHS), \and(RHS))
-//           => \implies(\and(LHS), \and({LHS[?USubst][?InstSubst]}:>BasicPatterns
-//                                      ++BasicPatterns ?BODY_REST
-//                                      ++BasicPatterns (RHS -BasicPatterns (HEAD:Predicate(RRP_ARGS), .Patterns))
+//           => \implies(\and(LHS), \and({LHS[?USubst][?InstSubst]}:>Patterns
+//                                      ++Patterns ?BODY_REST
+//                                      ++Patterns (RHS -Patterns (HEAD:Predicate(RRP_ARGS), .Patterns))
 //                      )               )
 //       </k>
 //       <strategy> HEAD(RRP_ARGS), .Patterns
@@ -257,7 +257,7 @@ TODO: Need `CorecursivePredicate` sort
 //     andBool HEAD(?BRP_ARGS), .Patterns ==K filterByConstructor(getRecursivePredicates(?UNFOLD), HEAD)
 //     andBool ?BODY_REST ==K (?UNFOLD -Patterns (HEAD(?BRP_ARGS), .Patterns))
 //     andBool ?USubst ==K zip(RRP_ARGS, ?BRP_ARGS)
-//     andBool ?InstSubst ==K makeFreshSubstitution(getFreeVariables(LHS) -BasicPatterns getFreeVariables(RHS))
+//     andBool ?InstSubst ==K makeFreshSubstitution(getFreeVariables(LHS) -Patterns getFreeVariables(RHS))
 ```
 
 ```k
