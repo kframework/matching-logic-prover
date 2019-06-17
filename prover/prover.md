@@ -125,8 +125,10 @@ module KORE-HELPERS
   rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
   rule getFreeVariables(\or(Ps),  .Patterns) => getFreeVariables(Ps)
 
-  rule getFreeVariables(\exists { EXISTENTIALS } P,  .Patterns)
-    => getFreeVariables(P, .Patterns) -Patterns EXISTENTIALS
+  rule getFreeVariables(\exists { Vs } P,  .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns Vs
+  rule getFreeVariables(\forall { Vs } P,  .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns Vs
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
@@ -263,17 +265,20 @@ Substitution: Substitute term or variable
 
 ```k
   syntax Pattern ::= Pattern "[" Pattern "/" Pattern "]" [function, klabel(subst)]
-  syntax Pattern ::= subst(Pattern, Pattern, Pattern)   [function, klabel(subst)]
+  syntax Pattern ::= subst(Pattern, Pattern, Pattern)    [function, klabel(subst)]
   rule subst(X,X,V) => V
   rule subst(X:Variable,Y,V) => X requires X =/=K Y
+  rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_) => \top()
   rule subst(\bottom(),_,_) => \bottom()
-  rule subst(I:Int, X, V) => I
-  rule subst(emptyset, X, V) => emptyset
   rule subst(\equals(ARG1, ARG2):Pattern, X, V) => \equals(ARG1[X/V], ARG2[X/V]):Pattern
   rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
   rule subst(\and(ARG):Pattern, X, V) => \and(ARG[X/V]):Pattern
+  rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
+  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V)
 
+  rule subst(S:Symbol, X, V) => S
+    requires S =/=K X
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
 
@@ -285,8 +290,8 @@ Substitution: Substitute term or variable
 
   syntax Patterns ::= Patterns "[" Map "]"         [function, klabel(substPatternsMap)]
   syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
-  rule substPatternsMap((BP, BPs), SUBST) => substMap(BP, SUBST)
-                                        , substPatternsMap(BPs, SUBST)
+  rule substPatternsMap((BP, BPs), SUBST)
+    => substMap(BP, SUBST), substPatternsMap(BPs, SUBST)
 
   rule .Patterns[SUBST] => .Patterns
 
