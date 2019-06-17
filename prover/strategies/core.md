@@ -12,10 +12,11 @@ module PROVER-CORE-SYNTAX
 ```
 
 ```k
-  syntax Strategy ::= Strategy ";" Strategy [right]
+  syntax Strategy ::= SequenceStrategy
                     | "(" Strategy ")"      [bracket]
                     | TerminalStrategy
                     | ResultStrategy
+  syntax SequenceStrategy ::= Strategy ";" Strategy [right]
   syntax ResultStrategy ::= "noop"
                           | TerminalStrategy
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
@@ -57,6 +58,7 @@ cooled back into the sequence strategy.
   syntax ResultStrategy ::= "#hole"
   rule <strategy> S1 ; S2 => S1 ~> #hole ; S2 ... </strategy>
     requires notBool(isResultStrategy(S1))
+     andBool notBool(isSequenceStrategy(S1))
   rule <strategy> S1:ResultStrategy ~> #hole ; S2 => S1 ; S2 ... </strategy>
 ```
 
