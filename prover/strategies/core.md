@@ -78,11 +78,11 @@ another goal. It's argument holds the id of a subgoal. Once that subgoal has
 completed, its result is replaced in the parent goal and the subgoal is removed.
 
 ```k
-  syntax ResultStrategy ::= goalStrat(GoalId)
+  syntax Strategy ::= goalStrat(GoalId)
   rule <prover>
          <goal> <id> PID </id>
                 <active> _ => true </active>
-                <strategy> PStrat => replaceStrategyK(PStrat, goalStrat(ID), RStrat) </strategy>
+                <strategy> goalStrat(ID) => RStrat ... </strategy>
                 ...
          </goal>
          ( <goal> <id> ID </id>
@@ -96,20 +96,31 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
        </prover>
 ```
 
-```k
-  syntax K ::= replaceStrategyK(K, Strategy, Strategy) [function]
-  rule replaceStrategyK(K1:Strategy ~> K2, F, T)
-    => replaceStrategy(K1, F, T) ~> replaceStrategyK(K2, F, T)
-  rule replaceStrategyK(.K, F, T) => .K
-```
+Proving a goal may involve proving other subgoals:
 
 ```k
-  syntax Strategy ::= replaceStrategy(Strategy, Strategy, Strategy) [function]
-  rule replaceStrategy(S1 ; S2, F, T) => replaceStrategy(S1, F, T) ; replaceStrategy(S2, F, T)
-  rule replaceStrategy(S1 & S2, F, T) => replaceStrategy(S1, F, T) & replaceStrategy(S2, F, T)
-  rule replaceStrategy(S1 | S2, F, T) => replaceStrategy(S1, F, T) | replaceStrategy(S2, F, T)
-  rule replaceStrategy(F,       F, T) => T
-  rule replaceStrategy(S,       F, T) => S [owise]
+  syntax Strategy ::= "subgoal" "(" Pattern "," Strategy ")"
+  rule <prover>
+         ( .Bag =>
+             <goal>
+               <id> !ID:Int </id>
+               <active> true </active>
+               <parent> PARENT </parent>
+               <strategy> SUBSTRAT </strategy>
+               <k> SUBGOAL </k>
+               <trace> TRACE </trace>
+               ...
+             </goal>
+         )
+         <goal>
+           <id> PARENT </id>
+           <active> true => false </active>
+           <strategy> subgoal(SUBGOAL, SUBSTRAT) => goalStrat(!ID:Int) ... </strategy>
+           <trace> TRACE </trace>
+           ...
+         </goal>
+         ...
+       </prover>
 ```
 
 Sometimes, we may need to combine the proofs of two subgoals to construct a proof
@@ -122,24 +133,14 @@ all succeed, it succeeds:
   rule <strategy> S & success => S ... </strategy>
   rule <strategy> success & S => S ... </strategy>
   rule <strategy> (S1 & S2) ; S3 => (S1 ; S3) & (S2 ; S3) ... </strategy>
+  rule <strategy> T:TerminalStrategy ~>  #hole & S2
+               => T & S2
+                  ...
+       </strategy>
   rule <prover>
-         ( .Bag =>
-             <goal>
-               <id> !ID:Int </id>
-               <active> true:Bool </active>
-               <parent> PARENT </parent>
-               <strategy> S1 </strategy>
-               <k> GOAL:Pattern </k>
-               <trace> TRACE </trace>
-               ...
-             </goal>
-         )
          <goal>
-           <id> PARENT </id>
-           <active> true => false </active>
-           <strategy> ((S1 & S2) => S2 & goalStrat(!ID:Int)) </strategy>
+           <strategy> ((S1 & S2) => subgoal(GOAL, S1) ~> #hole & S2) </strategy>
            <k> GOAL:Pattern </k>
-           <trace> TRACE </trace>
            ...
          </goal>
          ...
@@ -158,25 +159,14 @@ approach succeeds:
   rule <strategy> S | success => success ... </strategy>
   rule <strategy> success | S => success ... </strategy>
   rule <strategy> (S1 | S2) ; S3 => (S1 ; S3) | (S2 ; S3) ... </strategy>
-
+  rule <strategy> T:TerminalStrategy ~>  #hole | S2
+               => T | S2
+                  ...
+       </strategy>
   rule <prover>
-         ( .Bag =>
-             <goal>
-               <id> !ID:Int </id>
-               <active> true:Bool </active>
-               <parent> PARENT </parent>
-               <strategy> S1 </strategy>
-               <k> GOAL:Pattern </k>
-               <trace> TRACE </trace>
-               ...
-             </goal>
-         )
          <goal>
-           <id> PARENT </id>
-           <active> true => false </active>
-           <strategy> (S1 | S2) => (S2 | goalStrat(!ID:Int)) </strategy>
+           <strategy> ((S1 | S2) => subgoal(GOAL, S1) ~> #hole | S2 ) </strategy>
            <k> GOAL:Pattern </k>
-           <trace> TRACE </trace>
            ...
          </goal>
          ...
