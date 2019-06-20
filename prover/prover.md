@@ -134,8 +134,10 @@ module KORE-HELPERS
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
   rule getUniversalVariables(GOAL) => getFreeVariables(GOAL, .Patterns)
   syntax Patterns ::= getExistentialVariables(Pattern) [function]
-  rule getExistentialVariables(\implies(\and(LHS), \exists { EXISTENTIALS } \and(RHS)) #as GOAL)
+  rule getExistentialVariables(\implies(\and(LHS), \exists { EXISTENTIALS } \and(RHS)))
     => EXISTENTIALS
+  rule getExistentialVariables(\implies(\and(LHS), \and(RHS)))
+    => .Patterns
 ```
 
 Filters a list of patterns, returning the ones that are applications of the symbol:
@@ -274,6 +276,8 @@ Substitution: Substitute term or variable
   rule subst(\equals(ARG1, ARG2):Pattern, X, V) => \equals(ARG1[X/V], ARG2[X/V]):Pattern
   rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
   rule subst(\and(ARG):Pattern, X, V) => \and(ARG[X/V]):Pattern
+  rule subst(\implies(LHS, RHS):Pattern, X, V)
+    => \implies(LHS[X/V], RHS[X/V]):Pattern
   rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
   rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V)
 
@@ -352,7 +356,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "remove-lhs-existential" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "direct-proof" // rules that the SMT-PROVER can't handle
-                    | "smt" | "smt-z3" | "smt-cvc4"
+                    | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate

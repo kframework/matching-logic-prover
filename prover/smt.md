@@ -58,6 +58,7 @@ module SMTLIB2
   syntax SMTLIB2SimpleSymbol ::= "not"   [token]
                                | "or"    [token]
                                | "and"   [token]
+                               | "=>"    [token]
                                | "="     [token]
                                | "=>"    [token]
 

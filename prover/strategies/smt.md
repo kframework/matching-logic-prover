@@ -49,6 +49,7 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(.Patterns)) => true
+
   rule PatternToSMTLIB2Term(\implies(LHS, RHS)) => ((=> PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(\and(RHS)))):SMTLIB2Term
 
   rule PatternToSMTLIB2Term(\exists { .Patterns } C ) => PatternToSMTLIB2Term(C):SMTLIB2Term
@@ -211,7 +212,16 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                       ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))))
                   ...
        </strategy>
-       <trace> .K => smt ... </trace>
+       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
+```
+
+```k
+  rule <k> GOAL </k>
+       <strategy> smt-debug
+               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)))
+                  ...
+       </strategy>
+       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
 ```
 
 ```k

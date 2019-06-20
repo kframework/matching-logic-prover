@@ -17,7 +17,7 @@ def do_test(defn, file):
     return proj.source(file) \
                .then(defn.krun().variables(flags = '--smt none')) \
                .then(proj.check(proj.source(expected))
-                            .variables(flags = '--ignore-all-space')) \
+                         .variables(flags = '--ignore-all-space')) \
                .alias(file + '.test')
 
 def do_prove(alias, defn, spec_module, spec):
@@ -38,9 +38,24 @@ prover = proj.definition( alias = 'prover'
                                   , 'strategies/smt.md'
                                   , 'strategies/unfolding.md'
                                   ]
-                        , flags = '-O3 --non-strict'
+                      #  , flags = '-O3 --non-strict --check-races'
                         , runner_script = './prover'
                         )
+proj.definition( alias = 'prover-llvm-debug'
+         , backend = 'llvm'
+         , main = 'prover.md'
+         , other = [ 'smt.md'
+                   , 'predicate-definitions.md'
+                   , 'strategies/core.md'
+                   , 'strategies/knaster-tarski.md'
+                   , 'strategies/search-bound.md'
+                   , 'strategies/simplification.md'
+                   , 'strategies/smt.md'
+                   , 'strategies/unfolding.md'
+                   ]
+         , flags = '--debug'
+         , runner_script = './prover'
+         )
 
 prover.tests(glob = 't/*.prover')
 
