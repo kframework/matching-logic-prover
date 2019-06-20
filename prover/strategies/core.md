@@ -17,6 +17,7 @@ module PROVER-CORE-SYNTAX
                     | TerminalStrategy
                     | ResultStrategy
   syntax ResultStrategy ::= "noop"
+                          | TerminalStrategy
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
 ```
@@ -72,17 +73,6 @@ proved, or that constructing a proof has failed.
   rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
 ```
 
-TODO: Why does this not terminate? `success` followed by any strategies clears
-up the `<stratergy>` cell.
-
-```
-  rule <strategy> (T:TerminalStrategy ~> REST:K) => T </strategy>
-       <k> GOAL => .K </k>
-       <id> 0 </id>
-    requires REST =/=K .K
-     andBool GOAL =/=K .K
-```
-
 The `goalStrat(GoalId)` strategy is used to establish a reference to the result of
 another goal. It's argument holds the id of a subgoal. Once that subgoal has
 completed, its result is replaced in the parent goal and the subgoal is removed.
@@ -98,7 +88,7 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
          ( <goal> <id> ID </id>
                   <active> true:Bool </active>
                   <parent> PID </parent>
-                  <strategy> RStrat:TerminalStrategy ... </strategy>
+                  <strategy> RStrat:TerminalStrategy </strategy>
                   ...
            </goal> => .Bag
          )
