@@ -54,12 +54,12 @@ module SMTLIB2
                           | "(" "define-sort"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
-
   // Core symbols
   syntax SMTLIB2SimpleSymbol ::= "not"   [token]
                                | "or"    [token]
                                | "and"   [token]
                                | "="     [token]
+                               | "=>"    [token]
 
   // Arithmetic
   syntax SMTLIB2SimpleSymbol ::= "*"     [token]
