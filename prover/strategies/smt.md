@@ -18,8 +18,9 @@ module ML-TO-SMTLIB2
     => declareVariables(getUniversalVariables(GOAL)) ++SMTLIB2Script
        declareUninterpretedFunctions(removeDuplicates(getPredicates(LHS ++Patterns RHS))) ++SMTLIB2Script
        ( assert PatternToSMTLIB2Term(\and(LHS)) ) ++SMTLIB2Script
-       ( assert (forall (VariablesToSMTLIB2SortedVarList(variable("dummyVar") { Bool }, getExistentialVariables(GOAL)))
-                          ( not PatternToSMTLIB2Term(\and(RHS)) )
+       ( assert ( not (exists (VariablesToSMTLIB2SortedVarList(variable("dummyVar") { Bool }, getExistentialVariables(GOAL)))
+                              PatternToSMTLIB2Term(\and(RHS))
+                      )
        )        )
 
   // TODO: All symbols must be functional!
