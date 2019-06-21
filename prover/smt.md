@@ -130,6 +130,10 @@ module SMTLIB2
     => "( forall (" +String SMTLIB2SortedVarListToString(Vs) +String ") " +String
                  SMTLIB2TermListToString(T)  +String
        ") "
+  rule SMTLIB2TermToString( (exists (Vs)  T) )
+    => "( exists (" +String SMTLIB2SortedVarListToString(Vs) +String ") " +String
+                 SMTLIB2TermListToString(T)  +String
+       ") "
 
   syntax String ::= SMTLIB2TermListToString(SMTLIB2TermList)         [function]
   rule SMTLIB2TermListToString( T Ts )
