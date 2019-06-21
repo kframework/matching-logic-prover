@@ -49,8 +49,15 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(P:Predicate(ARGS)) => ( SymbolToSMTLIB2Symbol(P)
                                                     PatternsToSMTLIB2TermList(ARGS)
                                                   ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\and(BP, BPs)) => ((and PatternToSMTLIB2Term(BP) PatternToSMTLIB2Term(\and(BPs)))):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(.Patterns)) => true
+  rule PatternToSMTLIB2Term(\implies(LHS, RHS)) => ((=> PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(\and(RHS)))):SMTLIB2Term
+
+  rule PatternToSMTLIB2Term(\exists { .Patterns } C ) => PatternToSMTLIB2Term(C)
+  rule PatternToSMTLIB2Term(\exists { Vs } C ) => (exists (VariablesToSMTLIB2SortedVarList(Vs)) PatternToSMTLIB2Term(C)) [owise]
+  rule PatternToSMTLIB2Term(\forall { .Patterns } C ) => PatternToSMTLIB2Term(C)
+  rule PatternToSMTLIB2Term(\forall { Vs } C ) => (forall (VariablesToSMTLIB2SortedVarList(Vs)) PatternToSMTLIB2Term(C)) [owise]
 
   syntax SMTLIB2TermList ::= PatternsToSMTLIB2TermList(Patterns) [function]
   rule PatternsToSMTLIB2TermList(T, Ts)
