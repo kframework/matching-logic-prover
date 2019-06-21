@@ -218,7 +218,7 @@ module Z3
   imports SMTLIB2
   syntax CheckSATResult ::= Z3CheckSAT(SMTLIB2Script) [function]
   rule Z3CheckSAT(QUERY)
-    => CheckSATHelper( SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n", "z3 ")
+    => CheckSATHelper( SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n", "z3 -T 5 ")
 endmodule
 
 module CVC4
@@ -228,7 +228,7 @@ module CVC4
     => CheckSATHelper( "( set-logic ALL_SUPPORTED ) \n "
                +String SMTLIB2ScriptToString(QUERY)
                +String "\n( check-sat )\n"
-                     , "cvc4 --lang smt "
+                     , "cvc4 --lang smt --tlimit 5000 "
                      )
 endmodule
 
