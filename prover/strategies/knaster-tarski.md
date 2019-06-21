@@ -38,13 +38,14 @@ for guessing an instantiation of the inductive hypothesis.
 ```k
   syntax Strategy ::= ktForEachLRP(Patterns, KTInstantiate)
   rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => fail ... </strategy>
-  rule <strategy> ktForEachLRP((LRP, LRPs), INSTANTIATION)
-               => ( remove-lhs-existential ; kt-wrap(LRP) ; kt-forall-intro ; kt-unfold
-                  ; lift-or ; and-split ; remove-lhs-existential
-                  ; kt-unwrap ; simplify ; kt-collapse ; kt-solve-implications
+  rule <strategy> ( ktForEachLRP((LRP, LRPs), INSTANTIATION)
+                 => ( remove-lhs-existential ; kt-wrap(LRP) ; kt-forall-intro ; kt-unfold
+                    ; lift-or ; and-split ; remove-lhs-existential
+                    ; kt-unwrap ; simplify ; kt-collapse ; kt-solve-implications(REST)
+                    )
+                    | ktForEachLRP(LRPs, INSTANTIATION)
                   )
-                  | ktForEachLRP(LRPs, INSTANTIATION)
-                  ...
+                 ~> REST
        </strategy>
 ```
 
@@ -285,14 +286,14 @@ for guessing an instantiation of the inductive hypothesis.
 >        (alpha -> beta) /\ gamma -> psi
 
 ```k
-  syntax Strategy ::= "kt-solve-implications"
+  syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
   rule <k> \implies( \and(\implies(LHS, RHS), REST)
                   => \and(REST)
                    , _
                    )
        </k>
-       <strategy> ( kt-solve-implications
-                 => kt-solve-implication( subgoal(\implies(\and(REST), LHS), search-bound(3))    
+       <strategy> ( kt-solve-implications(#hole ; STRAT)
+                 => kt-solve-implication( subgoal(\implies(\and(REST), LHS), STRAT)
                                         , RHS
                                         )
                   )
@@ -303,7 +304,7 @@ for guessing an instantiation of the inductive hypothesis.
        </trace>
 
   rule <k> \implies(LHS , _ ) </k>
-       <strategy> kt-solve-implications => noop
+       <strategy> kt-solve-implications(STRAT) => noop
                   ...
        </strategy>
      requires notBool hasImplication(LHS)
@@ -342,10 +343,10 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                   ...
        </strategy>
   rule <strategy> kt-solve-implication(fail, RHS) => noop ... </strategy>
-  rule <k> \implies(\and(LHS), RHS)
+  rule <strategy> kt-solve-implication(success, \and(CONC)) => noop ... </strategy>
+       <k> \implies(\and(LHS), RHS)
         => \implies(\and(CONC ++Patterns LHS), RHS)
        </k>  
-       <strategy> kt-solve-implication(success, \and(CONC)) => noop ... </strategy>
 ```
 
 ```k
