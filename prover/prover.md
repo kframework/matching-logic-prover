@@ -187,13 +187,28 @@ and values, passed to K's substitute.
   rule getRecursivePredicates(.Patterns) => .Patterns
   rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
     => R(ARGS), getRecursivePredicates(REST)
+  rule getRecursivePredicates(S:Symbol, REST)
+    => getRecursivePredicates(REST)
+    requires notBool isRecursivePredicate(S)
+  rule getRecursivePredicates(S:Symbol(ARGS), REST)
+    => getRecursivePredicates(REST)
+    requires notBool isRecursivePredicate(S)
+  rule getRecursivePredicates(I:Int, REST)
+    => getRecursivePredicates(REST)
+  rule getRecursivePredicates(V:Variable, REST)
+    => getRecursivePredicates(REST)
   rule getRecursivePredicates(\and(Ps), REST)
     => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
+  rule getRecursivePredicates(\implies(LHS, RHS), REST)
+    => getRecursivePredicates(LHS) ++Patterns
+       getRecursivePredicates(RHS) ++Patterns
+       getRecursivePredicates(REST)
+  rule getRecursivePredicates(\equals(LHS, RHS), REST)
+    => getRecursivePredicates(LHS) ++Patterns
+       getRecursivePredicates(RHS) ++Patterns
+       getRecursivePredicates(REST)
   rule getRecursivePredicates(\exists { _ } \and(Ps), REST)
     => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
-  rule getRecursivePredicates(PATTERN, REST)
-    => getRecursivePredicates(REST)
-       [owise]
 ```
 
 ```k
@@ -201,13 +216,28 @@ and values, passed to K's substitute.
   rule getPredicates(.Patterns) => .Patterns
   rule getPredicates(R:Predicate(ARGS), REST)
     => R(ARGS), getPredicates(REST)
+  rule getPredicates(S:Symbol, REST)
+    => getPredicates(REST)
+    requires notBool isPredicate(S)
+  rule getPredicates(S:Symbol(ARGS), REST)
+    => getPredicates(REST)
+    requires notBool isPredicate(S)
+  rule getPredicates(I:Int, REST)
+    => getPredicates(REST)
+  rule getPredicates(V:Variable, REST)
+    => getPredicates(REST)
   rule getPredicates(\and(Ps), REST)
     => getPredicates(Ps) ++Patterns getPredicates(REST)
+  rule getPredicates(\implies(LHS, RHS), REST)
+    => getPredicates(LHS) ++Patterns
+       getPredicates(RHS) ++Patterns
+       getPredicates(REST)
+  rule getPredicates(\equals(LHS, RHS), REST)
+    => getPredicates(LHS) ++Patterns
+       getPredicates(RHS) ++Patterns
+       getPredicates(REST)
   rule getPredicates(\exists { _ } \and(Ps), REST)
-    => getPredicates(Ps) ++Patterns getRecursivePredicates(REST)
-  rule getPredicates(PATTERN, REST)
-    => getPredicates(REST)
-       [owise]
+    => getPredicates(Ps) ++Patterns getPredicates(REST)
 ```
 
 ```k
