@@ -1,141 +1,96 @@
-fmod CHECKER is
+fmod CHECKER is protecting NAT . 
 
-protecting NAT . 
+sorts EVar SVar Var VType . 
+subsorts EVar SVar < Var . ops ev sv : -> VType . 
+op _`(_`) : VType Nat -> Var .
+mb ev(N) : EVar . mb sv(N) : SVar .
 
----- basic AML patterns
+sort Sigma . op cs : Nat -> Sigma .
+sort Pat . subsorts Var Sigma < Pat .
+ops \app \imp : Pat Pat -> Pat .
+op \bot : -> Pat [ctor] .
+ops \ex \mu : Nat Pat -> Pat .
 
-sorts ElementVariable SetVariable ConstantSymbol .
+---- substitution & alpha-equivalence
+sort VSet . subsort Var < VSet . 
+op . : -> VSet . 
+op __ : VSet VSet -> VSet [assoc comm id: . ] .
+op _\_ : VSet VSet -> VSet . 
+op _in_ : Var VSet -> Bool .
 
-op ev : Nat -> ElementVariable [ctor] .
-op sv : Nat -> SetVariable [ctor] .
-op cs : Nat -> ConstantSymbol [ctor] .
-
-sort Pattern .
-subsort ElementVariable SetVariable ConstantSymbol < Pattern .
-
-op \app : Pattern Pattern -> Pattern [ctor] .
-op \bottom : -> Pattern [ctor] .
-op \implies : Pattern Pattern -> Pattern [ctor] .
-op \exists : Nat Pattern -> Pattern [ctor] .
-op \mu : Nat Pattern -> Pattern [ctor] .
-
----- free variables, substitution, alpha-equivalence, etc.
-
-sort VariableSet . subsort ElementVariable SetVariable < VariableSet .
-op . : -> VariableSet [ctor] .
-op __ : VariableSet VariableSet -> VariableSet [assoc comm id: . ctor] .
-op _\_ : VariableSet VariableSet -> VariableSet .
-op _in_ : ElementVariable VariableSet -> Bool .
-op _in_ : SetVariable VariableSet -> Bool .
-
-vars X Y Z X' Y' Z' : ElementVariable .
-vars SV SV' SV'' : SetVariable . vars Vs Vs' : VariableSet .
-
-eq X X = X .
-eq SV SV = SV .
-
-eq (X Vs) \ (X Vs') = Vs \ Vs' .
+var V : Var . vars VT VT' : VType . 
+vars Vs Vs' : VSet .
+eq V V = V . eq (V Vs) \ (V Vs') = Vs \ Vs' . 
 eq Vs \ Vs' = Vs [owise] .
+eq V in V Vs = true . eq V in Vs = false [owise] .
 
-eq X in X Vs = true .
-eq X in Vs = false [owise] .
-eq SV in SV Vs = true .
-eq SV in Vs = false [owise] .
+op fresh : VSet -> Nat . eq fresh(.) = 0 .
+eq fresh((VT(N)) Vs) = 1 + max(N, fresh(Vs)) .
 
-op fresh : VariableSet -> Nat .
-eq fresh(.) = 0 .
-eq fresh(ev(VN) Vs) = max(VN, fresh(Vs)) + 1 .
-eq fresh(sv(VN) Vs) = max(VN, fresh(Vs)) + 1 .
+op fv : Pat -> VSet .
+op _[_/_] : Pat Pat Var -> Pat .
 
-op fv : Pattern -> VariableSet .
-op _[_/_] : Pattern Pattern ElementVariable -> Pattern .
-op _[_/_] : Pattern Pattern SetVariable -> Pattern .
-op free-of-capture : ElementVariable Pattern Pattern ElementVariable -> Bool .
-op free-of-capture : SetVariable Pattern Pattern SetVariable -> Bool .
+vars N N' N'' M : Nat . vars P Q R P' Q' R' : Pat . 
 
-vars N M N' M' VN VN' VN'' : Nat . 
-vars P Q R P' Q' R' : Pattern . 
+eq fv(VT(N)) = VT(N) . eq fv(cs(N)) = . .
+eq fv(\app(P,Q)) = fv(P) fv(Q) . eq fv(\bot) = . .
+eq fv(\imp(P,Q)) = fv(P) fv(Q) .
+eq fv(\ex(N,P)) = fv(P) \ ev(N) .
+eq fv(\mu(N,P)) = fv(P) \ sv(N) .
 
-eq fv(ev(VN)) = ev(VN) .
-eq fv(sv(VN)) = sv(VN) .
-eq fv(cs(N)) = . .
-eq fv(\app(P, Q)) = fv(P) fv(Q) .
-eq fv(\bottom) = . .
-eq fv(\implies(P, Q)) = fv(P) fv(Q) .
-eq fv(\exists(VN, P)) = fv(P) \ ev(VN) .
-eq fv(\mu(VN, P)) = fv(P) \ sv(VN) .
+eq VT(N)[R / VT(N)] = R .
+eq VT(N)[R / VT'(N')] = R [owise] .
+eq \app(P,Q)[R / VT(N)] 
+ = \app(P[R / VT(N)], Q[R / VT(N)]) .
+eq \bot[R / VT(N)] = \bot .
+eq \imp(P,Q)[R / VT(N)] 
+ = \imp(P[R / VT(N)], Q[R / VT(N)]) .
+eq \ex(N, P)[R / ev(N)] = \ex(N, P) .
+eq \mu(N, P)[R / sv(N)] = \mu(N, P) .
+ceq \ex(N', P)[R / VT(N)] 
+  = \ex(N'', P[ev(N'') / ev(N')][R / VT(N)])
+ if N'' := fresh(fv(P) fv(R)) .
+ceq \mu(N', P)[R / VT(N)] 
+  = \mu(N'', P[sv(N'') / sv(N')][R / VT(N)])
+ if N'' := fresh(fv(P) fv(R)) .
 
-eq ev(VN)[R / ev(VN)] = R .
-eq ev(VN')[R / ev(VN)] = ev(VN') [owise] .
-eq sv(VN')[R / ev(VN)] = sv(VN') .
-eq \app(P,Q)[R / ev(VN)] = \app(P[R / ev(VN)], Q[R / ev(VN)]) .
-eq \bottom[R / ev(VN)] = \bottom .
-eq \implies(P,Q)[R / ev(VN)] = \implies(P[R / ev(VN)], Q[R / ev(VN)]) .
-eq \exists(VN, P)[R / ev(VN)] = \exists(VN, P) .
-ceq \exists(VN', P)[R / ev(VN)] = \exists(VN', P[R / ev(VN)])
- if free-of-capture(ev(VN'), P, R, ev(VN)) .
-ceq \exists(VN', P)[R / ev(VN)] = \exists(VN'', P[ev(VN'') / ev(VN')][R / ev(VN)])
- if not(free-of-capture(ev(VN'), P, R, ev(VN))) 
- /\ VN'' := fresh(fv(P) fv(R)) .
-ceq \mu(VN', P)[R / ev(VN)] = \mu(VN', P[R / ev(VN)])
- if free-of-capture(sv(VN'), P, R, ev(VN)) .
-ceq \mu(VN', P)[R / ev(VN)] = \mu(VN'', P[sv(VN'') / sv(VN')][R / ev(VN)])
- if not(free-of-capture(sv(VN'), P, R, ev(VN)))
- /\ VN'' := fresh(fv(P) fv(R)) .
+op _=a=_ : Pat Pat -> Bool .
 
-eq ev(VN')[R / sv(VN)] = ev(VN') .
-eq sv(VN)[R / sv(VN)] = R .
-eq sv(VN')[R / sv(VN)] = sv(VN') [owise] .
-eq \app(P,Q)[R / sv(VN)] = \app(P[R / sv(VN)], Q[R / sv(VN)]) .
-eq \bottom[R / sv(VN)] = \bottom .
-eq \implies(P,Q)[R / sv(VN)] = \implies(P[R / sv(VN)], Q[R / sv(VN)]) .
-ceq \exists(VN', P)[R / sv(VN)] = \exists(VN', P[R / sv(VN)])
- if free-of-capture(ev(VN'), P, R, sv(VN)) .
-ceq \exists(VN', P)[R / sv(VN)] = \exists(VN'', P[ev(VN'') / ev(VN')][R / sv(VN)])
- if not(free-of-capture(ev(VN'), P, R, sv(VN))) 
- /\ VN'' := fresh(fv(P) fv(R)) .
-eq \mu(VN, P)[R / sv(VN)] = \mu(VN, P) .
-ceq \mu(VN', P)[R / sv(VN)] = \mu(VN', P[R / sv(VN)])
- if free-of-capture(sv(VN'), P, R, sv(VN)) .
-ceq \mu(VN', P)[R / sv(VN)] = \mu(VN'', P[sv(VN'') / sv(VN')][R / sv(VN)])
- if not(free-of-capture(sv(VN'), P, R, sv(VN)))
- /\ VN'' := fresh(fv(P) fv(R)) .
-
-op _=a=_ : Pattern Pattern -> Bool .
-
-eq ev(VN) =a= ev(VN') = VN == VN' .
-eq sv(VN) =a= sv(VN') = VN == VN' .
-eq cs(N) =a= cs(N') = N == N' .
-eq \app(P,Q) =a= \app(P',Q') = P =a= P' and Q =a= Q' .
-eq \bottom =a= \bottom = true .
-eq \implies(P,Q) =a= \implies(P',Q') = P =a= P' and Q =a= Q' .
-ceq \exists(VN,P) =a= \exists(VN',P') = P[ev(VN'') / ev(VN)] =a= P'[ev(VN'') / ev(VN')]
- if VN'' := fresh(fv(P) fv(P')) .
-ceq \mu(VN,P) =a= \mu(VN',P') = P[sv(VN'') / sv(VN)] =a= P'[sv(VN'') / sv(VN')]
- if VN'' := fresh(fv(P) fv(P')) .
+eq VT(N) =a= VT(N') = N == N' .
+eq \app(P,Q) =a= \app(P',Q') 
+ = P =a= P' and Q =a= Q' .
+eq \bot =a= \bot = true .
+eq \imp(P,Q) =a= \imp(P',Q') 
+ = P =a= P' and Q =a= Q' .
+ceq \ex(N,P) =a= \ex(N',P') 
+  = P[ev(N'') / ev(N)] =a= P'[ev(N'') / ev(N')]
+ if N'' := fresh(fv(P) fv(P')) .
+ceq \mu(N,P) =a= \mu(N',P') 
+  = P[sv(N'') / sv(N)] =a= P'[sv(N'') / sv(N')]
+ if N'' := fresh(fv(P) fv(P')) .
 eq P =a= Q = false [owise] .
 
 ---- Hilbert proofs
-
 sorts Theorem Rule .
-
----- theorems are numbered for easy reference.
----- TODO:: check theorem ids are distinct.
-op `(_`)_by_ : Nat Pattern Rule -> Theorem [ctor prec 90 format (b d d os d d d)] .
-
+op `(_`)_by_ : Nat Pat Rule -> Theorem 
+            [prec 90 format (b d d os d d d)] .
 
 ---- basic AML proof rules
----- note that "axiom" means a theorem is assumed as an axiom (i.e., automatically proof check).
+---- note that "axiom" means a theorem is assumed 
+---- as an axiom (i.e., automatically proof check).
+
 op axiom : -> Rule .
 ops prop1 prop2 prop3 : -> Rule .
 op mp`(_,_`) : Nat Nat -> Rule .
 op ex`(_`) : Nat -> Rule .
 op ug : -> Rule .
-ops app-bot-left app-bot-right app-or-left app-or-right app-ex-left app-ex-right : -> Rule .
-ops framing-left`(_`) framing-right`(_`) : Nat -> Rule .
+ops app-bot-left app-bot-right app-or-left 
+  app-or-right app-ex-left app-ex-right : -> Rule .
+ops framing-left`(_`) framing-right`(_`) 
+  : Nat -> Rule .
 op existence : -> Rule .
 op singleton-ev`(_,_`) : Position Position -> Rule .
-op sv-subst`(_,_`) : Nat Pattern -> Rule .
+op sv-subst`(_,_`) : Nat Pat -> Rule .
 op prefixpoint : -> Rule .
 op kt`(_`) : Nat -> Rule .
 
@@ -143,10 +98,11 @@ op kt`(_`) : Nat -> Rule .
 
 sort Position .
 ops . l r : -> Position [ctor] .
-op __ : Position Position -> Position [assoc id: . ctor] .
+op __ : Position Position -> Position 
+      [assoc id: . ctor] .
 
----- get sub-pattern (get stuck if not application pattern)
-op _[_] : Pattern Position -> Pattern .
+---- get sub-pattern (stuck if not application)
+op _[_] : Pat Position -> Pat .
 
 vars Pos PosP PosQ : Position .
 eq P[ . ] = P .
@@ -155,19 +111,24 @@ eq \app(P,Q)[ r Pos ] = Q[Pos] .
 ---- get stuck otherwise.
 
 
----- theorems are patterns in a Hilbert proof, annotated with their ids and
+---- theorems are patterns in a Hilbert proof
+---  annotated with their ids and
 ---- how they are proved.
 
 sorts Theorems . subsort Theorem < Theorems .
 op . : -> Theorems .
-op __ : Theorems Theorems -> Theorems [assoc id: . ctor format (d ni d) prec 100] .
+op __ : Theorems Theorems -> Theorems 
+      [assoc id: . ctor format (d ni d) prec 100] .
 
 sort Proof .
-op proof_ : Theorems -> Proof [ctor format (d n d) prec 110] .
+op proof_ : Theorems -> Proof 
+          [ctor format (d n d) prec 110] .
 
----- check is a marker denoting the part of the proof that has been checked.
----- initially, check appears at the beginning of the proof, and goes down
----- theorem by theorem, until it reaches the end, which indicates proof check.
+---- check is a marker denoting the part of 
+---- the proof that has been checked.
+---- initially, check appears at the beginning of 
+---- the proof, and goes down theorem by theorem, 
+---- until it reaches the end, i.e., proof check.
 op check : -> Theorem [format(r o)] .
 
 ---- flag, denoting that proof checked.
@@ -179,271 +140,135 @@ eq proof PTs check = checked .
 
 ---- checking basic AML rules.
 
-eq proof PTs
-         check
-         (M) P by axiom
-         QTs
- = proof PTs
-         (M) P by axiom
-         check
-         QTs
-.
+eq proof PTs check (M) P by axiom QTs 
+ = proof PTs (M) P by axiom check QTs .
 
-eq proof PTs
-         check
-         (M) \implies(P, \implies(Q, P)) by prop1
-         QTs
- = proof PTs
-         (M) \implies(P, \implies(Q, P)) by prop1
-         check
-         QTs
-.
+eq proof PTs check (M) \imp(P, \imp(Q, P)) 
+   by prop1 QTs
+ = proof PTs (M) \imp(P, \imp(Q, P)) 
+   by prop1 check QTs .
 
-eq proof PTs
-         check
-         (M) \implies(\implies(P, \implies(Q, R)), 
-                      \implies(\implies(P, Q), \implies(P, R))) by prop2
-         QTs
- = proof PTs
-         (M) \implies(\implies(P, \implies(Q, R)), 
-                      \implies(\implies(P, Q), \implies(P, R))) by prop2
-         check
-         QTs
-.
+eq proof PTs check (M) \imp(\imp(P, \imp(Q, R)), 
+         \imp(\imp(P, Q), \imp(P, R))) by prop2 QTs
+ = proof PTs (M) \imp(\imp(P, \imp(Q, R)), 
+         \imp(\imp(P, Q), \imp(P, R))) by prop2 
+   check QTs .
 
-eq proof PTs
-         check
-         (M) \implies(\implies(\implies(P, \bottom), \bottom), P) by prop3
-         QTs
- = proof PTs
-         (M) \implies(\implies(\implies(P, \bottom), \bottom), P) by prop3
-         check
-         QTs
-.
+eq proof PTs check (M) 
+   \imp(\imp(\imp(P, \bot), \bot), P) by prop3 QTs
+ = proof PTs (M) \imp(\imp(\imp(P, \bot), \bot), P)
+   by prop3 check QTs .
 
-eq proof PTs
-         (N) P by RL
-         PTs'
-         (N') \implies(P, Q) by RL'
-         PTs''
-         check
-         (M) Q by mp(N,N')
-         QTs
- = proof PTs
-         (N) P by RL
-         PTs'
-         (N') \implies(P, Q) by RL'
-         PTs''
-         (M) Q by mp(N,N')
-         check
-         QTs
-.
+eq proof PTs (N) P by RL PTs' (N') \imp(P, Q) 
+   by RL' PTs'' check (M) Q by mp(N,N') QTs
+ = proof PTs (N) P by RL PTs' (N') \imp(P, Q) 
+   by RL' PTs'' (M) Q by mp(N,N') check QTs .
   
-eq proof PTs
-         (N') \implies(P, Q) by RL'
-         PTs'
-         (N) P by RL
-         PTs''
-         check
-         (M) Q by mp(N,N')
-         QTs
- = proof PTs
-         (N') \implies(P, Q) by RL'
-         PTs'
-         (N) P by RL
-         PTs''
-         (M) Q by mp(N,N')
-         check
-         QTs
-.
+eq proof PTs (N') \imp(P, Q) by RL' PTs'
+   (N) P by RL PTs'' check (M) Q by mp(N,N') QTs
+ = proof PTs (N') \imp(P, Q) by RL' PTs'
+   (N) P by RL PTs'' (M) Q by mp(N,N') check QTs .
 
-ceq proof PTs
-          check
-          (M) \implies(R, \exists(VN, P)) by ex(VN')
-          QTs
+ceq proof PTs check (M) \imp(R, \ex(N, P)) 
+    by ex(N') QTs
+  = proof PTs (M) \imp(R, \ex(N, P)) by ex(N')
+    check QTs if R =a= P[ev(N') / ev(N)] .
+
+ceq proof PTs (N) \imp(P, Q) by RL PTs' check
+    (M) \imp(\ex(N, P), Q) by ug QTs 
+  = proof PTs (N) \imp(P, Q) by RL PTs' 
+    (M) \imp(\ex(N, P), Q) by ug check QTs
+ if not(ev(N) in fv(Q)) .
+
+eq proof PTs check (M) \imp(\app(\bot, P), \bot) 
+   by app-bot-left QTs
+ = proof PTs (M) \imp(\app(\bot, P), \bot) 
+   by app-bot-left check QTs . 
+
+eq proof PTs check (M) \imp(\app(P, \bot), \bot) 
+   by app-bot-right QTs 
+ = proof PTs (M) \imp(\app(P, \bot), \bot) 
+   by app-bot-right check QTs .
+
+eq proof PTs check 
+   (M) \imp(\app(\imp(\imp(P, \bot), Q), R),
+       \imp(\imp(\app(P, R), \bot), \app(Q, R))) 
+   by app-or-left QTs
+ = proof PTs 
+   (M) \imp(\app(\imp(\imp(P, \bot), Q), R),
+       \imp(\imp(\app(P, R), \bot), \app(Q, R))) 
+   by app-or-left check QTs .
+
+eq proof PTs check 
+   (M) \imp(\app(R, \imp(\imp(P, \bot), Q)),
+       \imp(\imp(\app(R, P), \bot), \app(R, Q))) 
+   by app-or-right QTs
+ = proof PTs 
+   (M) \imp(\app(R, \imp(\imp(P, \bot), Q)),
+       \imp(\imp(\app(R, P), \bot), \app(R, Q))) 
+   by app-or-right check QTs .
+
+ceq proof PTs check 
+   (M) \imp(\app(\ex(N, P), Q), \ex(N, \app(P, Q))) 
+    by app-ex-left QTs
   = proof PTs
-          (M) \implies(R, \exists(VN, P)) by ex(VN')
-          check
-          QTs
- if R =a= P[ev(VN') / ev(VN)]
-.
-
-ceq proof PTs
-          (N) \implies(P, Q) by RL
-          PTs'
-          check
-          (M) \implies(\exists(VN, P), Q) by ug
-          QTs
-  = proof PTs
-          (N) \implies(P, Q) by RL
-          PTs'
-          (M) \implies(\exists(VN, P), Q) by ug
-          check
-          QTs
- if not(ev(VN) in fv(Q))
-.
-
-eq proof PTs
-         check
-         (M) \implies(\app(\bottom, P), \bottom) by app-bot-left
-         QTs
- = proof PTs
-         (M) \implies(\app(\bottom, P), \bottom) by app-bot-left
-         check
-         QTs
-.
-
-eq proof PTs
-         check
-         (M) \implies(\app(P, \bottom), \bottom) by app-bot-right
-         QTs
- = proof PTs
-         (M) \implies(\app(P, \bottom), \bottom) by app-bot-right
-         check
-         QTs
-.
-
-eq proof PTs
-         check
-         (M) \implies(\app(\implies(\implies(P, \bottom), Q), R),
-                      \implies(\implies(\app(P, R), \bottom), \app(Q, R))) by app-or-left
-         QTs
- = proof PTs
-         (M) \implies(\app(\implies(\implies(P, \bottom), Q), R),
-                      \implies(\implies(\app(P, R), \bottom), \app(Q, R))) by app-or-left
-         check
-         QTs
-.
-
-eq proof PTs
-         check
-         (M) \implies(\app(R, \implies(\implies(P, \bottom), Q)),
-                      \implies(\implies(\app(R, P), \bottom), \app(R, Q))) by app-or-right
-         QTs
- = proof PTs
-         (M) \implies(\app(R, \implies(\implies(P, \bottom), Q)),
-                      \implies(\implies(\app(R, P), \bottom), \app(R, Q))) by app-or-right
-         check
-         QTs
-.
-
-ceq proof PTs
-          check
-          (M) \implies(\app(\exists(VN, P), Q), \exists(VN, \app(P, Q))) by app-ex-left
-          QTs
-  = proof PTs
-          (M) \implies(\app(\exists(VN, P), Q), \exists(VN, \app(P, Q))) by app-ex-left
-          check
-          QTs
- if not(ev(VN) in fv(Q))
-.
+   (M) \imp(\app(\ex(N, P), Q), \ex(N, \app(P, Q))) 
+    by app-ex-left check QTs
+  if not(ev(N) in fv(Q)) .
  
-ceq proof PTs
-          check
-          (M) \implies(\app(P, \exists(VN, Q)), \exists(VN, \app(P, Q))) by app-ex-right
-          QTs
+ceq proof PTs check
+   (M) \imp(\app(P, \ex(N, Q)), \ex(N, \app(P, Q))) 
+    by app-ex-right QTs
   = proof PTs
-          (M) \implies(\app(P, \exists(VN, Q)), \exists(VN, \app(P, Q))) by app-ex-right
-          check
-          QTs
- if not(ev(VN) in fv(P))
-.
+   (M) \imp(\app(P, \ex(N, Q)), \ex(N, \app(P, Q))) 
+    by app-ex-right check QTs
+  if not(ev(N) in fv(P)) .
 
-eq proof PTs
-         (N) \implies(P, P') by RL
-         PTs'
-         check
-         (M) \implies(\app(P, Q), \app(P', Q)) by framing-left(N)
+eq proof PTs (N) \imp(P, P') by RL PTs' check
+   (M) \imp(\app(P,Q),\app(P',Q)) 
+   by framing-left(N) QTs
+ = proof PTs (N) \imp(P, P') by RL PTs'
+   (M) \imp(\app(P, Q), \app(P', Q)) 
+   by framing-left(N) check QTs . 
+
+eq proof PTs (N) \imp(Q, Q') by RL PTs' check
+   (M) \imp(\app(P, Q), \app(P, Q')) 
+   by framing-right(N) QTs
+ = proof PTs (N) \imp(Q, Q') by RL PTs' 
+   (M) \imp(\app(P, Q), \app(P, Q')) 
+   by framing-right(N) check QTs .
+
+eq proof PTs check (M) \ex(N, ev(N)) by existence
          QTs
- = proof PTs
-         (N) \implies(P, P') by RL
-         PTs'
-         (M) \implies(\app(P, Q), \app(P', Q)) by framing-left(N)
-         check
-         QTs
-.
+ = proof PTs (M) \ex(N, ev(N)) by existence
+         check QTs .
 
-eq proof PTs
-         (N) \implies(Q, Q') by RL
-         PTs'
-         check
-         (M) \implies(\app(P, Q), \app(P, Q')) by framing-right(N)
-         QTs
- = proof PTs
-         (N) \implies(Q, Q') by RL
-         PTs'
-         (M) \implies(\app(P, Q), \app(P, Q')) by framing-right(N)
-         check
-         QTs
-.
+ceq proof PTs check (M) \imp(P, \imp(Q, \bot)) 
+    by singleton-ev(PosP, PosQ) QTs
+  = proof PTs (M) \imp(P, \imp(Q, \bot)) 
+    by singleton-ev(PosP, PosQ) check QTs
+ if \imp(\imp(V:EVar,\imp(R,\bot)),\bot) := P[PosP]
+ /\ \imp(\imp(V':EVar, R'), \bot) := Q[PosQ]
+ /\ V:EVar == V':EVar /\ R == R' .
 
-eq proof PTs
-         check
-         (M) \exists(VN, ev(VN)) by existence
-         QTs
- = proof PTs
-         (M) \exists(VN, ev(VN)) by existence
-         check
-         QTs
-.
+ceq proof PTs (N) Q by RL PTs' check
+    (M) P by sv-subst(N, R) QTs
+  = proof PTs (N) Q by RL PTs'
+    (M) P by sv-subst(N, R) check QTs
+ if P =a= Q[R / sv(N)] .
 
-ceq proof PTs
-          check
-          (M) \implies(P, \implies(Q, \bottom)) by singleton-ev(PosP, PosQ)
-          QTs
-  = proof PTs
-          (M) \implies(P, \implies(Q, \bottom)) by singleton-ev(PosP, PosQ)
-          check
-          QTs
- if \implies(\implies(V:ElementVariable, \implies(R, \bottom)), \bottom)
-    := P[PosP]
- /\ \implies(\implies(V':ElementVariable, R'), \bottom)
-    := Q[PosQ]
- /\ V:ElementVariable == V':ElementVariable
- /\ R == R'
-.
+ceq proof PTs check (M) \imp(Q, \mu(N, P)) 
+    by prefixpoint QTs
+  = proof PTs (M) \imp(Q, \mu(N, P)) 
+    by prefixpoint check QTs
+ if Q =a= P[\mu(N, P) / sv(N)] .
 
-ceq proof PTs
-          (N) Q by RL
-          PTs'
-          check
-          (M) P by sv-subst(VN, R)
-          QTs
-  = proof PTs
-          (N) Q by RL
-          PTs'
-          (M) P by sv-subst(VN, R)
-          check
-          QTs
- if P =a= Q[R / sv(VN)]
-.
-
-ceq proof PTs
-          check
-          (M) \implies(Q, \mu(VN, P)) by prefixpoint
-          QTs
-  = proof PTs
-          (M) \implies(Q, \mu(VN, P)) by prefixpoint
-          check
-          QTs
- if Q =a= P[\mu(VN, P) / sv(VN)]
-.
-
-ceq proof PTs
-          (N) \implies(Q, R) by RL
-          PTs'
-          check
-          (M) \implies(\mu(VN, P), R) by kt(N)
-          QTs
-  = proof PTs
-          (N) \implies(Q, R) by RL
-          PTs'
-          (M) \implies(\mu(VN, P), R) by kt(N)
-          check
-          QTs
- if Q =a= P[R / sv(VN)]
-.
+ceq proof PTs (N) \imp(Q, R) by RL PTs' check
+    (M) \imp(\mu(N, P), R) by kt(N) QTs
+  = proof PTs (N) \imp(Q, R) by RL PTs'
+    (M) \imp(\mu(N, P), R) by kt(N) check QTs
+ if Q =a= P[R / sv(N)] .
  
 endfm
 
-
+q 
