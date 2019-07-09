@@ -9,6 +9,7 @@ or, by requiring several strategies succeed.
 
 ```k
 module PROVER-CORE-SYNTAX
+  imports KORE-SUGAR
 ```
 
 ```k
@@ -22,6 +23,7 @@ module PROVER-CORE-SYNTAX
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
   syntax Strategy ::= "or-split" | "and-split"
+  syntax Strategy ::= "prune" "(" Patterns ")"
 ```
 
 TODO: Should we allow `success` and `fail` in the program syntax? All other
@@ -40,10 +42,8 @@ endmodule
 ```k
 module PROVER-CORE
   imports PROVER-CONFIGURATION
-```
-
-```k
   imports PROVER-CORE-SYNTAX
+  imports KORE-HELPERS
 ```
 
 `Strategy`s can be sequentially composed via the `;` operator.
@@ -255,5 +255,20 @@ If-then-else-fi strategy is useful for implementing other strategies:
   syntax Strategy ::= "if" Bool "then" Strategy "else" Strategy "fi" [function]
   rule if true  then S1 else _  fi => S1
   rule if false then _  else S2 fi => S2
+```
+
+The prune strategy takes a list of goal ids, and fails if the current goal's id
+is in that list.
+
+```k
+  rule <id> ID </id>
+       <strategy> prune(PRUNE_IDs:Patterns) => fail ... </strategy>
+    requires ID in PRUNE_IDs
+  rule <id> ID </id>
+       <strategy> prune(PRUNE_IDs:Patterns) => noop ... </strategy>
+    requires notBool(ID in PRUNE_IDs)
+```
+
+```k
 endmodule
 ```

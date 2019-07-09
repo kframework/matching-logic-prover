@@ -218,7 +218,7 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 ```k
   rule <k> GOAL </k>
        <strategy> smt-debug
-               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)))
+               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))))
                   ...
        </strategy>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>

@@ -4,14 +4,13 @@ claim \implies( \and( listSegmentLeft (variable("H") { ArrayIntInt } , variable(
 strategy search-bound(5)
 
 /*
-strategy kt  ; simplify ; ( (right-unfold ; instantiate-existentials ; smt)
-                          | ( kt ; ( (right-unfold-Nth(0, 1)  ; right-unfold-Nth(0, 0) ; instantiate-existentials ; smt)
-                                   | (wait ; right-unfold-Nth(0, 1) ; instantiate-existentials ; smt)
-                                   | wait
-                                   | (instantiate-existentials ; smt)
-                                   )
-                            )
-                          | noop
-                          | ( smt )
-                          )
+strategy kt ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
+              | ( simplify ; smt )
+              | ( simplify ; kt ; prune(21, 22, 23)
+                                ; ( (simplify ; right-unfold-Nth(0, 1) ; right-unfold-Nth(0, 0) ; simplify ; instantiate-existentials ;  smt) 
+                                  | (simplify ; smt)
+                                  | (right-unfold-Nth(0, 1) ; instantiate-existentials ; simplify ; instantiate-existentials ; smt )
+                                  )
+                )
+              )
 */

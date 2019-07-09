@@ -39,9 +39,11 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= ktForEachLRP(Patterns, KTInstantiate)
   rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => fail ... </strategy>
   rule <strategy> ( ktForEachLRP((LRP, LRPs), INSTANTIATION)
-                 => ( remove-lhs-existential ; kt-wrap(LRP) ; kt-forall-intro ; kt-unfold
-                    ; lift-or ; and-split ; remove-lhs-existential
-                    ; kt-unwrap ; simplify ; kt-collapse ; kt-solve-implications(REST)
+                 => ( remove-lhs-existential ; normalize
+                    ; kt-wrap(LRP) ; kt-forall-intro
+                    ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
+                    ; kt-unwrap
+                    ; simplify ; kt-collapse ; kt-solve-implications(REST)
                     )
                     | ktForEachLRP(LRPs, INSTANTIATION)
                   )
@@ -112,25 +114,32 @@ for guessing an instantiation of the inductive hypothesis.
                   => substituteBRPs(unfold(LHS), LRP, ARGS, RHS)
                    , RHS
                    )
-       </k> 
+       </k>
        <strategy> kt-unfold => noop ... </strategy>
+    requires removeDuplicates(ARGS) ==K ARGS
+  rule <k> \implies(LRP:RecursivePredicate(ARGS), RHS)
+       </k>
+       <strategy> kt-unfold => fail ... </strategy>
+    requires removeDuplicates(ARGS) =/=K ARGS
 
                              // unfolded fixed point, HEAD, LRP variables, Pattern
   syntax Pattern ::= substituteBRPs(Pattern,  RecursivePredicate, Patterns, Pattern) [function]
   rule substituteBRPs(P:Int, RP, Vs, RHS) => P
   rule substituteBRPs(P:Variable, RP, Vs, RHS) => P
   rule substituteBRPs(P:Symbol, RP, Vs, RHS) => P
-  rule substituteBRPs(S:Symbol(ARGS) #as P, RP, Vs, RHS) => P 
+  rule substituteBRPs(S:Symbol(ARGS) #as P, RP, Vs, RHS) => P
     requires S =/=K RP
   rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, (\forall { Qs } implicationContext(CTX, P)) #as RHS)
     => alphaRename(substMap(RHS, zip(ARGS, BODY_ARGS)))
- 
+
   rule substituteBRPs(\top(), RP, Vs, RHS) => \top()
   rule substituteBRPs(\bottom(), RP, Vs, RHS) => \bottom()
   rule substituteBRPs(\equals(P1, P2), RP, Vs, RHS)
     => \equals( substituteBRPs(P1, RP, Vs, RHS)
               , substituteBRPs(P2, RP, Vs, RHS)
               )
+  rule substituteBRPs(\not(P), RP, Vs, RHS)
+    => \not(substituteBRPs(P, RP, Vs, RHS))
 
   rule substituteBRPs(\or(Ps), RP, Vs, RHS)  => \or(substituteBRPsPs(Ps, RP, Vs, RHS))
   rule substituteBRPs(\and(Ps), RP, Vs, RHS) => \and(substituteBRPsPs(Ps, RP, Vs, RHS))
@@ -193,42 +202,48 @@ for guessing an instantiation of the inductive hypothesis.
   rule <k> \implies(\and( \forall {_} implicationContext(\and(\and(Ps1), Ps2) => \and(Ps1 ++Patterns Ps2) , _), _), _) </k>
        <strategy> kt-collapse ... </strategy>
 
-// No instantiation to do
-  rule <k> \implies(\and( \forall { .Patterns }
-                          implicationContext( \and(#hole, CTXLHS:Patterns)
-                                            , CTXRHS:Pattern
+  rule <k> \implies(\and( \forall { UNIVs } ( implicationContext( \and(#hole, CTXLHS:Patterns)
+                                                                , CTXRHS:Pattern)
+                                           => \implies(\and(CTXLHS), CTXRHS)
                                             )
                         , LHS:Patterns
                         )
                    , RHS:Pattern
                    )
-        => \implies(\and(\implies(\and(CTXLHS), \and(CTXRHS)), LHS), RHS)
+       </k>
+       <strategy> kt-collapse ... </strategy>
+    requires filterVariablesBySort(UNIVs, Int) ==K .Patterns
+
+  rule <k> \implies( \and( (\forall { (variable(_, _) { Int } #as V:Variable), UNIVs:Patterns } P:Pattern)
+                         , LHS_REST:Patterns)
+                   , RHS:Pattern
+                   ) #as GOAL:Pattern
+        => \implies( \and( substituteWithEach(\forall { UNIVs } P, V, filterVariablesBySort(getFreeVariables(GOAL), Int))
+                           ++Patterns LHS_REST)
+                   , RHS
+                   )
        </k>
        <strategy> kt-collapse ... </strategy>
 
- // Instantiate axiom with all possible combinations of free variables.
- // If it is one of these, then the SMT solver will figure it out.
- rule <k> \implies( \and( \forall { (variable(_, _) { S } #as V:Variable), Vs:Patterns }
-                           implicationContext(\and(#hole, Ps:Patterns), CTXRHS:Pattern)
-                        , LHS_REST:Patterns
-                        )
-                  , RHS:Pattern
-                  ) #as GOAL:Pattern
-       => \implies(\and( LHS_REST ++Patterns
-                         instatiateWithEach( \forall { Vs } implicationContext(\and(#hole, Ps:Patterns), CTXRHS) 
-                                           , V, filterVariablesBySort(getFreeVariables(GOAL), S)
-                                           )
-                       )
-                  , RHS
-                  )
-      </k>
-      <strategy> kt-collapse ... </strategy>
+  rule <k> \implies( \and( (\forall { ((variable(_, _) { SetInt } #as V:Variable), UNIVs:Patterns)
+                                   => (UNIVs:Patterns ++Patterns V)
+                                    }
+                                    P:Pattern
+                           )
+                         , LHS_REST:Patterns)
+                   , RHS:Pattern
+                   )
+       </k>
+       <strategy> kt-collapse ... </strategy>
+    requires filterVariablesBySort(UNIVs, Int) =/=K .Patterns
+```
 
-  syntax Patterns ::= instatiateWithEach(Pattern, Variable, Patterns) [function]
-  rule instatiateWithEach(_, _, .Patterns) => .Patterns
-  rule instatiateWithEach(P, V, (I, Is))
-    => P[V/I], instatiateWithEach(P, V, Is)
-    
+```k
+  syntax Patterns ::= substituteWithEach(Pattern, Variable, Patterns) [function]
+  rule substituteWithEach(_, _, .Patterns) => .Patterns
+  rule substituteWithEach(P, V, (I, Is))
+    => P[V/I], substituteWithEach(P, V, Is)
+
   syntax Patterns ::= filterVariablesBySort(Patterns, Sort) [function]
   rule filterVariablesBySort(.Patterns, _) => .Patterns
   rule filterVariablesBySort(((variable(_, _) { S } #as V), Vs), S)
@@ -273,6 +288,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule hasImplicationContext(S:Symbol (ARGS)) => hasImplicationContextPs(ARGS)
   rule hasImplicationContext(\and(Ps)) => hasImplicationContextPs(Ps)
   rule hasImplicationContext(\or(Ps)) => hasImplicationContextPs(Ps)
+  rule hasImplicationContext(\not(P)) => hasImplicationContext(P)
   rule hasImplicationContext(\exists{ _ } P ) => hasImplicationContext(P)
   rule hasImplicationContext(\forall{ _ } P ) => hasImplicationContext(P)
   rule hasImplicationContext(implicationContext(_, _)) => true
@@ -281,27 +297,42 @@ for guessing an instantiation of the inductive hypothesis.
     => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
 ```
 
->   gamma -> alpha          beta /\ gamma -> psi
->   --------------------------------------------
->        (alpha -> beta) /\ gamma -> psi
+>   gamma -> alpha     beta /\ gamma -> psi
+>   ---------------------------------------
+>      (alpha -> beta) /\ gamma -> psi
 
 ```k
-  syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
-  rule <k> \implies( \and(\implies(LHS, RHS), REST)
+  rule <k> \implies( \and(\forall { UNIVs } \implies(LHS, RHS), REST:Patterns)
                   => \and(REST)
                    , _
                    )
        </k>
-       <strategy> ( kt-solve-implications(#hole ; STRAT)
-                 => kt-solve-implication( subgoal(\implies(\and(REST), LHS), STRAT)
-                                        , RHS
+       <strategy> kt-solve-implications(#hole ; STRAT)
+               => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), \exists { UNIVs } LHS), STRAT)
+                                        , \and(LHS, RHS)
                                         )
+                  ; kt-solve-implications(#hole ; STRAT)
                   )
                   ...
        </strategy>
-       <trace> .K => subgoal(\implies(\and(REST), LHS), smt)
-               ...
-       </trace>
+
+  syntax Patterns ::= removeImplications(Patterns) [function]
+  rule removeImplications(P, Ps) => P, removeImplications(Ps)
+    requires notBool hasImplication(P)
+  rule removeImplications(P, Ps) => removeImplications(Ps)
+    requires hasImplication(P)
+  rule removeImplications(.Patterns) => .Patterns
+
+  rule <k> \implies( \and(P:Pattern, REST:Patterns)
+                  => \and(REST ++Patterns P)
+                   , _
+                   )
+       </k>
+       <strategy> kt-solve-implications(_)
+                  ...
+       </strategy>
+    requires hasImplicationPs(REST)
+     andBool notBool hasImplication(P)
 
   rule <k> \implies(LHS , _ ) </k>
        <strategy> kt-solve-implications(STRAT) => noop
@@ -321,6 +352,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule hasImplication(S:Symbol (ARGS)) => hasImplicationPs(ARGS)
   rule hasImplication(\and(Ps)) => hasImplicationPs(Ps)
   rule hasImplication(\or(Ps)) => hasImplicationPs(Ps)
+  rule hasImplication(\not(P)) => hasImplication(P)
   rule hasImplication(\exists{ _ } P ) => hasImplication(P)
   rule hasImplication(\forall{ _ } P ) => hasImplication(P)
   rule hasImplicationPs(.Patterns) => false
@@ -343,10 +375,10 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                   ...
        </strategy>
   rule <strategy> kt-solve-implication(fail, RHS) => noop ... </strategy>
-  rule <strategy> kt-solve-implication(success, \and(CONC)) => noop ... </strategy>
+  rule <strategy> kt-solve-implication(success, CONC) => noop ... </strategy>
        <k> \implies(\and(LHS), RHS)
-        => \implies(\and(CONC ++Patterns LHS), RHS)
-       </k>  
+        => \implies(\and(CONC, LHS), RHS)
+       </k>
 ```
 
 ```k

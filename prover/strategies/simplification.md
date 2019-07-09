@@ -48,6 +48,22 @@ module STRATEGY-SIMPLIFICATION
   rule #lhsRemoveExistentials(P) => P [owise]
 ```
 
+```k
+  rule <k> GOAL => #normalize(GOAL) </k>
+       <strategy> normalize => noop ... </strategy>
+
+  syntax Pattern ::= #normalize(Pattern) [function]
+  rule #normalize(\implies(LHS, RHS)) => \implies(#normalize(LHS), #normalize(RHS))
+  rule #normalize(\and(Ps)) => \and(#flattenAnds(Ps))
+  rule #normalize(\exists{.Patterns} P ) => #normalize(P)
+  rule #normalize(\exists{ Qs } P ) => \exists { Qs } #normalize(P)
+
+  syntax Patterns ::= #flattenAnds(Patterns) [function]
+  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(P, Ps) => P ++Patterns #flattenAnds(Ps) [owise]
+  rule #flattenAnds(.Patterns) => .Patterns
+```
+
 ### lift-or
 
 Lift `\or`s on the left hand sides of implications

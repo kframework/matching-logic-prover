@@ -353,14 +353,15 @@ module PROVER-HORN-CLAUSE-SYNTAX
   imports PREDICATE-DEFINITIONS
 
   syntax Strategy ::= "search-bound" "(" Int ")"
-                    | "remove-lhs-existential" | "lift-or"
+                    | "remove-lhs-existential" | "normalize" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
-                    | "direct-proof" // rules that the SMT-PROVER can't handle
+                    | "direct-proof"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
                     | "kt-gfp" | "kt-gfp" "#" KTFilter "#" KTInstantiate
+  syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
 
   syntax KTFilter ::= head(RecursivePredicate)
                     | index(Int)
