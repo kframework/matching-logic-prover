@@ -6,10 +6,14 @@ claim \implies( \and( listSegmentLeft( variable("H") { ArrayIntInt } , variable(
               , \and( list( variable("H") { ArrayIntInt }, variable("X") { Int }, variable("K") { SetInt }) )
               )
 
-strategy kt ; prune(18)
-            ; ( (smt)
-              | ( normalize ; right-unfold-Nth(0, 1) ; instantiate-existentials ; smt-debug )
-              | ( wait )
+strategy kt ; normalize
+            ; ( ( simplify ; smt )
+              | ( right-unfold-Nth(0, 1)
+                ; instantiate-existentials
+                ; instantiate-aux
+                ; instantiate-aux
+                ; smt
+                )
               )
 
 // strategy search-bound(4)

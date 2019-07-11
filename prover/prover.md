@@ -205,15 +205,16 @@ and values, passed to K's substitute.
     => getRecursivePredicates(Ps)
   rule getRecursivePredicates(\and(Ps), REST)
     => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
+
   rule getRecursivePredicates(\implies(LHS, RHS), REST)
-    => getRecursivePredicates(LHS) ++Patterns
-       getRecursivePredicates(RHS) ++Patterns
-       getRecursivePredicates(REST)
+    => getRecursivePredicates(REST)
   rule getRecursivePredicates(\equals(LHS, RHS), REST)
     => getRecursivePredicates(LHS) ++Patterns
        getRecursivePredicates(RHS) ++Patterns
        getRecursivePredicates(REST)
   rule getRecursivePredicates(\exists { _ } \and(Ps), REST)
+    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
+  rule getRecursivePredicates(\forall { _ } Ps, REST)
     => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
 ```
 
@@ -364,6 +365,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
                     | "kt-gfp" | "kt-gfp" "#" KTFilter "#" KTInstantiate
   syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
+                    | "instantiate-aux"
 
   syntax KTFilter ::= head(RecursivePredicate)
                     | index(Int)

@@ -56,6 +56,7 @@ module STRATEGY-SIMPLIFICATION
   rule #normalize(\implies(LHS, RHS)) => \implies(#normalize(LHS), #normalize(RHS))
   rule #normalize(\and(Ps)) => \and(#flattenAnds(Ps))
   rule #normalize(\exists{.Patterns} P ) => #normalize(P)
+  rule #normalize(\forall{.Patterns} P ) => #normalize(P)
   rule #normalize(\exists{ Qs } P ) => \exists { Qs } #normalize(P)
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]

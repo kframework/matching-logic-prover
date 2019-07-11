@@ -8,8 +8,8 @@ module STRATEGY-KNASTER-TARSKI
 
 ### Knaster Tarski (Least Fixed Point)
 
-This high-level implementation of the Knaster Tarski rule attempts the applying
-the rule to each recursive predicate in turn. It also includes a heuristic
+this high-level implementation of the knaster tarski rule attempts the applying
+the rule to each recursive predicate in turn. it also includes a heuristic
 for guessing an instantiation of the inductive hypothesis.
 
 ```k
@@ -37,13 +37,13 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= ktForEachLRP(Patterns, KTInstantiate)
-  rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => fail ... </strategy>
+  rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => noop ... </strategy>
   rule <strategy> ( ktForEachLRP((LRP, LRPs), INSTANTIATION)
                  => ( remove-lhs-existential ; normalize
                     ; kt-wrap(LRP) ; kt-forall-intro
                     ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
                     ; kt-unwrap
-                    ; simplify ; kt-collapse ; kt-solve-implications(REST)
+                    ; simplify ; kt-collapse
                     )
                     | ktForEachLRP(LRPs, INSTANTIATION)
                   )
@@ -212,30 +212,29 @@ for guessing an instantiation of the inductive hypothesis.
                    )
        </k>
        <strategy> kt-collapse ... </strategy>
-    requires filterVariablesBySort(UNIVs, Int) ==K .Patterns
 
-  rule <k> \implies( \and( (\forall { (variable(_, _) { Int } #as V:Variable), UNIVs:Patterns } P:Pattern)
-                         , LHS_REST:Patterns)
-                   , RHS:Pattern
-                   ) #as GOAL:Pattern
-        => \implies( \and( substituteWithEach(\forall { UNIVs } P, V, filterVariablesBySort(getFreeVariables(GOAL), Int))
-                           ++Patterns LHS_REST)
-                   , RHS
-                   )
-       </k>
-       <strategy> kt-collapse ... </strategy>
-
-  rule <k> \implies( \and( (\forall { ((variable(_, _) { SetInt } #as V:Variable), UNIVs:Patterns)
-                                   => (UNIVs:Patterns ++Patterns V)
-                                    }
-                                    P:Pattern
-                           )
-                         , LHS_REST:Patterns)
-                   , RHS:Pattern
-                   )
-       </k>
-       <strategy> kt-collapse ... </strategy>
-    requires filterVariablesBySort(UNIVs, Int) =/=K .Patterns
+//  rule <k> \implies( \and( (\forall { (variable(_, _) { Int } #as V:Variable), UNIVs:Patterns } P:Pattern)
+//                         , LHS_REST:Patterns)
+//                   , RHS:Pattern
+//                   ) #as GOAL:Pattern
+//        => \implies( \and( substituteWithEach(\forall { UNIVs } P, V, filterVariablesBySort(getFreeVariables(GOAL), Int))
+//                           ++Patterns LHS_REST)
+//                   , RHS
+//                   )
+//       </k>
+//       <strategy> kt-collapse ... </strategy>
+//
+//  rule <k> \implies( \and( (\forall { ((variable(_, _) { SetInt } #as V:Variable), UNIVs:Patterns)
+//                                   => (UNIVs:Patterns ++Patterns V)
+//                                    }
+//                                    P:Pattern
+//                           )
+//                         , LHS_REST:Patterns)
+//                   , RHS:Pattern
+//                   )
+//       </k>
+//       <strategy> kt-collapse ... </strategy>
+//    requires filterVariablesBySort(UNIVs, Int) =/=K .Patterns
 ```
 
 ```k
@@ -302,25 +301,25 @@ for guessing an instantiation of the inductive hypothesis.
 >      (alpha -> beta) /\ gamma -> psi
 
 ```k
-  rule <k> \implies( \and(\forall { UNIVs } \implies(LHS, RHS), REST:Patterns)
+  rule <k> \implies( \and(\implies(LHS, RHS), REST:Patterns)
                   => \and(REST)
                    , _
                    )
        </k>
-       <strategy> kt-solve-implications(#hole ; STRAT)
-               => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), \exists { UNIVs } LHS), STRAT)
+       <strategy> kt-solve-implications( /*#hole ;*/ STRAT)
+               => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), LHS), STRAT)
                                         , \and(LHS, RHS)
                                         )
-                  ; kt-solve-implications(#hole ; STRAT)
+                  ; kt-solve-implications(STRAT)
                   )
                   ...
        </strategy>
 
   syntax Patterns ::= removeImplications(Patterns) [function]
   rule removeImplications(P, Ps) => P, removeImplications(Ps)
-    requires notBool hasImplication(P)
+    requires notBool matchesImplication(P)
   rule removeImplications(P, Ps) => removeImplications(Ps)
-    requires hasImplication(P)
+    requires matchesImplication(P)
   rule removeImplications(.Patterns) => .Patterns
 
   rule <k> \implies( \and(P:Pattern, REST:Patterns)
@@ -331,33 +330,21 @@ for guessing an instantiation of the inductive hypothesis.
        <strategy> kt-solve-implications(_)
                   ...
        </strategy>
-    requires hasImplicationPs(REST)
-     andBool notBool hasImplication(P)
+    requires hasImplication(REST)
+     andBool notBool matchesImplication(P)
 
   rule <k> \implies(LHS , _ ) </k>
-       <strategy> kt-solve-implications(STRAT) => noop
-                  ...
-       </strategy>
-     requires notBool hasImplication(LHS)
+       <strategy> kt-solve-implications(STRAT) => noop ... </strategy>
+     requires notBool matchesImplication(LHS)
 
-  syntax Bool ::= hasImplication(Pattern)    [function]
-  syntax Bool ::= hasImplicationPs(Patterns) [function]
-  rule hasImplication(X:Variable) => false
-  rule hasImplication(X:Int) => false
-  rule hasImplication(S:Symbol) => false
-  rule hasImplication(\implies(LHS, RHS))
-    => true
-  rule hasImplication(\equals(LHS, RHS))
-    => hasImplication(LHS) orBool hasImplication(RHS)
-  rule hasImplication(S:Symbol (ARGS)) => hasImplicationPs(ARGS)
-  rule hasImplication(\and(Ps)) => hasImplicationPs(Ps)
-  rule hasImplication(\or(Ps)) => hasImplicationPs(Ps)
-  rule hasImplication(\not(P)) => hasImplication(P)
-  rule hasImplication(\exists{ _ } P ) => hasImplication(P)
-  rule hasImplication(\forall{ _ } P ) => hasImplication(P)
-  rule hasImplicationPs(.Patterns) => false
-  rule hasImplicationPs(P, Ps)
-    => hasImplication(P) orBool hasImplicationPs(Ps)
+  syntax Bool ::= matchesImplication(Pattern)    [function]
+  rule matchesImplication(\implies(LHS, RHS)) => true
+  rule matchesImplication(P)                  => false [owise]
+
+  syntax Bool ::= hasImplication(Patterns) [function]
+  rule hasImplication(.Patterns) => false
+  rule hasImplication(P, Ps)
+    => matchesImplication(P) orBool hasImplication(Ps)
 ```
 
 If the subgoal in the first argument succeeds add the second argument to the LHS, otherwise do nothing:
@@ -579,6 +566,118 @@ TODO: Need `CorecursivePredicate` sort
 //     andBool ?BODY_REST ==K (?UNFOLD -Patterns (HEAD(?BRP_ARGS), .Patterns))
 //     andBool ?USubst ==K zip(RRP_ARGS, ?BRP_ARGS)
 //     andBool ?InstSubst ==K makeFreshSubstitution(getFreeVariables(LHS) -Patterns getFreeVariables(RHS))
+```
+
+```k
+  syntax Strategy ::= "instantiate-aux" "(" Patterns /* universals */ "," Patterns /* ground terms */ ")"
+  rule <k> \implies(\and(LHS), RHS) #as GOAL </k>
+       <strategy> instantiate-aux
+               => instantiate-aux(getForalls(LHS), removeDuplicates(getGroundTerms(GOAL)))
+                  ...
+       </strategy>
+
+  rule <strategy> instantiate-aux( (\forall { (variable(_, _) { S } #as V:Variable), UNIVs:Patterns } P:Pattern , REST_FORALLs)
+                                => (substituteWithEach(\forall { UNIVs } P, V, filterBySort(GROUND_TERMS, S)) ++Patterns REST_FORALLs)
+                                 , GROUND_TERMS
+                                 )
+                  ...
+       </strategy>
+
+  rule <k> \implies(\and(LHS => P, LHS), RHS) </k> 
+       <strategy> instantiate-aux( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
+                                 , _
+                                 )
+                  ...
+       </strategy>
+    requires notBool P in LHS
+  rule <k> \implies(\and(LHS), RHS) </k> 
+       <strategy> instantiate-aux( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
+                                 , _
+                                 )
+                  ...
+       </strategy>
+    requires P in LHS
+
+  rule <strategy> instantiate-aux( .Patterns
+                                 , _
+                                 )
+               => noop
+                  ...
+       </strategy>
+
+  syntax Patterns ::= getForalls(Patterns) [function]
+  rule getForalls(((\forall { _ } _) #as P), Ps) => P, getForalls(Ps)
+  rule getForalls(                       P , Ps) =>    getForalls(Ps) [owise]
+  rule getForalls(.Patterns) => .Patterns 
+  
+  syntax Patterns ::= filterBySort(Patterns, Sort) [function]
+  rule filterBySort((P, Ps), S) => P, filterBySort(Ps, S) requires getReturnSort(P) ==K S
+  rule filterBySort((P, Ps), S) =>    filterBySort(Ps, S) requires getReturnSort(P) =/=K S
+  rule filterBySort(.Patterns, S) => .Patterns
+
+  syntax Sort ::= getReturnSort(Pattern) [function]
+  rule getReturnSort( I:Int ) => Int
+  rule getReturnSort( variable(_)    { S } ) => S
+  rule getReturnSort( variable(_, _) { S } ) => S
+  rule getReturnSort( select ( ARGS ) ) => Int
+  rule getReturnSort( union ( ARGS ) ) => SetInt
+  rule getReturnSort( singleton ( ARGS ) ) => SetInt
+  rule getReturnSort( emptyset ) => SetInt
+  rule getReturnSort( disjoint ( ARGS ) ) => Bool
+  rule getReturnSort( gt ( ARGS ) ) => Bool
+  rule getReturnSort( R:RecursivePredicate ( ARGS ) )
+    => #fun( symbol _ { } ( _ ) : S => S) (getSymbolDeclaration(R))
+
+  syntax Patterns ::= getGroundTerms(Pattern) [function]
+  rule getGroundTerms(P) => getGroundTerms(P, .Patterns)
+  syntax Patterns ::= getGroundTerms(Pattern, Patterns) [function, klabel(getGroundTermsAux)]
+  rule getGroundTerms(S:Symbol, VARs) => S, .Patterns
+  rule getGroundTerms(I:Int, VARs) => I, .Patterns
+  rule getGroundTerms(X:Variable, VARs) => X, .Patterns requires notBool X in VARs
+  rule getGroundTerms(X:Variable, VARs) =>    .Patterns requires         X in VARs
+
+  rule getGroundTerms(\implies(LHS, RHS), VARs)
+    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs) 
+  rule getGroundTerms(\equals(LHS, RHS), VARs)
+    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs) 
+  rule getGroundTerms(\forall { UNIVs } P, VARs)
+    => getGroundTerms(P, VARs ++Patterns UNIVs) 
+  rule getGroundTerms(\exists { UNIVs } P, VARs)
+    => getGroundTerms(P, VARs ++Patterns UNIVs) 
+  rule getGroundTerms(\and(.Patterns), VARs)
+    => .Patterns
+  rule getGroundTerms(\and(P, Ps), VARs)
+    => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\and(Ps), VARs) 
+  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
+    => APPLY , getGroundTerms(\and(ARGS))
+    requires VARs -Patterns getFreeVariables(ARGS) ==K VARs
+  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
+    => getGroundTerms(\and(ARGS))
+    requires VARs -Patterns getFreeVariables(ARGS) =/=K VARs
+
+  rule <k> \implies( \and( ((\forall { .Patterns } P:Pattern) => P)
+                         , _)
+                   , RHS:Pattern
+                   )
+       </k>
+       <strategy> instantiate-aux ... </strategy>
+
+  rule <k> \implies( \and( (P, Ps) => Ps ++Patterns (P, .Patterns))
+                   , RHS:Pattern
+                   )
+       </k>
+       <strategy> instantiate-aux ... </strategy>
+    requires hasForall(Ps)
+  rule <k> \implies(\and(Ps), RHS:Pattern) </k>
+       <strategy> instantiate-aux => noop ... </strategy>
+    requires notBool hasForall(Ps)
+
+  syntax Bool ::= hasForall(Patterns)    [function]
+  rule hasForall(P, Ps) => matchesForall(P) orBool hasForall(Ps)
+  rule hasForall(.Patterns) => false
+  syntax Bool ::= matchesForall(Pattern) [function]
+  rule matchesForall(\forall{ _ } _) => true
+  rule matchesForall(_) => false [owise]
 ```
 
 ```k
