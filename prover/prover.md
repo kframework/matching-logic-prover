@@ -246,6 +246,8 @@ and values, passed to K's substitute.
        getPredicates(REST)
   rule getPredicates(\exists { _ } \and(Ps), REST)
     => getPredicates(Ps) ++Patterns getPredicates(REST)
+  rule getPredicates(\forall { _ } P, REST)
+    => getPredicates(P) ++Patterns getPredicates(REST)
 ```
 
 ```k
