@@ -179,32 +179,6 @@ approach succeeds:
      andBool notBool(isTerminalStrategy(S2))
 ```
 
-```k
-  syntax Strategy ::= "subgoal" "(" Pattern "," Strategy ")"
-  rule <prover>
-         ( .Bag =>
-             <goal>
-               <id> !ID:Int </id>
-               <active> true:Bool </active>
-               <parent> PARENT </parent>
-               <strategy> S </strategy>
-               <k> GOAL:Pattern </k>
-               <trace> TRACE </trace>
-               ...
-             </goal>
-         )
-         <goal>
-           <id> PARENT </id>
-           <active> true => false </active>
-           <strategy> subgoal(P, S) => goalStrat(!ID:Int) ... </strategy>
-           <k> GOAL:Pattern </k>
-           <trace> TRACE </trace>
-           ...
-         </goal>
-         ...
-       </prover>
-```
-
 Internal strategy used to implement `or-split` and `and-split`.
 
 ```k
