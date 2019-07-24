@@ -48,16 +48,32 @@ module STRATEGY-SIMPLIFICATION
   rule #lhsRemoveExistentials(P) => P [owise]
 ```
 
+Normalize:
+
+ - RHS has existential qunatifier
+ - Implications on the LHS of the goal are always universally quantified.
+ - All \ands are flattened
+
 ```k
-  rule <k> GOAL => #normalize(GOAL) </k>
+  rule <k> \implies(LHS, \and(RHS))
+        => \implies(LHS, \exists { .Patterns } \and(RHS))
+       </k>
+       <strategy> normalize ... </strategy>
+
+  rule <k> \implies(\and(LHS), \exists { Es } \and(RHS))
+        => \implies( \and(#normalize(#flattenAnds(#lhsRemoveExistentialsPs(LHS))))
+                   , \exists { Es } \and(#normalize(#flattenAnds(RHS)))
+                   )
+       </k>
        <strategy> normalize => noop ... </strategy>
 
-  syntax Pattern ::= #normalize(Pattern) [function]
-  rule #normalize(\implies(LHS, RHS)) => \implies(#normalize(LHS), #normalize(RHS))
-  rule #normalize(\and(Ps)) => \and(#flattenAnds(Ps))
-  rule #normalize(\exists{.Patterns} P ) => #normalize(P)
-  rule #normalize(\forall{.Patterns} P ) => #normalize(P)
-  rule #normalize(\exists{ Qs } P ) => \exists { Qs } #normalize(P)
+  syntax Patterns ::= #normalize(Patterns) [function]
+  rule #normalize(\implies(LHS, RHS), Ps)
+    => \forall { .Patterns } \implies(LHS, RHS), #normalize(Ps)
+  rule #normalize(\exists{.Patterns} P, Ps )
+    => #normalize(P, Ps)
+  rule #normalize(.Patterns) => .Patterns
+  rule #normalize(P, Ps) => P, #normalize(Ps) [owise]
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]
   rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
