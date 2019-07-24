@@ -9,42 +9,25 @@ claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
                                      , variable("Y") { Int }
                                      , variable("F") { SetInt }
                                      )
-                     )
+                    )
               )
 
 strategy kt ; normalize ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
-                          | ( kt-solve-implications(smt)
-                            ; ( normalize ; kt ; ( ( right-unfold-Nth(0, 1)
-                                                   ; right-unfold-Nth(0, 0) 
-                                                   ; normalize
-                                                   ; instantiate-existentials
-                                                   ; smt
-                                                   )
-                                                 | ( right-unfold-Nth(0, 1) 
-                                                   ; instantiate-existentials
-                                                   ; instantiate-aux
-                                                   ; kt-solve-implications
-                                                        ( instantiate-existentials
-                                                        ; simplify ; smt
-                                                        )
-                                                   ; normalize
-                                                   ; smt
-                                                   )
-                                                 )
-                              )
+                          | ( kt-solve-implications(smt) ; normalize
+                            ; kt ; ( ( right-unfold-Nth(0, 1)
+                                     ; right-unfold-Nth(0, 0)
+                                     ; normalize
+                                     ; instantiate-existentials
+                                     ; smt
+                                     )
+                                   | ( right-unfold-Nth(0, 1)
+                                     ; instantiate-existentials
+                                     ; instantiate-aux
+                                     ; normalize
+                                     ; smt
+                                     )
+                                   )
                             )
                           )
 
 // strategy search-bound(5)
-/*
-strategy kt ; ( ( right-unfold-Nth(0, 0) ; simplify ; direct-proof )
-              | ( direct-proof )
-              | ( kt ; ( ( simplify ; right-unfold-Nth(0, 1) ; right-unfold-Nth(0, 0) ; substitute-equals-for-equals ; direct-proof)
-                       | ( simplify ; direct-proof)
-                       | right-unfold-Nth(0, 1) ; simplify ; direct-proof
-                       | noop
-                       )
-                )
-              | ( noop )
-              )
-*/

@@ -4,45 +4,20 @@ claim \implies( \and( listSegmentLeft (variable("H") { ArrayIntInt } , variable(
 
 // strategy search-bound(5)
 
-strategy normalize ; kt ; normalize
-       ; instantiate-aux
-       ; kt-solve-implications(normalize ; instantiate-existentials ; smt )
-       ; normalize ; kt ; normalize
-       ; ( ( ( ( right-unfold ; normalize )
-             | ( right-unfold ; normalize ; right-unfold ; normalize )
-             )
-           ; instantiate-aux
-           ; instantiate-aux
-           ; ( normalize ; instantiate-existentials ; smt
-             )
-           )
-         | ( normalize ; kt-solve-implications(normalize ; instantiate-existentials ; smt) ; wait )
-         )
-
-/*
 strategy kt ; normalize ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
-                          | ( kt-solve-implications(smt)
-                            ; ( ( normalize ; kt ; ( ( right-unfold-Nth(0, 1)
-                                                     ; right-unfold-Nth(0, 0) 
-                                                     ; normalize
-                                                     ; instantiate-existentials
-                                                     ; smt
-                                                     )
-                                                   | ( right-unfold-Nth(0, 1) 
-                                                     ; instantiate-existentials
-                                                     ; instantiate-aux
-                                                     ; kt-solve-implications
-                                                          ( instantiate-existentials
-                                                          ; simplify ; smt
-                                                          )
-                                                     ; normalize
-                                                     ; smt
-                                                     )
-                                                   | wait
-                                                   )
-                                ) | wait
-                              )
+                          | ( kt-solve-implications(smt) ; normalize
+                            ; kt ; ( ( right-unfold-Nth(0, 1)
+                                     ; right-unfold-Nth(0, 0)
+                                     ; normalize
+                                     ; instantiate-existentials
+                                     ; smt
+                                     )
+                                   | ( right-unfold-Nth(0, 1)
+                                     ; instantiate-existentials
+                                     ; instantiate-aux
+                                     ; normalize
+                                     ; smt
+                                     )
+                                   )
                             )
-                          | wait
                           )
-*/
