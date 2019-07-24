@@ -334,12 +334,12 @@ for guessing an instantiation of the inductive hypothesis.
     requires hasImplication(REST)
      andBool notBool matchesImplication(P)
 
-  rule <k> \implies(LHS , _ ) </k>
+  rule <k> \implies(\and(LHS), _) </k>
        <strategy> kt-solve-implications(STRAT) => noop ... </strategy>
-     requires notBool matchesImplication(LHS)
+     requires notBool hasImplication(LHS)
 
   syntax Bool ::= matchesImplication(Pattern)    [function]
-  rule matchesImplication(\implies(LHS, RHS)) => true
+  rule matchesImplication(\forall { _ } \implies(LHS, RHS)) => true
   rule matchesImplication(P)                  => false [owise]
 
   syntax Bool ::= hasImplication(Patterns) [function]
