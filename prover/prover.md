@@ -212,10 +212,10 @@ and values, passed to K's substitute.
     => getRecursivePredicates(LHS) ++Patterns
        getRecursivePredicates(RHS) ++Patterns
        getRecursivePredicates(REST)
-  rule getRecursivePredicates(\exists { _ } \and(Ps), REST)
-    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
-  rule getRecursivePredicates(\forall { _ } Ps, REST)
-    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
+  rule getRecursivePredicates(\exists { .Patterns } P, REST)
+    => getRecursivePredicates(P, REST)
+  rule getRecursivePredicates(\forall { .Patterns } P, REST)
+    => getRecursivePredicates(P, REST)
 ```
 
 ```k

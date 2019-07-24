@@ -14,28 +14,25 @@ claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
 
 strategy kt ; normalize ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
                           | ( kt-solve-implications(smt)
-                            ; ( ( normalize ; kt ; ( ( right-unfold-Nth(0, 1)
-                                                     ; right-unfold-Nth(0, 0) 
-                                                     ; normalize
-                                                     ; instantiate-existentials
-                                                     ; smt
-                                                     )
-                                                   | ( right-unfold-Nth(0, 1) 
-                                                     ; instantiate-existentials
-                                                     ; instantiate-aux
-                                                     ; kt-solve-implications
-                                                          ( instantiate-existentials
-                                                          ; simplify ; smt
-                                                          )
-                                                     ; normalize
-                                                     ; smt
-                                                     )
-                                                   | wait
+                            ; ( normalize ; kt ; ( ( right-unfold-Nth(0, 1)
+                                                   ; right-unfold-Nth(0, 0) 
+                                                   ; normalize
+                                                   ; instantiate-existentials
+                                                   ; smt
                                                    )
-                                ) | wait
+                                                 | ( right-unfold-Nth(0, 1) 
+                                                   ; instantiate-existentials
+                                                   ; instantiate-aux
+                                                   ; kt-solve-implications
+                                                        ( instantiate-existentials
+                                                        ; simplify ; smt
+                                                        )
+                                                   ; normalize
+                                                   ; smt
+                                                   )
+                                                 )
                               )
                             )
-                          | wait
                           )
 
 // strategy search-bound(5)

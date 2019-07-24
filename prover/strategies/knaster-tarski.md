@@ -43,7 +43,7 @@ for guessing an instantiation of the inductive hypothesis.
                     ; kt-wrap(LRP) ; kt-forall-intro
                     ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
                     ; kt-unwrap
-                    ; simplify ; kt-collapse
+                    ; simplify ; normalize ; kt-collapse
                     )
                     | ktForEachLRP(LRPs, INSTANTIATION)
                   )
@@ -72,11 +72,12 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-wrap" "(" Pattern ")"
-  rule <k> \implies(LHS:Pattern, RHS)
-        => \implies(LRP, implicationContext(LHS[LRP/#hole], RHS))
+  rule <k> \implies(\and(LHS:Patterns), RHS)
+        => \implies(LRP, implicationContext(\and(#hole, (LHS -Patterns LRP)), RHS))
        </k>
        <strategy> kt-wrap(LRP) => noop ... </strategy>
        <trace> .K => kt-wrap(LRP)  ... </trace>
+    requires LRP in LHS
 ```
 
 >   phi(x) -> \forall y. psi(x, y)
@@ -301,12 +302,12 @@ for guessing an instantiation of the inductive hypothesis.
 >      (alpha -> beta) /\ gamma -> psi
 
 ```k
-  rule <k> \implies( \and(\implies(LHS, RHS), REST:Patterns)
+  rule <k> \implies( \and(\forall { .Patterns } \implies(LHS, RHS), REST:Patterns)
                   => \and(REST)
                    , _
                    )
        </k>
-       <strategy> kt-solve-implications( /*#hole ;*/ STRAT)
+       <strategy> kt-solve-implications( STRAT)
                => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), LHS), STRAT)
                                         , \and(LHS, RHS)
                                         )
@@ -654,23 +655,6 @@ TODO: Need `CorecursivePredicate` sort
   rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
     => getGroundTerms(\and(ARGS))
     requires VARs -Patterns getFreeVariables(ARGS) =/=K VARs
-
-  rule <k> \implies( \and( ((\forall { .Patterns } P:Pattern) => P)
-                         , _)
-                   , RHS:Pattern
-                   )
-       </k>
-       <strategy> instantiate-aux ... </strategy>
-
-  rule <k> \implies( \and( (P, Ps) => Ps ++Patterns (P, .Patterns))
-                   , RHS:Pattern
-                   )
-       </k>
-       <strategy> instantiate-aux ... </strategy>
-    requires hasForall(Ps)
-  rule <k> \implies(\and(Ps), RHS:Pattern) </k>
-       <strategy> instantiate-aux => noop ... </strategy>
-    requires notBool hasForall(Ps)
 
   syntax Bool ::= hasForall(Patterns)    [function]
   rule hasForall(P, Ps) => matchesForall(P) orBool hasForall(Ps)

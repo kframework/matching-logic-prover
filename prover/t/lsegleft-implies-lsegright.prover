@@ -1,12 +1,15 @@
 claim \implies( \and( listSegmentLeft (variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }) )
               , \and( listSegmentRight(variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }) )
               )
+
+// strategy search-bound(5)
+
 strategy normalize ; kt ; normalize
        ; instantiate-aux
-       ; kt-solve-implications(normalize ; instantiate-existentials ; smt)
+       ; kt-solve-implications(normalize ; instantiate-existentials ; smt )
        ; normalize ; kt ; normalize
-       ; ( ( ( ( right-unfold )
-             | ( right-unfold ; right-unfold )
+       ; ( ( ( ( right-unfold ; normalize )
+             | ( right-unfold ; normalize ; right-unfold ; normalize )
              )
            ; instantiate-aux
            ; instantiate-aux
@@ -42,15 +45,4 @@ strategy kt ; normalize ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
                             )
                           | wait
                           )
-// strategy search-bound(5)
-
-strategy kt ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
-              | ( simplify ; smt )
-              | ( simplify ; kt ; prune(21, 22, 23)
-                                ; ( (simplify ; right-unfold-Nth(0, 1) ; right-unfold-Nth(0, 0) ; simplify ; instantiate-existentials ;  smt) 
-                                  | (simplify ; smt)
-                                  | (right-unfold-Nth(0, 1) ; instantiate-existentials ; simplify ; instantiate-existentials ; smt )
-                                  )
-                )
-              )
 */
