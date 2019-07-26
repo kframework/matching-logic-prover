@@ -28,7 +28,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule getKTPredicates(V:Variable, REST)
     => getKTPredicates(REST)
   rule getKTPredicates(\not(Ps), REST)
-    => getKTPredicates(Ps)
+    => getKTPredicates(REST)
   rule getKTPredicates(\and(Ps), REST)
     => getKTPredicates(Ps) ++Patterns getKTPredicates(REST)
   rule getKTPredicates(\implies(LHS, RHS), REST)
