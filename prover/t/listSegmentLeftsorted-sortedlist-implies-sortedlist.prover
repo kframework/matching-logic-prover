@@ -1,3 +1,17 @@
+/* lseglsorted(H, X, Y, F, PV, MAX) ==
+     (X = Y and F = empty and PV <= MAX) OR
+     (exists X', F', V. (H[X] = X' and F' U {X} = F and F' disjoint {X}) and
+                        H[X+1] = V and X > 0 and V > PV and V <= MAX and
+                        lseglsorted(H, X', Y, F', V, MAX))
+*/
+
+/* listsorted(H, X, F, PV) ==
+     (X = 0 and F = empty) OR
+     (exists X', F', V. (H[X] = X' and F' U {X} = F and F' disjoint {X}) and
+                        H[X+1] = V and X > 0 and V > PV and
+                        listsorted(H, X', F', V))
+*/
+
 claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt } 
                                     , variable("X") { Int } 
                                     , variable("Y") { Int } 
