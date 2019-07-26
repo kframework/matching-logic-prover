@@ -234,7 +234,7 @@ and values, passed to K's substitute.
   rule getPredicates(V:Variable, REST)
     => getPredicates(REST)
   rule getPredicates(\not(Ps), REST)
-    => getPredicates(Ps)
+    => getPredicates(Ps) ++Patterns getPredicates(REST)
   rule getPredicates(\and(Ps), REST)
     => getPredicates(Ps) ++Patterns getPredicates(REST)
   rule getPredicates(\implies(LHS, RHS), REST)
@@ -245,8 +245,8 @@ and values, passed to K's substitute.
     => getPredicates(LHS) ++Patterns
        getPredicates(RHS) ++Patterns
        getPredicates(REST)
-  rule getPredicates(\exists { _ } \and(Ps), REST)
-    => getPredicates(Ps) ++Patterns getPredicates(REST)
+  rule getPredicates(\exists { _ } P, REST)
+    => getPredicates(P) ++Patterns getPredicates(REST)
   rule getPredicates(\forall { _ } P, REST)
     => getPredicates(P) ++Patterns getPredicates(REST)
 ```
