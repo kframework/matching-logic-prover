@@ -182,43 +182,6 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax Patterns ::= getLeftRecursivePredicates(Pattern) [function]
-  rule getLeftRecursivePredicates(\implies(\and(LHS), RHS)) => getRecursivePredicates(LHS)
-```
-
-```k
-  syntax Patterns ::= getRecursivePredicates(Patterns)   [function]
-  rule getRecursivePredicates(.Patterns) => .Patterns
-  rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
-    => R(ARGS), getRecursivePredicates(REST)
-  rule getRecursivePredicates(S:Symbol, REST)
-    => getRecursivePredicates(REST)
-    requires notBool isRecursivePredicate(S)
-  rule getRecursivePredicates(S:Symbol(ARGS), REST)
-    => getRecursivePredicates(REST)
-    requires notBool isRecursivePredicate(S)
-  rule getRecursivePredicates(I:Int, REST)
-    => getRecursivePredicates(REST)
-  rule getRecursivePredicates(V:Variable, REST)
-    => getRecursivePredicates(REST)
-  rule getRecursivePredicates(\not(Ps), REST)
-    => getRecursivePredicates(Ps)
-  rule getRecursivePredicates(\and(Ps), REST)
-    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
-
-  rule getRecursivePredicates(\implies(LHS, RHS), REST)
-    => getRecursivePredicates(REST)
-  rule getRecursivePredicates(\equals(LHS, RHS), REST)
-    => getRecursivePredicates(LHS) ++Patterns
-       getRecursivePredicates(RHS) ++Patterns
-       getRecursivePredicates(REST)
-  rule getRecursivePredicates(\exists { .Patterns } P, REST)
-    => getRecursivePredicates(P, REST)
-  rule getRecursivePredicates(\forall { .Patterns } P, REST)
-    => getRecursivePredicates(P, REST)
-```
-
-```k
   syntax Patterns ::= getPredicates(Patterns)   [function]
   rule getPredicates(.Patterns) => .Patterns
   rule getPredicates(R:Predicate(ARGS), REST)

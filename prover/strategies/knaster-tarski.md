@@ -13,10 +13,41 @@ the rule to each recursive predicate in turn. it also includes a heuristic
 for guessing an instantiation of the inductive hypothesis.
 
 ```k
+  syntax Patterns ::= getKTPredicates(Patterns)   [function]
+  rule getKTPredicates(.Patterns) => .Patterns
+  rule getKTPredicates(R:RecursivePredicate(ARGS), REST)
+    => R(ARGS), getKTPredicates(REST)
+  rule getKTPredicates(S:Symbol, REST)
+    => getKTPredicates(REST)
+    requires notBool isRecursivePredicate(S)
+  rule getKTPredicates(S:Symbol(ARGS), REST)
+    => getKTPredicates(REST)
+    requires notBool isRecursivePredicate(S)
+  rule getKTPredicates(I:Int, REST)
+    => getKTPredicates(REST)
+  rule getKTPredicates(V:Variable, REST)
+    => getKTPredicates(REST)
+  rule getKTPredicates(\not(Ps), REST)
+    => getKTPredicates(Ps)
+  rule getKTPredicates(\and(Ps), REST)
+    => getKTPredicates(Ps) ++Patterns getKTPredicates(REST)
+  rule getKTPredicates(\implies(LHS, RHS), REST)
+    => getKTPredicates(REST)
+  rule getKTPredicates(\equals(LHS, RHS), REST)
+    => getKTPredicates(LHS) ++Patterns
+       getKTPredicates(RHS) ++Patterns
+       getKTPredicates(REST)
+  rule getKTPredicates(\exists { .Patterns } P, REST)
+    => getKTPredicates(P, REST)
+  rule getKTPredicates(\forall { .Patterns } P, REST)
+    => getKTPredicates(P, REST)
+```
+
+```k
   rule <strategy> kt => kt # .KTFilter # useAffectedHeuristic ... </strategy>
-  rule <k> GOAL </k>
+  rule <k> \implies(\and(LHS), RHS) </k>
        <strategy> kt # FILTER # INSTANTIATION
-               => getLeftRecursivePredicates(GOAL) ~> kt # FILTER # INSTANTIATION
+               => getKTPredicates(LHS) ~> kt # FILTER # INSTANTIATION
                   ...
        </strategy>
   rule <strategy> LRPs:Patterns ~> kt # head(HEAD) # INSTANTIATION
