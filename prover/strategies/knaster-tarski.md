@@ -649,6 +649,8 @@ TODO: Need `CorecursivePredicate` sort
     => .Patterns
   rule getGroundTerms(\and(P, Ps), VARs)
     => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\and(Ps), VARs) 
+  rule getGroundTerms(\not(P), VARs)
+    => getGroundTerms(P, VARs)
   rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
     => APPLY , getGroundTerms(\and(ARGS))
     requires VARs -Patterns getFreeVariables(ARGS) ==K VARs
