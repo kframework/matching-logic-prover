@@ -20,14 +20,21 @@ claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt }
                                 )
                      )
               )
+
+strategy kt ; normalize
+            ; ( ( simplify
+                ; left-unfold-Nth(0) ;
+                  ( ( right-unfold-Nth(0, 0) ; smt)
+                  | ( right-unfold-Nth(0, 1) ; smt)
+                  )
+                )
+              | ( right-unfold-Nth(0, 1)
+                ; instantiate-existentials
+                ; instantiate-aux
+                ; instantiate-aux
+                ; smt
+                )
+              )
+
+
 // strategy search-bound(4)
-strategy kt # head(listSegmentLeftSorted) # useAffectedHeuristic
-       ; ( ( simplify ; instantiate-existentials ; smt )
-         | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt )
-         | ( left-unfold-Nth(0) ; ( (right-unfold-Nth(0, 0) ; simplify ; instantiate-existentials ; smt)
-                                  | (right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt)
-                                  | noop
-                                  )
-           )
-         | noop
-         )
