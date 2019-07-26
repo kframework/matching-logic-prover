@@ -336,52 +336,6 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
        </k>
 ```
 
-### Knaster Tarski (Greatest Fixed Points)
-
-TODO: Need `CorecursivePredicate` sort
-
-```k
-  rule <strategy> kt-gfp => kt-gfp # .KTFilter # useAffectedHeuristic ... </strategy>
-  rule <k> \implies(_, RHS:Pattern) </k>
-       <strategy> kt-gfp # FILTER # INSTANTIATION
-               => getRecursivePredicates(RHS, .Patterns) ~> kt-gfp # FILTER # INSTANTIATION
-                  ...
-       </strategy>
-//  rule <strategy> RRPs ~> kt-gfp # head(HEAD) # INSTANTIATION
-//               => filterByConstructor(RRPs, HEAD) ~> kt-gfp # .KTFilter # INSTANTIATION
-//                  ...
-//       </strategy>
-  rule <strategy> RRPs:Patterns ~> kt-gfp # index(I:Int) # INSTANTIATION
-               => getMember(I, RRPs), .Patterns ~> kt-gfp # .KTFilter # INSTANTIATION
-                  ...
-       </strategy>
-```
-
-```k
-//  rule <k>    \implies(\and(LHS), \and(RHS))
-//           => \implies(\and(LHS), \and({LHS[?USubst][?InstSubst]}:>Patterns
-//                                      ++Patterns ?BODY_REST
-//                                      ++Patterns (RHS -Patterns (HEAD:Predicate(RRP_ARGS), .Patterns))
-//                      )               )
-//       </k>
-//       <strategy> HEAD(RRP_ARGS), .Patterns
-//               ~> kt-gfp # .KTFilter # INSTANTIATION
-//               => noop
-//                  ...
-//       </strategy>
-//       <trace>
-//         .K => "USubst"    ~> ?USubst
-//            ~> "InstSubst" ~> ?InstSubst
-//            ~> "BRP: " ~> HEAD(?BRP_ARGS)
-//         ...
-//       </trace>
-//    requires \or(\and(?UNFOLD)) ==K unfold(HEAD(RRP_ARGS))
-//     andBool HEAD(?BRP_ARGS), .Patterns ==K filterByConstructor(getRecursivePredicates(?UNFOLD), HEAD)
-//     andBool ?BODY_REST ==K (?UNFOLD -Patterns (HEAD(?BRP_ARGS), .Patterns))
-//     andBool ?USubst ==K zip(RRP_ARGS, ?BRP_ARGS)
-//     andBool ?InstSubst ==K makeFreshSubstitution(getFreeVariables(LHS) -Patterns getFreeVariables(RHS))
-```
-
 ```k
   syntax Strategy ::= "instantiate-aux" "(" Patterns /* universals */ "," Patterns /* ground terms */ ")"
   rule <k> \implies(\and(LHS), RHS) #as GOAL </k>
