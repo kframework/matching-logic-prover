@@ -42,13 +42,6 @@ strategy kt ; normalize
                   | ( right-unfold-Nth(0, 1) ; smt)
                   )
                 )
-              | ( right-unfold-Nth(0, 1)
-                ; instantiate-existentials
-                ; instantiate-aux
-                ; instantiate-aux
-                ; smt
-                )
               )
-
 
 // strategy search-bound(4)
