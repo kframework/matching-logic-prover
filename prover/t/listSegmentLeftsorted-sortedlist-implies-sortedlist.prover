@@ -1,3 +1,17 @@
+/* lseglsorted(H, X, Y, F, PV, MAX) ==
+     (X = Y and F = empty and PV <= MAX) OR
+     (exists X', F', V. (H[X] = X' and F' U {X} = F and F' disjoint {X}) and
+                        H[X+1] = V and X > 0 and V > PV and V <= MAX and
+                        lseglsorted(H, X', Y, F', V, MAX))
+*/
+
+/* listsorted(H, X, F, PV) ==
+     (X = 0 and F = empty) OR
+     (exists X', F', V. (H[X] = X' and F' U {X} = F and F' disjoint {X}) and
+                        H[X+1] = V and X > 0 and V > PV and
+                        listsorted(H, X', F', V))
+*/
+
 claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt } 
                                     , variable("X") { Int } 
                                     , variable("Y") { Int } 
@@ -20,14 +34,14 @@ claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt }
                                 )
                      )
               )
+
+strategy kt ; normalize
+            ; ( ( simplify
+                ; left-unfold-Nth(0) ;
+                  ( ( right-unfold-Nth(0, 0) ; smt)
+                  | ( right-unfold-Nth(0, 1) ; smt)
+                  )
+                )
+              )
+
 // strategy search-bound(4)
-strategy kt # head(listSegmentLeftSorted) # useAffectedHeuristic
-       ; ( ( simplify ; instantiate-existentials ; smt )
-         | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt )
-         | ( left-unfold-Nth(0) ; ( (right-unfold-Nth(0, 0) ; simplify ; instantiate-existentials ; smt)
-                                  | (right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt)
-                                  | noop
-                                  )
-           )
-         | noop
-         )

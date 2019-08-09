@@ -1,11 +1,11 @@
 ```k
 requires "predicate-definitions.k"
+requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/unfolding.k"
-requires "substitution.k"
 ```
 
 Kore Sugar
@@ -125,15 +125,19 @@ module KORE-HELPERS
   rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
   rule getFreeVariables(\or(Ps),  .Patterns) => getFreeVariables(Ps)
 
-  rule getFreeVariables(\exists { EXISTENTIALS } P,  .Patterns)
-    => getFreeVariables(P, .Patterns) -Patterns EXISTENTIALS
+  rule getFreeVariables(\exists { Vs } P,  .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns Vs
+  rule getFreeVariables(\forall { Vs } P,  .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns Vs
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
   rule getUniversalVariables(GOAL) => getFreeVariables(GOAL, .Patterns)
   syntax Patterns ::= getExistentialVariables(Pattern) [function]
-  rule getExistentialVariables(\implies(\and(LHS), \exists { EXISTENTIALS } \and(RHS)) #as GOAL)
+  rule getExistentialVariables(\implies(\and(LHS), \exists { EXISTENTIALS } \and(RHS)))
     => EXISTENTIALS
+  rule getExistentialVariables(\implies(\and(LHS), \and(RHS)))
+    => .Patterns
 ```
 
 Filters a list of patterns, returning the ones that are applications of the symbol:
@@ -178,36 +182,36 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax Patterns ::= getLeftRecursivePredicates(Pattern) [function]
-  rule getLeftRecursivePredicates(\implies(\and(LHS), RHS)) => getRecursivePredicates(LHS)
-```
-
-```k
-  syntax Patterns ::= getRecursivePredicates(Patterns)   [function]
-  rule getRecursivePredicates(.Patterns) => .Patterns
-  rule getRecursivePredicates(R:RecursivePredicate(ARGS), REST)
-    => R(ARGS), getRecursivePredicates(REST)
-  rule getRecursivePredicates(\and(Ps), REST)
-    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
-  rule getRecursivePredicates(\exists { _ } \and(Ps), REST)
-    => getRecursivePredicates(Ps) ++Patterns getRecursivePredicates(REST)
-  rule getRecursivePredicates(PATTERN, REST)
-    => getRecursivePredicates(REST)
-       [owise]
-```
-
-```k
   syntax Patterns ::= getPredicates(Patterns)   [function]
   rule getPredicates(.Patterns) => .Patterns
   rule getPredicates(R:Predicate(ARGS), REST)
     => R(ARGS), getPredicates(REST)
+  rule getPredicates(S:Symbol, REST)
+    => getPredicates(REST)
+    requires notBool isPredicate(S)
+  rule getPredicates(S:Symbol(ARGS), REST)
+    => getPredicates(REST)
+    requires notBool isPredicate(S)
+  rule getPredicates(I:Int, REST)
+    => getPredicates(REST)
+  rule getPredicates(V:Variable, REST)
+    => getPredicates(REST)
+  rule getPredicates(\not(Ps), REST)
+    => getPredicates(Ps) ++Patterns getPredicates(REST)
   rule getPredicates(\and(Ps), REST)
     => getPredicates(Ps) ++Patterns getPredicates(REST)
-  rule getPredicates(\exists { _ } \and(Ps), REST)
-    => getPredicates(Ps) ++Patterns getRecursivePredicates(REST)
-  rule getPredicates(PATTERN, REST)
-    => getPredicates(REST)
-       [owise]
+  rule getPredicates(\implies(LHS, RHS), REST)
+    => getPredicates(LHS) ++Patterns
+       getPredicates(RHS) ++Patterns
+       getPredicates(REST)
+  rule getPredicates(\equals(LHS, RHS), REST)
+    => getPredicates(LHS) ++Patterns
+       getPredicates(RHS) ++Patterns
+       getPredicates(REST)
+  rule getPredicates(\exists { _ } P, REST)
+    => getPredicates(P) ++Patterns getPredicates(REST)
+  rule getPredicates(\forall { _ } P, REST)
+    => getPredicates(P) ++Patterns getPredicates(REST)
 ```
 
 ```k
@@ -225,21 +229,26 @@ and values, passed to K's substitute.
   rule getLength(P, Ps) => 1 +Int getLength(Ps)
 ```
 
-Substitution:
+Substitution: Substitute term or variable
 
 ```k
-  syntax Pattern ::= Pattern "[" Variable "/" Pattern "]" [function, klabel(subst)]
-  syntax Pattern ::= subst(Pattern, Variable, Pattern)    [function, klabel(subst)]
+  syntax Pattern ::= Pattern "[" Pattern "/" Pattern "]" [function, klabel(subst)]
+  syntax Pattern ::= subst(Pattern, Pattern, Pattern)    [function, klabel(subst)]
   rule subst(X,X,V) => V
   rule subst(X:Variable,Y,V) => X requires X =/=K Y
+  rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_) => \top()
   rule subst(\bottom(),_,_) => \bottom()
-  rule subst(I:Int, X, V) => I
-  rule subst(emptyset, X, V) => emptyset
   rule subst(\equals(ARG1, ARG2):Pattern, X, V) => \equals(ARG1[X/V], ARG2[X/V]):Pattern
-  rule subst(\not(ARG):Pattern, X:Variable, V:Pattern) => \not(subst(ARG, X, V)):Pattern
-  rule subst(\and(ARG):Pattern, X:Variable, V:Pattern) => \and(ARG[X/V]):Pattern
+  rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
+  rule subst(\and(ARG):Pattern, X, V) => \and(ARG[X/V]):Pattern
+  rule subst(\implies(LHS, RHS):Pattern, X, V)
+    => \implies(LHS[X/V], RHS[X/V]):Pattern
+  rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
+  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V)
 
+  rule subst(S:Symbol, X, V) => S
+    requires S =/=K X
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
 
@@ -251,8 +260,9 @@ Substitution:
 
   syntax Patterns ::= Patterns "[" Map "]"         [function, klabel(substPatternsMap)]
   syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
-  rule substPatternsMap((BP, BPs), SUBST) => substMap(BP, SUBST)
-                                        , substPatternsMap(BPs, SUBST)
+  rule substPatternsMap((BP, BPs), SUBST)
+    => substMap(BP, SUBST), substPatternsMap(BPs, SUBST)
+
   rule .Patterns[SUBST] => .Patterns
 
   syntax Patterns ::= Patterns "[" Pattern "/" Pattern "]" [function]
@@ -299,212 +309,6 @@ module PROVER-CONFIGURATION
 endmodule
 ```
 
-Core Strategy Language
-======================
-
-The "strategy" language is an imperative language for describing which
-high-level proof rules to try, in an attempt to find a proof.
-Strategies can be composed: by sequencing via the `;` strategy;
-as alternatives picking the first one that succeeds via the `|` strategy;
-or, by requiring several strategies succeed.
-
-```k
-module PROVER-CORE-SYNTAX
-```
-
-```k
-  syntax Strategy ::= Strategy ";" Strategy [right]
-                    | "(" Strategy ")"      [bracket]
-                    | TerminalStrategy
-                    | ResultStrategy
-  syntax ResultStrategy ::= "noop"
-                          | Strategy "&" Strategy [right, format(%1%n%2  %3)]
-                          | Strategy "|" Strategy [right, format(%1%n%2  %3)]
-```
-
-TODO: Should we allow `success` and `fail` in the program syntax? All other
-strategies (assuming correct implementation) only allow for constructing a sound
-proof.
-
-```k
-  syntax TerminalStrategy ::= "success" | "fail"
-```
-
-```k
-endmodule
-```
-
-```k
-module PROVER-CORE
-  imports PROVER-CONFIGURATION
-```
-
-```k
-  imports PROVER-CORE-SYNTAX
-```
-
-`Strategy`s can be sequentially composed via the `;` operator.
-
-```k
-  rule <strategy> (S ; T) ; U => S ; (T ; U) ... </strategy>
-```
-
-Since strategies do not live in the K cell, we must manually heat and cool.
-`ResultStrategy`s are strategies that can only be simplified when they are
-cooled back into the sequence strategy.
-
-```k
-  syntax ResultStrategy ::= "#hole"
-  rule <strategy> S1 ; S2 => S1 ~> #hole ; S2 ... </strategy>
-    requires notBool(isResultStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole ; S2 => S1 ; S2 ... </strategy>
-```
-
-The `noop` (no operation) strategy is the unit for sequential composition:
-
-```k
-  rule <strategy> noop ; T => T ... </strategy>
-```
-
-The `success` and `fail` strategy indicate that a goal has been successfully
-proved, or that constructing a proof has failed.
-
-```k
-  rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
-```
-
-TODO: Why does this not terminate? `success` followed by any strategies clears
-up the `<stratergy>` cell.
-
-```
-  rule <strategy> (T:TerminalStrategy ~> REST:K) => T </strategy>
-       <k> GOAL => .K </k>
-       <id> 0 </id>
-    requires REST =/=K .K
-     andBool GOAL =/=K .K
-```
-
-The `goalStrat(GoalId)` strategy is used to establish a reference to the result of
-another goal. It's argument holds the id of a subgoal. Once that subgoal has
-completed, its result is replaced in the parent goal and the subgoal is removed.
-
-```k
-  syntax ResultStrategy ::= goalStrat(GoalId)
-  rule <prover>
-         <goal> <id> PID </id>
-                <active> _ => true </active>
-                <strategy> PStrat => replaceStrategyK(PStrat, goalStrat(ID), RStrat) </strategy>
-                ...
-         </goal>
-         ( <goal> <id> ID </id>
-                  <active> true:Bool </active>
-                  <parent> PID </parent>
-                  <strategy> RStrat:TerminalStrategy ... </strategy>
-                  ...
-           </goal> => .Bag
-         )
-         ...
-       </prover>
-```
-
-```k
-  syntax K ::= replaceStrategyK(K, Strategy, Strategy) [function]
-  rule replaceStrategyK(K1:Strategy ~> K2, F, T)
-    => replaceStrategy(K1, F, T) ~> replaceStrategyK(K2, F, T)
-  rule replaceStrategyK(.K, F, T) => .K
-```
-
-```k
-  syntax Strategy ::= replaceStrategy(Strategy, Strategy, Strategy) [function]
-  rule replaceStrategy(S1 ; S2, F, T) => replaceStrategy(S1, F, T) ; replaceStrategy(S2, F, T)
-  rule replaceStrategy(S1 & S2, F, T) => replaceStrategy(S1, F, T) & replaceStrategy(S2, F, T)
-  rule replaceStrategy(S1 | S2, F, T) => replaceStrategy(S1, F, T) | replaceStrategy(S2, F, T)
-  rule replaceStrategy(F,       F, T) => T
-  rule replaceStrategy(S,       F, T) => S [owise]
-```
-
-Sometimes, we may need to combine the proofs of two subgoals to construct a proof
-of the main goal. The `&` strategy generates subgoals for each child strategy, and if
-all succeed, it succeeds:
-
-```k
-  rule <strategy> S & fail => fail ... </strategy>
-  rule <strategy> fail & S => fail ... </strategy>
-  rule <strategy> S & success => S ... </strategy>
-  rule <strategy> success & S => S ... </strategy>
-  rule <strategy> (S1 & S2) ; S3 => (S1 ; S3) & (S2 ; S3) ... </strategy>
-  rule <prover>
-         ( .Bag =>
-             <goal>
-               <id> !ID:Int </id>
-               <active> true:Bool </active>
-               <parent> PARENT </parent>
-               <strategy> S1 </strategy>
-               <k> GOAL:Pattern </k>
-               <trace> TRACE </trace>
-               ...
-             </goal>
-         )
-         <goal>
-           <id> PARENT </id>
-           <active> true => false </active>
-           <strategy> ((S1 & S2) => S2 & goalStrat(!ID:Int)) </strategy>
-           <k> GOAL:Pattern </k>
-           <trace> TRACE </trace>
-           ...
-         </goal>
-         ...
-       </prover>
-    requires notBool(isTerminalStrategy(S1))
-     andBool notBool(isTerminalStrategy(S2))
-```
-
-Similarly, there may be a different approaches to finding a proof for a goal.
-The `|` strategy lets us try these different approaches, and succeeds if any one
-approach succeeds:
-
-```k
-  rule <strategy> S | fail => S ... </strategy>
-  rule <strategy> fail | S => S ... </strategy>
-  rule <strategy> S | success => success ... </strategy>
-  rule <strategy> success | S => success ... </strategy>
-  rule <strategy> (S1 | S2) ; S3 => (S1 ; S3) | (S2 ; S3) ... </strategy>
-
-  rule <prover>
-         ( .Bag =>
-             <goal>
-               <id> !ID:Int </id>
-               <active> true:Bool </active>
-               <parent> PARENT </parent>
-               <strategy> S1 </strategy>
-               <k> GOAL:Pattern </k>
-               <trace> TRACE </trace>
-               ...
-             </goal>
-         )
-         <goal>
-           <id> PARENT </id>
-           <active> true => false </active>
-           <strategy> (S1 | S2) => (S2 | goalStrat(!ID:Int)) </strategy>
-           <k> GOAL:Pattern </k>
-           <trace> TRACE </trace>
-           ...
-         </goal>
-         ...
-       </prover>
-    requires notBool(isTerminalStrategy(S1))
-     andBool notBool(isTerminalStrategy(S2))
-```
-
-If-then-else-fi strategy is useful for implementing other strategies:
-
-```k
-  syntax Strategy ::= "if" Bool "then" Strategy "else" Strategy "fi" [function]
-  rule if true  then S1 else _  fi => S1
-  rule if false then _  else S2 fi => S2
-endmodule
-```
-
 Strategies for the Horn Clause fragment
 =======================================
 
@@ -515,13 +319,16 @@ module PROVER-HORN-CLAUSE-SYNTAX
   imports PREDICATE-DEFINITIONS
 
   syntax Strategy ::= "search-bound" "(" Int ")"
+                    | "remove-lhs-existential" | "normalize" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
-                    | "direct-proof" // rules that the SMT-PROVER can't handle
-                    | "smt" | "smt-z3" | "smt-cvc4"
+                    | "direct-proof"
+                    | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
                     | "kt-gfp" | "kt-gfp" "#" KTFilter "#" KTInstantiate
+  syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
+                    | "instantiate-aux"
 
   syntax KTFilter ::= head(RecursivePredicate)
                     | index(Int)

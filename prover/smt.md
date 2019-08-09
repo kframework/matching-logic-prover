@@ -54,12 +54,13 @@ module SMTLIB2
                           | "(" "define-sort"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
-
   // Core symbols
   syntax SMTLIB2SimpleSymbol ::= "not"   [token]
                                | "or"    [token]
                                | "and"   [token]
+                               | "=>"    [token]
                                | "="     [token]
+                               | "=>"    [token]
 
   // Arithmetic
   syntax SMTLIB2SimpleSymbol ::= "*"     [token]
@@ -128,6 +129,10 @@ module SMTLIB2
        ")"
   rule SMTLIB2TermToString( (forall (Vs)  T) )
     => "( forall (" +String SMTLIB2SortedVarListToString(Vs) +String ") " +String
+                 SMTLIB2TermListToString(T)  +String
+       ") "
+  rule SMTLIB2TermToString( (exists (Vs)  T) )
+    => "( exists (" +String SMTLIB2SortedVarListToString(Vs) +String ") " +String
                  SMTLIB2TermListToString(T)  +String
        ") "
 
@@ -214,7 +219,7 @@ module Z3
   imports SMTLIB2
   syntax CheckSATResult ::= Z3CheckSAT(SMTLIB2Script) [function]
   rule Z3CheckSAT(QUERY)
-    => CheckSATHelper( SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n", "z3 ")
+    => CheckSATHelper( SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n", "z3 -T 5 ")
 endmodule
 
 module CVC4
@@ -224,7 +229,7 @@ module CVC4
     => CheckSATHelper( "( set-logic ALL_SUPPORTED ) \n "
                +String SMTLIB2ScriptToString(QUERY)
                +String "\n( check-sat )\n"
-                     , "cvc4 --lang smt "
+                     , "cvc4 --lang smt --tlimit 5000 "
                      )
 endmodule
 

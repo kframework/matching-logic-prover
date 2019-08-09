@@ -1,0 +1,33 @@
+claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
+                                      , variable("X") { Int }
+                                      , variable("Y") { Int }
+                                      , variable("F") { SetInt }
+                                      )
+                     )
+              , \and( listSegmentLeft(variable("H") { ArrayIntInt }
+                                     , variable("X") { Int }
+                                     , variable("Y") { Int }
+                                     , variable("F") { SetInt }
+                                     )
+                    )
+              )
+
+strategy kt ; normalize ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
+                          | ( kt-solve-implications(smt) ; normalize
+                            ; kt ; ( ( right-unfold-Nth(0, 1)
+                                     ; right-unfold-Nth(0, 0)
+                                     ; normalize
+                                     ; instantiate-existentials
+                                     ; smt
+                                     )
+                                   | ( right-unfold-Nth(0, 1)
+                                     ; instantiate-existentials
+                                     ; instantiate-aux
+                                     ; normalize
+                                     ; smt
+                                     )
+                                   )
+                            )
+                          )
+
+// strategy search-bound(5)

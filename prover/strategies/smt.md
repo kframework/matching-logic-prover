@@ -14,13 +14,10 @@ module ML-TO-SMTLIB2
   imports PREDICATE-DEFINITIONS
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
-  rule ML2SMTLIB(\implies(\and(LHS), \exists { _ } \and(RHS)) #as GOAL )
-    => declareVariables(getUniversalVariables(GOAL)) ++SMTLIB2Script
-       declareUninterpretedFunctions(removeDuplicates(getPredicates(LHS ++Patterns RHS))) ++SMTLIB2Script
-       ( assert PatternToSMTLIB2Term(\and(LHS)) ) ++SMTLIB2Script
-       ( assert (forall (VariablesToSMTLIB2SortedVarList(variable("dummyVar") { Bool }, getExistentialVariables(GOAL)))
-                          ( not PatternToSMTLIB2Term(\and(RHS)) )
-       )        )
+  rule ML2SMTLIB(PATTERN)
+    => declareVariables(getUniversalVariables(PATTERN)) ++SMTLIB2Script
+       declareUninterpretedFunctions(removeDuplicates(getPredicates(PATTERN))) ++SMTLIB2Script
+       (assert PatternToSMTLIB2Term(PATTERN))
 
   // TODO: All symbols must be functional!
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]
@@ -49,8 +46,16 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(P:Predicate(ARGS)) => ( SymbolToSMTLIB2Symbol(P)
                                                     PatternsToSMTLIB2TermList(ARGS)
                                                   ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\and(BP, BPs)) => ((and PatternToSMTLIB2Term(BP) PatternToSMTLIB2Term(\and(BPs)))):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(.Patterns)) => true
+
+  rule PatternToSMTLIB2Term(\implies(LHS, RHS)) => ((=> PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(\and(RHS)))):SMTLIB2Term
+
+  rule PatternToSMTLIB2Term(\exists { .Patterns } C ) => PatternToSMTLIB2Term(C):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\exists { Vs } C ) => (exists (VariablesToSMTLIB2SortedVarList(Vs)) PatternToSMTLIB2Term(C)):SMTLIB2Term [owise]
+  rule PatternToSMTLIB2Term(\forall { .Patterns } C ) => PatternToSMTLIB2Term(C):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\forall { Vs } C ) => (forall (VariablesToSMTLIB2SortedVarList(Vs)) PatternToSMTLIB2Term(C)):SMTLIB2Term [owise]
 
   syntax SMTLIB2TermList ::= PatternsToSMTLIB2TermList(Patterns) [function]
   rule PatternsToSMTLIB2TermList(T, Ts)
@@ -168,7 +173,7 @@ module STRATEGY-SMT
 
   rule <k> GOAL </k>
        <strategy> smt-z3
-               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ==K unsat
                   then success
                   else fail
                   fi
@@ -181,7 +186,7 @@ module STRATEGY-SMT
 
   rule <k> GOAL </k>
        <strategy> smt-cvc4
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)) ==K unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ==K unsat
                   then success
                   else fail
                   fi
@@ -204,10 +209,19 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                               fi
                              )
                         fi
-                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL)))
+                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))))
                   ...
        </strategy>
-       <trace> .K => smt ... </trace>
+       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
+```
+
+```k
+  rule <k> GOAL </k>
+       <strategy> smt-debug
+               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))))
+                  ...
+       </strategy>
+       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
 ```
 
 ```k
@@ -237,7 +251,7 @@ module SMTLIB2-TEST-DRIVER
                 <cvc4> .K </cvc4>
 
   rule <k> IMPL </k>
-       <smt> .K => ML2SMTLIB(IMPL) </smt>
+       <smt> .K => ML2SMTLIB(\not(IMPL)) </smt>
   rule <smt> SCRIPT:SMTLIB2Script </smt>
        <z3> .K => Z3CheckSAT(Z3Prelude ++SMTLIB2Script SCRIPT) </z3>
   rule <smt> SCRIPT:SMTLIB2Script </smt>
