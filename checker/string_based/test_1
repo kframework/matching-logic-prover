@@ -1,0 +1,6 @@
+(1) (\imp 1) by (PropositionK (\fev 1) (\fev 2)) ;
+(2) (\fev 2) by (Assumption) ;
+(3) (\fev 3) by (Assumption) ;
+(4) (\fev 4) by (Assumption) ;
+(5) (\fev 5) by (Assumption) ;
+
