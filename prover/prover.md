@@ -63,7 +63,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "kt"     | "kt"     "#" KTFilter
                     | "kt-gfp" | "kt-gfp" "#" KTFilter
   syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
-                    | "instantiate-aux"
+                    | "instantiate-universals-with-ground-terms"
 
   syntax KTFilter ::= head(RecursivePredicate)
                     | index(Int)

@@ -368,14 +368,14 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
 ```
 
 ```k
-  syntax Strategy ::= "instantiate-aux" "(" Patterns /* universals */ "," Patterns /* ground terms */ ")"
+  syntax Strategy ::= "instantiate-universals-with-ground-terms" "(" Patterns /* universals */ "," Patterns /* ground terms */ ")"
   rule <k> \implies(\and(LHS), RHS) #as GOAL </k>
-       <strategy> instantiate-aux
-               => instantiate-aux(getForalls(LHS), removeDuplicates(getGroundTerms(GOAL)))
+       <strategy> instantiate-universals-with-ground-terms
+               => instantiate-universals-with-ground-terms(getForalls(LHS), removeDuplicates(getGroundTerms(GOAL)))
                   ...
        </strategy>
 
-  rule <strategy> instantiate-aux( (\forall { (variable(_, _) { S } #as V:Variable), UNIVs:Patterns } P:Pattern , REST_FORALLs)
+  rule <strategy> instantiate-universals-with-ground-terms( (\forall { (variable(_, _) { S } #as V:Variable), UNIVs:Patterns } P:Pattern , REST_FORALLs)
                                 => (substituteWithEach(\forall { UNIVs } P, V, filterBySort(GROUND_TERMS, S)) ++Patterns REST_FORALLs)
                                  , GROUND_TERMS
                                  )
@@ -383,21 +383,21 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
        </strategy>
 
   rule <k> \implies(\and(LHS => P, LHS), RHS) </k> 
-       <strategy> instantiate-aux( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
+       <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
                                  , _
                                  )
                   ...
        </strategy>
     requires notBool P in LHS
   rule <k> \implies(\and(LHS), RHS) </k> 
-       <strategy> instantiate-aux( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
+       <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
                                  , _
                                  )
                   ...
        </strategy>
     requires P in LHS
 
-  rule <strategy> instantiate-aux( .Patterns
+  rule <strategy> instantiate-universals-with-ground-terms( .Patterns
                                  , _
                                  )
                => noop

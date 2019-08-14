@@ -14,7 +14,7 @@ strategy kt ; normalize ; ( ( simplify ; right-unfold-Nth(0, 0) ; smt )
                                      )
                                    | ( right-unfold-Nth(0, 1)
                                      ; instantiate-existentials
-                                     ; instantiate-aux
+                                     ; instantiate-universals-with-ground-terms
                                      ; normalize
                                      ; smt
                                      )
