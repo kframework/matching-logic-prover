@@ -43,6 +43,9 @@ module PROVER-CONFIGURATION
             <trace> .K </trace>
           </goal>
         </goals>
+        <declarations>
+          <declaration multiplicity="*" type="Set">  .K </declaration>
+        </declarations>
       </prover>
 endmodule
 ```
@@ -80,20 +83,45 @@ Driver & Syntax
 The driver is responsible for loading prover files into the configuration.
 
 ```k
-module PROVER-SYNTAX
+module PROVER-COMMON
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-SUGAR
-  syntax Pgm ::= "claim" Pattern
-                 "strategy" Strategy
+  syntax Declarations ::= Declaration Declarations
+  syntax Declaration ::= "claim" Pattern "strategy" Strategy
+                       | SymbolDeclaration
+                       | "axiom" Pattern
+endmodule
+
+module PROVER-SYNTAX
+  imports PROVER-COMMON
+  syntax Declarations ::= "" [klabel(.Declarations)]
 endmodule
 ```
 
 ```k
 module PROVER-DRIVER
-  imports PROVER-SYNTAX
+  imports PROVER-COMMON
   imports PROVER-CORE
 
+  syntax Declarations ::= ".Declarations" [klabel(.Declarations)]
+
+  rule <k> (D:Declaration Ds:Declarations)
+        => (D ~> Ds)
+           ...
+       </k>
+  rule <k> .Declarations => .K ... </k>
+
+  rule <k> (symbol _ { } ( _ ) : _ #as DECL:Declaration) ... </k>
+       <declarations>
+         (.Bag => <declaration> DECL </declaration>)
+         ...
+       </declarations>
+  rule <k> (axiom _ #as DECL:Declaration) ... </k>
+       <declarations>
+         (.Bag => <declaration> DECL </declaration>)
+         ...
+       </declarations>
   rule <k> claim PATTERN
            strategy STRAT
         => .K
