@@ -1,6 +1,6 @@
-(1) (\imp 1) by (PropositionK (\fev 1) (\fev 2)) ;
-(2) (\fev 2) by (Assumption) ;
-(3) (\fev 3) by (Assumption) ;
-(4) (\fev 4) by (Assumption) ;
-(5) (\fev 5) by (Assumption) ;
+(1) (\imp (\ev 1) (\imp (\ev 2) (\ev 1))) by (PropositionK (\ev 1) (\ev 2)) ;
+(2) (\imp (\ev 1) (\imp (\imp (\ev 2) (\ev 1)) (\ev 1))) by (PropositionK (\ev 1) (\imp (\ev 2) (\ev 1))) ;
+(3) (\imp (\imp (\ev 1) (\imp (\imp (\ev 2) (\ev 1)) (\ev 1))) (\imp (\imp (\ev 1) (\imp (\ev 2) (\ev 1))) (\imp (\ev 1) (\ev 1)))) by (PropositionS (\ev 1) (\imp (\ev 2) (\ev 1)) (\ev 1)) ;
+(4) (\imp (\imp (\ev 1) (\imp (\ev 2) (\ev 1))) (\imp (\ev 1) (\ev 1))) by (MP (3) (2)) ;
+(5) (\imp (\ev 1) (\ev 1)) by (MP (4) (1)) ;
 

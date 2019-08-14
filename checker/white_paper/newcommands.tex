@@ -1,0 +1,298 @@
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{txfonts} % go before mathbbol
+\usepackage{mathtools,mathbbol,prftree,extpfeil}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+\usepackage{natbib}
+\usepackage{tabularx,booktabs,caption}
+\usepackage{fancyvrb}
+\usepackage{graphicx,wrapfig,subcaption}
+\usepackage{mdframed}
+\usepackage{xspace,todonotes,xcolor}
+\usepackage{url,hyperref}
+
+% new theorems
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% fixed width columns
+%\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+%\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+%\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\DeclarePairedDelimiter{\bracket}{\llbracket}{\rrbracket}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+\DeclarePairedDelimiter{\tp}{\la}{\ra}  % tuple <...>
+\newcommand{\restr}[2]{{#1}\mathord{\upharpoonright}_{#2}}
+% widebar (need amsmath package)
+% https://tex.stackexchange.com/questions/16337/
+%   can-i-get-a-widebar-without-using-the-mathabx-package
+\makeatletter
+\let\save@mathaccent\mathaccent
+\newcommand*\if@single[3]{%
+  \setbox0\hbox{${\mathaccent"0362{#1}}^H$}%
+  \setbox2\hbox{${\mathaccent"0362{\kern0pt#1}}^H$}%
+  \ifdim\ht0=\ht2 #3\else #2\fi
+  }
+%The bar will be moved to the right by a half of \macc@kerna, which is computed 
+%by amsmath:
+\newcommand*\rel@kern[1]{\kern#1\dimexpr\macc@kerna}
+%If there's a superscript following the bar, then no negative kern may follow 
+%the bar;
+%an additional {} makes sure that the superscript is high enough in this case:
+\newcommand*\widebar[1]{\@ifnextchar^{{\wide@bar{#1}{0}}}{\wide@bar{#1}{1}}}
+%Use a separate algorithm for single symbols:
+\newcommand*\wide@bar[2]{\if@single{#1}{\wide@bar@{#1}{#2}{1}}{\wide@bar@{#1}{#2}{2}}}
+\newcommand*\wide@bar@[3]{%
+  \begingroup
+  \def\mathaccent##1##2{%
+%Enable nesting of accents:
+    \let\mathaccent\save@mathaccent
+%If there's more than a single symbol, use the first character instead (see 
+%below):
+    \if#32 \let\macc@nucleus\first@char \fi
+%Determine the italic correction:
+    \setbox\z@\hbox{$\macc@style{\macc@nucleus}_{}$}%
+    \setbox\tw@\hbox{$\macc@style{\macc@nucleus}{}_{}$}%
+    \dimen@\wd\tw@
+    \advance\dimen@-\wd\z@
+%Now \dimen@ is the italic correction of the symbol.
+    \divide\dimen@ 3
+    \@tempdima\wd\tw@
+    \advance\@tempdima-\scriptspace
+%Now \@tempdima is the width of the symbol.
+    \divide\@tempdima 10
+    \advance\dimen@-\@tempdima
+%Now \dimen@ = (italic correction / 3) - (Breite / 10)
+    \ifdim\dimen@>\z@ \dimen@0pt\fi
+%The bar will be shortened in the case \dimen@<0 !
+    \rel@kern{0.6}\kern-\dimen@
+    \if#31
+      \overline{\rel@kern{-0.6}\kern\dimen@\macc@nucleus\rel@kern{0.4}\kern\dimen@}%
+      \advance\dimen@0.4\dimexpr\macc@kerna
+%Place the combined final kern (-\dimen@) if it is >0 or if a superscript 
+%follows:
+      \let\final@kern#2%
+      \ifdim\dimen@<\z@ \let\final@kern1\fi
+      \if\final@kern1 \kern-\dimen@\fi
+    \else
+      \overline{\rel@kern{-0.6}\kern\dimen@#1}%
+    \fi
+  }%
+  \macc@depth\@ne
+  \let\math@bgroup\@empty \let\math@egroup\macc@set@skewchar
+  \mathsurround\z@ \frozen@everymath{\mathgroup\macc@group\relax}%
+  \macc@set@skewchar\relax
+  \let\mathaccentV\macc@nested@a
+%The following initialises \macc@kerna and calls \mathaccent:
+  \if#31
+    \macc@nested@a\relax111{#1}%
+  \else
+%If the argument consists of more than one symbol, and if the first token is
+%a letter, use that letter for the computations:
+    \def\gobble@till@marker##1\endmarker{}%
+    \futurelet\first@char\gobble@till@marker#1\endmarker
+    \ifcat\noexpand\first@char A\else
+      \def\first@char{}%
+    \fi
+    \macc@nested@a\relax111{\first@char}%
+  \fi
+  \endgroup
+}
+\makeatother
+\makeatletter
+\newcommand*{\Rnum}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+
+
+%%% Group A
+\newcommand{\sslash}{/\!/\xspace}  % double slash "//" for comments
+\newcommand{\K}{$\mathbb{K}$\xspace}
+\newcommand{\imp}{\to}
+\newcommand{\dimp}{\leftrightarrow}
+\newcommand{\ldot}{\mathord{\kern 0.1em . \kern 0.1em}}
+\newcommand{\pset}[1]{\mathcal{P}(#1)}
+\newcommand{\cln}{\mathord{\kern 0.1em : \kern 0.1em}}
+\newcommand{\FV}{\mathrm{FV}}
+\newcommand{\prule}[1]{\textnormal{(\textsc{#1})}} % (Proof Rule)
+\newcommand{\pto}{\rightharpoonup}
+\newcommand{\Var}{\textsc{Var}}
+\newcommand{\rhobar}{\bar{\rho}}
+\newcommand{\Pattern}{\textsc{Pattern}}
+\newcommand{\sig}{\mathbb{\Sigma}}
+\newcommand{\nats}{\mathbb{N}}
+\newcommand{\compose}{\circ}
+\newcommand{\onenext}{\mathord{\bullet}}
+\newcommand{\eventually}{\diamond}
+\newcommand{\To}{\Rightarrow}
+\newcommand{\setsd}{\mathbin{\triangle}}
+
+
+%%% Group B
+\newcommand{\FF}{\mathcal{F}}
+\newcommand{\EVar}{\textsc{EVar}}
+\newcommand{\SVar}{\textsc{SVar}}
+\newcommand{\Nat}{\mathit{Nat}}
+\newcommand{\Bool}{\mathit{Bool}}
+\newcommand{\Int}{\mathit{Int}}
+\newcommand{\zero}{\mathit{zero}}
+\newcommand{\suc}{\mathit{succ}}
+\newcommand{\plus}{\mathit{plus}}
+\newcommand{\mult}{\mathit{mult}}
+\newcommand{\List}{\mathit{List}}
+\newcommand{\nil}{\mathit{nil}}
+\newcommand{\cons}{\mathit{cons}}
+\newcommand{\Exp}{\mathit{Exp}}
+\newcommand{\Term}{\mathit{Term}}
+\newcommand{\Sort}{\mathit{Sort}}
+\newcommand{\Heap}{\mathit{Heap}}
+\newcommand{\Cfg}{\mathit{Cfg}}
+\newcommand{\inj}{\mathit{inj}}
+\newcommand{\PS}{\mathcal{H}}
+\newcommand{\true}{\mathit{true}}
+\newcommand{\false}{\mathit{false}}
+\newcommand{\andB}{\mathit{and}}
+\newcommand{\orB}{\mathit{or}}
+\newcommand{\notB}{\mathit{not}}
+\newcommand{\lessthan}{\mathit{lessthan}}
+
+%%% mathbb
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\GG}{\mathbb{G}}
+\newcommand{\Abb}{\mathbb{A}}
+
+%%% mathcal
+\newcommand{\TT}{\mathcal{T}}
+
+
+%%% mathit
+\newcommand{\inh}{\mathit{inh}}
+\newcommand{\curry}{\mathit{curry}}
+\newcommand{\uncurry}{\mathit{uncurry}}
+\newcommand{\Ele}{\mathit{Ele}}
+\newcommand{\Pair}{\mathit{Pair}}
+\newcommand{\Graph}{\mathit{Graph}}
+\newcommand{\arity}{\mathit{arity}}
+\newcommand{\MInt}{\mathit{MInt}}
+\newcommand{\minus}{\mathit{minus}}
+\newcommand{\addinv}{\mathit{inverse}}
+\newcommand{\append}{\mathit{append}}
+\newcommand{\mplus}{\mathit{mplus}}
+\newcommand{\mmult}{\mathit{mmult}}
+\newcommand{\id}{\mathit{id}}
+\newcommand{\PrimitiveSort}{\mathit{PrimitiveSort}}
+\newcommand{\fold}{\mathit{fold}}
+\newcommand{\map}{\mathit{map}}
+\newcommand{\Function}{\mathit{Function}}
+\newcommand{\Natp}{\mathit{Nat$^+$}}
+\newcommand{\Size}{\mathit{Size}}
+\newcommand{\pow}{\mathit{pow}}
+\newcommand{\eval}{\mathit{eval}}
+\newcommand{\intt}{\mathit{int}}
+\newcommand{\extt}{\mathit{ext}}
+\newcommand{\powtwo}{\mathit{pow}_2}
+\newcommand{\type}{\mathit{type}}
+\newcommand{\fst}{\mathit{fst}}
+\newcommand{\snd}{\mathit{snd}}
+\newcommand{\pair}{\mathit{pair}}
+\newcommand{\Type}{\mathit{Type}}
+\newcommand{\Ctxt}{\mathit{Cxt}}
+
+%%% mathsf
+\newcommand{\listsf}{\mathsf{list}}
+\newcommand{\natsf}{\mathsf{nat}}
+\newcommand{\intsf}{\mathsf{int}}
+\newcommand{\mintsf}{\mathsf{mint}}
+\newcommand{\ML}{\textnormal{$\mathsf{ML}$}\xspace}
+\newcommand{\MmL}{\textnormal{$\mathsf{MmL}$}\xspace}
+\newcommand{\MLmono}{\textnormal{$\mathsf{ML}^\mathsf{\lowercase{mono}}$}\xspace}
+\newcommand{\MLtuple}{\textnormal{$\mathsf{ML}^\mathsf{\lowercase{tuple}}$}\xspace}
+\newcommand{\MLapp}{\textnormal{$\mathsf{ML}^\mathsf{\lowercase{app}}$}\xspace}
+\newcommand{\OS}{\mathsf{OS}}
+\newcommand{\MSA}{\mathsf{MSA}}
+\newcommand{\OSA}{\mathsf{OSA}}
+\newcommand{\Ap}{\mathsf{Ap}}
+\newcommand{\Set}{\mathsf{Set}}
+\newcommand{\NAT}{\mathsf{NAT}}
+\newcommand{\NATz}{\mathsf{NAT0}}
+\newcommand{\INT}{\mathsf{INT}}
+\newcommand{\LIST}{\mathsf{LIST}}
+\newcommand{\MINT}{\mathsf{MINT}}
+\newcommand{\TERM}{\mathsf{TERM}}
+\newcommand{\ts}{\mathsf{TS}}
+\newcommand{\sfsum}{\textsf{sum}\xspace}
+\newcommand{\sfk}{\textsf{k}\xspace}
+\newcommand{\sfstate}{\textsf{state}\xspace}
+\newcommand{\IMP}{\textsf{IMP}}
+\newcommand{\graph}{\mathsf{graph}}
+\newcommand{\PType}{\mathsf{PType}}
+\newcommand{\PTS}{\mathsf{PTS}}
+\newcommand{\AML}{\mathsf{AML}}
+\newcommand{\RL}{\mathsf{RL}}
+
+%%%mathtt
+\newcommand{\ttInt}{\texttt{Int}\xspace}
+\newcommand{\ttId}{\texttt{Id}\xspace}
+\newcommand{\ttExp}{\texttt{Exp}\xspace}
+\newcommand{\ttStmt}{\texttt{Stmt}\xspace}
+\newcommand{\ttplus}{\,\texttt{+}\,}
+\newcommand{\ttminus}{\,\texttt{-}\,}
+\newcommand{\ttX}{\texttt{X}}
+\newcommand{\ttone}{\texttt{1}}
+\newcommand{\xt}[1]{\texttt{#1}}
+\newcommand{\KResult}{\texttt{KResult}\xspace}
+\newcommand{\ttif}{\texttt{if}}
+
+
+
+%%% textsc
+\newcommand{\EVari}{{{\textsc{EVar}}}}
+\newcommand{\SVari}{{{\textsc{SVar}}}}
+
+%%% others
+\newcommand{\hole}{\square}
+\newcommand{\uappdotu}{{\_{\appdot}\_}}
+\newcommand{\abs}[1]{|#1|}
+\newcommand{\rulesep}{\unskip\ \vrule\ }
+\newcommand{\mlof}{Martin-L{\"{o}}f type system\xspace}
+\newcommand{\empctxt}{\emptyset}
+\newcommand{\phif}{{\varphi_\textsf{if}}}
+\newcommand{\phicfg}{{\varphi_\textsf{cfg}}}
+\newcommand{\EV}{\mathit{EV}}
+\newcommand{\SV}{\mathit{SV}}
+\newcommand{\VALID}{\mathsf{VALID}}
+\newcommand{\rhoAML}{\rho^\AML}
+\newcommand{\rhoAMLbar}{\overline{\rho^\AML}}
+\newcommand{\LOF}{\ts}
+
+
+% fat colon
+\DeclareFontEncoding{LS1}{}{}
+\DeclareFontSubstitution{LS1}{stix}{m}{n}
+\DeclareSymbolFont{symbols2}{LS1}{stixfrak}{m}{n}
+\DeclareMathSymbol{\typecolon}{\mathbin}{symbols2}{"25}
+\newcommand{\Cln}{\mathord{\kern 0.1em \typecolon \kern 0.1em}}
+\newcommand{\FFF}{\mathbb{F}}
+\newcommand{\GGG}{\mathbb{G}}
+\newcommand{\dummysort}{\star}
+\newcommand{\Sigmai}{{{\Sigma}}}
+\newcommand{\app}{\mathit{app}}
+% scalable bullet (need graphicx package)
+\newcommand\sbullet[1][.5]{\mathbin{\vcenter{\hbox{\scalebox{#1}{$\bullet$}}}}}
+\newcommand{\appdot}{\mathbin{\sbullet}}
+\newcommand{\vDashi}{\vDash_{\AML}{}}

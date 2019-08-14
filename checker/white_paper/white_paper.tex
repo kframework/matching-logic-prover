@@ -1,0 +1,56 @@
+\documentclass{article}
+
+\input{newcommands}
+
+\title{Proof Checking in Applicative Matching Logic}
+\author{Xiaohong Chen}
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This paper discusses proof checking in applicative matching logic.
+\end{abstract}
+
+
+
+\section{Proof checking}
+
+At a high level, \emph{proof objects} are strings that encode
+a Hilbert-proof, including its underlying theory $\Gamma$,
+the proof target $\varphi$, and all intermediate proof steps,
+which are accompanied with detailed proof annotations that
+specify which proof rules are applied and how they are instantiated
+in every step.
+We let $A$ to denote the underlying alphabet of proof objects.
+
+\begin{itemize}
+\item A proof object $\pi$ is called \emph{well-formed}, if it is a correct 
+encoding of a proof;
+\item A proof object $\pi$ is called \emph{valid}, if it is \emph{well-formed}
+and it encodes a correct proof;
+\item A proof object $\pi$ is called \emph{checked}, if it passes the proof 
+checker.
+\end{itemize}
+
+\paragraph{Key property of proof checking.}
+All checked proof objects are valid.
+
+
+%\begin{itemize}
+%\item A \emph{judgment}, written $\Gamma \vdash \varphi$,
+%consists of a pattern set $\Gamma$ and a patter $\varphi$.
+%\item A \emph{$\Gamma$-proof} is a sequence $\varphi_1,\dots,\varphi_n$
+%such that every $\varphi_i$ for $1 \le i \le n$ is a logical axiom,
+%or a pattern in $\Gamma$, or the result of applying a proof rule
+%to some patterns from $\varphi_1,\dots,\varphi_{i-1}$.
+%\item The judgment $\Gamma \vdash \varphi$ is \emph{provable},
+%if there exists a $\Gamma$-proof $\varphi_1,\dots,\varphi_n$ where
+%$\varphi_n \equiv \varphi$.
+%\item A \emph{proof object} is a string (using alphabets in $A$) that encodes 
+%a 
+%$\Gamma$-proof.
+%\item The string $\omega \in A^*$ is \emph{well-formed} 
+%\end{itemize}
+
+\end{document}
