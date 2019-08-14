@@ -1,0 +1,28 @@
+symbol listSortedLength(ArrayIntInt, Int, SetInt, Int, Int) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, PREV_VAL : Int, LENGTH : Int }
+      \iff-lfp( listSortedLength(H, X, F, PREV_VAL, LENGTH)
+              , \or( \and( \equals(X, 0)
+                         , \equals(F, emptyset)
+                         , \equals(LENGTH, 0)
+                         , .Patterns
+                         )
+                   , \and( listSortedLength(H
+                                           , variable("X", !I:Int) { Int }
+                                           , variable("F", !I:Int) { SetInt }
+                                           , variable("VAL", !I:Int) { Int }
+                                           , variable("LENGTH", !I:Int) { Int }
+                                           , .Patterns
+                                           )
+                         , gt(X, 0)
+                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                         , \equals(variable("VAL", !I:Int) { Int } , select(H, plus(X, 1)))
+                         , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
+                         , gt(LENGTH, 0)
+                         , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

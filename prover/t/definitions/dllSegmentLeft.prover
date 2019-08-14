@@ -1,0 +1,27 @@
+symbol dllSegmentLeft(ArrayIntInt, Int, Int, SetInt) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, Y : Int, F : SetInt }
+      \iff-lfp( dllSegmentLeft(H, X, Y, F)
+              , \or( \and( \equals(X, Y)
+                         , \equals(F, emptyset)
+                         , .Patterns
+                         )
+                   , \and( dllSegmentLeft( H
+                                         , variable("X", !I:Int) { Int }
+                                         , Y
+                                         , variable("F", !J:Int) { SetInt }
+                                         , .Patterns
+                                         )
+                         , \not(\equals(X, Y))
+                         , gt(X, 0)
+                         , gt(variable("X", !I:Int) { Int }, 0)
+                         , \equals( variable("X", !I:Int) { Int }
+                                  , select(H, plus(X, 1)))
+                         , \equals( X
+                                  , select(H, plus(variable("X", !I:Int) { Int }, 2)))
+                         , \not(isMember(X, variable("F", !J:Int) { SetInt }))
+                         , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

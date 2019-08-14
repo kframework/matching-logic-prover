@@ -1,0 +1,20 @@
+symbol listLength(ArrayIntInt, Int, SetInt, Int) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, LENGTH : Int }
+      \iff-lfp( listLength(H, X, F, LENGTH)
+              , \or( \and( \equals(X, 0)
+                         , \equals(F, emptyset)
+                         , \equals(LENGTH, 0)
+                         , .Patterns
+                         )
+                   , \and( listLength(H,variable("X", !I:Int) { Int },variable("F", !I:Int) { SetInt }, variable("LENGTH", !I:Int) { Int }, .Patterns)
+                         , gt(X,0)
+                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                         , gt(LENGTH, 0)
+                         , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

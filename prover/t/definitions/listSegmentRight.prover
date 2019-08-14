@@ -1,0 +1,28 @@
+symbol listSegmentRight(ArrayIntInt, Int, Int, SetInt) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, Y : Int, F : SetInt }
+      \iff-lfp( listSegmentRight(H, X, Y, F)
+              , \or( \and( \equals(X, Y)
+                         , \equals(F, emptyset)
+                         , .Patterns
+                         )
+                   , \and( listSegmentRight( H
+                                           , X
+                                           , variable("Y", !I:Int) { Int }
+                                           , variable("F", !I:Int) { SetInt }
+                                           , .Patterns
+                                           )
+                         , gt(variable("Y", !I:Int) { Int }, 0)
+                         , \equals(Y, select(H, variable("Y", !I:Int) { Int }))
+                         , \equals( F
+                                  , union( variable("F", !I:Int) { SetInt }
+                                         , singleton(variable("Y", !I:Int) { Int })
+                                         )
+                                  )
+                         , disjoint( variable("F", !I:Int) { SetInt }
+                                   , singleton(variable("Y", !I:Int) { Int })
+                                   )
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

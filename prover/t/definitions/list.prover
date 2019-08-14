@@ -1,0 +1,17 @@
+symbol list(ArrayIntInt, Int, SetInt) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, F : SetInt }
+      \iff-lfp( list(H, X, F)
+              , \or( \and( \equals(X, 0)
+                         , \equals(F, emptyset)
+                         , .Patterns
+                         )
+                   , \and( list(H,variable("X", !I:Int) { Int },variable("F", !I:Int) { SetInt },.Patterns)
+                         , gt(X,0)
+                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
+                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

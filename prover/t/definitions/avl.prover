@@ -1,0 +1,67 @@
+symbol avl(ArrayIntInt, Int, SetInt, Int, Int, Int, Int) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, MIN : Int, MAX : Int, Height : Int, Balance : Int }
+      \iff-lfp( avl(H, X, F, MIN, MAX, Height, Balance)
+              , \or( \and( \equals(X,0)
+                         , \equals(F, emptyset)
+                         , \equals(Balance, 0)
+                         , \equals(Height, 0)
+                         , .Patterns
+                         )
+                   , \and( gt(X,0)
+                         , \equals(select(H, plus(X, 1)), 0)
+                         , \equals(select(H, plus(X, 2)), 0)
+                         , \equals(MIN, X)
+                         , \equals(MAX, X)
+                         , \equals(Balance, 0)
+                         , \equals(Height, 1)
+                         , \equals(F, singleton(X))
+                         , .Patterns
+                         )
+                   , \and( avl( H
+                              , variable("X",   !I1:Int) { Int }
+                              , variable("F",   !J1:Int) { SetInt }
+                              , variable("MIN", !K1:Int) { Int }
+                              , variable("MAX", !L1:Int) { Int }
+                              , variable("H",   !M1:Int) { Int }
+                              , variable("B",   !N1:Int) { Int }
+                              , .Patterns
+                              )
+                         , avl( H
+                              , variable("X",   !I2:Int) { Int }
+                              , variable("F",   !J2:Int) { SetInt }
+                              , variable("MIN", !K2:Int) { Int }
+                              , variable("MAX", !L2:Int) { Int }
+                              , variable("H",   !M2:Int) { Int }
+                              , variable("B",   !N2:Int) { Int }
+                              , .Patterns
+                              )
+                         , gt(X,0)
+                         , \equals( Balance
+                                  , minus( variable("H", !M1) { Int }
+                                         , variable("H", !M2) { Int }
+                                         )
+                                  )
+                         , gt(Balance, -2)
+                         , gt(2, Balance)
+                         , \equals( Height
+                                  , plus( max( variable("H", !M1) { Int }
+                                             , variable("H", !M2) { Int }
+                                             )
+                                         , 1))
+                         , \equals(select(H, plus(X, 1)), variable("X", !I1) { Int })
+                         , \equals(select(H, plus(X, 2)), variable("X", !I2) { Int })
+                         , gt(X, variable("MAX", !L1) { Int })
+                         , gt(variable("MIN", !K2) { Int }, X)
+                         , \equals(variable("MIN", !K1) { Int }, MIN)
+                         , \equals(variable("MAX", !L2) { Int }, MAX)
+                         , \not(isMember(X, variable("F", !J1) { SetInt }))
+                         , \not(isMember(X, variable("F", !J2) { SetInt }))
+                         , \equals(F, union( singleton(X)
+                                           , union( variable("F", !J1) { SetInt }
+                                                  , variable("F", !J2) { SetInt })))
+                         , disjoint(variable("F", !J1) { SetInt }, variable("F", !J2) { SetInt })
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

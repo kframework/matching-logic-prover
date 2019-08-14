@@ -1,0 +1,31 @@
+symbol listSegmentRightLength(ArrayIntInt, Int, Int, SetInt, Int) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, Y : Int, F : SetInt, LENGTH : Int }
+      \iff-lfp( listSegmentRightLength(H, X, Y, F, LENGTH)
+              , \or( \and( \equals(X, Y)
+                         , \equals(F, emptyset)
+                         , \equals(LENGTH, 0)
+                         , .Patterns
+                         )
+                   , \and( listSegmentRightLength( H
+                                                 , X
+                                                 , variable("Y", !I:Int) { Int }
+                                                 , variable("F", !I:Int) { SetInt }
+                                                 , variable("LENGTH", !I:Int) { Int }
+                                                 , .Patterns
+                                                 )
+                         , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
+                         , gt(variable("Y", !I:Int) { Int }, 0)
+                         , \equals(Y, select(H, variable("Y", !I:Int) { Int }))
+                         , \equals( F
+                                  , union( variable("F", !I:Int) { SetInt }
+                                         , singleton(variable("Y", !I:Int) { Int })
+                                         )
+                                  )
+                         , disjoint( variable("F", !I:Int) { SetInt }
+                                   , singleton(variable("Y", !I:Int) { Int })
+                                   )
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )
