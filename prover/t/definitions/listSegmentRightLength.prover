@@ -1,6 +1,7 @@
 symbol listSegmentRightLength(ArrayIntInt, Int, Int, SetInt, Int) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, Y : Int, F : SetInt, LENGTH : Int }
-      \iff-lfp( listSegmentRightLength(H, X, Y, F, LENGTH)
+
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int } }
+      \iff-lfp( list(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
               , \or( \and( \equals(X, Y)
                          , \equals(F, emptyset)
                          , \equals(LENGTH, 0)

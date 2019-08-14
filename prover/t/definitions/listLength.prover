@@ -1,6 +1,7 @@
 symbol listLength(ArrayIntInt, Int, SetInt, Int) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, LENGTH : Int }
-      \iff-lfp( listLength(H, X, F, LENGTH)
+
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int } }
+      \iff-lfp( list(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
               , \or( \and( \equals(X, 0)
                          , \equals(F, emptyset)
                          , \equals(LENGTH, 0)

@@ -1,6 +1,7 @@
 symbol list(ArrayIntInt, Int, SetInt) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, F : SetInt }
-      \iff-lfp( list(H, X, F)
+
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt } }
+      \iff-lfp( list(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt })
               , \or( \and( \equals(X, 0)
                          , \equals(F, emptyset)
                          , .Patterns
