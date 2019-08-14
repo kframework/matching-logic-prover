@@ -60,16 +60,14 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
-                    | "kt"     | "kt"     "#" KTFilter "#" KTInstantiate
-                    | "kt-gfp" | "kt-gfp" "#" KTFilter "#" KTInstantiate
+                    | "kt"     | "kt"     "#" KTFilter
+                    | "kt-gfp" | "kt-gfp" "#" KTFilter
   syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-aux"
 
   syntax KTFilter ::= head(RecursivePredicate)
                     | index(Int)
                     | ".KTFilter"
-  syntax KTInstantiate ::= "useAffectedHeuristic"
-                         | freshPositions(Ints)
 endmodule
 ```
 

@@ -44,22 +44,22 @@ for guessing an instantiation of the inductive hypothesis.
 ```
 
 ```k
-  rule <strategy> kt => kt # .KTFilter # useAffectedHeuristic ... </strategy>
+  rule <strategy> kt => kt # .KTFilter ... </strategy>
   rule <k> \implies(\and(LHS), RHS) </k>
-       <strategy> kt # FILTER # INSTANTIATION
-               => getKTPredicates(LHS) ~> kt # FILTER # INSTANTIATION
+       <strategy> kt # FILTER
+               => getKTPredicates(LHS) ~> kt # FILTER
                   ...
        </strategy>
-  rule <strategy> LRPs:Patterns ~> kt # head(HEAD) # INSTANTIATION
-               => filterByConstructor(LRPs, HEAD) ~> kt # .KTFilter # INSTANTIATION
+  rule <strategy> LRPs:Patterns ~> kt # head(HEAD)
+               => filterByConstructor(LRPs, HEAD) ~> kt # .KTFilter
                   ...
        </strategy>
-  rule <strategy> LRPs:Patterns ~> kt # index(I:Int) # INSTANTIATION
-               => getMember(I, LRPs), .Patterns ~> kt # .KTFilter # INSTANTIATION
+  rule <strategy> LRPs:Patterns ~> kt # index(I:Int)
+               => getMember(I, LRPs), .Patterns ~> kt # .KTFilter
                   ...
        </strategy>
-  rule <strategy> LRPs:Patterns ~> kt # .KTFilter # INSTANTIATION
-               => ktForEachLRP(LRPs, INSTANTIATION)
+  rule <strategy> LRPs:Patterns ~> kt # .KTFilter
+               => ktForEachLRP(LRPs)
                   ...
        </strategy>
 ```
@@ -67,16 +67,16 @@ for guessing an instantiation of the inductive hypothesis.
 `ktForEachLRP` iterates over the recursive predicates on the LHS of the goal:
 
 ```k
-  syntax Strategy ::= ktForEachLRP(Patterns, KTInstantiate)
-  rule <strategy> ktForEachLRP(.Patterns, INSTANTIATION) => noop ... </strategy>
-  rule <strategy> ( ktForEachLRP((LRP, LRPs), INSTANTIATION)
+  syntax Strategy ::= ktForEachLRP(Patterns)
+  rule <strategy> ktForEachLRP(.Patterns) => noop ... </strategy>
+  rule <strategy> ( ktForEachLRP((LRP, LRPs))
                  => ( remove-lhs-existential ; normalize
                     ; kt-wrap(LRP) ; kt-forall-intro
                     ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
                     ; kt-unwrap
                     ; simplify ; normalize ; kt-collapse
                     )
-                    | ktForEachLRP(LRPs, INSTANTIATION)
+                    | ktForEachLRP(LRPs)
                   )
                  ~> REST
        </strategy>
