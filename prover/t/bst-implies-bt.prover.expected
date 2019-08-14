@@ -1,22 +1,27 @@
 <prover>
-  <goal>
-    <id>
-      root
-    </id>
-    <active>
-      true
-    </active>
-    <parent>
-      .
-    </parent>
-    <k>
-      \implies ( \and ( bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( bt ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , .Patterns ) )
-    </k>
-    <strategy>
-      success
-    </strategy>
-    <trace>
-      .
-    </trace>
-  </goal>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( bst ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( bt ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
 </prover>

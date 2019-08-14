@@ -237,12 +237,12 @@ module SMT-TEST-DRIVER
   imports Z3
   imports CVC4
 
-  configuration <k> $PGM:SMTLIB2Script </k>
+  configuration <claim> $PGM:SMTLIB2Script </claim>
                 <z3> .K </z3>
                 <cvc4> .K </cvc4>
-  rule <k> SCRIPT:SMTLIB2Script </k>
+  rule <claim> SCRIPT:SMTLIB2Script </claim>
        <z3> . => Z3CheckSAT(SCRIPT) </z3>
-  rule <k> SCRIPT:SMTLIB2Script </k>
+  rule <claim> SCRIPT:SMTLIB2Script </claim>
        <cvc4> . => CVC4CheckSAT(SCRIPT) </cvc4>
 endmodule
 ```

@@ -16,7 +16,7 @@ module STRATEGY-SIMPLIFICATION
 ```
 
 ```k
-  rule <k> \implies(LHS => #lhsRemoveExistentials(LHS), RHS) </k>
+  rule <claim> \implies(LHS => #lhsRemoveExistentials(LHS), RHS) </claim>
        <strategy> remove-lhs-existential => noop ... </strategy>
 
   syntax Pattern  ::= #lhsRemoveExistentials(Pattern)    [function]
@@ -55,16 +55,16 @@ Normalize:
  - All \ands are flattened
 
 ```k
-  rule <k> \implies(LHS, \and(RHS))
+  rule <claim> \implies(LHS, \and(RHS))
         => \implies(LHS, \exists { .Patterns } \and(RHS))
-       </k>
+       </claim>
        <strategy> normalize ... </strategy>
 
-  rule <k> \implies(\and(LHS), \exists { Es } \and(RHS))
+  rule <claim> \implies(\and(LHS), \exists { Es } \and(RHS))
         => \implies( \and(#normalize(#flattenAnds(#lhsRemoveExistentialsPs(LHS))))
                    , \exists { Es } \and(#normalize(#flattenAnds(RHS)))
                    )
-       </k>
+       </claim>
        <strategy> normalize => noop ... </strategy>
 
   syntax Patterns ::= #normalize(Patterns) [function]
@@ -92,7 +92,7 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
-  rule <k> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </k>
+  rule <claim> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </claim>
        <strategy> lift-or => noop ... </strategy> 
 
   syntax Patterns ::= "#liftOr" "(" Patterns "," Pattern ")" [function]
@@ -107,7 +107,7 @@ Lift `\or`s on the left hand sides of implications
 > (\forall .Patterns . phi(x, y)) -> psi(y)
 
 ```k
-  rule <k> \implies(\forall { .Patterns } \and(LHS) => \and(LHS), RHS) </k>
+  rule <claim> \implies(\forall { .Patterns } \and(LHS) => \and(LHS), RHS) </claim>
        <strategy> simplify ... </strategy>
 ```
 
@@ -116,7 +116,7 @@ Lift `\or`s on the left hand sides of implications
 > \exists X . phi(x, y) -> psi(y)
 
 ```k
-  rule <k> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </k>
+  rule <claim> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </claim>
        <strategy> simplify ... </strategy>
 ```
 
@@ -125,7 +125,7 @@ Lift `\or`s on the left hand sides of implications
 > LHS /\ phi -> RHS /\ phi
 
 ```k
-  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </k>
+  rule <claim> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </claim>
        <strategy> simplify => noop ... </strategy>
 ```
 
@@ -135,7 +135,7 @@ Lift `\or`s on the left hand sides of implications
     => LHS /\ x = t(...) -> REST
 
 ```k
-  rule <k> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL
+  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL
         => #fun( INSTANTIATION =>
                    \implies( \and(LHS ++Patterns INSTANTIATION)
                            , \exists { EXIST -Patterns getFreeVariables(INSTANTIATION) }
@@ -147,11 +147,11 @@ Lift `\or`s on the left hand sides of implications
                                             , getExistentialVariables(GOAL)
                                             )
                )
-       </k>
+       </claim>
        <strategy> instantiate-existentials ... </strategy>
        [owise]
 
-  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS)) #as GOAL </k>
+  rule <claim> \implies(\and(LHS), \exists { _ } \and(RHS)) #as GOAL </claim>
        <strategy> instantiate-existentials => noop ... </strategy>
     requires .Patterns
          ==K getAtomForcingInstantiation( RHS

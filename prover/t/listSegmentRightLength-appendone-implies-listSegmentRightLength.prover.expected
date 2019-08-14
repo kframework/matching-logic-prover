@@ -1,22 +1,27 @@
 <prover>
-  <goal>
-    <id>
-      root
-    </id>
-    <active>
-      true
-    </active>
-    <parent>
-      .
-    </parent>
-    <k>
-      \implies ( \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "FA" ) { SetInt } , variable ( "LA" ) { Int } , .Patterns ) , \equals ( variable ( "F" ) { SetInt } , union ( variable ( "FA" ) { SetInt } , singleton ( variable ( "Y" ) { Int } , .Patterns ) , .Patterns ) ) , disjoint ( variable ( "FA" ) { SetInt } , singleton ( variable ( "Y" ) { Int } , .Patterns ) , .Patterns ) , \equals ( variable ( "Z" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , .Patterns ) ) , \equals ( variable ( "LENGTH" ) { Int } , plus ( variable ( "LA" ) { Int } , 1 , .Patterns ) ) , gt ( variable ( "Y" ) { Int } , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "F" ) { SetInt } , variable ( "LENGTH" ) { Int } , .Patterns ) , .Patterns ) )
-    </k>
-    <strategy>
-      success
-    </strategy>
-    <trace>
-      .
-    </trace>
-  </goal>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "FA" ) { SetInt } , variable ( "LA" ) { Int } , .Patterns ) , \equals ( variable ( "F" ) { SetInt } , union ( variable ( "FA" ) { SetInt } , singleton ( variable ( "Y" ) { Int } , .Patterns ) , .Patterns ) ) , disjoint ( variable ( "FA" ) { SetInt } , singleton ( variable ( "Y" ) { Int } , .Patterns ) , .Patterns ) , \equals ( variable ( "Z" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , .Patterns ) ) , \equals ( variable ( "LENGTH" ) { Int } , plus ( variable ( "LA" ) { Int } , 1 , .Patterns ) ) , gt ( variable ( "Y" ) { Int } , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "F" ) { SetInt } , variable ( "LENGTH" ) { Int } , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
 </prover>

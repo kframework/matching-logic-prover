@@ -1,22 +1,27 @@
 <prover>
-  <goal>
-    <id>
-      root
-    </id>
-    <active>
-      true
-    </active>
-    <parent>
-      .
-    </parent>
-    <k>
-      \implies ( \and ( listSortedLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "Length" ) { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) )
-    </k>
-    <strategy>
-      success
-    </strategy>
-    <trace>
-      .
-    </trace>
-  </goal>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( listSortedLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "Length" ) { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
 </prover>

@@ -21,9 +21,9 @@ module STRATEGY-UNFOLDING
                   ...
        </strategy>
 
-  rule <k> \implies(\and(LHS), RHS)
+  rule <claim> \implies(\and(LHS), RHS)
         => \implies(\and((LHS -Patterns (LRP, .Patterns)) ++Patterns BODY), RHS)
-       </k>
+       </claim>
        <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
 ```
@@ -42,7 +42,7 @@ implicatations. The resulting goals are equivalent to the initial goal.
                => left-unfold-Nth-eachLRP(M, getPredicates(LHS))
                   ...
        </strategy>
-       <k> \implies(\and(LHS), RHS) </k>
+       <claim> \implies(\and(LHS), RHS) </claim>
 
   rule <strategy> left-unfold-Nth-eachLRP(M, PS)
                => fail
@@ -76,7 +76,7 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => right-unfold-eachRRP(getPredicates(RHS))
                   ...
        </strategy>
-       <k> \implies(LHS, \exists { _ } \and(RHS)) </k>
+       <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
   rule <strategy> right-unfold-eachRRP(P, PS)
                => right-unfold-eachBody(P, unfold(P))
                 | right-unfold-eachRRP(PS)
@@ -98,10 +98,10 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 ```
 
 ```k
-  rule <k> \implies(LHS, \exists { E1 } \and(RHS))
+  rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
         => \implies(LHS, \exists { E1 ++Patterns E2 }
                          \and((RHS -Patterns (RRP, .Patterns)) ++Patterns BODY))
-       </k>
+       </claim>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
        <trace> .K => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) ... </trace>
 ```
@@ -125,7 +125,7 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
                => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
                   ...
        </strategy>
-       <k> \implies(LHS,\exists {_ } \and(RHS)) </k>
+       <claim> \implies(LHS,\exists {_ } \and(RHS)) </claim>
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
     requires getLength(RRPs) <=Int M

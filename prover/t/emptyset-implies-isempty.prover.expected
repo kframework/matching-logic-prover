@@ -1,22 +1,27 @@
 <prover>
-  <goal>
-    <id>
-      root
-    </id>
-    <active>
-      true
-    </active>
-    <parent>
-      .
-    </parent>
-    <k>
-      \implies ( \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , .Patterns ) )
-    </k>
-    <strategy>
-      success
-    </strategy>
-    <trace>
-      .
-    </trace>
-  </goal>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
 </prover>

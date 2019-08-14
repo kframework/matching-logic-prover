@@ -14,7 +14,7 @@ Configuration
 
 The configuration consists of a assoc-commutative bag of goals. Only goals
 marked `<active>` are executed to control the non-determinism in the system. The
-`<k>` cell contains the Matching Logic Pattern for which we are searching for a
+`<claim>` cell contains the Matching Logic Pattern for which we are searching for a
 proof. The `<strategy>` cell contains an imperative language that controls which
 (high-level) proof rules are used to complete the goal. The `<trace>` cell
 stores a log of the strategies used in the search of a proof and other debug
@@ -32,14 +32,17 @@ module PROVER-CONFIGURATION
 
   configuration
       <prover>
-        <goal multiplicity="*" type="Set">
-          <id> root </id>
-          <active> true:Bool </active>
-          <parent> .K </parent>
-          <k> $PGM </k>
-          <strategy> .K </strategy>
-          <trace> .K </trace>
-        </goal>
+        <k> $PGM </k>
+        <goals>
+          <goal multiplicity="*" type="Set">
+            <id> root </id>
+            <active> true:Bool </active>
+            <parent> .K </parent>
+            <claim> .K </claim>
+            <strategy> .K </strategy>
+            <trace> .K </trace>
+          </goal>
+        </goals>
       </prover>
 endmodule
 ```
@@ -93,15 +96,28 @@ module PROVER-DRIVER
 
   rule <k> claim PATTERN
            strategy STRAT
-        => PATTERN
+        => .K
+           ...
        </k>
-       <strategy> _ => STRAT </strategy>
+       <goals>
+         ( .Bag =>
+           <goal>
+             <id> root </id>
+             <active> true:Bool </active>
+             <parent> .K </parent>
+             <claim> PATTERN </claim>
+             <strategy> STRAT </strategy>
+             <trace> .K </trace>
+           </goal>
+         )
+         ...
+       </goals>
 ```
 
 Normalize ImplicativeForms:
 
 ```k
-  rule <k> \implies(LHS, \and(RHS) => \exists { .Patterns } \and(RHS)) </k>
+  rule <claim> \implies(LHS, \and(RHS) => \exists { .Patterns } \and(RHS)) </claim>
 ```
 
 ```k

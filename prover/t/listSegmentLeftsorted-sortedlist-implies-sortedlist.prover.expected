@@ -1,22 +1,27 @@
 <prover>
-  <goal>
-    <id>
-      root
-    </id>
-    <active>
-      true
-    </active>
-    <parent>
-      .
-    </parent>
-    <k>
-      \implies ( \and ( listSegmentLeftSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , .Patterns ) , listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { SetInt } , variable ( "MIN2" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) , \not ( gt ( variable ( "MAX" ) { Int } , variable ( "MIN2" ) { Int } , .Patterns ) ) , .Patterns ) , \exists { .Patterns } \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) )
-    </k>
-    <strategy>
-      success
-    </strategy>
-    <trace>
-      .
-    </trace>
-  </goal>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( listSegmentLeftSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , variable ( "MIN" ) { Int } , variable ( "MAX" ) { Int } , .Patterns ) , listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { SetInt } , variable ( "MIN2" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) , \not ( gt ( variable ( "MAX" ) { Int } , variable ( "MIN2" ) { Int } , .Patterns ) ) , .Patterns ) , \exists { .Patterns } \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
 </prover>

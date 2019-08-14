@@ -45,7 +45,7 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   rule <strategy> kt => kt # .KTFilter ... </strategy>
-  rule <k> \implies(\and(LHS), RHS) </k>
+  rule <claim> \implies(\and(LHS), RHS) </claim>
        <strategy> kt # FILTER
                => getKTPredicates(LHS) ~> kt # FILTER
                   ...
@@ -103,9 +103,9 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-wrap" "(" Pattern ")"
-  rule <k> \implies(\and(LHS:Patterns), RHS)
+  rule <claim> \implies(\and(LHS:Patterns), RHS)
         => \implies(LRP, implicationContext(\and(#hole, (LHS -Patterns LRP)), RHS))
-       </k>
+       </claim>
        <strategy> kt-wrap(LRP) => noop ... </strategy>
        <trace> .K => kt-wrap(LRP)  ... </trace>
     requires LRP in LHS
@@ -117,12 +117,12 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-forall-intro"
-  rule <k> \implies(LHS, RHS) #as GOAL
+  rule <claim> \implies(LHS, RHS) #as GOAL
         => \implies( LHS
                    , \forall { getUniversalVariables(GOAL) -Patterns getFreeVariables(LHS, .Patterns) }
                              RHS
                    )
-       </k>
+       </claim>
        <strategy> kt-forall-intro => noop ... </strategy>
 ```
 
@@ -132,7 +132,7 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-forall-elim"
-  rule <k> \implies(LHS, \forall { Vs } RHS) => \implies(LHS, RHS) </k>
+  rule <claim> \implies(LHS, \forall { Vs } RHS) => \implies(LHS, RHS) </claim>
        <strategy> kt-forall-elim => noop ... </strategy>
     requires getFreeVariables(LHS) -Patterns Vs ==K getFreeVariables(LHS)
 ```
@@ -142,15 +142,15 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-unfold"
-  rule <k> \implies( LRP:RecursivePredicate(ARGS) #as LHS
+  rule <claim> \implies( LRP:RecursivePredicate(ARGS) #as LHS
                   => substituteBRPs(unfold(LHS), LRP, ARGS, RHS)
                    , RHS
                    )
-       </k>
+       </claim>
        <strategy> kt-unfold => noop ... </strategy>
     requires removeDuplicates(ARGS) ==K ARGS
-  rule <k> \implies(LRP:RecursivePredicate(ARGS), RHS)
-       </k>
+  rule <claim> \implies(LRP:RecursivePredicate(ARGS), RHS)
+       </claim>
        <strategy> kt-unfold => fail ... </strategy>
     requires removeDuplicates(ARGS) =/=K ARGS
 
@@ -192,9 +192,9 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-unwrap"
-  rule <k> \implies(LHS, \forall { UNIV } implicationContext(CTX, RHS))
+  rule <claim> \implies(LHS, \forall { UNIV } implicationContext(CTX, RHS))
         => \implies(CTX[#hole/LHS], RHS)
-       </k>
+       </claim>
        <strategy> kt-unwrap => noop ... </strategy>
 ```
 
@@ -202,29 +202,29 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= "kt-collapse"
 
 // Move Implication contexts to the front
-  rule <k> \implies(\and(P, Ps) #as LHS, RHS)
+  rule <claim> \implies(\and(P, Ps) #as LHS, RHS)
         => \implies(\and(Ps ++Patterns P), RHS)
-       </k>
+       </claim>
        <strategy> kt-collapse ... </strategy>
     requires notBool hasImplicationContext(P)
      andBool hasImplicationContext(LHS)
 
 // Move #holes to the front
-  rule <k> \implies(\and(\forall { _ }
+  rule <claim> \implies(\and(\forall { _ }
                          implicationContext( \and(P, Ps)
                                           => \and(Ps ++Patterns P)
                                            , _)
                         , _), _)
-       </k>
+       </claim>
        <strategy> kt-collapse ... </strategy>
     requires P =/=K #hole:Pattern
      andBool #hole in Ps
 
 // basic simplification
-  rule <k> \implies(\and( \forall {_} implicationContext(\and(\and(Ps1), Ps2) => \and(Ps1 ++Patterns Ps2) , _), _), _) </k>
+  rule <claim> \implies(\and( \forall {_} implicationContext(\and(\and(Ps1), Ps2) => \and(Ps1 ++Patterns Ps2) , _), _), _) </claim>
        <strategy> kt-collapse ... </strategy>
 
-  rule <k> \implies(\and( \forall { UNIVs } ( implicationContext( \and(#hole, CTXLHS:Patterns)
+  rule <claim> \implies(\and( \forall { UNIVs } ( implicationContext( \and(#hole, CTXLHS:Patterns)
                                                                 , CTXRHS:Pattern)
                                            => \implies(\and(CTXLHS), CTXRHS)
                                             )
@@ -232,7 +232,7 @@ for guessing an instantiation of the inductive hypothesis.
                         )
                    , RHS:Pattern
                    )
-       </k>
+       </claim>
        <strategy> kt-collapse ... </strategy>
 ```
 
@@ -251,27 +251,27 @@ for guessing an instantiation of the inductive hypothesis.
   rule filterVariablesBySort((V, Vs), S)
     => filterVariablesBySort(Vs, S) [owise]
 
-  rule <k> GOAL </k>
+  rule <claim> GOAL </claim>
        <strategy> kt-collapse => noop ... </strategy>
     requires notBool(hasImplicationContext(GOAL))
 
   // TODO: Move to "normalize" strategy
-  rule <k> \implies(\and(\and(Ps1), Ps2), RHS)
+  rule <claim> \implies(\and(\and(Ps1), Ps2), RHS)
         => \implies(\and(Ps1 ++Patterns Ps2), RHS)
-       </k>
+       </claim>
        <strategy> kt-collapse ... </strategy>
-  rule <k> \implies(\and(_, ( \and(Ps1), Ps2
+  rule <claim> \implies(\and(_, ( \and(Ps1), Ps2
                            => Ps1 ++Patterns Ps2))
                    , RHS)
-       </k>
+       </claim>
        <strategy> kt-collapse ... </strategy>
 
-  rule <k> \implies(\and( _
+  rule <claim> \implies(\and( _
                         , (\exists { _ } P => P)
                         , Ps)
                    , _
                    )
-       </k>
+       </claim>
        <strategy> kt-collapse ... </strategy>
 
   syntax Bool ::= hasImplicationContext(Pattern)  [function]
@@ -300,11 +300,11 @@ for guessing an instantiation of the inductive hypothesis.
 >      (alpha -> beta) /\ gamma -> psi
 
 ```k
-  rule <k> \implies( \and(\forall { .Patterns } \implies(LHS, RHS), REST:Patterns)
+  rule <claim> \implies( \and(\forall { .Patterns } \implies(LHS, RHS), REST:Patterns)
                   => \and(REST)
                    , _
                    )
-       </k>
+       </claim>
        <strategy> kt-solve-implications( STRAT)
                => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), LHS), STRAT)
                                         , \and(LHS, RHS)
@@ -321,18 +321,18 @@ for guessing an instantiation of the inductive hypothesis.
     requires matchesImplication(P)
   rule removeImplications(.Patterns) => .Patterns
 
-  rule <k> \implies( \and(P:Pattern, REST:Patterns)
+  rule <claim> \implies( \and(P:Pattern, REST:Patterns)
                   => \and(REST ++Patterns P)
                    , _
                    )
-       </k>
+       </claim>
        <strategy> kt-solve-implications(_)
                   ...
        </strategy>
     requires hasImplication(REST)
      andBool notBool matchesImplication(P)
 
-  rule <k> \implies(\and(LHS), _) </k>
+  rule <claim> \implies(\and(LHS), _) </claim>
        <strategy> kt-solve-implications(STRAT) => noop ... </strategy>
      requires notBool hasImplication(LHS)
 
@@ -362,14 +362,14 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
        </strategy>
   rule <strategy> kt-solve-implication(fail, RHS) => noop ... </strategy>
   rule <strategy> kt-solve-implication(success, CONC) => noop ... </strategy>
-       <k> \implies(\and(LHS), RHS)
+       <claim> \implies(\and(LHS), RHS)
         => \implies(\and(CONC, LHS), RHS)
-       </k>
+       </claim>
 ```
 
 ```k
   syntax Strategy ::= "instantiate-universals-with-ground-terms" "(" Patterns /* universals */ "," Patterns /* ground terms */ ")"
-  rule <k> \implies(\and(LHS), RHS) #as GOAL </k>
+  rule <claim> \implies(\and(LHS), RHS) #as GOAL </claim>
        <strategy> instantiate-universals-with-ground-terms
                => instantiate-universals-with-ground-terms(getForalls(LHS), removeDuplicates(getGroundTerms(GOAL)))
                   ...
@@ -382,14 +382,14 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                   ...
        </strategy>
 
-  rule <k> \implies(\and(LHS => P, LHS), RHS) </k> 
+  rule <claim> \implies(\and(LHS => P, LHS), RHS) </claim> 
        <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
                                  , _
                                  )
                   ...
        </strategy>
     requires notBool P in LHS
-  rule <k> \implies(\and(LHS), RHS) </k> 
+  rule <claim> \implies(\and(LHS), RHS) </claim> 
        <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
                                  , _
                                  )
