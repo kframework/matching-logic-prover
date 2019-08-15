@@ -1,6 +1,5 @@
 ```k
 requires "kore.k"
-requires "predicate-definitions.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/search-bound.k"
@@ -57,7 +56,6 @@ Strategies for the Horn Clause fragment
 module PROVER-HORN-CLAUSE-SYNTAX
   imports INT-SYNTAX
   imports KORE-SUGAR
-  imports PREDICATE-DEFINITIONS
 
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "remove-lhs-existential" | "normalize" | "lift-or"

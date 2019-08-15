@@ -3,7 +3,6 @@ module STRATEGY-KNASTER-TARSKI
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-HELPERS
-  imports PREDICATE-DEFINITIONS
 ```
 
 ### Knaster Tarski (Least Fixed Point)

@@ -241,7 +241,6 @@ Main
 ```k
 module SMTLIB2-TEST-DRIVER
   imports ML-TO-SMTLIB2
-  imports PREDICATE-DEFINITIONS
   imports Z3
   imports CVC4
 
