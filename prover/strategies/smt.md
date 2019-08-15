@@ -151,7 +151,7 @@ module ML-TO-SMTLIB2
        declareUninterpretedFunctions( Fs -Patterns filterByConstructor(Fs, S))
 
   syntax SMTLIB2Command ::= SymbolDeclarationToSMTLIB2FunctionDeclaration(SymbolDeclaration) [function]
-  rule SymbolDeclarationToSMTLIB2FunctionDeclaration(symbol NAME { } ( ARGS ) : RET)
+  rule SymbolDeclarationToSMTLIB2FunctionDeclaration(symbol NAME ( ARGS ) : RET)
     => ( declare-fun SymbolToSMTLIB2Symbol(NAME) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(RET) )
 ```
 

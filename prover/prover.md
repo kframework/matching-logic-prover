@@ -108,7 +108,7 @@ module PROVER-DRIVER
        </k>
   rule <k> .Declarations => .K ... </k>
 
-  rule <k> (symbol _ { } ( _ ) : _ #as DECL:Declaration) ... </k>
+  rule <k> (symbol _ ( _ ) : _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
          ...

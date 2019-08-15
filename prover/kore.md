@@ -69,7 +69,7 @@ only in this scenario*.
   syntax Patterns ::= List{Pattern, ","}                        [klabel(Patterns)]
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
 
-  syntax SymbolDeclaration ::= "symbol" Symbol "{" "}" "(" Sorts ")" ":" Sort
+  syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
 endmodule
 ```
 

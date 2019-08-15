@@ -424,7 +424,7 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   rule getReturnSort( disjoint ( ARGS ) ) => Bool
   rule getReturnSort( gt ( ARGS ) ) => Bool
   rule getReturnSort( R:RecursivePredicate ( ARGS ) )
-    => #fun( symbol _ { } ( _ ) : S => S) (getSymbolDeclaration(R))
+    => #fun( symbol _ ( _ ) : S => S) (getSymbolDeclaration(R))
 
   syntax Patterns ::= getGroundTerms(Pattern) [function]
   rule getGroundTerms(P) => getGroundTerms(P, .Patterns)
