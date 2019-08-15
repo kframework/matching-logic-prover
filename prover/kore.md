@@ -2,9 +2,27 @@ Kore Sugar
 ==========
 
 ```k
+module TOKENS
+  // Lexical
+  syntax UpperName
+  syntax LowerName
+
+  // Abstract
+  syntax Symbol  ::= UpperName | LowerName
+endmodule
+
+module TOKENS-SYNTAX
+  imports TOKENS
+  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#]*" [token, autoReject]
+  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#]*" [token, autoReject]
+endmodule
+
 module KORE-SUGAR
+  imports TOKENS
   imports INT-SYNTAX
   imports STRING-SYNTAX
+  imports TOKENS
+
   syntax Ints ::= List{Int, ","}
 
   syntax Sort ::= "Bool"        [token]

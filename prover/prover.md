@@ -86,13 +86,11 @@ module PROVER-COMMON
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-SUGAR
   syntax Declarations ::= Declaration Declarations
-  syntax Declaration ::= "claim" Pattern "strategy" Strategy
-                       | SymbolDeclaration
-                       | "axiom" Pattern
 endmodule
 
 module PROVER-SYNTAX
   imports PROVER-COMMON
+  imports TOKENS-SYNTAX
   syntax Declarations ::= "" [klabel(.Declarations)]
 endmodule
 ```
