@@ -1,3 +1,6 @@
+imports "t/definitions/listSegmentLeft.prover"
+imports "t/definitions/listSegmentRight.prover"
+
 claim \implies( \and( listSegmentLeft (variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }) )
               , \and( listSegmentRight(variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }) )
               )

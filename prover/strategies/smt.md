@@ -11,12 +11,12 @@ module ML-TO-SMTLIB2
   imports SMTLIB2
   imports KORE-SUGAR
   imports KORE-HELPERS
-  imports PREDICATE-DEFINITIONS
+  imports STRATEGY-UNFOLDING
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
   rule ML2SMTLIB(PATTERN)
     => declareVariables(getUniversalVariables(PATTERN)) ++SMTLIB2Script
-       declareUninterpretedFunctions(removeDuplicates(getPredicates(PATTERN))) ++SMTLIB2Script
+       declareUninterpretedFunctions(removeDuplicates(getUnfoldables(PATTERN))) ++SMTLIB2Script
        (assert PatternToSMTLIB2Term(PATTERN))
 
   // TODO: All symbols must be functional!
@@ -43,9 +43,7 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(union(P1, P2)) => ( unionx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(disjoint(P1, P2)) => ( disjointx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(store(P1, P2, P3)) => ( store PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) PatternToSMTLIB2Term(P3) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(P:Predicate(ARGS)) => ( SymbolToSMTLIB2Symbol(P)
-                                                    PatternsToSMTLIB2TermList(ARGS)
-                                                  ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( SymbolToSMTLIB2Symbol(S) PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term [owise]
   rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(.Patterns)) => true
@@ -63,9 +61,9 @@ module ML-TO-SMTLIB2
   rule PatternsToSMTLIB2TermList(.Patterns)
     => .SMTLIB2TermList
 
-  syntax SMTLIB2Symbol ::= SymbolToSMTLIB2Symbol(Predicate) [function]
-  syntax String ::= SymbolToString(Predicate) [function, functional, hook(STRING.token2string)]
-  rule SymbolToSMTLIB2Symbol(P:Predicate) => StringToSMTLIB2SimpleSymbol(SymbolToString(P))
+  syntax SMTLIB2Symbol ::= SymbolToSMTLIB2Symbol(Symbol) [function]
+  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
+  rule SymbolToSMTLIB2Symbol(S:Symbol) => StringToSMTLIB2SimpleSymbol(SymbolToString(S))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
   rule SortToSMTLIB2Sort(Int:Sort) => Int:SMTLIB2Sort
@@ -146,7 +144,7 @@ module ML-TO-SMTLIB2
 
   syntax SMTLIB2Script ::= declareUninterpretedFunctions(Patterns) [function]
   rule declareUninterpretedFunctions( .Patterns ) => .SMTLIB2Script
-  rule declareUninterpretedFunctions( S:Predicate(ARGS), Fs )
+  rule declareUninterpretedFunctions( S:Symbol(ARGS), Fs )
     => SymbolDeclarationToSMTLIB2FunctionDeclaration(getSymbolDeclaration(S))
        declareUninterpretedFunctions( Fs -Patterns filterByConstructor(Fs, S))
 

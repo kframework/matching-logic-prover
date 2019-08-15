@@ -3,6 +3,51 @@ module STRATEGY-UNFOLDING
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-HELPERS
+
+  syntax Bool ::= isUnfoldable(Symbol) [function]
+  rule [[ isUnfoldable(S:Symbol) => true ]]
+       <declaration> axiom \forall {_} \iff-lfp(S(_), _) </declaration>
+  rule isUnfoldable(S:Symbol) => false [owise]
+
+  syntax Pattern ::= unfold(Pattern) [function]
+  rule [[ unfold(S:Symbol(ARGs)) => substMap(DEF, zip(Vs, ARGs)) ]]
+       <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
+
+  syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
+  rule [[ getSymbolDeclaration(S) => DECL ]]
+       <declaration> symbol S (_) : _ #as DECL </declaration>
+
+  syntax Patterns ::= getUnfoldables(Patterns)   [function]
+  rule getUnfoldables(.Patterns) => .Patterns
+  rule getUnfoldables(R(ARGS), REST)
+    => R(ARGS), getUnfoldables(REST)
+    requires isUnfoldable(R)
+  rule getUnfoldables(S:Symbol, REST)
+    => getUnfoldables(REST)
+    requires notBool isUnfoldable(S)
+  rule getUnfoldables(S:Symbol(ARGS), REST)
+    => getUnfoldables(REST)
+    requires notBool isUnfoldable(S)
+  rule getUnfoldables(I:Int, REST)
+    => getUnfoldables(REST)
+  rule getUnfoldables(V:Variable, REST)
+    => getUnfoldables(REST)
+  rule getUnfoldables(\not(Ps), REST)
+    => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(\and(Ps), REST)
+    => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(\implies(LHS, RHS), REST)
+    => getUnfoldables(LHS) ++Patterns
+       getUnfoldables(RHS) ++Patterns
+       getUnfoldables(REST)
+  rule getUnfoldables(\equals(LHS, RHS), REST)
+    => getUnfoldables(LHS) ++Patterns
+       getUnfoldables(RHS) ++Patterns
+       getUnfoldables(REST)
+  rule getUnfoldables(\exists { _ } P, REST)
+    => getUnfoldables(P) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(\forall { _ } P, REST)
+    => getUnfoldables(P) ++Patterns getUnfoldables(REST)
 ```
 
 ### Left Unfold (incomplete)
@@ -39,7 +84,7 @@ implicatations. The resulting goals are equivalent to the initial goal.
                     | "left-unfold-Nth-oneBody"  "(" Int "," Pattern "," Pattern ")"
 
   rule <strategy> left-unfold-Nth(M)
-               => left-unfold-Nth-eachLRP(M, getPredicates(LHS))
+               => left-unfold-Nth-eachLRP(M, getUnfoldables(LHS))
                   ...
        </strategy>
        <claim> \implies(\and(LHS), RHS) </claim>
@@ -73,7 +118,7 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                     | "right-unfold-eachBody" "(" Pattern "," Pattern ")"
                     | "right-unfold-oneBody"  "(" Pattern "," Pattern ")"
   rule <strategy> right-unfold
-               => right-unfold-eachRRP(getPredicates(RHS))
+               => right-unfold-eachRRP(getUnfoldables(RHS))
                   ...
        </strategy>
        <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
@@ -122,7 +167,7 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
   requires (M <Int 0) orBool (N <Int 0)
 
   rule <strategy> right-unfold-Nth (M,N)
-               => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
+               => right-unfold-Nth-eachRRP(M, N, getUnfoldables(RHS))
                   ...
        </strategy>
        <claim> \implies(LHS,\exists {_ } \and(RHS)) </claim>

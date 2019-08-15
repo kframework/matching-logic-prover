@@ -69,7 +69,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
 
-  syntax KTFilter ::= head(RecursivePredicate)
+  syntax KTFilter ::= head(Symbol)
                     | index(Int)
                     | ".KTFilter"
 endmodule
@@ -99,8 +99,16 @@ endmodule
 module PROVER-DRIVER
   imports PROVER-COMMON
   imports PROVER-CORE
+  imports K-IO
 
   syntax Declarations ::= ".Declarations" [klabel(.Declarations)]
+
+  // K changes directory to "REPODIR/.krun-TIMESTAMP"
+  rule <k> imports FILE:String
+        => #system("kast --directory ../.build/defn/prover '../" +String FILE +String "'")
+           ...
+       </k>
+  rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKAST(KAST_STRING) ... </k>
 
   rule <k> (D:Declaration Ds:Declarations)
         => (D ~> Ds)
@@ -113,7 +121,7 @@ module PROVER-DRIVER
          (.Bag => <declaration> DECL </declaration>)
          ...
        </declarations>
-  rule <k> (axiom _ #as DECL:Declaration) ... </k>
+  rule <k> (axiom _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
          ...

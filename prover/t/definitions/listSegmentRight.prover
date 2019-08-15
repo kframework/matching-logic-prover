@@ -1,28 +1,26 @@
 symbol listSegmentRight(ArrayIntInt, Int, Int, SetInt) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, Y : Int, F : SetInt }
-      \iff-lfp( listSegmentRight(H, X, Y, F)
-              , \or( \and( \equals(X, Y)
-                         , \equals(F, emptyset)
-                         , .Patterns
+axiom \forall { variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt } }
+      \iff-lfp( listSegmentRight(variable("H") { ArrayIntInt },  variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt })
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int }, variable("Y") { Int })
+                         , \equals(variable("F") { SetInt }, emptyset)
                          )
-                   , \and( listSegmentRight( H
-                                           , X
-                                           , variable("Y", !I:Int) { Int }
-                                           , variable("F", !I:Int) { SetInt }
-                                           , .Patterns
+                   , \exists { variable("Y1") { Int } , variable("F1") { SetInt } }
+                     \and( listSegmentRight( variable("H") { ArrayIntInt }
+                                           , variable("X") { Int }
+                                           , variable("Y1") { Int }
+                                           , variable("F1") { SetInt }
                                            )
-                         , gt(variable("Y", !I:Int) { Int }, 0)
-                         , \equals(Y, select(H, variable("Y", !I:Int) { Int }))
-                         , \equals( F
-                                  , union( variable("F", !I:Int) { SetInt }
-                                         , singleton(variable("Y", !I:Int) { Int })
+                         , gt(variable("Y1") { Int }, 0)
+                         , \equals(variable("Y") { Int }, select(variable("H") { ArrayIntInt },  variable("Y1") { Int }))
+                         , \equals( variable("F") { SetInt }
+                                  , union( variable("F1") { SetInt }
+                                         , singleton(variable("Y1") { Int })
                                          )
                                   )
-                         , disjoint( variable("F", !I:Int) { SetInt }
-                                   , singleton(variable("Y", !I:Int) { Int })
+                         , disjoint( variable("F1") { SetInt }
+                                   , singleton(variable("Y1") { Int })
                                    )
-                         , .Patterns
                          )
-                   , .Patterns
                    )
               )

@@ -3,6 +3,7 @@ module STRATEGY-KNASTER-TARSKI
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-HELPERS
+  imports STRATEGY-UNFOLDING
 ```
 
 ### Knaster Tarski (Least Fixed Point)
@@ -12,41 +13,42 @@ the rule to each recursive predicate in turn. it also includes a heuristic
 for guessing an instantiation of the inductive hypothesis.
 
 ```k
-  syntax Patterns ::= getKTPredicates(Patterns)   [function]
-  rule getKTPredicates(.Patterns) => .Patterns
-  rule getKTPredicates(R:RecursivePredicate(ARGS), REST)
-    => R(ARGS), getKTPredicates(REST)
-  rule getKTPredicates(S:Symbol, REST)
-    => getKTPredicates(REST)
-    requires notBool isRecursivePredicate(S)
-  rule getKTPredicates(S:Symbol(ARGS), REST)
-    => getKTPredicates(REST)
-    requires notBool isRecursivePredicate(S)
-  rule getKTPredicates(I:Int, REST)
-    => getKTPredicates(REST)
-  rule getKTPredicates(V:Variable, REST)
-    => getKTPredicates(REST)
-  rule getKTPredicates(\not(Ps), REST)
-    => getKTPredicates(REST)
-  rule getKTPredicates(\and(Ps), REST)
-    => getKTPredicates(Ps) ++Patterns getKTPredicates(REST)
-  rule getKTPredicates(\implies(LHS, RHS), REST)
-    => getKTPredicates(REST)
-  rule getKTPredicates(\equals(LHS, RHS), REST)
-    => getKTPredicates(LHS) ++Patterns
-       getKTPredicates(RHS) ++Patterns
-       getKTPredicates(REST)
-  rule getKTPredicates(\exists { .Patterns } P, REST)
-    => getKTPredicates(P, REST)
-  rule getKTPredicates(\forall { .Patterns } P, REST)
-    => getKTPredicates(P, REST)
+  syntax Patterns ::= getKTUnfoldables(Patterns)   [function]
+  rule getKTUnfoldables(.Patterns) => .Patterns
+  rule getKTUnfoldables(R(ARGS), REST)
+    => R(ARGS), getKTUnfoldables(REST)
+    requires isUnfoldable(R)
+  rule getKTUnfoldables(S:Symbol, REST)
+    => getKTUnfoldables(REST)
+    requires notBool isUnfoldable(S)
+  rule getKTUnfoldables(S:Symbol(ARGS), REST)
+    => getKTUnfoldables(REST)
+    requires notBool isUnfoldable(S)
+  rule getKTUnfoldables(I:Int, REST)
+    => getKTUnfoldables(REST)
+  rule getKTUnfoldables(V:Variable, REST)
+    => getKTUnfoldables(REST)
+  rule getKTUnfoldables(\not(Ps), REST)
+    => getKTUnfoldables(REST)
+  rule getKTUnfoldables(\and(Ps), REST)
+    => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
+  rule getKTUnfoldables(\implies(LHS, RHS), REST)
+    => getKTUnfoldables(REST)
+  rule getKTUnfoldables(\equals(LHS, RHS), REST)
+    => getKTUnfoldables(LHS) ++Patterns
+       getKTUnfoldables(RHS) ++Patterns
+       getKTUnfoldables(REST)
+  rule getKTUnfoldables(\exists { .Patterns } P, REST)
+    => getKTUnfoldables(P, REST)
+  rule getKTUnfoldables(\forall { .Patterns } P, REST)
+    => getKTUnfoldables(P, REST)
 ```
 
 ```k
   rule <strategy> kt => kt # .KTFilter ... </strategy>
   rule <claim> \implies(\and(LHS), RHS) </claim>
        <strategy> kt # FILTER
-               => getKTPredicates(LHS) ~> kt # FILTER
+               => getKTUnfoldables(LHS) ~> kt # FILTER
                   ...
        </strategy>
   rule <strategy> LRPs:Patterns ~> kt # head(HEAD)
@@ -141,20 +143,22 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-unfold"
-  rule <claim> \implies( LRP:RecursivePredicate(ARGS) #as LHS
+  rule <claim> \implies( LRP(ARGS) #as LHS
                   => substituteBRPs(unfold(LHS), LRP, ARGS, RHS)
                    , RHS
                    )
        </claim>
        <strategy> kt-unfold => noop ... </strategy>
     requires removeDuplicates(ARGS) ==K ARGS
-  rule <claim> \implies(LRP:RecursivePredicate(ARGS), RHS)
+     andBool isUnfoldable(LRP)
+  rule <claim> \implies(LRP(ARGS), RHS)
        </claim>
        <strategy> kt-unfold => fail ... </strategy>
     requires removeDuplicates(ARGS) =/=K ARGS
+     andBool isUnfoldable(LRP)
 
                              // unfolded fixed point, HEAD, LRP variables, Pattern
-  syntax Pattern ::= substituteBRPs(Pattern,  RecursivePredicate, Patterns, Pattern) [function]
+  syntax Pattern ::= substituteBRPs(Pattern,  Symbol, Patterns, Pattern) [function]
   rule substituteBRPs(P:Int, RP, Vs, RHS) => P
   rule substituteBRPs(P:Variable, RP, Vs, RHS) => P
   rule substituteBRPs(P:Symbol, RP, Vs, RHS) => P
@@ -180,7 +184,7 @@ for guessing an instantiation of the inductive hypothesis.
 //  rule substituteBRPs(\forall { E } C, RP, Vs, RHS)
 //    => \forall { E } substituteBRPs(C, RP, Vs, RHS) [owise]
 
-  syntax Patterns ::= substituteBRPsPs(Patterns, RecursivePredicate, Patterns, Pattern) [function]
+  syntax Patterns ::= substituteBRPsPs(Patterns, Symbol, Patterns, Pattern) [function]
   rule substituteBRPsPs(.Patterns, RP, Vs, RHS) => .Patterns
   rule substituteBRPsPs((P, Ps), RP, Vs, RHS) => substituteBRPs(P, RP, Vs, RHS), substituteBRPsPs(Ps, RP, Vs, RHS):Patterns
 
@@ -423,8 +427,8 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   rule getReturnSort( emptyset ) => SetInt
   rule getReturnSort( disjoint ( ARGS ) ) => Bool
   rule getReturnSort( gt ( ARGS ) ) => Bool
-  rule getReturnSort( R:RecursivePredicate ( ARGS ) )
-    => #fun( symbol _ ( _ ) : S => S) (getSymbolDeclaration(R))
+  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
+       <declaration> symbol R ( _ ) : S </declaration>
 
   syntax Patterns ::= getGroundTerms(Pattern) [function]
   rule getGroundTerms(P) => getGroundTerms(P, .Patterns)

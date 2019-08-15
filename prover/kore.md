@@ -56,15 +56,30 @@ only in this scenario*.
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
-  syntax Symbol ::= "emptyset"
-  syntax Symbol ::= "singleton"
-  syntax Symbol ::= "plus"| "minus"| "mult"| "div"| "gt"| "max" // Arith
-                  | "union" | "disjoint" | "disjointUnion" | "isMember" | "add" | "del" // Sets
-                  | "select" // Arrays
-  syntax Symbol ::= "store"
-  syntax Symbol ::= Predicate
-  syntax RecursivePredicate
-  syntax Predicate ::= RecursivePredicate
+                     /* Sugar for \iff, \mu and application */
+                   | "\\iff-lfp" "(" Pattern "," Pattern ")"     [klabel(ifflfp)]
+
+
+  syntax Symbol ::= "emptyset"      [token]
+                  | "singleton"     [token]
+                  | "union"         [token]
+                  | "disjoint"      [token]
+                  | "disjointUnion" [token]
+                  | "isMember"      [token]
+                  | "add"           [token]
+                  | "del"           [token]
+
+  // Arith
+  syntax Symbol ::= "plus"          [token]
+                  | "minus"         [token]
+                  | "mult"          [token]
+                  | "div"           [token]
+                  | "gt"            [token]
+                  | "max"           [token]
+
+  // Array
+  syntax Symbol ::= "store"         [token]
+                  | "select"        [token]
 
   syntax Patterns ::= List{Pattern, ","}                        [klabel(Patterns)]
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
@@ -189,39 +204,6 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax Patterns ::= getPredicates(Patterns)   [function]
-  rule getPredicates(.Patterns) => .Patterns
-  rule getPredicates(R:Predicate(ARGS), REST)
-    => R(ARGS), getPredicates(REST)
-  rule getPredicates(S:Symbol, REST)
-    => getPredicates(REST)
-    requires notBool isPredicate(S)
-  rule getPredicates(S:Symbol(ARGS), REST)
-    => getPredicates(REST)
-    requires notBool isPredicate(S)
-  rule getPredicates(I:Int, REST)
-    => getPredicates(REST)
-  rule getPredicates(V:Variable, REST)
-    => getPredicates(REST)
-  rule getPredicates(\not(Ps), REST)
-    => getPredicates(Ps) ++Patterns getPredicates(REST)
-  rule getPredicates(\and(Ps), REST)
-    => getPredicates(Ps) ++Patterns getPredicates(REST)
-  rule getPredicates(\implies(LHS, RHS), REST)
-    => getPredicates(LHS) ++Patterns
-       getPredicates(RHS) ++Patterns
-       getPredicates(REST)
-  rule getPredicates(\equals(LHS, RHS), REST)
-    => getPredicates(LHS) ++Patterns
-       getPredicates(RHS) ++Patterns
-       getPredicates(REST)
-  rule getPredicates(\exists { _ } P, REST)
-    => getPredicates(P) ++Patterns getPredicates(REST)
-  rule getPredicates(\forall { _ } P, REST)
-    => getPredicates(P) ++Patterns getPredicates(REST)
-```
-
-```k
   syntax Pattern ::= getMember(Int, Patterns) [function]
   rule getMember(0, (P:Pattern, Ps)) => P
   rule getMember(N, (P:Pattern, Ps)) => getMember(N -Int 1, Ps)
@@ -249,6 +231,7 @@ Substitution: Substitute term or variable
   rule subst(\equals(ARG1, ARG2):Pattern, X, V) => \equals(ARG1[X/V], ARG2[X/V]):Pattern
   rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
   rule subst(\and(ARG):Pattern, X, V) => \and(ARG[X/V]):Pattern
+  rule subst(\or(ARG):Pattern, X, V) => \or(ARG[X/V]):Pattern
   rule subst(\implies(LHS, RHS):Pattern, X, V)
     => \implies(LHS[X/V], RHS[X/V]):Pattern
   rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
