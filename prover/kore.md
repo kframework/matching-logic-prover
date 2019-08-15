@@ -42,20 +42,19 @@ only in this scenario*.
   syntax Pattern ::= Int
                    | Variable
                    | Symbol
-                   | Symbol "(" Patterns ")"                    [klabel(\apply)]
+                   | Symbol "(" Patterns ")"                    [klabel(apply)]
 
-                   | "\\top"    "(" ")"                         [klabel(\top)]
-                   | "\\bottom" "(" ")"                         [klabel(\bottom)]
-                   | "\\equals" "(" Pattern "," Pattern ")"     [klabel(\equals)]
-                   | "\\not"    "(" Pattern ")"                 [klabel(\not)]
+                   | "\\top"    "(" ")"                         [klabel(top)]
+                   | "\\bottom" "(" ")"                         [klabel(bottom)]
+                   | "\\equals" "(" Pattern "," Pattern ")"     [klabel(equals)]
+                   | "\\not"    "(" Pattern ")"                 [klabel(not)]
 
-                   | "\\and"    "(" Patterns ")"                [klabel(\and)]
-                   | "\\or"     "(" Patterns ")"                [klabel(\or)]
-                   | "\\implies" "(" Pattern "," Pattern ")"    [klabel(\implies)]
-
-                   | "\\exists" "{" Patterns "}" Pattern        [klabel(\exists)]
-                   | "\\forall" "{" Patterns "}" Pattern        [klabel(\forall)]
+                   | "\\and"    "(" Patterns ")"                [klabel(and)]
+                   | "\\or"     "(" Patterns ")"                [klabel(or)]
+                   | "\\implies" "(" Pattern "," Pattern ")"    [klabel(implies)]
                    
+                   | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
+                   | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
   syntax Symbol ::= "emptyset"
   syntax Symbol ::= "singleton"
