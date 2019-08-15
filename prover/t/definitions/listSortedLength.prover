@@ -1,26 +1,26 @@
 symbol listSortedLength(ArrayIntInt, Int, SetInt, Int, Int) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, PREV_VAL : Int, LENGTH : Int }
-      \iff-lfp( listSortedLength(H, X, F, PREV_VAL, LENGTH)
-              , \or( \and( \equals(X, 0)
-                         , \equals(F, emptyset)
-                         , \equals(LENGTH, 0)
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("LENGTH") { Int } }
+      \iff-lfp( listSortedLength(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("LENGTH") { Int })
+              , \or( \and( \equals(variable("X") { Int }, 0)
+                         , \equals(variable("F") { Int }, emptyset)
+                         , \equals(variable("LENGTH") { Int }, 0)
                          , .Patterns
                          )
-                   , \and( listSortedLength(H
+                   , \and( listSortedLength( variable("H") { Int }
                                            , variable("X", !I:Int) { Int }
                                            , variable("F", !I:Int) { SetInt }
                                            , variable("VAL", !I:Int) { Int }
                                            , variable("LENGTH", !I:Int) { Int }
                                            , .Patterns
                                            )
-                         , gt(X, 0)
-                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
-                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
-                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
-                         , \equals(variable("VAL", !I:Int) { Int } , select(H, plus(X, 1)))
-                         , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
-                         , gt(LENGTH, 0)
-                         , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
+                         , gt(variable("X") { Int }, 0)
+                         , \equals(select(variable("H") { Int }, variable("X") { Int }) , variable("X", !I:Int) { Int })
+                         , \equals(variable("F") { Int } , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int }))
+                         , \equals(variable("VAL", !I:Int) { Int } , select(variable("H") { Int }, plus(variable("X") { Int }, 1)))
+                         , gt(variable("VAL", !I:Int) { Int }, variable("PREV_VAL") { Int })
+                         , gt(variable("LENGTH") { Int }, 0)
+                         , \equals(variable("LENGTH", !I:Int) { Int }, minus(variable("LENGTH") { Int }, 1))
                          , .Patterns
                          )
                    , .Patterns

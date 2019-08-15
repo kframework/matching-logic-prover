@@ -1,28 +1,28 @@
 symbol listSegmentLeftSorted(ArrayIntInt, Int, Int, SetInt, Int, Int) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, Y : Int, F : SetInt, PREV_VAL : Int, MAX : Int }
-      \iff-lfp( listSegmentLeftSorted(H, X, Y, F, PREV_VAL, MAX)
-              , \or( \and( \equals(X, Y)
-                         , \equals(F, emptyset)
-                         , \not(gt(PREV_VAL, MAX))
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("MAX") { Int } }
+      \iff-lfp( listSegmentLeftSorted(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("MAX") { Int })
+              , \or( \and( \equals(variable("X") { Int }, variable("Y") { Int })
+                         , \equals(variable("F") { Int }, emptyset)
+                         , \not(gt(variable("PREV_VAL") { Int }, variable("MAX") { Int }))
                          , .Patterns
                          )
-                   , \and( listSegmentLeftSorted( H
+                   , \and( listSegmentLeftSorted( variable("H") { Int }
                                                 , variable("X", !I:Int) { Int }
-                                                , Y
+                                                , variable("Y") { Int }
                                                 , variable("F", !I:Int) { SetInt }
                                                 , variable("VAL", !I:Int) { Int }
-                                                , MAX
+                                                , variable("MAX") { Int }
                                                 , .Patterns
                                                 )
-                         , gt(X, 0)
-                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
-                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
-                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                         , gt(variable("X") { Int }, 0)
+                         , \equals(select(variable("H") { Int }, variable("X") { Int }) , variable("X", !I:Int) { Int })
+                         , \equals(variable("F") { Int } , union(variable("F", !I:Int) { SetInt }, singleton(X)))
+                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int }))
 
-                         , \equals(variable("VAL", !I:Int) { Int } , select(H, plus(X, 1)))
+                         , \equals(variable("VAL", !I:Int) { Int } , select(variable("H") { Int }, plus(variable("X") { Int }, 1)))
                          // Strictly decreasing
-                         , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
-                         , \not(gt(variable("VAL", !I:Int) { Int }, MAX))
+                         , gt(variable("VAL", !I:Int) { Int }, variable("PREV_VAL") { Int })
+                         , \not(gt(variable("VAL", !I:Int) { Int }, variable("MAX") { Int }))
                          , .Patterns
                          )
                    , .Patterns

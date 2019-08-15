@@ -1,14 +1,13 @@
 symbol listSegmentRightLength(ArrayIntInt, Int, Int, SetInt, Int) : Bool
-
 axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int } }
-      \iff-lfp( list(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
-              , \or( \and( \equals(X, Y)
-                         , \equals(F, emptyset)
-                         , \equals(LENGTH, 0)
+      \iff-lfp( listSegmentRightLength(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
+              , \or( \and( \equals(variable("X") { Int }, variable("Y") { Int })
+                         , \equals(variable("F") { Int }, emptyset)
+                         , \equals(variable("LENGTH") { Int }, 0)
                          , .Patterns
                          )
-                   , \and( listSegmentRightLength( H
-                                                 , X
+                   , \and( listSegmentRightLength( variable("H") { Int }
+                                                 , variable("X") { Int }
                                                  , variable("Y", !I:Int) { Int }
                                                  , variable("F", !I:Int) { SetInt }
                                                  , variable("LENGTH", !I:Int) { Int }
@@ -16,7 +15,7 @@ axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("
                                                  )
                          , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
                          , gt(variable("Y", !I:Int) { Int }, 0)
-                         , \equals(Y, select(H, variable("Y", !I:Int) { Int }))
+                         , \equals(variable("Y") { Int }, select(H, variable("Y", !I:Int) { Int }))
                          , \equals( F
                                   , union( variable("F", !I:Int) { SetInt }
                                          , singleton(variable("Y", !I:Int) { Int })

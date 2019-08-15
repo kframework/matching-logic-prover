@@ -1,16 +1,15 @@
 symbol list(ArrayIntInt, Int, SetInt) : Bool
-
 axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt } }
       \iff-lfp( list(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt })
-              , \or( \and( \equals(X, 0)
-                         , \equals(F, emptyset)
+              , \or( \and( \equals(variable("X") { Int }, 0)
+                         , \equals(variable("F") { Int }, emptyset)
                          , .Patterns
                          )
                    , \and( list(H,variable("X", !I:Int) { Int },variable("F", !I:Int) { SetInt },.Patterns)
-                         , gt(X,0)
-                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
-                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
-                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
+                         , gt(variable("X") { Int },0)
+                         , \equals(select(variable("H") { Int }, variable("X") { Int }) , variable("X", !I:Int) { Int })
+                         , \equals(variable("F") { Int } , union(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int })))
+                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int }))
                          , .Patterns
                          )
                    , .Patterns

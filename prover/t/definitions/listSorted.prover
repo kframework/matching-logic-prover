@@ -1,17 +1,17 @@
 symbol listSorted(ArrayIntInt, Int, SetInt, Int) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, PREV_VAL : Int }
-      \iff-lfp( listSorted(H, X, F, PREV_VAL)
-              , \or( \and( \equals(X, 0)
-                         , \equals(F, emptyset)
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int } }
+      \iff-lfp( listSorted(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int })
+              , \or( \and( \equals(variable("X") { Int }, 0)
+                         , \equals(variable("F") { Int }, emptyset)
                          , .Patterns
                          )
-                   , \and( listSorted(H, variable("X", !I:Int) { Int }, variable("F", !I:Int) { SetInt }, variable("VAL", !I:Int) { Int }, .Patterns)
-                         , gt(X, 0)
-                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
-                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
-                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
-                         , \equals(variable("VAL", !I:Int) { Int } , select(H, plus(X, 1)))
-                         , gt(variable("VAL", !I:Int) { Int }, PREV_VAL)
+                   , \and( listSorted(variable("H") { Int }, variable("X", !I:Int) { Int }, variable("F", !I:Int) { SetInt }, variable("VAL", !I:Int) { Int }, .Patterns)
+                         , gt(variable("X") { Int }, 0)
+                         , \equals(select(variable("H") { Int }, variable("X") { Int }) , variable("X", !I:Int) { Int })
+                         , \equals(variable("F") { Int } , union(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int })))
+                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int }))
+                         , \equals(variable("VAL", !I:Int) { Int } , select(variable("H") { Int }, plus(variable("X") { Int }, 1)))
+                         , gt(variable("VAL", !I:Int) { Int }, variable("PREV_VAL") { Int })
                          , .Patterns
                          )
                    , .Patterns
