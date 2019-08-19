@@ -94,6 +94,8 @@ for guessing an instantiation of the inductive hypothesis.
        -Patterns #hole, .Patterns
   rule subst(implicationContext(CTX, RHS), X, V)
     => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
+  rule alphaRename(implicationContext(P, Qs))
+    => implicationContext(alphaRename(P), alphaRename(Qs))
 ```
 
 >   phi(x) -> C'[psi(x)]
@@ -187,10 +189,6 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Patterns ::= substituteBRPsPs(Patterns, Symbol, Patterns, Pattern) [function]
   rule substituteBRPsPs(.Patterns, RP, Vs, RHS) => .Patterns
   rule substituteBRPsPs((P, Ps), RP, Vs, RHS) => substituteBRPs(P, RP, Vs, RHS), substituteBRPsPs(Ps, RP, Vs, RHS):Patterns
-
-  syntax Pattern ::= alphaRename(Pattern) [function]
-  rule alphaRename(\forall { Fs:Patterns } P:Pattern)
-    => #fun(RENAMING => \forall { Fs[RENAMING] } substMap(P,RENAMING)) ( makeFreshSubstitution(Fs) )
 ```
 
 ```k

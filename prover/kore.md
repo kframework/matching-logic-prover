@@ -260,6 +260,28 @@ Substitution: Substitute term or variable
   rule .Patterns[X/V] => .Patterns
 ```
 
+Alpha renaming: Rename all bound variables. Free variables are left unchanged.
+
+```k
+  syntax Pattern ::= alphaRename(Pattern)  [function]
+  syntax Patterns ::= alphaRenamePs(Patterns) [function]
+  rule alphaRename(\forall { Fs:Patterns } P:Pattern)
+    => #fun(RENAMING => \forall { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
+  rule alphaRename(\exists { Fs:Patterns } P:Pattern)
+    => #fun(RENAMING => \exists { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
+  rule alphaRename(\equals(L, R)) => \equals(alphaRename(L), alphaRename(R))
+  rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
+  rule alphaRename(\and(Ps)) => \and(alphaRenamePs(Ps))
+  rule alphaRename(\or(Ps)) => \or(alphaRenamePs(Ps))
+  rule alphaRename(S:Symbol(ARGs)) => S(alphaRenamePs(ARGs))
+  rule alphaRename(S:Symbol) => S
+  rule alphaRename(V:Variable) => V
+  rule alphaRename(I:Int) => I
+
+  rule alphaRenamePs(.Patterns) => .Patterns
+  rule alphaRenamePs(P, Ps) => alphaRename(P), alphaRenamePs(Ps)
+```
+
 ```k
 endmodule
 ```

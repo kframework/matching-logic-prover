@@ -10,7 +10,7 @@ module STRATEGY-UNFOLDING
   rule isUnfoldable(S:Symbol) => false [owise]
 
   syntax Pattern ::= unfold(Pattern) [function]
-  rule [[ unfold(S:Symbol(ARGs)) => substMap(DEF, zip(Vs, ARGs)) ]]
+  rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(DEF, zip(Vs, ARGs))) ]]
        <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
