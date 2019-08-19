@@ -1,23 +1,18 @@
 load checker .
 
----- test 1.
----- ev(1) -> ev(1)
-reduce proof check
-  (1) \implies(ev(1), \implies(\implies(\implies(ev(1), ev(1)), ev(1)), ev(1))) 
-      by prop1
-  (2) \implies(
-        \implies(ev(1), \implies(\implies(\implies(ev(1), ev(1)), ev(1)), ev(1)))
-      , \implies(
-          \implies(ev(1), \implies(\implies(ev(1), ev(1)), ev(1)))
-        , \implies(ev(1), ev(1)))) 
-      by prop2
-  (3) \implies(
-        \implies(ev(1), \implies(\implies(ev(1), ev(1)), ev(1)))
-      , \implies(ev(1), ev(1))) 
-      by mp(1,2)
-  (4) \implies(ev(1), \implies(\implies(ev(1), ev(1)), ev(1))) 
-      by prop1
-  (5) \implies(ev(1), ev(1)) by mp(4,3)
+reduce
+(1) (\ev 1) ;
+(2) (\imp (1) (1)) ; 
+(3) (\imp (1) (2)) ;
+(4) (\imp (2) (1)) ;
+(5) (\imp (1) (4)) ;
+(6) (\imp (3) (2)) ;
+(7) (\imp (5) (6)) ; 
+(8) (7) (PropK (1) (4)) ;
+(9) (5) (PropS (1) (2) (1)) ;
+(10) (6) (MP (8) (9)) ;
+(11) (3) (PropS (1) (1) (1)) ;
+(12) (2) (MP (10) (11)) ;
 .
 
-q
+quit
