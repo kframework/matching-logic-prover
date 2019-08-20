@@ -16,7 +16,7 @@ axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("
                                                 )
                          , gt(variable("X") { Int }, 0)
                          , \equals(select(variable("H") { Int }, variable("X") { Int }) , variable("X_I") { Int })
-                         , \equals(variable("F") { Int } , union(variable("F_I") { SetInt }, singleton(X)))
+                         , \equals(variable("F") { Int } , union(variable("F_I") { SetInt }, singleton(variable("X") { Int })))
                          , disjoint(variable("F_I") { SetInt }, singleton(variable("X") { Int }))
 
                          , \equals(variable("VAL_I") { Int } , select(variable("H") { Int }, plus(variable("X") { Int }, 1)))
