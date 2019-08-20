@@ -1,19 +1,18 @@
 symbol listSorted(ArrayIntInt, Int, SetInt, Int) : Bool
 axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int } }
       \iff-lfp( listSorted(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int })
-              , \or( \and( \equals(variable("X") { Int }, 0)
-                         , \equals(variable("F") { Int }, emptyset)
-                         , .Patterns
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int }, 0)
+                         , \equals(variable("F") { SetInt }, emptyset)
                          )
-                   , \and( listSorted(variable("H") { Int }, variable("X", !I:Int) { Int }, variable("F", !I:Int) { SetInt }, variable("VAL", !I:Int) { Int }, .Patterns)
+                   , \exists { variable("F_I") { SetInt } , variable("VAL_I") { Int } , variable("X_I") { Int } }
+                     \and( listSorted(variable("H") { ArrayIntInt }, variable("X_I") { Int }, variable("F_I") { SetInt }, variable("VAL_I") { Int })
                          , gt(variable("X") { Int }, 0)
-                         , \equals(select(variable("H") { Int }, variable("X") { Int }) , variable("X", !I:Int) { Int })
-                         , \equals(variable("F") { Int } , union(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int })))
-                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(variable("X") { Int }))
-                         , \equals(variable("VAL", !I:Int) { Int } , select(variable("H") { Int }, plus(variable("X") { Int }, 1)))
-                         , gt(variable("VAL", !I:Int) { Int }, variable("PREV_VAL") { Int })
-                         , .Patterns
+                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }) , variable("X_I") { Int })
+                         , \equals(variable("F") { SetInt } , union(variable("F_I") { SetInt }, singleton(variable("X") { Int })))
+                         , disjoint(variable("F_I") { SetInt }, singleton(variable("X") { Int }))
+                         , \equals(variable("VAL_I") { Int } , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
+                         , gt(variable("VAL_I") { Int }, variable("PREV_VAL") { Int })
                          )
-                   , .Patterns
                    )
               )

@@ -1,3 +1,7 @@
+imports "t/definitions/listSorted.prover"
+imports "t/definitions/list.prover"
+
+
 claim \implies( \and( listSorted( variable("H") { ArrayIntInt }
                                 , variable("X") { Int }
                                 , variable("K") { SetInt }
