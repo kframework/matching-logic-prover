@@ -143,6 +143,7 @@ module KORE-HELPERS
   rule getFreeVariables(\not(P), .Patterns) => getFreeVariables(P, .Patterns)
 
   rule getFreeVariables(\implies(LHS, RHS), .Patterns) => getFreeVariables(LHS, RHS, .Patterns)
+  rule getFreeVariables(\iff-lfp(LHS, RHS), .Patterns) => getFreeVariables(LHS, RHS, .Patterns)
   rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
   rule getFreeVariables(\or(Ps),  .Patterns) => getFreeVariables(Ps)
 
