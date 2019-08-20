@@ -12,6 +12,10 @@ module STRATEGY-UNFOLDING
   syntax Pattern ::= unfold(Pattern) [function]
   rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(DEF, zip(Vs, ARGs))) ]]
        <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
+    requires getFreeVariables(DEF) -Patterns Vs ==K .Patterns
+  rule [[ unfold(S:Symbol(ARGs)) => {("ifflfp axiom has free variables!" ~> S ~> (getFreeVariables(DEF) -Patterns Vs))}:>Pattern ]]
+       <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
+    requires getFreeVariables(DEF) -Patterns Vs =/=K .Patterns
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
   rule [[ getSymbolDeclaration(S) => DECL ]]
