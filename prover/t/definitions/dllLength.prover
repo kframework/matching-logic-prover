@@ -1,9 +1,9 @@
 symbol dllLength(ArrayIntInt, Int, SetInt, Int) : Bool
-axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, L : Int }
-      \iff-lfp( dllLength(H, X, F, L)
-              , \or( \and( \equals(X, 0)
-                         , \equals(L, 0)
-                         , \equals(F, emptyset)
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("L") { Int } }
+      \iff-lfp( dllLength(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("L") { Int })
+              , \or( \and( \equals(variable("X") { Int }, 0)
+                         , \equals(variable("F") { SetInt }, 0)
+                         , \equals(variable("L") { Int }, emptyset)
                          , .Patterns
                          )
                    , \and( dllLength( H
@@ -13,14 +13,14 @@ axiom \forall { H : ArrayIntInt, X : Int, F : SetInt, L : Int }
                               , .Patterns
                               )
                          , gt(X, 0)
-                         , \equals(variable("L", !K:Int) { Int }, minus(L, 1))
+                         , \equals(variable("L", !K:Int) { Int }, minus(variable("L") { Int }, 1))
                          , gt(variable("X", !I:Int) { Int } , 0)
                          , \equals( variable("X", !I:Int) { Int }
-                                  , select(H, plus(X, 1)))
-                         , \equals( X
-                                  , select(H, plus(variable("X", !I:Int) { Int }, 2)))
-                         , \not(isMember(X, variable("F", !J:Int) { SetInt }))
-                         , \equals(F, union(variable("F", !J:Int) { SetInt }, singleton(X)))
+                                  , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
+                         , \equals( variable("X") { Int }
+                                  , select(variable("H") { ArrayIntInt }, plus(variable("X", !I:Int) { Int }, 2)))
+                         , \not(isMember(variable("X") { Int }, variable("F", !J:Int) { SetInt }))
+                         , \equals(variable("F") { SetInt }, union(variable("F", !J:Int) { SetInt }, singleton(variable("X") { Int })))
                          , .Patterns
                          )
                    , .Patterns
