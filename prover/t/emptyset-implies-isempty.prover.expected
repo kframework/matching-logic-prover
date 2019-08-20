@@ -24,4 +24,11 @@
       </trace>
     </goal>
   </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { variable ( "S" ) { SetInt } , .Patterns } \iff-lfp ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      symbol isEmpty ( SetInt , .Sorts ) : Bool
+    </declaration>
+  </declarations>
 </prover>

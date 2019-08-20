@@ -24,4 +24,11 @@
       </trace>
     </goal>
   </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , variable ( "LENGTH" ) { Int } , .Patterns } \iff-lfp ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , variable ( "LENGTH" ) { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( variable ( "X" ) { Int } , variable ( "Y" ) { Int } ) , \equals ( variable ( "F" ) { SetInt } , emptyset ) , \equals ( variable ( "LENGTH" ) { Int } , 0 ) , .Patterns ) , \exists { variable ( "F1" ) { SetInt } , variable ( "LENGTH1" ) { Int } , variable ( "Y1" ) { Int } , .Patterns } \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y1" ) { Int } , variable ( "F1" ) { SetInt } , variable ( "LENGTH1" ) { Int } , .Patterns ) , \equals ( variable ( "LENGTH1" ) { Int } , minus ( variable ( "LENGTH" ) { Int } , 1 , .Patterns ) ) , gt ( variable ( "Y1" ) { Int } , 0 , .Patterns ) , \equals ( variable ( "Y" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , variable ( "Y1" ) { Int } , .Patterns ) ) , \equals ( variable ( "F" ) { SetInt } , union ( variable ( "F1" ) { SetInt } , singleton ( variable ( "Y1" ) { Int } , .Patterns ) , .Patterns ) ) , disjoint ( variable ( "F1" ) { SetInt } , singleton ( variable ( "Y1" ) { Int } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      symbol listSegmentRightLength ( ArrayIntInt , Int , Int , SetInt , Int , .Sorts ) : Bool
+    </declaration>
+  </declarations>
 </prover>

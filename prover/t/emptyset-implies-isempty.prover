@@ -1,3 +1,8 @@
+symbol isEmpty ( SetInt ) : Bool
+axiom \forall { variable("S") { SetInt } }
+      \iff-lfp( isEmpty( variable("S") { SetInt })
+              , \or( \exists { } \and(\equals(variable("S") { SetInt } , emptyset)))
+              )
 claim \implies( \and(\equals(variable("S") { SetInt }, emptyset))
               , \and(isEmpty(variable("S") { SetInt }))
               )

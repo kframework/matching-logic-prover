@@ -1,31 +1,33 @@
 symbol listSegmentRightLength(ArrayIntInt, Int, Int, SetInt, Int) : Bool
 axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int } }
       \iff-lfp( listSegmentRightLength(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
-              , \or( \and( \equals(variable("X") { Int }, variable("Y") { Int })
-                         , \equals(variable("F") { Int }, emptyset)
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int }, variable("Y") { Int })
+                         , \equals(variable("F") { SetInt }, emptyset)
                          , \equals(variable("LENGTH") { Int }, 0)
-                         , .Patterns
                          )
-                   , \and( listSegmentRightLength( variable("H") { Int }
+                   , \exists { variable("F1") { SetInt } , variable("LENGTH1") { Int } , variable("Y1") { Int } }
+                     \and( listSegmentRightLength( variable("H") { ArrayIntInt }
                                                  , variable("X") { Int }
-                                                 , variable("Y", !I:Int) { Int }
-                                                 , variable("F", !I:Int) { SetInt }
-                                                 , variable("LENGTH", !I:Int) { Int }
-                                                 , .Patterns
+                                                 , variable("Y1") { Int }
+                                                 , variable("F1") { SetInt }
+                                                 , variable("LENGTH1") { Int }
                                                  )
-                         , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
-                         , gt(variable("Y", !I:Int) { Int }, 0)
-                         , \equals(variable("Y") { Int }, select(H, variable("Y", !I:Int) { Int }))
-                         , \equals( F
-                                  , union( variable("F", !I:Int) { SetInt }
-                                         , singleton(variable("Y", !I:Int) { Int })
+                         , \equals(variable("LENGTH1") { Int }, minus(variable("LENGTH") { Int }, 1))
+                         , gt(variable("Y1") { Int }, 0)
+                         , \equals(variable("Y") { Int }, select(variable("H") { ArrayIntInt }, variable("Y1") { Int }))
+                         , \equals( variable("F") { SetInt }
+                                  , union( variable("F1") { SetInt }
+                                         , singleton(variable("Y1") { Int })
                                          )
                                   )
-                         , disjoint( variable("F", !I:Int) { SetInt }
-                                   , singleton(variable("Y", !I:Int) { Int })
+                         , disjoint( variable("F1") { SetInt }
+                                   , singleton(variable("Y1") { Int })
                                    )
-                         , .Patterns
                          )
-                   , .Patterns
                    )
               )
+
+
+
+

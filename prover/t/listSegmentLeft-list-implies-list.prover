@@ -1,3 +1,7 @@
+imports "t/definitions/list.prover"
+imports "t/definitions/listSegmentLeft.prover"
+
+
 claim \implies( \and( listSegmentLeft( variable("H") { ArrayIntInt } , variable("X") { Int } , variable("Y") { Int } , variable("F") { SetInt } )
                     , list( variable("H") { ArrayIntInt }, variable("Y") { Int }, variable("G") { SetInt })
                     , \equals( variable("K") { SetInt }, union(variable("F") { SetInt }, variable("G") { SetInt }))

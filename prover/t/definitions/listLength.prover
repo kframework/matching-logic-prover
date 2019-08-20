@@ -1,21 +1,20 @@
 symbol listLength(ArrayIntInt, Int, SetInt, Int) : Bool
 
 axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int } }
-      \iff-lfp( list(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
-              , \or( \and( \equals(X, 0)
-                         , \equals(F, emptyset)
-                         , \equals(LENGTH, 0)
-                         , .Patterns
+      \iff-lfp( listLength(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int } , 0)
+                         , \equals(variable("F") { SetInt }, emptyset)
+                         , \equals(variable("LENGTH") { Int }, 0)
                          )
-                   , \and( listLength(H,variable("X", !I:Int) { Int },variable("F", !I:Int) { SetInt }, variable("LENGTH", !I:Int) { Int }, .Patterns)
-                         , gt(X,0)
-                         , \equals(select(H, X) , variable("X", !I:Int) { Int })
-                         , \equals(F , union(variable("F", !I:Int) { SetInt }, singleton(X)))
-                         , disjoint(variable("F", !I:Int) { SetInt }, singleton(X))
-                         , gt(LENGTH, 0)
-                         , \equals(variable("LENGTH", !I:Int) { Int }, minus(LENGTH, 1))
-                         , .Patterns
+                   , \exists {  variable("F_I") { SetInt } , variable("LENGTH_I") { Int } , variable("X_I") { Int } }
+                     \and( listLength(variable("H") { ArrayIntInt },variable("X_I") { Int },variable("F_I") { SetInt }, variable("LENGTH_I") { Int })
+                         , gt(variable("X") { Int } ,0)
+                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }) , variable("X_I") { Int })
+                         , \equals(variable("F") { SetInt } , union(variable("F_I") { SetInt }, singleton(variable("X") { Int } )))
+                         , disjoint(variable("F_I") { SetInt }, singleton(variable("X") { Int } ))
+                         , gt(variable("LENGTH") { Int }, 0)
+                         , \equals(variable("LENGTH_I") { Int }, minus(variable("LENGTH") { Int }, 1))
                          )
-                   , .Patterns
                    )
               )
