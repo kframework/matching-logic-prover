@@ -1,0 +1,21 @@
+symbol listSegmentLeft(ArrayIntInt, Int, Int, SetInt) : Bool
+
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt } }
+      \iff-lfp( listSegmentLeft(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int } , variable("F") { SetInt })
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int }, variable("Y") { Int })
+                         , \equals(variable("F") { SetInt }, emptyset)
+                         )
+                   , \exists { variable("X1") { Int } , variable("F1") { SetInt } }
+                     \and( gt(variable("X") { Int }, 0)
+                         , listSegmentLeft( variable("H") { ArrayIntInt }
+                                          , variable("X1") { Int }
+                                          , variable("Y") { Int }
+                                          , variable("F1") { SetInt }
+                                          )
+                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }), variable("X1") { Int })
+                         , \equals(variable("F") { SetInt }, union(variable("F1") { SetInt } , singleton(variable("X") { Int })))
+                         , disjoint(variable("F1") { SetInt } , singleton(variable("X") { Int }))
+                         )
+                   )
+              )

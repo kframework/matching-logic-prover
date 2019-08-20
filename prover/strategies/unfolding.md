@@ -3,6 +3,55 @@ module STRATEGY-UNFOLDING
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-HELPERS
+
+  syntax Bool ::= isUnfoldable(Symbol) [function]
+  rule [[ isUnfoldable(S:Symbol) => true ]]
+       <declaration> axiom \forall {_} \iff-lfp(S(_), _) </declaration>
+  rule isUnfoldable(S:Symbol) => false [owise]
+
+  syntax Pattern ::= unfold(Pattern) [function]
+  rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(DEF, zip(Vs, ARGs))) ]]
+       <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
+    requires getFreeVariables(DEF) -Patterns Vs ==K .Patterns
+  rule [[ unfold(S:Symbol(ARGs)) => {("ifflfp axiom has free variables!" ~> S ~> (getFreeVariables(DEF) -Patterns Vs))}:>Pattern ]]
+       <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
+    requires getFreeVariables(DEF) -Patterns Vs =/=K .Patterns
+
+  syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
+  rule [[ getSymbolDeclaration(S) => DECL ]]
+       <declaration> symbol S (_) : _ #as DECL </declaration>
+
+  syntax Patterns ::= getUnfoldables(Patterns)   [function]
+  rule getUnfoldables(.Patterns) => .Patterns
+  rule getUnfoldables(R(ARGS), REST)
+    => R(ARGS), getUnfoldables(REST)
+    requires isUnfoldable(R)
+  rule getUnfoldables(S:Symbol, REST)
+    => getUnfoldables(REST)
+    requires notBool isUnfoldable(S)
+  rule getUnfoldables(S:Symbol(ARGS), REST)
+    => getUnfoldables(REST)
+    requires notBool isUnfoldable(S)
+  rule getUnfoldables(I:Int, REST)
+    => getUnfoldables(REST)
+  rule getUnfoldables(V:Variable, REST)
+    => getUnfoldables(REST)
+  rule getUnfoldables(\not(Ps), REST)
+    => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(\and(Ps), REST)
+    => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(\implies(LHS, RHS), REST)
+    => getUnfoldables(LHS) ++Patterns
+       getUnfoldables(RHS) ++Patterns
+       getUnfoldables(REST)
+  rule getUnfoldables(\equals(LHS, RHS), REST)
+    => getUnfoldables(LHS) ++Patterns
+       getUnfoldables(RHS) ++Patterns
+       getUnfoldables(REST)
+  rule getUnfoldables(\exists { _ } P, REST)
+    => getUnfoldables(P) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(\forall { _ } P, REST)
+    => getUnfoldables(P) ++Patterns getUnfoldables(REST)
 ```
 
 ### Left Unfold (incomplete)
@@ -21,9 +70,9 @@ module STRATEGY-UNFOLDING
                   ...
        </strategy>
 
-  rule <k> \implies(\and(LHS), RHS)
+  rule <claim> \implies(\and(LHS), RHS)
         => \implies(\and((LHS -Patterns (LRP, .Patterns)) ++Patterns BODY), RHS)
-       </k>
+       </claim>
        <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
 ```
@@ -39,10 +88,10 @@ implicatations. The resulting goals are equivalent to the initial goal.
                     | "left-unfold-Nth-oneBody"  "(" Int "," Pattern "," Pattern ")"
 
   rule <strategy> left-unfold-Nth(M)
-               => left-unfold-Nth-eachLRP(M, getPredicates(LHS))
+               => left-unfold-Nth-eachLRP(M, getUnfoldables(LHS))
                   ...
        </strategy>
-       <k> \implies(\and(LHS), RHS) </k>
+       <claim> \implies(\and(LHS), RHS) </claim>
 
   rule <strategy> left-unfold-Nth-eachLRP(M, PS)
                => fail
@@ -73,10 +122,10 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                     | "right-unfold-eachBody" "(" Pattern "," Pattern ")"
                     | "right-unfold-oneBody"  "(" Pattern "," Pattern ")"
   rule <strategy> right-unfold
-               => right-unfold-eachRRP(getPredicates(RHS))
+               => right-unfold-eachRRP(getUnfoldables(RHS))
                   ...
        </strategy>
-       <k> \implies(LHS, \exists { _ } \and(RHS)) </k>
+       <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
   rule <strategy> right-unfold-eachRRP(P, PS)
                => right-unfold-eachBody(P, unfold(P))
                 | right-unfold-eachRRP(PS)
@@ -98,10 +147,10 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 ```
 
 ```k
-  rule <k> \implies(LHS, \exists { E1 } \and(RHS))
+  rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
         => \implies(LHS, \exists { E1 ++Patterns E2 }
                          \and((RHS -Patterns (RRP, .Patterns)) ++Patterns BODY))
-       </k>
+       </claim>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
        <trace> .K => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) ... </trace>
 ```
@@ -122,10 +171,10 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
   requires (M <Int 0) orBool (N <Int 0)
 
   rule <strategy> right-unfold-Nth (M,N)
-               => right-unfold-Nth-eachRRP(M, N, getPredicates(RHS))
+               => right-unfold-Nth-eachRRP(M, N, getUnfoldables(RHS))
                   ...
        </strategy>
-       <k> \implies(LHS,\exists {_ } \and(RHS)) </k>
+       <claim> \implies(LHS,\exists {_ } \and(RHS)) </claim>
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
     requires getLength(RRPs) <=Int M

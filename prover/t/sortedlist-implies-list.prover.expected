@@ -1,22 +1,38 @@
 <prover>
-  <goal>
-    <id>
-      root
-    </id>
-    <active>
-      true
-    </active>
-    <parent>
-      .
-    </parent>
-    <k>
-      \implies ( \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , .Patterns ) , .Patterns ) )
-    </k>
-    <strategy>
-      success
-    </strategy>
-    <trace>
-      .
-    </trace>
-  </goal>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , variable ( "MIN" ) { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , .Patterns } \iff-lfp ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( variable ( "X" ) { Int } , 0 ) , \equals ( variable ( "F" ) { SetInt } , emptyset ) , .Patterns ) , \exists { variable ( "F1" ) { SetInt } , variable ( "X1" ) { Int } , .Patterns } \and ( list ( variable ( "H" ) { ArrayIntInt } , variable ( "X1" ) { Int } , variable ( "F1" ) { SetInt } , .Patterns ) , gt ( variable ( "X" ) { Int } , 0 , .Patterns ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , .Patterns ) , variable ( "X1" ) { Int } ) , \equals ( variable ( "F" ) { SetInt } , union ( variable ( "F1" ) { SetInt } , singleton ( variable ( "X" ) { Int } , .Patterns ) , .Patterns ) ) , disjoint ( variable ( "F1" ) { SetInt } , singleton ( variable ( "X" ) { Int } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom \forall { variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , variable ( "PREV_VAL" ) { Int } , .Patterns } \iff-lfp ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "F" ) { SetInt } , variable ( "PREV_VAL" ) { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( variable ( "X" ) { Int } , 0 ) , \equals ( variable ( "F" ) { SetInt } , emptyset ) , .Patterns ) , \exists { variable ( "F_I" ) { SetInt } , variable ( "VAL_I" ) { Int } , variable ( "X_I" ) { Int } , .Patterns } \and ( listSorted ( variable ( "H" ) { ArrayIntInt } , variable ( "X_I" ) { Int } , variable ( "F_I" ) { SetInt } , variable ( "VAL_I" ) { Int } , .Patterns ) , gt ( variable ( "X" ) { Int } , 0 , .Patterns ) , \equals ( select ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , .Patterns ) , variable ( "X_I" ) { Int } ) , \equals ( variable ( "F" ) { SetInt } , union ( variable ( "F_I" ) { SetInt } , singleton ( variable ( "X" ) { Int } , .Patterns ) , .Patterns ) ) , disjoint ( variable ( "F_I" ) { SetInt } , singleton ( variable ( "X" ) { Int } , .Patterns ) , .Patterns ) , \equals ( variable ( "VAL_I" ) { Int } , select ( variable ( "H" ) { ArrayIntInt } , plus ( variable ( "X" ) { Int } , 1 , .Patterns ) , .Patterns ) ) , gt ( variable ( "VAL_I" ) { Int } , variable ( "PREV_VAL" ) { Int } , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      symbol list ( ArrayIntInt , Int , SetInt , .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol listSorted ( ArrayIntInt , Int , SetInt , Int , .Sorts ) : Bool
+    </declaration>
+  </declarations>
 </prover>

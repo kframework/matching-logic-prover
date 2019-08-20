@@ -1,3 +1,6 @@
+imports "t/definitions/bt.prover"
+imports "t/definitions/bst.prover"
+
 claim \implies( \and( bst( variable("H") { ArrayIntInt }
                          , variable("X") { Int }
                          , variable("F") { SetInt }

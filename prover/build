@@ -34,7 +34,7 @@ prover = proj.definition( alias = 'prover'
                         , backend = 'ocaml'
                         , main = 'prover.md'
                         , other = [ 'smt.md'
-                                  , 'predicate-definitions.md'
+                                  , 'kore.md'
                                   , 'strategies/core.md'
                                   , 'strategies/knaster-tarski.md'
                                   , 'strategies/search-bound.md'
@@ -45,23 +45,10 @@ prover = proj.definition( alias = 'prover'
                       #  , flags = '-O3 --non-strict --check-races'
                         , runner_script = './prover'
                         )
-proj.definition( alias = 'prover-llvm-debug'
-         , backend = 'llvm'
-         , main = 'prover.md'
-         , other = [ 'smt.md'
-                   , 'predicate-definitions.md'
-                   , 'strategies/core.md'
-                   , 'strategies/knaster-tarski.md'
-                   , 'strategies/search-bound.md'
-                   , 'strategies/simplification.md'
-                   , 'strategies/smt.md'
-                   , 'strategies/unfolding.md'
-                   ]
-         , flags = '--debug'
-         , runner_script = './prover'
-         )
 
-prover.tests(glob = 't/*.prover')
+prover.tests( inputs = glob('t/*.prover')
+            , implicit_inputs = glob('t/definitions/*.prover')
+            )
 
 # SMTLIB Translation
 # ==================

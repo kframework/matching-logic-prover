@@ -1,3 +1,6 @@
+imports "t/definitions/listSegmentLeftSorted.prover"
+imports "t/definitions/listSorted.prover"
+
 /* lseglsorted(H, X, Y, F, PV, MAX) ==
      (X = Y and F = empty and PV <= MAX) OR
      (exists X', F', V. (H[X] = X' and F' U {X} = F and F' disjoint {X}) and

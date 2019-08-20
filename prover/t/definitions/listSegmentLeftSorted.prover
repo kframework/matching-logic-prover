@@ -1,0 +1,29 @@
+symbol listSegmentLeftSorted(ArrayIntInt, Int, Int, SetInt, Int, Int) : Bool
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("MAX") { Int } }
+      \iff-lfp( listSegmentLeftSorted(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("MAX") { Int })
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int }, variable("Y") { Int })
+                         , \equals(variable("F") { SetInt }, emptyset)
+                         , \not(gt(variable("PREV_VAL") { Int }, variable("MAX") { Int }))
+                         )
+                   , \exists { variable("F_I") { SetInt } , variable("VAL_I") { Int } , variable("X_I") { Int } }
+                     \and( listSegmentLeftSorted( variable("H") { ArrayIntInt }
+                                                , variable("X_I") { Int }
+                                                , variable("Y") { Int }
+                                                , variable("F_I") { SetInt }
+                                                , variable("VAL_I") { Int }
+                                                , variable("MAX") { Int }
+                                                )
+                         , gt(variable("X") { Int }, 0)
+                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }) , variable("X_I") { Int })
+                         , \equals(variable("F") { SetInt } , union(variable("F_I") { SetInt }, singleton(variable("X") { Int })))
+                         , disjoint(variable("F_I") { SetInt }, singleton(variable("X") { Int }))
+
+                         , \equals(variable("VAL_I") { Int } , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
+                         // Strictly decreasing
+                         , gt(variable("VAL_I") { Int }, variable("PREV_VAL") { Int })
+                         , \not(gt(variable("VAL_I") { Int }, variable("MAX") { Int }))
+                         )
+                   )
+              )
+

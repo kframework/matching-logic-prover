@@ -1,0 +1,20 @@
+symbol listLength(ArrayIntInt, Int, SetInt, Int) : Bool
+
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int } }
+      \iff-lfp( listLength(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("LENGTH") { Int })
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int } , 0)
+                         , \equals(variable("F") { SetInt }, emptyset)
+                         , \equals(variable("LENGTH") { Int }, 0)
+                         )
+                   , \exists {  variable("F_I") { SetInt } , variable("LENGTH_I") { Int } , variable("X_I") { Int } }
+                     \and( listLength(variable("H") { ArrayIntInt },variable("X_I") { Int },variable("F_I") { SetInt }, variable("LENGTH_I") { Int })
+                         , gt(variable("X") { Int } ,0)
+                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }) , variable("X_I") { Int })
+                         , \equals(variable("F") { SetInt } , union(variable("F_I") { SetInt }, singleton(variable("X") { Int } )))
+                         , disjoint(variable("F_I") { SetInt }, singleton(variable("X") { Int } ))
+                         , gt(variable("LENGTH") { Int }, 0)
+                         , \equals(variable("LENGTH_I") { Int }, minus(variable("LENGTH") { Int }, 1))
+                         )
+                   )
+              )

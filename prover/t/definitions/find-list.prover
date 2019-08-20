@@ -1,0 +1,17 @@
+symbol find-list(ArrayIntInt, Int, SetInt) : Bool
+axiom \forall { H : ArrayIntInt, X : Int, F : SetInt }
+      \iff-lfp( find-list(H, X, F)
+              , \or( \and( \equals(X, 0)
+                         , \equals(F, emptyset)
+                         , .Patterns
+                         )
+                   , \and( find-list(H, variable("X", !I:Int) { Int }, variable("F", !J:Int) { SetInt },.Patterns)
+                         , gt(X,0)
+                         , \equals(select(H, plus(X, 1)), variable("X", !I:Int) { Int })
+                         , \equals(F, add( variable("F", !J:Int) { SetInt }, X))
+                         , \not(isMember(X, variable("F", !J:Int) { SetInt }))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

@@ -1,0 +1,26 @@
+symbol listSegmentRight(ArrayIntInt, Int, Int, SetInt) : Bool
+axiom \forall { variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt } }
+      \iff-lfp( listSegmentRight(variable("H") { ArrayIntInt },  variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt })
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int }, variable("Y") { Int })
+                         , \equals(variable("F") { SetInt }, emptyset)
+                         )
+                   , \exists { variable("Y1") { Int } , variable("F1") { SetInt } }
+                     \and( listSegmentRight( variable("H") { ArrayIntInt }
+                                           , variable("X") { Int }
+                                           , variable("Y1") { Int }
+                                           , variable("F1") { SetInt }
+                                           )
+                         , gt(variable("Y1") { Int }, 0)
+                         , \equals(variable("Y") { Int }, select(variable("H") { ArrayIntInt },  variable("Y1") { Int }))
+                         , \equals( variable("F") { SetInt }
+                                  , union( variable("F1") { SetInt }
+                                         , singleton(variable("Y1") { Int })
+                                         )
+                                  )
+                         , disjoint( variable("F1") { SetInt }
+                                   , singleton(variable("Y1") { Int })
+                                   )
+                         )
+                   )
+              )

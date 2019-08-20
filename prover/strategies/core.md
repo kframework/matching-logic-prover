@@ -10,6 +10,11 @@ or, by requiring several strategies succeed.
 ```k
 module PROVER-CORE-SYNTAX
   imports KORE-SUGAR
+
+  syntax Declaration ::= "imports" String
+                       | "claim" Pattern "strategy" Strategy
+                       | SymbolDeclaration
+                       | "axiom" Pattern
 ```
 
 ```k
@@ -111,7 +116,7 @@ Proving a goal may involve proving other subgoals:
                <active> true </active>
                <parent> PARENT </parent>
                <strategy> SUBSTRAT </strategy>
-               <k> SUBGOAL </k>
+               <claim> SUBGOAL </claim>
                <trace> TRACE </trace>
                ...
              </goal>
@@ -144,7 +149,7 @@ all succeed, it succeeds:
   rule <prover>
          <goal>
            <strategy> ((S1 & S2) => subgoal(GOAL, S1) ~> #hole & S2) </strategy>
-           <k> GOAL:Pattern </k>
+           <claim> GOAL:Pattern </claim>
            ...
          </goal>
          ...
@@ -170,7 +175,7 @@ approach succeeds:
   rule <prover>
          <goal>
            <strategy> ((S1 | S2) => subgoal(GOAL, S1) ~> #hole | S2 ) </strategy>
-           <k> GOAL:Pattern </k>
+           <claim> GOAL:Pattern </claim>
            ...
          </goal>
          ...
@@ -183,7 +188,7 @@ Internal strategy used to implement `or-split` and `and-split`.
 
 ```k
   syntax Strategy ::= "replace-goal" "(" Pattern ")"
-  rule <k> _ => NEWGOAL </k>
+  rule <claim> _ => NEWGOAL </claim>
        <strategy> replace-goal(NEWGOAL) => noop ... </strategy>
 ```
 
@@ -196,7 +201,7 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <k> \or(GOALS) </k>
+  rule <claim> \or(GOALS) </claim>
        <strategy> or-split => #orSplit(GOALS) ... </strategy>
 
   syntax Strategy ::= "#orSplit" "(" Patterns ")" [function]
@@ -214,7 +219,7 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <k> \and(GOALS) </k>
+  rule <claim> \and(GOALS) </claim>
        <strategy> and-split => #andSplit(GOALS) ... </strategy>
 
   syntax Strategy ::= "#andSplit" "(" Patterns ")" [function]

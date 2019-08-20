@@ -1,0 +1,24 @@
+symbol bt(ArrayIntInt, Int, SetInt) : Bool
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt } }
+      \iff-lfp( bt(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt } )
+              , \or( \exists { }
+                     \and( \equals(variable("X") { Int }, 0)
+                         , \equals(variable("F") { SetInt } , emptyset)
+                         )
+                   , \exists {  variable("F_J1") { SetInt } , variable("F_J2") { SetInt } , variable("X_I1") { Int } , variable("X_I2") { Int } }
+                     \and( bt(variable("H") { ArrayIntInt }, variable("X_I1") { Int }, variable("F_J1") { SetInt })
+                         , bt(variable("H") { ArrayIntInt }, variable("X_I2") { Int }, variable("F_J2") { SetInt })
+                         , gt(variable("X") { Int }, 0)
+                         , \equals( variable("X_I1") { Int }
+                                  , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
+                         , \equals( variable("X_I2") { Int }
+                                  , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 2)))
+                         , \not(isMember(variable("X") { Int }, variable("F_J1") { SetInt }))
+                         , \not(isMember(variable("X") { Int }, variable("F_J2") { SetInt }))
+                         , \equals(variable("F") { SetInt } , union( singleton(variable("X") { Int })
+                                           , union( variable("F_J1") { SetInt }
+                                                  , variable("F_J2") { SetInt })))
+                         , disjoint(variable("F_J1") { SetInt }, variable("F_J2") { SetInt })
+                         )
+                   )
+              )

@@ -1,0 +1,16 @@
+symbol list(ArrayIntInt, Int, SetInt) : Bool
+axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt } }
+      \iff-lfp( list(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt })
+              , \or( \exists {}
+                     \and( \equals(variable("X") { Int }, 0)
+                         , \equals(variable("F") { SetInt }, emptyset)
+                         )
+                   , \exists {variable("F1") { SetInt }, variable("X1") { Int }}
+                     \and( list(variable("H") { ArrayIntInt },variable("X1") { Int },variable("F1") { SetInt })
+                         , gt(variable("X") { Int },0)
+                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }) , variable("X1") { Int })
+                         , \equals(variable("F") { SetInt } , union(variable("F1") { SetInt }, singleton(variable("X") { Int })))
+                         , disjoint(variable("F1") { SetInt }, singleton(variable("X") { Int }))
+                         )
+                   )
+              )
