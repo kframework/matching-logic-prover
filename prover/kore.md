@@ -8,7 +8,7 @@ module TOKENS
   syntax LowerName
 
   // Abstract
-  syntax Symbol  ::= UpperName | LowerName
+  syntax Symbol ::= LowerName
 endmodule
 
 module TOKENS-SYNTAX
@@ -24,11 +24,10 @@ module KORE-SUGAR
   imports TOKENS
 
   syntax Ints ::= List{Int, ","}
-
   syntax Sort ::= "Bool"        [token]
                 | "Int"         [token]
                 | "ArrayIntInt" [token]
-                | "SetInt"         [token]
+                | "SetInt"      [token]
 ```
 
 We allow two "variaties" of variables: the first, identified by a String, is for
