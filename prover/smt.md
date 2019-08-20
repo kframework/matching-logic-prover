@@ -52,6 +52,7 @@ module SMTLIB2
                           | "(" "declare-fun"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
                           | "(" "define-fun"    SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
                           | "(" "define-sort"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
   // Core symbols

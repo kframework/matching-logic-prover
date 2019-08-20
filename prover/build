@@ -35,6 +35,7 @@ prover = proj.definition( alias = 'prover'
                         , main = 'prover.md'
                         , other = [ 'smt.md'
                                   , 'kore.md'
+                                  , 'smtlib-to-kore.md'
                                   , 'strategies/core.md'
                                   , 'strategies/knaster-tarski.md'
                                   , 'strategies/search-bound.md'
@@ -49,6 +50,7 @@ prover = proj.definition( alias = 'prover'
 prover.tests( inputs = glob('t/*.prover')
             , implicit_inputs = glob('t/definitions/*.prover')
             )
+prover.tests(inputs = glob('t/*.smt'))
 
 # SMTLIB Translation
 # ==================
