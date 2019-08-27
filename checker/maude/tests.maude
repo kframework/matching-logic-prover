@@ -1,18 +1,26 @@
 load checker .
 
-reduce
-(1) (\ev 1) ;
-(2) (\imp (1) (1)) ; 
-(3) (\imp (1) (2)) ;
-(4) (\imp (2) (1)) ;
-(5) (\imp (1) (4)) ;
-(6) (\imp (3) (2)) ;
-(7) (\imp (5) (6)) ; 
-(8) (7) (PropK (1) (4)) ;
-(9) (5) (PropS (1) (2) (1)) ;
+fmod TEST is including CHECKER .
+
+op proof-1 : -> Proof .
+eq proof-1 =
+(1) (\evar 1) (WF) ;
+(2) (\imp (1) (1)) (WF) ; 
+(3) (\imp (1) (2)) (WF) ;
+(4) (\imp (2) (1)) (WF) ;
+(5) (\imp (1) (4)) (WF) ;
+(6) (\imp (3) (2)) (WF) ;
+(7) (\imp (5) (6)) (WF) ; 
+(8) (5) (PropK (1) (2)) ;
+(9) (7) (PropS (1) (2) (1)) ;
 (10) (6) (MP (8) (9)) ;
-(11) (3) (PropS (1) (1) (1)) ;
-(12) (2) (MP (10) (11)) ;
-.
+(11) (3) (PropK (1) (1)) ;
+(12) (2) (MP (11) (10)) ; .
+
+op proof-2 : -> Proof .
+
+endfm
+
+reduce check(proof-1) .
 
 quit

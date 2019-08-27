@@ -1,38 +1,171 @@
 fmod CHECKER is protecting NAT . 
 
 sort Id .
-op `(_`) : Nat -> Id .
+op `(_`) : NzNat -> Id .
 
 sort Proof .
-op __; : Id Pattern -> Proof [prec 75] .
-op ___; : Id Pattern Rule -> Proof [prec 75] .
-op __ : Proof Proof -> Proof [assoc prec 80 format(d n d)] .
+op ___; : Id Digest Rule -> Proof [prec 40] .
+op .Proof : -> Proof .
+op __ : Proof Proof -> Proof [assoc id: .Proof prec 45 format(d n d)] .
 
-sort Pattern .
-subsort Id < Pattern .
-op `(\ev_`) : Nat -> Pattern .
-op `(\sv_`) : Nat -> Pattern .
-op `(\cs_`) : Nat -> Pattern .
-op `(\app__`) : Id Id -> Pattern .
-op `(\bot`) : -> Pattern .
-op `(\imp__`) : Id Id -> Pattern .
-op `(\ex__`) : Id Id -> Pattern .
-op `(\mu__`) : Id Id -> Pattern .
+---- AtomicPattern contains element/set variables, symbols, and \bottom.
+---- Digest is either AtomicPattern or constructs applied to IDs (referring to sub-patterns).
 
+sorts AtomicPattern Digest .
+subsort AtomicPattern Id < Digest .
+
+op `(\evar_`) : NzNat -> AtomicPattern .
+op `(\svar_`) : NzNat -> AtomicPattern .
+op `(\symb_`) : NzNat -> AtomicPattern .
+op `(\bot`) : -> AtomicPattern .
+op `(\app__`) : Id Id -> Digest .
+op `(\imp__`) : Id Id -> Digest .
+op `(\ex__`) : Id Id -> Digest .
+op `(\mu__`) : Id Id -> Digest .
+
+---- Rules with proof annotations.
+---- For now, rules are divided into the following two categories:
+----   1. (WF), which proves that a pattern is wellformed;
+----   2. All other rules, which prove that a pattern is provable.
+---- This is interesting, because checking wellformedness (meta-level) and checking
+---- provability (object leve) are unified. Other meta-level checking can be done
+---- similarly. For example, checking if a given pattern is the result of a substitution
+---- P[R/x], or checking if a variable occurs free (if we need to).
 sort Rule .
-op `(Dummy`) : -> Rule .
+op `(WF`) : -> Rule . ---- wellformedness
 op `(PropK__`) : Id Id -> Rule . ---- p -> (q -> p)
 op `(PropS___`) : Id Id Id -> Rule . ---- (p -> (q -> r)) -> (p -> q) -> (p -> r)
 op `(PropF_`) : Id -> Rule . ---- (((p -> \bot) -> \bot) -> p)
-op `(MP__`) : Id Id -> Rule . ---- p and p -> q implies q
+op `(MP__`) : Id Id -> Rule . ---- p and p -> q deduces q
 op `(ExistQ___`) : Id Id Id -> Rule . ---- p[y/x] -> \ex x . p, parameter order: x p y
-op `(ExistR___`) : Id Id Id -> Rule . ---- p -> q implies (\ex x . p) -> q, order: x p q
+op `(ExistR___`) : Id Id Id -> Rule . ---- p -> q deduces (\ex x . p) -> q, order: x p q
 op `(PropagationBotL_`) : Id -> Rule . ---- \bot p -> \bot 
 op `(PropagationBotR_`) : Id -> Rule . ---- p \bot -> \bot
 op `(PropagationOrL___`) : Id Id Id -> Rule . ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
 op `(PropagationOrR___`) : Id Id Id -> Rule . ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
 op `(PropagationExL___`) : Id Id Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: x p q
 op `(PropagationExR___`) : Id Id Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: x p q
+op `(FrameL_`) : Id -> Rule . ---- p -> q deduces p r -> q r
+op `(FrameR_`) : Id -> Rule . ---- p -> q deduces r p -> r q
+op `(SVarSubst___`) : Id Id Id -> Rule . ---- p deduces p[q/X], order &p, X, q
+op `(Prefixpoint__`) : Id Id -> Rule . ---- p[(\mu X . p) / X] -> \mu X . p, order X p
+op `(KT_`) : Id -> Rule . ---- p[r/X] -> q deduces (\mu X . p) -> q, order &premis
+op `(Existence`) : -> Rule . ---- \ex x . x
+op `(Singleton`) : -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) !!!
+---- op `(AlphaRenaming__`) : Id Id -> Rule . ---- &premise, &freshname
+
+vars Phi Psi P Q R : Digest .
+vars Pi Pi1 Pi2 Pi3 : Proof .
+vars Rl Rl1 Rl2 : Rule .
+vars M M1 M2 N : NzNat .
+
+---- Proof checking
+op check : Proof -> Bool .
+op check-id : Proof -> Bool .
+op check-rule : Proof -> Bool .
+eq check(Pi) = check-id(Pi) and check-rule(Pi) .
+
+---- Check that step IDs are (1) (2) (3) ...
+op check-id-aux : Proof NzNat -> Bool .
+eq check-id(Pi) = check-id-aux(Pi, 1) .
+eq check-id-aux(.Proof, N) = true .
+eq check-id-aux(((N) Phi Rl ; Pi), N) = check-id-aux(Pi, N + 1) .
+eq check-id-aux(Pi, N) = false [owise] .
+
+---- Given a proof that passes the above check-id function, 
+---- every id denotes a pattern, and we provide the
+---- following operations for them.
+
+---- lookup an id in a proof
+op _[_] : Proof NzNat -> [Digest] .
+eq (Pi1 ((N) Phi Rl ;) Pi2) [N] = Phi .
+
+---- op expand : Proof NzNat -> [Pattern] .
+---- eq expand( (Pi1 ((N) AP:AtomicPattern Rl ;) Pi2), N)
+----  = AP:AtomicPattern .
+---- eq expand( (Pi1 ((N) (M) Rl ;) Pi2), N)
+----  = expand(Pi1, M) .
+---- eq expand( (Pi1 ((N) (\app (M1) (M2)) Rl ;) Pi2), N)
+----  = (\app (expand(Pi1, M1)) (expand(Pi1, M2))) .
+---- eq expand( (Pi1 ((N) (\imp (M1) (M2)) Rl ;) Pi2), N)
+----  = (\imp (expand(Pi1, M1)) (expand(Pi1, M2))) .
+---- eq expand( (Pi1 ((N) (\ex (M1) (M2)) Rl ;) Pi2), N)
+----  = (\ex (expand(Pi1, M1)) (expand(Pi1, M2))) .
+---- eq expand( (Pi1 ((N) (\mu (M1) (M2)) Rl ;) Pi2), N)
+----  = (\mu (expand(Pi1, M1)) (expand(Pi1, M2))) .
+
+---- ExDigest extends Digest by allowing nested constructs.
+---- This is useful when we implementing the actual proof checking
+---- rules later.
+
+sort ExDigest . subsort Digest < ExDigest .
+
+op `(\app__`) : ExDigest ExDigest -> ExDigest .
+op `(\imp__`) : ExDigest ExDigest -> ExDigest .
+op `(\ex__`) : ExDigest ExDigest -> ExDigest .
+op `(\mu__`) : ExDigest ExDigest -> ExDigest .
+
+vars EP EQ EP1 EP2 EQ1 EQ2 : ExDigest .
+
+---- Check if two extended digests denote the same pattern.
+---- This is done without fully expanding the digest into
+---- a full AST.
+op eq? : Proof ExDigest ExDigest -> Bool .
+eq eq?(Pi, EP, EP) = true .
+ceq eq?(Pi, (M), (N)) = eq?(Pi, (N), (M)) if M > N .
+eq eq?(Pi, (M), (N)) = eq?(Pi, (M), Pi[N]) .
+eq eq?(Pi, P:AtomicPattern, P:AtomicPattern) = true .
+eq eq?(Pi, P:AtomicPattern, Q:AtomicPattern) = false [owise] .
+eq eq?(Pi, EP, (M)) = eq?(Pi, (M), EP) .
+eq eq?(Pi, (M), EP) = eq?(Pi, Pi[M], EP) .
+eq eq?(Pi, (\app EP1 EP2), (\app EQ1 EQ2))
+ = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\imp EP1 EP2), (\imp EQ1 EQ2))
+ = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\ex EP1 EP2), (\ex EQ1 EQ2))
+ = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\mu EP1 EP2), (\mu EQ1 EQ2))
+ = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, EP, EQ) = false [owise] .
+
+---- Check proof rules.
+
+---- Put a marker that separates the checked proof from the rest of the proof.
+op _check-rule-marker_ : Proof Proof -> Bool [format(g bn nr o)] .
+
+eq check-rule(Pi) = .Proof check-rule-marker Pi .
+eq Pi check-rule-marker .Proof = true .
+
+---- Proceed the proof step by step.
+ceq Pi1 check-rule-marker (((N) Phi Rl ;) Pi2)
+  = (Pi1 ((N) Phi Rl ;)) check-rule-marker Pi2
+ if Pi1 |- ((N) Phi Rl ;) .
+op _|-_ : Proof Proof -> Bool [prec 46] .
+
+---- Check if a pattern is proved to be provable (not just wellformed).
+op _proved-in_ : Id Proof -> Bool [prec 50] .
+eq (N) proved-in Pi1 ((N) (M) Rl ;) Pi2 = Rl =/= (WF) .
+eq (N) proved-in Pi = false [owise] .
+
+---- (WF): wellformedness checking
+eq Pi |- (N) (\evar M) (WF) ; 
+ = true .
+eq Pi |- (N) (\imp (M1) (M2)) (WF) ;
+ = M1 < N and M2 < N .
+
+---- PropK
+eq Pi |- (N) (M) (PropK P Q) ;
+ = eq?(Pi, (M), (\imp P (\imp Q P))) .
+
+---- PropS 
+eq Pi |- (N) (M) (PropS P Q R) ;
+ = eq?(Pi, (M), (\imp (\imp P (\imp Q R)) (\imp (\imp P Q) (\imp P R)))) .
+
+---- MP: Modus Ponens
+eq Pi |- (N) (M) (MP P Q) ;
+ = P proved-in Pi
+   and Q proved-in Pi
+   and eq?(Pi, Q, (\imp P (M))) .
 
 endfm
 
