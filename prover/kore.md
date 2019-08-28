@@ -57,6 +57,8 @@ only in this scenario*.
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"     [klabel(ifflfp)]
 
+  rule \top()    => \and(.Patterns) [anywhere]
+  rule \bottom() => \or(.Patterns) [anywhere]
 
   syntax Symbol ::= "emptyset"      [token]
                   | "singleton"     [token]

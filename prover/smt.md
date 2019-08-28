@@ -47,11 +47,12 @@ module SMTLIB2
   syntax SMTLIB2TermList ::= List{SMTLIB2Term, ""} [klabel(SMTLIB2TermList)]
 
 // Commands
-  syntax SMTLIB2Command ::= "(" "assert"        SMTLIB2Term               ")"
-                          | "(" "declare-const" SMTLIB2Symbol SMTLIB2Sort ")"
-                          | "(" "declare-fun"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
-                          | "(" "define-fun"    SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
-                          | "(" "define-sort"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+  syntax SMTLIB2Command ::= "(" "assert"         SMTLIB2Term               ")"
+                          | "(" "declare-const"  SMTLIB2Symbol SMTLIB2Sort ")"
+                          | "(" "declare-fun"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "define-fun"     SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "define-fun-rec" SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "define-sort"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
                           | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
@@ -62,6 +63,7 @@ module SMTLIB2
                                | "=>"    [token]
                                | "="     [token]
                                | "=>"    [token]
+                               | "ite"   [token]
 
   // Arithmetic
   syntax SMTLIB2SimpleSymbol ::= "*"     [token]

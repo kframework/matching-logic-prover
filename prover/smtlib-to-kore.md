@@ -22,10 +22,26 @@ module SMTLIB-TO-KORE
            ...
        </k>
 
+// can't hardcode Int
   rule <k> \exists { Us } \and(Ps) ~> (declare-const ID SORT)
         => \exists { variable(SMTLIB2SimpleSymbolToString(ID)) { Int }, Us } \and(Ps)
            ...
        </k>
+
+// TODO: can't hardcode Bool
+  rule <k> \exists { Us } \and(Ps) ~> (define-fun-rec ID (ARGS) RET BODY)
+        => \exists { Us } \and(Ps)
+           ...
+       </k>
+       <declarations> ( .Bag
+                     => <declaration> symbol #token("foo", "LowerName")( Int ) : Bool </declaration>
+                        <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGS) }
+                                         \iff-lfp( #token("foo", "LowerName")(variable(SMTLIB2SimpleSymbolToString(ID)) { Int }, .Patterns)
+                                                 , SMTLIB2TermToPattern(BODY, .Patterns)
+                                                 )
+                        </declaration>
+                      ) ...
+       </declarations>
 
   rule <k> P:Pattern ~> (check-sat) => claim \not(P) strategy smt ~> P ... </k>
 
@@ -36,8 +52,15 @@ module SMTLIB-TO-KORE
   rule SMTLIB2TermToPattern((+ L R), Vs) => plus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((* L R), Vs) => mult(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((not P), Vs) => \not(SMTLIB2TermToPattern(P, Vs))
+  rule SMTLIB2TermToPattern((ite C L R), Vs) => \or( \and(SMTLIB2TermToPattern(C, Vs), SMTLIB2TermToPattern(L, Vs))
+                                                   , \and(\not(SMTLIB2TermToPattern(C, Vs)), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern(I:Int, _) => I
+  rule SMTLIB2TermToPattern(true, _) => \top()
+  rule SMTLIB2TermToPattern(false, _) => \bottom()
   rule SMTLIB2TermToPattern(ID:SMTLIB2SimpleSymbol, Vs) => variable(SMTLIB2SimpleSymbolToString(ID)) { getSortForVariableName(SMTLIB2SimpleSymbolToString(ID), Vs) }
+    [owise]
+
+  syntax Patterns ::= SMTLIB2SortedVarListToPatterns(SMTLIB2SortedVarList)
 ```
 
 ```k
