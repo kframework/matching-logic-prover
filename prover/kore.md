@@ -126,6 +126,11 @@ module KORE-HELPERS
 ```
 
 ```k
+  syntax Sort ::= getSortForVariableName(String, Patterns) [function]
+  rule getSortForVariableName(VNAME, variable(VNAME) { SORT }, Vs) => SORT
+  rule getSortForVariableName(VNAME1, variable(VNAME2) { SORT }, Vs) => getSortForVariableName(VNAME1, Vs)
+    requires VNAME1 =/=K VNAME2
+
   syntax Patterns ::= getFreeVariables(Patterns) [function]
   rule getFreeVariables(.Patterns) => .Patterns
   rule getFreeVariables(P, Ps)

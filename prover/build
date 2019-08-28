@@ -50,7 +50,7 @@ prover = proj.definition( alias = 'prover'
 prover.tests( inputs = glob('t/*.prover')
             , implicit_inputs = glob('t/definitions/*.prover')
             )
-prover.tests(inputs = glob('t/*.smt'))
+prover.tests(inputs = glob('t/*.smt2'))
 
 # SMTLIB Translation
 # ==================
