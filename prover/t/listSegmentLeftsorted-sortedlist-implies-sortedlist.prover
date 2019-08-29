@@ -15,25 +15,25 @@ imports "t/definitions/listSorted.prover"
                         listsorted(H, X', F', V))
 */
 
-claim \implies( \and( listSegmentLeftSorted( variable("H") { ArrayIntInt } 
-                                    , variable("X") { Int } 
-                                    , variable("Y") { Int } 
-                                    , variable("F") { SetInt }
-                                    , variable("MIN") { Int }
-                                    , variable("MAX") { Int } 
+claim \implies( \and( listSegmentLeftSorted( H { ArrayIntInt } 
+                                    , X { Int } 
+                                    , Y { Int } 
+                                    , F { SetInt }
+                                    , MIN { Int }
+                                    , MAX { Int } 
                                     )
-                    , listSorted( variable("H") { ArrayIntInt }
-                                , variable("Y") { Int }
-                                , variable("G") { SetInt }
-                                , variable("MIN2") { Int }) 
-                    , \equals( variable("K") { SetInt }, union(variable("F") { SetInt }, variable("G") { SetInt })) 
-                    , disjoint(variable("F") { SetInt }, variable("G") { SetInt }) 
-                    , \not(gt(variable("MAX") { Int }, variable("MIN2") { Int }))
+                    , listSorted( H { ArrayIntInt }
+                                , Y { Int }
+                                , G { SetInt }
+                                , MIN2 { Int }) 
+                    , \equals( K { SetInt }, union(F { SetInt }, G { SetInt })) 
+                    , disjoint(F { SetInt }, G { SetInt }) 
+                    , \not(gt(MAX { Int }, MIN2 { Int }))
                      )
-              , \and( listSorted( variable("H") { ArrayIntInt }
-                                , variable("X") { Int }
-                                , variable("K") { SetInt }
-                                , variable("MIN") { Int }
+              , \and( listSorted( H { ArrayIntInt }
+                                , X { Int }
+                                , K { SetInt }
+                                , MIN { Int }
                                 )
                      )
               )

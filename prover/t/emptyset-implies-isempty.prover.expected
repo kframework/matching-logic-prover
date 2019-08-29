@@ -14,7 +14,7 @@
         .
       </parent>
       <claim>
-        \implies ( \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , .Patterns ) )
+        \implies ( \and ( \equals ( S { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( S { SetInt } , .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         success
@@ -26,7 +26,7 @@
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { variable ( "S" ) { SetInt } , .Patterns } \iff-lfp ( isEmpty ( variable ( "S" ) { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( variable ( "S" ) { SetInt } , emptyset ) , .Patterns ) , .Patterns ) )
+      axiom \forall { S { SetInt } , .Patterns } \iff-lfp ( isEmpty ( S { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( S { SetInt } , emptyset ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       symbol isEmpty ( SetInt , .Sorts ) : Bool
     </declaration>

@@ -31,7 +31,7 @@ def do_prove(alias, defn, spec_module, spec):
 # =====================
 
 prover = proj.definition( alias = 'prover'
-                        , backend = 'ocaml'
+                        , backend = 'java'
                         , main = 'prover.md'
                         , other = [ 'smt.md'
                                   , 'kore.md'

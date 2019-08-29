@@ -1,22 +1,22 @@
 imports "t/definitions/listSegmentRightLength.prover"
 
-claim \implies( \and( listSegmentRightLength( variable("H") { ArrayIntInt }
-                                            , variable("X") { Int } 
-                                            , variable("Y") { Int } 
-                                            , variable("FA") { SetInt } 
-                                            , variable("LA") { Int }
+claim \implies( \and( listSegmentRightLength( H { ArrayIntInt }
+                                            , X { Int } 
+                                            , Y { Int } 
+                                            , FA { SetInt } 
+                                            , LA { Int }
                                             ) 
-                    , \equals(variable("F") { SetInt }, union(variable("FA") { SetInt }, singleton(variable("Y") { Int })))
-                    , disjoint(variable("FA") { SetInt }, singleton(variable("Y") { Int }))
-                    , \equals(variable("Z") { Int }, select(variable("H") { ArrayIntInt }, variable("Y") { Int }))
-                    , \equals(variable("LENGTH") { Int }, plus(variable("LA") { Int }, 1))
-                    , gt(variable("Y") { Int }, 0)
+                    , \equals(F { SetInt }, union(FA { SetInt }, singleton(Y { Int })))
+                    , disjoint(FA { SetInt }, singleton(Y { Int }))
+                    , \equals(Z { Int }, select(H { ArrayIntInt }, Y { Int }))
+                    , \equals(LENGTH { Int }, plus(LA { Int }, 1))
+                    , gt(Y { Int }, 0)
                     )
-              , \and( listSegmentRightLength( variable("H") { ArrayIntInt } 
-                                            , variable("X") { Int } 
-                                            , variable("Z") { Int } 
-                                            , variable("F") { SetInt } 
-                                            , variable("LENGTH") { Int }
+              , \and( listSegmentRightLength( H { ArrayIntInt } 
+                                            , X { Int } 
+                                            , Z { Int } 
+                                            , F { SetInt } 
+                                            , LENGTH { Int }
                                             )
                    )
               ) 

@@ -1,26 +1,26 @@
 symbol listSortedLength(ArrayIntInt, Int, SetInt, Int, Int) : Bool
-axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("LENGTH") { Int } }
-      \iff-lfp( listSortedLength(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int }, variable("LENGTH") { Int })
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int }, LENGTH { Int } }
+      \iff-lfp( listSortedLength(H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int }, LENGTH { Int })
               , \or( \exists { }
-                     \and( \equals(variable("X") { Int }, 0)
-                         , \equals(variable("F") { SetInt }, emptyset)
-                         , \equals(variable("LENGTH") { Int }, 0)
+                     \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, emptyset)
+                         , \equals(LENGTH { Int }, 0)
                          )
-                   , \exists { variable("F_I") { SetInt } , variable("LENGTH_I") { Int } , variable("VAL_I") { Int } , variable("X_I") { Int } }
-                     \and( listSortedLength( variable("H") { ArrayIntInt }
-                                           , variable("X_I") { Int }
-                                           , variable("F_I") { SetInt }
-                                           , variable("VAL_I") { Int }
-                                           , variable("LENGTH_I") { Int }
+                   , \exists { F_I { SetInt } , LENGTH_I { Int } , VAL_I { Int } , X_I { Int } }
+                     \and( listSortedLength( H { ArrayIntInt }
+                                           , X_I { Int }
+                                           , F_I { SetInt }
+                                           , VAL_I { Int }
+                                           , LENGTH_I { Int }
                                            )
-                         , gt(variable("X") { Int }, 0)
-                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }) , variable("X_I") { Int })
-                         , \equals(variable("F") { SetInt } , union(variable("F_I") { SetInt }, singleton(variable("X") { Int })))
-                         , disjoint(variable("F_I") { SetInt }, singleton(variable("X") { Int }))
-                         , \equals(variable("VAL_I") { Int } , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
-                         , gt(variable("VAL_I") { Int }, variable("PREV_VAL") { Int })
-                         , gt(variable("LENGTH") { Int }, 0)
-                         , \equals(variable("LENGTH_I") { Int }, minus(variable("LENGTH") { Int }, 1))
+                         , gt(X { Int }, 0)
+                         , \equals(select(H { ArrayIntInt }, X { Int }) , X_I { Int })
+                         , \equals(F { SetInt } , union(F_I { SetInt }, singleton(X { Int })))
+                         , disjoint(F_I { SetInt }, singleton(X { Int }))
+                         , \equals(VAL_I { Int } , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , gt(VAL_I { Int }, PREV_VAL { Int })
+                         , gt(LENGTH { Int }, 0)
+                         , \equals(LENGTH_I { Int }, minus(LENGTH { Int }, 1))
                          )
                    )
               )

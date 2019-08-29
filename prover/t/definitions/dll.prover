@@ -1,23 +1,23 @@
 symbol dll(ArrayIntInt, Int, SetInt) : Bool
-axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt } }
-      \iff-lfp( dll(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt })
-              , \or( \and( \equals(variable("X") { Int }, 0)
-                         , \equals(variable("F") { SetInt }, emptyset)
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt } }
+      \iff-lfp( dll(H { ArrayIntInt }, X { Int }, F { SetInt })
+              , \or( \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, emptyset)
                          , .Patterns
                          )
                    , \and( dll( H
-                              , variable("X", !I:Int) { Int }
-                              , variable("F", !J:Int) { SetInt }
+                              , X", !I:Int) { Int }
+                              , F", !J:Int) { SetInt }
                               , .Patterns
                               )
-                         , gt(variable("X") { Int }, 0)
-                         , gt(variable("X", !I:Int) { Int } , 0)
-                         , \equals( variable("X", !I:Int) { Int }
-                                  , select(variable("H") { ArrayIntIntInt }, plus(variable("X") { Int }, 1)))
-                         , \equals( variable("X") { Int }
-                                  , select(variable("H") { ArrayIntInt }, plus(variable("X", !I:Int) { Int }, 2)))
-                         , \not(isMember(variable("X") { Int }, variable("F", !J:Int) { SetInt }))
-                         , \equals(variable("F") { SetInt }, union(variable("F", !J:Int) { SetInt }, singleton(variable("X") { Int })))
+                         , gt(X { Int }, 0)
+                         , gt(X", !I:Int) { Int } , 0)
+                         , \equals( X", !I:Int) { Int }
+                                  , select(H { ArrayIntIntInt }, plus(X { Int }, 1)))
+                         , \equals( X { Int }
+                                  , select(H { ArrayIntInt }, plus(X", !I:Int) { Int }, 2)))
+                         , \not(isMember(X { Int }, F", !J:Int) { SetInt }))
+                         , \equals(F { SetInt }, union(F", !J:Int) { SetInt }, singleton(X { Int })))
                          , .Patterns
                          )
                    , .Patterns

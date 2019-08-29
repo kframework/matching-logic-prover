@@ -1,64 +1,64 @@
 symbol avl(ArrayIntInt, Int, SetInt, Int, Int, Int, Int) : Bool
-axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("MIN") { Int }, variable("MAX") { Int }, variable("Height") { Int }, variable("Balance") { Int  }}
-      \iff-lfp( avl(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt } , variable("MIN") { Int }, variable("MAX") { Int }, variable("Height") { Int }, variable("Balance") { Int })
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, MIN { Int }, MAX { Int }, Height { Int }, Balance { Int  }}
+      \iff-lfp( avl(H { ArrayIntInt }, X { Int }, F { SetInt } , MIN { Int }, MAX { Int }, Height { Int }, Balance { Int })
               , \or( \exists { }
-                     \and( \equals(variable("X") { Int },0)
-                         , \equals(variable("F") { SetInt } , emptyset)
-                         , \equals(variable("Balance") { Int }, 0)
-                         , \equals(variable("Height") { Int }, 0)
+                     \and( \equals(X { Int },0)
+                         , \equals(F { SetInt } , emptyset)
+                         , \equals(Balance { Int }, 0)
+                         , \equals(Height { Int }, 0)
                          )
                    , \exists { }
-                     \and( gt(variable("X") { Int },0)
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)), 0)
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 2)), 0)
-                         , \equals(variable("MIN") { Int }, variable("X") { Int })
-                         , \equals(variable("MAX") { Int }, variable("X") { Int })
-                         , \equals(variable("Balance") { Int }, 0)
-                         , \equals(variable("Height") { Int }, 1)
-                         , \equals(variable("F") { SetInt } , singleton(variable("X") { Int }))
+                     \and( gt(X { Int },0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 1)), 0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 2)), 0)
+                         , \equals(MIN { Int }, X { Int })
+                         , \equals(MAX { Int }, X { Int })
+                         , \equals(Balance { Int }, 0)
+                         , \equals(Height { Int }, 1)
+                         , \equals(F { SetInt } , singleton(X { Int }))
                          )
-                   , \exists { variable("B_1") { Int } , variable("F_1") { SetInt } , variable("H_1") { Int } , variable("MAX_1") { Int } , variable("MIN_1") { Int } , variable("X_1") { Int } }
-                     \and( avl( variable("H") { ArrayIntInt }
-                              , variable("X_1") { Int }
-                              , variable("F_1") { SetInt }
-                              , variable("MIN_1") { Int }
-                              , variable("MAX_1") { Int }
-                              , variable("H_1") { Int }
-                              , variable("B_1") { Int }
+                   , \exists { B_1 { Int } , F_1 { SetInt } , H_1 { Int } , MAX_1 { Int } , MIN_1 { Int } , X_1 { Int } }
+                     \and( avl( H { ArrayIntInt }
+                              , X_1 { Int }
+                              , F_1 { SetInt }
+                              , MIN_1 { Int }
+                              , MAX_1 { Int }
+                              , H_1 { Int }
+                              , B_1 { Int }
                               )
-                         , avl( variable("H") { ArrayIntInt }
-                              , variable("X_1") { Int }
-                              , variable("F_1") { SetInt }
-                              , variable("MIN_1") { Int }
-                              , variable("MAX_1") { Int }
-                              , variable("H_1") { Int }
-                              , variable("B_1") { Int }
+                         , avl( H { ArrayIntInt }
+                              , X_1 { Int }
+                              , F_1 { SetInt }
+                              , MIN_1 { Int }
+                              , MAX_1 { Int }
+                              , H_1 { Int }
+                              , B_1 { Int }
                               )
-                         , gt(variable("X") { Int },0)
-                         , \equals( variable("Balance") { Int }
-                                  , minus( variable("H_1") { Int }
-                                         , variable("H_1") { Int }
+                         , gt(X { Int },0)
+                         , \equals( Balance { Int }
+                                  , minus( H_1 { Int }
+                                         , H_1 { Int }
                                          )
                                   )
-                         , gt(variable("Balance") { Int }, -2)
-                         , gt(2, variable("Balance") { Int })
-                         , \equals( variable("Height") { Int }
-                                  , plus( max( variable("H_1") { Int }
-                                             , variable("H_1") { Int }
+                         , gt(Balance { Int }, -2)
+                         , gt(2, Balance { Int })
+                         , \equals( Height { Int }
+                                  , plus( max( H_1 { Int }
+                                             , H_1 { Int }
                                              )
                                          , 1))
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)), variable("X_1") { Int })
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 2)), variable("X_1") { Int })
-                         , gt(variable("X") { Int }, variable("MAX_1") { Int })
-                         , gt(variable("MIN_1") { Int }, variable("X") { Int })
-                         , \equals(variable("MIN_1") { Int }, variable("MIN") { Int })
-                         , \equals(variable("MAX_1") { Int }, variable("MAX") { Int })
-                         , \not(isMember(variable("X") { Int }, variable("F_1") { SetInt }))
-                         , \not(isMember(variable("X") { Int }, variable("F_1") { SetInt }))
-                         , \equals(variable("F") { SetInt } , union( singleton(variable("X") { Int })
-                                           , union( variable("F_1") { SetInt }
-                                                  , variable("F_1") { SetInt })))
-                         , disjoint(variable("F_1") { SetInt }, variable("F_1") { SetInt })                        )                  )
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 1)), X_1 { Int })
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 2)), X_1 { Int })
+                         , gt(X { Int }, MAX_1 { Int })
+                         , gt(MIN_1 { Int }, X { Int })
+                         , \equals(MIN_1 { Int }, MIN { Int })
+                         , \equals(MAX_1 { Int }, MAX { Int })
+                         , \not(isMember(X { Int }, F_1 { SetInt }))
+                         , \not(isMember(X { Int }, F_1 { SetInt }))
+                         , \equals(F { SetInt } , union( singleton(X { Int })
+                                           , union( F_1 { SetInt }
+                                                  , F_1 { SetInt })))
+                         , disjoint(F_1 { SetInt }, F_1 { SetInt })                        )                  )
               )
 
 

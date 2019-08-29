@@ -1,18 +1,18 @@
 symbol listSorted(ArrayIntInt, Int, SetInt, Int) : Bool
-axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int } }
-      \iff-lfp( listSorted(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("PREV_VAL") { Int })
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int } }
+      \iff-lfp( listSorted(H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int })
               , \or( \exists { }
-                     \and( \equals(variable("X") { Int }, 0)
-                         , \equals(variable("F") { SetInt }, emptyset)
+                     \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, emptyset)
                          )
-                   , \exists { variable("F_I") { SetInt } , variable("VAL_I") { Int } , variable("X_I") { Int } }
-                     \and( listSorted(variable("H") { ArrayIntInt }, variable("X_I") { Int }, variable("F_I") { SetInt }, variable("VAL_I") { Int })
-                         , gt(variable("X") { Int }, 0)
-                         , \equals(select(variable("H") { ArrayIntInt }, variable("X") { Int }) , variable("X_I") { Int })
-                         , \equals(variable("F") { SetInt } , union(variable("F_I") { SetInt }, singleton(variable("X") { Int })))
-                         , disjoint(variable("F_I") { SetInt }, singleton(variable("X") { Int }))
-                         , \equals(variable("VAL_I") { Int } , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
-                         , gt(variable("VAL_I") { Int }, variable("PREV_VAL") { Int })
+                   , \exists { F_I { SetInt } , VAL_I { Int } , X_I { Int } }
+                     \and( listSorted(H { ArrayIntInt }, X_I { Int }, F_I { SetInt }, VAL_I { Int })
+                         , gt(X { Int }, 0)
+                         , \equals(select(H { ArrayIntInt }, X { Int }) , X_I { Int })
+                         , \equals(F { SetInt } , union(F_I { SetInt }, singleton(X { Int })))
+                         , disjoint(F_I { SetInt }, singleton(X { Int }))
+                         , \equals(VAL_I { Int } , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , gt(VAL_I { Int }, PREV_VAL { Int })
                          )
                    )
               )

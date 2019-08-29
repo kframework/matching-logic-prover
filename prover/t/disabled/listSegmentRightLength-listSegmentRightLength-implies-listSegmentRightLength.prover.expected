@@ -10,7 +10,7 @@
       .
     </parent>
     <k>
-      \implies ( \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "FA" ) { SetInt } , variable ( "LA" ) { Int } , .Patterns ) , listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "FB" ) { SetInt } , variable ( "LB" ) { Int } , .Patterns ) , \equals ( variable ( "F" ) { SetInt } , union ( variable ( "FA" ) { SetInt } , variable ( "FB" ) { SetInt } , .Patterns ) ) , disjoint ( variable ( "FA" ) { SetInt } , variable ( "FB" ) { SetInt } , .Patterns ) , \equals ( variable ( "LENGTH" ) { Int } , plus ( variable ( "LA" ) { Int } , variable ( "LB" ) { Int } , .Patterns ) ) , .Patterns ) , \exists { .Patterns } \and ( listSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "F" ) { SetInt } , variable ( "LENGTH" ) { Int } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( listSegmentRightLength ( H { ArrayIntInt } , X { Int } , Y { Int } , FA { SetInt } , LA { Int } , .Patterns ) , listSegmentRightLength ( H { ArrayIntInt } , Y { Int } , Z { Int } , FB { SetInt } , LB { Int } , .Patterns ) , \equals ( F { SetInt } , union ( FA { SetInt } , FB { SetInt } , .Patterns ) ) , disjoint ( FA { SetInt } , FB { SetInt } , .Patterns ) , \equals ( LENGTH { Int } , plus ( LA { Int } , LB { Int } , .Patterns ) ) , .Patterns ) , \exists { .Patterns } \and ( listSegmentRightLength ( H { ArrayIntInt } , X { Int } , Z { Int } , F { SetInt } , LENGTH { Int } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success

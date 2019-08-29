@@ -1,20 +1,20 @@
 imports "t/definitions/avl.prover"
 imports "t/definitions/bst.prover"
 
-claim \implies( \and( avl( variable("H") { ArrayIntInt }
-                         , variable("X") { Int }
-                         , variable("F") { SetInt }
-                         , variable("MIN") { Int }
-                         , variable("MAX") { Int }
-                         , variable("Height") { Int }
-                         , variable("Balance") { Int }
+claim \implies( \and( avl( H { ArrayIntInt }
+                         , X { Int }
+                         , F { SetInt }
+                         , MIN { Int }
+                         , MAX { Int }
+                         , Height { Int }
+                         , Balance { Int }
                          )
                     )
-              , \and( bst( variable("H") { ArrayIntInt }
-                         , variable("X") { Int }
-                         , variable("F") { SetInt }
-                         , variable("MIN") { Int }
-                         , variable("MAX") { Int }
+              , \and( bst( H { ArrayIntInt }
+                         , X { Int }
+                         , F { SetInt }
+                         , MIN { Int }
+                         , MAX { Int }
                          )
                     )
               )

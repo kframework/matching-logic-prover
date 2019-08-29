@@ -1,44 +1,44 @@
 symbol bst(ArrayIntInt, Int, SetInt, Int, Int) : Bool
-axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int } , variable("F") { SetInt } , variable("MIN") { Int }, variable("MAX") { Int } }
-      \iff-lfp( bst(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("F") { SetInt }, variable("MIN") { Int }, variable("MAX") { Int })
+axiom \forall { H { ArrayIntInt }, X { Int } , F { SetInt } , MIN { Int }, MAX { Int } }
+      \iff-lfp( bst(H { ArrayIntInt }, X { Int }, F { SetInt }, MIN { Int }, MAX { Int })
               , \or( \exists { } 
-                     \and( \equals(variable("X") { Int },0)
-                         , \equals(variable("F") { SetInt }, emptyset)
+                     \and( \equals(X { Int },0)
+                         , \equals(F { SetInt }, emptyset)
                          )
                    , \exists { }
-                     \and( gt(variable("X") { Int } , 0)
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)), 0)
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 2)), 0)
-                         , \equals(variable("MIN") { Int }, variable("X") { Int })
-                         , \equals(variable("MAX") { Int }, variable("X") { Int })
-                         , \equals(variable("F") { SetInt }, singleton(variable("X") { Int }))
+                     \and( gt(X { Int } , 0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 1)), 0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 2)), 0)
+                         , \equals(MIN { Int }, X { Int })
+                         , \equals(MAX { Int }, X { Int })
+                         , \equals(F { SetInt }, singleton(X { Int }))
                          )
-                   , \exists { variable("F_J1") { SetInt } , variable("F_J2") { SetInt } , variable("MAX_L1") { Int } , variable("MAX_L2") { Int } , variable("MIN_K1") { Int } , variable("MIN_K2") { Int } , variable("X_I1") { Int } , variable("X_I2") { Int } }
-                     \and( bst( variable("H") { ArrayIntInt }
-                              , variable("X_I1") { Int }
-                              , variable("F_J1") { SetInt }
-                              , variable("MIN_K1") { Int }
-                              , variable("MAX_L1") { Int }
+                   , \exists { F_J1 { SetInt } , F_J2 { SetInt } , MAX_L1 { Int } , MAX_L2 { Int } , MIN_K1 { Int } , MIN_K2 { Int } , X_I1 { Int } , X_I2 { Int } }
+                     \and( bst( H { ArrayIntInt }
+                              , X_I1 { Int }
+                              , F_J1 { SetInt }
+                              , MIN_K1 { Int }
+                              , MAX_L1 { Int }
                               )
-                         , bst( variable("H") { ArrayIntInt }
-                              , variable("X_I2") { Int }
-                              , variable("F_J2") { SetInt }
-                              , variable("MIN_K2") { Int }
-                              , variable("MAX_L2") { Int }
+                         , bst( H { ArrayIntInt }
+                              , X_I2 { Int }
+                              , F_J2 { SetInt }
+                              , MIN_K2 { Int }
+                              , MAX_L2 { Int }
                               )
-                         , gt(variable("X") { Int },0)
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)), variable("X_I1") { Int })
-                         , \equals(select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 2)), variable("X_I2") { Int })
-                         , gt(variable("X") { Int }, variable("MAX_L1") { Int })
-                         , gt(variable("MIN_K2") { Int }, variable("X") { Int })
-                         , \equals(variable("MIN_K1") { Int }, variable("MIN") { Int })
-                         , \equals(variable("MAX_L2") { Int }, variable("MAX") { Int })
-                         , \not(isMember(variable("X") { Int }, variable("F_J1") { SetInt }))
-                         , \not(isMember(variable("X") { Int }, variable("F_J2") { SetInt }))
-                         , \equals(variable("F") { SetInt }, union( singleton(variable("X") { Int })
-                                           , union( variable("F_J1") { SetInt }
-                                                  , variable("F_J2") { SetInt })))
-                         , disjoint(variable("F_J1") { SetInt }, variable("F_J2") { SetInt })
+                         , gt(X { Int },0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 1)), X_I1 { Int })
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 2)), X_I2 { Int })
+                         , gt(X { Int }, MAX_L1 { Int })
+                         , gt(MIN_K2 { Int }, X { Int })
+                         , \equals(MIN_K1 { Int }, MIN { Int })
+                         , \equals(MAX_L2 { Int }, MAX { Int })
+                         , \not(isMember(X { Int }, F_J1 { SetInt }))
+                         , \not(isMember(X { Int }, F_J2 { SetInt }))
+                         , \equals(F { SetInt }, union( singleton(X { Int })
+                                           , union( F_J1 { SetInt }
+                                                  , F_J2 { SetInt })))
+                         , disjoint(F_J1 { SetInt }, F_J2 { SetInt })
                          )
                    )
               )

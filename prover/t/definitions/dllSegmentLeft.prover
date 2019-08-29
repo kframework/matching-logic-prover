@@ -1,25 +1,25 @@
 symbol dllSegmentLeft(ArrayIntInt, Int, Int, SetInt) : Bool
-axiom \forall { variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt } }
-      \iff-lfp( dllSegmentLeft(variable("H") { ArrayIntInt }, variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt })
-              , \or( \and( \equals(variable("X") { Int }, variable("Y") { Int })
-                         , \equals(variable("F") { SetInt }, emptyset)
+axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt } }
+      \iff-lfp( dllSegmentLeft(H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt })
+              , \or( \and( \equals(X { Int }, Y { Int })
+                         , \equals(F { SetInt }, emptyset)
                          , .Patterns
                          )
-                   , \and( dllSegmentLeft( variable("H") { ArrayIntInt }
-                                         , variable("X", !I:Int) { Int }
-                                         , variable("Y") { Int }
-                                         , variable("F", !J:Int) { SetInt }
+                   , \and( dllSegmentLeft( H { ArrayIntInt }
+                                         , X", !I:Int) { Int }
+                                         , Y { Int }
+                                         , F", !J:Int) { SetInt }
                                          , .Patterns
                                          )
-                         , \not(\equals(variable("X") { Int }, variable("Y") { Int }))
-                         , gt(variable("X") { Int }, 0)
-                         , gt(variable("X", !I:Int) { Int }, 0)
-                         , \equals( variable("X", !I:Int) { Int }
-                                  , select(variable("H") { ArrayIntInt }, plus(variable("X") { Int }, 1)))
-                         , \equals( variable("X") { Int }
-                                  , select(variable("H") { ArrayIntInt }, plus(variable("X", !I:Int) { Int }, 2)))
-                         , \not(isMember(variable("X") { Int }, variable("F", !J:Int) { SetInt }))
-                         , \equals(variable("F") { SetInt }, union(variable("F", !J:Int) { SetInt }, singleton(variable("X") { Int })))
+                         , \not(\equals(X { Int }, Y { Int }))
+                         , gt(X { Int }, 0)
+                         , gt(X", !I:Int) { Int }, 0)
+                         , \equals( X", !I:Int) { Int }
+                                  , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , \equals( X { Int }
+                                  , select(H { ArrayIntInt }, plus(X", !I:Int) { Int }, 2)))
+                         , \not(isMember(X { Int }, F", !J:Int) { SetInt }))
+                         , \equals(F { SetInt }, union(F", !J:Int) { SetInt }, singleton(X { Int })))
                          , .Patterns
                          )
                    , .Patterns

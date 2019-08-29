@@ -9,6 +9,7 @@ module TOKENS
 
   // Abstract
   syntax Symbol ::= LowerName
+  syntax VariableName ::= UpperName
 endmodule
 
 module TOKENS-SYNTAX
@@ -36,8 +37,7 @@ is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
 
 ```k
-  syntax Variable ::= "variable" "(" String ")"         "{" Sort "}"
-                    | "variable" "(" String "," Int ")" "{" Sort "}"
+  syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
   syntax Pattern ::= Int
                    | Variable
                    | Symbol
@@ -193,11 +193,8 @@ and values, passed to K's substitute.
 
 ```k
   syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
-  rule makeFreshSubstitution(variable(N) { SORT }, REST)
-    => variable(N) { SORT } |-> variable(N, !I:Int) { SORT }
-       makeFreshSubstitution(REST)
-  rule makeFreshSubstitution(variable(N, J) { SORT }, REST)
-    => variable(N, J) { SORT } |-> variable(N, !I:Int) { SORT }
+  rule makeFreshSubstitution(V { SORT }, REST)
+    => V:VariableName { SORT } |-> !V1:VariableName { SORT }
        makeFreshSubstitution(REST)
   rule makeFreshSubstitution(.Patterns)
     => .Map
