@@ -1,7 +1,10 @@
 ```k
 module SMTLIB2-SYNTAX
+  imports TOKENS-SYNTAX
   imports SMTLIB2
   syntax SMTLIB2SimpleSymbol ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*" [prec(1), notInRules, token, autoReject]
+                               | LowerName                                        [token]
+                               | UpperName                                        [token]
   syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
 endmodule
 
@@ -100,6 +103,15 @@ module SMTLIB2
     => COMMAND (SCRIPT1 ++SMTLIB2Script SCRIPT2)
   rule .SMTLIB2Script ++SMTLIB2Script SCRIPT2 => SCRIPT2
 
+// Converting between Sorts:
+
+  syntax VariableName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
+  syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
+  rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName(SMTLIB2SimpleSymbolToString(SYMBOL))
+
+  syntax Sort ::= StringToSort(String) [function, functional, hook(STRING.string2token)]
+  syntax Sort ::= SMTLIB2SortToSort(SMTLIB2Sort) [function]
+  rule SMTLIB2SortToSort(SORT) => StringToSort(SMTLIB2SortToString(SORT))
 
 // Serialize to String:
 

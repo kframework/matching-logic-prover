@@ -24,24 +24,24 @@ module SMTLIB-TO-KORE
 
 // can't hardcode Int
   rule <k> \exists { Us } \and(Ps) ~> (declare-const ID SORT)
-        => \exists { variable(SMTLIB2SimpleSymbolToString(ID)) { Int }, Us } \and(Ps)
+        => \exists { SMTLIB2SimpleSymbolToVariableName(ID) { SMTLIB2SortToSort(SORT) }, Us } \and(Ps)
            ...
        </k>
 
 // TODO: can't hardcode Bool
-  rule <k> \exists { Us } \and(Ps) ~> (define-fun-rec ID (ARGS) RET BODY)
-        => \exists { Us } \and(Ps)
-           ...
-       </k>
-       <declarations> ( .Bag
-                     => <declaration> symbol #token("foo", "LowerName")( Int ) : Bool </declaration>
-                        <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGS) }
-                                         \iff-lfp( #token("foo", "LowerName")(variable(SMTLIB2SimpleSymbolToString(ID)) { Int }, .Patterns)
-                                                 , SMTLIB2TermToPattern(BODY, .Patterns)
-                                                 )
-                        </declaration>
-                      ) ...
-       </declarations>
+  // rule <k> \exists { Us } \and(Ps) ~> (define-fun-rec ID (ARGS) RET BODY)
+  //       => \exists { Us } \and(Ps)
+  //          ...
+  //      </k>
+  //      <declarations> ( .Bag
+  //                    => <declaration> symbol #token("foo", "LowerName")( Int ) : Bool </declaration>
+  //                       <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGS) }
+  //                                        \iff-lfp( #token("foo", "LowerName")(variable(SMTLIB2SimpleSymbolToString(ID)) { Int }, .Patterns)
+  //                                                , SMTLIB2TermToPattern(BODY, .Patterns)
+  //                                                )
+  //                       </declaration>
+  //                     ) ...
+  //      </declarations>
 
   rule <k> P:Pattern ~> (check-sat) => claim \not(P) strategy smt ~> P ... </k>
 
@@ -57,7 +57,7 @@ module SMTLIB-TO-KORE
   rule SMTLIB2TermToPattern(I:Int, _) => I
   rule SMTLIB2TermToPattern(true, _) => \top()
   rule SMTLIB2TermToPattern(false, _) => \bottom()
-  rule SMTLIB2TermToPattern(ID:SMTLIB2SimpleSymbol, Vs) => variable(SMTLIB2SimpleSymbolToString(ID)) { getSortForVariableName(SMTLIB2SimpleSymbolToString(ID), Vs) }
+  rule SMTLIB2TermToPattern(ID:SMTLIB2SimpleSymbol, Vs) => SMTLIB2SimpleSymbolToVariableName(ID) { getSortForVariableName(SMTLIB2SimpleSymbolToVariableName(ID), Vs) }
     [owise]
 
   syntax Patterns ::= SMTLIB2SortedVarListToPatterns(SMTLIB2SortedVarList)

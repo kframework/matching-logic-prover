@@ -128,9 +128,9 @@ module KORE-HELPERS
 ```
 
 ```k
-  syntax Sort ::= getSortForVariableName(String, Patterns) [function]
-  rule getSortForVariableName(VNAME, variable(VNAME) { SORT }, Vs) => SORT
-  rule getSortForVariableName(VNAME1, variable(VNAME2) { SORT }, Vs) => getSortForVariableName(VNAME1, Vs)
+  syntax Sort ::= getSortForVariableName(VariableName, Patterns) [function]
+  rule getSortForVariableName(VNAME,  VNAME  { SORT }, Vs) => SORT
+  rule getSortForVariableName(VNAME1, VNAME2 { SORT }, Vs) => getSortForVariableName(VNAME1, Vs)
     requires VNAME1 =/=K VNAME2
 
   syntax Patterns ::= getFreeVariables(Patterns) [function]
@@ -201,7 +201,7 @@ and values, passed to K's substitute.
 ```k
   syntax VariableName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
-  rule freshVariableName(I:Int) => String2VariableName("v" +String Int2String(I))
+  rule freshVariableName(I:Int) => String2VariableName("V" +String Int2String(I))
 
   syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
   rule makeFreshSubstitution(V { SORT }, REST)
