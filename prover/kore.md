@@ -14,15 +14,14 @@ endmodule
 
 module TOKENS-SYNTAX
   imports TOKENS
-  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#]*" [token, autoReject]
-  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#]*" [token, autoReject]
+  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
+  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
 endmodule
 
 module KORE-SUGAR
   imports TOKENS
   imports INT-SYNTAX
   imports STRING-SYNTAX
-  imports TOKENS
 
   syntax Ints ::= List{Int, ","}
   syntax Sort ::= "Bool"        [token]
@@ -97,6 +96,7 @@ module KORE-HELPERS
   imports KORE-SUGAR
   imports MAP
   imports INT
+  imports STRING
 
   syntax String ::= SortToString(Sort) [function, functional, hook(STRING.token2string)]
 
@@ -192,6 +192,10 @@ and values, passed to K's substitute.
 ```
 
 ```k
+  syntax VariableName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
+  syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
+  rule freshVariableName(I:Int) => String2VariableName("v" +String Int2String(I))
+
   syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
   rule makeFreshSubstitution(V { SORT }, REST)
     => V:VariableName { SORT } |-> !V1:VariableName { SORT }
