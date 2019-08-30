@@ -10,7 +10,7 @@
       .
     </parent>
     <k>
-      \implies ( \and ( dllSegmentLeft ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , .Patterns ) , dll ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "G" ) { SetInt } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( dll ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "K" ) { SetInt } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( dllSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , dll ( H { ArrayIntInt } , Y { Int } , G { SetInt } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( dll ( H { ArrayIntInt } , X { Int } , K { SetInt } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success

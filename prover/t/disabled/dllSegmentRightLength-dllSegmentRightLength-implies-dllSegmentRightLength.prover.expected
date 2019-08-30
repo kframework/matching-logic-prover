@@ -10,7 +10,7 @@
       .
     </parent>
     <k>
-      \implies ( \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Y" ) { Int } , variable ( "F" ) { SetInt } , variable ( "L" ) { Int } , .Patterns ) , dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "Y" ) { Int } , variable ( "Z" ) { Int } , variable ( "G" ) { SetInt } , variable ( "M" ) { Int } , .Patterns ) , \equals ( variable ( "K" ) { SetInt } , union ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) ) , disjoint ( variable ( "F" ) { SetInt } , variable ( "G" ) { SetInt } , .Patterns ) , \equals ( variable ( "N" ) { Int } , plus ( variable ( "L" ) { Int } , variable ( "M" ) { Int } , .Patterns ) ) , .Patterns ) , \exists { .Patterns } \and ( dllSegmentRightLength ( variable ( "H" ) { ArrayIntInt } , variable ( "X" ) { Int } , variable ( "Z" ) { Int } , variable ( "K" ) { SetInt } , variable ( "N" ) { Int } , .Patterns ) , .Patterns ) )
+      \implies ( \and ( dllSegmentRightLength ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , L { Int } , .Patterns ) , dllSegmentRightLength ( H { ArrayIntInt } , Y { Int } , Z { Int } , G { SetInt } , M { Int } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , \equals ( N { Int } , plus ( L { Int } , M { Int } , .Patterns ) ) , .Patterns ) , \exists { .Patterns } \and ( dllSegmentRightLength ( H { ArrayIntInt } , X { Int } , Z { Int } , K { SetInt } , N { Int } , .Patterns ) , .Patterns ) )
     </k>
     <strategy>
       success

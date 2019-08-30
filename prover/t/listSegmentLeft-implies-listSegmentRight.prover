@@ -1,8 +1,8 @@
 imports "t/definitions/listSegmentLeft.prover"
 imports "t/definitions/listSegmentRight.prover"
 
-claim \implies( \and( listSegmentLeft (variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }) )
-              , \and( listSegmentRight(variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt }) )
+claim \implies( \and( listSegmentLeft (H { ArrayIntInt } , X { Int }, Y { Int }, F { SetInt }) )
+              , \and( listSegmentRight(H { ArrayIntInt } , X { Int }, Y { Int }, F { SetInt }) )
               )
 
 // strategy search-bound(5)

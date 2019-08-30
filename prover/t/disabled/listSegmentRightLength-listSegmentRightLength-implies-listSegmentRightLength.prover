@@ -1,24 +1,24 @@
-claim \implies( \and( listSegmentRightLength( variable("H") { ArrayIntInt }
-                                            , variable("X") { Int } 
-                                            , variable("Y") { Int } 
-                                            , variable("FA") { SetInt } 
-                                            , variable("LA") { Int }
+claim \implies( \and( listSegmentRightLength( H { ArrayIntInt }
+                                            , X { Int } 
+                                            , Y { Int } 
+                                            , FA { SetInt } 
+                                            , LA { Int }
                                             ) 
-                    , listSegmentRightLength( variable("H") { ArrayIntInt } 
-                                            , variable("Y") { Int } 
-                                            , variable("Z") { Int } 
-                                            , variable("FB") { SetInt } 
-                                            , variable("LB") { Int }
+                    , listSegmentRightLength( H { ArrayIntInt } 
+                                            , Y { Int } 
+                                            , Z { Int } 
+                                            , FB { SetInt } 
+                                            , LB { Int }
                                             )
-                    , \equals(variable("F") { SetInt }, union(variable("FA") { SetInt }, variable("FB") { SetInt }))
-                    , disjoint(variable("FA") { SetInt }, variable("FB") { SetInt })
-                    , \equals(variable("LENGTH") { Int }, plus(variable("LA") { Int }, variable("LB") { Int }))
+                    , \equals(F { SetInt }, union(FA { SetInt }, FB { SetInt }))
+                    , disjoint(FA { SetInt }, FB { SetInt })
+                    , \equals(LENGTH { Int }, plus(LA { Int }, LB { Int }))
                     )
-              , \and( listSegmentRightLength( variable("H") { ArrayIntInt } 
-                                            , variable("X") { Int } 
-                                            , variable("Z") { Int } 
-                                            , variable("F") { SetInt } 
-                                            , variable("LENGTH") { Int }
+              , \and( listSegmentRightLength( H { ArrayIntInt } 
+                                            , X { Int } 
+                                            , Z { Int } 
+                                            , F { SetInt } 
+                                            , LENGTH { Int }
                                             )
                    )
               ) 

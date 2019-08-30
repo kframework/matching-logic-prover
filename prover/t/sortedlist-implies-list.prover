@@ -2,15 +2,15 @@ imports "t/definitions/listSorted.prover"
 imports "t/definitions/list.prover"
 
 
-claim \implies( \and( listSorted( variable("H") { ArrayIntInt }
-                                , variable("X") { Int }
-                                , variable("K") { SetInt }
-                                , variable("MIN") { Int }
+claim \implies( \and( listSorted( H { ArrayIntInt }
+                                , X { Int }
+                                , K { SetInt }
+                                , MIN { Int }
                                 )
                     )
-              , \and( list( variable("H") { ArrayIntInt }
-                          , variable("X") { Int }
-                          , variable("K") { SetInt }
+              , \and( list( H { ArrayIntInt }
+                          , X { Int }
+                          , K { SetInt }
                           )
                     )
               )

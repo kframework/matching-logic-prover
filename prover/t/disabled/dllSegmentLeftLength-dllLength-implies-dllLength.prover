@@ -1,32 +1,32 @@
 claim \implies( \and( dllSegmentLeftLength ( 
-                            variable("H") { ArrayIntInt }
-                          , variable("X") { Int }
-                          , variable("Y") { Int }
-                          , variable("F") { SetInt }
-                          , variable("L") { Int }
+                            H { ArrayIntInt }
+                          , X { Int }
+                          , Y { Int }
+                          , F { SetInt }
+                          , L { Int }
                           )
                     , dllLength 
-                          ( variable("H") { ArrayIntInt }
-                          , variable("Y") { Int }
-                          , variable("G") { SetInt }
-                          , variable("M") { Int }
+                          ( H { ArrayIntInt }
+                          , Y { Int }
+                          , G { SetInt }
+                          , M { Int }
                           )
-                    , \equals( variable("K") { SetInt }
-                             , union( variable("F") { SetInt }
-                                    , variable("G") { SetInt }
+                    , \equals( K { SetInt }
+                             , union( F { SetInt }
+                                    , G { SetInt }
                                     )
                              )
-                    , \equals( variable("N") { Int }
-                             , plus(variable("L") { Int }, variable("M") { Int }))
-                    , disjoint( variable("F") { SetInt }
-                              , variable("G") { SetInt }
+                    , \equals( N { Int }
+                             , plus(L { Int }, M { Int }))
+                    , disjoint( F { SetInt }
+                              , G { SetInt }
                               )
                     )
               , \and( dllLength (
-                            variable("H") { ArrayIntInt }
-                          , variable("X") { Int }
-                          , variable("K") { SetInt }
-                          , variable("N") { Int }
+                            H { ArrayIntInt }
+                          , X { Int }
+                          , K { SetInt }
+                          , N { Int }
                           )
                     )
               )

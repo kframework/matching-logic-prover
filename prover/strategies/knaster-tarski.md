@@ -245,9 +245,7 @@ for guessing an instantiation of the inductive hypothesis.
 
   syntax Patterns ::= filterVariablesBySort(Patterns, Sort) [function]
   rule filterVariablesBySort(.Patterns, _) => .Patterns
-  rule filterVariablesBySort(((variable(_, _) { S } #as V), Vs), S)
-    => V, filterVariablesBySort(Vs, S)
-  rule filterVariablesBySort(((variable(_   ) { S } #as V), Vs), S)
+  rule filterVariablesBySort(((_ { S } #as V), Vs), S)
     => V, filterVariablesBySort(Vs, S)
   rule filterVariablesBySort((V, Vs), S)
     => filterVariablesBySort(Vs, S) [owise]
@@ -376,7 +374,7 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                   ...
        </strategy>
 
-  rule <strategy> instantiate-universals-with-ground-terms( (\forall { (variable(_, _) { S } #as V:Variable), UNIVs:Patterns } P:Pattern , REST_FORALLs)
+  rule <strategy> instantiate-universals-with-ground-terms( (\forall { (_ { S } #as V:Variable), UNIVs:Patterns } P:Pattern , REST_FORALLs)
                                 => (substituteWithEach(\forall { UNIVs } P, V, filterBySort(GROUND_TERMS, S)) ++Patterns REST_FORALLs)
                                  , GROUND_TERMS
                                  )
@@ -417,8 +415,7 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
 
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
-  rule getReturnSort( variable(_)    { S } ) => S
-  rule getReturnSort( variable(_, _) { S } ) => S
+  rule getReturnSort( _ { S } ) => S
   rule getReturnSort( select ( ARGS ) ) => Int
   rule getReturnSort( union ( ARGS ) ) => SetInt
   rule getReturnSort( singleton ( ARGS ) ) => SetInt

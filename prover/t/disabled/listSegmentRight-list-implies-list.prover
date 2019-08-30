@@ -1,18 +1,18 @@
-claim \implies( \and( listSegmentRight( variable("H") { ArrayIntInt }
-                                      , variable("X") { Int }
-                                      , variable("Y") { Int }
-                                      , variable("G1") { SetInt }
+claim \implies( \and( listSegmentRight( H { ArrayIntInt }
+                                      , X { Int }
+                                      , Y { Int }
+                                      , G1 { SetInt }
                                       )
-                    , list( variable("H") { ArrayIntInt }
-                          , variable("Y") { Int }
-                          , variable("G2") { SetInt }
+                    , list( H { ArrayIntInt }
+                          , Y { Int }
+                          , G2 { SetInt }
                           )
-                    , disjoint(variable("G1") { SetInt }, variable("G2") { SetInt })
-                    , \equals(variable("F") { SetInt }, union(variable("G1") { SetInt }, variable("G2") { SetInt }))
+                    , disjoint(G1 { SetInt }, G2 { SetInt })
+                    , \equals(F { SetInt }, union(G1 { SetInt }, G2 { SetInt }))
                      )
-              , \and( list( variable("H") { ArrayIntInt }
-                          , variable("X") { Int }
-                          , variable("F") { SetInt }
+              , \and( list( H { ArrayIntInt }
+                          , X { Int }
+                          , F { SetInt }
                           )
                      )
               )

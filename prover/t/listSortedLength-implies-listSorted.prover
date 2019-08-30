@@ -1,17 +1,17 @@
 imports "t/definitions/listSortedLength.prover"
 imports "t/definitions/listSorted.prover"
 
-claim \implies( \and( listSortedLength( variable("H") { ArrayIntInt }
-                                      , variable("X") { Int }
-                                      , variable("K") { SetInt }
-                                      , variable("MIN") { Int }
-                                      , variable("Length") { Int }
+claim \implies( \and( listSortedLength( H { ArrayIntInt }
+                                      , X { Int }
+                                      , K { SetInt }
+                                      , MIN { Int }
+                                      , Length { Int }
                                       )
                     )
-              , \and( listSorted( variable("H") { ArrayIntInt }
-                                , variable("X") { Int }
-                                , variable("K") { SetInt }
-                                , variable("MIN") { Int }
+              , \and( listSorted( H { ArrayIntInt }
+                                , X { Int }
+                                , K { SetInt }
+                                , MIN { Int }
                                 )
                     )
               )

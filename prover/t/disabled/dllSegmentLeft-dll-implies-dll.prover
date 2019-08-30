@@ -1,25 +1,25 @@
 claim \implies( \and( dllSegmentLeft ( 
-                            variable("H") { ArrayIntInt }
-                          , variable("X") { Int }
-                          , variable("Y") { Int }
-                          , variable("F") { SetInt }
+                            H { ArrayIntInt }
+                          , X { Int }
+                          , Y { Int }
+                          , F { SetInt }
                           )
-                    , dll ( variable("H") { ArrayIntInt }
-                          , variable("Y") { Int }
-                          , variable("G") { SetInt }
+                    , dll ( H { ArrayIntInt }
+                          , Y { Int }
+                          , G { SetInt }
                           )
-                    , \equals( variable("K") { SetInt }
-                             , union( variable("F") { SetInt }
-                                    , variable("G") { SetInt }
+                    , \equals( K { SetInt }
+                             , union( F { SetInt }
+                                    , G { SetInt }
                                     )
                              )
-                    , disjoint( variable("F") { SetInt }
-                              , variable("G") { SetInt }
+                    , disjoint( F { SetInt }
+                              , G { SetInt }
                               )
                     )
-              , \and( dll ( variable("H") { ArrayIntInt }
-                          , variable("X") { Int }
-                          , variable("K") { SetInt }
+              , \and( dll ( H { ArrayIntInt }
+                          , X { Int }
+                          , K { SetInt }
                           )
                     )
               )

@@ -7,18 +7,18 @@ axiom \forall { H : ArrayIntInt, X : Int, Y : Int, F : SetInt }
                          )
                    , \and( find-list-seg( H
                                         , X
-                                        , variable("Y", !I:Int) { Int }
-                                        , variable("F", !J:Int) { SetInt }
+                                        , Y", !I:Int) { Int }
+                                        , F", !J:Int) { SetInt }
                                         , .Patterns
                                         )
-                         , gt(variable("Y", !I:Int) { Int }, 0)
-                         , \equals(Y, select(H, plus(variable("Y", !I:Int) { Int }, 1)))
+                         , gt(Y", !I:Int) { Int }, 0)
+                         , \equals(Y, select(H, plus(Y", !I:Int) { Int }, 1)))
                          , \equals( F
-                                  , add ( variable("F", !J:Int) { SetInt }
-                                        , variable("Y", !I:Int) { Int }
+                                  , add ( F", !J:Int) { SetInt }
+                                        , Y", !I:Int) { Int }
                                         )
                                   )
-                         , \not(isMember(variable("Y", !I:Int) { Int }, variable("F", !J:Int) { SetInt }))
+                         , \not(isMember(Y", !I:Int) { Int }, F", !J:Int) { SetInt }))
                          , .Patterns
                          )
                    , .Patterns

@@ -23,8 +23,7 @@ module ML-TO-SMTLIB2
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]
   rule PatternToSMTLIB2Term(\equals(LHS, RHS))
     => ( = PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(RHS) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(variable(S) { SORT }) => StringToSMTLIB2SimpleSymbol(S)
-  rule PatternToSMTLIB2Term(variable(S, I) { SORT }) => StringToSMTLIB2SimpleSymbol(S +String "_" +String Int2String(I))
+  rule PatternToSMTLIB2Term(VNAME { SORT }) => VariableNameToSMTLIB2SimpleSymbol(VNAME)
   rule PatternToSMTLIB2Term(\not(P)) => ( not PatternToSMTLIB2Term(P) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(I:Int) => I                                          requires I >=Int 0
   rule PatternToSMTLIB2Term(I:Int) => ( #token("-", "SMTLIB2SimpleSymbol") absInt(I) ):SMTLIB2Term requires I  <Int 0
@@ -76,12 +75,8 @@ module ML-TO-SMTLIB2
   rule SortsToSMTLIB2SortList(.Sorts) => .SMTLIB2SortList
 
   syntax SMTLIB2SortedVarList ::= VariablesToSMTLIB2SortedVarList(Patterns) [function]
-  rule VariablesToSMTLIB2SortedVarList(variable(X) { S }, Cs)
-    => ( StringToSMTLIB2SimpleSymbol(X)  SortToSMTLIB2Sort(S) )
-       VariablesToSMTLIB2SortedVarList(Cs)
-  rule VariablesToSMTLIB2SortedVarList(variable(X, I) { S }, Cs)
-    => ( StringToSMTLIB2SimpleSymbol(X +String "_" +String Int2String(I)) SortToSMTLIB2Sort(S) )
-       VariablesToSMTLIB2SortedVarList(Cs)
+  rule VariablesToSMTLIB2SortedVarList(VNAME { S }, Cs)
+    => ( VariableNameToSMTLIB2SimpleSymbol(VNAME)  SortToSMTLIB2Sort(S) ) VariablesToSMTLIB2SortedVarList(Cs)
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
 
@@ -132,14 +127,14 @@ module ML-TO-SMTLIB2
        )
 
   syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
+  syntax String              ::= VariableNameToString(VariableName)  [function, functional, hook(STRING.token2string)]
+  syntax SMTLIB2SimpleSymbol ::= VariableNameToSMTLIB2SimpleSymbol(VariableName) [function]
+  rule VariableNameToSMTLIB2SimpleSymbol(V) => StringToSMTLIB2SimpleSymbol(VariableNameToString(V))
 
   syntax SMTLIB2Script ::= declareVariables(Patterns) [function]
   rule declareVariables( .Patterns ) => .SMTLIB2Script
-  rule declareVariables( variable(NAME:String) { SORT } , Ps )
-    => ( declare-const StringToSMTLIB2SimpleSymbol(NAME) SortToSMTLIB2Sort(SORT) )
-       declareVariables(Ps)
-  rule declareVariables( variable(NAME:String, I) { SORT } , Ps )
-    => ( declare-const StringToSMTLIB2SimpleSymbol(NAME +String "_" +String Int2String(I)) SortToSMTLIB2Sort(SORT) )
+  rule declareVariables( NAME { SORT } , Ps )
+    => ( declare-const VariableNameToSMTLIB2SimpleSymbol(NAME) SortToSMTLIB2Sort(SORT) )
        declareVariables(Ps)
 
   syntax SMTLIB2Script ::= declareUninterpretedFunctions(Patterns) [function]

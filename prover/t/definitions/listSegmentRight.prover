@@ -1,25 +1,25 @@
 symbol listSegmentRight(ArrayIntInt, Int, Int, SetInt) : Bool
-axiom \forall { variable("H") { ArrayIntInt } , variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt } }
-      \iff-lfp( listSegmentRight(variable("H") { ArrayIntInt },  variable("X") { Int }, variable("Y") { Int }, variable("F") { SetInt })
+axiom \forall { H { ArrayIntInt } , X { Int }, Y { Int }, F { SetInt } }
+      \iff-lfp( listSegmentRight(H { ArrayIntInt },  X { Int }, Y { Int }, F { SetInt })
               , \or( \exists { }
-                     \and( \equals(variable("X") { Int }, variable("Y") { Int })
-                         , \equals(variable("F") { SetInt }, emptyset)
+                     \and( \equals(X { Int }, Y { Int })
+                         , \equals(F { SetInt }, emptyset)
                          )
-                   , \exists { variable("Y1") { Int } , variable("F1") { SetInt } }
-                     \and( listSegmentRight( variable("H") { ArrayIntInt }
-                                           , variable("X") { Int }
-                                           , variable("Y1") { Int }
-                                           , variable("F1") { SetInt }
+                   , \exists { Y1 { Int } , F1 { SetInt } }
+                     \and( listSegmentRight( H { ArrayIntInt }
+                                           , X { Int }
+                                           , Y1 { Int }
+                                           , F1 { SetInt }
                                            )
-                         , gt(variable("Y1") { Int }, 0)
-                         , \equals(variable("Y") { Int }, select(variable("H") { ArrayIntInt },  variable("Y1") { Int }))
-                         , \equals( variable("F") { SetInt }
-                                  , union( variable("F1") { SetInt }
-                                         , singleton(variable("Y1") { Int })
+                         , gt(Y1 { Int }, 0)
+                         , \equals(Y { Int }, select(H { ArrayIntInt },  Y1 { Int }))
+                         , \equals( F { SetInt }
+                                  , union( F1 { SetInt }
+                                         , singleton(Y1 { Int })
                                          )
                                   )
-                         , disjoint( variable("F1") { SetInt }
-                                   , singleton(variable("Y1") { Int })
+                         , disjoint( F1 { SetInt }
+                                   , singleton(Y1 { Int })
                                    )
                          )
                    )
