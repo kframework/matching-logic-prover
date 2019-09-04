@@ -2,8 +2,7 @@
 module SMTLIB2-SYNTAX
   imports TOKENS-SYNTAX
   imports SMTLIB2
-  syntax SMTLIB2SimpleSymbol ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*" [prec(1), notInRules, token, autoReject]
-                               | LowerName                                        [token]
+  syntax SMTLIB2SimpleSymbol ::= LowerName                                        [token]
                                | UpperName                                        [token]
   syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
 endmodule
