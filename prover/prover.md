@@ -59,7 +59,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-SUGAR
 
   syntax Strategy ::= "search-bound" "(" Int ")"
-                    | "remove-lhs-existential" | "normalize" | "lift-or"
+                    | "remove-lhs-existential" | "normalize" | "smtlib-to-implication" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "direct-proof"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"

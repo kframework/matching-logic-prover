@@ -1,0 +1,30 @@
+<prover>
+  <k>
+    \exists { .Patterns } \and ( \not ( \equals ( 2 , 2 ) ) , \equals ( 1 , 1 ) , .Patterns ) ~> .SMTLIB2Script
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \forall { .Patterns } \or ( \equals ( 2 , 2 ) , \not ( \equals ( 1 , 1 ) ) , .Patterns )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    .DeclarationCellSet
+  </declarations>
+</prover>

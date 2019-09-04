@@ -1,0 +1,30 @@
+<prover>
+  <k>
+    \exists { Vz { Int } , Vy { Int } , Vx { Int } , .Patterns } \and ( \equals ( plus ( mult ( Vx { Int } , mult ( Vx { Int } , Vx { Int } , .Patterns ) , .Patterns ) , mult ( Vy { Int } , mult ( Vy { Int } , Vy { Int } , .Patterns ) , .Patterns ) , .Patterns ) , mult ( Vz { Int } , mult ( Vz { Int } , Vz { Int } , .Patterns ) , .Patterns ) ) , gt ( Vz { Int } , 0 , .Patterns ) , gt ( Vy { Int } , 0 , .Patterns ) , gt ( Vx { Int } , 0 , .Patterns ) , .Patterns ) ~> .SMTLIB2Script
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( plus ( mult ( Vx { Int } , mult ( Vx { Int } , Vx { Int } , .Patterns ) , .Patterns ) , mult ( Vy { Int } , mult ( Vy { Int } , Vy { Int } , .Patterns ) , .Patterns ) , .Patterns ) , mult ( Vz { Int } , mult ( Vz { Int } , Vz { Int } , .Patterns ) , .Patterns ) ) ) , \not ( gt ( Vz { Int } , 0 , .Patterns ) ) , \not ( gt ( Vy { Int } , 0 , .Patterns ) ) , \not ( gt ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) )
+      </claim>
+      <strategy>
+        fail
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    .DeclarationCellSet
+  </declarations>
+</prover>

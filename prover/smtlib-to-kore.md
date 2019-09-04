@@ -35,14 +35,23 @@ module SMTLIB-TO-KORE
                      => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGS)) : Bool </declaration>
                         <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGS) }
                                          \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGS))
-                                                 , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS))
+                                                 , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)))
                                                  )
                         </declaration>
                       ) ...
        </declarations>
 
-  rule <k> P:Pattern ~> (check-sat) => claim \not(P) strategy smt ~> P ... </k>
+  rule <k> P:Pattern ~> (check-sat)
+        => claim \not(P)
+           strategy normalize ; ( noop | ( smtlib-to-implication ; right-unfold ) ) ; smt ~> P ... </k>
 
+  syntax Pattern ::= #normalizeDefinition(Pattern) [function]
+  rule #normalizeDefinition(\or(Ps)) => \or(#addExistentials(Ps))
+
+  syntax Patterns ::= #addExistentials(Patterns) [function]
+  rule #addExistentials(.Patterns) => .Patterns
+  rule #addExistentials(\and(Ps1), Ps2) => \exists{.Patterns} \and(Ps1), #addExistentials(Ps2)
+  rule #addExistentials(\exists{Ps1} P, Ps2) => \exists{Ps1} P, #addExistentials(Ps2)
 
   syntax Pattern ::= SMTLIB2TermToPattern(SMTLIB2Term, Patterns) [function]
   rule SMTLIB2TermToPattern((= L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
