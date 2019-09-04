@@ -22,13 +22,11 @@ module SMTLIB-TO-KORE
            ...
        </k>
 
-// can't hardcode Int
   rule <k> \exists { Us } \and(Ps) ~> (declare-const ID SORT)
         => \exists { SMTLIB2SimpleSymbolToVariableName(ID) { SMTLIB2SortToSort(SORT) }, Us } \and(Ps)
            ...
        </k>
 
-// TODO: can't hardcode Bool
   rule <k> \exists { Us } \and(Ps) ~> (define-fun-rec ID (ARGS) RET BODY)
         => \exists { Us } \and(Ps)
            ...
@@ -58,6 +56,7 @@ module SMTLIB-TO-KORE
   rule SMTLIB2TermToPattern(true, _) => \top()
   rule SMTLIB2TermToPattern(false, _) => \bottom()
   rule SMTLIB2TermToPattern((ID Ts), Vs) => SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2TermListToPatterns(Ts, Vs))
+    [owise]
   rule SMTLIB2TermToPattern(ID:SMTLIB2SimpleSymbol, Vs) => SMTLIB2SimpleSymbolToVariableName(ID) { getSortForVariableName(SMTLIB2SimpleSymbolToVariableName(ID), Vs) }
     [owise]
 

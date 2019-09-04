@@ -201,7 +201,7 @@ and values, passed to K's substitute.
 ```k
   syntax VariableName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
-  rule freshVariableName(I:Int) => String2VariableName("V" +String Int2String(I))
+  rule freshVariableName(I:Int) => String2VariableName("F" +String Int2String(I))
 
   syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
   rule makeFreshSubstitution(V { SORT }, REST)
