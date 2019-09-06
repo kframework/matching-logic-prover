@@ -73,9 +73,18 @@ Normalize:
   rule <claim> \forall{Vs} P => P </claim>
        <strategy> smtlib-to-implication ... </strategy>
 
-  // TODO: want RHS to be \implies(#negative(Ps), #positive(Ps))
-  rule <claim> \or(Ps) => \implies(\top(), \and(Ps)) </claim>
+  rule <claim> \or(Ps) => \implies(\and(#filterNegative(Ps)), \and(#filterPositive(Ps))) </claim>
        <strategy> smtlib-to-implication => noop ... </strategy>
+
+  syntax Patterns ::= "#filterNegative" "(" Patterns ")" [function]
+  rule #filterNegative(\not(P), Ps) => P, #filterNegative(Ps)
+  rule #filterNegative(P, Ps)       => #filterNegative(Ps) [owise]
+  rule #filterNegative(.Patterns)   => .Patterns
+
+  syntax Patterns ::= "#filterPositive" "(" Patterns ")" [function]
+  rule #filterPositive(\not(P), Ps) => #filterPositive(Ps)
+  rule #filterPositive(P, Ps)       => P, #filterPositive(Ps) [owise]
+  rule #filterPositive(.Patterns)   => .Patterns
 
   syntax Pattern ::= #normalize(Pattern) [function]
   syntax Patterns ::= #normalizePs(Patterns) [function]
