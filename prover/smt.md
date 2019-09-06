@@ -48,13 +48,23 @@ module SMTLIB2
                        | "(" "exists" "(" SMTLIB2SortedVarList ")" SMTLIB2Term ")"
   syntax SMTLIB2TermList ::= List{SMTLIB2Term, ""} [klabel(SMTLIB2TermList)]
 
+// Constructors for datatypes
+  syntax SMTLIB2SelectorDec ::= "(" SMTLIB2Symbol SMTLIB2Sort ")"
+  syntax SMTLIB2SelectorDecList ::= List{SMTLIB2SelectorDec, ""} [klabel(SMTLIB2SelectorDecList)]
+
+  syntax SMTLIB2ConstructorDec ::= "(" SMTLIB2Symbol SMTLIB2SelectorDecList ")"
+  syntax SMTLIB2ConstructorDecList ::= List{SMTLIB2ConstructorDec, ""} [klabel(SMTLIB2ConstructorDecList)]
+
+  syntax SMTLIB2DatatypeDec ::= "(" SMTLIB2ConstructorDec SMTLIB2ConstructorDecList ")"
+
 // Commands
-  syntax SMTLIB2Command ::= "(" "assert"         SMTLIB2Term               ")"
-                          | "(" "declare-const"  SMTLIB2Symbol SMTLIB2Sort ")"
-                          | "(" "declare-fun"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
-                          | "(" "define-fun"     SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
-                          | "(" "define-fun-rec" SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
-                          | "(" "define-sort"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+  syntax SMTLIB2Command ::= "(" "assert"           SMTLIB2Term               ")"
+                          | "(" "declare-const"    SMTLIB2Symbol SMTLIB2Sort ")"
+                          | "(" "declare-fun"      SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "define-fun"       SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "define-fun-rec"   SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "declare-datatype" SMTLIB2Symbol SMTLIB2DatatypeDec ")"
+                          | "(" "define-sort"      SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
                           | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
@@ -262,5 +272,15 @@ module SMT-TEST-DRIVER
        <z3> . => Z3CheckSAT(SCRIPT) </z3>
   rule <claim> SCRIPT:SMTLIB2Script </claim>
        <cvc4> . => CVC4CheckSAT(SCRIPT) </cvc4>
+endmodule
+
+module SMTLIB-SL
+  imports SMTLIB2
+
+  syntax SMTLIB2SortPair ::= "(" SMTLIB2Sort SMTLIB2Sort ")"
+  syntax SMTLIB2SortPairList ::= List{SMTLIB2SortPair, ""} [klabel(SMTLIB2SortPairList)]
+
+  syntax SMTLIB2Command ::= "(" "declare-heap" SMTLIB2SortPairList ")"
+
 endmodule
 ```
