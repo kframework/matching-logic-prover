@@ -221,10 +221,7 @@ for guessing an instantiation of the inductive hypothesis.
     requires P =/=K #hole:Pattern
      andBool #hole in Ps
 
-// basic simplification
-  rule <claim> \implies(\and( \forall {_} implicationContext(\and(\and(Ps1), Ps2) => \and(Ps1 ++Patterns Ps2) , _), _), _) </claim>
-       <strategy> kt-collapse ... </strategy>
-
+// remove implication context
   rule <claim> \implies(\and( \forall { UNIVs } ( implicationContext( \and(#hole, CTXLHS:Patterns)
                                                                 , CTXRHS:Pattern)
                                            => \implies(\and(CTXLHS), CTXRHS)
