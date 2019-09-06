@@ -1,0 +1,34 @@
+<prover>
+  <k>
+    \exists { .Patterns } \and ( \not ( iszero ( 0 , .Patterns ) ) , .Patterns ) ~> .SMTLIB2Script
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( .Patterns ) , \exists { .Patterns } \and ( iszero ( 0 , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( iszero ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { Int } , 0 ) , \and ( .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , \or ( .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      symbol iszero ( Int , .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>

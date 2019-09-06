@@ -1,7 +1,9 @@
 ```k
 module SMTLIB2-SYNTAX
+  imports TOKENS-SYNTAX
   imports SMTLIB2
-  syntax SMTLIB2SimpleSymbol ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_]*" [prec(1), notInRules, token, autoReject]
+  syntax SMTLIB2SimpleSymbol ::= LowerName                                        [token]
+                               | UpperName                                        [token]
   syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
 endmodule
 
@@ -47,11 +49,13 @@ module SMTLIB2
   syntax SMTLIB2TermList ::= List{SMTLIB2Term, ""} [klabel(SMTLIB2TermList)]
 
 // Commands
-  syntax SMTLIB2Command ::= "(" "assert"        SMTLIB2Term               ")"
-                          | "(" "declare-const" SMTLIB2Symbol SMTLIB2Sort ")"
-                          | "(" "declare-fun"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
-                          | "(" "define-fun"    SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
-                          | "(" "define-sort"   SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+  syntax SMTLIB2Command ::= "(" "assert"         SMTLIB2Term               ")"
+                          | "(" "declare-const"  SMTLIB2Symbol SMTLIB2Sort ")"
+                          | "(" "declare-fun"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "define-fun"     SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "define-fun-rec" SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "define-sort"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
   // Core symbols
@@ -61,6 +65,7 @@ module SMTLIB2
                                | "=>"    [token]
                                | "="     [token]
                                | "=>"    [token]
+                               | "ite"   [token]
 
   // Arithmetic
   syntax SMTLIB2SimpleSymbol ::= "*"     [token]
@@ -97,6 +102,19 @@ module SMTLIB2
     => COMMAND (SCRIPT1 ++SMTLIB2Script SCRIPT2)
   rule .SMTLIB2Script ++SMTLIB2Script SCRIPT2 => SCRIPT2
 
+// Converting between Sorts:
+
+  syntax VariableName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
+  syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
+  rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
+
+  syntax Symbol ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+  syntax Symbol ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
+  rule SMTLIB2SimpleSymbolToSymbol(SYMBOL) => StringToSymbol(SMTLIB2SimpleSymbolToString(SYMBOL))
+
+  syntax Sort ::= StringToSort(String) [function, functional, hook(STRING.string2token)]
+  syntax Sort ::= SMTLIB2SortToSort(SMTLIB2Sort) [function]
+  rule SMTLIB2SortToSort(SORT) => StringToSort(SMTLIB2SortToString(SORT))
 
 // Serialize to String:
 

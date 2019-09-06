@@ -35,7 +35,7 @@ module STRATEGY-SIMPLIFICATION
   rule #lhsRemoveExistentials(\bottom()) => \bottom()
   rule #lhsRemoveExistentials(\equals(P1, P2))
     => \equals(#lhsRemoveExistentials(P1), #lhsRemoveExistentials(P2))
-  rule #lhsRemoveExistentials(\not(P)) => \not(#lhsRemoveExistentials(P))
+  rule #lhsRemoveExistentials(\not(P)) => \not(P)
 
   rule #lhsRemoveExistentials(\implies(LHS, RHS))
     => \implies(#lhsRemoveExistentials(LHS), #lhsRemoveExistentials(RHS))
@@ -61,19 +61,45 @@ Normalize:
        <strategy> normalize ... </strategy>
 
   rule <claim> \implies(\and(LHS), \exists { Es } \and(RHS))
-        => \implies( \and(#normalize(#flattenAnds(#lhsRemoveExistentialsPs(LHS))))
-                   , \exists { Es } \and(#normalize(#flattenAnds(RHS)))
+        => \implies( \and(#normalizePs(#flattenAnds(#lhsRemoveExistentialsPs(LHS))))
+                   , \exists { Es } \and(#normalizePs(#flattenAnds(RHS)))
                    )
        </claim>
        <strategy> normalize => noop ... </strategy>
 
-  syntax Patterns ::= #normalize(Patterns) [function]
-  rule #normalize(\implies(LHS, RHS), Ps)
-    => \forall { .Patterns } \implies(LHS, RHS), #normalize(Ps)
-  rule #normalize(\exists{.Patterns} P, Ps )
-    => #normalize(P, Ps)
-  rule #normalize(.Patterns) => .Patterns
-  rule #normalize(P, Ps) => P, #normalize(Ps) [owise]
+  rule <claim> \not(_) #as P => #normalize(P) </claim>
+       <strategy> normalize => noop ... </strategy>
+
+  rule <claim> \forall{Vs} P => P </claim>
+       <strategy> smtlib-to-implication ... </strategy>
+
+  // TODO: want RHS to be \implies(#negative(Ps), #positive(Ps))
+  rule <claim> \or(Ps) => \implies(\top(), \and(Ps)) </claim>
+       <strategy> smtlib-to-implication => noop ... </strategy>
+
+  syntax Pattern ::= #normalize(Pattern) [function]
+  syntax Patterns ::= #normalizePs(Patterns) [function]
+
+  rule #normalizePs(.Patterns) => .Patterns
+  rule #normalizePs(P, Ps) => #normalize(P), #normalizePs(Ps)
+
+  // TODO: normalize on LHS and RHS?
+  rule #normalize(\implies(LHS, RHS))
+    => \forall { .Patterns } \implies(LHS, RHS)
+  rule #normalize(\exists{.Patterns} P)
+    => #normalize(P)
+
+  rule #normalize(\not(\exists{Vs} P)) => \forall{Vs} #normalize(\not(P))
+  rule #normalize(\not(\and(Ps))) => #normalize(\or(#pushNots(Ps)))
+  rule #normalize(\not(\not(P))) => #normalize(P)
+  rule #normalize(\or(Ps)) => \or(#normalizePs(Ps))
+  rule #normalize(\and(\not(P), Ps)) => \implies(\and(#normalizePs(Ps)), #normalize(P))
+  rule #normalize(P) => P
+    [owise]
+
+  syntax Patterns ::= #pushNots(Patterns) [function]
+  rule #pushNots(.Patterns) => .Patterns
+  rule #pushNots(P, Ps) => \not(P), #pushNots(Ps)
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]
   rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)

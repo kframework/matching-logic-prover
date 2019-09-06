@@ -1,5 +1,6 @@
 ```k
 requires "kore.k"
+requires "smtlib-to-kore.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/search-bound.k"
@@ -31,7 +32,7 @@ module PROVER-CONFIGURATION
 
   configuration
       <prover>
-        <k> $PGM </k>
+        <k> $PGM:Pgm </k>
         <goals>
           <goal multiplicity="*" type="Set">
             <id> root </id>
@@ -58,7 +59,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-SUGAR
 
   syntax Strategy ::= "search-bound" "(" Int ")"
-                    | "remove-lhs-existential" | "normalize" | "lift-or"
+                    | "remove-lhs-existential" | "normalize" | "smtlib-to-implication" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "direct-proof"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
@@ -84,13 +85,18 @@ The driver is responsible for loading prover files into the configuration.
 module PROVER-COMMON
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
+  imports SMTLIB2
   imports KORE-SUGAR
+
+  syntax Pgm ::= SMTLIB2Script
+               | Declarations
   syntax Declarations ::= Declaration Declarations
 endmodule
 
 module PROVER-SYNTAX
   imports PROVER-COMMON
   imports TOKENS-SYNTAX
+  imports SMTLIB2-SYNTAX
   syntax Declarations ::= "" [klabel(.Declarations)]
 endmodule
 ```
@@ -162,6 +168,7 @@ Main Modules
 ```k
 module PROVER
   imports PROVER-DRIVER
+  imports SMTLIB-TO-KORE
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION

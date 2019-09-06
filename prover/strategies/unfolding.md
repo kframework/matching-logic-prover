@@ -40,6 +40,8 @@ module STRATEGY-UNFOLDING
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
   rule getUnfoldables(\and(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(\or(Ps), REST)
+    => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
   rule getUnfoldables(\implies(LHS, RHS), REST)
     => getUnfoldables(LHS) ++Patterns
        getUnfoldables(RHS) ++Patterns

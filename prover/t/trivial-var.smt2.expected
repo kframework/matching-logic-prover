@@ -1,0 +1,30 @@
+<prover>
+  <k>
+    \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns ) ~> .SMTLIB2Script
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \forall { Vx { Int } , .Patterns } \or ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    .DeclarationCellSet
+  </declarations>
+</prover>
