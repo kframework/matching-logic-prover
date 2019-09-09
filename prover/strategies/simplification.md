@@ -102,7 +102,6 @@ Normalize:
   rule #normalize(\not(\and(Ps))) => #normalize(\or(#pushNots(Ps)))
   rule #normalize(\not(\not(P))) => #normalize(P)
   rule #normalize(\or(Ps)) => \or(#normalizePs(Ps))
-  rule #normalize(\and(\not(P), Ps)) => \implies(\and(#normalizePs(Ps)), #normalize(P))
   rule #normalize(P) => P
     [owise]
 
