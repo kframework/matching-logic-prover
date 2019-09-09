@@ -43,10 +43,10 @@ module SMTLIB-TO-KORE
 
   rule <k> P:Pattern ~> (check-sat)
         => claim \not(P)
-           strategy normalize ; ( noop | ( smtlib-to-implication ; right-unfold ) ) ; smt ~> P ... </k>
+           strategy normalize ; ( noop | ( smtlib-to-implication ; kt ; ( ( right-unfold ; smt ) | wait ) ) ) ; smt ~> P ... </k>
 
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
-  rule #normalizeDefinition(\or(Ps)) => \or(#addExistentials(Ps))
+  rule #normalizeDefinition(\or(Ps)) => \or(#addExistentials(#flattenOrs(#dnfPs(Ps))))
 
   syntax Patterns ::= #addExistentials(Patterns) [function]
   rule #addExistentials(.Patterns) => .Patterns

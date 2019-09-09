@@ -290,6 +290,54 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRenamePs(P, Ps) => alphaRename(P), alphaRenamePs(Ps)
 ```
 
+Simplifications
+
+```k
+  syntax Patterns ::= #not(Patterns) [function]
+  rule #not(.Patterns) => .Patterns
+  rule #not(P, Ps) => \not(P), #not(Ps)
+
+  syntax Patterns ::= #flattenAnds(Patterns) [function]
+  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(P, Ps) => P ++Patterns #flattenAnds(Ps) [owise]
+  rule #flattenAnds(.Patterns) => .Patterns
+
+  syntax Patterns ::= #flattenOrs(Patterns) [function]
+  rule #flattenOrs(\or(Ps1), Ps2) => #flattenOrs(Ps1) ++Patterns #flattenOrs(Ps2)
+  rule #flattenOrs(P, Ps) => P ++Patterns #flattenOrs(Ps) [owise]
+  rule #flattenOrs(.Patterns) => .Patterns
+
+  syntax Pattern ::= #dnf(Pattern) [function]
+  syntax Patterns ::= #dnfPs(Patterns) [function]
+
+  rule #dnf(\not(\and(Ps))) => \or(#dnfPs(#not(Ps)))
+  rule #dnf(\not(\or(Ps))) => #dnf(\and(#not(Ps)))
+  rule #dnf(\not(\exists{Ps}P)) => \forall{Ps}(#dnf(\not(P)))
+  rule #dnf(\not(\forall{Ps}P)) => \exists{Ps}(#dnf(\not(P)))
+  rule #dnf(\not(\not(P))) => #dnf(P)
+
+  rule #dnfPs(.Patterns) => .Patterns
+  rule #dnfPs(P, Ps) => #dnf(P), #dnfPs(Ps) [owise]
+
+  rule #dnf(\and(\or(P, Ps1), Ps2)) => \or(#dnfPs(\and(P, Ps2)) ++Patterns #dnfPs(\and(\or(Ps1), Ps2)))
+  rule #dnf(\and(\or(.Patterns), Ps2)) => \or(.Patterns)
+
+  rule #dnf(\and(P, Ps)) => #dnf(\and(#dnf(P), Ps)) [owise]
+
+  // rule #dnf(P) => \or(\and(P)) [owise]
+
+  // rule #dnf(S:Symbol(ARGS)) => \or(\and(S(ARGS)))
+  // rule #dnf(\equals(L, R)) => \or(\and(\equals(L, R)))
+
+  rule #dnf(\not(S:Symbol(ARGS))) => \or(\and(\not(S(ARGS))))
+  // rule #dnf(\equals(L, R)) => \or(\and(\equals(L, R)))
+
+// rule #dnf(\not(P)) => \or(\and(\not(P))) [owise]
+
+  // rule #dnf(\and(Ps)) => \and(#flattenAnds(#dnfPs(Ps))
+  rule #dnf(\or(Ps)) => \or(#flattenOrs(#dnfPs(Ps)))
+```
+
 ```k
 endmodule
 ```

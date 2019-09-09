@@ -99,20 +99,11 @@ Normalize:
     => #normalize(P)
 
   rule #normalize(\not(\exists{Vs} P)) => \forall{Vs} #normalize(\not(P))
-  rule #normalize(\not(\and(Ps))) => #normalize(\or(#pushNots(Ps)))
+  rule #normalize(\not(\and(Ps))) => #normalize(\or(#not(Ps)))
   rule #normalize(\not(\not(P))) => #normalize(P)
   rule #normalize(\or(Ps)) => \or(#normalizePs(Ps))
   rule #normalize(P) => P
     [owise]
-
-  syntax Patterns ::= #pushNots(Patterns) [function]
-  rule #pushNots(.Patterns) => .Patterns
-  rule #pushNots(P, Ps) => \not(P), #pushNots(Ps)
-
-  syntax Patterns ::= #flattenAnds(Patterns) [function]
-  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(P, Ps) => P ++Patterns #flattenAnds(Ps) [owise]
-  rule #flattenAnds(.Patterns) => .Patterns
 ```
 
 ### lift-or
