@@ -326,15 +326,20 @@ Simplifications
   rule #dnfPs(\and(\or(P, Ps1), Ps2), REST)
     => #dnfPs(\and(P, Ps2)) ++Patterns #dnfPs(\and(\or(Ps1), Ps2))
   rule #dnfPs(\and(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
-  
+
+  // need this for termination, not covered in below rules
+  rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
+
   rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
     requires isBasePatternOrNegationPs(Ps)
   rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
-    requires notBool isBasePatternOrNegationPs(P, Ps)
+    requires notBool isBasePatternOrNegationPs(P, Ps) [owise]
     
   syntax Bool ::= isBasePattern(Pattern) [function]
   rule isBasePattern(S:Symbol(ARGS)) => true
   rule isBasePattern(\equals(L, R)) => true
+  rule isBasePattern(\and(_)) => false
+  rule isBasePattern(\or(_)) => false
   
   syntax Bool ::= isBasePatternOrNegationPs(Patterns) [function]
   rule isBasePatternOrNegationPs(.Patterns) => true
@@ -352,7 +357,7 @@ Simplifications
 // rule #dnf(\not(P)) => \or(\and(\not(P))) [owise]
 
   // rule #dnf(\and(Ps)) => \and(#flattenAnds(#dnfPs(Ps))
-  rule #dnf(\or(Ps)) => \or(#flattenOrs(#dnfPs(Ps)))
+  rule #dnf(\or(Ps)) => \or(#dnfPs(Ps))
 ```
 
 ```k
