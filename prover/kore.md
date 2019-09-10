@@ -318,9 +318,9 @@ Simplifications
   rule #dnfPs(\not(P), Ps) => \and(\not(P)), #dnfPs(Ps)
     requires isBasePattern(P)
 
-  rule #dnfPs(\not(\and(Ps)), REST)     => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
-  rule #dnfPs(\not(\or(Ps)), REST)      => #dnfPs(\and(#not(Ps)), REST)
-  rule #dnfPs(\not(\not(P)), REST)      => #dnfPs(P, REST)
+  rule #dnfPs(\not(\and(Ps)), REST) => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
+  rule #dnfPs(\not(\or(Ps)), REST)  => #dnfPs(\and(#not(Ps)), REST)
+  rule #dnfPs(\not(\not(P)), REST)  => #dnfPs(P, REST)
 
   // Distribute \or over \and
   rule #dnfPs(\and(\or(P, Ps1), Ps2), REST)
@@ -331,9 +331,9 @@ Simplifications
   rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
 
   rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
-    requires isBasePatternOrNegationPs(Ps)
+    requires isDnfConjunction(Ps)
   rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
-    requires notBool isBasePatternOrNegationPs(P, Ps) [owise]
+    requires notBool isDnfConjunction(P, Ps) andBool notBool isConjunction(P)
 
   syntax Bool ::= isBasePattern(Pattern) [function]
   rule isBasePattern(S:Symbol(ARGS)) => true
@@ -341,10 +341,15 @@ Simplifications
   rule isBasePattern(\and(_)) => false
   rule isBasePattern(\or(_)) => false
 
-  syntax Bool ::= isBasePatternOrNegationPs(Patterns) [function]
-  rule isBasePatternOrNegationPs(.Patterns) => true
-  rule isBasePatternOrNegationPs(\not(P), Ps) => isBasePattern(P) andBool isBasePatternOrNegationPs(Ps)
-  rule isBasePatternOrNegationPs(P, Ps) => isBasePattern(P) andBool isBasePatternOrNegationPs(Ps) [owise]
+  syntax Bool ::= isDnfConjunction(Patterns) [function]
+  rule isDnfConjunction(.Patterns) => true
+  rule isDnfConjunction(\and(P), Ps) => false
+  rule isDnfConjunction(\not(P), Ps) => isBasePattern(P) andBool isDnfConjunction(Ps)
+  rule isDnfConjunction(P, Ps) => isBasePattern(P) andBool isDnfConjunction(Ps) [owise]
+
+  syntax Bool ::= isConjunction(Pattern) [function]
+  rule isConjunction(\and(P)) => true
+  rule isConjunction(_) => false [owise]
 ```
 
 ```k
