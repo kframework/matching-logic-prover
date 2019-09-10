@@ -50,7 +50,7 @@ only in this scenario*.
                    | "\\and"    "(" Patterns ")"                [klabel(and)]
                    | "\\or"     "(" Patterns ")"                [klabel(or)]
                    | "\\implies" "(" Pattern "," Pattern ")"    [klabel(implies)]
-                   
+
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
@@ -308,56 +308,43 @@ Simplifications
   rule #flattenOrs(.Patterns) => .Patterns
 
   syntax Pattern ::= #dnf(Pattern) [function]
+  rule #dnf(\or(Ps)) => \or(#dnfPs(Ps))
+
   syntax Patterns ::= #dnfPs(Patterns) [function]
-  
+
   rule #dnfPs(.Patterns) => .Patterns
   rule #dnfPs(P, Ps) => \and(P), #dnfPs(Ps)
     requires isBasePattern(P)
   rule #dnfPs(\not(P), Ps) => \and(\not(P)), #dnfPs(Ps)
     requires isBasePattern(P)
-  
+
   rule #dnfPs(\not(\and(Ps)), REST)     => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
   rule #dnfPs(\not(\or(Ps)), REST)      => #dnfPs(\and(#not(Ps)), REST)
-//  rule #dnfPs(\not(\exists{Ps} P), REST) => \forall{Ps} (#dnfPs(\not(P)) ++Patterns #dnfPs(REST))
-//  rule #dnfPs(\not(\forall{Ps} P), REST) => \exists{Ps} (#dnfPs(\not(P)) ++Patterns #dnfPs(REST))
   rule #dnfPs(\not(\not(P)), REST)      => #dnfPs(P, REST)
-  
+
   // Distribute \or over \and
   rule #dnfPs(\and(\or(P, Ps1), Ps2), REST)
     => #dnfPs(\and(P, Ps2)) ++Patterns #dnfPs(\and(\or(Ps1), Ps2))
   rule #dnfPs(\and(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
 
-  // need this for termination, not covered in below rules
+  // \and is assoc
   rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
 
   rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
     requires isBasePatternOrNegationPs(Ps)
   rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
     requires notBool isBasePatternOrNegationPs(P, Ps) [owise]
-    
+
   syntax Bool ::= isBasePattern(Pattern) [function]
   rule isBasePattern(S:Symbol(ARGS)) => true
   rule isBasePattern(\equals(L, R)) => true
   rule isBasePattern(\and(_)) => false
   rule isBasePattern(\or(_)) => false
-  
+
   syntax Bool ::= isBasePatternOrNegationPs(Patterns) [function]
   rule isBasePatternOrNegationPs(.Patterns) => true
   rule isBasePatternOrNegationPs(\not(P), Ps) => isBasePattern(P) andBool isBasePatternOrNegationPs(Ps)
   rule isBasePatternOrNegationPs(P, Ps) => isBasePattern(P) andBool isBasePatternOrNegationPs(Ps) [owise]
-
-  // rule #dnf(P) => \or(\and(P)) [owise]
-
-  // rule #dnf(S:Symbol(ARGS)) => \or(\and(S(ARGS)))
-  // rule #dnf(\equals(L, R)) => \or(\and(\equals(L, R)))
-
-  rule #dnf(\not(S:Symbol(ARGS))) => \or(\and(\not(S(ARGS))))
-  // rule #dnf(\equals(L, R)) => \or(\and(\equals(L, R)))
-
-// rule #dnf(\not(P)) => \or(\and(\not(P))) [owise]
-
-  // rule #dnf(\and(Ps)) => \and(#flattenAnds(#dnfPs(Ps))
-  rule #dnf(\or(Ps)) => \or(#dnfPs(Ps))
 ```
 
 ```k
