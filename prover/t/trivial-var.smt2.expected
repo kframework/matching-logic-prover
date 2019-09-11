@@ -14,13 +14,13 @@
         .
       </parent>
       <claim>
-        \forall { Vx { Int } , .Patterns } \or ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns )
+        \implies ( \and ( .Patterns ) , \exists { .Patterns } \and ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns ) )
       </claim>
       <strategy>
         success
       </strategy>
       <trace>
-        .
+        smt ~> ( define-sort SetInt ( .SMTLIB2SortList ) ( Set Int  .SMTLIB2SortList ) )  ( define-fun emptysetx ( .SMTLIB2SortedVarList ) SetInt ( as emptyset SetInt ) )  ( define-fun in ( ( n Int )  ( x SetInt )  .SMTLIB2SortedVarList ) Bool ( member n  x  .SMTLIB2TermList ) )  ( define-fun unionx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) SetInt ( union x  y  .SMTLIB2TermList ) )  ( define-fun intersectx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) SetInt ( intersection x  y  .SMTLIB2TermList ) )  ( define-fun disjointx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) Bool ( = ( intersectx x  y  .SMTLIB2TermList )  emptysetx  .SMTLIB2TermList ) )  ( define-fun setAdd ( ( s SetInt )  ( x Int )  .SMTLIB2SortedVarList ) SetInt ( unionx s  ( singleton x  .SMTLIB2TermList )  .SMTLIB2TermList ) )  ( define-fun setDel ( ( s SetInt )  ( x Int )  .SMTLIB2SortedVarList ) SetInt ( setminus s  ( singleton x  .SMTLIB2TermList )  .SMTLIB2TermList ) )  ( define-fun max ( ( x Int )  ( y Int )  .SMTLIB2SortedVarList ) Int ( ite ( < x  y  .SMTLIB2TermList )  y  x  .SMTLIB2TermList ) )  ( declare-const Vx Int )  ( assert ( => true  ( and ( and ( = Vx  Vx  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList ) )  .SMTLIB2Script
       </trace>
     </goal>
   </goals>

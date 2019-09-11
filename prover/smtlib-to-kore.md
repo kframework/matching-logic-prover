@@ -44,7 +44,7 @@ module SMTLIB-TO-KORE
   rule <k> P:Pattern ~> (check-sat)
         => claim \not(P)
            strategy normalize
-                  ; smtlib-to-implication
+                  ; smtlib-to-implication ; or-split-rhs
                   ; kt ; ( ( right-unfold ; smt )
                          | ( kt-solve-implications(smt) ; normalize
                            ; kt ; ( ( right-unfold-Nth(0, 1) ; normalize

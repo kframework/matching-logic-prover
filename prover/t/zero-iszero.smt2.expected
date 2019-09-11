@@ -26,7 +26,7 @@
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( iszero ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { Int } , 0 ) , \and ( .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , \or ( .Patterns ) , .Patterns ) , .Patterns ) )
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( iszero ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { Int } , 0 ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       symbol iszero ( Int , .Sorts ) : Bool
     </declaration>

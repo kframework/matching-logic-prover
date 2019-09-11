@@ -1,0 +1,38 @@
+<prover>
+  <k>
+    \exists { Vx { Int } , .Patterns } \and ( \not ( isEvenPos ( Vx { Int } , .Patterns ) ) , isDiv4Pos ( Vx { Int } , .Patterns ) , .Patterns ) ~> .SMTLIB2Script
+  </k>
+  <goals>
+    <goal>
+      <id>
+        root
+      </id>
+      <active>
+        true
+      </active>
+      <parent>
+        .
+      </parent>
+      <claim>
+        \implies ( \and ( isDiv4Pos ( Vx { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( isEvenPos ( Vx { Int } , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isDiv4Pos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( < ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isDiv4Pos ( minus ( Vx { Int } , 4 , .Patterns ) , .Patterns ) , \not ( < ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isEvenPos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( < ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isEvenPos ( minus ( Vx { Int } , 2 , .Patterns ) , .Patterns ) , \not ( < ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      symbol isDiv4Pos ( Int , .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol isEvenPos ( Int , .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>
