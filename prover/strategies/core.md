@@ -27,7 +27,7 @@ module PROVER-CORE-SYNTAX
                           | TerminalStrategy
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
-  syntax Strategy ::= "or-split" | "and-split"
+  syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs"
   syntax Strategy ::= "prune" "(" Patterns ")"
 ```
 
@@ -205,9 +205,27 @@ Internal strategy used to implement `or-split` and `and-split`.
        <strategy> or-split => #orSplit(GOALS) ... </strategy>
 
   syntax Strategy ::= "#orSplit" "(" Patterns ")" [function]
-  rule #orSplit(.Patterns) => noop
+  rule #orSplit(.Patterns) => fail
   rule #orSplit(P, .Patterns) => replace-goal(P)
   rule #orSplit(P, Ps) => replace-goal(P) | #orSplit(Ps) [owise]
+```
+
+`or-split-rhs`: disjunctions on the RHS, singular implication
+
+```
+       LHS -> \exists Vs. A /\ REST
+  --------------------------------------
+  LHS -> \exists Vs. ((A \/ B) /\ REST)
+```
+
+```k
+  rule <claim> \implies(LHS, \exists { Vs } \and(\or(RHSs), REST)) </claim>
+       <strategy> or-split-rhs => #orSplitImplication(LHS, Vs, RHSs, REST) ... </strategy>
+
+  syntax Strategy ::= "#orSplitImplication" "(" Pattern "," Patterns "," Patterns "," Patterns ")" [function]
+  rule #orSplitImplication(P, Vs, .Patterns, REST) => replace-goal(\implies(P, \exists{Vs} \and(\or(.Patterns))))
+  rule #orSplitImplication(P1, Vs, (P2, .Patterns), REST) => replace-goal(\implies(P1, \exists{Vs} \and(P2, REST)))
+  rule #orSplitImplication(P1, Vs, (P2, Ps), REST) => replace-goal(\implies(P1, \exists{Vs} \and(P2, REST))) | #orSplitImplication(P1, Vs, Ps, REST) [owise]
 ```
 
 `and-split`: conjunction of implications:

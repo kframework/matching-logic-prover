@@ -14,13 +14,13 @@
         .
       </parent>
       <claim>
-        \implies ( \and ( \equals ( plus ( mult ( Vx { Int } , Vx { Int } , .Patterns ) , mult ( Vy { Int } , Vy { Int } , .Patterns ) , .Patterns ) , mult ( Vz { Int } , Vz { Int } , .Patterns ) ) , gt ( Vz { Int } , 0 , .Patterns ) , gt ( Vy { Int } , 0 , .Patterns ) , gt ( Vx { Int } , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( .Patterns ) )
+        \implies ( \and ( \equals ( plus ( mult ( Vx { Int } , Vx { Int } , .Patterns ) , mult ( Vy { Int } , Vy { Int } , .Patterns ) , .Patterns ) , mult ( Vz { Int } , Vz { Int } , .Patterns ) ) , gt ( Vz { Int } , 0 , .Patterns ) , gt ( Vy { Int } , 0 , .Patterns ) , gt ( Vx { Int } , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( \or ( .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         fail
       </strategy>
       <trace>
-        .
+        smt ~> ( define-sort SetInt ( .SMTLIB2SortList ) ( Set Int  .SMTLIB2SortList ) )  ( define-fun emptysetx ( .SMTLIB2SortedVarList ) SetInt ( as emptyset SetInt ) )  ( define-fun in ( ( n Int )  ( x SetInt )  .SMTLIB2SortedVarList ) Bool ( member n  x  .SMTLIB2TermList ) )  ( define-fun unionx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) SetInt ( union x  y  .SMTLIB2TermList ) )  ( define-fun intersectx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) SetInt ( intersection x  y  .SMTLIB2TermList ) )  ( define-fun disjointx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) Bool ( = ( intersectx x  y  .SMTLIB2TermList )  emptysetx  .SMTLIB2TermList ) )  ( define-fun setAdd ( ( s SetInt )  ( x Int )  .SMTLIB2SortedVarList ) SetInt ( unionx s  ( singleton x  .SMTLIB2TermList )  .SMTLIB2TermList ) )  ( define-fun setDel ( ( s SetInt )  ( x Int )  .SMTLIB2SortedVarList ) SetInt ( setminus s  ( singleton x  .SMTLIB2TermList )  .SMTLIB2TermList ) )  ( define-fun max ( ( x Int )  ( y Int )  .SMTLIB2SortedVarList ) Int ( ite ( < x  y  .SMTLIB2TermList )  y  x  .SMTLIB2TermList ) )  ( declare-const Vz Int )  ( declare-const Vy Int )  ( declare-const Vx Int )  ( assert ( => ( and ( = ( + ( * Vx  Vx  .SMTLIB2TermList )  ( * Vy  Vy  .SMTLIB2TermList )  .SMTLIB2TermList )  ( * Vz  Vz  .SMTLIB2TermList )  .SMTLIB2TermList )  ( > Vz  0  .SMTLIB2TermList )  ( > Vy  0  .SMTLIB2TermList )  ( > Vx  0  .SMTLIB2TermList )  .SMTLIB2TermList )  ( and ( and false  .SMTLIB2TermList )  .SMTLIB2TermList )  .SMTLIB2TermList ) )  .SMTLIB2Script
       </trace>
     </goal>
   </goals>
