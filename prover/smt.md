@@ -65,6 +65,7 @@ module SMTLIB2
                           | "(" "define-fun-rec"   SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
                           | "(" "declare-datatype" SMTLIB2Symbol SMTLIB2DatatypeDec ")"
                           | "(" "define-sort"      SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "set-logic"        SMTLIB2Symbol ")"
                           | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 

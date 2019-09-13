@@ -4,6 +4,7 @@ module SMTLIB-TO-KORE
   imports KORE-HELPERS
   imports PROVER-CONFIGURATION
   imports SMTLIB2
+  imports SMTLIB-SL
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
 
@@ -17,6 +18,8 @@ module SMTLIB-TO-KORE
            ...
        </k>
 
+  rule <k> \exists { Us } \and(Ps) ~> ((set-logic _) => .) ... </k>
+
   rule <k> \exists { Us } \and(Ps) ~> (assert TERM)
         => \exists { Us } \and(SMTLIB2TermToPattern(TERM, Us), Ps)
            ...
@@ -26,6 +29,15 @@ module SMTLIB-TO-KORE
         => \exists { SMTLIB2SimpleSymbolToVariableName(ID) { SMTLIB2SortToSort(SORT) }, Us } \and(Ps)
            ...
        </k>
+
+  rule <k> \exists { Us } \and(Ps) ~> (declare-heap (LOC DATA) .SMTLIB2SortPairList)
+        => \exists { Us } \and(Ps)
+           ...
+       </k>
+       <declarations> ( .Bag
+                     => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Bool </declaration>
+                      ) ...
+       </declarations>
 
   rule <k> \exists { Us } \and(Ps) ~> (define-fun-rec ID (ARGS) RET BODY)
         => \exists { Us } \and(Ps)

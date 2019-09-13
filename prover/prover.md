@@ -97,6 +97,7 @@ module PROVER-SYNTAX
   imports PROVER-COMMON
   imports TOKENS-SYNTAX
   imports SMTLIB2-SYNTAX
+  imports SMTLIB-SL
   syntax Declarations ::= "" [klabel(.Declarations)]
 endmodule
 ```

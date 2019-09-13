@@ -69,6 +69,9 @@ only in this scenario*.
                   | "add"           [token]
                   | "del"           [token]
 
+  // sep-logic symbols
+  syntax LowerName ::= "pto" [token]
+
   // Arith
   syntax Symbol ::= "plus"          [token]
                   | "minus"         [token]
