@@ -21,6 +21,7 @@ endmodule
 module KORE-SUGAR
   imports TOKENS
   imports INT-SYNTAX
+  imports BOOL-SYNTAX
   imports STRING-SYNTAX
 
   syntax Ints ::= List{Int, ","}
@@ -55,7 +56,8 @@ only in this scenario*.
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
                      /* Sugar for \iff, \mu and application */
-                   | "\\iff-lfp" "(" Pattern "," Pattern ")"     [klabel(ifflfp)]
+                   | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
+                   | "functional" "(" Symbol ")"                 
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
@@ -68,6 +70,7 @@ only in this scenario*.
                   | "isMember"      [token]
                   | "add"           [token]
                   | "del"           [token]
+                  | Bool
 
   // sep-logic symbols
   syntax LowerName ::= "pto" [token]

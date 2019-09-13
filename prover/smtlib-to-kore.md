@@ -36,6 +36,7 @@ module SMTLIB-TO-KORE
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Bool </declaration>
+                        <declaration> axiom functional(pto) </declaration>
                       ) ...
        </declarations>
 
@@ -50,6 +51,7 @@ module SMTLIB-TO-KORE
                                                  , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)))
                                                  )
                         </declaration>
+                        <declaration> axiom functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
                       ) ...
        </declarations>
 
