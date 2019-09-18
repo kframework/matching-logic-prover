@@ -5,7 +5,7 @@ fmod CHECKER is protecting NAT + STRING .
 ---------------------------------------
 
 sort Id .
-op `(_`) : NzNat -> Id .
+op `(_`) : Nat -> Id .
 
 sort Proof .
 op ___; : Id Digest Rule -> Proof [prec 40] .
@@ -20,9 +20,9 @@ eq ID:Id D:Digest R:Rule ; S:String = ID:Id D:Digest R:Rule ; .
 sorts AtomicPattern Digest .
 subsort AtomicPattern Id < Digest .
 
-op `(\evar_`) : NzNat -> AtomicPattern .
-op `(\svar_`) : NzNat -> AtomicPattern .
-op `(\symb_`) : NzNat -> AtomicPattern .
+op `(\evar`) : -> AtomicPattern .
+op `(\svar`) : -> AtomicPattern .
+op `(\symb`) : -> AtomicPattern .
 op `(\bot`) : -> AtomicPattern .
 op `(\app__`) : Id Id -> Digest .
 op `(\imp__`) : Id Id -> Digest .
@@ -203,32 +203,26 @@ eq (N) proved-in Pi = false [owise] .
 
 ---- Check if a pattern is an element variable.
 op _is-evar-in_ : Id Proof -> Bool [prec 50] .
-eq (N) is-evar-in Pi1 ((N) (\evar (M)) (WF) ;) Pi2 = true .
+eq (N) is-evar-in Pi1 ((N) (\evar) (WF) ;) Pi2 = true .
 eq (N) is-evar-in Pi = false [owise] .
 
 ---- Check if a pattern is a set variable.
 op _is-svar-in_ : Id Proof -> Bool [prec 50] .
-eq (N) is-svar-in Pi1 ((N) (\svar (M)) (WF) ;) Pi2 = true .
+eq (N) is-svar-in Pi1 ((N) (\svar) (WF) ;) Pi2 = true .
 eq (N) is-svar-in Pi = false [owise] .
 
 ---- Check if a pattern is a variable.
 op _is-var-in_ : Id Proof -> Bool [prec 50] .
 eq (N) is-var-in Pi = (N) is-evar-in Pi or (N) is-svar-in Pi .
 
----- Check if a patter is the successor element variable of the other pattern.
-op _is-succ-evar-of_in_ : Id Id Proof -> Bool [prec 50] .
-ceq (N) is-succ-evar-of (M) in Pi
-  = (N) is-evar-in Pi and (M) is-evar-in Pi
-    and N1 == M1 + 1
- if (\evar M1) := Pi[N] /\ (\evar N1) := Pi[N] .
-
-
 ---------------------------------------
 ---- Well-formedness checking
 ---------------------------------------
 
-eq Pi |- ((N) (\evar M) (WF) ;) = true .
-eq Pi |- ((N) (\svar M) (WF) ;) = true .
+eq Pi |- ((0) (\bot) (WF) ;) = true .
+eq Pi |- ((N:NzNat) (\bot) (WF) ;) = false .
+eq Pi |- ((N) (\evar) (WF) ;) = true .
+eq Pi |- ((N) (\svar) (WF) ;) = true .
 eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
 eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
