@@ -22,7 +22,7 @@ op proof-3 : -> Proof .
 eq proof-3 =
 (1) (\evar 1) (WF) ;
 (2) (\evar 2) (WF) ;
-(3) (\ex (1)) (WF) ; " \ex x1 . x1 "
+(3) (\ex (1) (1)) (WF) ; " \ex x1 . x1 "
 (4) (\imp (1) (3)) (WF) ; " x1 -> \ex x1 . x1 "
 (5) (4) (ExistQ (3) (1)) ;
 (6) (\imp (2) (3)) (WF) ; " x2 -> \ex x1 . x1 "
@@ -31,7 +31,7 @@ eq proof-3 =
 
 endfm
 
----reduce check(proof-1) .
-reduce check(proof-3) .
+reduce check(proof-1) .
+---- reduce check(proof-3) .
 
 quit

@@ -1,5 +1,9 @@
 fmod CHECKER is protecting NAT + STRING .
 
+---------------------------------------
+---- Proof object definition
+---------------------------------------
+
 sort Id .
 op `(_`) : NzNat -> Id .
 
@@ -12,9 +16,6 @@ op ___;_ : Id Digest Rule String -> Proof [prec 40] .
 eq ID:Id D:Digest R:Rule ; S:String = ID:Id D:Digest R:Rule ; .
 
 ---- AtomicPattern contains element/set variables, symbols, and \bottom.
----- We use De Brujin indices to avoid alpha-equivalence checking.
----- Digest is either AtomicPattern or constructs applied to IDs (referring to sub-patterns).
----- Note that Digest is not an inductive data type.
 
 sorts AtomicPattern Digest .
 subsort AtomicPattern Id < Digest .
@@ -25,8 +26,8 @@ op `(\symb_`) : NzNat -> AtomicPattern .
 op `(\bot`) : -> AtomicPattern .
 op `(\app__`) : Id Id -> Digest .
 op `(\imp__`) : Id Id -> Digest .
-op `(\ex_`) : Id -> Digest . ---- De Brujin indices
-op `(\mu_`) : Id -> Digest . ---- De Brujin indices
+op `(\ex__`) : Id Id -> Digest . 
+op `(\mu__`) : Id Id -> Digest . 
 
 ---- Rule annotations
 ---- Rules are divided into the following two categories:
@@ -39,6 +40,7 @@ sort Rule .
 
 ---- Wellformedness
 op `(WF`) : -> Rule . 
+op `(NotOccurFree__`) : Id Id -> Rule . ---- x doesn't occur free in p
 
 ---- Provability
 
@@ -71,40 +73,56 @@ op `(KT_`) : Id -> Rule . ---- p[r/X] -> q deduces (\mu X . p) -> q, order &prem
 op `(Existence`) : -> Rule . ---- \ex x . x
 op `(Singleton`) : -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) !!!
 
+
+---------------------------------------
+---- Proof checking definition
+---------------------------------------
+
 vars Phi Psi P Q R : Digest .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
 vars M M1 M2 N N1 N2 : NzNat .
 
----- Proof checking
+---------------------------------------
+---- Proof check:
+----   PC1: check ids are (1) (2) (3) ...
+----   PC2: check each proof step is correct
+---------------------------------------
+
 op check : Proof -> Bool .
 op check-id : Proof -> Bool .
-op check-rule : Proof -> Bool .
-eq check(Pi) = check-id(Pi) and check-rule(Pi) .
+op check-step : Proof -> Bool .
+eq check(Pi) = check-id(Pi) and check-step(Pi) .
 
----- Check that step IDs are (1) (2) (3) ...
+---------------------------------------
+---- PC1: check ids
+---------------------------------------
+
 op check-id-aux : Proof NzNat -> Bool .
 eq check-id(Pi) = check-id-aux(Pi, 1) .
 eq check-id-aux(.Proof, N) = true .
 eq check-id-aux(((N) Phi Rl ; Pi), N) = check-id-aux(Pi, N + 1) .
 eq check-id-aux(Pi, N) = false [owise] .
 
----- In the following, we assume proofs pass the Id check. 
 
----- lookup an Id
+---------------------------------------
+---- Some auxilliary definitions
+---------------------------------------
+
+---- Pattern lookup
 op _[_] : Proof NzNat -> [Digest] .
 eq (Pi1 ((N) Phi Rl ;) Pi2) [N] = Phi .
 
-
----- ExDigest extends Digest by allowing nested constructs.
----- This is useful when we implementing the actual proof checking rules later.
+---- Auxilliary data structures: ExDigest,
+---- which extends Digest by allowing *nested* constructs.
+---- This is useful for proof checking.
 
 sort ExDigest . subsort Digest < ExDigest .
 
 op `(\app__`) : ExDigest ExDigest -> ExDigest .
 op `(\imp__`) : ExDigest ExDigest -> ExDigest .
-op `(\ex_`) : ExDigest -> ExDigest . ---- De Brujin indices
-op `(\mu_`) : ExDigest -> ExDigest . ---- De Brujin indices
+op `(\ex__`) : ExDigest ExDigest -> ExDigest . 
+op `(\mu__`) : ExDigest ExDigest -> ExDigest . 
 
 vars EP EQ EP1 EP2 EQ1 EQ2 : ExDigest .
 
@@ -123,7 +141,7 @@ vars EP EQ EP1 EP2 EQ1 EQ2 : ExDigest .
 ---- eq expand( (Pi1 ((N) (\mu (M1) (M2)) Rl ;) Pi2), N)
 ----  = (\mu (expand(Pi1, M1)) (expand(Pi1, M2))) .
 
----- Equivalence checking for ExDigest without fully expanding them, for good performace. 
+---- Check if two ExDigest are equal *without* fully expanding them.
 op eq? : Proof ExDigest ExDigest -> Bool .
 eq eq?(Pi, EP, EP) = true .
 ceq eq?(Pi, (M), (N)) = eq?(Pi, (N), (M)) if M > N .
@@ -134,20 +152,25 @@ eq eq?(Pi, EP, (M)) = eq?(Pi, (M), EP) .
 eq eq?(Pi, (M), EP) = eq?(Pi, Pi[M], EP) .
 eq eq?(Pi, (\app EP1 EP2), (\app EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
 eq eq?(Pi, (\imp EP1 EP2), (\imp EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, (\ex EP), (\ex EQ)) = eq?(Pi, EP, EQ) .
-eq eq?(Pi, (\mu EP), (\mu EQ)) = eq?(Pi, EP, EQ) .
+eq eq?(Pi, (\ex EP1 EP2), (\ex EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\mu EP1 EP2), (\mu EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
 eq eq?(Pi, EP, EQ) = false [owise] .
 
----- Checking rules.
+
+---------------------------------------
+---- PC2: check steps
+---------------------------------------
 
 ---- Put a marker that separates the part that is checked from the rest. 
-op _check-rule-marker_ : Proof Proof -> Bool [format(g bn nr o)] .
-eq check-rule(Pi) = .Proof check-rule-marker Pi .
-eq Pi check-rule-marker .Proof = true .
+
+op _check-step-marker_ : Proof Proof -> Bool [format(g bn nr o)] .
+eq check-step(Pi) = .Proof check-step-marker Pi .
+eq Pi check-step-marker .Proof = true .
 
 ---- Proceed the proof step by step.
-ceq Pi1 check-rule-marker (((N) Phi Rl ;) Pi2)
-  = (Pi1 ((N) Phi Rl ;)) check-rule-marker Pi2
+
+ceq Pi1 check-step-marker (((N) Phi Rl ;) Pi2)
+  = (Pi1 ((N) Phi Rl ;)) check-step-marker Pi2
  if Pi1 |- ((N) Phi Rl ;) .
 op _|-_ : Proof Proof -> Bool [prec 46] .
 
@@ -173,8 +196,8 @@ ceq (N) is-succ-evar-of (M) in Pi
 ---- (WF): wellformedness checking
 eq Pi |- ((N) (\evar M) (WF) ;) = true .
 eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
-eq Pi |- ((N) (\ex (M)) (WF) ;)
- = M < N and (M) is-evar-in Pi .
+eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
+ = M1 < N and M2 < N and (M1) is-evar-in Pi .
 
 ---- NFV: check a variable doesn't occur free
 ---- eq Pi |- (N) (#nfv (M1) (M2)) (NFV-evar) ;
@@ -200,10 +223,6 @@ eq Pi |- (N) (M) (MP P Q) ;
 ---- Checking FOL rules
 
 ---- ExistsQ
-ceq Pi |- (N) (M) (ExistQ P Q) ;
- if P' = expand(P, Pi)
- /\ Q' = expand(Q, Pi)
- /\ 
 
 endfm
 
