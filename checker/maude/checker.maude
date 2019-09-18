@@ -97,7 +97,7 @@ op `(Singleton`) : -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) !!!
 vars Phi Psi P Q R : Digest .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
-vars M M1 M2 N N1 N2 : NzNat .
+vars M M1 M2 N N1 N2 M21 M22 : Nat .
 
 ---------------------------------------
 ---- Proof check:
@@ -115,9 +115,11 @@ eq check(Pi) = check-id(Pi) and check-step(Pi) .
 ---------------------------------------
 
 op check-id-aux : Proof NzNat -> Bool .
-eq check-id(Pi) = check-id-aux(Pi, 1) .
-eq check-id-aux(.Proof, N) = true .
-eq check-id-aux(((N) Phi Rl ; Pi), N) = check-id-aux(Pi, N + 1) .
+op check-id0 : Proof -> Bool .
+eq check-id(Pi) = check-id-aux(Pi, 0) .
+eq check-id-aux(.Proof, N) = N >= 1 .
+eq check-id-aux(((0) (\bot) (WF) ; Pi), 0) = check-id-aux(Pi, 1) .
+eq check-id-aux(((N:NzNat) Phi Rl ; Pi), N:NzNat) = check-id-aux(Pi, N:NzNat + 1) .
 eq check-id-aux(Pi, N) = false [owise] .
 
 
@@ -223,6 +225,7 @@ eq Pi |- ((0) (\bot) (WF) ;) = true .
 eq Pi |- ((N:NzNat) (\bot) (WF) ;) = false .
 eq Pi |- ((N) (\evar) (WF) ;) = true .
 eq Pi |- ((N) (\svar) (WF) ;) = true .
+eq Pi |- ((N) (\symb) (WF) ;) = true .
 eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
 eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
@@ -245,6 +248,27 @@ ceq Pi |- (N) (#nf (M1) (M2)) Rl ;
 ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeBasic) ;
   = true
  if (M2) is-var-in Pi and M1 =/= M2 .
+
+eq Pi |- (N) (#nf (M1) (0)) (NotOccurFreeBasic) ;
+ = true .
+
+eq Pi1 ((M2) (\symb) (WF) ;) Pi2 |- (N) (#nf (M1) (M2)) (NotOccurFreeBasic) ;
+ = true .
+
+ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeImp (N1) (N2)) ;
+ = true 
+ if (#nf (M1) (M21)) := Pi[N1]
+ /\ (#nf (M1) (M22)) := Pi[N2]
+ /\ eq?(Pi, (M2), (\imp (M21) (Mr22))) .
+
+ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeApp (N1) (N2)) ;
+ = true 
+ if (#nf (M1) (M21)) := Pi[N1]
+ /\ (#nf (M1) (M22)) := Pi[N2]
+ /\ eq?(Pi, (M2), (\app (M21) (Mr22))) .
+
+ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeExBinding) ;
+ = true
 
 ---------------------------------------
 ---- Some auxiliary checking functions.
