@@ -35,8 +35,9 @@ module SMTLIB-TO-KORE
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Bool </declaration>
-                        <declaration> axiom functional(pto) </declaration>
+                     => <declaration> sort Heap </declaration>
+                        <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
+                        <declaration> axiom partial(pto) </declaration>
                       ) ...
        </declarations>
 

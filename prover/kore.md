@@ -29,6 +29,7 @@ module KORE-SUGAR
                 | "Int"         [token]
                 | "ArrayIntInt" [token]
                 | "SetInt"      [token]
+                | "Heap"        [token]
 ```
 
 We allow two "variaties" of variables: the first, identified by a String, is for
@@ -57,7 +58,8 @@ only in this scenario*.
 
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
-                   | "functional" "(" Symbol ")"                 
+                   | "functional" "(" Symbol ")"
+                   | "partial" "(" Symbol ")"
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
@@ -70,10 +72,9 @@ only in this scenario*.
                   | "isMember"      [token]
                   | "add"           [token]
                   | "del"           [token]
-                  | Bool
 
   // sep-logic symbols
-  syntax LowerName ::= "pto" [token]
+  syntax LowerName ::= "pto"  [token]
 
   // Arith
   syntax Symbol ::= "plus"          [token]
@@ -91,6 +92,7 @@ only in this scenario*.
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
 
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
+  syntax SortDeclaration ::= "sort" Sort
 endmodule
 ```
 
