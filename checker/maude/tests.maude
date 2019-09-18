@@ -34,4 +34,16 @@ endfm
 reduce check(proof-1) .
 ---- reduce check(proof-3) .
 
+reduce check(
+
+(1) (\evar 1) (WF) ;
+(2) (\evar 2) (WF) ;
+(3) (\svar 1) (WF) ;
+(4) (\evar 1) (WF) ;
+(5) (#nf (1) (2)) (NotOccurFreeBasic) ;
+(6) (#nf (1) (3)) (NotOccurFreeBasic) ;
+(7) (#nf (1) (4)) (NotOccurFreeBasic) ;
+
+) .
+
 quit

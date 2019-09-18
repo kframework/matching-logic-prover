@@ -29,6 +29,11 @@ op `(\imp__`) : Id Id -> Digest .
 op `(\ex__`) : Id Id -> Digest . 
 op `(\mu__`) : Id Id -> Digest . 
 
+---- metalevel property
+
+---- (variable) not occur free in (pattern)
+op `(#nf__`) : Id Id -> Digest .
+
 ---- Rule annotations
 ---- Rules are divided into the following two categories:
 ----   1. (WF), which proves that a pattern is wellformed.
@@ -39,8 +44,18 @@ op `(\mu__`) : Id Id -> Digest .
 sort Rule .
 
 ---- Wellformedness
+
 op `(WF`) : -> Rule . 
-op `(NotOccurFree__`) : Id Id -> Rule . ---- x doesn't occur free in p
+
+---- Substitution related
+
+op `(NotOccurFreeBasic`) : -> Rule .
+op `(NotOccurFreeApp__`) : Id Id -> Rule .
+op `(NotOccurFreeImp__`) : Id Id -> Rule .
+op `(NotOccurFreeExBinding_`) : Id -> Rule .
+op `(NotOccurFreeExBody_`) : Id -> Rule .
+op `(NotOccurFreeMuBinding_`) : Id -> Rule .
+op `(NotOccurFreeMuBody_`) : Id -> Rule .
 
 ---- Provability
 
@@ -63,6 +78,7 @@ op `(PropagationExL___`) : Id Id Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q
 op `(PropagationExR___`) : Id Id Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: x p q
 op `(FrameL_`) : Id -> Rule . ---- p -> q deduces p r -> q r
 op `(FrameR_`) : Id -> Rule . ---- p -> q deduces r p -> r q
+
 
 ---- Fixpoint rules
 op `(SVarSubst___`) : Id Id Id -> Rule . ---- p deduces p[q/X], order &p, X, q
@@ -174,7 +190,11 @@ ceq Pi1 check-step-marker (((N) Phi Rl ;) Pi2)
  if Pi1 |- ((N) Phi Rl ;) .
 op _|-_ : Proof Proof -> Bool [prec 46] .
 
----- Some auxiliary functions. We might want to eliminate them in the future.
+
+---------------------------------------
+---- Some auxiliary checking functions.
+---- Eliminate them in the future.
+---------------------------------------
 
 ---- Check if a pattern is proved to be provable (not just wellformed).
 op _proved-in_ : Id Proof -> Bool [prec 50] .
@@ -186,6 +206,15 @@ op _is-evar-in_ : Id Proof -> Bool [prec 50] .
 eq (N) is-evar-in Pi1 ((N) (\evar (M)) (WF) ;) Pi2 = true .
 eq (N) is-evar-in Pi = false [owise] .
 
+---- Check if a pattern is a set variable.
+op _is-svar-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-svar-in Pi1 ((N) (\svar (M)) (WF) ;) Pi2 = true .
+eq (N) is-svar-in Pi = false [owise] .
+
+---- Check if a pattern is a variable.
+op _is-var-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-var-in Pi = (N) is-evar-in Pi or (N) is-svar-in Pi .
+
 ---- Check if a patter is the successor element variable of the other pattern.
 op _is-succ-evar-of_in_ : Id Id Proof -> Bool [prec 50] .
 ceq (N) is-succ-evar-of (M) in Pi
@@ -193,18 +222,40 @@ ceq (N) is-succ-evar-of (M) in Pi
     and N1 == M1 + 1
  if (\evar M1) := Pi[N] /\ (\evar N1) := Pi[N] .
 
----- (WF): wellformedness checking
+
+---------------------------------------
+---- Well-formedness checking
+---------------------------------------
+
 eq Pi |- ((N) (\evar M) (WF) ;) = true .
+eq Pi |- ((N) (\svar M) (WF) ;) = true .
 eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
 eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
 
----- NFV: check a variable doesn't occur free
----- eq Pi |- (N) (#nfv (M1) (M2)) (NFV-evar) ;
-----  = M1 < N and M2 < N and (M1) is-evar-in Pi and (M2) is-evar-in Pi
-----    and not eq?(Pi, (M1), (M2)) .
+---------------------------------------
+---- Substitution related checking
+---------------------------------------
 
----- (Substitution phi psi x): check substitution result
+---- (Substitution phi psi x)
+
+---- (NotOccurFree x p) holds if
+----   x doesn't occur free in p
+---- where x is an element/set variable
+---- and p is a pattern
+
+ceq Pi |- (N) (#nf (M1) (M2)) Rl ;
+  = false
+ if M1 >= N or M2 >= N or not (M1) is-var-in Pi .
+
+ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeBasic) ;
+  = true
+ if (M2) is-var-in Pi and M1 =/= M2 .
+
+---------------------------------------
+---- Some auxiliary checking functions.
+---- Eliminate them in the future.
+---------------------------------------
 
 ---- PropK
 eq Pi |- (N) (M) (PropK P Q) ;
