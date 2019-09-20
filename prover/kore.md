@@ -93,6 +93,11 @@ only in this scenario*.
 
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
+
+  syntax Declaration ::= "imports" String
+                       | "axiom" Pattern
+                       | SymbolDeclaration
+                       | SortDeclaration
 endmodule
 ```
 

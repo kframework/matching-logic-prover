@@ -21,6 +21,11 @@
   (= (sep1 (sep1 H1 H2) H3) (sep1 H1 (sep1 H2 H3)))
 )
 
+;; (x |-> a) * (x |-> b) = bottom
+(define-fun sep-disjoint ((x Int) (a Int) (b Int)) Bool
+  (= (sep1 (pto1 x a) (pto1 x b)) (as emptyset (Set Heap)))
+)
+
 ;; partial function axiom
 (define-fun partial-pto-skolem ((x Int) (y Int) (H Heap)) Bool
   (or (= (pto1 x y) (singleton H))
@@ -38,18 +43,22 @@
 (declare-const a Int)
 (declare-const b Int)
 
-(declare-const Ha Heap)
-(declare-const Hb Heap)
+(assert (exists ((Ha Heap)) (partial-pto-skolem x a Ha)))
+(assert (exists ((Hb Heap)) (partial-pto-skolem x b Hb)))
 
-(assert (partial-pto-skolem x a Ha))
-(assert (partial-pto-skolem x b Hb))
-
-(assert (injectivity-pto-skolem x a x b Ha))
-(assert (injectivity-pto-skolem x a x b Hb))
+(assert (forall ((Ha Heap)) (injectivity-pto-skolem x a x b Ha)))
+(assert (forall ((Hb Heap)) (injectivity-pto-skolem x a x b Hb)))
 
 (assert (not (= (pto1 x a) (as emptyset (Set Heap)))))
 
-(assert (= (pto1 x a) (pto1 x b)))
+(declare-const HH (Set Heap))
+
+(assert (sep-disjoint x a b))
+(assert (= HH (sep1 (pto1 x a) (pto1 x b))))
+(assert (not (= HH (as emptyset (Set Heap)))))
+
 (assert (not (= a b)))
 
 (check-sat)
+
+(get-model)

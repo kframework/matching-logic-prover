@@ -38,6 +38,8 @@ module SMTLIB-TO-KORE
                      => <declaration> sort Heap </declaration>
                         <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
                         <declaration> axiom partial(pto) </declaration>
+                        // <declaration> axiom injective(pto) </declaration>
+                        // <declaration> axiom heap </declaration>
                       ) ...
        </declarations>
 
@@ -57,22 +59,23 @@ module SMTLIB-TO-KORE
        </declarations>
 
   rule <k> P:Pattern ~> (check-sat)
-        => claim \not(P)
-           strategy normalize
-                  ; smtlib-to-implication ; or-split-rhs
-                  ; kt ; ( ( right-unfold ; smt )
-                         | ( kt-solve-implications(smt) ; normalize
-                           ; kt ; ( ( right-unfold-Nth(0, 1) ; normalize
-                                    ; right-unfold-Nth(0, 1) ; normalize
-                                    ; right-unfold-Nth(0, 0) ; normalize
-                                    ; smt
-                                    )
-                                  | ( kt-solve-implications(smt) ; normalize
-                                    ; smt
-                                    )
-                                  )
-                           )
-                         ) ~> P ... </k>
+        => claim \not(P) strategy smt-cvc4 ~> P ... </k>
+        // => claim \not(P)
+        //    strategy normalize
+        //           ; smtlib-to-implication ; or-split-rhs
+        //           ; kt ; ( ( right-unfold ; smt )
+        //                  | ( kt-solve-implications(smt) ; normalize
+        //                    ; kt ; ( ( right-unfold-Nth(0, 1) ; normalize
+        //                             ; right-unfold-Nth(0, 1) ; normalize
+        //                             ; right-unfold-Nth(0, 0) ; normalize
+        //                             ; smt
+        //                             )
+        //                           | ( kt-solve-implications(smt) ; normalize
+        //                             ; smt
+        //                             )
+        //                           )
+        //                    )
+        //                  ) ~> P ... </k>
 
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
   rule #normalizeDefinition(\or(Ps)) => \or(#addExistentials(#flattenOrs(#dnfPs(Ps))))

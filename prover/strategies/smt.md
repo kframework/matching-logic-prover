@@ -12,12 +12,48 @@ module ML-TO-SMTLIB2
   imports KORE-SUGAR
   imports KORE-HELPERS
   imports STRATEGY-UNFOLDING
+  imports PROVER-DRIVER
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
   rule ML2SMTLIB(PATTERN)
     => declareVariables(getUniversalVariables(PATTERN)) ++SMTLIB2Script
        declareUninterpretedFunctions(removeDuplicates(getUnfoldables(PATTERN))) ++SMTLIB2Script
        (assert PatternToSMTLIB2Term(PATTERN))
+
+  syntax SMTLIB2Script ::= ML2SMTLIBDecls(Pattern, Declarations) [function]
+  syntax SMTLIB2Script ::= DeclarationsToSMTLIB(Declarations) [function]
+  rule ML2SMTLIBDecls(PATTERN, DECLS)
+    => declareVariables(getUniversalVariables(PATTERN)) ++SMTLIB2Script
+       DeclarationsToSMTLIB(DECLS) ++SMTLIB2Script
+       (assert PatternToSMTLIB2Term(PATTERN))
+
+  syntax SMTLIB2Script ::= DeclarationsToSMTLIB(Declarations) [function]
+
+  rule DeclarationsToSMTLIB(.Declarations) => .SMTLIB2Script
+  rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
+    => (declare-fun SymbolToSMTLIB2Symbol(S) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
+       DeclarationsToSMTLIB(Ds)
+    requires isFunctional(S)  
+
+  rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
+    => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) (Set SortToSMTLIB2Sort(SORT)) ) ++SMTLIB2Script
+       DeclarationsToSMTLIB(Ds)
+    requires notBool isFunctional(S)
+
+  syntax Bool ::= isFunctional(Symbol) [function]
+  rule [[ isFunctional(S) => true ]]
+       <declaration> axiom functional(S) </declaration>
+  rule isFunctional(S) => false [owise]
+
+  rule [[ DeclarationsToSMTLIB((axiom partial(_)) Ds) => (assert (forall ( freshSMTLIB2SortedVarList(SortsToSMTLIB2SortList(ARGS))) true)) ++SMTLIB2Script
+          DeclarationsToSMTLIB(Ds)
+        ]]
+       <declaration> symbol S(ARGS) : SORT </declaration>
+
+  rule DeclarationsToSMTLIB((sort SORT) Ds) => (declare-sort SortToSMTLIB2Sort(SORT) 0) ++SMTLIB2Script DeclarationsToSMTLIB(Ds)
+
+  rule DeclarationsToSMTLIB((axiom \forall { Vs } \iff-lfp(_, _)) Ds) => DeclarationsToSMTLIB(Ds)
+  rule DeclarationsToSMTLIB((axiom functional(_)) Ds) => DeclarationsToSMTLIB(Ds)
 
   // TODO: All symbols must be functional!
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]
@@ -69,11 +105,16 @@ module ML-TO-SMTLIB2
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   rule SymbolToSMTLIB2Symbol(S:Symbol) => StringToSMTLIB2SimpleSymbol(SymbolToString(S))
 
+  syntax SMTLIB2Symbol ::= SymbolToSMTLIB2SymbolFresh(Symbol) [function]
+  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
+  rule SymbolToSMTLIB2SymbolFresh(S:Symbol) => StringToSMTLIB2SimpleSymbol("fresh_" +String SymbolToString(S))
+
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
   rule SortToSMTLIB2Sort(Int:Sort) => Int:SMTLIB2Sort
   rule SortToSMTLIB2Sort(Bool:Sort) => Bool:SMTLIB2Sort
   rule SortToSMTLIB2Sort(SetInt:Sort) => SetInt:SMTLIB2Sort
   rule SortToSMTLIB2Sort(ArrayIntInt) => ( Array Int Int ):SMTLIB2Sort
+  rule SortToSMTLIB2Sort(Heap:Sort) => Heap:SMTLIB2Sort
 
   syntax SMTLIB2SortList ::= SortsToSMTLIB2SortList(Sorts) [function]
   rule SortsToSMTLIB2SortList(S, Ss) => SortToSMTLIB2Sort(S) SortsToSMTLIB2SortList(Ss)
@@ -136,6 +177,12 @@ module ML-TO-SMTLIB2
   syntax SMTLIB2SimpleSymbol ::= VariableNameToSMTLIB2SimpleSymbol(VariableName) [function]
   rule VariableNameToSMTLIB2SimpleSymbol(V) => StringToSMTLIB2SimpleSymbol(VariableNameToString(V))
 
+  syntax SMTLIB2SimpleSymbol  ::= freshSMTLIB2SimpleSymbol(Int)              [freshGenerator, function, functional]
+  syntax SMTLIB2SortedVarList ::= freshSMTLIB2SortedVarList(SMTLIB2SortList) [function]
+  rule freshSMTLIB2SimpleSymbol(I:Int) => StringToSMTLIB2SimpleSymbol("x" +String Int2String(I))
+  rule freshSMTLIB2SortedVarList(.SMTLIB2SortList) => .SMTLIB2SortedVarList
+  rule freshSMTLIB2SortedVarList(SORT SORTs) => ( !V:SMTLIB2SimpleSymbol SORT ) freshSMTLIB2SortedVarList(SORTs)
+
   syntax SMTLIB2Script ::= declareVariables(Patterns) [function]
   rule declareVariables( .Patterns ) => .SMTLIB2Script
   rule declareVariables( NAME { SORT } , Ps )
@@ -184,13 +231,36 @@ module STRATEGY-SMT
 
   rule <claim> GOAL </claim>
        <strategy> smt-cvc4
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ==K unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))) ==K unsat
                   then success
                   else fail
                   fi
                   ...
        </strategy>
        <trace> .K => smt-cvc4 ... </trace>
+
+  syntax DeclarationCelLSet
+  syntax Declarations ::= #collectDeclarations(Declarations) [function]
+
+  rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
+    <declaration> D </declaration>
+    requires notBool (D inDecls Ds) andBool notBool isSortDeclaration(D)
+
+  // We need to gather sort declarations last so sorts are declared correctly
+  // when translating to smt
+  // TODO: do we need to gather symbol decs last as well?
+  rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
+    <declaration> (sort _ #as D:Declaration) </declaration>
+    requires notBool (D inDecls Ds)
+    [owise]
+
+  rule #collectDeclarations(Ds) => Ds [owise]
+
+  syntax Bool ::= Declaration "inDecls" Declarations [function]
+  rule _ inDecls .Declarations => false
+  rule D inDecls D Ds => true
+  rule D inDecls D' Ds => D inDecls Ds
+    requires D =/=K D'
 ```
 
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.

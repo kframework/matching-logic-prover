@@ -11,10 +11,7 @@ or, by requiring several strategies succeed.
 module PROVER-CORE-SYNTAX
   imports KORE-SUGAR
 
-  syntax Declaration ::= "imports" String
-                       | "claim" Pattern "strategy" Strategy
-                       | SymbolDeclaration
-                       | "axiom" Pattern
+  syntax Declaration ::= "claim" Pattern "strategy" Strategy
 ```
 
 ```k

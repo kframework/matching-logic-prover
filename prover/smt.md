@@ -65,6 +65,7 @@ module SMTLIB2
                           | "(" "define-fun-rec"   SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
                           | "(" "declare-datatype" SMTLIB2Symbol SMTLIB2DatatypeDec ")"
                           | "(" "define-sort"      SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "declare-sort"     SMTLIB2Sort Int ")"
                           | "(" "set-logic"        SMTLIB2Symbol ")"
                           | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
@@ -102,6 +103,7 @@ module SMTLIB2
   // Sorts
   syntax SMTLIB2SimpleSymbol ::= "Int" [token] | "Bool" [token]
                                | "Set" [token] | "Array" [token]
+                               | "Heap" [token]
 
   syntax CheckSATResult ::= "sat" | "unsat"
                           | "unknown" "(" K ")" | "error" "(" K ")"
@@ -208,6 +210,10 @@ module SMTLIB2
        SMTLIB2SortToString(RET) +String
        SMTLIB2TermToString(BODY) +String
        ")"
+  rule SMTLIB2CommandToString( ( declare-sort SORT I ) )
+    => "( declare-sort " +String SMTLIB2SortToString(SORT) +String
+       " " +String Int2String(I) +String
+       " ) "
   rule SMTLIB2CommandToString( ( define-sort NAME (PARAMS) BODY) )
     => "( define-sort " +String SMTLIB2TermToString(NAME) +String
        " ( " +String SMTLIB2SortListToString(PARAMS) +String
