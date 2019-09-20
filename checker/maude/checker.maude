@@ -29,6 +29,7 @@ op `(\imp__`) : Id Id -> Digest .
 op `(\ex__`) : Id Id -> Digest . 
 op `(\mu__`) : Id Id -> Digest . 
 
+
 ---- metalevel property
 
 ---- (variable) not occur free in (pattern)
@@ -52,9 +53,9 @@ op `(WF`) : -> Rule .
 op `(NotOccurFreeBasic`) : -> Rule .
 op `(NotOccurFreeApp__`) : Id Id -> Rule .
 op `(NotOccurFreeImp__`) : Id Id -> Rule .
-op `(NotOccurFreeExBinding_`) : Id -> Rule .
+op `(NotOccurFreeExBinding`) : -> Rule .
 op `(NotOccurFreeExBody_`) : Id -> Rule .
-op `(NotOccurFreeMuBinding_`) : Id -> Rule .
+op `(NotOccurFreeMuBinding`) : -> Rule .
 op `(NotOccurFreeMuBody_`) : Id -> Rule .
 
 ---- Provability
@@ -97,7 +98,7 @@ op `(Singleton`) : -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) !!!
 vars Phi Psi P Q R : Digest .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
-vars M M1 M2 N N1 N2 M21 M22 : Nat .
+vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
 
 ---------------------------------------
 ---- Proof check:
@@ -259,16 +260,31 @@ ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeImp (N1) (N2)) ;
  = true 
  if (#nf (M1) (M21)) := Pi[N1]
  /\ (#nf (M1) (M22)) := Pi[N2]
- /\ eq?(Pi, (M2), (\imp (M21) (Mr22))) .
+ /\ eq?(Pi, (M2), (\imp (M21) (M22))) .
 
 ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeApp (N1) (N2)) ;
  = true 
  if (#nf (M1) (M21)) := Pi[N1]
  /\ (#nf (M1) (M22)) := Pi[N2]
- /\ eq?(Pi, (M2), (\app (M21) (Mr22))) .
+ /\ eq?(Pi, (M2), (\app (M21) (M22))) .
 
 ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeExBinding) ;
- = true
+  = true
+ if (\ex (M1) (M)) := Pi[M2] .
+
+ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeExBody (N')) ;
+  = true
+ if (#nf (M1) (N2)) := Pi[N']
+ /\ (\ex (M21) (N2)) := Pi[M2] .
+
+ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeMuBinding) ;
+  = true
+ if (\mu (M1) (M)) := Pi[M2] .
+
+ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeMuBody (N')) ;
+  = true
+ if (#nf (M1) (N2)) := Pi[N']
+ /\ (\mu (M21) (N2)) := Pi[M2] .
 
 ---------------------------------------
 ---- Some auxiliary checking functions.
