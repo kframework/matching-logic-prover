@@ -45,10 +45,28 @@ module ML-TO-SMTLIB2
        <declaration> axiom functional(S) </declaration>
   rule isFunctional(S) => false [owise]
 
-  rule [[ DeclarationsToSMTLIB((axiom partial(_)) Ds) => (assert (forall ( freshSMTLIB2SortedVarList(SortsToSMTLIB2SortList(ARGS))) true)) ++SMTLIB2Script
+  // todo: will translate something more like this
+  // rule [[ DeclarationsToSMTLIB((axiom partial(S(a,b))) Ds)
+
+  rule [[ DeclarationsToSMTLIB((axiom partial(S)) Ds)
+       => #fun(Vs => 
+            (assert (forall ( Vs )
+                            (or ( exists ( (!V:SMTLIB2SimpleSymbol SortToSMTLIB2Sort(SORT)) )
+                                         (= (SymbolToSMTLIB2SymbolFresh(S) SMTLIB2SortedVarListToSMTLIB2TermList(Vs)) (singleton !V):SMTLIB2Term)
+                                )
+                                (= (SymbolToSMTLIB2SymbolFresh(S) SMTLIB2SortedVarListToSMTLIB2TermList(Vs)) (as emptyset (Set SortToSMTLIB2Sort(SORT)))):SMTLIB2Term
+                            )
+                    )
+            ) .SMTLIB2Script
+          ) ( freshSMTLIB2SortedVarList(SortsToSMTLIB2SortList(ARGS)) )
+          ++SMTLIB2Script
           DeclarationsToSMTLIB(Ds)
-        ]]
+       ]]
        <declaration> symbol S(ARGS) : SORT </declaration>
+
+  syntax SMTLIB2TermList ::= SMTLIB2SortedVarListToSMTLIB2TermList(SMTLIB2SortedVarList) [function]
+  rule SMTLIB2SortedVarListToSMTLIB2TermList(.SMTLIB2SortedVarList) => .SMTLIB2TermList
+  rule SMTLIB2SortedVarListToSMTLIB2TermList((V _) Vs) => V SMTLIB2SortedVarListToSMTLIB2TermList(Vs)
 
   rule DeclarationsToSMTLIB((sort SORT) Ds) => (declare-sort SortToSMTLIB2Sort(SORT) 0) ++SMTLIB2Script DeclarationsToSMTLIB(Ds)
 
@@ -241,6 +259,7 @@ module STRATEGY-SMT
 
   syntax DeclarationCelLSet
   syntax Declarations ::= #collectDeclarations(Declarations) [function]
+                        | #collectSortDeclarations(Declarations) [function]
 
   rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
     <declaration> D </declaration>
@@ -249,12 +268,12 @@ module STRATEGY-SMT
   // We need to gather sort declarations last so sorts are declared correctly
   // when translating to smt
   // TODO: do we need to gather symbol decs last as well?
-  rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
+  rule [[ #collectSortDeclarations(Ds) => #collectSortDeclarations(D Ds) ]]
     <declaration> (sort _ #as D:Declaration) </declaration>
     requires notBool (D inDecls Ds)
-    [owise]
 
-  rule #collectDeclarations(Ds) => Ds [owise]
+  rule #collectDeclarations(Ds) => #collectSortDeclarations(Ds) [owise]
+  rule #collectSortDeclarations(Ds) => Ds [owise]
 
   syntax Bool ::= Declaration "inDecls" Declarations [function]
   rule _ inDecls .Declarations => false

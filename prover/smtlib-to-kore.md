@@ -38,6 +38,8 @@ module SMTLIB-TO-KORE
        <declarations> ( .Bag
                      => <declaration> sort Heap </declaration>
                         <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
+                        // todo: need to look like this
+                        // <declaration> axiom \forall { x y } partial(pto(x,y)) </declaration>
                         <declaration> axiom partial(pto) </declaration>
                         // <declaration> axiom injective(pto) </declaration>
                         // <declaration> axiom heap </declaration>
