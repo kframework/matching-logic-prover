@@ -1,4 +1,6 @@
 symbol listSegmentRight(ArrayIntInt, Int, Int, SetInt) : Bool
+axiom functional(listSegmentRight)
+
 axiom \forall { H { ArrayIntInt } , X { Int }, Y { Int }, F { SetInt } }
       \iff-lfp( listSegmentRight(H { ArrayIntInt },  X { Int }, Y { Int }, F { SetInt })
               , \or( \exists { }

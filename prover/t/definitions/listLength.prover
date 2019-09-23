@@ -1,4 +1,5 @@
 symbol listLength(ArrayIntInt, Int, SetInt, Int) : Bool
+axiom functional(listLength)
 
 axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, LENGTH { Int } }
       \iff-lfp( listLength(H { ArrayIntInt }, X { Int }, F { SetInt }, LENGTH { Int })

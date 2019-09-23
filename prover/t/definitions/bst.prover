@@ -1,4 +1,6 @@
 symbol bst(ArrayIntInt, Int, SetInt, Int, Int) : Bool
+axiom functional(bst)
+
 axiom \forall { H { ArrayIntInt }, X { Int } , F { SetInt } , MIN { Int }, MAX { Int } }
       \iff-lfp( bst(H { ArrayIntInt }, X { Int }, F { SetInt }, MIN { Int }, MAX { Int })
               , \or( \exists { } 

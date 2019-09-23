@@ -1,4 +1,6 @@
 symbol listSegmentLeftSorted(ArrayIntInt, Int, Int, SetInt, Int, Int) : Bool
+axiom functional(listSegmentLeftSorted)
+
 axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, PREV_VAL { Int }, MAX { Int } }
       \iff-lfp( listSegmentLeftSorted(H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, PREV_VAL { Int }, MAX { Int })
               , \or( \exists { }

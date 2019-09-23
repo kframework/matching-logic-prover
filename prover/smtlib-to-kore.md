@@ -7,6 +7,7 @@ module SMTLIB-TO-KORE
   imports SMTLIB-SL
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
+//  imports STRATEGY
 
   rule <k> S:SMTLIB2Script
         => \exists { .Patterns } \and( .Patterns ) ~> S
@@ -58,24 +59,10 @@ module SMTLIB-TO-KORE
                       ) ...
        </declarations>
 
-  rule <k> P:Pattern ~> (check-sat)
-        => claim \not(P) strategy smt-cvc4 ~> P ... </k>
-        // => claim \not(P)
-        //    strategy normalize
-        //           ; smtlib-to-implication ; or-split-rhs
-        //           ; kt ; ( ( right-unfold ; smt )
-        //                  | ( kt-solve-implications(smt) ; normalize
-        //                    ; kt ; ( ( right-unfold-Nth(0, 1) ; normalize
-        //                             ; right-unfold-Nth(0, 1) ; normalize
-        //                             ; right-unfold-Nth(0, 0) ; normalize
-        //                             ; smt
-        //                             )
-        //                           | ( kt-solve-implications(smt) ; normalize
-        //                             ; smt
-        //                             )
-        //                           )
-        //                    )
-        //                  ) ~> P ... </k>
+  rule <k> P:Pattern ~> (check-sat) ~> (set-info :mlprover-strategy S) .SMTLIB2Script
+        => claim \not(P) strategy S ~> P
+           ...
+      </k>
 
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
   rule #normalizeDefinition(\or(Ps)) => \or(#addExistentials(#flattenOrs(#dnfPs(Ps))))

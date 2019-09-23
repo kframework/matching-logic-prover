@@ -1,4 +1,6 @@
 symbol listSorted(ArrayIntInt, Int, SetInt, Int) : Bool
+axiom functional(listSorted)
+
 axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int } }
       \iff-lfp( listSorted(H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int })
               , \or( \exists { }

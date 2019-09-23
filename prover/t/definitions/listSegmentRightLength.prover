@@ -1,4 +1,6 @@
 symbol listSegmentRightLength(ArrayIntInt, Int, Int, SetInt, Int) : Bool
+axiom functional(listSegmentRightLength)
+
 axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, LENGTH { Int } }
       \iff-lfp( listSegmentRightLength(H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, LENGTH { Int })
               , \or( \exists { }

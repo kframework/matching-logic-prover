@@ -1,6 +1,6 @@
 <prover>
   <k>
-    \exists { Vx { Int } , .Patterns } \and ( \not ( isEvenPos ( Vx { Int } , .Patterns ) ) , isDiv4Pos ( Vx { Int } , .Patterns ) , .Patterns ) ~> .SMTLIB2Script
+    \exists { Vx { Int } , .Patterns } \and ( \not ( isEvenPos ( Vx { Int } , .Patterns ) ) , isDiv4Pos ( Vx { Int } , .Patterns ) , .Patterns )
   </k>
   <goals>
     <goal>
@@ -29,6 +29,10 @@
       axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isDiv4Pos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( < ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isDiv4Pos ( minus ( Vx { Int } , 4 , .Patterns ) , .Patterns ) , \not ( < ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isEvenPos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( < ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isEvenPos ( minus ( Vx { Int } , 2 , .Patterns ) , .Patterns ) , \not ( < ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( isDiv4Pos )
+    </declaration> <declaration>
+      axiom functional ( isEvenPos )
     </declaration> <declaration>
       symbol isDiv4Pos ( Int , .Sorts ) : Bool
     </declaration> <declaration>

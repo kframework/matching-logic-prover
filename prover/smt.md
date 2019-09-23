@@ -12,6 +12,7 @@ module SMTLIB2
   imports BOOL-SYNTAX
   imports STRING
   imports K-IO
+  imports PROVER-CORE-SYNTAX
 
 // Tokens
   syntax SMTLIB2Numeral ::= Int
@@ -70,7 +71,10 @@ module SMTLIB2
                           | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
-  // Core symbols
+// For parsing strategies in smt files
+  syntax SMTLIB2Command ::= "(" "set-info" ":mlprover-strategy" Strategy ")"
+
+// Core symbols
   syntax SMTLIB2SimpleSymbol ::= "not"   [token]
                                | "or"    [token]
                                | "and"   [token]

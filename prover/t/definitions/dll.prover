@@ -1,4 +1,6 @@
 symbol dll(ArrayIntInt, Int, SetInt) : Bool
+axiom functional(dll)
+
 axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt } }
       \iff-lfp( dll(H { ArrayIntInt }, X { Int }, F { SetInt })
               , \or( \and( \equals(X { Int }, 0)
