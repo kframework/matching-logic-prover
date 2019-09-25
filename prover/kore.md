@@ -59,7 +59,7 @@ only in this scenario*.
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
                    | "functional" "(" Symbol ")"
-                   | "partial" "(" Symbol ")"
+                   | "partial" "(" Patterns ")"
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
@@ -74,7 +74,8 @@ only in this scenario*.
                   | "del"           [token]
 
   // sep-logic symbols
-  syntax LowerName ::= "pto"  [token]
+  syntax LowerName ::= "pto" [token]
+                     | "sep" [token]
 
   // Arith
   syntax Symbol ::= "plus"          [token]

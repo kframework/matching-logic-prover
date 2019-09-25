@@ -45,25 +45,6 @@ module ML-TO-SMTLIB2
        <declaration> axiom functional(S) </declaration>
   rule isFunctional(S) => false [owise]
 
-  // todo: will translate something more like this
-  // rule [[ DeclarationsToSMTLIB((axiom partial(S(a,b))) Ds)
-
-  rule [[ DeclarationsToSMTLIB((axiom partial(S)) Ds)
-       => #fun(Vs => 
-            (assert (forall ( Vs )
-                            (or ( exists ( (!V:SMTLIB2SimpleSymbol SortToSMTLIB2Sort(SORT)) )
-                                         (= (SymbolToSMTLIB2SymbolFresh(S) SMTLIB2SortedVarListToSMTLIB2TermList(Vs)) (singleton !V):SMTLIB2Term)
-                                )
-                                (= (SymbolToSMTLIB2SymbolFresh(S) SMTLIB2SortedVarListToSMTLIB2TermList(Vs)) (as emptyset (Set SortToSMTLIB2Sort(SORT)))):SMTLIB2Term
-                            )
-                    )
-            ) .SMTLIB2Script
-          ) ( freshSMTLIB2SortedVarList(SortsToSMTLIB2SortList(ARGS)) )
-          ++SMTLIB2Script
-          DeclarationsToSMTLIB(Ds)
-       ]]
-       <declaration> symbol S(ARGS) : SORT </declaration>
-
   syntax SMTLIB2TermList ::= SMTLIB2SortedVarListToSMTLIB2TermList(SMTLIB2SortedVarList) [function]
   rule SMTLIB2SortedVarListToSMTLIB2TermList(.SMTLIB2SortedVarList) => .SMTLIB2TermList
   rule SMTLIB2SortedVarListToSMTLIB2TermList((V _) Vs) => V SMTLIB2SortedVarListToSMTLIB2TermList(Vs)
