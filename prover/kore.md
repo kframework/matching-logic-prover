@@ -6,6 +6,9 @@ module TOKENS
   // Lexical
   syntax UpperName
   syntax LowerName
+  syntax ColonName
+  syntax PipeQID
+  syntax Decimal
 
   // Abstract
   syntax Symbol ::= LowerName
@@ -16,6 +19,10 @@ module TOKENS-SYNTAX
   imports TOKENS
   syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
   syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
+  syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
+  syntax PipeQID ::= r"\\|[^\\|]*\\|" [token, autoReject]
+  syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
+                   | "2.0" [token]
 endmodule
 
 module KORE-SUGAR
@@ -354,6 +361,7 @@ Simplifications
   rule isBasePattern(\equals(L, R)) => true
   rule isBasePattern(\and(_)) => false
   rule isBasePattern(\or(_)) => false
+  rule isBasePattern(\exists{Vs}_) => false
 
   syntax Bool ::= isDnfConjunction(Patterns) [function]
   rule isDnfConjunction(.Patterns) => true
