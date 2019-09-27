@@ -7,7 +7,6 @@ module SMTLIB-TO-KORE
   imports SMTLIB-SL
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
-//  imports STRATEGY
 
   rule <k> S:SMTLIB2Script
         => \exists { .Patterns } \and( .Patterns ) ~> S
@@ -84,27 +83,13 @@ module SMTLIB-TO-KORE
       </k>
 
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
-  // rule #normalizeDefinition(\or(Ps)) => \or(#addExistentials(#flattenOrs(#dnfPs(Ps))))
-  rule #normalizeDefinition(\or(Ps)) => \or(#addExistentials(#flattenOrs(Ps)))
-
-  syntax Patterns ::= #addExistentials(Patterns) [function]
-  rule #addExistentials(.Patterns) => .Patterns
-  rule #addExistentials(\and(Ps1), Ps2) => \exists{.Patterns} \and(Ps1), #addExistentials(Ps2)
-  rule #addExistentials(\exists{Ps1} P, Ps2) => \exists{Ps1} P, #addExistentials(Ps2)
-
-  syntax Patterns ::= #concatenatePatterns(Patterns, Patterns) [function]
-  rule #concatenatePatterns(.Patterns, Ps) => Ps
-  rule #concatenatePatterns((P, Ps1), Ps2) => P, #concatenatePatterns(Ps1, Ps2)
+  rule #normalizeDefinition(\or(Ps)) => \or(#exists(#flattenOrs(#dnfPs(Ps)), .Patterns))
 
   syntax Pattern ::= SMTLIB2TermToPattern(SMTLIB2Term, Patterns) [function]
-
-  rule SMTLIB2TermToPattern( (exists ( ARGS ) T), Vs ) => \exists { SMTLIB2SortedVarListToPatterns(ARGS) } SMTLIB2TermToPattern(T, #concatenatePatterns(SMTLIB2SortedVarListToPatterns(ARGS), Vs))
-
+  rule SMTLIB2TermToPattern( (exists ( ARGS ) T), Vs ) => \exists { SMTLIB2SortedVarListToPatterns(ARGS) } SMTLIB2TermToPattern(T, SMTLIB2SortedVarListToPatterns(ARGS) ++Patterns Vs)
   rule SMTLIB2TermToPattern((and L R), Vs) => \and(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((or L R), Vs) => \or(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-
   rule SMTLIB2TermToPattern((distinct L R), Vs) => \not(\equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs)))
-
   rule SMTLIB2TermToPattern((= L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((> L R), Vs) => gt(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((+ L R), Vs) => plus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))

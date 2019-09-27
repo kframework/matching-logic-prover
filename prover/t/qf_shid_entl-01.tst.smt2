@@ -45,8 +45,6 @@
 	)
 )
 
-
-
 (declare-const x RefGTyp)
 (declare-const y RefGTyp)
 (declare-const z RefGTyp)
@@ -64,3 +62,4 @@
 ))
 
 (check-sat)
+
