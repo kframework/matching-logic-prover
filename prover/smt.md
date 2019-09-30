@@ -145,8 +145,8 @@ module SMTLIB2
   syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
 
-  syntax Symbol ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
-  syntax Symbol ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
+  syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+  syntax LowerName ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToSymbol(SYMBOL) => StringToSymbol(SMTLIB2SimpleSymbolToString(SYMBOL))
 
   syntax Sort ::= StringToSort(String) [function, functional, hook(STRING.string2token)]
