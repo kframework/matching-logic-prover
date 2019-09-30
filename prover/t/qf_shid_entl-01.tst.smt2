@@ -1,10 +1,5 @@
 (set-logic QF_SHID)
 
-(set-info :source |
-  James Brotherston, Nikos Gorogiannis, and Rasmus Petersen
-  A Generic Cyclic Theorem Prover. APLAS, 2012.
-  https://github.com/ngorogiannis/cyclist
-|)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
 (set-info :status unsat)
