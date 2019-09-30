@@ -2,8 +2,6 @@
 module SMTLIB2-SYNTAX
   imports TOKENS-SYNTAX
   imports SMTLIB2
-  syntax SMTLIB2SimpleSymbol ::= LowerName                                        [token]
-                               | UpperName                                        [token]
   syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
 endmodule
 
@@ -17,6 +15,8 @@ module SMTLIB2
 // Tokens
   syntax SMTLIB2Numeral ::= Int
   syntax SMTLIB2SimpleSymbol ::= Bool
+                               | LowerName
+                               | UpperName
   syntax SMTLIB2Symbol ::= SMTLIB2SimpleSymbol
                          | PipeQID
 
@@ -43,7 +43,6 @@ module SMTLIB2
 // Terms
   syntax SMTLIB2QualIdentifier ::= SMTLIB2Identifier
                                  | "(" "as" SMTLIB2Identifier SMTLIB2Sort ")"
-                                 | "(" "as" "nil" SMTLIB2Sort ")"
   syntax SMTLIB2SortedVar ::= "(" SMTLIB2Symbol SMTLIB2Sort ")"
   syntax SMTLIB2SortedVarList ::= List{SMTLIB2SortedVar, ""} [klabel(SMTLIB2SortedVarList)]
   syntax SMTLIB2Term ::= SMTLIB2SpecConstant

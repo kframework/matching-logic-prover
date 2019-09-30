@@ -83,6 +83,7 @@ only in this scenario*.
   // sep-logic symbols
   syntax LowerName ::= "pto" [token]
                      | "sep" [token]
+                     | "nil" [token]
 
   // Arith
   syntax Symbol ::= "plus"          [token]
