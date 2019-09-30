@@ -76,7 +76,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule <strategy> ( ktForEachLRP((LRP, LRPs))
                  => ( remove-lhs-existential ; normalize
                     ; kt-wrap(LRP) ; kt-forall-intro
-                    ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
+                    ; kt-unfold ; wait ; lift-or ; and-split ; remove-lhs-existential
                     ; kt-unwrap
                     ; simplify ; normalize ; kt-collapse
                     )
@@ -115,6 +115,17 @@ for guessing an instantiation of the inductive hypothesis.
        <strategy> kt-wrap(LRP) => noop ... </strategy>
        <trace> .K => kt-wrap(LRP)  ... </trace>
     requires LRP in LHS
+
+  rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT:Patterns), RHS)
+            => \implies(LRP, implicationContext(\and( sep(#hole, (LSPATIAL -Patterns LRP))
+                                                    , LCONSTRAINT
+                                                    )
+                                               , RHS)
+                       )
+       </claim>
+       <strategy> kt-wrap(LRP) => noop ... </strategy>
+       <trace> .K => kt-wrap(LRP)  ... </trace>
+    requires LRP in LSPATIAL
 ```
 
 >   phi(x) -> \forall y. psi(x, y)
