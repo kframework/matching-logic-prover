@@ -62,4 +62,4 @@
 ))
 
 (check-sat)
-(set-info :mlprover-strategy normalize ; smtlib-to-implication ; kt )
+(set-info :mlprover-strategy normalize ; smtlib-to-implication ; kt ; right-unfold-Nth(0,1) )

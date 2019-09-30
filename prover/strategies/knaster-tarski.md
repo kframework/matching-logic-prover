@@ -76,7 +76,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule <strategy> ( ktForEachLRP((LRP, LRPs))
                  => ( remove-lhs-existential ; normalize
                     ; kt-wrap(LRP) ; kt-forall-intro
-                    ; kt-unfold ; wait ; lift-or ; and-split ; remove-lhs-existential
+                    ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
                     ; kt-unwrap
                     ; simplify ; normalize ; kt-collapse
                     )
