@@ -238,6 +238,10 @@ and values, passed to K's substitute.
        makeFreshSubstitution(REST)
   rule makeFreshSubstitution(.Patterns)
     => .Map
+
+  syntax Patterns ::= makeFreshVariables(Patterns) [function]
+  rule makeFreshVariables(V { SORT }, REST) => !V1:VariableName { SORT }, makeFreshVariables(REST)
+  rule makeFreshVariables(.Patterns) => .Patterns
 ```
 
 ```k
@@ -279,11 +283,33 @@ Substitution: Substitute term or variable
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
 
-  syntax Pattern ::= Pattern "[" Map "]"     [function, klabel(substMap)]
-  syntax Pattern ::= substMap(Pattern,  Map) [function, klabel(substMap)]
-  rule substMap(BP, ((X |-> V):Map REST))
-    => substMap(subst(BP,X,V), REST:Map)
-  rule substMap(BP, .Map) => BP
+  syntax Pair ::= pair(Patterns, Patterns)
+  syntax Pair ::= unzip(Map) [function]
+  rule unzip(.Map) => pair(.Patterns, .Patterns)
+  rule unzip((L |-> R) REST) => concatenatePair(pair((L, .Patterns), (R, .Patterns)), unzip(REST))
+
+  syntax Patterns ::= fst(Pair) [function]
+  syntax Patterns ::= snd(Pair) [function]
+  rule fst(pair(L, R)) => L
+  rule snd(pair(L, R)) => R
+
+  syntax Pair ::= concatenatePair(Pair, Pair) [function]
+  rule concatenatePair(pair(L1, R1), pair(L2, R2)) => pair(L1 ++Patterns L2, R1 ++Patterns R2)
+
+  syntax Pattern ::= Pattern "[" Map "]"    [function, klabel(substMap)]
+  syntax Pattern ::= substMap(Pattern, Map) [function, klabel(substMap)]
+  rule substMap(BP, M) => #fun(KVPAIR => #fun(FRESHs =>
+         substUnsafe( substUnsafe(BP, zip(fst(KVPAIR), FRESHs))
+                    , zip(FRESHs, snd(KVPAIR))
+                    )
+         )( makeFreshVariables(fst(KVPAIR)))
+         )( unzip(M) )
+
+  // Renames variables incrementally not simultaneously. Helper for substMap
+  syntax Pattern ::= substUnsafe(Pattern, Map) [function, klabel(substUnsafe)]
+  rule substUnsafe(BP, ((X |-> V):Map REST))
+    => substUnsafe(subst(BP,X,V), REST:Map)
+  rule substUnsafe(BP, .Map) => BP
 
   syntax Patterns ::= Patterns "[" Map "]"         [function, klabel(substPatternsMap)]
   syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
