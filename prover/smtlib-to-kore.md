@@ -52,14 +52,14 @@ module SMTLIB-TO-KORE
 
   rule <k> \exists { Us } \and(Ps) ~> ((declare-datatypes ( .SMTLIB2SortDecList ) ( .SMTLIB2DatatypeDecList )) => .) ... </k>
 
-  rule <k> \exists { Us } \and(Ps) ~> (declare-datatypes ( (SORT1 0) SDECs ) ( ( ( CTOR ( SYM SORT2 ) .SMTLIB2SelectorDecList ) .SMTLIB2ConstructorDecList ) DDECs ) )
+  rule <k> \exists { Us } \and(Ps) ~> (declare-datatypes ( (SORT1 0) SDECs ) ( ( ( CTOR ( DTOR SORT2 ) .SMTLIB2SelectorDecList ) .SMTLIB2ConstructorDecList ) DDECs ) )
         => \exists { Us } \and(Ps) ~> (declare-datatypes ( SDECs ) ( DDECs ))
            ...
        </k>
        <declarations> ( .Bag
                      => <declaration> sort SMTLIB2SortToSort(SORT1) </declaration>
                         <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SMTLIB2SortToSort(SORT2)) : SMTLIB2SortToSort(SORT1) </declaration>
-                        <declaration> symbol SMTLIB2SimpleSymbolToSymbol(SYM)(SMTLIB2SortToSort(SORT2)) : SMTLIB2SortToSort(SORT2) </declaration>
+                        <declaration> symbol SMTLIB2SimpleSymbolToSymbol(DTOR)(SMTLIB2SortToSort(SORT1)) : SMTLIB2SortToSort(SORT2) </declaration>
                       ) ...
        </declarations>
 
