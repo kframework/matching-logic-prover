@@ -134,7 +134,7 @@ module KORE-HELPERS
   rule .Patterns ++Patterns P2s => P2s
 
   syntax Patterns ::= Patterns "intersect" Patterns [function]
-  rule .Patterns intersect Ps => Ps
+  rule .Patterns intersect Ps => .Patterns
   rule (P, Ps1) intersect Ps2 => P, (Ps1 intersect Ps2)
     requires P in Ps2
   rule (P, Ps1) intersect Ps2 => Ps1 intersect Ps2
@@ -376,8 +376,8 @@ Simplifications
 
   syntax Patterns ::= #exists(Patterns, Patterns) [function]
   rule #exists(.Patterns, _) => .Patterns
-  rule #exists((\and(Ps1), Ps2), Vs) => \exists{Vs intersect getFreeVariables(Ps1)} \and(Ps1), #exists(Ps2, Vs)
-  rule #exists((\exists{Es} P, Ps2), Vs) => \exists{Es ++Patterns (Vs intersect getFreeVariables(P))} P, #exists(Ps2, Vs)
+  rule #exists((\and(Ps1), Ps2), Vs) => \exists{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #exists(Ps2, Vs)
+  rule #exists((\exists{Es} P, Ps2), Vs) => \exists{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #exists(Ps2, Vs)
 
   rule #dnfPs(\not(\and(Ps)), REST) => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
   rule #dnfPs(\not(\or(Ps)), REST)  => #dnfPs(\and(#not(Ps)), REST)
