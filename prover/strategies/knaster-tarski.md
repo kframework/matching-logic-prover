@@ -24,6 +24,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule getKTUnfoldables(S:Symbol(ARGS), REST)
     => getKTUnfoldables(REST)
     requires notBool isUnfoldable(S)
+     andBool S =/=K sep
   rule getKTUnfoldables(I:Int, REST)
     => getKTUnfoldables(REST)
   rule getKTUnfoldables(V:Variable, REST)
@@ -31,6 +32,8 @@ for guessing an instantiation of the inductive hypothesis.
   rule getKTUnfoldables(\not(Ps), REST)
     => getKTUnfoldables(REST)
   rule getKTUnfoldables(\and(Ps), REST)
+    => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
+  rule getKTUnfoldables(sep(Ps), REST)
     => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
   rule getKTUnfoldables(\implies(LHS, RHS), REST)
     => getKTUnfoldables(REST)
