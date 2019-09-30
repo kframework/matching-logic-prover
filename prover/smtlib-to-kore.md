@@ -46,6 +46,7 @@ module SMTLIB-TO-KORE
                      => <declaration> sort Heap </declaration>
                         <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
                         <declaration> symbol sep(Heap, Heap) : Heap </declaration>
+                        <declaration> symbol nil ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
                       ) ...
        </declarations>
 
@@ -101,7 +102,7 @@ module SMTLIB-TO-KORE
   rule SMTLIB2TermToPattern(I:Int, _) => I
   rule SMTLIB2TermToPattern(true, _) => \top()
   rule SMTLIB2TermToPattern(false, _) => \bottom()
-  rule SMTLIB2TermToPattern((as nil _), _) => \bottom()
+  rule SMTLIB2TermToPattern((as nil _), _) => nil (.Patterns)
 
   rule SMTLIB2TermToPattern((ID Ts), Vs) => SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2TermListToPatterns(Ts, Vs))
     [owise]
