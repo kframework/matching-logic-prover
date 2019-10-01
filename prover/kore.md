@@ -382,7 +382,6 @@ Simplifications
 
   rule #dnfPs(\not(\and(Ps)), REST) => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
   rule #dnfPs(\not(\or(Ps)), REST)  => #dnfPs(\and(#not(Ps)), REST)
-  rule #dnfPs(\not(\not(P)), REST)  => #dnfPs(P, REST)
 
   // Distribute \or over \and
   rule #dnfPs(\and(\or(P, Ps1), Ps2), REST)
@@ -393,9 +392,9 @@ Simplifications
   rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
 
   rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
-    requires isDnfConjunction(Ps)
+    requires isBaseConjunction(Ps)
   rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
-    requires notBool isDnfConjunction(P, Ps) andBool notBool isConjunction(P)
+    requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
 
   syntax Bool ::= isBasePattern(Pattern) [function]
   rule isBasePattern(S:Symbol(ARGS)) => true
@@ -403,12 +402,12 @@ Simplifications
   rule isBasePattern(\and(_)) => false
   rule isBasePattern(\or(_)) => false
   rule isBasePattern(\exists{Vs}_) => false
+  rule isBasePattern(\not(P)) => isBasePattern(P)
 
-  syntax Bool ::= isDnfConjunction(Patterns) [function]
-  rule isDnfConjunction(.Patterns) => true
-  rule isDnfConjunction(\and(P), Ps) => false
-  rule isDnfConjunction(\not(P), Ps) => isBasePattern(P) andBool isDnfConjunction(Ps)
-  rule isDnfConjunction(P, Ps) => isBasePattern(P) andBool isDnfConjunction(Ps) [owise]
+  syntax Bool ::= isBaseConjunction(Patterns) [function]
+  rule isBaseConjunction(.Patterns) => true
+  rule isBaseConjunction(\and(P), Ps) => false
+  rule isBaseConjunction(P, Ps) => isBasePattern(P) andBool isBaseConjunction(Ps) [owise]
 
   syntax Bool ::= isConjunction(Pattern) [function]
   rule isConjunction(\and(P)) => true
