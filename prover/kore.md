@@ -122,6 +122,7 @@ module KORE-HELPERS
   imports MAP
   imports INT
   imports STRING
+  imports PROVER-CONFIGURATION
 
   syntax String ::= SortToString(Sort) [function, functional, hook(STRING.token2string)]
 
@@ -155,6 +156,50 @@ module KORE-HELPERS
     requires P1 in P2s
   rule .Patterns -Patterns P2s => .Patterns
   rule P1s -Patterns .Patterns => P1s
+```
+
+```k
+  syntax Sort ::= getReturnSort(Pattern) [function]
+  rule getReturnSort( I:Int ) => Int
+  rule getReturnSort( _ { S } ) => S
+  rule getReturnSort( minus ( ARGS ) ) => Int
+  rule getReturnSort( select ( ARGS ) ) => Int
+  rule getReturnSort( union ( ARGS ) ) => SetInt
+  rule getReturnSort( singleton ( ARGS ) ) => SetInt
+  rule getReturnSort( emptyset ) => SetInt
+  rule getReturnSort( disjoint ( ARGS ) ) => Bool
+  rule getReturnSort( gt ( ARGS ) ) => Bool
+  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
+       <declaration> symbol R ( _ ) : S </declaration>
+
+  syntax Patterns ::= getGroundTerms(Pattern) [function]
+  rule getGroundTerms(P) => getGroundTerms(P, .Patterns)
+  syntax Patterns ::= getGroundTerms(Pattern, Patterns) [function, klabel(getGroundTermsAux)]
+  rule getGroundTerms(S:Symbol, VARs) => S, .Patterns
+  rule getGroundTerms(I:Int, VARs) => I, .Patterns
+  rule getGroundTerms(X:Variable, VARs) => X, .Patterns requires notBool X in VARs
+  rule getGroundTerms(X:Variable, VARs) =>    .Patterns requires         X in VARs
+
+  rule getGroundTerms(\implies(LHS, RHS), VARs)
+    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs)
+  rule getGroundTerms(\equals(LHS, RHS), VARs)
+    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs)
+  rule getGroundTerms(\forall { UNIVs } P, VARs)
+    => getGroundTerms(P, VARs ++Patterns UNIVs)
+  rule getGroundTerms(\exists { UNIVs } P, VARs)
+    => getGroundTerms(P, VARs ++Patterns UNIVs)
+  rule getGroundTerms(\and(.Patterns), VARs)
+    => .Patterns
+  rule getGroundTerms(\and(P, Ps), VARs)
+    => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\and(Ps), VARs)
+  rule getGroundTerms(\not(P), VARs)
+    => getGroundTerms(P, VARs)
+  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
+    => APPLY , getGroundTerms(\and(ARGS))
+    requires VARs -Patterns getFreeVariables(ARGS) ==K VARs
+  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
+    => getGroundTerms(\and(ARGS))
+    requires VARs -Patterns getFreeVariables(ARGS) =/=K VARs
 ```
 
 ```k
@@ -241,7 +286,7 @@ and values, passed to K's substitute.
     => .Map
 
   syntax Patterns ::= makeFreshVariables(Patterns) [function]
-  rule makeFreshVariables(V { SORT }, REST) => !V1:VariableName { SORT }, makeFreshVariables(REST)
+  rule makeFreshVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makeFreshVariables(REST)
   rule makeFreshVariables(.Patterns) => .Patterns
 ```
 

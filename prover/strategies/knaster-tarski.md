@@ -424,47 +424,6 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   rule filterBySort((P, Ps), S) =>    filterBySort(Ps, S) requires getReturnSort(P) =/=K S
   rule filterBySort(.Patterns, S) => .Patterns
 
-  syntax Sort ::= getReturnSort(Pattern) [function]
-  rule getReturnSort( I:Int ) => Int
-  rule getReturnSort( _ { S } ) => S
-  rule getReturnSort( select ( ARGS ) ) => Int
-  rule getReturnSort( union ( ARGS ) ) => SetInt
-  rule getReturnSort( singleton ( ARGS ) ) => SetInt
-  rule getReturnSort( emptyset ) => SetInt
-  rule getReturnSort( disjoint ( ARGS ) ) => Bool
-  rule getReturnSort( gt ( ARGS ) ) => Bool
-  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
-       <declaration> symbol R ( _ ) : S </declaration>
-
-  syntax Patterns ::= getGroundTerms(Pattern) [function]
-  rule getGroundTerms(P) => getGroundTerms(P, .Patterns)
-  syntax Patterns ::= getGroundTerms(Pattern, Patterns) [function, klabel(getGroundTermsAux)]
-  rule getGroundTerms(S:Symbol, VARs) => S, .Patterns
-  rule getGroundTerms(I:Int, VARs) => I, .Patterns
-  rule getGroundTerms(X:Variable, VARs) => X, .Patterns requires notBool X in VARs
-  rule getGroundTerms(X:Variable, VARs) =>    .Patterns requires         X in VARs
-
-  rule getGroundTerms(\implies(LHS, RHS), VARs)
-    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs) 
-  rule getGroundTerms(\equals(LHS, RHS), VARs)
-    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs) 
-  rule getGroundTerms(\forall { UNIVs } P, VARs)
-    => getGroundTerms(P, VARs ++Patterns UNIVs) 
-  rule getGroundTerms(\exists { UNIVs } P, VARs)
-    => getGroundTerms(P, VARs ++Patterns UNIVs) 
-  rule getGroundTerms(\and(.Patterns), VARs)
-    => .Patterns
-  rule getGroundTerms(\and(P, Ps), VARs)
-    => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\and(Ps), VARs) 
-  rule getGroundTerms(\not(P), VARs)
-    => getGroundTerms(P, VARs)
-  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
-    => APPLY , getGroundTerms(\and(ARGS))
-    requires VARs -Patterns getFreeVariables(ARGS) ==K VARs
-  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
-    => getGroundTerms(\and(ARGS))
-    requires VARs -Patterns getFreeVariables(ARGS) =/=K VARs
-
   syntax Bool ::= hasForall(Patterns)    [function]
   rule hasForall(P, Ps) => matchesForall(P) orBool hasForall(Ps)
   rule hasForall(.Patterns) => false
