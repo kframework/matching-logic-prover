@@ -91,6 +91,7 @@ only in this scenario*.
                   | "minus"         [token]
                   | "mult"          [token]
                   | "div"           [token]
+                  | "lt"            [token]
                   | "gt"            [token]
                   | "max"           [token]
 
@@ -168,6 +169,7 @@ module KORE-HELPERS
   rule getReturnSort( singleton ( ARGS ) ) => SetInt
   rule getReturnSort( emptyset ) => SetInt
   rule getReturnSort( disjoint ( ARGS ) ) => Bool
+  rule getReturnSort( lt ( ARGS ) ) => Bool
   rule getReturnSort( gt ( ARGS ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
