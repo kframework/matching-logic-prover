@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( listSegmentRightLength ( H { ArrayIntInt } , X { Int } , Y { Int } , FA { SetInt } , LA { Int } , .Patterns ) , \equals ( F { SetInt } , union ( FA { SetInt } , singleton ( Y { Int } , .Patterns ) , .Patterns ) ) , disjoint ( FA { SetInt } , singleton ( Y { Int } , .Patterns ) , .Patterns ) , \equals ( Z { Int } , select ( H { ArrayIntInt } , Y { Int } , .Patterns ) ) , \equals ( LENGTH { Int } , plus ( LA { Int } , 1 , .Patterns ) ) , gt ( Y { Int } , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( listSegmentRightLength ( H { ArrayIntInt } , X { Int } , Z { Int } , F { SetInt } , LENGTH { Int } , .Patterns ) , .Patterns ) )
       </claim>

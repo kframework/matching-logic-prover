@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( listSorted ( H { ArrayIntInt } , X { Int } , K { SetInt } , MIN { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( list ( H { ArrayIntInt } , X { Int } , K { SetInt } , .Patterns ) , .Patterns ) )
       </claim>

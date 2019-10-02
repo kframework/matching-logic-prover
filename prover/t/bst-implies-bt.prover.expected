@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( bst ( H { ArrayIntInt } , X { Int } , F { SetInt } , MIN { Int } , MAX { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( bt ( H { ArrayIntInt } , X { Int } , F { SetInt } , .Patterns ) , .Patterns ) )
       </claim>

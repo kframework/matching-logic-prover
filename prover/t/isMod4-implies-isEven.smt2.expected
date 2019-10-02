@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( isDiv4Pos ( Vx { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( isEvenPos ( Vx { Int } , .Patterns ) , .Patterns ) )
       </claim>

@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \not ( \exists { Vz { Int } , Vy { Int } , Vx { Int } , .Patterns } \and ( \equals ( plus ( mult ( Vx { Int } , Vx { Int } , .Patterns ) , mult ( Vy { Int } , Vy { Int } , .Patterns ) , .Patterns ) , mult ( Vz { Int } , Vz { Int } , .Patterns ) ) , gt ( Vz { Int } , 0 , .Patterns ) , gt ( Vy { Int } , 0 , .Patterns ) , gt ( Vx { Int } , 0 , .Patterns ) , .Patterns ) )
       </claim>

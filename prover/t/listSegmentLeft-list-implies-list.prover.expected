@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( listSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , list ( H { ArrayIntInt } , Y { Int } , G { SetInt } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( list ( H { ArrayIntInt } , X { Int } , K { SetInt } , .Patterns ) , .Patterns ) )
       </claim>

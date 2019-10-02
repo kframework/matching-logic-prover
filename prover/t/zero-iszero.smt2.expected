@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( .Patterns ) , \exists { .Patterns } \and ( iszero ( 0 , .Patterns ) , .Patterns ) )
       </claim>

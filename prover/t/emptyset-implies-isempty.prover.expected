@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( \equals ( S { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( S { SetInt } , .Patterns ) , .Patterns ) )
       </claim>

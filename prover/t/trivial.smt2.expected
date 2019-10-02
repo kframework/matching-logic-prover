@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \not ( \exists { .Patterns } \and ( \not ( \equals ( 2 , 2 ) ) , \equals ( 1 , 1 ) , .Patterns ) )
       </claim>
