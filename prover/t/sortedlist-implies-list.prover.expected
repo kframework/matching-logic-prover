@@ -30,6 +30,10 @@
     </declaration> <declaration>
       axiom \forall { H { ArrayIntInt } , X { Int } , F { SetInt } , PREV_VAL { Int } , .Patterns } \iff-lfp ( listSorted ( H { ArrayIntInt } , X { Int } , F { SetInt } , PREV_VAL { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( X { Int } , 0 ) , \equals ( F { SetInt } , emptyset ) , .Patterns ) , \exists { F_I { SetInt } , VAL_I { Int } , X_I { Int } , .Patterns } \and ( listSorted ( H { ArrayIntInt } , X_I { Int } , F_I { SetInt } , VAL_I { Int } , .Patterns ) , gt ( X { Int } , 0 , .Patterns ) , \equals ( select ( H { ArrayIntInt } , X { Int } , .Patterns ) , X_I { Int } ) , \equals ( F { SetInt } , union ( F_I { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) ) , disjoint ( F_I { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) , \equals ( VAL_I { Int } , select ( H { ArrayIntInt } , plus ( X { Int } , 1 , .Patterns ) , .Patterns ) ) , gt ( VAL_I { Int } , PREV_VAL { Int } , .Patterns ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
+      axiom functional ( list )
+    </declaration> <declaration>
+      axiom functional ( listSorted )
+    </declaration> <declaration>
       symbol list ( ArrayIntInt , Int , SetInt , .Sorts ) : Bool
     </declaration> <declaration>
       symbol listSorted ( ArrayIntInt , Int , SetInt , Int , .Sorts ) : Bool

@@ -1,6 +1,6 @@
 <prover>
   <k>
-    \exists { .Patterns } \and ( \not ( iszero ( 0 , .Patterns ) ) , .Patterns ) ~> .SMTLIB2Script
+    \exists { .Patterns } \and ( \not ( iszero ( 0 , .Patterns ) ) , .Patterns )
   </k>
   <goals>
     <goal>
@@ -27,6 +27,8 @@
   <declarations>
     <declaration>
       axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( iszero ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { Int } , 0 ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( iszero )
     </declaration> <declaration>
       symbol iszero ( Int , .Sorts ) : Bool
     </declaration>

@@ -28,6 +28,8 @@
     <declaration>
       axiom \forall { S { SetInt } , .Patterns } \iff-lfp ( isEmpty ( S { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( S { SetInt } , emptyset ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
+      axiom functional ( isEmpty )
+    </declaration> <declaration>
       symbol isEmpty ( SetInt , .Sorts ) : Bool
     </declaration>
   </declarations>

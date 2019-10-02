@@ -28,6 +28,8 @@
     <declaration>
       axiom \forall { H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , LENGTH { Int } , .Patterns } \iff-lfp ( listSegmentRightLength ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , LENGTH { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( X { Int } , Y { Int } ) , \equals ( F { SetInt } , emptyset ) , \equals ( LENGTH { Int } , 0 ) , .Patterns ) , \exists { F1 { SetInt } , LENGTH1 { Int } , Y1 { Int } , .Patterns } \and ( listSegmentRightLength ( H { ArrayIntInt } , X { Int } , Y1 { Int } , F1 { SetInt } , LENGTH1 { Int } , .Patterns ) , \equals ( LENGTH1 { Int } , minus ( LENGTH { Int } , 1 , .Patterns ) ) , gt ( Y1 { Int } , 0 , .Patterns ) , \equals ( Y { Int } , select ( H { ArrayIntInt } , Y1 { Int } , .Patterns ) ) , \equals ( F { SetInt } , union ( F1 { SetInt } , singleton ( Y1 { Int } , .Patterns ) , .Patterns ) ) , disjoint ( F1 { SetInt } , singleton ( Y1 { Int } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
+      axiom functional ( listSegmentRightLength )
+    </declaration> <declaration>
       symbol listSegmentRightLength ( ArrayIntInt , Int , Int , SetInt , Int , .Sorts ) : Bool
     </declaration>
   </declarations>
