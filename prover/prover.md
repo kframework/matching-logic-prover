@@ -61,6 +61,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "remove-lhs-existential" | "normalize" | "smtlib-to-implication" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
+                    | "lift-constraints"
                     | "direct-proof"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"

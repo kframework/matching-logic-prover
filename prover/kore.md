@@ -17,8 +17,8 @@ endmodule
 
 module TOKENS-SYNTAX
   imports TOKENS
-  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
-  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
+  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [prec(2), token, autoReject]
+  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [prec(2), token, autoReject]
   syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
   // TODO: PipeQID interacts badly with _ | _ strategy
   // syntax PipeQID ::= r"\\|[^\\|]*\\|" [token, autoReject]
@@ -173,6 +173,11 @@ module KORE-HELPERS
   rule getReturnSort( gt ( ARGS ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
+
+  syntax Bool ::= isUnfoldable(Symbol) [function]
+  rule [[ isUnfoldable(S:Symbol) => true ]]
+       <declaration> axiom \forall {_} \iff-lfp(S(_), _) </declaration>
+  rule isUnfoldable(S:Symbol) => false [owise]
 
   syntax Patterns ::= getGroundTerms(Pattern) [function]
   rule getGroundTerms(P) => getGroundTerms(P, .Patterns)
@@ -331,6 +336,8 @@ Substitution: Substitute term or variable
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
 
+  rule subst(R,_,_) => R [owise]
+
   syntax Pair ::= pair(Patterns, Patterns)
   syntax Pair ::= unzip(Map) [function]
   rule unzip(.Map) => pair(.Patterns, .Patterns)
@@ -399,10 +406,13 @@ Simplifications
   syntax Patterns ::= #not(Patterns) [function]
   rule #not(.Patterns) => .Patterns
   rule #not(P, Ps) => \not(P), #not(Ps)
+  
+  syntax Pattern ::= #flattenAnd(Pattern) [function]
+  rule #flattenAnd(\and(Ps)) => \and(#flattenAnds(Ps))
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]
   rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(P, Ps) => P ++Patterns #flattenAnds(Ps) [owise]
+  rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
   rule #flattenAnds(.Patterns) => .Patterns
 
   syntax Patterns ::= #flattenOrs(Patterns) [function]
@@ -459,6 +469,31 @@ Simplifications
   syntax Bool ::= isConjunction(Pattern) [function]
   rule isConjunction(\and(P)) => true
   rule isConjunction(_) => false [owise]
+```
+
+```k
+  syntax Bool ::= isPredicatePattern(Pattern) [function]
+  rule isPredicatePattern(\equals(_, _)) => true
+  rule isPredicatePattern(lt(_, _)) => true
+  rule isPredicatePattern(\not(P)) => isPredicatePattern(P)
+  rule isPredicatePattern(\and(.Patterns)) => true
+  rule isPredicatePattern(\and(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\and(Ps))
+  rule isPredicatePattern(\or(.Patterns)) => true
+  rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
+  rule isPredicatePattern(S:Symbol(ARGS)) => getReturnSort(S(ARGS)) ==K Bool
+
+  rule isPredicatePattern(sep(_)) => false
+  rule isPredicatePattern(pto(_)) => false
+
+  syntax Bool ::= isSpatialPattern(Pattern) [function]
+  rule isSpatialPattern(pto(_)) => true
+  rule isSpatialPattern(sep(.Patterns)) => true
+  rule isSpatialPattern(sep(P, Ps)) => isSpatialPattern(P) andBool isSpatialPattern(sep(Ps))
+  rule isSpatialPattern(P) => false
+    requires isPredicatePattern(P)
+  rule isSpatialPattern(\and(_)) => false
+  rule isSpatialPattern(S:Symbol(ARGS)) => true
+    requires isUnfoldable(S) andBool getReturnSort(S(ARGS)) ==K Heap
 ```
 
 ```k
