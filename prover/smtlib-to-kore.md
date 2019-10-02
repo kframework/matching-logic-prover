@@ -68,7 +68,9 @@ module SMTLIB-TO-KORE
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGS)) : Bool </declaration>
+                     => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGS))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)), SMTLIB2SortToSort(RET))
+                        </declaration>
                         <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGS) }
                                          \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGS))
                                                  , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)))
@@ -77,6 +79,16 @@ module SMTLIB-TO-KORE
                         <declaration> axiom functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
                       ) ...
        </declarations>
+
+  // We use notBool isPredicatePattern(P) to mean "has spatial subterm"
+  // This is not ok in general but for patterns that come from an smt formula this will work as desired.
+  syntax Sort ::= #returnSort(Pattern, Sort) [function]
+  // rule #returnSort(P, Bool) => Heap:Sort
+  //   requires notBool isPredicatePattern(P)
+  // rule #returnSort(P, Bool) => Bool:Sort
+  //   requires isPredicatePattern(P)
+  rule #returnSort(P, Bool) => Heap:Sort
+
 
   rule <k> P:Pattern ~> (check-sat) ~> (set-info :mlprover-strategy S) .SMTLIB2Script
         => claim \not(P) strategy S ~> P
