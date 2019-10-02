@@ -13,20 +13,6 @@ environ['PATH'] = path.join(repo_dir, 'ext/k-light/bin/') + ':' + environ['PATH'
 
 proj = KProject()
 
-# Helpers for running tests
-# -------------------------
-
-def do_test(defn, file):
-    expected = file + '.expected'
-    return proj.source(file) \
-               .then(defn.krun().variables(flags = '--smt none')) \
-               .then(proj.check(proj.source(expected))
-                         .variables(flags = '--ignore-all-space')) \
-               .alias(file + '.test')
-
-def do_prove(alias, defn, spec_module, spec):
-    pass
-
 # Matching Logic Prover
 # =====================
 
