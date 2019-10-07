@@ -3,6 +3,7 @@ requires "kore.k"
 requires "smtlib-to-kore.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
+requires "strategies/matching.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
@@ -70,6 +71,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "kt-gfp" | "kt-gfp" "#" KTFilter
   syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
+                    | "match" 
 
   syntax KTFilter ::= head(Symbol)
                     | index(Int)
@@ -181,6 +183,7 @@ module PROVER
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION
+  imports STRATEGY-MATCHING
   imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
 endmodule

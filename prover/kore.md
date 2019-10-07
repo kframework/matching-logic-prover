@@ -369,9 +369,9 @@ Substitution: Substitute term or variable
   syntax Patterns ::= Patterns "[" Map "]"         [function, klabel(substPatternsMap)]
   syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
   rule substPatternsMap((BP, BPs), SUBST)
-    => substMap(BP, SUBST), substPatternsMap(BPs, SUBST)
+    => substUnsafe(BP, SUBST), substPatternsMap(BPs, SUBST)
 
-  rule .Patterns[SUBST] => .Patterns
+  rule substPatternsMap(.Patterns, SUBST) => .Patterns
 
   syntax Patterns ::= Patterns "[" Pattern "/" Pattern "]" [function]
   rule (BP, BPs)[X/V] => BP[X/V], (BPs[X/V])

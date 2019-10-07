@@ -24,8 +24,9 @@ prover = proj.definition( alias = 'prover'
                                   , 'smtlib-to-kore.md'
                                   , 'strategies/core.md'
                                   , 'strategies/knaster-tarski.md'
-                                  , 'strategies/search-bound.md'
+                                  , 'strategies/matching.md'
                                   , 'strategies/simplification.md'
+                                  , 'strategies/search-bound.md'
                                   , 'strategies/smt.md'
                                   , 'strategies/unfolding.md'
                                   ]
@@ -37,6 +38,26 @@ prover.tests( inputs = glob('t/*.prover')
             , implicit_inputs = glob('t/definitions/*.prover')
             )
 prover.tests(inputs = glob('t/*.smt2'))
+
+matching_tests \
+       = proj.definition( alias = 'test-matching'
+                        , backend = 'ocaml'
+                        , main = 'prover.md'
+                        , other = [ 'smt.md'
+                                  , 'kore.md'
+                                  , 'smtlib-to-kore.md'
+                                  , 'strategies/core.md'
+                                  , 'strategies/knaster-tarski.md'
+                                  , 'strategies/matching.md'
+                                  , 'strategies/simplification.md'
+                                  , 'strategies/search-bound.md'
+                                  , 'strategies/smt.md'
+                                  , 'strategies/unfolding.md'
+                                  ]
+                        , flags = '--main-module TEST-MATCHING'
+                        , runner_script = './prover'
+                        )
+matching_tests.tests(alias = 'unit-tests', inputs = glob('t/match-unit-tests'))
 
 # SMTLIB Translation
 # ==================

@@ -57,4 +57,4 @@
 ))
 
 (check-sat)
-(set-info :mlprover-strategy normalize ; smtlib-to-implication ; kt ; or-split-rhs ; lift-constraints ; right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; lift-constraints )
+(set-info :mlprover-strategy normalize ; smtlib-to-implication ; kt ; or-split-rhs ; lift-constraints ; right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; lift-constraints ; match )
