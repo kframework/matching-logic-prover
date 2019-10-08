@@ -87,12 +87,87 @@ reduce checkPass(
 (0) (\bot) (WF) ;
 (1) (\evar) (WF) ;
 (2) (\evar) (WF) ;
-(3) (\ex (1) (1)) (WF) ; " \ex x1 . x1 "
-(4) (\imp (1) (3)) (WF) ; " x1 -> \ex x1 . x1 "
-(5) (4) (ExistQ (3) (1)) ;
-(6) (\imp (2) (3)) (WF) ; " x2 -> \ex x1 . x1 "
-(7) (6) (ExistQ (3) (2)) ;
+(3) (#subst (2) (1) (2) (1)) (SubstVariable) ;
 
 ).
+
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\evar) (WF) ;
+(3) (#subst (2) (2) (2) (1)) (SubstVariable) ;
+
+).
+
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\symb) (WF) ;
+(3) (#subst (2) (1) (2) (1)) (SubstVariable) ;
+
+).
+
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\symb) (WF) ;
+(3) (\evar) (WF) ;
+(4) (#subst (2) (2) (3) (1)) (SubstSymb) ;
+
+).
+
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\evar) (WF) ;
+(3) (#subst (0) (0) (2) (1)) (SubstBot) ;
+
+).
+
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\evar) (WF) ;
+(3) (\imp (1) (2)) (WF) ;
+(4) (\imp (2) (2)) (WF) ;
+(5) (#subst (2) (1) (2) (1)) (SubstVariable) ;
+(6) (#subst (2) (2) (2) (1)) (SubstVariable) ;
+(7) (#subst (4) (3) (2) (1)) (SubstImp (5) (6)) ;
+
+).
+
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\evar) (WF) ;
+(3) (\app (1) (2)) (WF) ;
+(4) (\app (2) (2)) (WF) ;
+(5) (#subst (2) (1) (2) (1)) (SubstVariable) ;
+(6) (#subst (2) (2) (2) (1)) (SubstVariable) ;
+(7) (#subst (4) (3) (2) (1)) (SubstApp (5) (6)) ;
+
+).
+
+
+---- The following test does not pass yet.
+---- reduce checkPass(
+---- 
+---- (0) (\bot) (WF) ;
+---- (1) (\evar) (WF) ;
+---- (2) (\evar) (WF) ;
+---- (3) (\ex (1) (1)) (WF) ; " \ex x1 . x1 "
+---- (4) (\imp (1) (3)) (WF) ; " x1 -> \ex x1 . x1 "
+---- (5) (4) (ExistQ (3) (1)) ;
+---- (6) (\imp (2) (3)) (WF) ; " x2 -> \ex x1 . x1 "
+---- (7) (6) (ExistQ (3) (2)) ;
+---- 
+---- ).
+---- 
 
 quit

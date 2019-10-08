@@ -35,6 +35,10 @@ op `(\mu__`) : Id Id -> Digest .
 ---- (variable) not occur free in (pattern)
 op `(#nf__`) : Id Id -> Digest .
 
+---- (pattern) is the result of substituting in (pattern) 
+---- (pattern) for (variable)
+op `(#subst____`) : Id Id Id Id -> Digest .
+
 ---- Rule annotations
 ---- Rules are divided into the following two categories:
 ----   1. (WF), which proves that a pattern is wellformed.
@@ -57,6 +61,12 @@ op `(NotOccurFreeExBinding`) : -> Rule .
 op `(NotOccurFreeExBody_`) : Id -> Rule .
 op `(NotOccurFreeMuBinding`) : -> Rule .
 op `(NotOccurFreeMuBody_`) : Id -> Rule .
+
+op `(SubstVariable`) : -> Rule .
+op `(SubstSymb`) : -> Rule .
+op `(SubstBot`) : -> Rule .
+op `(SubstImp__`) : Id Id -> Rule .
+op `(SubstApp__`) : Id Id -> Rule .
 
 ---- Provability
 
@@ -99,6 +109,10 @@ vars Phi Psi P Q R : Digest .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
 vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
+vars IdP IdQ IdR IdX IdY IdZ : Nat .
+vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 : Nat .
+vars IdP2 IdQ2 IdR2 IdX2 IdY2 IdZ2 : Nat .
+vars IdSubst1 IdSubst2 : Nat .
 
 ---------------------------------------
 ---- Proof check:
@@ -112,7 +126,7 @@ op check-step : Proof -> Bool .
 eq check(Pi) = check-id(Pi) and check-step(Pi) .
 
 ---------------------------------------
----- PC1: check ids
+---- Proof checking phase 1: check ids
 ---------------------------------------
 
 op check-id-aux : Proof NzNat -> Bool .
@@ -177,7 +191,7 @@ eq eq?(Pi, EP, EQ) = false [owise] .
 
 
 ---------------------------------------
----- PC2: check steps
+---- Proof checking phase 2: check steps
 ---------------------------------------
 
 ---- Put a marker that separates the part that is checked from the rest. 
@@ -218,6 +232,11 @@ eq (N) is-svar-in Pi = false [owise] .
 op _is-var-in_ : Id Proof -> Bool [prec 50] .
 eq (N) is-var-in Pi = (N) is-evar-in Pi or (N) is-svar-in Pi .
 
+---- Check if a pattern is a symbol.
+op _is-symb-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-symb-in Pi1 ((N) (\symb) (WF) ;) Pi2 = true .
+eq (N) is-symb-in Pi = false [owise] .
+
 ---------------------------------------
 ---- Well-formedness checking
 ---------------------------------------
@@ -235,9 +254,53 @@ eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
 ---- Substitution related checking
 ---------------------------------------
 
----- (Substitution phi psi x)
+---- (#subst r p q x) holds if
+----   r is the result of substituting in p
+----   q for x (capture-avoiding substitution).
 
----- (NotOccurFree x p) holds if
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstVariable) ;
+  = false
+ if IdR >= N or IdP >= N or IdQ >= N or IdX >= N or not (IdX) is-var-in Pi .
+
+ eq Pi |- (N) (#subst (IdQ) (IdX) (IdQ) (IdX)) (SubstVariable) ;
+  = true .
+
+ceq Pi |- (N) (#subst (IdR) (IdX) (IdQ) (IdX)) (SubstVariable) ;
+  = false
+ if IdR =/= IdQ .
+
+ceq Pi |- (N) (#subst (IdP) (IdP) (IdQ) (IdX)) (SubstVariable) ;
+  = true 
+ if (IdP) is-var-in Pi and IdP =/= IdX .
+
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstVariable) ;
+  = false
+ if (IdP) is-var-in Pi and IdP =/= IdX and IdR =/= IdP .
+
+ceq Pi |- (N) (#subst (0) (0) (IdQ) (IdX)) (SubstBot) ;
+  = false
+ if true .
+
+ceq Pi |- (N) (#subst (IdR) (0) (IdQ) (IdX)) (SubstBot) ;
+  = false 
+ if IdR =/= 0 .
+
+ceq Pi |- (N) (#subst (IdP) (IdP) (IdQ) (IdX)) (SubstSymb) ;
+  = true 
+ if (IdP) is-symb-in Pi .
+
+ceq Pi |- (N) (#subst (IdQ) (IdP) (IdQ) (IdX)) (SubstSymb) ;
+  = false 
+ if (IdP) is-symb-in Pi and IdQ =/= IdP .
+
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstImp (IdSubst1) (IdSubst2)) ;
+  = true
+ if (\imp (IdP1) (IdP2)) := Pi[IdP]
+ /\ (\imp (IdR1) (IdR2)) := Pi[IdR]
+ /\ (#subst (IdR1) (IdP1) (IdQ) (IdX)) := Pi[IdSubst1]
+ /\ (#subst (IdR2) (IdP2) (IdQ) (IdX)) := Pi[IdSubst2] .
+
+---- (#nf x p) holds if
 ----   x doesn't occur free in p
 ---- where x is an element/set variable
 ---- and p is a pattern
