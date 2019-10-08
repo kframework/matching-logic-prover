@@ -246,6 +246,7 @@ eq Pi |- ((N:NzNat) (\bot) (WF) ;) = false .
 eq Pi |- ((N) (\evar) (WF) ;) = true .
 eq Pi |- ((N) (\svar) (WF) ;) = true .
 eq Pi |- ((N) (\symb) (WF) ;) = true .
+eq Pi |- ((N) (\app (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
 eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
 eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
@@ -278,7 +279,7 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstVariable) ;
  if (IdP) is-var-in Pi and IdP =/= IdX and IdR =/= IdP .
 
 ceq Pi |- (N) (#subst (0) (0) (IdQ) (IdX)) (SubstBot) ;
-  = false
+  = true
  if true .
 
 ceq Pi |- (N) (#subst (IdR) (0) (IdQ) (IdX)) (SubstBot) ;
@@ -297,6 +298,13 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstImp (IdSubst1) (IdSubst2)) 
   = true
  if (\imp (IdP1) (IdP2)) := Pi[IdP]
  /\ (\imp (IdR1) (IdR2)) := Pi[IdR]
+ /\ (#subst (IdR1) (IdP1) (IdQ) (IdX)) := Pi[IdSubst1]
+ /\ (#subst (IdR2) (IdP2) (IdQ) (IdX)) := Pi[IdSubst2] .
+
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstApp (IdSubst1) (IdSubst2)) ;
+  = true
+ if (\app (IdP1) (IdP2)) := Pi[IdP]
+ /\ (\app (IdR1) (IdR2)) := Pi[IdR]
  /\ (#subst (IdR1) (IdP1) (IdQ) (IdX)) := Pi[IdSubst1]
  /\ (#subst (IdR2) (IdP2) (IdQ) (IdX)) := Pi[IdSubst2] .
 
