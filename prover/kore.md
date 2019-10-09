@@ -112,6 +112,12 @@ only in this scenario*.
                        | "axiom" Pattern
                        | SymbolDeclaration
                        | SortDeclaration
+
+  syntax Variable ::= "#hole"
+
+  // Sugar for `\exists #hole . #hole /\ floor(Arg1 -> Arg2)
+  syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
+
 endmodule
 ```
 
@@ -243,6 +249,9 @@ module KORE-HELPERS
     => getFreeVariables(P, .Patterns) -Patterns Vs
   rule getFreeVariables(\forall { Vs } P,  .Patterns)
     => getFreeVariables(P, .Patterns) -Patterns Vs
+  rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
+    => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
+       -Patterns #hole, .Patterns
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
@@ -339,6 +348,9 @@ Substitution: Substitute term or variable
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
 
+  rule subst(implicationContext(CTX, RHS), X, V)
+    => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
+
   rule subst(R,_,_) => R [owise]
 
   syntax Pair ::= pair(Patterns, Patterns)
@@ -398,6 +410,8 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V
   rule alphaRename(I:Int) => I
+  rule alphaRename(implicationContext(P, Qs))
+    => implicationContext(alphaRename(P), alphaRename(Qs))
 
   rule alphaRenamePs(.Patterns) => .Patterns
   rule alphaRenamePs(P, Ps) => alphaRename(P), alphaRenamePs(Ps)
@@ -415,8 +429,14 @@ Simplifications
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]
   rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)) ++Patterns #flattenAnds(Ps2)
   rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
   rule #flattenAnds(.Patterns) => .Patterns
+
+  syntax Patterns ::= #flattenSeps(Patterns) [function]
+  rule #flattenSeps(sep(Ps1), Ps2) => #flattenSeps(Ps1) ++Patterns #flattenSeps(Ps2)
+  rule #flattenSeps(P, Ps) => P, #flattenSeps(Ps) [owise]
+  rule #flattenSeps(.Patterns) => .Patterns
 
   syntax Patterns ::= #flattenOrs(Patterns) [function]
   rule #flattenOrs(\or(Ps1), Ps2) => #flattenOrs(Ps1) ++Patterns #flattenOrs(Ps2)

@@ -86,21 +86,6 @@ for guessing an instantiation of the inductive hypothesis.
        </strategy>
 ```
 
-```k
-  syntax Variable ::= "#hole"
-
-  // Sugar for `\exists #hole . #hole /\ floor(Arg1 -> Arg2)
-  syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
-
-  rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
-    => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
-       -Patterns #hole, .Patterns
-  rule subst(implicationContext(CTX, RHS), X, V)
-    => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
-  rule alphaRename(implicationContext(P, Qs))
-    => implicationContext(alphaRename(P), alphaRename(Qs))
-```
-
 >   phi(x) -> C'[psi(x)]
 >   --------------------
 >   C[phi(x)] -> psi(x)
@@ -115,6 +100,7 @@ for guessing an instantiation of the inductive hypothesis.
        <strategy> kt-wrap(LRP) => noop ... </strategy>
        <trace> .K => kt-wrap(LRP)  ... </trace>
     requires LRP in LHS
+     andBool isPredicatePattern(\and(LHS))
 
   rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT:Patterns), RHS)
             => \implies(LRP, implicationContext(\and( sep(#hole, (LSPATIAL -Patterns LRP))
@@ -126,6 +112,7 @@ for guessing an instantiation of the inductive hypothesis.
        <strategy> kt-wrap(LRP) => noop ... </strategy>
        <trace> .K => kt-wrap(LRP)  ... </trace>
     requires LRP in LSPATIAL
+     andBool isSpatialPattern(sep(LSPATIAL))
 ```
 
 >   phi(x) -> \forall y. psi(x, y)
@@ -173,13 +160,14 @@ for guessing an instantiation of the inductive hypothesis.
     requires removeDuplicates(ARGS) =/=K ARGS
      andBool isUnfoldable(LRP)
 
-                             // unfolded fixed point, HEAD, LRP variables, Pattern
+                             // unfolded fixed point, HEAD, LRP variables, RHS
   syntax Pattern ::= substituteBRPs(Pattern,  Symbol, Patterns, Pattern) [function]
   rule substituteBRPs(P:Int, RP, Vs, RHS) => P
   rule substituteBRPs(P:Variable, RP, Vs, RHS) => P
   rule substituteBRPs(P:Symbol, RP, Vs, RHS) => P
   rule substituteBRPs(S:Symbol(ARGS) #as P, RP, Vs, RHS) => P
     requires S =/=K RP
+     andBool S =/=K sep
   rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, (\forall { Qs } implicationContext(CTX, P)) #as RHS)
     => alphaRename(substMap(RHS, zip(ARGS, BODY_ARGS)))
 
@@ -194,6 +182,7 @@ for guessing an instantiation of the inductive hypothesis.
 
   rule substituteBRPs(\or(Ps), RP, Vs, RHS)  => \or(substituteBRPsPs(Ps, RP, Vs, RHS))
   rule substituteBRPs(\and(Ps), RP, Vs, RHS) => \and(substituteBRPsPs(Ps, RP, Vs, RHS))
+  rule substituteBRPs(sep(Ps), RP, Vs, RHS) => sep(substituteBRPsPs(Ps, RP, Vs, RHS))
 
   rule substituteBRPs(\exists { E } C, RP, Vs, RHS)
     => \exists { E } substituteBRPs(C, RP, Vs, RHS)
