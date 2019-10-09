@@ -58,14 +58,19 @@
 
 (check-sat)
 (set-info :mlprover-strategy
-    normalize 
-  ; smtlib-to-implication 
-  ; kt 
-  ; or-split-rhs 
-  ; lift-constraints 
-  ; right-unfold-Nth(0,1) 
-  ; right-unfold-Nth(0,0) 
-  ; lift-constraints 
-  ; match
-  ; instantiate-separation-logic-axioms
-  )
+    normalize
+  ; smtlib-to-implication
+  ; kt
+  ; or-split-rhs
+  ; lift-constraints
+  ; ( ( right-unfold-Nth(0,1)
+      ; right-unfold-Nth(0,0)
+      ; lift-constraints
+      ; match
+      ; instantiate-separation-logic-axioms
+      ; spatial-patterns-equal
+      ; smt-cvc4
+      )
+    | noop
+    )
+)

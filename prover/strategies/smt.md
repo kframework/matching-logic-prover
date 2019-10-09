@@ -23,15 +23,15 @@ module ML-TO-SMTLIB2
   syntax SMTLIB2Script ::= ML2SMTLIBDecls(Pattern, Declarations) [function]
   syntax SMTLIB2Script ::= DeclarationsToSMTLIB(Declarations) [function]
   rule ML2SMTLIBDecls(PATTERN, DECLS)
-    => declareVariables(getUniversalVariables(PATTERN)) ++SMTLIB2Script
-       DeclarationsToSMTLIB(DECLS) ++SMTLIB2Script
+    => DeclarationsToSMTLIB(DECLS) ++SMTLIB2Script
+       declareVariables(getUniversalVariables(PATTERN)) ++SMTLIB2Script
        (assert PatternToSMTLIB2Term(PATTERN))
 
   syntax SMTLIB2Script ::= DeclarationsToSMTLIB(Declarations) [function]
 
   rule DeclarationsToSMTLIB(.Declarations) => .SMTLIB2Script
   rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
-    => (declare-fun SymbolToSMTLIB2Symbol(S) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
+    => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
        DeclarationsToSMTLIB(Ds)
     requires isFunctional(S)  
 
@@ -39,6 +39,9 @@ module ML-TO-SMTLIB2
     => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) (Set SortToSMTLIB2Sort(SORT)) ) ++SMTLIB2Script
        DeclarationsToSMTLIB(Ds)
     requires notBool isFunctional(S)
+
+  rule DeclarationsToSMTLIB((axiom heap(_, _)) Ds)
+    => DeclarationsToSMTLIB(Ds)
 
   syntax Bool ::= isFunctional(Symbol) [function]
   rule [[ isFunctional(S) => true ]]
@@ -78,7 +81,8 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(union(P1, P2)) => ( unionx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(disjoint(P1, P2)) => ( disjointx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(store(P1, P2, P3)) => ( store PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) PatternToSMTLIB2Term(P3) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( SymbolToSMTLIB2Symbol(S) PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term [owise]
+  rule PatternToSMTLIB2Term(S:Symbol(.Patterns)) => SymbolToSMTLIB2SymbolFresh(S):SMTLIB2Term
+  rule PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( SymbolToSMTLIB2SymbolFresh(S) PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term [owise]
   rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
   rule PatternToSMTLIB2Term(\and(.Patterns)) => true
@@ -110,11 +114,10 @@ module ML-TO-SMTLIB2
   rule SymbolToSMTLIB2SymbolFresh(S:Symbol) => StringToSMTLIB2SimpleSymbol("fresh_" +String SymbolToString(S))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
-  rule SortToSMTLIB2Sort(Int:Sort) => Int:SMTLIB2Sort
-  rule SortToSMTLIB2Sort(Bool:Sort) => Bool:SMTLIB2Sort
   rule SortToSMTLIB2Sort(SetInt:Sort) => SetInt:SMTLIB2Sort
   rule SortToSMTLIB2Sort(ArrayIntInt) => ( Array Int Int ):SMTLIB2Sort
-  rule SortToSMTLIB2Sort(Heap:Sort) => Heap:SMTLIB2Sort
+  rule SortToSMTLIB2Sort(SORT) => StringToSMTLIB2SimpleSymbol(SortToString(SORT))
+    [owise]
 
   syntax SMTLIB2SortList ::= SortsToSMTLIB2SortList(Sorts) [function]
   rule SortsToSMTLIB2SortList(S, Ss) => SortToSMTLIB2Sort(S) SortsToSMTLIB2SortList(Ss)
@@ -197,7 +200,7 @@ module ML-TO-SMTLIB2
 
   syntax SMTLIB2Command ::= SymbolDeclarationToSMTLIB2FunctionDeclaration(SymbolDeclaration) [function]
   rule SymbolDeclarationToSMTLIB2FunctionDeclaration(symbol NAME ( ARGS ) : RET)
-    => ( declare-fun SymbolToSMTLIB2Symbol(NAME) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(RET) )
+    => ( declare-fun SymbolToSMTLIB2SymbolFresh(NAME) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(RET) )
 ```
 
 ```k
@@ -287,10 +290,10 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 ```k
   rule <claim> GOAL </claim>
        <strategy> smt-debug
-               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))))
+               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))))
                   ...
        </strategy>
-       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
+       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
 ```
 
 ```k

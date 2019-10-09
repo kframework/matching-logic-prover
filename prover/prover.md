@@ -72,6 +72,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
                     | "instantiate-separation-logic-axioms"
+                    | "spatial-patterns-equal"
                     | "match" 
 
   syntax KTFilter ::= head(Symbol)

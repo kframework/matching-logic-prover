@@ -34,6 +34,8 @@ Instantiate existentials using matching on the spatial part of goals:
                => noop
                   ...
        </strategy>
+
+  rule <strategy> (.MatchResults ~> match) => fail ... </strategy>
 ```
 
 Instantiate heap axioms:
@@ -56,32 +58,46 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 ```k
     rule <claim> \implies(\and((sep(_) #as LSPATIAL), LCONSTRAINT), RHS) </claim>
          <strategy> instantiate-axiom(\forall { Vs }
-                                      \implies( \and((sep(_) #as AXIOM_LHS))
+                                      \implies( \and(sep(Ps))
                                               , AXIOM_RHS
                                               )
                                      ) #as STRAT
                  => ( #match( term: LSPATIAL
-                            , pattern:  sep(.Patterns) // AXIOM_LHS
+                            , pattern:  sep(Ps)
                             , variables: Vs
                             )
                    ~> STRAT:Strategy
                     )
                     ...
          </strategy>
-//       requires isSpatialPattern(AXIOM_LHS)
+       requires isSpatialPattern(sep(Ps))
 
-//    rule <claim> \implies(\and((sep(_) #as LSPATIAL), LCONSTRAINT)
-//                         , RHS
-//                         )
-//         </claim>
-//         <strategy> ( #matchResult( subst: SUBST, rest: _ ) ; MRs
-//                   ~> instantiate-pto-not-nil
-//                    )
-//                 => ( MRs
-//                   ~> instantiate-pto-not-nil
-//                    )
-//                    ...
-//         </strategy>
+    rule <claim> \implies(\and((sep(_) #as LSPATIAL), (LCONSTRAINT => substMap(AXIOM_RHS, SUBST), LCONSTRAINT))
+                         , RHS
+                         )
+         </claim>
+         <strategy> ( #matchResult( subst: SUBST, rest: _ ) ; MRs
+                   ~> instantiate-axiom(\forall { Vs }
+                                        \implies( _
+                                                , AXIOM_RHS
+                                                )
+                                       ) #as STRAT
+                    )
+                 => ( MRs ~> STRAT:Strategy )
+                    ...
+         </strategy>
+      requires isPredicatePattern(AXIOM_RHS)
+
+    rule <strategy> (.MatchResults ~> instantiate-axiom(_)) => noop ... </strategy>
+
+    rule <claim> \implies(               \and(sep(LSPATIAL), LCONSTRAINT)
+                         , \exists{ Vs } \and(sep(RSPATIAL), RCONSTRAINT)
+                         )
+              => \implies(\and(LCONSTRAINT), \exists { Vs } \and(RCONSTRAINT))
+         </claim>
+         <strategy> spatial-patterns-equal => noop ... </strategy>
+      requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
+       andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
 ```
 
 ```k
