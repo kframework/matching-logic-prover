@@ -47,6 +47,7 @@ module SMTLIB-TO-KORE
                         <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
                         <declaration> symbol sep(Heap, Heap) : Heap </declaration>
                         <declaration> symbol nil ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
+                        <declaration> axiom  heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
                       ) ...
        </declarations>
 

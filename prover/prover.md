@@ -69,8 +69,9 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter
                     | "kt-gfp" | "kt-gfp" "#" KTFilter
-  syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
+                    | "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
+                    | "instantiate-separation-logic-axioms"
                     | "match" 
 
   syntax KTFilter ::= head(Symbol)

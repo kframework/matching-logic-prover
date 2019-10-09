@@ -66,8 +66,11 @@ only in this scenario*.
 
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
+                   
+                   // sugar for commonly needed axioms
                    | "functional" "(" Symbol ")"
                    | "partial" "(" Patterns ")"
+                   | "heap" "(" Sort "," Sort ")" // Location, Data
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
