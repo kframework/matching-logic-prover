@@ -205,6 +205,10 @@ for guessing an instantiation of the inductive hypothesis.
 ```k
   syntax Strategy ::= "kt-collapse"
 
+// TODO: can't use [owise] in not function
+  rule <strategy> kt-collapse => or-split-rhs ; lift-constraints ; wait ; kt-collapse ... </strategy>
+    [owise]
+
 // Move Implication contexts to the front
   rule <claim> \implies(\and(P, Ps) #as LHS, RHS)
         => \implies(\and(Ps ++Patterns P), RHS)

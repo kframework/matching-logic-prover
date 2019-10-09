@@ -219,6 +219,10 @@ Internal strategy used to implement `or-split` and `and-split`.
   rule <claim> \implies(LHS, \exists { Vs } \and(\or(RHSs), REST)) </claim>
        <strategy> or-split-rhs => #orSplitImplication(LHS, Vs, RHSs, REST) ... </strategy>
 
+  rule <claim> \implies(LHS, \exists { Vs } \and(RHSs, REST)) </claim>
+       <strategy> or-split-rhs => noop ... </strategy>
+    requires notBool isDisjunction(RHSs)
+
   syntax Strategy ::= "#orSplitImplication" "(" Pattern "," Patterns "," Patterns "," Patterns ")" [function]
   rule #orSplitImplication(P, Vs, .Patterns, REST) => replace-goal(\implies(P, \exists{Vs} \and(\or(.Patterns))))
   rule #orSplitImplication(P1, Vs, (P2, .Patterns), REST) => replace-goal(\implies(P1, \exists{Vs} \and(P2, REST)))

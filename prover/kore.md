@@ -507,6 +507,7 @@ Simplifications
 
   rule isPredicatePattern(sep(_)) => false
   rule isPredicatePattern(pto(_)) => false
+  rule isPredicatePattern(\forall{_} implicationContext(_,_)) => false
 
   syntax Bool ::= isSpatialPattern(Pattern) [function]
   rule isSpatialPattern(pto(_)) => true
@@ -517,6 +518,14 @@ Simplifications
   rule isSpatialPattern(\and(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires isUnfoldable(S) andBool getReturnSort(S(ARGS)) ==K Heap
+  rule isSpatialPattern(\forall{_} implicationContext(_,_)) => true
+```
+
+```k
+  syntax Bool ::= isDisjunction(Pattern) [function]
+  rule isDisjunction(\or(_)) => true
+  rule isDisjunction(_) => false
+    [owise]
 ```
 
 ```k
