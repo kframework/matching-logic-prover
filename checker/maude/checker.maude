@@ -67,6 +67,8 @@ op `(SubstSymb`) : -> Rule .
 op `(SubstBot`) : -> Rule .
 op `(SubstImp__`) : Id Id -> Rule .
 op `(SubstApp__`) : Id Id -> Rule .
+op `(SubstExBinding`) : -> Rule .
+op `(SubstExBody____`) : Id Id Id Id -> Rule .
 
 ---- Provability
 
@@ -113,6 +115,7 @@ vars IdP IdQ IdR IdX IdY IdZ : Nat .
 vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 : Nat .
 vars IdP2 IdQ2 IdR2 IdX2 IdY2 IdZ2 : Nat .
 vars IdSubst1 IdSubst2 : Nat .
+vars IdPx IdPBody : Nat .
 
 ---------------------------------------
 ---- Proof check:
@@ -307,6 +310,34 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstApp (IdSubst1) (IdSubst2)) 
  /\ (\app (IdR1) (IdR2)) := Pi[IdR]
  /\ (#subst (IdR1) (IdP1) (IdQ) (IdX)) := Pi[IdSubst1]
  /\ (#subst (IdR2) (IdP2) (IdQ) (IdX)) := Pi[IdSubst2] .
+
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstExBinding) ;
+  = true
+ if (\ex (IdPx) (IdPBody)) := Pi[IdP]
+ /\ IdPx == IdX
+ /\ IdR == IdP .
+
+vars IdPX IdRBody : Nat .
+vars IdResult
+     IdZNotOccurFreeInQ
+     IdPSubstZForPX
+     IdResultSubstQForX : Nat .
+
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) 
+              (SubstExBody (IdZ) 
+                           (IdZNotOccurFreeInQ)
+                           (IdPSubstZForPX)
+                           (IdResultSubstQForX)) ;
+  = true
+ if (\ex (IdPX) (IdPBody)) := Pi[IdP]
+ /\ (\ex (IdZ) (IdRBody)) := Pi[IdR]
+ /\ IdPX =/= IdX
+ /\ (IdZ) is-var-in Pi
+ /\ IdZ =/= IdX
+ /\ (#nf (IdZ) (IdQ)) := Pi[IdZNotOccurFreeInQ]
+ /\ (#subst (IdResult) (IdPBody) (IdZ) (IdPX)) := Pi[IdPSubstZForPX]
+ /\ (#subst (IdRBody) (IdResult) (IdQ) (IdX)) := Pi[IdResultSubstQForX] .
+
 
 ---- (#nf x p) holds if
 ----   x doesn't occur free in p

@@ -154,6 +154,32 @@ reduce checkPass(
 
 ).
 
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\evar) (WF) ;
+(3) (\ex (1) (2)) (WF) ;
+(4) (#subst (3) (3) (2) (1)) (SubstExBinding) ;
+
+).
+
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\evar) (WF) ;
+(3) (\evar) (WF) ;
+(4) (\ex (1) (2)) (WF) ; "ex x1 . x2"
+(5) (\ex (3) (1)) (WF) ; "ex x3 . x1"
+(6) (#subst (1) (2) (1) (2)) (SubstVariable) ;
+(7) (#nf (3) (1)) (NotOccurFreeBasic) ;
+(8) (#subst (2) (2) (3) (1)) (SubstVariable) ;
+(9) (#subst (5) (4) (1) (2)) (SubstExBody (3) (7) (8) (6)) ;
+    "ex x1 . x2 [x1 / x2] ===> x2 [x3 / x1] = x2 ===> x2 [x1 / x2] = x1"
+
+).
+
 
 ---- The following test does not pass yet.
 ---- reduce checkPass(
