@@ -395,6 +395,20 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstMuBinding) ;
   = IdR == IdP
  if (\mu (IdX) (IdPBody)) := Pi[IdP] .
 
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) 
+              (SubstExBody (IdZ)         ---- fresh var Z
+                           (IdNF)        ---- proved claim (#nf Z Q)
+                           (IdSubst1)    ---- proved claim for R1=P1[Z/Y]
+                           (IdSubst2)) ; ---- proved claim for R2=R1[Q/X]
+  = true
+ if (\mu (IdY) (IdP1)) := Pi[IdP]
+ /\ IdY =/= IdX
+ /\ (\mu (IdZ) (IdR2)) := Pi[IdR]
+ /\ IdZ =/= IdX
+ /\ (#nf (IdZ) (IdQ)) := Pi[IdNF]
+ /\ (#subst (IdR1) (IdP1) (IdZ) (IdY)) := Pi[IdSubst1]
+ /\ (#subst (IdR2) (IdR1) (IdQ) (IdX)) := Pi[IdSubst2] .
+
 ---------------------------------------
 ---- Checking proof rules Part A
 ----   Propositional reasoning
