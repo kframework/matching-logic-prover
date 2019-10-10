@@ -334,6 +334,28 @@ TODO: Extend to multiple matches:
        </strategy>
 ```
 
+TODO: This is pretty adhoc: Remove constraints in the context that are already in the LHS
+
+```k
+  rule <claim> \implies(\and( sep ( \forall { UNIVs }
+                                    implicationContext( \and( sep(_)
+                                                            , ( CTXCONSTRAINT, CTXCONSTRAINTs
+                                                             => CTXCONSTRAINTs
+                                                              )
+                                                            ) , _)
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> kt-collapse ... </strategy>
+    requires isPredicatePattern(CTXCONSTRAINT)
+     andBool CTXCONSTRAINT in LHS
+
+```
+
 #### Infrastructure
 
 
