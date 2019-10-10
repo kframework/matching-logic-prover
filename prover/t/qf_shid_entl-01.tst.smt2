@@ -81,7 +81,13 @@
           ; spatial-patterns-equal
           ; smt-cvc4
           )
-        | noop
+        | ( normalize ; lift-constraints
+          ; right-unfold-Nth(0,1)
+          ; normalize ; lift-constraints
+          ; match
+          ; spatial-patterns-equal
+          ; smt-cvc4
+          )
         )
       )
     )
