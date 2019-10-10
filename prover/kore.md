@@ -516,6 +516,7 @@ Simplifications
   rule isSpatialPattern(P) => false
     requires isPredicatePattern(P)
   rule isSpatialPattern(\and(_)) => false
+  rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires isUnfoldable(S) andBool getReturnSort(S(ARGS)) ==K Heap
   rule isSpatialPattern(\forall{_} implicationContext(_,_)) => true

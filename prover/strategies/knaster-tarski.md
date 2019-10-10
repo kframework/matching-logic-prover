@@ -4,6 +4,7 @@ module STRATEGY-KNASTER-TARSKI
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-HELPERS
   imports STRATEGY-UNFOLDING
+  imports STRATEGY-MATCHING
 ```
 
 ### Knaster Tarski (Least Fixed Point)
@@ -74,11 +75,11 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= ktForEachLRP(Patterns)
   rule <strategy> ktForEachLRP(.Patterns) => noop ... </strategy>
   rule <strategy> ( ktForEachLRP((LRP, LRPs))
-                 => ( remove-lhs-existential ; normalize
+                 => ( remove-lhs-existential ; normalize ; or-split-rhs ; lift-constraints
                     ; kt-wrap(LRP) ; kt-forall-intro
                     ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
                     ; kt-unwrap
-                    ; simplify ; normalize ; kt-collapse
+                    ; simplify ; normalize ; or-split-rhs; lift-constraints; kt-collapse
                     )
                     | ktForEachLRP(LRPs)
                   )
@@ -202,22 +203,52 @@ for guessing an instantiation of the inductive hypothesis.
        <strategy> kt-unwrap => noop ... </strategy>
 ```
 
+
+### `kt-collapse`
+
 ```k
   syntax Strategy ::= "kt-collapse"
+```
 
-// TODO: can't use [owise] in not function
-  rule <strategy> kt-collapse => or-split-rhs ; lift-constraints ; wait ; kt-collapse ... </strategy>
-    [owise]
+If there are no implication contexts to collapse, we are done:
 
-// Move Implication contexts to the front
+```k
+  rule <claim> GOAL </claim>
+       <strategy> kt-collapse => noop ... </strategy>
+    requires notBool(hasImplicationContext(GOAL))
+```
+
+#### Normalizing terms
+
+Bring terms containing the implication context to the front:
+
+```k
+  // FOL case
   rule <claim> \implies(\and(P, Ps) #as LHS, RHS)
-        => \implies(\and(Ps ++Patterns P), RHS)
+            => \implies(\and(Ps ++Patterns P), RHS)
        </claim>
        <strategy> kt-collapse ... </strategy>
     requires notBool hasImplicationContext(P)
      andBool hasImplicationContext(LHS)
+```
 
-// Move #holes to the front
+```k
+  // SL case
+  rule <claim> \implies(\and((sep(S, Ss) #as LSPATIAL), Ps), RHS)
+            => \implies(\and(sep(Ss ++Patterns S), Ps), RHS)
+       </claim>
+       <strategy> kt-collapse ... </strategy>
+    requires notBool hasImplicationContext(S)
+     andBool hasImplicationContext(LSPATIAL)
+```
+
+Move #holes to the front
+
+// TODO: would:
+// rule P, #hole, REST => #hole, P, REST [anywhere]
+// be better?
+
+```k
   rule <claim> \implies(\and(\forall { _ }
                          implicationContext( \and(P, Ps)
                                           => \and(Ps ++Patterns P)
@@ -228,11 +259,29 @@ for guessing an instantiation of the inductive hypothesis.
     requires P =/=K #hole:Pattern
      andBool #hole in Ps
 
-// remove implication context
-  rule <claim> \implies(\and( \forall { UNIVs } ( implicationContext( \and(#hole, CTXLHS:Patterns)
-                                                                , CTXRHS:Pattern)
-                                           => \implies(\and(CTXLHS), CTXRHS)
-                                            )
+  rule <claim> \implies(\and(sep(\forall { _ }
+                         implicationContext( \and(P, Ps)
+                                          => \and(Ps ++Patterns P)
+                                           , _)
+                        ,_ ), _), _)
+       </claim>
+       <strategy> kt-collapse ... </strategy>
+    requires P =/=K #hole:Pattern
+     andBool #hole in Ps
+```
+
+#### Collapsing contexts (FOL)
+
+In the FOL case, we create an implication, and dispatch that to the smt
+solver using `kt-solve-implications`
+
+```k
+  rule <claim> \implies(\and( \forall { UNIVs }
+                              ( implicationContext( \and(#hole, CTXLHS:Patterns)
+                                                  , CTXRHS:Pattern
+                                                  )
+                             => \implies(\and(CTXLHS), CTXRHS)
+                              )
                         , LHS:Patterns
                         )
                    , RHS:Pattern
@@ -240,6 +289,53 @@ for guessing an instantiation of the inductive hypothesis.
        </claim>
        <strategy> kt-collapse ... </strategy>
 ```
+
+#### Collapsing contexts (SL)
+
+In the separation logic case, we must use matching.
+
+```k
+  rule <claim> \implies(\and( sep ( \forall { UNIVs }
+                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> kt-collapse 
+               => ( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: UNIVs)
+                 ~> kt-collapse
+                  )
+                  ...
+       </strategy>
+```
+
+TODO: Extend to multiple matches:
+
+```k
+  rule <claim> \implies(\and( ( sep ( \forall { UNIVs }
+                                      implicationContext( \and(sep(_)) , CTXRHS)
+                                    , LSPATIAL
+                                    )
+                             => sep(substMap(CTXRHS, SUBST) ++Patterns REST)
+                              )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> ( #matchResult(subst: SUBST, rest: REST); .MatchResults
+                 ~> kt-collapse
+                  )
+               => kt-collapse
+                  ...
+       </strategy>
+```
+
+#### Infrastructure
+
 
 ```k
   syntax Patterns ::= substituteWithEach(Pattern, Variable, Patterns) [function]
@@ -253,10 +349,6 @@ for guessing an instantiation of the inductive hypothesis.
     => V, filterVariablesBySort(Vs, S)
   rule filterVariablesBySort((V, Vs), S)
     => filterVariablesBySort(Vs, S) [owise]
-
-  rule <claim> GOAL </claim>
-       <strategy> kt-collapse => noop ... </strategy>
-    requires notBool(hasImplicationContext(GOAL))
 
   // TODO: Move to "normalize" strategy
   rule <claim> \implies(\and(\and(Ps1), Ps2), RHS)
