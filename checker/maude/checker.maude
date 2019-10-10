@@ -8,37 +8,37 @@ sort Id .
 op `(_`) : Nat -> Id .
 
 sort Proof .
-op ___; : Id Goal Rule -> Proof [prec 40] .
+op ___; : Id Claim Rule -> Proof [prec 40] .
 op .Proof : -> Proof .
 op __ : Proof Proof -> Proof [assoc id: .Proof prec 45 format(d n d)] .
 ---- proof with comments
-op ___;_ : Id Goal Rule String -> Proof [prec 40] .
-eq ID:Id D:Goal R:Rule ; S:String = ID:Id D:Goal R:Rule ; .
+op ___;_ : Id Claim Rule String -> Proof [prec 40] .
+eq ID:Id D:Claim R:Rule ; S:String = ID:Id D:Claim R:Rule ; .
 
 ---- AtomicPattern contains element/set variables, symbols, and \bottom.
 
-sorts AtomicPattern Goal .
-subsort AtomicPattern Id < Goal .
+sorts AtomicPattern Claim .
+subsort AtomicPattern Id < Claim .
 
 op `(\evar`) : -> AtomicPattern .
 op `(\svar`) : -> AtomicPattern .
 op `(\symb`) : -> AtomicPattern .
 op `(\bot`) : -> AtomicPattern .
-op `(\app__`) : Id Id -> Goal .
-op `(\imp__`) : Id Id -> Goal .
-op `(\ex__`) : Id Id -> Goal . 
-op `(\mu__`) : Id Id -> Goal . 
+op `(\app__`) : Id Id -> Claim .
+op `(\imp__`) : Id Id -> Claim .
+op `(\ex__`) : Id Id -> Claim . 
+op `(\mu__`) : Id Id -> Claim . 
 
 ---- metalevel properties
 
 ---- (variable) not occur free in (pattern)
-op `(#nf__`) : Id Id -> Goal .
+op `(#nf__`) : Id Id -> Claim .
 
 ---- (pattern) is the result of substituting in (pattern), (pattern) for (variable)
-op `(#subst____`) : Id Id Id Id -> Goal .
+op `(#subst____`) : Id Id Id Id -> Claim .
 
 ---- (pattern) is an application context w.r.t. (variable)
-op `(#appctx__`) : Id Id -> Goal .
+op `(#appctx__`) : Id Id -> Claim .
 
 ---- Rule annotations
 
@@ -63,6 +63,8 @@ op `(SubstImp__`) : Id Id -> Rule .
 op `(SubstApp__`) : Id Id -> Rule .
 op `(SubstExBinding`) : -> Rule .
 op `(SubstExBody____`) : Id Id Id Id -> Rule .
+op `(SubstMuBinding`) : -> Rule .
+op `(SubstMuBody____`) : Id Id Id Id -> Rule .
 
 ---- Provability proof rule checking
 
@@ -99,7 +101,7 @@ op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \n
 ---- Variable definitions
 ---------------------------------------
 
-vars Phi Psi P Q R : Goal .
+vars Phi Psi P Q R : Claim .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
 vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
@@ -112,9 +114,9 @@ vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
 vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
 
 ---------------------------------------
----- Proof check:
-----   PC1: check ids are (1) (2) (3) ...
-----   PC2: check each proof step is correct
+---- Proof checking procedures:
+----   Phase 1: check ids are (1) (2) (3) ...
+----   Phase 2: check each proof step is correct
 ---------------------------------------
 
 op check : Proof -> Bool .
@@ -139,23 +141,23 @@ eq check-id-aux(Pi, N) = false [owise] .
 ---------------------------------------
 
 ---- Pattern lookup
-op _[_] : Proof NzNat -> [Goal] .
+op _[_] : Proof NzNat -> [Claim] .
 eq (Pi1 ((N) Phi Rl ;) Pi2) [N] = Phi .
 
----- Auxilliary data structures: ExGoal,
----- which extends Goal by allowing *nested* constructs.
+---- Auxilliary data structures: ExClaim,
+---- which extends Claim by allowing *nested* constructs.
 ---- This is useful for proof checking.
 
-sort ExGoal . subsort Goal < ExGoal .
+sort ExClaim . subsort Claim < ExClaim .
 
-op `(\app__`) : ExGoal ExGoal -> ExGoal .
-op `(\imp__`) : ExGoal ExGoal -> ExGoal .
-op `(\ex__`) : ExGoal ExGoal -> ExGoal . 
-op `(\mu__`) : ExGoal ExGoal -> ExGoal . 
+op `(\app__`) : ExClaim ExClaim -> ExClaim .
+op `(\imp__`) : ExClaim ExClaim -> ExClaim .
+op `(\ex__`) : ExClaim ExClaim -> ExClaim . 
+op `(\mu__`) : ExClaim ExClaim -> ExClaim . 
 
-vars EP EQ EP1 EP2 EQ1 EQ2 : ExGoal .
+vars EP EQ EP1 EP2 EQ1 EQ2 : ExClaim .
 
----- Expand ExGoal to a full pattern.
+---- Expand ExClaim to a full pattern.
 ---- op expand : Proof NzNat -> [Pattern] .
 ---- eq expand( (Pi1 ((N) AP:AtomicPattern Rl ;) Pi2), N)
 ----  = AP:AtomicPattern .
@@ -170,8 +172,8 @@ vars EP EQ EP1 EP2 EQ1 EQ2 : ExGoal .
 ---- eq expand( (Pi1 ((N) (\mu (M1) (M2)) Rl ;) Pi2), N)
 ----  = (\mu (expand(Pi1, M1)) (expand(Pi1, M2))) .
 
----- Check if two ExGoal are equal *without* fully expanding them.
-op eq? : Proof ExGoal ExGoal -> Bool .
+---- Check if two ExClaim are equal *without* fully expanding them.
+op eq? : Proof ExClaim ExClaim -> Bool .
 eq eq?(Pi, EP, EP) = true .
 ceq eq?(Pi, (M), (N)) = eq?(Pi, (N), (M)) if M > N .
 eq eq?(Pi, (M), (N)) = eq?(Pi, (M), Pi[N]) .
@@ -210,7 +212,7 @@ op _|-_ : Proof Proof -> Bool [prec 46] .
 
 ---- Check if a digest/id is a wellformed pattern.
 op _is-wf-in_ : Id Proof -> Bool [prec 50] .
-eq (N) is-wf-in Pi1 ((N) D:Goal (WF) ;) Pi2 = true .
+eq (N) is-wf-in Pi1 ((N) D:Claim (WF) ;) Pi2 = true .
 eq (N) is-wf-in Pi = false [owise] .
 
 ---- Check if a pattern is proved to be provable (not just wellformed).
@@ -251,7 +253,7 @@ eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
 eq Pi |- ((N) (\mu (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-svar-in Pi .
-eq Pi |- ((N) G:Goal (WF) ;) = false [owise] .
+eq Pi |- ((N) G:Claim (WF) ;) = false [owise] .
 
 ---------------------------------------
 ---- Free variables checking 
@@ -322,44 +324,32 @@ ceq Pi |- (N) (#nf (IdX) (IdP)) (NFMuBody (IdNF)) ;
 ---- Substitution related checking
 ---------------------------------------
 
----- (#subst r p q x) holds if
-----   r is the result of substituting in p
-----   q for x (capture-avoiding substitution).
+---- Proof step with rule (#subst (IdR) (IdP) (IdQ) (IdX)) holds if
+----   1. (IdX) is an element or set variable;
+----   2. (IdR),(IdP),(IdQ) are wellformed patterns;
+----   3. (IdR) is the result of substituting in (IdP), (IdQ) for (IdX)
+----      (this substitution is capture-avoiding substitution).
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstVariable) ;
+---- Failure case.
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) Rl ;
   = false
- if IdR >= N or IdP >= N or IdQ >= N or IdX >= N or not (IdX) is-var-in Pi .
+ if IdR >= N or IdP >= N or IdQ >= N or IdX >= N 
+ or not (IdX) is-var-in Pi
+ or not (IdR) is-wf-in Pi
+ or not (IdP) is-wf-in Pi
+ or not (IdQ) is-wf-in Pi .
 
- eq Pi |- (N) (#subst (IdQ) (IdX) (IdQ) (IdX)) (SubstVariable) ;
-  = true .
+---- Equations are defined based on structural induction on (IdP).
 
-ceq Pi |- (N) (#subst (IdR) (IdX) (IdQ) (IdX)) (SubstVariable) ;
-  = false
- if IdR =/= IdQ .
+ eq Pi |- (N) (#subst (IdR) (IdY) (IdQ) (IdX)) (SubstVariable) ;
+  = (IdY) is-var-in Pi
+    and ( (IdY == IdX and IdR == IdQ) or (IdY =/= IdX) ) .
 
-ceq Pi |- (N) (#subst (IdP) (IdP) (IdQ) (IdX)) (SubstVariable) ;
-  = true 
- if (IdP) is-var-in Pi and IdP =/= IdX .
+ eq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstBot) ;
+  = IdP == 0 and IdR == 0 .
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstVariable) ;
-  = false
- if (IdP) is-var-in Pi and IdP =/= IdX and IdR =/= IdP .
-
-ceq Pi |- (N) (#subst (0) (0) (IdQ) (IdX)) (SubstBot) ;
-  = true
- if true .
-
-ceq Pi |- (N) (#subst (IdR) (0) (IdQ) (IdX)) (SubstBot) ;
-  = false 
- if IdR =/= 0 .
-
-ceq Pi |- (N) (#subst (IdP) (IdP) (IdQ) (IdX)) (SubstSymb) ;
-  = true 
- if (IdP) is-symb-in Pi .
-
-ceq Pi |- (N) (#subst (IdQ) (IdP) (IdQ) (IdX)) (SubstSymb) ;
-  = false 
- if (IdP) is-symb-in Pi and IdQ =/= IdP .
+ eq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstSymb) ;
+  = (IdP) is-symb-in Pi and IdR == IdP .
 
 ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstImp (IdSubst1) (IdSubst2)) ;
   = true
@@ -376,32 +366,34 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstApp (IdSubst1) (IdSubst2)) 
  /\ (#subst (IdR2) (IdP2) (IdQ) (IdX)) := Pi[IdSubst2] .
 
 ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstExBinding) ;
-  = true
- if (\ex (IdPx) (IdPBody)) := Pi[IdP]
- /\ IdPx == IdX
- /\ IdR == IdP .
+  = IdR == IdP
+ if (\ex (IdX) (IdPBody)) := Pi[IdP] .
 
-vars IdPX IdRBody : Nat .
-vars IdResult
-     IdZNFInQ
-     IdPSubstZForPX
-     IdResultSubstQForX : Nat .
+---- How to do capture-avoiding substitution in (\ex Y . P1)[Q/X]
+----   1. Pick a fresh variable Z such that Z =/= X and (#nf Z Q);
+----   2. Calculate substitution P1[Z/Y], denoted R1;
+----   3. Calculate substitution R1[Q/X], denoted R2;
+----   4. Return the final result R = \ex Z . R2
+---- The correctness of the above computation is explained in page 8 of
+---- "Matching Logic" (LMCS'17 paper).
 
 ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) 
-              (SubstExBody (IdZ) 
-                           (IdZNFInQ)
-                           (IdPSubstZForPX)
-                           (IdResultSubstQForX)) ;
+              (SubstExBody (IdZ)         ---- fresh var Z
+                           (IdNF)        ---- proved claim (#nf Z Q)
+                           (IdSubst1)    ---- proved claim for R1=P1[Z/Y]
+                           (IdSubst2)) ; ---- proved claim for R2=R1[Q/X]
   = true
- if (\ex (IdPX) (IdPBody)) := Pi[IdP]
- /\ (\ex (IdZ) (IdRBody)) := Pi[IdR]
- /\ IdPX =/= IdX
- /\ (IdZ) is-var-in Pi
+ if (\ex (IdY) (IdP1)) := Pi[IdP]
+ /\ IdY =/= IdX
+ /\ (\ex (IdZ) (IdR2)) := Pi[IdR]
  /\ IdZ =/= IdX
- /\ (#nf (IdZ) (IdQ)) := Pi[IdZNFInQ]
- /\ (#subst (IdResult) (IdPBody) (IdZ) (IdPX)) := Pi[IdPSubstZForPX]
- /\ (#subst (IdRBody) (IdResult) (IdQ) (IdX)) := Pi[IdResultSubstQForX] .
+ /\ (#nf (IdZ) (IdQ)) := Pi[IdNF]
+ /\ (#subst (IdR1) (IdP1) (IdZ) (IdY)) := Pi[IdSubst1]
+ /\ (#subst (IdR2) (IdR1) (IdQ) (IdX)) := Pi[IdSubst2] .
 
+ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstMuBinding) ;
+  = IdR == IdP
+ if (\mu (IdX) (IdPBody)) := Pi[IdP] .
 
 ---------------------------------------
 ---- Checking proof rules Part A
