@@ -39,8 +39,6 @@ reduce checkPass(
 
 ).
 
-
-
 reduce checkPass(
 
 (0) (\bot) (WF) ;
@@ -58,7 +56,6 @@ reduce checkPass(
 (12) (#nf (1) (0)) (NotOccurFreeBasic) ;
 
 ).
-
 
 reduce checkPass(
 
@@ -224,6 +221,5 @@ reduce checkPass(
 (24) (#subst (11) (6) (1) (2)) (SubstExBody (8) (12) (18) (23)) ;
 
 ).
-
 
 quit

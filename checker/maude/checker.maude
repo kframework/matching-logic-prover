@@ -8,37 +8,37 @@ sort Id .
 op `(_`) : Nat -> Id .
 
 sort Proof .
-op ___; : Id Digest Rule -> Proof [prec 40] .
+op ___; : Id Goal Rule -> Proof [prec 40] .
 op .Proof : -> Proof .
 op __ : Proof Proof -> Proof [assoc id: .Proof prec 45 format(d n d)] .
 ---- proof with comments
-op ___;_ : Id Digest Rule String -> Proof [prec 40] .
-eq ID:Id D:Digest R:Rule ; S:String = ID:Id D:Digest R:Rule ; .
+op ___;_ : Id Goal Rule String -> Proof [prec 40] .
+eq ID:Id D:Goal R:Rule ; S:String = ID:Id D:Goal R:Rule ; .
 
 ---- AtomicPattern contains element/set variables, symbols, and \bottom.
 
-sorts AtomicPattern Digest .
-subsort AtomicPattern Id < Digest .
+sorts AtomicPattern Goal .
+subsort AtomicPattern Id < Goal .
 
 op `(\evar`) : -> AtomicPattern .
 op `(\svar`) : -> AtomicPattern .
 op `(\symb`) : -> AtomicPattern .
 op `(\bot`) : -> AtomicPattern .
-op `(\app__`) : Id Id -> Digest .
-op `(\imp__`) : Id Id -> Digest .
-op `(\ex__`) : Id Id -> Digest . 
-op `(\mu__`) : Id Id -> Digest . 
+op `(\app__`) : Id Id -> Goal .
+op `(\imp__`) : Id Id -> Goal .
+op `(\ex__`) : Id Id -> Goal . 
+op `(\mu__`) : Id Id -> Goal . 
 
 ---- metalevel properties
 
 ---- (variable) not occur free in (pattern)
-op `(#nf__`) : Id Id -> Digest .
+op `(#nf__`) : Id Id -> Goal .
 
 ---- (pattern) is the result of substituting in (pattern), (pattern) for (variable)
-op `(#subst____`) : Id Id Id Id -> Digest .
+op `(#subst____`) : Id Id Id Id -> Goal .
 
 ---- (pattern) is an application context w.r.t. (variable)
-op `(#appctx__`) : Id Id -> Digest .
+op `(#appctx__`) : Id Id -> Goal .
 
 ---- Rule annotations
 
@@ -102,7 +102,7 @@ op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \n
 ---- Proof checking definition
 ---------------------------------------
 
-vars Phi Psi P Q R : Digest .
+vars Phi Psi P Q R : Goal .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
 vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
@@ -143,23 +143,23 @@ eq check-id-aux(Pi, N) = false [owise] .
 ---------------------------------------
 
 ---- Pattern lookup
-op _[_] : Proof NzNat -> [Digest] .
+op _[_] : Proof NzNat -> [Goal] .
 eq (Pi1 ((N) Phi Rl ;) Pi2) [N] = Phi .
 
----- Auxilliary data structures: ExDigest,
----- which extends Digest by allowing *nested* constructs.
+---- Auxilliary data structures: ExGoal,
+---- which extends Goal by allowing *nested* constructs.
 ---- This is useful for proof checking.
 
-sort ExDigest . subsort Digest < ExDigest .
+sort ExGoal . subsort Goal < ExGoal .
 
-op `(\app__`) : ExDigest ExDigest -> ExDigest .
-op `(\imp__`) : ExDigest ExDigest -> ExDigest .
-op `(\ex__`) : ExDigest ExDigest -> ExDigest . 
-op `(\mu__`) : ExDigest ExDigest -> ExDigest . 
+op `(\app__`) : ExGoal ExGoal -> ExGoal .
+op `(\imp__`) : ExGoal ExGoal -> ExGoal .
+op `(\ex__`) : ExGoal ExGoal -> ExGoal . 
+op `(\mu__`) : ExGoal ExGoal -> ExGoal . 
 
-vars EP EQ EP1 EP2 EQ1 EQ2 : ExDigest .
+vars EP EQ EP1 EP2 EQ1 EQ2 : ExGoal .
 
----- Expand ExDigest to a full pattern.
+---- Expand ExGoal to a full pattern.
 ---- op expand : Proof NzNat -> [Pattern] .
 ---- eq expand( (Pi1 ((N) AP:AtomicPattern Rl ;) Pi2), N)
 ----  = AP:AtomicPattern .
@@ -174,8 +174,8 @@ vars EP EQ EP1 EP2 EQ1 EQ2 : ExDigest .
 ---- eq expand( (Pi1 ((N) (\mu (M1) (M2)) Rl ;) Pi2), N)
 ----  = (\mu (expand(Pi1, M1)) (expand(Pi1, M2))) .
 
----- Check if two ExDigest are equal *without* fully expanding them.
-op eq? : Proof ExDigest ExDigest -> Bool .
+---- Check if two ExGoal are equal *without* fully expanding them.
+op eq? : Proof ExGoal ExGoal -> Bool .
 eq eq?(Pi, EP, EP) = true .
 ceq eq?(Pi, (M), (N)) = eq?(Pi, (N), (M)) if M > N .
 eq eq?(Pi, (M), (N)) = eq?(Pi, (M), Pi[N]) .
@@ -215,7 +215,7 @@ op _|-_ : Proof Proof -> Bool [prec 46] .
 
 ---- Check if a digest/id is a wellformed pattern.
 op _is-wf-in_ : Id Proof -> Bool [prec 50] .
-eq (N) is-wf-in Pi1 ((N) D:Digest (WF) ;) Pi2 = true .
+eq (N) is-wf-in Pi1 ((N) D:Goal (WF) ;) Pi2 = true .
 eq (N) is-wf-in Pi = false [owise] .
 
 ---- Check if a pattern is proved to be provable (not just wellformed).
@@ -256,7 +256,7 @@ eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
 eq Pi |- ((N) (\mu (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-svar-in Pi .
-eq Pi |- ((N) D:Digest (WF) ;) = false [owise] .
+eq Pi |- ((N) D:Goal (WF) ;) = false [owise] .
 
 ---------------------------------------
 ---- Substitution related checking
