@@ -45,18 +45,16 @@ op `(#appctx__`) : Id Id -> Goal .
 sort Rule .
 
 ---- wellformedness checking
-
 op `(WF`) : -> Rule . 
 
----- NotOccurFree checking and substitution checking
-
-op `(NotOccurFreeBasic`) : -> Rule .
-op `(NotOccurFreeApp__`) : Id Id -> Rule .
-op `(NotOccurFreeImp__`) : Id Id -> Rule .
-op `(NotOccurFreeExBinding`) : -> Rule .
-op `(NotOccurFreeExBody_`) : Id -> Rule .
-op `(NotOccurFreeMuBinding`) : -> Rule .
-op `(NotOccurFreeMuBody_`) : Id -> Rule .
+---- NF checking and substitution checking
+op `(NFBasic`) : -> Rule .
+op `(NFApp__`) : Id Id -> Rule .
+op `(NFImp__`) : Id Id -> Rule .
+op `(NFExBinding`) : -> Rule .
+op `(NFExBody_`) : Id -> Rule .
+op `(NFMuBinding`) : -> Rule .
+op `(NFMuBody_`) : Id -> Rule .
 
 op `(SubstVariable`) : -> Rule .
 op `(SubstSymb`) : -> Rule .
@@ -97,9 +95,8 @@ op `(KT__`) : Id Id -> Rule . ---- p[r/X] -> q => (\mu X . p) -> q, order (premi
 op `(Existence`) : -> Rule . ---- \ex x . x
 op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) 
 
-
 ---------------------------------------
----- Proof checking definition
+---- Variable definitions
 ---------------------------------------
 
 vars Phi Psi P Q R : Goal .
@@ -136,7 +133,6 @@ eq check-id-aux(.Proof, N) = N >= 1 .
 eq check-id-aux(((0) (\bot) (WF) ; Pi), 0) = check-id-aux(Pi, 1) .
 eq check-id-aux(((N:NzNat) Phi Rl ; Pi), N:NzNat) = check-id-aux(Pi, N:NzNat + 1) .
 eq check-id-aux(Pi, N) = false [owise] .
-
 
 ---------------------------------------
 ---- Some auxilliary definitions
@@ -191,7 +187,7 @@ eq eq?(Pi, EP, EQ) = false [owise] .
 
 
 ---------------------------------------
----- Proof checking phase 2: check steps
+---- Proof checking phase 2: check each proof step
 ---------------------------------------
 
 ---- Put a marker that separates the part that is checked from the rest. 
@@ -207,10 +203,9 @@ ceq Pi1 check-step-marker (((N) Phi Rl ;) Pi2)
  if Pi1 |- ((N) Phi Rl ;) .
 op _|-_ : Proof Proof -> Bool [prec 46] .
 
-
 ---------------------------------------
 ---- Some auxiliary checking functions.
----- Eliminate them in the future.
+---- Eliminate them in the future (or not?)
 ---------------------------------------
 
 ---- Check if a digest/id is a wellformed pattern.
@@ -256,7 +251,72 @@ eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
 eq Pi |- ((N) (\mu (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-svar-in Pi .
-eq Pi |- ((N) D:Goal (WF) ;) = false [owise] .
+eq Pi |- ((N) G:Goal (WF) ;) = false [owise] .
+
+---------------------------------------
+---- Free variables checking 
+---- Notes:
+----   1. We use the assumption that Maude applies equations in order.
+----   2. Some checkings in conditions can be moved to the right-hand side
+----      of equations, so the proof checking can fail earlier. 
+--------------------------------------
+
+---- Proof step with rule (#nf (IdX) (IdP)) holds if
+----   1. IdX is an element or set variable;
+----   2. IdP is a wellformed pattern;
+----   3. IdX doesn't occur free in IdP;
+
+---- Failure case.
+ceq Pi |- (N) (#nf (IdX) (IdP)) Rl ;
+  = false
+ if IdX >= N or IdP >= N 
+ or not (IdX) is-var-in Pi
+ or not (IdP) is-wf-in Pi .
+
+---- Define equations by structural induction on (IdP).
+
+ceq Pi |- (N) (#nf (IdX) (IdY)) (NFBasic) ;
+  = IdX =/= IdY
+ if (IdY) is-var-in Pi .
+
+eq Pi |- (N) (#nf (IdX) (0)) (NFBasic) ;
+ = true .
+
+ceq Pi |- (N) (#nf (IdX) (IdP)) (NFBasic) ;
+  = true
+ if (IdP) is-symb-in Pi .
+
+ceq Pi |- (N) (#nf (IdX) (IdP)) (NFImp (N1) (N2)) ;
+ = true 
+ if (#nf (IdX) (IdP1)) := Pi[N1]
+ /\ (#nf (IdX) (IdP2)) := Pi[N2]
+ /\ (\imp (IdP1) (IdP2)) := Pi[IdP] .
+
+ceq Pi |- (N) (#nf (IdX) (IdP)) (NFApp (N1) (N2)) ;
+ = true 
+ if (#nf (IdX) (IdP1)) := Pi[N1]
+ /\ (#nf (IdX) (IdP2)) := Pi[N2]
+ /\ (\app (IdP1) (IdP2)) := Pi[IdP] .
+
+ceq Pi |- (N) (#nf (IdX) (IdP)) (NFExBinding) ;
+  = true
+ if (\ex (IdX) (IdPBody)) := Pi[IdP] .
+
+ceq Pi |- (N) (#nf (IdX) (IdP)) (NFExBody (IdNF)) ;
+  = true
+ if (\ex (IdY) (IdPBody)) := Pi[IdP]
+ /\ IdY =/= IdX
+ /\ (#nf (IdX) (IdPBody)) := Pi[IdNF] .
+
+ceq Pi |- (N) (#nf (IdX) (IdP)) (NFMuBinding) ;
+  = true
+ if (\mu (IdX) (IdPBody)) := Pi[IdP] .
+
+ceq Pi |- (N) (#nf (IdX) (IdP)) (NFMuBody (IdNF)) ;
+  = true
+ if (\mu (IdY) (IdPBody)) := Pi[IdP] 
+ /\ IdY =/= IdX
+ /\ (#nf (IdX) (IdPBody)) := Pi[IdNF] .
 
 ---------------------------------------
 ---- Substitution related checking
@@ -323,13 +383,13 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstExBinding) ;
 
 vars IdPX IdRBody : Nat .
 vars IdResult
-     IdZNotOccurFreeInQ
+     IdZNFInQ
      IdPSubstZForPX
      IdResultSubstQForX : Nat .
 
 ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) 
               (SubstExBody (IdZ) 
-                           (IdZNotOccurFreeInQ)
+                           (IdZNFInQ)
                            (IdPSubstZForPX)
                            (IdResultSubstQForX)) ;
   = true
@@ -338,59 +398,10 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX))
  /\ IdPX =/= IdX
  /\ (IdZ) is-var-in Pi
  /\ IdZ =/= IdX
- /\ (#nf (IdZ) (IdQ)) := Pi[IdZNotOccurFreeInQ]
+ /\ (#nf (IdZ) (IdQ)) := Pi[IdZNFInQ]
  /\ (#subst (IdResult) (IdPBody) (IdZ) (IdPX)) := Pi[IdPSubstZForPX]
  /\ (#subst (IdRBody) (IdResult) (IdQ) (IdX)) := Pi[IdResultSubstQForX] .
 
-
----- (#nf x p) holds if
-----   x doesn't occur free in p
----- where x is an element/set variable
----- and p is a pattern
-
-ceq Pi |- (N) (#nf (M1) (M2)) Rl ;
-  = false
- if M1 >= N or M2 >= N or not (M1) is-var-in Pi .
-
-ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeBasic) ;
-  = true
- if (M2) is-var-in Pi and M1 =/= M2 .
-
-eq Pi |- (N) (#nf (M1) (0)) (NotOccurFreeBasic) ;
- = true .
-
-eq Pi1 ((M2) (\symb) (WF) ;) Pi2 |- (N) (#nf (M1) (M2)) (NotOccurFreeBasic) ;
- = true .
-
-ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeImp (N1) (N2)) ;
- = true 
- if (#nf (M1) (M21)) := Pi[N1]
- /\ (#nf (M1) (M22)) := Pi[N2]
- /\ eq?(Pi, (M2), (\imp (M21) (M22))) .
-
-ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeApp (N1) (N2)) ;
- = true 
- if (#nf (M1) (M21)) := Pi[N1]
- /\ (#nf (M1) (M22)) := Pi[N2]
- /\ eq?(Pi, (M2), (\app (M21) (M22))) .
-
-ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeExBinding) ;
-  = true
- if (\ex (M1) (M)) := Pi[M2] .
-
-ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeExBody (N')) ;
-  = true
- if (#nf (M1) (N2)) := Pi[N']
- /\ (\ex (M21) (N2)) := Pi[M2] .
-
-ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeMuBinding) ;
-  = true
- if (\mu (M1) (M)) := Pi[M2] .
-
-ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeMuBody (N')) ;
-  = true
- if (#nf (M1) (N2)) := Pi[N']
- /\ (\mu (M21) (N2)) := Pi[M2] .
 
 ---------------------------------------
 ---- Checking proof rules Part A

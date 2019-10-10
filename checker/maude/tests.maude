@@ -46,14 +46,14 @@ reduce checkPass(
 (2) (\evar) (WF) ;
 (3) (\svar) (WF) ;
 (4) (\evar) (WF) ;
-(5) (#nf (1) (2)) (NotOccurFreeBasic) ;
-(6) (#nf (1) (3)) (NotOccurFreeBasic) ;
-(7) (#nf (1) (4)) (NotOccurFreeBasic) ;
+(5) (#nf (1) (2)) (NFBasic) ;
+(6) (#nf (1) (3)) (NFBasic) ;
+(7) (#nf (1) (4)) (NFBasic) ;
 (8) (\symb) (WF) ;
 (9) (\symb) (WF) ;
-(10) (#nf (1) (8)) (NotOccurFreeBasic) ;
-(11) (#nf (1) (9)) (NotOccurFreeBasic) ;
-(12) (#nf (1) (0)) (NotOccurFreeBasic) ;
+(10) (#nf (1) (8)) (NFBasic) ;
+(11) (#nf (1) (9)) (NFBasic) ;
+(12) (#nf (1) (0)) (NFBasic) ;
 
 ).
 
@@ -63,9 +63,9 @@ reduce checkPass(
 (1) (\evar) (WF) ;
 (2) (\evar) (WF) ;
 (3) (\imp (1) (1)) (WF) ;
-(4) (#nf (2) (1)) (NotOccurFreeBasic) ;
-(5) (#nf (2) (3)) (NotOccurFreeImp (4) (4)) ;
-(5) (#nf (2) (3)) (NotOccurFreeImp (4) (4)) ;
+(4) (#nf (2) (1)) (NFBasic) ;
+(5) (#nf (2) (3)) (NFImp (4) (4)) ;
+(5) (#nf (2) (3)) (NFImp (4) (4)) ;
 
 ).
 
@@ -75,7 +75,7 @@ reduce checkPass(
 (1) (\evar) (WF) ;
 (2) (\evar) (WF) ;
 (3) (\ex (1) (1)) (WF) ;
-(4) (#nf (1) (3)) (NotOccurFreeExBinding) ;
+(4) (#nf (1) (3)) (NFExBinding) ;
 
 ).
 
@@ -170,7 +170,7 @@ reduce checkPass(
 (4) (\ex (1) (2)) (WF) ; "ex x1 . x2"
 (5) (\ex (3) (1)) (WF) ; "ex x3 . x1"
 (6) (#subst (1) (2) (1) (2)) (SubstVariable) ;
-(7) (#nf (3) (1)) (NotOccurFreeBasic) ;
+(7) (#nf (3) (1)) (NFBasic) ;
 (8) (#subst (2) (2) (3) (1)) (SubstVariable) ;
 (9) (#subst (5) (4) (1) (2)) (SubstExBody (3) (7) (8) (6)) ;
     "ex x1 . x2 [x1 / x2] ===> x2 [x3 / x1] = x2 ===> x2 [x1 / x2] = x1"
@@ -206,7 +206,7 @@ reduce checkPass(
 (9)  (\imp (1) (3)) (WF) ; "x1 -> x3"
 (10) (\imp (8) (9)) (WF) ; "x8 -> x1 -> x3"
 (11) (\ex (8) (10)) (WF) ; "\ex x8 . x8 -> x1 -> x3"
-(12) (#nf (8) (1)) (NotOccurFreeBasic) ;
+(12) (#nf (8) (1)) (NFBasic) ;
 (13) (\imp (8) (4)) (WF) ; "x8 -> x2 -> x3"
 (14) (#subst (8) (1) (8) (1)) (SubstVariable) ;
 (15) (#subst (2) (2) (8) (1)) (SubstVariable) ;
