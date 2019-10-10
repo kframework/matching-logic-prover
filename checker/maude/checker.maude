@@ -79,14 +79,14 @@ op `(PropF_`) : Id -> Rule . ---- (((p -> \bot) -> \bot) -> p)
 op `(MP__`) : Id Id -> Rule . ---- p and p -> q deduces q
 
 ---- FOL rules
-op `(ExistQ__`) : Id Id -> Rule . ---- p[y/x] -> \ex x . p, parameter order: (\ex x . p) y
-op `(ExistR___`) : Id Id Id -> Rule . ---- p -> q deduces (\ex x . p) -> q, order: x p q
+op `(ExistsQ_`) : Id -> Rule . ---- p[y/x] -> \ex x . p, parameter order: (#subst) 
+op `(ExistsR__`) : Id Id -> Rule . ---- p -> q => (\ex x . p) -> q, order: (premise) (#nf)
 
 ---- Propagation rules
-op `(PropagationBotL_`) : Id -> Rule . ---- \bot p -> \bot 
-op `(PropagationBotR_`) : Id -> Rule . ---- p \bot -> \bot
-op `(PropagationOrL___`) : Id Id Id -> Rule . ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
-op `(PropagationOrR___`) : Id Id Id -> Rule . ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
+op `(PropagationBotL`) : -> Rule . ---- \bot p -> \bot 
+op `(PropagationBotR`) : -> Rule . ---- p \bot -> \bot
+op `(PropagationOrL`) : -> Rule . ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
+op `(PropagationOrR`) : -> Rule . ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
 op `(PropagationExL___`) : Id Id Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: x p q
 op `(PropagationExR___`) : Id Id Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: x p q
 op `(FrameL_`) : Id -> Rule . ---- p -> q deduces p r -> q r
@@ -111,11 +111,12 @@ vars Phi Psi P Q R : Digest .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
 vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
-vars IdP IdQ IdR IdX IdY IdZ : Nat .
+vars IdP IdQ IdR IdH IdX IdY IdZ : Nat .
 vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 : Nat .
 vars IdP2 IdQ2 IdR2 IdX2 IdY2 IdZ2 : Nat .
-vars IdSubst1 IdSubst2 : Nat .
+vars IdSubst IdSubst1 IdSubst2 IdNF : Nat .
 vars IdPx IdPBody : Nat .
+vars IdLHS IdRHS : Nat .
 
 ---------------------------------------
 ---- Proof check:
@@ -216,6 +217,11 @@ op _|-_ : Proof Proof -> Bool [prec 46] .
 ---- Eliminate them in the future.
 ---------------------------------------
 
+---- Check if a digest/id is a wellformed pattern.
+op _is-wf-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-wf-in Pi1 ((N) D:Digest (WF) ;) Pi2 = true .
+eq (N) is-wf-in Pi = false [owise] .
+
 ---- Check if a pattern is proved to be provable (not just wellformed).
 op _proved-in_ : Id Proof -> Bool [prec 50] .
 eq (N) proved-in Pi1 ((N) (M) Rl ;) Pi2 = Rl =/= (WF) .
@@ -245,7 +251,6 @@ eq (N) is-symb-in Pi = false [owise] .
 ---------------------------------------
 
 eq Pi |- ((0) (\bot) (WF) ;) = true .
-eq Pi |- ((N:NzNat) (\bot) (WF) ;) = false .
 eq Pi |- ((N) (\evar) (WF) ;) = true .
 eq Pi |- ((N) (\svar) (WF) ;) = true .
 eq Pi |- ((N) (\symb) (WF) ;) = true .
@@ -253,6 +258,9 @@ eq Pi |- ((N) (\app (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
 eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
 eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
  = M1 < N and M2 < N and (M1) is-evar-in Pi .
+eq Pi |- ((N) (\mu (M1) (M2)) (WF) ;)
+ = M1 < N and M2 < N and (M1) is-svar-in Pi .
+eq Pi |- ((N) D:Digest (WF) ;) = false [owise] .
 
 ---------------------------------------
 ---- Substitution related checking
@@ -389,27 +397,70 @@ ceq Pi |- (N) (#nf (M1) (M2)) (NotOccurFreeMuBody (N')) ;
  /\ (\mu (M21) (N2)) := Pi[M2] .
 
 ---------------------------------------
----- Some auxiliary checking functions.
----- Eliminate them in the future.
+---- Checking proof rules Part A
+----   Propositional reasoning
 ---------------------------------------
 
----- PropK
+---- (PropK) P -> (Q -> P)
+
 eq Pi |- (N) (M) (PropK P Q) ;
- = eq?(Pi, (M), (\imp P (\imp Q P))) .
+ = eq?(Pi, (\imp P (\imp Q P)), (M)) .
 
----- PropS 
+---- (PropS) (P -> (Q -> R)) -> (P -> Q) -> (P -> R)
 eq Pi |- (N) (M) (PropS P Q R) ;
- = eq?(Pi, (M), (\imp (\imp P (\imp Q R)) (\imp (\imp P Q) (\imp P R)))) .
+ = eq?(Pi, (\imp (\imp P (\imp Q R)) (\imp (\imp P Q) (\imp P R))), (M)) .
 
----- MP: Modus Ponens
+---- (PropF) ((P -> \bot) -> \bot) -> P
+eq Pi |- (N) (M) (PropF P) ;
+ = eq?(Pi, (\imp (\imp (\imp P (0)) (0)) P), (M)) .
+
+---- (MP) P && P -> Q => Q
 eq Pi |- (N) (M) (MP P Q) ;
- = P proved-in Pi
-   and Q proved-in Pi
-   and eq?(Pi, Q, (\imp P (M))) .
+ = P proved-in Pi and Q proved-in Pi
+   and eq?(Pi, (\imp P (M)), Q) .
 
----- Checking FOL rules
+---------------------------------------
+---- Checking proof rules Part B
+----   FOL reasoning
+---------------------------------------
 
----- ExistsQ
+---- (ExistsQ) P[Y/X] -> \ex X . P
+
+ceq Pi |- (N) (M) (ExistsQ (IdSubst)) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]  ---- IdLHS: P[Y/X], IdRHS: \ex X . P
+ /\ (\ex (IdX) (IdP)) := Pi[IdRHS]
+ /\ (IdX) is-evar-in Pi
+ /\ (#subst (IdLHS) (IdP) (IdY) (IdX)) := Pi[IdSubst] .
+
+----(ExistsR) P -> Q => (\ex X . P) -> Q
+ceq Pi |- (N) (M) (ExistsR (IdH) (IdNF)) ;
+  = true
+ if (\imp (IdP) (IdQ)) := Pi[IdH] 
+ /\ (\imp (IdR) (IdQ)) := Pi[M]
+ /\ (\ex (IdX) (IdP)) := Pi[IdR]
+ /\ (#nf (IdX) (IdQ)) := Pi[IdNF] .
+
+---------------------------------------
+---- Checking proof rules Part C
+----   Frame reasoning and propagation rules
+---------------------------------------
+
+---- (PropagationBotL) \bot P -> \bot
+ceq Pi |- (N) (M) (PropagationBotL) ;
+  = true
+ if (\imp (IdR) (0)) := Pi[M]
+ /\ (\app (0) (IdP)) := Pi[IdR]
+ /\ (IdP) is-wf-in Pi .
+
+---- (PropagationBotR) P \bot -> \bot
+ceq Pi |- (N) (M) (PropagationBotR) ;
+  = true
+ if (\imp (IdR) (0)) := Pi[M]
+ /\ (\app (IdP) (0)) := Pi[IdR]
+ /\ (IdP) is-wf-in Pi .
+
+---- (PropagationOrL) (P\/Q) R -> (PR) \/ (QR)
 
 endfm
 

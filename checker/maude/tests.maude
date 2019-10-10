@@ -180,20 +180,50 @@ reduce checkPass(
 
 ).
 
+reduce checkPass(
 
----- The following test does not pass yet.
----- reduce checkPass(
----- 
----- (0) (\bot) (WF) ;
----- (1) (\evar) (WF) ;
----- (2) (\evar) (WF) ;
----- (3) (\ex (1) (1)) (WF) ; " \ex x1 . x1 "
----- (4) (\imp (1) (3)) (WF) ; " x1 -> \ex x1 . x1 "
----- (5) (4) (ExistQ (3) (1)) ;
----- (6) (\imp (2) (3)) (WF) ; " x2 -> \ex x1 . x1 "
----- (7) (6) (ExistQ (3) (2)) ;
----- 
----- ).
----- 
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\evar) (WF) ;
+(3) (\ex (1) (1)) (WF) ;     " \ex x1 . x1 "
+(4) (\imp (1) (3)) (WF) ;    " x1 -> \ex x1 . x1 "
+(5) (#subst (1) (1) (1) (1)) (SubstVariable) ;
+(6) (4) (ExistsQ (5)) ;
+(7) (#subst (2) (1) (2) (1)) (SubstVariable) ;
+(8) (\imp (2) (3)) (WF) ; " x2 -> \ex x1 . x1 "
+(9) (8) (ExistsQ (7)) ;
+
+).
+
+reduce checkPass(
+
+(0)  (\bot) (WF) ;
+(1)  (\evar) (WF) ;
+(2)  (\evar) (WF) ;
+(3)  (\evar) (WF) ;
+(4)  (\imp (2) (3)) (WF) ; "x2 -> x3"
+(5)  (\imp (1) (4)) (WF) ; "x1 -> (x2 -> x3)"
+(6)  (\ex (1) (5)) (WF) ;  "\ex x1 . (x1 -> x2 -> x3)"
+(7)  (\ex (2) (6)) (WF) ;  "\ex x2 \ex x1 . (x1 -> x2 -> x3)"
+(8)  (\evar) (WF) ;        "x8 (fresh var)"
+(9)  (\imp (1) (3)) (WF) ; "x1 -> x3"
+(10) (\imp (8) (9)) (WF) ; "x8 -> x1 -> x3"
+(11) (\ex (8) (10)) (WF) ; "\ex x8 . x8 -> x1 -> x3"
+(12) (#nf (8) (1)) (NotOccurFreeBasic) ;
+(13) (\imp (8) (4)) (WF) ; "x8 -> x2 -> x3"
+(14) (#subst (8) (1) (8) (1)) (SubstVariable) ;
+(15) (#subst (2) (2) (8) (1)) (SubstVariable) ;
+(16) (#subst (3) (3) (8) (1)) (SubstVariable) ;
+(17) (#subst (4) (4) (8) (1)) (SubstImp (15) (16)) ;
+(18) (#subst (13) (5) (8) (1)) (SubstImp (14) (17)) ;
+(19) (#subst (8) (8) (1) (2)) (SubstVariable) ;
+(20) (#subst (1) (2) (1) (2)) (SubstVariable) ;
+(21) (#subst (3) (3) (1) (2)) (SubstVariable) ;
+(22) (#subst (9) (4) (1) (2)) (SubstImp (20) (21)) ;
+(23) (#subst (10) (13) (1) (2)) (SubstImp (19) (22)) ;
+(24) (#subst (11) (6) (1) (2)) (SubstExBody (8) (12) (18) (23)) ;
+
+).
+
 
 quit
