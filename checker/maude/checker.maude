@@ -29,30 +29,26 @@ op `(\imp__`) : Id Id -> Digest .
 op `(\ex__`) : Id Id -> Digest . 
 op `(\mu__`) : Id Id -> Digest . 
 
-
----- metalevel property
+---- metalevel properties
 
 ---- (variable) not occur free in (pattern)
 op `(#nf__`) : Id Id -> Digest .
 
----- (pattern) is the result of substituting in (pattern) 
----- (pattern) for (variable)
+---- (pattern) is the result of substituting in (pattern), (pattern) for (variable)
 op `(#subst____`) : Id Id Id Id -> Digest .
 
+---- (pattern) is an application context w.r.t. (variable)
+op `(#appctx__`) : Id Id -> Digest .
+
 ---- Rule annotations
----- Rules are divided into the following two categories:
-----   1. (WF), which proves that a pattern is wellformed.
-----   2. Other rules, which prove that a pattern is provable.
----- Note that we unify wellformedness and provability. The former is a meta-level
----- property while the latter is an object level property. 
 
 sort Rule .
 
----- Wellformedness
+---- wellformedness checking
 
 op `(WF`) : -> Rule . 
 
----- Substitution related
+---- NotOccurFree checking and substitution checking
 
 op `(NotOccurFreeBasic`) : -> Rule .
 op `(NotOccurFreeApp__`) : Id Id -> Rule .
@@ -70,37 +66,36 @@ op `(SubstApp__`) : Id Id -> Rule .
 op `(SubstExBinding`) : -> Rule .
 op `(SubstExBody____`) : Id Id Id Id -> Rule .
 
----- Provability
+---- Provability proof rule checking
 
----- Propositional rules
+---- propositional reasoning
 op `(PropK__`) : Id Id -> Rule . ---- p -> (q -> p)
 op `(PropS___`) : Id Id Id -> Rule . ---- (p -> (q -> r)) -> (p -> q) -> (p -> r)
 op `(PropF_`) : Id -> Rule . ---- (((p -> \bot) -> \bot) -> p)
 op `(MP__`) : Id Id -> Rule . ---- p and p -> q deduces q
 
----- FOL rules
+---- FOL reasoning
 op `(ExistsQ_`) : Id -> Rule . ---- p[y/x] -> \ex x . p, parameter order: (#subst) 
 op `(ExistsR__`) : Id Id -> Rule . ---- p -> q => (\ex x . p) -> q, order: (premise) (#nf)
 
----- Propagation rules
+---- propagation rules and frame reasoning
 op `(PropagationBotL`) : -> Rule . ---- \bot p -> \bot 
 op `(PropagationBotR`) : -> Rule . ---- p \bot -> \bot
 op `(PropagationOrL`) : -> Rule . ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
 op `(PropagationOrR`) : -> Rule . ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
-op `(PropagationExL___`) : Id Id Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: x p q
-op `(PropagationExR___`) : Id Id Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: x p q
-op `(FrameL_`) : Id -> Rule . ---- p -> q deduces p r -> q r
-op `(FrameR_`) : Id -> Rule . ---- p -> q deduces r p -> r q
+op `(PropagationExL_`) : Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: (#nf) 
+op `(PropagationExR_`) : Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: (#nf) 
+op `(FrameL_`) : Id -> Rule . ---- p -> q => p r -> q r
+op `(FrameR_`) : Id -> Rule . ---- p -> q => r p -> r q
 
+---- fixpoint reasoning
+op `(SVarSubst__`) : Id Id -> Rule . ---- P => P[Q/SX], order P (#subst)
+op `(Prefixpoint_`) : Id -> Rule . ---- p[(\mu X . p) / X] -> \mu X . p, order (#subst)
+op `(KT__`) : Id Id -> Rule . ---- p[r/X] -> q => (\mu X . p) -> q, order (premise) (#subst)
 
----- Fixpoint rules
-op `(SVarSubst___`) : Id Id Id -> Rule . ---- p deduces p[q/X], order &p, X, q
-op `(Prefixpoint__`) : Id Id -> Rule . ---- p[(\mu X . p) / X] -> \mu X . p, order X p
-op `(KT_`) : Id -> Rule . ---- p[r/X] -> q deduces (\mu X . p) -> q, order &premis
-
----- Misc rules
+---- technical rules
 op `(Existence`) : -> Rule . ---- \ex x . x
-op `(Singleton`) : -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) !!!
+op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) 
 
 
 ---------------------------------------
@@ -111,12 +106,13 @@ vars Phi Psi P Q R : Digest .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
 vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
-vars IdP IdQ IdR IdH IdX IdY IdZ : Nat .
-vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 : Nat .
+vars IdP IdQ IdR IdH IdX IdY IdZ IdSX IdSY IdSZ : Nat .
+vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 IdC1 IdC2 : Nat .
 vars IdP2 IdQ2 IdR2 IdX2 IdY2 IdZ2 : Nat .
+vars IdP3 IdQ3 IdR3 IdX3 IdY3 IdZ3 : Nat .
 vars IdSubst IdSubst1 IdSubst2 IdNF : Nat .
-vars IdPx IdPBody : Nat .
-vars IdLHS IdRHS : Nat .
+vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
+vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
 
 ---------------------------------------
 ---- Proof check:
@@ -461,6 +457,125 @@ ceq Pi |- (N) (M) (PropagationBotR) ;
  /\ (IdP) is-wf-in Pi .
 
 ---- (PropagationOrL) (P\/Q) R -> (PR) \/ (QR)
+---- desugar to primitive form
+---- ((P -> \bot) -> Q) R
+----   -> (PR -> \bot) -> (QR)
+ceq Pi |- (N) (M) (PropagationOrL) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IdLHS1) (IdR)) := Pi[IdLHS]
+ /\ (\imp (IdLHS2) (IdQ)) := Pi[IdLHS1]
+ /\ (\imp (IdP) (0)) := Pi[IdLHS2]
+ /\ (\imp (IdRHS1) (IdRHS2)) := Pi[IdRHS] ---- IdRHS1: (PR -> \bot), IdRHS2: QR
+ /\ (\imp (IdRHS3) (0)) := Pi[IdRHS1]     ---- IdRHS3: PR
+ /\ (\app (IdP) (IdR)) := Pi[IdRHS3]
+ /\ (\app (IdQ) (IdR)) := Pi[IdRHS2] .
+
+---- (PropagationOrR) R (P\/Q) -> (RP) \/ (RQ)
+---- desugar to primitive form
+---- R ((P -> \bot) -> Q)
+----   -> ((RP -> \bot) -> RQ)
+ceq Pi |- (N) (M) (PropagationOrL) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IdR) (IdLHS1)) := Pi[IdLHS]    ---- IdLHS1: (P -> \bot) -> Q
+ /\ (\imp (IdLHS2) (IdQ)) := Pi[IdLHS1]   ---- IdLHS2: P -> \bot
+ /\ (\imp (IdP) (0)) := Pi[IdLHS2]
+ /\ (\imp (IdRHS1) (IdRHS2)) := Pi[IdRHS] ---- IdRHS1: (RP -> \bot), IdRHS2: RQ
+ /\ (\imp (IdRHS3) (0)) := Pi[IdRHS1]     ---- IdRHS3: RP 
+ /\ (\app (IdR) (IdP)) := Pi[IdRHS3]
+ /\ (\app (IdR) (IdQ)) := Pi[IdRHS2] .
+
+---- (PropagationExL) (\ex X . P) Q -> \ex X . (P Q) requires (#nf X Q)
+ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
+  = true 
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: (\ex X . P) Q, IdRHS: \ex X . (P Q)
+ /\ (\app (IdLHS1) (IdQ)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
+ /\ (\ex (IdX) (IdP)) := Pi[IdLHS1]
+ /\ (\ex (IdX) (IdRHS1)) := Pi[IdRHS]   ---- IdRHS1: P Q
+ /\ (\app (IdP) (IdQ)) := Pi[IdRHS1]
+ /\ (#nf (IdX) (IdQ)) := Pi[IdNF] .
+
+---- (PropagationExR)  Q (\ex X . P) -> \ex X . (Q P) requires (#nf X Q)
+ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
+  = true 
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: Q (\ex X . P), IdRHS: \ex X . (Q P)
+ /\ (\app (IdQ) (IdLHS1)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
+ /\ (\ex (IdX) (IdP)) := Pi[IdLHS1]
+ /\ (\ex (IdX) (IdRHS1)) := Pi[IdRHS]   ---- IdRHS1: Q P
+ /\ (\app (IdQ) (IdP)) := Pi[IdRHS1]
+ /\ (#nf (IdX) (IdQ)) := Pi[IdNF] .
+
+---- (FrameL) P -> Q => PR -> QR
+ceq Pi |- (N) (M) (FrameL (IdH)) ;
+  = true
+ if (\imp (IdP) (IdQ)) := Pi[IdH]
+ /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IdP) (IdR)) := Pi[IdLHS]
+ /\ (\app (IdQ) (IdR)) := Pi[IdRHS] .
+
+---- (FrameR) P -> Q => RP -> RQ
+ceq Pi |- (N) (M) (FrameR (IdH)) ;
+  = true
+ if (\imp (IdP) (IdQ)) := Pi[IdH]
+ /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IdR) (IdP)) := Pi[IdLHS]
+ /\ (\app (IdR) (IdQ)) := Pi[IdRHS] .
+
+
+---------------------------------------
+---- Checking proof rules Part D
+----   Fixpoint reasoning
+---------------------------------------
+
+---- (SVarSubst) P => P[Q/SX]
+ceq Pi |- (N) (M) (SVarSubst (IdP) (IdSubst)) ;
+  = true
+ if (#subst (M) (IdP) (IdQ) (IdSX)) := Pi[IdSubst] .
+
+---- (Prefixpoint) P[(\mu SX . P) / SX] -> \mu SX . P
+ceq Pi |- (N) (M) (Prefixpoint (IdSubst)) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\mu (IdSX) (IdP)) := Pi[IdRHS]
+ /\ (#subst (IdLHS) (IdP) (IdRHS) (IdSX)) := Pi[IdSubst] .
+
+---- (KT) P[Q/SX] -> Q => (\mu SX . P) -> Q
+ceq Pi |- (N) (M) (KT (IdH) (IdSubst)) ;
+  = true
+ if (\imp (IdMu) (IdQ)) := Pi[M]
+ /\ (\mu (IdSX) (IdP)) := Pi[IdMu]
+ /\ (\imp (IdR) (IdQ)) := Pi[IdH]
+ /\ (#subst (IdR) (IdP) (IdQ) (IdSX)) := Pi[IdSubst] .
+
+---------------------------------------
+---- Checking proof rules Part E
+----   Technical rules
+---------------------------------------
+
+---- (Existence) \ex X . X
+ceq Pi |- (N) (M) (Existence) ;
+  = true
+ if (\ex (IdX) (IdX)) := Pi[M]
+ /\ (IdX) is-evar-in Pi .
+
+---- x /\ P      desugars to (x -> (P -> \bot)) -> \bot
+---- x /\ \not P desugars to (x -> P) -> \bot
+
+---- (Singleton) \not (C1[x /\ P] /\ C2[x /\ \not P])
+----   desugar to C1[x /\ P] -> (C2[x /\ \not P] -> \bot)
+ceq Pi |- (N) (M) (Singleton (IdCtx1) (IdSubst1) (IdCtx2) (IdSubst2)) ;
+  = true
+ if (#subst (IdP1) (IdC1) (IdR1) (IdZ1)) := Pi[IdSubst1] ---- IdR1: (x -> (P -> \bot)) -> \bot
+ /\ (#subst (IdP2) (IdC2) (IdR2) (IdZ2)) := Pi[IdSubst2] ---- IdR2: (x -> P) -> \bot
+ /\ (#appctx (IdC1) (IdZ1)) := Pi[IdCtx1]
+ /\ (#appctx (IdC2) (IdZ2)) := Pi[IdCtx2]
+ /\ (\imp (IdR3) (0)) := Pi[IdR2]                        ---- IdR3: (x -> P)
+ /\ (\imp (IdX) (IdP)) := Pi[IdR3]
+ /\ (IdX) is-evar-in Pi
+ /\ eq?(Pi, (\imp (\imp (IdX) (\imp (IdP) (0))) (0)), (IdR1)) 
+ /\ eq?(Pi, (\imp (IdP1) (\imp (IdP2) (0))), (M)) .
 
 endfm
+
 
