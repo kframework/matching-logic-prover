@@ -1,43 +1,90 @@
 fmod CHECKER is protecting NAT + STRING .
 
 ---------------------------------------
----- Proof object definition
+---- Proofs and proof steps
 ---------------------------------------
 
 sort Id .
 op `(_`) : Nat -> Id .
 
-sort Proof .
-op ___; : Id Claim Rule -> Proof [prec 40] .
+sort ProofStep .
+op ___; : Id Claim Rule -> ProofStep [prec 40] .
+---- You can put a string as a comment to the proof step; it will be ignored.
+op ___;_ : Id Claim Rule String -> Proof [prec 40] .
+eq N:Id C:Claim Rl:Rule ; S:String = N:Id C:Claim Rl:Rule ; .
+
+sort Proof . subsort ProofStep < Proof .
 op .Proof : -> Proof .
 op __ : Proof Proof -> Proof [assoc id: .Proof prec 45 format(d n d)] .
----- proof with comments
-op ___;_ : Id Claim Rule String -> Proof [prec 40] .
-eq ID:Id D:Claim R:Rule ; S:String = ID:Id D:Claim R:Rule ; .
 
----- AtomicPattern contains element/set variables, symbols, and \bottom.
+---------------------------------------
+---- Claims definitions
+---------------------------------------
 
-sorts AtomicPattern Claim .
-subsort AtomicPattern Id < Claim .
+sort Claim .
 
-op `(\evar`) : -> AtomicPattern .
-op `(\svar`) : -> AtomicPattern .
-op `(\symb`) : -> AtomicPattern .
-op `(\bot`) : -> AtomicPattern .
+---------------------------------------
+---- There are many types of claims:
+----   1. Wellformedness (WF) claims. These are claims that construct wellformed patterns.
+----   2. Provability claims. These are the normal claims as understood in logic. They
+----      refer to wellformed patterns and claim that those patterns are provable.
+----   3. Not-occur-free (NF) claims. They claim that an element/set variable does
+----      not occur free in a wellformed pattern.
+----   4. Substitution (Subst) claims. They claim that a pattern is the result
+----      of substituting another pattern, a third pattern for a variable. We consider
+----      capture-avoiding substitution.
+----   5. Application Contexts (AppCtx) claims. They claim that a pattern is an appliation
+----      context wrt a given placeholder variable.
+----  Only (2) is the "logical" object-level claims. (1)(3)(4)(5) are all "syntactic"
+----  meta-level claims; they are only about the "structures" of patterns, instead of
+----  their logical consequences.
+---------------------------------------
+
+
+---------------------------------------
+---- Wellformedness (WF) claims: Basically, they construct patterns.
+---------------------------------------
+
+---- AML has 8 primitive constructs: 4 atomic and 4 compound ones.
+---- For the four compound ones, arguments are referred by their ids.
+---- For the four atomic ones, the following three of them 
+----   element variables (evar)
+----   set variable (svar)
+----   constant symbols (symb) 
+---- use the ids of the steps when they are constructed, as their names.
+---- The bottom pattern (\bot) must always be constructed in the first proof step,
+---- so it always has id (0).
+
+op `(\evar`) : -> Claim .
+op `(\svar`) : -> Claim .
+op `(\symb`) : -> Claim .
+op `(\bot`) : -> Claim .
 op `(\app__`) : Id Id -> Claim .
 op `(\imp__`) : Id Id -> Claim .
 op `(\ex__`) : Id Id -> Claim . 
 op `(\mu__`) : Id Id -> Claim . 
 
----- metalevel properties
+---------------------------------------
+---- Provability claims.
+---------------------------------------
 
----- (variable) not occur free in (pattern)
+---- To say a wellformed pattern is provable, simply refer to its id.
+subsort Id < Claim .
+
+---------------------------------------
+---- Other meta-level claims.
+---------------------------------------
+
+
+---- Not-occur-free (NF) claims: 
+----   (#nf X P) means X does not occur free in P
+---- Substitution (Subst) claims:
+----   (#subst R P Q X) means R equals P[Q/X]
+---- Application context (AppCtx) claims:
+----   (#appctx P X) means P is an application context wrt variable X.
+
 op `(#nf__`) : Id Id -> Claim .
-
----- (pattern) is the result of substituting in (pattern), (pattern) for (variable)
 op `(#subst____`) : Id Id Id Id -> Claim .
-
----- (pattern) is an application context w.r.t. (variable)
 op `(#appctx__`) : Id Id -> Claim .
 
 ---- Rule annotations
@@ -177,6 +224,7 @@ op eq? : Proof ExClaim ExClaim -> Bool .
 eq eq?(Pi, EP, EP) = true .
 ceq eq?(Pi, (M), (N)) = eq?(Pi, (N), (M)) if M > N .
 eq eq?(Pi, (M), (N)) = eq?(Pi, (M), Pi[N]) .
+---- FIXME
 eq eq?(Pi, P:AtomicPattern, P:AtomicPattern) = true .
 eq eq?(Pi, P:AtomicPattern, Q:AtomicPattern) = false [owise] .
 eq eq?(Pi, EP, (M)) = eq?(Pi, (M), EP) .
