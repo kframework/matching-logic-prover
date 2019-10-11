@@ -118,15 +118,15 @@ op `(MP__`) : Id Id -> Rule . ---- P && P -> Q => Q
 op `(ExistsQ_`) : Id -> Rule .     ---- P[y/x] -> \ex x . P
 op `(ExistsR__`) : Id Id -> Rule . ---- P -> Q => (\ex x . P) -> Q with (#nf x Q)
 
----- Propagation rules and frame reasoning
-op `(PropagationBotL`) : -> Rule .    
-op `(PropagationBotR`) : -> Rule .    
-op `(PropagationOrL`) : -> Rule .     
-op `(PropagationOrR`) : -> Rule .     
-op `(PropagationExL_`) : Id -> Rule . 
-op `(PropagationExR_`) : Id -> Rule . 
-op `(FrameL_`) : Id -> Rule .         
-op `(FrameR_`) : Id -> Rule .         
+---- Propagation rules and frame reasoning (the disjunction \/ needs to be desugared)
+op `(PropagationBotL`) : -> Rule .    ---- \bot P -> \bot
+op `(PropagationBotR`) : -> Rule .    ---- P \bot -> \bot
+op `(PropagationOrL`)  : -> Rule .    ---- (P \/ Q) R -> PR \/ QR
+op `(PropagationOrR`)  : -> Rule .    ---- R (P \/ Q) -> RP \/ RQ
+op `(PropagationExL_`) : Id -> Rule . ---- (\ex x . P) R -> \ex x . (PR) with (#nf x R)
+op `(PropagationExR_`) : Id -> Rule . ---- R (\ex x . P) -> \ex x . (RP) with (#nf x R)
+op `(FrameL_`) : Id -> Rule .         ---- P -> Q => P R -> Q R
+op `(FrameR_`) : Id -> Rule .         ---- P -> Q => R P -> R Q
 
 ---- Fixpoint reasoning
 op `(SVarSubst__`) : Id Id -> Rule . 
@@ -170,12 +170,21 @@ op `(AppCtxR__`) : Id Id -> Rule .
 ---- Variable definitions
 ---------------------------------------
 
+---- A lot of variables have sort Nat; these variables are used to refer to claims
+---- of various types. We may think about a better naming convention of these variables
+---- so we can infer the types of the claims by their names.
+
 vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
+vars Ix Iy Iz Ix' Iy' Iz' : Nat .
+vars IX IY IZ IX' IY' IZ' : Nat .
+vars IP IP' IP1 IP2 IP3 : Nat .
+vars IQ IQ' IQ1 IQ2 IQ3 : Nat .
+vars IR IR' IR1 IR2 IR3 : Nat .
 vars IdP IdQ IdR IdH IdX IdY IdZ IdSX IdSY IdSZ : Nat .
 vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 IdC1 IdC2 : Nat .
 vars IdP2 IdQ2 IdR2 IdX2 IdY2 IdZ2 : Nat .
 vars IdP3 IdQ3 IdR3 IdX3 IdY3 IdZ3 : Nat .
-vars IdSubst IdSubst1 IdSubst2 IdNF IdHP : Nat .
+vars ISubst ISubst1 ISubst2 IdNF IdHP : Nat .
 vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
 vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
 vars IdAppCtx : Nat .
@@ -332,19 +341,19 @@ eq Pi |- ((N) G:Claim (WF) ;) = false [owise] .
 ----      of equations, so the proof checking can fail earlier. 
 --------------------------------------
 
----- Proof step with rule (#nf (IdX) (IdP)) holds if
+---- Proof step with rule (#nf (IdX) (IP)) holds if
 ----   1. IdX is an element or set variable;
-----   2. IdP is a wellformed pattern;
-----   3. IdX doesn't occur free in IdP;
+----   2. IP is a wellformed pattern;
+----   3. IdX doesn't occur free in IP;
 
 ---- Failure case.
-ceq Pi |- (N) (#nf (IdX) (IdP)) Rl ;
+ceq Pi |- (N) (#nf (IdX) (IP)) Rl ;
   = false
- if IdX >= N or IdP >= N 
+ if IdX >= N or IP >= N 
  or not (IdX) is-var-in Pi
- or not (IdP) is-wf-in Pi .
+ or not (IP) is-wf-in Pi .
 
----- Define equations by structural induction on (IdP).
+---- Define equations by structural induction on (IP).
 
 ceq Pi |- (N) (#nf (IdX) (IdY)) (NFBasic) ;
   = IdX =/= IdY
@@ -353,90 +362,90 @@ ceq Pi |- (N) (#nf (IdX) (IdY)) (NFBasic) ;
 eq Pi |- (N) (#nf (IdX) (0)) (NFBasic) ;
  = true .
 
-ceq Pi |- (N) (#nf (IdX) (IdP)) (NFBasic) ;
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFBasic) ;
   = true
- if (IdP) is-symb-in Pi .
+ if (IP) is-symb-in Pi .
 
-ceq Pi |- (N) (#nf (IdX) (IdP)) (NFImp (N1) (N2)) ;
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFImp (N1) (N2)) ;
  = true 
- if (#nf (IdX) (IdP1)) := Pi[N1]
- /\ (#nf (IdX) (IdP2)) := Pi[N2]
- /\ (\imp (IdP1) (IdP2)) := Pi[IdP] .
+ if (#nf (IdX) (IP1)) := Pi[N1]
+ /\ (#nf (IdX) (IP2)) := Pi[N2]
+ /\ (\imp (IP1) (IP2)) := Pi[IP] .
 
-ceq Pi |- (N) (#nf (IdX) (IdP)) (NFApp (N1) (N2)) ;
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFApp (N1) (N2)) ;
  = true 
- if (#nf (IdX) (IdP1)) := Pi[N1]
- /\ (#nf (IdX) (IdP2)) := Pi[N2]
- /\ (\app (IdP1) (IdP2)) := Pi[IdP] .
+ if (#nf (IdX) (IP1)) := Pi[N1]
+ /\ (#nf (IdX) (IP2)) := Pi[N2]
+ /\ (\app (IP1) (IP2)) := Pi[IP] .
 
-ceq Pi |- (N) (#nf (IdX) (IdP)) (NFExBinding) ;
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFExBinding) ;
   = true
- if (\ex (IdX) (IdPBody)) := Pi[IdP] .
+ if (\ex (IdX) (IP')) := Pi[IP] .
 
-ceq Pi |- (N) (#nf (IdX) (IdP)) (NFExBody (IdNF)) ;
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFExBody (IdNF)) ;
   = true
- if (\ex (IdY) (IdPBody)) := Pi[IdP]
+ if (\ex (IdY) (IP')) := Pi[IP]
  /\ IdY =/= IdX
- /\ (#nf (IdX) (IdPBody)) := Pi[IdNF] .
+ /\ (#nf (IdX) (IP')) := Pi[IdNF] .
 
-ceq Pi |- (N) (#nf (IdX) (IdP)) (NFMuBinding) ;
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFMuBinding) ;
   = true
- if (\mu (IdX) (IdPBody)) := Pi[IdP] .
+ if (\mu (IdX) (IP')) := Pi[IP] .
 
-ceq Pi |- (N) (#nf (IdX) (IdP)) (NFMuBody (IdNF)) ;
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFMuBody (IdNF)) ;
   = true
- if (\mu (IdY) (IdPBody)) := Pi[IdP] 
+ if (\mu (IdY) (IP')) := Pi[IP] 
  /\ IdY =/= IdX
- /\ (#nf (IdX) (IdPBody)) := Pi[IdNF] .
+ /\ (#nf (IdX) (IP')) := Pi[IdNF] .
 
 ---------------------------------------
 ---- Substitution checking
 ---------------------------------------
 
----- Proof step with rule (#subst (IdR) (IdP) (IdQ) (IdX)) holds if
+---- Proof step with rule (#subst (IdR) (IP) (IQ) (IdX)) holds if
 ----   1. (IdX) is an element or set variable;
-----   2. (IdR),(IdP),(IdQ) are wellformed patterns;
-----   3. (IdR) is the result of substituting in (IdP), (IdQ) for (IdX)
+----   2. (IdR),(IP),(IQ) are wellformed patterns;
+----   3. (IdR) is the result of substituting in (IP), (IQ) for (IdX)
 ----      (this substitution is capture-avoiding substitution).
 
 ---- Failure case.
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) Rl ;
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) Rl ;
   = false
- if IdR >= N or IdP >= N or IdQ >= N or IdX >= N 
+ if IdR >= N or IP >= N or IQ >= N or IdX >= N 
  or not (IdX) is-var-in Pi
  or not (IdR) is-wf-in Pi
- or not (IdP) is-wf-in Pi
- or not (IdQ) is-wf-in Pi .
+ or not (IP) is-wf-in Pi
+ or not (IQ) is-wf-in Pi .
 
----- Equations are defined based on structural induction on (IdP).
+---- Equations are defined based on structural induction on (IP).
 
- eq Pi |- (N) (#subst (IdR) (IdY) (IdQ) (IdX)) (SubstVariable) ;
+ eq Pi |- (N) (#subst (IdR) (IdY) (IQ) (IdX)) (SubstVariable) ;
   = (IdY) is-var-in Pi
-    and ( (IdY == IdX and IdR == IdQ) or (IdY =/= IdX) ) .
+    and ( (IdY == IdX and IdR == IQ) or (IdY =/= IdX) ) .
 
- eq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstBot) ;
-  = IdP == 0 and IdR == 0 .
+ eq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstBot) ;
+  = IP == 0 and IdR == 0 .
 
- eq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstSymb) ;
-  = (IdP) is-symb-in Pi and IdR == IdP .
+ eq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstSymb) ;
+  = (IP) is-symb-in Pi and IdR == IP .
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstImp (IdSubst1) (IdSubst2)) ;
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstImp (ISubst1) (ISubst2)) ;
   = true
- if (\imp (IdP1) (IdP2)) := Pi[IdP]
+ if (\imp (IP1) (IP2)) := Pi[IP]
  /\ (\imp (IdR1) (IdR2)) := Pi[IdR]
- /\ (#subst (IdR1) (IdP1) (IdQ) (IdX)) := Pi[IdSubst1]
- /\ (#subst (IdR2) (IdP2) (IdQ) (IdX)) := Pi[IdSubst2] .
+ /\ (#subst (IdR1) (IP1) (IQ) (IdX)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IP2) (IQ) (IdX)) := Pi[ISubst2] .
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstApp (IdSubst1) (IdSubst2)) ;
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstApp (ISubst1) (ISubst2)) ;
   = true
- if (\app (IdP1) (IdP2)) := Pi[IdP]
+ if (\app (IP1) (IP2)) := Pi[IP]
  /\ (\app (IdR1) (IdR2)) := Pi[IdR]
- /\ (#subst (IdR1) (IdP1) (IdQ) (IdX)) := Pi[IdSubst1]
- /\ (#subst (IdR2) (IdP2) (IdQ) (IdX)) := Pi[IdSubst2] .
+ /\ (#subst (IdR1) (IP1) (IQ) (IdX)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IP2) (IQ) (IdX)) := Pi[ISubst2] .
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstExBinding) ;
-  = IdR == IdP
- if (\ex (IdX) (IdPBody)) := Pi[IdP] .
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstExBinding) ;
+  = IdR == IP
+ if (\ex (IdX) (IP')) := Pi[IP] .
 
 ---- How to do capture-avoiding substitution in (\ex Y . P1)[Q/X]
 ----   1. Pick a fresh variable Z such that Z =/= X and (#nf Z Q);
@@ -446,37 +455,37 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstExBinding) ;
 ---- The correctness of the above computation is explained in page 8 of
 ---- "Matching Logic" (LMCS'17 paper).
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) 
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) 
               (SubstExBody (IdZ)         ---- fresh var Z
                            (IdNF)        ---- proved claim (#nf Z Q)
-                           (IdSubst1)    ---- proved claim for R1=P1[Z/Y]
-                           (IdSubst2)) ; ---- proved claim for R2=R1[Q/X]
+                           (ISubst1)    ---- proved claim for R1=P1[Z/Y]
+                           (ISubst2)) ; ---- proved claim for R2=R1[Q/X]
   = true
- if (\ex (IdY) (IdP1)) := Pi[IdP]
+ if (\ex (IdY) (IP1)) := Pi[IP]
  /\ IdY =/= IdX
  /\ (\ex (IdZ) (IdR2)) := Pi[IdR]
  /\ IdZ =/= IdX
- /\ (#nf (IdZ) (IdQ)) := Pi[IdNF]
- /\ (#subst (IdR1) (IdP1) (IdZ) (IdY)) := Pi[IdSubst1]
- /\ (#subst (IdR2) (IdR1) (IdQ) (IdX)) := Pi[IdSubst2] .
+ /\ (#nf (IdZ) (IQ)) := Pi[IdNF]
+ /\ (#subst (IdR1) (IP1) (IdZ) (IdY)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IdR1) (IQ) (IdX)) := Pi[ISubst2] .
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) (SubstMuBinding) ;
-  = IdR == IdP
- if (\mu (IdX) (IdPBody)) := Pi[IdP] .
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstMuBinding) ;
+  = IdR == IP
+ if (\mu (IdX) (IP')) := Pi[IP] .
 
-ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX)) 
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) 
               (SubstExBody (IdZ)         ---- fresh var Z
                            (IdNF)        ---- proved claim (#nf Z Q)
-                           (IdSubst1)    ---- proved claim for R1=P1[Z/Y]
-                           (IdSubst2)) ; ---- proved claim for R2=R1[Q/X]
+                           (ISubst1)    ---- proved claim for R1=P1[Z/Y]
+                           (ISubst2)) ; ---- proved claim for R2=R1[Q/X]
   = true
- if (\mu (IdY) (IdP1)) := Pi[IdP]
+ if (\mu (IdY) (IP1)) := Pi[IP]
  /\ IdY =/= IdX
  /\ (\mu (IdZ) (IdR2)) := Pi[IdR]
  /\ IdZ =/= IdX
- /\ (#nf (IdZ) (IdQ)) := Pi[IdNF]
- /\ (#subst (IdR1) (IdP1) (IdZ) (IdY)) := Pi[IdSubst1]
- /\ (#subst (IdR2) (IdR1) (IdQ) (IdX)) := Pi[IdSubst2] .
+ /\ (#nf (IdZ) (IQ)) := Pi[IdNF]
+ /\ (#subst (IdR1) (IP1) (IdZ) (IdY)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IdR1) (IQ) (IdX)) := Pi[ISubst2] .
 
 ---------------------------------------
 ---- Application context checking
@@ -487,25 +496,25 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX))
 ----   2. P is a wellformed pattern;
 ----   3. P is an application context wrt X.
 
-ceq Pi |- (N) (#appctx (IdP) (IdX)) Rl ;
+ceq Pi |- (N) (#appctx (IP) (IdX)) Rl ;
   = false
- if not (IdX) is-var-in Pi or not (IdP) is-wf-in Pi .
+ if not (IdX) is-var-in Pi or not (IP) is-wf-in Pi .
 
-ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxInit) ;
-  = IdP == IdX 
- if (IdP) is-var-in Pi .
+ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxInit) ;
+  = IP == IdX 
+ if (IP) is-var-in Pi .
 
-ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxL (IdAppCtx) (IdNF)) ;
+ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxL (IdAppCtx) (IdNF)) ;
   = true
- if (\app (IdP1) (IdP2)) := Pi[IdP]
- /\ (#appctx (IdP1) (IdX)) := Pi[IdAppCtx]
- /\ (#nf (IdX) (IdP2)) := Pi[IdNF] .
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#appctx (IP1) (IdX)) := Pi[IdAppCtx]
+ /\ (#nf (IdX) (IP2)) := Pi[IdNF] .
 
-ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxR (IdAppCtx) (IdNF)) ;
+ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxR (IdAppCtx) (IdNF)) ;
   = true
- if (\app (IdP1) (IdP2)) := Pi[IdP]
- /\ (#nf (IdX) (IdP1)) := Pi[IdNF] 
- /\ (#appctx (IdP2) (IdX)) := Pi[IdAppCtx] .
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#nf (IdX) (IP1)) := Pi[IdNF] 
+ /\ (#appctx (IP2) (IdX)) := Pi[IdAppCtx] .
 
 ---------------------------------------
 ---- Provability checking
@@ -520,53 +529,52 @@ ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxR (IdAppCtx) (IdNF)) ;
 
 ceq Pi |- (N) (M) (PropK) ;
   = true
- if (\imp (IdP) (IdR)) := Pi[M]
- /\ (\imp (IdQ) (IdP)) := Pi[IdR] .
+ if (\imp (IP) (IdR)) := Pi[M]
+ /\ (\imp (IQ) (IP)) := Pi[IdR] .
 
 ---- (PropS) (P -> (Q -> R)) -> (P -> Q) -> (P -> R)
 ceq Pi |- (N) (M) (PropS) ;
   = true
- if (\imp (IdP1) (IdP2)) := Pi[M]   ---- IdP1: P -> (Q -> R), IdP2: (P -> Q) -> (P -> R)
- /\ (\imp (IdP) (IdP3)) := Pi[IdP1] ---- IdP3: Q -> R
- /\ (\imp (IdQ) (IdR)) := Pi[IdP3]
- /\ (\imp (IdQ1) (IdQ2)) := Pi[IdP2]
- /\ (\imp (IdP) (IdQ)) := Pi[IdQ1]
- /\ (\imp (IdP) (IdR)) := Pi[IdQ2] .
+ if (\imp (IP1) (IP2)) := Pi[M]   ---- IP1: P -> (Q -> R), IP2: (P -> Q) -> (P -> R)
+ /\ (\imp (IP) (IP3)) := Pi[IP1] ---- IP3: Q -> R
+ /\ (\imp (IQ) (IdR)) := Pi[IP3]
+ /\ (\imp (IQ1) (IQ2)) := Pi[IP2]
+ /\ (\imp (IP) (IQ)) := Pi[IQ1]
+ /\ (\imp (IP) (IdR)) := Pi[IQ2] .
 
 ---- (PropF) ((P -> \bot) -> \bot) -> P
 ceq Pi |- (N) (M) (PropF) ;
   = true
- if (\imp (IdLHS) (IdP)) := Pi[M]  ---- IdLHS: (P -> \bot) -> \bot
- /\ (\imp (IdP1) (0)) := Pi[IdLHS] ---- IdP1: P -> \bot
- /\ (\imp (IdP) (0)) := Pi[IdP1] .
+ if (\imp (IdLHS) (IP)) := Pi[M]  ---- IdLHS: (P -> \bot) -> \bot
+ /\ (\imp (IP1) (0)) := Pi[IdLHS] ---- IP1: P -> \bot
+ /\ (\imp (IP) (0)) := Pi[IP1] .
 
 ---- (MP) P && P -> Q => Q
-eq Pi |- (N) (M) (MP (IdP) (IdQ)) ; ---- IdP,IdQ refer to provability claims, not WF claims.
- = (IdP) proved-in Pi and (IdQ) proved-in Pi
-   and eq?(Pi, (\imp (Pi[IdP]) (M)), Pi[IdQ]) .
+eq Pi |- (N) (M) (MP (IP) (IQ)) ; ---- IP,IQ refer to provability claims, not WF claims.
+ = (IP) proved-in Pi and (IQ) proved-in Pi
+   and eq?(Pi, (\imp (Pi[IP]) (M)), Pi[IQ]) .
 
 ---------------------------------------
 ---- Checking proof rules Part B
 ----   FOL reasoning
 ---------------------------------------
 
----- (ExistsQ) P[Y/X] -> \ex X . P
+---- (ExistsQ) P[y/x] -> \ex x . P
 
-ceq Pi |- (N) (M) (ExistsQ (IdSubst)) ;
+ceq Pi |- (N) (M) (ExistsQ (ISubst)) ;
   = true
- if (\imp (IdLHS) (IdRHS)) := Pi[M]  ---- IdLHS: P[Y/X], IdRHS: \ex X . P
- /\ (\ex (IdX) (IdP)) := Pi[IdRHS]
- /\ (IdX) is-evar-in Pi
- /\ (#subst (IdLHS) (IdP) (IdY) (IdX)) := Pi[IdSubst] .
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]  ---- IdLHS: P[y/x], IdRHS: \ex x . P
+ /\ (\ex (Ix) (IP)) := Pi[IdRHS]
+ /\ (#subst (IdLHS) (IP) (Iy) (Ix)) := Pi[ISubst] .
 
-----(ExistsR) P -> Q => (\ex X . P) -> Q
-ceq Pi |- (N) (M) (ExistsR (IdH) (IdNF)) ;
+----(ExistsR) P -> Q => (\ex x . P) -> Q with (#nf x Q)
+ceq Pi |- (N) (M) (ExistsR (IdH) (IdNF)) ; 
   = true
- if (IdHP) := Pi[IdH]               ---- IdH is provability claim, not WF claim.
- /\ (\imp (IdP) (IdQ)) := Pi[IdHP]  ---- IdHP is WF claim.
- /\ (\imp (IdR) (IdQ)) := Pi[M]
- /\ (\ex (IdX) (IdP)) := Pi[IdR]
- /\ (#nf (IdX) (IdQ)) := Pi[IdNF] .
+ if (IdHP) := Pi[IdH]             ---- IdH is provability claim "|- P -> Q"
+ /\ (\imp (IP) (IQ)) := Pi[IdHP]  ---- IdHP is the WF claim "P -> Q"
+ /\ (\imp (IR) (IQ)) := Pi[M]
+ /\ (\ex (Ix) (IP)) := Pi[IR]
+ /\ (#nf (Ix) (IQ)) := Pi[IdNF] .
 
 ---------------------------------------
 ---- Checking proof rules Part C
@@ -577,30 +585,29 @@ ceq Pi |- (N) (M) (ExistsR (IdH) (IdNF)) ;
 ceq Pi |- (N) (M) (PropagationBotL) ;
   = true
  if (\imp (IdR) (0)) := Pi[M]
- /\ (\app (0) (IdP)) := Pi[IdR]
- /\ (IdP) is-wf-in Pi .
+ /\ (\app (0) (IP)) := Pi[IdR]
+ /\ (IP) is-wf-in Pi .
 
 ---- (PropagationBotR) P \bot -> \bot
 ceq Pi |- (N) (M) (PropagationBotR) ;
   = true
  if (\imp (IdR) (0)) := Pi[M]
- /\ (\app (IdP) (0)) := Pi[IdR]
- /\ (IdP) is-wf-in Pi .
+ /\ (\app (IP) (0)) := Pi[IdR]
+ /\ (IP) is-wf-in Pi .
 
 ---- (PropagationOrL) (P\/Q) R -> (PR) \/ (QR)
 ---- desugar to primitive form
----- ((P -> \bot) -> Q) R
-----   -> (PR -> \bot) -> (QR)
+---- (((P -> \bot) -> Q) R) -> ((PR -> \bot) -> (QR))
 ceq Pi |- (N) (M) (PropagationOrL) ;
   = true
  if (\imp (IdLHS) (IdRHS)) := Pi[M]
  /\ (\app (IdLHS1) (IdR)) := Pi[IdLHS]
- /\ (\imp (IdLHS2) (IdQ)) := Pi[IdLHS1]
- /\ (\imp (IdP) (0)) := Pi[IdLHS2]
+ /\ (\imp (IdLHS2) (IQ)) := Pi[IdLHS1]
+ /\ (\imp (IP) (0)) := Pi[IdLHS2]
  /\ (\imp (IdRHS1) (IdRHS2)) := Pi[IdRHS] ---- IdRHS1: (PR -> \bot), IdRHS2: QR
  /\ (\imp (IdRHS3) (0)) := Pi[IdRHS1]     ---- IdRHS3: PR
- /\ (\app (IdP) (IdR)) := Pi[IdRHS3]
- /\ (\app (IdQ) (IdR)) := Pi[IdRHS2] .
+ /\ (\app (IP) (IdR)) := Pi[IdRHS3]
+ /\ (\app (IQ) (IdR)) := Pi[IdRHS2] .
 
 ---- (PropagationOrR) R (P\/Q) -> (RP) \/ (RQ)
 ---- desugar to primitive form
@@ -610,50 +617,50 @@ ceq Pi |- (N) (M) (PropagationOrL) ;
   = true
  if (\imp (IdLHS) (IdRHS)) := Pi[M]
  /\ (\app (IdR) (IdLHS1)) := Pi[IdLHS]    ---- IdLHS1: (P -> \bot) -> Q
- /\ (\imp (IdLHS2) (IdQ)) := Pi[IdLHS1]   ---- IdLHS2: P -> \bot
- /\ (\imp (IdP) (0)) := Pi[IdLHS2]
+ /\ (\imp (IdLHS2) (IQ)) := Pi[IdLHS1]   ---- IdLHS2: P -> \bot
+ /\ (\imp (IP) (0)) := Pi[IdLHS2]
  /\ (\imp (IdRHS1) (IdRHS2)) := Pi[IdRHS] ---- IdRHS1: (RP -> \bot), IdRHS2: RQ
  /\ (\imp (IdRHS3) (0)) := Pi[IdRHS1]     ---- IdRHS3: RP 
- /\ (\app (IdR) (IdP)) := Pi[IdRHS3]
- /\ (\app (IdR) (IdQ)) := Pi[IdRHS2] .
+ /\ (\app (IdR) (IP)) := Pi[IdRHS3]
+ /\ (\app (IdR) (IQ)) := Pi[IdRHS2] .
 
 ---- (PropagationExL) (\ex X . P) Q -> \ex X . (P Q) requires (#nf X Q)
 ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
   = true 
  if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: (\ex X . P) Q, IdRHS: \ex X . (P Q)
- /\ (\app (IdLHS1) (IdQ)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
- /\ (\ex (IdX) (IdP)) := Pi[IdLHS1]
+ /\ (\app (IdLHS1) (IQ)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
+ /\ (\ex (IdX) (IP)) := Pi[IdLHS1]
  /\ (\ex (IdX) (IdRHS1)) := Pi[IdRHS]   ---- IdRHS1: P Q
- /\ (\app (IdP) (IdQ)) := Pi[IdRHS1]
- /\ (#nf (IdX) (IdQ)) := Pi[IdNF] .
+ /\ (\app (IP) (IQ)) := Pi[IdRHS1]
+ /\ (#nf (IdX) (IQ)) := Pi[IdNF] .
 
 ---- (PropagationExR)  Q (\ex X . P) -> \ex X . (Q P) requires (#nf X Q)
 ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
   = true 
  if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: Q (\ex X . P), IdRHS: \ex X . (Q P)
- /\ (\app (IdQ) (IdLHS1)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
- /\ (\ex (IdX) (IdP)) := Pi[IdLHS1]
+ /\ (\app (IQ) (IdLHS1)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
+ /\ (\ex (IdX) (IP)) := Pi[IdLHS1]
  /\ (\ex (IdX) (IdRHS1)) := Pi[IdRHS]   ---- IdRHS1: Q P
- /\ (\app (IdQ) (IdP)) := Pi[IdRHS1]
- /\ (#nf (IdX) (IdQ)) := Pi[IdNF] .
+ /\ (\app (IQ) (IP)) := Pi[IdRHS1]
+ /\ (#nf (IdX) (IQ)) := Pi[IdNF] .
 
 ---- (FrameL) P -> Q => PR -> QR
 ceq Pi |- (N) (M) (FrameL (IdH)) ;
   = true
  if (IdHP) := Pi[IdH]                ---- IdH is provability claim
- /\ (\imp (IdP) (IdQ)) := Pi[IdHP]   ---- IdHP is WF claim
+ /\ (\imp (IP) (IQ)) := Pi[IdHP]   ---- IdHP is WF claim
  /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
- /\ (\app (IdP) (IdR)) := Pi[IdLHS]
- /\ (\app (IdQ) (IdR)) := Pi[IdRHS] .
+ /\ (\app (IP) (IdR)) := Pi[IdLHS]
+ /\ (\app (IQ) (IdR)) := Pi[IdRHS] .
 
 ---- (FrameR) P -> Q => RP -> RQ
 ceq Pi |- (N) (M) (FrameR (IdH)) ;
   = true
  if (IdHP) := Pi[IdH]                ---- IdH is provability claim
- /\ (\imp (IdP) (IdQ)) := Pi[IdHP]   ---- IdHP is WF claim
+ /\ (\imp (IP) (IQ)) := Pi[IdHP]   ---- IdHP is WF claim
  /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
- /\ (\app (IdR) (IdP)) := Pi[IdLHS]
- /\ (\app (IdR) (IdQ)) := Pi[IdRHS] .
+ /\ (\app (IdR) (IP)) := Pi[IdLHS]
+ /\ (\app (IdR) (IQ)) := Pi[IdRHS] .
 
 
 ---------------------------------------
@@ -662,26 +669,26 @@ ceq Pi |- (N) (M) (FrameR (IdH)) ;
 ---------------------------------------
 
 ---- (SVarSubst) P => P[Q/SX]
-ceq Pi |- (N) (M) (SVarSubst (IdH) (IdSubst)) ;
+ceq Pi |- (N) (M) (SVarSubst (IdH) (ISubst)) ;
   = true
- if (IdP) := Pi[IdH]
- /\ (#subst (M) (IdP) (IdQ) (IdSX)) := Pi[IdSubst] .
+ if (IP) := Pi[IdH]
+ /\ (#subst (M) (IP) (IQ) (IdSX)) := Pi[ISubst] .
 
 ---- (Prefixpoint) P[(\mu SX . P) / SX] -> \mu SX . P
-ceq Pi |- (N) (M) (Prefixpoint (IdSubst)) ;
+ceq Pi |- (N) (M) (Prefixpoint (ISubst)) ;
   = true
  if (\imp (IdLHS) (IdRHS)) := Pi[M]
- /\ (\mu (IdSX) (IdP)) := Pi[IdRHS]
- /\ (#subst (IdLHS) (IdP) (IdRHS) (IdSX)) := Pi[IdSubst] .
+ /\ (\mu (IdSX) (IP)) := Pi[IdRHS]
+ /\ (#subst (IdLHS) (IP) (IdRHS) (IdSX)) := Pi[ISubst] .
 
 ---- (KT) P[Q/SX] -> Q => (\mu SX . P) -> Q
-ceq Pi |- (N) (M) (KT (IdH) (IdSubst)) ;
+ceq Pi |- (N) (M) (KT (IdH) (ISubst)) ;
   = true
- if (\imp (IdMu) (IdQ)) := Pi[M]
- /\ (\mu (IdSX) (IdP)) := Pi[IdMu]
+ if (\imp (IdMu) (IQ)) := Pi[M]
+ /\ (\mu (IdSX) (IP)) := Pi[IdMu]
  /\ (IdHP) := Pi[IdH]
- /\ (\imp (IdR) (IdQ)) := Pi[IdHP]
- /\ (#subst (IdR) (IdP) (IdQ) (IdSX)) := Pi[IdSubst] .
+ /\ (\imp (IdR) (IQ)) := Pi[IdHP]
+ /\ (#subst (IdR) (IP) (IQ) (IdSX)) := Pi[ISubst] .
 
 ---------------------------------------
 ---- Checking proof rules Part E
@@ -699,17 +706,17 @@ ceq Pi |- (N) (M) (Existence) ;
 
 ---- (Singleton) \not (C1[x /\ P] /\ C2[x /\ \not P])
 ----   desugar to C1[x /\ P] -> (C2[x /\ \not P] -> \bot)
-ceq Pi |- (N) (M) (Singleton (IdCtx1) (IdSubst1) (IdCtx2) (IdSubst2)) ;
+ceq Pi |- (N) (M) (Singleton (IdCtx1) (ISubst1) (IdCtx2) (ISubst2)) ;
   = true
- if (#subst (IdP1) (IdC1) (IdR1) (IdZ1)) := Pi[IdSubst1] ---- IdR1: (x -> (P -> \bot)) -> \bot
- /\ (#subst (IdP2) (IdC2) (IdR2) (IdZ2)) := Pi[IdSubst2] ---- IdR2: (x -> P) -> \bot
+ if (#subst (IP1) (IdC1) (IdR1) (IdZ1)) := Pi[ISubst1] ---- IdR1: (x -> (P -> \bot)) -> \bot
+ /\ (#subst (IP2) (IdC2) (IdR2) (IdZ2)) := Pi[ISubst2] ---- IdR2: (x -> P) -> \bot
  /\ (#appctx (IdC1) (IdZ1)) := Pi[IdCtx1]
  /\ (#appctx (IdC2) (IdZ2)) := Pi[IdCtx2]
  /\ (\imp (IdR3) (0)) := Pi[IdR2]                        ---- IdR3: (x -> P)
- /\ (\imp (IdX) (IdP)) := Pi[IdR3]
+ /\ (\imp (IdX) (IP)) := Pi[IdR3]
  /\ (IdX) is-evar-in Pi
- /\ eq?(Pi, (\imp (\imp (IdX) (\imp (IdP) (0))) (0)), (IdR1)) 
- /\ eq?(Pi, (\imp (IdP1) (\imp (IdP2) (0))), (M)) .
+ /\ eq?(Pi, (\imp (\imp (IdX) (\imp (IP) (0))) (0)), (IdR1)) 
+ /\ eq?(Pi, (\imp (IP1) (\imp (IP2) (0))), (M)) .
 
 endfm
 
