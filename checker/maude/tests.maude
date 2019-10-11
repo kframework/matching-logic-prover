@@ -222,4 +222,25 @@ reduce checkPass(
 
 ).
 
+reduce checkPass(
+
+(0)  (\bot) (WF) ;
+(1)  (\evar) (WF) ; "x1"
+(2)  (\evar) (WF) ; "x2"
+(3)  (\ex (1) (1)) (WF) ; "\ex x1 . x1"
+(4)  (\ex (2) (2)) (WF) ; "\ex x2 . x2"
+(5)  (#subst (1) (2) (1) (2)) (SubstVariable) ;
+(6)  (\imp (1) (4)) (WF) ; "x1 -> \ex x2 . x2"
+(7)  (6) (ExistsQ (5)) ;
+(8)  (#nf (1) (2)) (NFBasic) ;
+(9)  (#nf (1) (4)) (NFExBody (8)) ;
+(10)  (\imp (3) (4)) (WF) ; "(\ex x1 . x1) -> \ex x2 . x2"
+(11) (4) (Existence) ;
+(12) (\imp (4) (6)) (WF) ;
+(13) (12) (PropK (4) (1)) ;
+(14) (6) (MP (11) (13)) ;  "|- x1 -> \ex x2 . x2"
+(15) (10) (ExistsR (14) (9)) ; "|- (\ex x1 . x1) -> \ex x2 . x2"
+
+).
+
 quit
