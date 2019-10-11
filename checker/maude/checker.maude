@@ -166,7 +166,7 @@ vars IdP IdQ IdR IdH IdX IdY IdZ IdSX IdSY IdSZ : Nat .
 vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 IdC1 IdC2 : Nat .
 vars IdP2 IdQ2 IdR2 IdX2 IdY2 IdZ2 : Nat .
 vars IdP3 IdQ3 IdR3 IdX3 IdY3 IdZ3 : Nat .
-vars IdSubst IdSubst1 IdSubst2 IdNF : Nat .
+vars IdSubst IdSubst1 IdSubst2 IdNF IdHP : Nat .
 vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
 vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
 vars EP EQ EP1 EP2 EQ1 EQ2 : ExClaim .
@@ -505,7 +505,8 @@ ceq Pi |- (N) (M) (ExistsQ (IdSubst)) ;
 ----(ExistsR) P -> Q => (\ex X . P) -> Q
 ceq Pi |- (N) (M) (ExistsR (IdH) (IdNF)) ;
   = true
- if (\imp (IdP) (IdQ)) := Pi[IdH] 
+ if (IdHP) := Pi[IdH]               ---- IdH is provability claim, not WF claim.
+ /\ (\imp (IdP) (IdQ)) := Pi[IdHP]  ---- IdHP is WF claim.
  /\ (\imp (IdR) (IdQ)) := Pi[M]
  /\ (\ex (IdX) (IdP)) := Pi[IdR]
  /\ (#nf (IdX) (IdQ)) := Pi[IdNF] .
@@ -582,7 +583,8 @@ ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
 ---- (FrameL) P -> Q => PR -> QR
 ceq Pi |- (N) (M) (FrameL (IdH)) ;
   = true
- if (\imp (IdP) (IdQ)) := Pi[IdH]
+ if (IdHP) := Pi[IdH]                ---- IdH is provability claim
+ /\ (\imp (IdP) (IdQ)) := Pi[IdHP]   ---- IdHP is WF claim
  /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
  /\ (\app (IdP) (IdR)) := Pi[IdLHS]
  /\ (\app (IdQ) (IdR)) := Pi[IdRHS] .
@@ -590,7 +592,8 @@ ceq Pi |- (N) (M) (FrameL (IdH)) ;
 ---- (FrameR) P -> Q => RP -> RQ
 ceq Pi |- (N) (M) (FrameR (IdH)) ;
   = true
- if (\imp (IdP) (IdQ)) := Pi[IdH]
+ if (IdHP) := Pi[IdH]                ---- IdH is provability claim
+ /\ (\imp (IdP) (IdQ)) := Pi[IdHP]   ---- IdHP is WF claim
  /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
  /\ (\app (IdR) (IdP)) := Pi[IdLHS]
  /\ (\app (IdR) (IdQ)) := Pi[IdRHS] .
@@ -602,9 +605,10 @@ ceq Pi |- (N) (M) (FrameR (IdH)) ;
 ---------------------------------------
 
 ---- (SVarSubst) P => P[Q/SX]
-ceq Pi |- (N) (M) (SVarSubst (IdP) (IdSubst)) ;
+ceq Pi |- (N) (M) (SVarSubst (IdH) (IdSubst)) ;
   = true
- if (#subst (M) (IdP) (IdQ) (IdSX)) := Pi[IdSubst] .
+ if (IdP) := Pi[IdH]
+ /\ (#subst (M) (IdP) (IdQ) (IdSX)) := Pi[IdSubst] .
 
 ---- (Prefixpoint) P[(\mu SX . P) / SX] -> \mu SX . P
 ceq Pi |- (N) (M) (Prefixpoint (IdSubst)) ;
@@ -618,7 +622,8 @@ ceq Pi |- (N) (M) (KT (IdH) (IdSubst)) ;
   = true
  if (\imp (IdMu) (IdQ)) := Pi[M]
  /\ (\mu (IdSX) (IdP)) := Pi[IdMu]
- /\ (\imp (IdR) (IdQ)) := Pi[IdH]
+ /\ (IdHP) := Pi[IdH]
+ /\ (\imp (IdR) (IdQ)) := Pi[IdHP]
  /\ (#subst (IdR) (IdP) (IdQ) (IdSX)) := Pi[IdSubst] .
 
 ---------------------------------------
