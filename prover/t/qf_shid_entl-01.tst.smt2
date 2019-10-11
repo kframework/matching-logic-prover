@@ -61,32 +61,22 @@
     normalize
   ; smtlib-to-implication
   ; kt
-  ; or-split-rhs
-  ; normalize
-  ; lift-constraints
+  ; or-split-rhs ; normalize ; lift-constraints
   ; ( ( right-unfold-Nth(0,1)
       ; right-unfold-Nth(0,0)
-      ; normalize
-      ; lift-constraints
-      ; match
-      ; instantiate-separation-logic-axioms
-      ; spatial-patterns-equal
-      ; smt-cvc4
+      ; normalize ; lift-constraints
+      ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
       )
     | ( kt
+      ; or-split-rhs ; normalize ; lift-constraints
       ; ( ( right-unfold-Nth(0,1)
           ; right-unfold-Nth(0,0)
           ; normalize ; lift-constraints
-          ; match
-          ; spatial-patterns-equal
-          ; smt-cvc4
+          ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
           )
-        | ( normalize ; lift-constraints
-          ; right-unfold-Nth(0,1)
+        | ( right-unfold-Nth(0,1)
           ; normalize ; lift-constraints
-          ; match
-          ; spatial-patterns-equal
-          ; smt-cvc4
+          ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
           )
         )
       )
