@@ -131,10 +131,10 @@ op `(Existence`) : -> Rule .                 ---- \ex x . x
 op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) 
 
 ---------------------------------------
----- Rules to prove WF claims.
+---- Rules to prove other meta-level claims.
 ---------------------------------------
 
----- NF checking rules
+---- Not-occur-free checking
 op `(NFBasic`) : -> Rule .
 op `(NFApp__`) : Id Id -> Rule .
 op `(NFImp__`) : Id Id -> Rule .
@@ -143,7 +143,7 @@ op `(NFExBody_`) : Id -> Rule .
 op `(NFMuBinding`) : -> Rule .
 op `(NFMuBody_`) : Id -> Rule .
 
----- Subst checking rules
+---- Substitution checking
 op `(SubstVariable`) : -> Rule .
 op `(SubstSymb`) : -> Rule .
 op `(SubstBot`) : -> Rule .
@@ -154,13 +154,15 @@ op `(SubstExBody____`) : Id Id Id Id -> Rule .
 op `(SubstMuBinding`) : -> Rule .
 op `(SubstMuBody____`) : Id Id Id Id -> Rule .
 
+---- Application context checking
+op `(AppCtxInit`) : -> Rule .
+op `(AppCtxL__`) : Id Id -> Rule .
+op `(AppCtxR__`) : Id Id -> Rule .
+
 ---------------------------------------
 ---- Variable definitions
 ---------------------------------------
 
-vars Phi Psi P Q R : Claim .
-vars Pi Pi1 Pi2 Pi3 : Proof .
-vars Rl Rl1 Rl2 : Rule .
 vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
 vars IdP IdQ IdR IdH IdX IdY IdZ IdSX IdSY IdSZ : Nat .
 vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 IdC1 IdC2 : Nat .
@@ -169,6 +171,10 @@ vars IdP3 IdQ3 IdR3 IdX3 IdY3 IdZ3 : Nat .
 vars IdSubst IdSubst1 IdSubst2 IdNF IdHP : Nat .
 vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
 vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
+vars IdAppCtx : Nat .
+vars Phi Psi P Q R : Claim .
+vars Pi Pi1 Pi2 Pi3 : Proof .
+vars Rl Rl1 Rl2 : Rule .
 vars EP EQ EP1 EP2 EQ1 EQ2 : ExClaim .
 
 ---------------------------------------
@@ -377,7 +383,7 @@ ceq Pi |- (N) (#nf (IdX) (IdP)) (NFMuBody (IdNF)) ;
  /\ (#nf (IdX) (IdPBody)) := Pi[IdNF] .
 
 ---------------------------------------
----- Substitution related checking
+---- Substitution checking
 ---------------------------------------
 
 ---- Proof step with rule (#subst (IdR) (IdP) (IdQ) (IdX)) holds if
@@ -464,6 +470,39 @@ ceq Pi |- (N) (#subst (IdR) (IdP) (IdQ) (IdX))
  /\ (#nf (IdZ) (IdQ)) := Pi[IdNF]
  /\ (#subst (IdR1) (IdP1) (IdZ) (IdY)) := Pi[IdSubst1]
  /\ (#subst (IdR2) (IdR1) (IdQ) (IdX)) := Pi[IdSubst2] .
+
+---------------------------------------
+---- Application context checking
+---------------------------------------
+
+---- (#appctx P X) holds if
+----   1. X is an element or set variable;
+----   2. P is a wellformed pattern;
+----   3. P is an application context wrt X.
+
+ceq Pi |- (N) (#appctx (IdP) (IdX)) Rl ;
+  = false
+ if not (IdX) is-var-in Pi or not (IdP) is-wf-in Pi .
+
+ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxInit) ;
+  = IdP == IdX 
+ if (IdP) is-var-in Pi .
+
+ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxL (IdAppCtx) (IdNF)) ;
+  = true
+ if (\app (IdP1) (IdP2)) := Pi[IdP]
+ /\ (#appctx (IdP1) (IdX)) := Pi[IdAppCtx]
+ /\ (#nf (IdX) (IdP2)) := Pi[IdNF] .
+
+ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxR (IdAppCtx) (IdNF)) ;
+  = true
+ if (\app (IdP1) (IdP2)) := Pi[IdP]
+ /\ (#nf (IdX) (IdP1)) := Pi[IdNF] 
+ /\ (#appctx (IdP2) (IdX)) := Pi[IdAppCtx] .
+
+---------------------------------------
+---- Provability checking
+---------------------------------------
 
 ---------------------------------------
 ---- Checking proof rules Part A
