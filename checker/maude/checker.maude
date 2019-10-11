@@ -101,34 +101,41 @@ op `(WF`) : -> Rule .
 ---- Rules to prove provability claims.
 ---------------------------------------
 
+---- We design the proof rules so that they have the fewest parameters as possible.
+---- Having more parameters doesn't simply the proof checking anyway but complicates
+---- the construction of proof objects.
+---- If a proof rule has premise(s), they are the first parameter(s).
+---- If a proof rule has side conditions (such as not-occur-free, substitution, etc.), 
+---- the side conditions must be proved and then put as parameters.
+
 ---- Propositional reasoning
-op `(PropK__`) : Id Id -> Rule .     ---- p -> (q -> p)
-op `(PropS___`) : Id Id Id -> Rule . ---- (p -> (q -> r)) -> (p -> q) -> (p -> r)
-op `(PropF_`) : Id -> Rule .         ---- (((p -> \bot) -> \bot) -> p)
-op `(MP__`) : Id Id -> Rule .        ---- p and p -> q deduces q
+op `(PropK`) : -> Rule .      ---- P -> (Q -> P)
+op `(PropS`) : -> Rule .      ---- (P -> (Q -> R)) -> ((P -> Q) -> (P -> R))
+op `(PropF`) : -> Rule .      ---- ((P -> \bot) -> \bot) -> P
+op `(MP__`) : Id Id -> Rule . ---- P && P -> Q => Q
 
 ---- FOL reasoning
-op `(ExistsQ_`) : Id -> Rule .       ---- p[y/x] -> \ex x . p, parameter order: (#subst) 
-op `(ExistsR__`) : Id Id -> Rule .   ---- p -> q => (\ex x . p) -> q, order: (premise) (#nf)
+op `(ExistsQ_`) : Id -> Rule .     ---- P[y/x] -> \ex x . P
+op `(ExistsR__`) : Id Id -> Rule . ---- P -> Q => (\ex x . P) -> Q with (#nf x Q)
 
 ---- Propagation rules and frame reasoning
-op `(PropagationBotL`) : -> Rule .    ---- \bot p -> \bot 
-op `(PropagationBotR`) : -> Rule .    ---- p \bot -> \bot
-op `(PropagationOrL`) : -> Rule .     ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
-op `(PropagationOrR`) : -> Rule .     ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
-op `(PropagationExL_`) : Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: (#nf) 
-op `(PropagationExR_`) : Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: (#nf) 
-op `(FrameL_`) : Id -> Rule .         ---- p -> q => p r -> q r
-op `(FrameR_`) : Id -> Rule .         ---- p -> q => r p -> r q
+op `(PropagationBotL`) : -> Rule .    
+op `(PropagationBotR`) : -> Rule .    
+op `(PropagationOrL`) : -> Rule .     
+op `(PropagationOrR`) : -> Rule .     
+op `(PropagationExL_`) : Id -> Rule . 
+op `(PropagationExR_`) : Id -> Rule . 
+op `(FrameL_`) : Id -> Rule .         
+op `(FrameR_`) : Id -> Rule .         
 
 ---- Fixpoint reasoning
-op `(SVarSubst__`) : Id Id -> Rule . ---- P => P[Q/SX], order P (#subst)
-op `(Prefixpoint_`) : Id -> Rule .   ---- p[(\mu X . p) / X] -> \mu X . p, order (#subst)
-op `(KT__`) : Id Id -> Rule .        ---- p[r/X] -> q => (\mu X . p) -> q, order (premise) (#subst)
+op `(SVarSubst__`) : Id Id -> Rule . 
+op `(Prefixpoint_`) : Id -> Rule .   
+op `(KT__`) : Id Id -> Rule .        
 
 ---- Technical rules
-op `(Existence`) : -> Rule .                 ---- \ex x . x
-op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) 
+op `(Existence`) : -> Rule .                 
+op `(Singleton____`) : Id Id Id Id -> Rule . 
 
 ---------------------------------------
 ---- Rules to prove other meta-level claims.
@@ -511,16 +518,27 @@ ceq Pi |- (N) (#appctx (IdP) (IdX)) (AppCtxR (IdAppCtx) (IdNF)) ;
 
 ---- (PropK) P -> (Q -> P)
 
-eq Pi |- (N) (M) (PropK P Q) ;
- = eq?(Pi, (\imp P (\imp Q P)), (M)) .
+ceq Pi |- (N) (M) (PropK) ;
+  = true
+ if (\imp (IdP) (IdR)) := Pi[M]
+ /\ (\imp (IdQ) (IdP)) := Pi[IdR] .
 
 ---- (PropS) (P -> (Q -> R)) -> (P -> Q) -> (P -> R)
-eq Pi |- (N) (M) (PropS P Q R) ;
- = eq?(Pi, (\imp (\imp P (\imp Q R)) (\imp (\imp P Q) (\imp P R))), (M)) .
+ceq Pi |- (N) (M) (PropS) ;
+  = true
+ if (\imp (IdP1) (IdP2)) := Pi[M]   ---- IdP1: P -> (Q -> R), IdP2: (P -> Q) -> (P -> R)
+ /\ (\imp (IdP) (IdP3)) := Pi[IdP1] ---- IdP3: Q -> R
+ /\ (\imp (IdQ) (IdR)) := Pi[IdP3]
+ /\ (\imp (IdQ1) (IdQ2)) := Pi[IdP2]
+ /\ (\imp (IdP) (IdQ)) := Pi[IdQ1]
+ /\ (\imp (IdP) (IdR)) := Pi[IdQ2] .
 
 ---- (PropF) ((P -> \bot) -> \bot) -> P
-eq Pi |- (N) (M) (PropF P) ;
- = eq?(Pi, (\imp (\imp (\imp P (0)) (0)) P), (M)) .
+ceq Pi |- (N) (M) (PropF) ;
+  = true
+ if (\imp (IdLHS) (IdP)) := Pi[M]  ---- IdLHS: (P -> \bot) -> \bot
+ /\ (\imp (IdP1) (0)) := Pi[IdLHS] ---- IdP1: P -> \bot
+ /\ (\imp (IdP) (0)) := Pi[IdP1] .
 
 ---- (MP) P && P -> Q => Q
 eq Pi |- (N) (M) (MP (IdP) (IdQ)) ; ---- IdP,IdQ refer to provability claims, not WF claims.
