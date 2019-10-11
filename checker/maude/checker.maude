@@ -40,7 +40,6 @@ sort Claim .
 ----  their logical consequences.
 ---------------------------------------
 
-
 ---------------------------------------
 ---- Wellformedness (WF) claims: Basically, they construct patterns.
 ---------------------------------------
@@ -75,7 +74,6 @@ subsort Id < Claim .
 ---- Other meta-level claims.
 ---------------------------------------
 
-
 ---- Not-occur-free (NF) claims: 
 ----   (#nf X P) means X does not occur free in P
 ---- Substitution (Subst) claims:
@@ -87,14 +85,56 @@ op `(#nf__`) : Id Id -> Claim .
 op `(#subst____`) : Id Id Id Id -> Claim .
 op `(#appctx__`) : Id Id -> Claim .
 
----- Rule annotations
+---------------------------------------
+---- Rules
+---------------------------------------
 
 sort Rule .
 
----- wellformedness checking
+---------------------------------------
+---- Rules to prove WF claims.
+---------------------------------------
+
 op `(WF`) : -> Rule . 
 
----- NF checking and substitution checking
+---------------------------------------
+---- Rules to prove provability claims.
+---------------------------------------
+
+---- Propositional reasoning
+op `(PropK__`) : Id Id -> Rule .     ---- p -> (q -> p)
+op `(PropS___`) : Id Id Id -> Rule . ---- (p -> (q -> r)) -> (p -> q) -> (p -> r)
+op `(PropF_`) : Id -> Rule .         ---- (((p -> \bot) -> \bot) -> p)
+op `(MP__`) : Id Id -> Rule .        ---- p and p -> q deduces q
+
+---- FOL reasoning
+op `(ExistsQ_`) : Id -> Rule .       ---- p[y/x] -> \ex x . p, parameter order: (#subst) 
+op `(ExistsR__`) : Id Id -> Rule .   ---- p -> q => (\ex x . p) -> q, order: (premise) (#nf)
+
+---- Propagation rules and frame reasoning
+op `(PropagationBotL`) : -> Rule .    ---- \bot p -> \bot 
+op `(PropagationBotR`) : -> Rule .    ---- p \bot -> \bot
+op `(PropagationOrL`) : -> Rule .     ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
+op `(PropagationOrR`) : -> Rule .     ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
+op `(PropagationExL_`) : Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: (#nf) 
+op `(PropagationExR_`) : Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: (#nf) 
+op `(FrameL_`) : Id -> Rule .         ---- p -> q => p r -> q r
+op `(FrameR_`) : Id -> Rule .         ---- p -> q => r p -> r q
+
+---- Fixpoint reasoning
+op `(SVarSubst__`) : Id Id -> Rule . ---- P => P[Q/SX], order P (#subst)
+op `(Prefixpoint_`) : Id -> Rule .   ---- p[(\mu X . p) / X] -> \mu X . p, order (#subst)
+op `(KT__`) : Id Id -> Rule .        ---- p[r/X] -> q => (\mu X . p) -> q, order (premise) (#subst)
+
+---- Technical rules
+op `(Existence`) : -> Rule .                 ---- \ex x . x
+op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) 
+
+---------------------------------------
+---- Rules to prove WF claims.
+---------------------------------------
+
+---- NF checking rules
 op `(NFBasic`) : -> Rule .
 op `(NFApp__`) : Id Id -> Rule .
 op `(NFImp__`) : Id Id -> Rule .
@@ -103,6 +143,7 @@ op `(NFExBody_`) : Id -> Rule .
 op `(NFMuBinding`) : -> Rule .
 op `(NFMuBody_`) : Id -> Rule .
 
+---- Subst checking rules
 op `(SubstVariable`) : -> Rule .
 op `(SubstSymb`) : -> Rule .
 op `(SubstBot`) : -> Rule .
@@ -112,37 +153,6 @@ op `(SubstExBinding`) : -> Rule .
 op `(SubstExBody____`) : Id Id Id Id -> Rule .
 op `(SubstMuBinding`) : -> Rule .
 op `(SubstMuBody____`) : Id Id Id Id -> Rule .
-
----- Provability proof rule checking
-
----- propositional reasoning
-op `(PropK__`) : Id Id -> Rule . ---- p -> (q -> p)
-op `(PropS___`) : Id Id Id -> Rule . ---- (p -> (q -> r)) -> (p -> q) -> (p -> r)
-op `(PropF_`) : Id -> Rule . ---- (((p -> \bot) -> \bot) -> p)
-op `(MP__`) : Id Id -> Rule . ---- p and p -> q deduces q
-
----- FOL reasoning
-op `(ExistsQ_`) : Id -> Rule . ---- p[y/x] -> \ex x . p, parameter order: (#subst) 
-op `(ExistsR__`) : Id Id -> Rule . ---- p -> q => (\ex x . p) -> q, order: (premise) (#nf)
-
----- propagation rules and frame reasoning
-op `(PropagationBotL`) : -> Rule . ---- \bot p -> \bot 
-op `(PropagationBotR`) : -> Rule . ---- p \bot -> \bot
-op `(PropagationOrL`) : -> Rule . ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
-op `(PropagationOrR`) : -> Rule . ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
-op `(PropagationExL_`) : Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: (#nf) 
-op `(PropagationExR_`) : Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: (#nf) 
-op `(FrameL_`) : Id -> Rule . ---- p -> q => p r -> q r
-op `(FrameR_`) : Id -> Rule . ---- p -> q => r p -> r q
-
----- fixpoint reasoning
-op `(SVarSubst__`) : Id Id -> Rule . ---- P => P[Q/SX], order P (#subst)
-op `(Prefixpoint_`) : Id -> Rule . ---- p[(\mu X . p) / X] -> \mu X . p, order (#subst)
-op `(KT__`) : Id Id -> Rule . ---- p[r/X] -> q => (\mu X . p) -> q, order (premise) (#subst)
-
----- technical rules
-op `(Existence`) : -> Rule . ---- \ex x . x
-op `(Singleton____`) : Id Id Id Id -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) 
 
 ---------------------------------------
 ---- Variable definitions
@@ -159,6 +169,7 @@ vars IdP3 IdQ3 IdR3 IdX3 IdY3 IdZ3 : Nat .
 vars IdSubst IdSubst1 IdSubst2 IdNF : Nat .
 vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
 vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
+vars EP EQ EP1 EP2 EQ1 EQ2 : ExClaim .
 
 ---------------------------------------
 ---- Proof checking procedures:
@@ -172,28 +183,15 @@ op check-step : Proof -> Bool .
 eq check(Pi) = check-id(Pi) and check-step(Pi) .
 
 ---------------------------------------
----- Proof checking phase 1: check ids
----------------------------------------
-
-op check-id-aux : Proof NzNat -> Bool .
-op check-id0 : Proof -> Bool .
-eq check-id(Pi) = check-id-aux(Pi, 0) .
-eq check-id-aux(.Proof, N) = N >= 1 .
-eq check-id-aux(((0) (\bot) (WF) ; Pi), 0) = check-id-aux(Pi, 1) .
-eq check-id-aux(((N:NzNat) Phi Rl ; Pi), N:NzNat) = check-id-aux(Pi, N:NzNat + 1) .
-eq check-id-aux(Pi, N) = false [owise] .
-
----------------------------------------
 ---- Some auxilliary definitions
 ---------------------------------------
 
----- Pattern lookup
+---- Lookup a claim in a proof.
 op _[_] : Proof NzNat -> [Claim] .
 eq (Pi1 ((N) Phi Rl ;) Pi2) [N] = Phi .
 
----- Auxilliary data structures: ExClaim,
----- which extends Claim by allowing *nested* constructs.
----- This is useful for proof checking.
+---- We define a new sort ExClaim, taking Claim as a subsort. 
+---- ExClaim constructs all *nested* structures of patterns.
 
 sort ExClaim . subsort Claim < ExClaim .
 
@@ -202,7 +200,22 @@ op `(\imp__`) : ExClaim ExClaim -> ExClaim .
 op `(\ex__`) : ExClaim ExClaim -> ExClaim . 
 op `(\mu__`) : ExClaim ExClaim -> ExClaim . 
 
-vars EP EQ EP1 EP2 EQ1 EQ2 : ExClaim .
+---- Check if two ExClaim are equal wellformed pattern *without* fully expanding them.
+---- Equations are based on the (implicit) structural induction on the last argument.
+
+op eq? : Proof ExClaim ExClaim -> Bool .
+ceq eq?(Pi, EP1, EP2) = false
+ if not EP1 is-wf-in Pi or not EP2 is-wf-in Pi .
+ceq eq?(Pi, EP1, EP2)
+  = EP1 == EP2
+ if EP2 is-var-in Pi or EP2 is-symb-in Pi or EP2 == (0) . ---- (0) means \bot
+eq eq?(Pi, EP1, (IdP2)) = eq?(Pi, EP1, Pi[IdP2]) .
+eq eq?(Pi, (IdP1), EP2) = eq?(Pi, Pi[IdP1], EP2) .
+eq eq?(Pi, (\app EP1 EP2), (\app EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\imp EP1 EP2), (\imp EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\ex EP1 EP2), (\ex EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\mu EP1 EP2), (\mu EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, EP, EQ) = false [owise] .
 
 ---- Expand ExClaim to a full pattern.
 ---- op expand : Proof NzNat -> [Pattern] .
@@ -219,22 +232,17 @@ vars EP EQ EP1 EP2 EQ1 EQ2 : ExClaim .
 ---- eq expand( (Pi1 ((N) (\mu (M1) (M2)) Rl ;) Pi2), N)
 ----  = (\mu (expand(Pi1, M1)) (expand(Pi1, M2))) .
 
----- Check if two ExClaim are equal *without* fully expanding them.
-op eq? : Proof ExClaim ExClaim -> Bool .
-eq eq?(Pi, EP, EP) = true .
-ceq eq?(Pi, (M), (N)) = eq?(Pi, (N), (M)) if M > N .
-eq eq?(Pi, (M), (N)) = eq?(Pi, (M), Pi[N]) .
----- FIXME
-eq eq?(Pi, P:AtomicPattern, P:AtomicPattern) = true .
-eq eq?(Pi, P:AtomicPattern, Q:AtomicPattern) = false [owise] .
-eq eq?(Pi, EP, (M)) = eq?(Pi, (M), EP) .
-eq eq?(Pi, (M), EP) = eq?(Pi, Pi[M], EP) .
-eq eq?(Pi, (\app EP1 EP2), (\app EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, (\imp EP1 EP2), (\imp EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, (\ex EP1 EP2), (\ex EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, (\mu EP1 EP2), (\mu EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, EP, EQ) = false [owise] .
+---------------------------------------
+---- Proof checking phase 1: check ids
+---------------------------------------
 
+op check-id-aux : Proof NzNat -> Bool .
+op check-id0 : Proof -> Bool .
+eq check-id(Pi) = check-id-aux(Pi, 0) .
+eq check-id-aux(.Proof, N) = N >= 1 .
+eq check-id-aux(((0) (\bot) (WF) ; Pi), 0) = check-id-aux(Pi, 1) .
+eq check-id-aux(((N:NzNat) Phi Rl ; Pi), N:NzNat) = check-id-aux(Pi, N:NzNat + 1) .
+eq check-id-aux(Pi, N) = false [owise] .
 
 ---------------------------------------
 ---- Proof checking phase 2: check each proof step
@@ -476,9 +484,9 @@ eq Pi |- (N) (M) (PropF P) ;
  = eq?(Pi, (\imp (\imp (\imp P (0)) (0)) P), (M)) .
 
 ---- (MP) P && P -> Q => Q
-eq Pi |- (N) (M) (MP P Q) ;
- = P proved-in Pi and Q proved-in Pi
-   and eq?(Pi, (\imp P (M)), Q) .
+eq Pi |- (N) (M) (MP (IdP) (IdQ)) ; ---- IdP,IdQ refer to provability claims, not WF claims.
+ = (IdP) proved-in Pi and (IdQ) proved-in Pi
+   and eq?(Pi, (\imp (Pi[IdP]) (M)), Pi[IdQ]) .
 
 ---------------------------------------
 ---- Checking proof rules Part B
