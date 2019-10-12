@@ -35,7 +35,11 @@ sort Claim .
 ----      capture-avoiding substitution.
 ----   5. Application Contexts (AppCtx) claims. They claim that a pattern is an appliation
 ----      context wrt a given placeholder variable.
-----  Only (2) is the "logical" object-level claims. (1)(3)(4)(5) are all "syntactic"
+----   6. Non-negative/Non-positive occurrence (NNO/NPO) claims. They claim that a pattern 
+----      is non-negative/non-positive in a set variable X. This checking is used to decide
+----      the wellformedness of least fixpoint patterns. We call non-negative (non-positive)
+----      instead of positive (negative) because no occurrence is OK and passes the check.
+----  Only (2) is the "logical" object-level claims. (1)(3)(4)(5)(6) are all "syntactic"
 ----  meta-level claims; they are only about the "structures" of patterns, instead of
 ----  their logical consequences.
 ---------------------------------------
@@ -79,11 +83,16 @@ subsort Id < Claim .
 ---- Substitution (Subst) claims:
 ----   (#subst R P Q X) means R equals P[Q/X]
 ---- Application context (AppCtx) claims:
-----   (#appctx P X) means P is an application context wrt variable X.
+----   (#appctx P X) means P is an application context wrt set/element variable X.
+---- Non-negative/non-positive occurrence (NNO/NPO) claims:
+----   (#nno P X) means P is non-negative in set variable X.
+----   (#npo P X) means P is non-positive in set variable X.
 
 op `(#nf__`) : Id Id -> Claim .
 op `(#subst____`) : Id Id Id Id -> Claim .
 op `(#appctx__`) : Id Id -> Claim .
+op `(#nno__`) : Id Id -> Claim .
+op `(#npo__`) : Id Id -> Claim .
 
 ---------------------------------------
 ---- Rules
@@ -96,6 +105,7 @@ sort Rule .
 ---------------------------------------
 
 op `(WF`) : -> Rule . 
+op `(WFMu_`) : Id -> Rule . ---- in \mu X . P we require X non-negative in P
 
 ---------------------------------------
 ---- Rules to prove provability claims.
@@ -166,6 +176,21 @@ op `(AppCtxInit`) : -> Rule .
 op `(AppCtxL__`) : Id Id -> Rule .
 op `(AppCtxR__`) : Id Id -> Rule .
 
+---- Non-negative/non-positive occurrence checking
+op `(NNOBasic`) : -> Rule .
+op `(NNOImp__`) : Id Id -> Rule .
+op `(NNOApp__`) : Id Id -> Rule .
+op `(NNOEx_`) : Id -> Rule .
+op `(NNOMuBinding`) : -> Rule .
+op `(NNOMuBody_`) : Id -> Rule .
+
+op `(NPOBasic`) : -> Rule .
+op `(NPOImp__`) : Id Id -> Rule .
+op `(NPOApp__`) : Id Id -> Rule .
+op `(NPOEx_`) : Id -> Rule .
+op `(NPOMuBinding`) : -> Rule .
+op `(NPOMuBody_`) : Id -> Rule .
+
 ---------------------------------------
 ---- Variable definitions
 ---------------------------------------
@@ -187,7 +212,7 @@ vars IdP3 IdQ3 IdR3 IdX3 IdY3 IdZ3 : Nat .
 vars ISubst ISubst1 ISubst2 IdNF IdHP : Nat .
 vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
 vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
-vars IdAppCtx : Nat .
+vars IdAppCtx INNO INPO INNO1 INNO2 INPO1 INPO2 : Nat .
 vars Phi Psi P Q R : Claim .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
@@ -321,17 +346,18 @@ eq (N) is-symb-in Pi = false [owise] .
 ---- Well-formedness checking
 ---------------------------------------
 
-eq Pi |- ((0) (\bot) (WF) ;) = true .
-eq Pi |- ((N) (\evar) (WF) ;) = true .
-eq Pi |- ((N) (\svar) (WF) ;) = true .
-eq Pi |- ((N) (\symb) (WF) ;) = true .
-eq Pi |- ((N) (\app (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
-eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
-eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
- = M1 < N and M2 < N and (M1) is-evar-in Pi .
-eq Pi |- ((N) (\mu (M1) (M2)) (WF) ;)
- = M1 < N and M2 < N and (M1) is-svar-in Pi .
-eq Pi |- ((N) G:Claim (WF) ;) = false [owise] .
+eq  Pi |- ((0) (\bot) (WF) ;) = true .
+eq  Pi |- ((N) (\evar) (WF) ;) = true .
+eq  Pi |- ((N) (\svar) (WF) ;) = true .
+eq  Pi |- ((N) (\symb) (WF) ;) = true .
+eq  Pi |- ((N) (\app (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
+eq  Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
+eq  Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
+ =  M1 < N and M2 < N and (M1) is-evar-in Pi .
+ceq Pi |- ((N) (\mu (M1) (M2)) (WFMu (INNO)) ;)
+  = M1 < N and M2 < N and (M1) is-svar-in Pi
+if (#nno (M1) (M2)) := Pi[INNO] .
+eq  Pi |- ((N) G:Claim (WF) ;) = false [owise] .
 
 ---------------------------------------
 ---- Free variables checking 
@@ -498,7 +524,8 @@ ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX))
 
 ceq Pi |- (N) (#appctx (IP) (IdX)) Rl ;
   = false
- if not (IdX) is-var-in Pi or not (IP) is-wf-in Pi .
+ if IP >= N or IdX >= N 
+ or not (IdX) is-var-in Pi or not (IP) is-wf-in Pi .
 
 ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxInit) ;
   = IP == IdX 
@@ -515,6 +542,93 @@ ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxR (IdAppCtx) (IdNF)) ;
  if (\app (IP1) (IP2)) := Pi[IP]
  /\ (#nf (IdX) (IP1)) := Pi[IdNF] 
  /\ (#appctx (IP2) (IdX)) := Pi[IdAppCtx] .
+
+---------------------------------------
+---- Application context checking
+---------------------------------------
+
+---- "negative occurrence" means *free* occurrence in the left-hand side of an implicaiton.
+
+---- (#nno P X) holds if
+----   1. X is a set variable;
+----   2. P is a wellformed pattern;
+----   3. X has no negative occurrence in P.
+
+---- (#npo P X) holds if
+----   1. X is a set variable;
+----   2. P is a wellformed pattern;
+----   3. X has no positive occurrence in P.
+
+ceq Pi |- (N) (#nno (IP) (IX)) Rl ;
+  = false
+ if IP >= N or IX >= N
+ or not (IX) is-svar-in Pi or not (IP) is-wf-in Pi .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOBasic) ;
+  = true
+ if (IP) is-var-in Pi or (IP) is-symb-in Pi or IP == 0 .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOImp (INPO) (INNO)) ;
+  = true
+ if (\imp (IP1) (IP2)) := Pi[IP]
+ /\ (#npo (IP1) (IX))  := Pi[INPO]
+ /\ (#nno (IP2) (IX))  := Pi[INNO] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOApp (INNO1) (INNO2)) ;
+  = true
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#nno (IP1) (IX))  := Pi[INNO1]
+ /\ (#nno (IP2) (IX))  := Pi[INNO2] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOEx (INNO1)) ;
+  = true
+ if (\ex (Ix) (IP1)) := Pi[IP]
+ /\ (#nno (IP1) (IX)) := Pi[INNO1] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOMuBinding) ;
+  = true
+ if (\mu (IX) (IP1)) := Pi[IP] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOMuBody (INNO1)) ;
+  = true
+ if (\mu (IY) (IP1)) := Pi[IP]
+ /\ IY =/= IX
+ /\ (#nno (IP1) (IX)) := Pi[INNO1] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOBasic) ;
+  = true
+ if (IP) is-evar-in Pi or (IP) is-symb-in Pi or IP == 0 .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOBasic) ;
+  = not (IP == IX)
+ if (IP) is-svar-in Pi .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOImp (INNO) (INPO)) ;
+  = true
+ if (\imp (IP1) (IP2)) := Pi[IP]
+ /\ (#nno (IP1) (IX))  := Pi[INNO]
+ /\ (#npo (IP2) (IX))  := Pi[INPO] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOApp (INPO1) (INPO2)) ;
+  = true
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#npo (IP1) (IX))  := Pi[INPO1]
+ /\ (#npo (IP2) (IX))  := Pi[INPO2] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOEx (INPO1)) ;
+  = true
+ if (\ex (Ix) (IP1)) := Pi[IP]
+ /\ (#npo (IP1) (IX)) := Pi[INPO1] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOMuBinding) ;
+  = true
+ if (\mu (IX) (IP1)) := Pi[IP] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOMuBody (INPO1)) ;
+  = true
+ if (\mu (IY) (IP1)) := Pi[IP]
+ /\ IY =/= IX
+ /\ (#npo (IP1) (IX)) := Pi[INPO1] .
 
 ---------------------------------------
 ---- Provability checking
