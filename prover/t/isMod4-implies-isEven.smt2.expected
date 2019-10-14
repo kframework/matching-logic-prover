@@ -18,9 +18,9 @@
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isDiv4Pos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( < ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isDiv4Pos ( minus ( Vx { Int } , 4 , .Patterns ) , .Patterns ) , \not ( < ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isDiv4Pos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( lt ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isDiv4Pos ( minus ( Vx { Int } , 4 , .Patterns ) , .Patterns ) , \not ( lt ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
-      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isEvenPos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( < ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isEvenPos ( minus ( Vx { Int } , 2 , .Patterns ) , .Patterns ) , \not ( < ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( isEvenPos ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( lt ( Vx { Int } , 0 , .Patterns ) ) , \equals ( Vx { Int } , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , isEvenPos ( minus ( Vx { Int } , 2 , .Patterns ) , .Patterns ) , \not ( lt ( Vx { Int } , 0 , .Patterns ) ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom functional ( isDiv4Pos )
     </declaration> <declaration>

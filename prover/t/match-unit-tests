@@ -99,13 +99,15 @@ assert( #matchFailure ( "No valid substitution" )
                           )
       )
 
-assert(
-     == #matchShowFailures( term:      sep ( pto ( Vy { RefGTyp } , c_GTyp ( Vz { RefGTyp }) )
-                                           , pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp }) )
-                                           )
-                          , pattern:   sep ( pto ( Vx { RefGTyp } , c_GTyp ( F8 { RefGTyp }) )
-                                           , pto ( F8 { RefGTyp } , c_GTyp ( Vz { RefGTyp }) )
-                                           )
-                          , variables: F8 { RefGTyp }
-                          )
+assert( #matchResult( subst: F8 { RefGTyp } |-> Vy { RefGTyp }
+                    , rest:
+                    )
+     == #match( term:      sep ( pto ( Vy { RefGTyp } , c_GTyp ( Vz { RefGTyp }) )
+                               , pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp }) )
+                               )
+              , pattern:   sep ( pto ( Vx { RefGTyp } , c_GTyp ( F8 { RefGTyp }) )
+                               , pto ( F8 { RefGTyp } , c_GTyp ( Vz { RefGTyp }) )
+                               )
+              , variables: F8 { RefGTyp }
+              )
       )

@@ -1,0 +1,48 @@
+<prover>
+  <k>
+    \exists { Vz { RefGTyp } , Vy { RefGTyp } , Vx { RefGTyp } , .Patterns } \and ( \not ( RList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) ) , sep ( pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , RList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns )
+  </k>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <claim>
+        \implies ( \and ( sep ( pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , RList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( \or ( RList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { Vx { RefGTyp } , Vy { RefGTyp } , .Patterns } \iff-lfp ( RList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( \equals ( nil ( .Patterns ) , Vx { RefGTyp } ) ) , pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { Vxp { RefGTyp } , .Patterns } \and ( \not ( \equals ( nil ( .Patterns ) , Vxp { RefGTyp } ) ) , sep ( pto ( Vxp { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , RList ( Vx { RefGTyp } , Vxp { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( RList )
+    </declaration> <declaration>
+      axiom functional ( nil )
+    </declaration> <declaration>
+      axiom heap ( RefGTyp , GTyp )
+    </declaration> <declaration>
+      sort GTyp
+    </declaration> <declaration>
+      sort Heap
+    </declaration> <declaration>
+      sort RefGTyp
+    </declaration> <declaration>
+      symbol RList ( RefGTyp , RefGTyp , .Sorts ) : Heap
+    </declaration> <declaration>
+      symbol c_GTyp ( RefGTyp , .Sorts ) : GTyp
+    </declaration> <declaration>
+      symbol f0 ( GTyp , .Sorts ) : RefGTyp
+    </declaration> <declaration>
+      symbol nil ( .Sorts ) : RefGTyp
+    </declaration> <declaration>
+      symbol pto ( RefGTyp , GTyp , .Sorts ) : Heap
+    </declaration> <declaration>
+      symbol sep ( Heap , Heap , .Sorts ) : Heap
+    </declaration>
+  </declarations>
+</prover>
