@@ -88,6 +88,7 @@ only in this scenario*.
   syntax LowerName ::= "pto" [token]
                      | "sep" [token]
                      | "nil" [token]
+                     | "emp" [token]
 
   // Arith
   syntax Symbol ::= "plus"          [token]
@@ -508,10 +509,12 @@ Simplifications
 
   rule isPredicatePattern(sep(_)) => false
   rule isPredicatePattern(pto(_)) => false
+  rule isPredicatePattern(emp(.Patterns)) => false
   rule isPredicatePattern(\forall{_} implicationContext(_,_)) => false
 
   syntax Bool ::= isSpatialPattern(Pattern) [function]
   rule isSpatialPattern(pto(_)) => true
+  rule isSpatialPattern(emp(.Patterns)) => true
   rule isSpatialPattern(sep(.Patterns)) => true
   rule isSpatialPattern(sep(P, Ps)) => isSpatialPattern(P) andBool isSpatialPattern(sep(Ps))
   rule isSpatialPattern(P) => false
