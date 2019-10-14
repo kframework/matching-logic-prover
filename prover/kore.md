@@ -180,6 +180,7 @@ module KORE-HELPERS
   rule getReturnSort( disjoint ( ARGS ) ) => Bool
   rule getReturnSort( lt ( ARGS ) ) => Bool
   rule getReturnSort( gt ( ARGS ) ) => Bool
+  rule getReturnSort( isMember ( _ ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
 
