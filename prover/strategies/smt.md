@@ -306,7 +306,6 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 endmodule
 ```
 
-
 Main
 ====
 
