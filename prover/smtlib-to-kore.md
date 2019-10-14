@@ -82,15 +82,31 @@ module SMTLIB-TO-KORE
                       ) ...
        </declarations>
 
-  // We use notBool isPredicatePattern(P) to mean "has spatial subterm"
-  // This is not ok in general but for patterns that come from an smt formula this will work as desired.
+  // Note: We cannot call isPredicatePattern because that requires knowing the return type of the
+  // symbols inside before calling. This is not feasible since they may be recursive symbols.
   syntax Sort ::= #returnSort(Pattern, Sort) [function]
-  // rule #returnSort(P, Bool) => Heap:Sort
-  //   requires notBool isPredicatePattern(P)
-  // rule #returnSort(P, Bool) => Bool:Sort
-  //   requires isPredicatePattern(P)
   rule #returnSort(P, Bool) => Heap:Sort
+    requires #containsSpatialSymbol(P)
+  rule #returnSort(P, Bool) => Bool:Sort
+    [owise]
 
+  syntax Bool ::= #containsSpatialSymbol(Pattern) [function]
+  syntax Bool ::= #containsSpatialSymbolPatterns(Patterns) [function]
+  rule #containsSpatialSymbol(_{_}) => false
+  rule #containsSpatialSymbol(_:Int) => false
+  rule #containsSpatialSymbol(sep(_)) => true
+  rule #containsSpatialSymbol(pto(_)) => true
+  rule #containsSpatialSymbol(\equals(P1, P2)) => #containsSpatialSymbol(P1) orBool #containsSpatialSymbol(P2)
+  rule #containsSpatialSymbol(\forall{_}(P)) => #containsSpatialSymbol(P)
+  rule #containsSpatialSymbol(\exists{_}(P)) => #containsSpatialSymbol(P)
+  rule #containsSpatialSymbol(\not(P)) => #containsSpatialSymbol(P)
+  rule #containsSpatialSymbol(\and(Ps)) => #containsSpatialSymbolPatterns(Ps)
+  rule #containsSpatialSymbol(\or(Ps)) => #containsSpatialSymbolPatterns(Ps)
+  rule #containsSpatialSymbol(S(Ps)) => #containsSpatialSymbolPatterns(Ps)
+    requires S =/=K sep andBool S =/=K pto
+
+  rule #containsSpatialSymbolPatterns(.Patterns) => false
+  rule #containsSpatialSymbolPatterns(P, Ps) => #containsSpatialSymbol(P) orBool #containsSpatialSymbolPatterns(Ps)
 
   rule <k> P:Pattern ~> (check-sat) ~> (set-info :mlprover-strategy S) .SMTLIB2Script
         => claim \not(P) strategy S ~> P
