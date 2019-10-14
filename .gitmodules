@@ -7,10 +7,6 @@
 [submodule "prover/k/ext/pandoc-tangle"]
 	path = prover/ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle
-[submodule "prover/k/ext/z3"]
-	path = prover/ext/z3
-	url = https://github.com/Z3Prover/z3
-    ignore = untracked
 [submodule "prover/t/SL-COMP18"]
 	path = prover/t/SL-COMP18
 	url = https://github.com/sl-comp/SL-COMP18/
