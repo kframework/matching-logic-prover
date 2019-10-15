@@ -63,12 +63,15 @@
   ; kt
   ; or-split-rhs ; normalize ; lift-constraints
   ; ( ( right-unfold-Nth(0,1)
+      ; lift-constraints
       ; right-unfold-Nth(0,0)
       ; normalize ; lift-constraints
+      ; instantiate-existentials ; substitute-equals-for-equals
       ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
       )
     | ( right-unfold-Nth(0,1)
       ; normalize ; lift-constraints
+      ; instantiate-existentials ; substitute-equals-for-equals
       ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
       )
     )
