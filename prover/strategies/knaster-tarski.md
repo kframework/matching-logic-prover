@@ -294,9 +294,16 @@ solver using `kt-solve-implications`
 
 In the separation logic case, we must use matching.
 
+First, we use matching to instantiate the quantifiers of the implication context.
+Then we apply the substitution to the context, including the constraints.
+Next, duplicate constraints are removed using the ad-hoc rule below until the implication
+context has no constraints.
+
+Finally, we use matching on the no universal quantifiers case to collapse the context.
+
 ```k
   rule <claim> \implies(\and( sep ( \forall { UNIVs }
-                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
+                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns), CTXLCONSTRAINTS) , _)
                                   , LSPATIAL
                                   )
                             , LHS:Patterns
@@ -304,22 +311,24 @@ In the separation logic case, we must use matching.
                        , RHS:Pattern
                        )
        </claim>
-       <strategy> kt-collapse 
+       <strategy> kt-collapse
                => ( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: UNIVs)
                  ~> kt-collapse
                   )
                   ...
        </strategy>
+     requires UNIVs =/=K .Patterns
 ```
 
 TODO: Extend to multiple matches:
 
 ```k
-  rule <claim> \implies(\and( ( sep ( \forall { UNIVs }
-                                      implicationContext( \and(sep(_)) , CTXRHS)
+  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => .Patterns }
+                                      ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
+                                     => substMap(CTX, SUBST)
+                                      )
                                     , LSPATIAL
                                     )
-                             => sep(substMap(CTXRHS, SUBST) ++Patterns REST)
                               )
                             , LHS:Patterns
                             )
@@ -332,6 +341,47 @@ TODO: Extend to multiple matches:
                => kt-collapse
                   ...
        </strategy>
+     requires UNIVs =/=K .Patterns
+```
+
+```k
+  rule <claim> \implies(\and( sep ( \forall { .Patterns }
+                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> kt-collapse
+               => ( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: .Patterns)
+                 ~> kt-collapse
+                  )
+                  ...
+       </strategy>
+
+  rule <claim> \implies( \and( ( sep ( \forall { .Patterns }
+                                       implicationContext( \and(sep(_)) , CTXRHS)
+                                     , LSPATIAL
+                                     )
+                              => sep(substMap(CTXRHS, SUBST) ++Patterns REST)
+                               )
+                               , LHS:Patterns
+                             )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> ( #matchResult(subst: SUBST, rest: REST); .MatchResults
+                 ~> kt-collapse
+                  )
+               => kt-collapse
+                  ...
+       </strategy>
+```
+
+```k
+  rule <strategy> .MatchResults ~> kt-collapse => fail ... </strategy>
 ```
 
 TODO: This is pretty adhoc: Remove constraints in the context that are already in the LHS
