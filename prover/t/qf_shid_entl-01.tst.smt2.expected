@@ -36,6 +36,8 @@
     </declaration> <declaration>
       symbol c_GTyp ( RefGTyp , .Sorts ) : GTyp
     </declaration> <declaration>
+      symbol emp ( .Sorts ) : Heap
+    </declaration> <declaration>
       symbol f0 ( GTyp , .Sorts ) : RefGTyp
     </declaration> <declaration>
       symbol nil ( .Sorts ) : RefGTyp
