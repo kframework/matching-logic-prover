@@ -436,6 +436,7 @@ Simplifications
   rule #flattenAnds(.Patterns) => .Patterns
 
   syntax Patterns ::= #flattenSeps(Patterns) [function]
+  rule #flattenSeps(emp(.Patterns), Ps2) => #flattenSeps(Ps2)
   rule #flattenSeps(sep(Ps1), Ps2) => #flattenSeps(Ps1) ++Patterns #flattenSeps(Ps2)
   rule #flattenSeps(P, Ps) => P, #flattenSeps(Ps) [owise]
   rule #flattenSeps(.Patterns) => .Patterns
