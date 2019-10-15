@@ -11,7 +11,7 @@ module STRATEGY-SIMPLIFICATION
 
 ```
          phi -> psi
-  ----------------------- 
+  -----------------------
   (\exists x. phi) -> psi
 ```
 
@@ -166,7 +166,7 @@ Lift `\or`s on the left hand sides of implications
 
 ```k
   rule <claim> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </claim>
-       <strategy> lift-or => noop ... </strategy> 
+       <strategy> lift-or => noop ... </strategy>
 
   syntax Patterns ::= "#liftOr" "(" Patterns "," Pattern ")" [function]
   rule #liftOr(.Patterns, RHS) => .Patterns
@@ -245,6 +245,51 @@ Lift `\or`s on the left hand sides of implications
     => getAtomForcingInstantiation(Ps, FREE, EXISTENTIALS) [owise]
   rule getAtomForcingInstantiation(.Patterns, FREE, EXISTENTIALS)
     => .Patterns
+```
+
+### Substitute Equals for equals
+
+```
+     PHI[x/y] -> PSI[x/y]
+    ----------------------  where y is a variable
+     x = y /\ PHI -> PSI
+```
+
+```k
+  rule <claim> \implies(\and(LHS), _) </claim>
+       <strategy> substitute-equals-for-equals
+               => (makeEqualitySubstitution(LHS) ~> substitute-equals-for-equals)
+                  ...
+       </strategy>
+
+  rule <strategy> (SUBST:Map ~> substitute-equals-for-equals)
+               => noop
+                  ...
+       </strategy>
+    requires SUBST ==K .Map
+
+  rule <claim> \implies( \and(LHS => removeTrivialEqualities(substPatternsMap(LHS, SUBST)))
+                       , \exists { _ }
+                         ( \and(RHS => removeTrivialEqualities(substPatternsMap(RHS, SUBST))) )
+                       )
+       </claim>
+       <strategy> (SUBST:Map ~> substitute-equals-for-equals)
+               => substitute-equals-for-equals
+                  ...
+       </strategy>
+    requires SUBST =/=K .Map
+
+  syntax Map ::= makeEqualitySubstitution(Patterns) [function]
+  rule makeEqualitySubstitution(.Patterns) => .Map
+  rule makeEqualitySubstitution(\equals(X:Variable, T), Ps) => (X |-> T) .Map
+  rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
+    requires notBool(isVariable(T))
+  rule makeEqualitySubstitution((P, Ps:Patterns)) => makeEqualitySubstitution(Ps) [owise]
+
+  syntax Patterns ::= removeTrivialEqualities(Patterns) [function]
+  rule removeTrivialEqualities(.Patterns) => .Patterns
+  rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
+  rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
 ```
 
 ```k
