@@ -118,8 +118,8 @@ Bring predicate constraints to the top of a term.
        <strategy> lift-constraints => noop ... </strategy>
 
   syntax Pattern ::= #liftConstraints(Pattern) [function]
-  rule #liftConstraints(P) => P requires isPredicatePattern(P)
-  rule #liftConstraints(S) => S requires isSpatialPattern(S)
+  rule #liftConstraints(P) =>     P  requires isPredicatePattern(P)
+  rule #liftConstraints(S) => sep(S) requires isSpatialPattern(S)
 
   rule #liftConstraints(sep(\and(.Patterns), REST)) => #liftConstraints(sep(REST))
 
@@ -143,7 +143,7 @@ Bring predicate constraints to the top of a term.
     requires notBool isSpatialPattern(sep(Ss))
 
   rule #liftConstraints(\and(S, Ps))
-    => \and(S, #flattenAnds(#liftConstraints(\and(Ps)), .Patterns))
+    => \and(sep(S), #flattenAnds(#liftConstraints(\and(Ps)), .Patterns))
     requires isSpatialPattern(S)
 
   rule #liftConstraints(\and(\and(Ps), REST))
