@@ -13,12 +13,13 @@ module TOKENS
   // Abstract
   syntax Symbol ::= LowerName
   syntax VariableName ::= UpperName
+  syntax Sort ::= UpperName
 endmodule
 
 module TOKENS-SYNTAX
   imports TOKENS
-  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [prec(2), token, autoReject]
-  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [prec(2), token, autoReject]
+  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
+  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
   syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
   // TODO: PipeQID interacts badly with _ | _ strategy
   // syntax PipeQID ::= r"\\|[^\\|]*\\|" [token, autoReject]
