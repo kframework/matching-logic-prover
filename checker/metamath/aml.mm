@@ -36,11 +36,9 @@ $c
     fresh subst npo nno appctx
 $.
 
-
-
 $( Declare metamath variables $)
 $v 
-    P Q R P' Q' x y z X Y Z f g h
+    P Q R P' Q' R' x y z X Y Z f g h xx yy
 $.
 
 $( Specify the ranges of metamath variables $)
@@ -48,6 +46,7 @@ wfP $f wf P $.
 wfPp $f wf P' $.
 wfQ $f wf Q $.
 wfQp $f wf Q' $.
+wfRp $f wf R' $.
 wfR $f wf R $.
 evx $f ev x $.
 evy $f ev y $.
@@ -58,14 +57,17 @@ svZ $f sv Z $.
 syf $f sv f $.
 syg $f sv g $.
 syh $f sv h $.
+varxx $f var xx $.
+varyy $f var yy $.
 
 $( Variables = Element variables + Set variables. $)
 evar $a var x $.
 svar $a var X $.
 
 $( Define wellformedness patterns: wf $)
-wfev   $a wf x $.
-wfsv   $a wf X $.
+wfev   $a wf x $. $( this shouldn't be needed $)
+wfsv   $a wf X $. $( this shuoldn't be needed $)
+wfvar  $a wf xx $. 
 wfbot  $a wf \bot $.
 wfimp  $a wf ( \imp P Q ) $.
 wfapp  $a wf ( \app P Q ) $.
@@ -76,70 +78,41 @@ ${
 $}
 
 $( Define fresh-ness of variables: fresh $)
+
 ${
-    $v xx $.
-	$v yy $.
     $d xx yy $.
-    fresh-var.1 $f var xx $.
-	fresh-var.2 $f var yy $.
 	fresh-var $a fresh xx yy $.
 $}
 
-$( Define freshness (not-occur-free): fresh $)
+fresh-sy  $a fresh xx f $.
+fresh-bot $a fresh xx \bot $.
+
 ${
-    $d x y $.
-    freshev-ev $a fresh x y $.
-$}
-freshev-sv  $a fresh x X $.
-freshev-sy  $a fresh x f $.
-freshev-bot $a fresh x \bot $.
-${
-    freshev-imp.1 $e fresh x P $.
-    freshev-imp.2 $e fresh x Q $.
-    freshev-imp   $a fresh x ( \imp P Q ) $.
-$}
-${
-    freshev-app.1 $e fresh x P $.
-    freshev-app.2 $e fresh x Q $.
-    freshev-app   $a fresh x ( \app P Q ) $.
-$}
-freshev-ex-binding $a fresh x ( \ex x P ) $.
-${
-    $d x y $.
-    freshev-body.1 $a fresh x P $.
-    freshev-body   $a fresh x ( \ex y P ) $.
-$}
-${
-    freshev-mu.1 $a fresh x P $.
-    freshev-mu   $a fresh x ( \mu X P ) $.
+    fresh-imp.1 $e fresh xx P $.
+    fresh-imp.2 $e fresh xx Q $.
+    fresh-imp   $a fresh xx ( \imp P Q ) $.
 $}
 
-freshsv-ev  $a fresh X x $.
 ${
-    $d X Y $.
-    freshsv-sv $a fresh X Y $.
+    fresh-app.1 $e fresh xx P $.
+    fresh-app.2 $e fresh xx Q $.
+    fresh-app   $a fresh xx ( \app P Q ) $.
 $}
-freshsv-sy  $a fresh X f $.
-freshsv-bot $a fresh X \bot $.
+
+fresh-exbinding $a fresh x ( \ex x P ) $.
+
 ${
-    freshsv-imp.1 $e fresh X P $.
-    freshsv-imp.2 $e fresh X Q $.
-    freshsv-imp   $a fresh X ( \imp P Q ) $.
+    $d xx y $.
+    fresh-exbody.1 $e fresh xx P $.
+    fresh-exbody   $a fresh xx ( \ex y P ) $.
 $}
+
+fresh-mubinding $a fresh X ( \mu X P ) $.
+
 ${
-    freshsv-app.1 $e fresh X P $.
-    freshsv-app.2 $e fresh X Q $.
-    freshsv-app   $a fresh X ( \app P Q ) $.
-$}
-${
-    freshsv-ex.1 $a fresh X P $.
-    freshsv-ex   $a fresh X ( \ex x P ) $.
-$}
-freshsv-mu-binding $a fresh X ( \mu X P ) $.
-${
-    $d X Y $.
-    freshsv-body.1 $a fresh X P $.
-    freshsv-body   $a fresh X ( \mu Y P ) $.
+    $d xx Y $.
+    fresh-mubody.1 $e fresh xx P $.
+    fresh-mubody   $a fresh xx ( \ex Y P ) $.
 $}
 
 $( Define non-negative/non-positive occurrence checking: nno/npo $)
@@ -204,64 +177,44 @@ $}
 
 $( Define substitution: subst result origin replacer variable $)
 
-substev-ev-same $a subst R y R y $.
+subst-varsame $a subst R xx R xx $.
+
 ${
-    $d x y $.
-    substev-ev-diff $a subst x x R y $.
-$}
-substev-sv  $a subst X X R y $.
-substev-sy  $a subst f f R y $.
-substev-bot $a subst \bot \bot R y $.
-${
-    substev-imp.1 $e subst P' P R y $.
-    substev-imp.2 $e subst Q' Q R y $.
-    substev-imp   $a subst ( \imp P' Q' ) ( \imp P Q ) R y $.
-$}
-${
-    substev-app.1 $e subst P' P R y $.
-    substev-app.2 $e subst Q' Q R y $.
-    substev-app   $a subst ( \app P' Q' ) ( \app P Q ) R y $.
-$}
-substev-ex-binding $a subst ( \ex y P ) ( \ex y P ) R y $.
-${
-    $d x y z $.
-    substev-ex-body.1 $e subst Q P z x $.
-    substev-ex-body.2 $e subst Q' Q R y $.
-    substev-ex-body   $a subst ( \ex z Q' ) ( \ex x P ) R y $.
-$}
-${
-    substev-mu.1 $e subst P' P R y $.
-    substev-mu   $a subst ( \mu X P' ) ( \mu X P ) R y $.
+    $d xx yy $.
+    subst-vardiff $a subst x xx R yy $.
 $}
 
-substsv-sv-same $a subst R Y R Y $.
+subst-sy  $a subst f f R yy $.
+substev-bot $a subst \bot \bot R yy $.
+
 ${
-    $d X Y $.
-    substsv-sv-diff $a subst X X R Y $.
+    subst-imp.1 $e subst P' P R yy $.
+    subst-imp.2 $e subst Q' Q R yy $.
+    subst-imp   $a subst ( \imp P' Q' ) ( \imp P Q ) R yy $.
 $}
-substsv-ev  $a subst x x R Y $.
-substsv-sY  $a subst f f R Y $.
-substsv-bot $a subst \bot \bot R Y $.
+
 ${
-    substsv-imp.1 $e subst P' P R Y $.
-    substsv-imp.2 $e subst Q' Q R Y $.
-    substsv-imp   $a subst ( \imp P' Q' ) ( \imp P Q ) R Y $.
+    subst-app.1 $e subst P' P R yy $.
+    subst-app.2 $e subst Q' Q R yy $.
+    subst-app   $a subst ( \app P' Q' ) ( \app P Q ) R yy $.
 $}
+
+subst-exbinding $a subst ( \ex y P ) ( \ex y P ) R y $.
+
 ${
-    substsv-app.1 $e subst P' P R Y $.
-    substsv-app.2 $e subst Q' Q R Y $.
-    substsv-app   $a subst ( \app P' Q' ) ( \app P Q ) R Y $.
+    $d x yy z $.
+    subst-exbody.1 $e subst Q P z x $.
+    subst-exbody.2 $e subst Q' Q R yy $.
+    subst-exbody   $a subst ( \ex z Q' ) ( \ex x P ) R yy $.
 $}
+
+subst-mubinding $a subst ( \mu Y P ) ( \mu Y P ) R Y $.
+
 ${
-    substsv-ex.1 $e subst P' P R Y $.
-    substsv-ex   $a subst ( \ex x P' ) ( \ex x P ) R Y $.
-$}
-substsv-mu-binding $a subst ( \ex Y P ) ( \ex Y P ) R Y $.
-${
-    $d X Y Z $.
-    substsv-mu-body.1 $e subst Q P Z X $.
-    substsv-mu-body.2 $e subst Q' Q R Y $.
-    substsv-mu-body   $a subst ( \mu Z Q' ) ( \mu X P ) R Y $.
+    $d X yy Z $.
+    subst-mubody.1 $e subst Q P Z X $.
+    subst-mubody.2 $e subst Q' Q R yy $.
+    subst-mubody   $a subst ( \mu Z Q' ) ( \mu X P ) R yy $.
 $}
 
 $( Define appliation context checking: appctx $)
@@ -278,29 +231,138 @@ ${
     appctx-app-right   $a appctx ( \app P Q ) x $.
 $}
 
-$(  ######### Proof Rules ############### $)
+$( State the metalevel equality: me $)
 
+$c me $.
 
+$( Define metalevel equality over patterns $)
 
-$( State the propositional axioms $)
+df-me-var $a me xx xx $.
+df-me-sy  $a me f f $.
+df-me-bot $a me \bot \bot $.
+${
+    df-me-imp.1 $e me P P' $.
+	df-me-imp.2 $e me Q Q' $.
+	df-me-imp $a me ( \imp P Q ) ( \imp P' Q' ) $.
+$}
+${
+    df-me-app.1 $e me P P' $.
+	df-me-app.2 $e me Q Q' $.
+	df-me-app $a me ( \app P Q ) ( \app P' Q' ) $.
+$}
+${
+    df-me-ex.1 $e me x y $.
+	df-me-ex.2 $e me P Q $.
+	df-me-ex   $a me ( \ex x P ) ( \ex y Q ) $.
+$}
+${
+    df-me-mu.1 $e me x y $.
+	df-me-mu.2 $e me P Q $.
+	df-me-mu   $a me ( \mu x P ) ( \mu y Q ) $.
+$}
+
+$( Propagate metalevel equality everywhere $)
+
+$(
+	me-wf.1 $e wf Q $.
+	me-wf.2 $e me P Q $.
+	me-wf   $a wf P $.
+$)
+${ 
+	me-var.1 $e var yy $.
+	me-var.2 $e me xx yy $.
+	me-var   $a var xx $.
+$}
+${ 
+	me-ev.1 $e ev y $.
+	me-ev.2 $e me x y $.
+	me-ev   $a ev x $.
+$}
+${ 
+	me-sv.1 $e sv Y $.
+	me-sv.2 $e me X Y $.
+	me-sv   $a sv X $.
+$}
+${ 
+	me-sy.1 $e sy g $.
+	me-sy.2 $e me f g $.
+	me-sy   $a sy f $.
+$}
+${  
+	me-fresh.1 $e fresh yy Q $.
+    me-fresh.2 $e me xx yy $.
+	me-fresh.3 $e me P Q $.
+    me-fresh $a fresh xx P $.
+$}
+${
+	me-subst.1 $e subst P' Q' R' xx $.
+	me-subst.2 $e me P P' $.
+	me-subst.3 $e me Q Q' $.
+	me-subst.4 $e me R R' $.
+	me-subst.5 $e me yy xx $.
+	me-subst $a subst P Q R yy $.
+$}
+${
+    me-nno.1 $e nno Y Q $.
+	me-nno.2 $e me X Y $.
+	me-nno.3 $e me P Q $.
+    me-nno   $a nno X P $.
+$}
+${
+    me-npo.1 $e npo Y Q $.
+	me-npo.2 $e me X Y $.
+	me-npo.3 $e me P Q $.
+    me-npo   $a npo X P $.
+$}
+${
+    me-appctx.1 $e appctx y Q $.
+	me-appctx.2 $e me x y $.
+	me-appctx.3 $e me P Q $.
+    me-appctx $a appctx x P $.
+$}
+${
+    me-thm.1 $e |- Q $.
+	me-thm.2 $e me P Q $.
+    me-thm   $a |- P $.
+$}
+
+$( State the propositional rules $)
+
 ax1 $a |- ( \imp P ( \imp Q P ) ) $.
+
 ax2 $a |- ( \imp ( \imp P ( \imp Q R ) )
                    ( \imp ( \imp P Q ) ( \imp P R ) ) ) $.
+				   
 ax3 $a |- ( ( ( \imp P \bot ) \bot ) P ) $.
+
 ${
     mp.1   $e |- P $.
     mp.2   $e |- ( \imp P Q ) $.
     mp     $a |- Q $.
 $}
 
-$( State the FOL reasoning axioms $)
+$( State the FOL reasoning rules $)
 
+${
+	ax4.1 $e subst P' P y x $.
+	ax4   $a |- ( \imp P' ( \ex x P ) ) $.
+$}
 
+${
+	ug.1 $e fresh x P $.
+	ug   $a |- ( \imp P ( \ex x Q ) ) $.
+$}
 
+$( State the frame reasoning rules $)
+$( ... $)
 
-$(  ######### Derive metatheorems ############### $)
+$( State the fixpoint reasoning rules $)
+$( ... $)
 
-$( Prove our first (meta-)theorem:
+$( State technical rules $)
+$( ... $)
+
+$( Our first theorem:
          |- P -> (Q -> R)
     -------------------------
      |- (P -> Q) -> (P -> R)
@@ -313,70 +375,17 @@ ${
       wfQ wfR ax2 mp $.
 $}
 
-$( When defining an additional logic construct (syntactic sugar):
-   1. Add metamath constant declaration;
-   2. Define wellformedness: wf;
-   3. Define fresh, subst, nno, npo
-$)
-
-$( Deifne negation as alias $)
+$( Deifne negation ( \neg P ) === ( \imp P \bot ) $)
 $c \neg $.
-wfneg $a wf ( \neg P ) $.
+wfneg  $a wf ( \neg P ) $. $( We don't even need this one $)
+df-neg $a me ( \neg P ) ( \imp P \bot ) $.
+
+$( Prove metalevel properties about negations $)
 ${
-   freshev-neg.1 $e fresh x P $.
-   freshev-neg   $a fresh x ( \neg P ) $.
-$}
-${
-   freshsv-neg.1 $e fresh X P $.
-   freshsv-neg   $a fresh X ( \neg P ) $.
-$}
-${
-   substev-neg.1 $e subst P P R y $.
-   substev-neg   $a subst ( \neg P' ) ( \neg P ) R y $.
-$}
-${
-   substsv-neg.1 $e subst P P R Y $.
-   substsv-neg   $a subst ( \neg P' ) ( \neg P ) R Y $.
-$}
-${
-   nno-neg.1 $e npo X P $.
-   nno-neg   $a nno X ( \neg P ) $.
-$}
-${
-   npo-neg.1 $e nno X P $.
-   npo-neg   $a npo X ( \neg P ) $.
+	fresh-neg.1 $e fresh xx P $.
+	fresh-neg   $p fresh xx ( \neg P ) $=
+  wfP wfneg wfP wfbot wfimp varxx varxx wfP wfbot varxx fresh-neg.1 varxx
+  fresh-bot fresh-imp varxx df-me-var wfP df-neg me-fresh $.
 $}
 
-
-
-
-$( Define double implication as alias $)
-$c \dimp $.
-wfdimp $a wf ( \dimp P Q ) $.
-${
-   freshev-dimp.1 $e fresh x ( \imp P Q ) $.
-   freshev-dimp   $a fresh x ( \dimp P Q ) $.
-$}
-${
-   freshsv-dimp.1 $e fresh X ( \imp P Q ) $.
-   freshsv-dimp   $a fresh X ( \dimp P Q ) $.
-$}
-${
-   substev-dimp.1 $e subst ( \imp P' Q' ) ( \imp P Q ) R y $.
-   substev-dimp   $a subst ( \dimp P' Q' ) ( \dimp P Q ) R y $.
-$}
-${
-   substsv-dimp.1 $e subst ( \imp P' Q' ) ( \imp P Q ) R Y $.
-   substsv-dimp   $a subst ( \dimp P' Q' ) ( \dimp P Q ) R Y $.
-$}
-${
-   nno-dimp.1 $e fresh X P $.
-   nno-dimp.2 $e fresh X Q $.
-   nno-dimp   $a nno X ( \dimp P Q ) $.
-$}
-${
-   npo-dimp.1 $e fresh X P $.
-   npo-dimp.2 $e fresh X Q $.
-   npo-dimp   $a npo X ( \dimp P Q ) $.
-$}
 
