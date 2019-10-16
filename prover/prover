@@ -13,9 +13,9 @@ KDefinition( proj
            , krun_flags = '--interpret'
            )
 KDefinition( proj
-           , alias = 'test-matching'
+           , alias = 'test-driver'
            , backend = 'ocaml'
-           , directory = proj.builddir('defn/test-matching')
+           , directory = proj.builddir('defn/test-driver')
            , krun_flags = '--interpret'
            )
 KDefinition( proj
