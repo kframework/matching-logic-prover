@@ -98,6 +98,14 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
          <strategy> spatial-patterns-equal => noop ... </strategy>
       requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
        andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
+
+    rule <claim> \implies(               \and(sep(LSPATIAL), _)
+                         , \exists{ Vs } \and(sep(RSPATIAL), _)
+                         )
+         </claim>
+         <strategy> spatial-patterns-equal => fail ... </strategy>
+      requires LSPATIAL -Patterns RSPATIAL =/=K .Patterns
+        orBool RSPATIAL -Patterns LSPATIAL =/=K .Patterns
 ```
 
 ```k
