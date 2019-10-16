@@ -1,35 +1,42 @@
-$( Declare metamath constants $)
-
-$( pattern constructors $)
+$( Declare AML pattern constructs, one per line. $)
 $c 
-    \bot \imp \app \ex \mu ( )
+    \bot
+	\imp
+	\app 
+	\ex 
+	\mu 
+	( 
+	)
 $.
 
-$( Wellformedness:        wf
-   Element AML variables: ev
-   Set AML variables:     sv
-   Symbols:               sy
+$( Declare AML's "syntactic categories":
+   Wellformedness:          wf
+   AML variables:           var
+     Element AML variables: ev
+     Set AML variables:     sv
+   Symbols:                 sy
 $)
 $c
-    wf ev sv sy
+    wf var ev sv sy
 $.
 
-$( More metalevel stuffs.
-     meta-level equalities (notations): ===
-     variable not occur free in a pattern:  fresh
-     substitution: subst
-     non-positive occurrence of a variable: npo
-     non-negative occurrence of a variable: nno
-     application context: appctx
-$)
-$c
-    === fresh subst npo nno appctx
-$.
-
-$( provability relation $)
+$( Declare AML provability relation. $)
 $c 
     |- 
 $.
+
+$( Auxiliary stuffs:
+     non-positive occurrence of a variable: npo
+     non-negative occurrence of a variable: nno  
+     variable not occur free in a pattern:  fresh
+     substitution:                          subst
+     application context:                   appctx
+$)
+$c
+    fresh subst npo nno appctx
+$.
+
+
 
 $( Declare metamath variables $)
 $v 
@@ -52,6 +59,10 @@ syf $f sv f $.
 syg $f sv g $.
 syh $f sv h $.
 
+$( Variables = Element variables + Set variables. $)
+evar $a var x $.
+svar $a var X $.
+
 $( Define wellformedness patterns: wf $)
 wfev   $a wf x $.
 wfsv   $a wf X $.
@@ -62,6 +73,16 @@ wfex   $a wf ( \ex x P ) $.
 ${
     wfmu.nno $e nno X P $.
     wfmu     $a wf ( \mu X P ) $.
+$}
+
+$( Define fresh-ness of variables: fresh $)
+${
+    $v xx $.
+	$v yy $.
+    $d xx yy $.
+    fresh-var.1 $f var xx $.
+	fresh-var.2 $f var yy $.
+	fresh-var $a fresh xx yy $.
 $}
 
 $( Define freshness (not-occur-free): fresh $)
@@ -255,26 +276,6 @@ ${
     appctx-app-right.1 $e appctx Q x $.
     appctx-app-right.2 $e fresh x P $.
     appctx-app-right   $a appctx ( \app P Q ) x $.
-$}
-
-$( meta-equalities === $)
-
-${
-    meq-freshev.eq $e fresh x Q $.
-    meq-freshev.1  $e P === Q $.
-    meq-freshev    $a fresh x P $.
-$}
-
-${
-    meq-freshsv.eq $e fresh X Q $.
-    meq-freshsv.1  $e P === Q $.
-    meq-freshsv    $a fresh X P $.
-$}
-
-${
-    meq-fresh.eq $e subst P' P R Y $.
-    meq-fresh.1  $e P === Q $.
-    meq-substev.eq $e subst P' P R Y $.
 $}
 
 $(  ######### Proof Rules ############### $)
