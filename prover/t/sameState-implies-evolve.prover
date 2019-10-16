@@ -1,0 +1,9 @@
+imports "t/definitions/ha_bouncing-ball.prover"
+
+claim \implies( \and(\equals(S1 { State }, S2 { State }))
+              , \and(reach(S { SetInt }))
+              )
+
+
+
+

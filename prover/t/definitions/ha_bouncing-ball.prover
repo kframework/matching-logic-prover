@@ -1,0 +1,16 @@
+// Kore axiomatization of bouncing ball HA
+
+symbol reach( State , State ) : Bool
+
+axiom functional(reach)
+
+axiom \forall { S1 { State },  S2 { State } }
+      \iff-lfp( reach( S1 { State } , S2 { State } )
+              , \or ( \exists { } \and ( \equals ( S1 { State }, S2 { State } )
+                                       , .Patterns )
+                    , \exists { T { Duration } } \and ( \equals ( S2 { State }
+                                                                , evolve( S1 { State } , T { Duration }))
+                                                       , .Patterns )
+                    )
+              )
+
