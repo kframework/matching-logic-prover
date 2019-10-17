@@ -1,26 +1,18 @@
 <prover>
   <k>
-    \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns ) ~> .SMTLIB2Script
+    \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns )
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
-        \forall { Vx { Int } , .Patterns } \or ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns )
+        \not ( \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns ) )
       </claim>
       <strategy>
         success
       </strategy>
       <trace>
-        .
+        smt-cvc4
       </trace>
     </goal>
   </goals>

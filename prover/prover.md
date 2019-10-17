@@ -3,6 +3,7 @@ requires "kore.k"
 requires "smtlib-to-kore.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
+requires "strategies/matching.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
@@ -34,10 +35,10 @@ module PROVER-CONFIGURATION
       <prover>
         <k> $PGM:Pgm </k>
         <goals>
-          <goal multiplicity="*" type="Set">
-            <id> root </id>
-            <active> true:Bool </active>
-            <parent> .K </parent>
+          <goal multiplicity="*" type="Set" format="%1%i%n%2, %3, %4%n%5%n%6%n%7%n%d%8">
+            <active format="active: %2"> true:Bool </active>
+            <id format="id: %2"> root </id>
+            <parent format="parent: %2"> .K </parent>
             <claim> .K </claim>
             <strategy> .K </strategy>
             <trace> .K </trace>
@@ -61,14 +62,18 @@ module PROVER-HORN-CLAUSE-SYNTAX
   syntax Strategy ::= "search-bound" "(" Int ")"
                     | "remove-lhs-existential" | "normalize" | "smtlib-to-implication" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
+                    | "lift-constraints"
                     | "direct-proof"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter
                     | "kt-gfp" | "kt-gfp" "#" KTFilter
-  syntax Strategy ::= "kt-solve-implications" "(" Strategy ")"
+                    | "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
+                    | "instantiate-separation-logic-axioms"
+                    | "spatial-patterns-equal"
+                    | "match" 
 
   syntax KTFilter ::= head(Symbol)
                     | index(Int)
@@ -97,6 +102,7 @@ module PROVER-SYNTAX
   imports PROVER-COMMON
   imports TOKENS-SYNTAX
   imports SMTLIB2-SYNTAX
+  imports SMTLIB-SL
   syntax Declarations ::= "" [klabel(.Declarations)]
 endmodule
 ```
@@ -127,6 +133,13 @@ module PROVER-DRIVER
          (.Bag => <declaration> DECL </declaration>)
          ...
        </declarations>
+
+  rule <k> (sort _ #as DECL:Declaration) => .K ... </k>
+       <declarations>
+         (.Bag => <declaration> DECL </declaration>)
+         ...
+       </declarations>
+
   rule <k> (axiom _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
@@ -172,6 +185,7 @@ module PROVER
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION
+  imports STRATEGY-MATCHING
   imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
 endmodule

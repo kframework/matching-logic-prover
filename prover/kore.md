@@ -6,6 +6,9 @@ module TOKENS
   // Lexical
   syntax UpperName
   syntax LowerName
+  syntax ColonName
+  syntax PipeQID
+  syntax Decimal
 
   // Abstract
   syntax Symbol ::= LowerName
@@ -14,13 +17,19 @@ endmodule
 
 module TOKENS-SYNTAX
   imports TOKENS
-  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
-  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
+  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [prec(2), token, autoReject]
+  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [prec(2), token, autoReject]
+  syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
+  // TODO: PipeQID interacts badly with _ | _ strategy
+  // syntax PipeQID ::= r"\\|[^\\|]*\\|" [token, autoReject]
+  syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
+                   | "2.0" [token]
 endmodule
 
 module KORE-SUGAR
   imports TOKENS
   imports INT-SYNTAX
+  imports BOOL-SYNTAX
   imports STRING-SYNTAX
 
   syntax Ints ::= List{Int, ","}
@@ -28,6 +37,7 @@ module KORE-SUGAR
                 | "Int"         [token]
                 | "ArrayIntInt" [token]
                 | "SetInt"      [token]
+                | "Heap"        [token]
 ```
 
 We allow two "variaties" of variables: the first, identified by a String, is for
@@ -50,12 +60,17 @@ only in this scenario*.
                    | "\\and"    "(" Patterns ")"                [klabel(and)]
                    | "\\or"     "(" Patterns ")"                [klabel(or)]
                    | "\\implies" "(" Pattern "," Pattern ")"    [klabel(implies)]
-                   
+
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
                      /* Sugar for \iff, \mu and application */
-                   | "\\iff-lfp" "(" Pattern "," Pattern ")"     [klabel(ifflfp)]
+                   | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
+                   
+                   // sugar for commonly needed axioms
+                   | "functional" "(" Symbol ")"
+                   | "partial" "(" Patterns ")"
+                   | "heap" "(" Sort "," Sort ")" // Location, Data
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
@@ -69,11 +84,18 @@ only in this scenario*.
                   | "add"           [token]
                   | "del"           [token]
 
+  // sep-logic symbols
+  syntax LowerName ::= "pto" [token]
+                     | "sep" [token]
+                     | "nil" [token]
+                     | "emp" [token]
+
   // Arith
   syntax Symbol ::= "plus"          [token]
                   | "minus"         [token]
                   | "mult"          [token]
                   | "div"           [token]
+                  | "lt"            [token]
                   | "gt"            [token]
                   | "max"           [token]
 
@@ -85,6 +107,18 @@ only in this scenario*.
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
 
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
+  syntax SortDeclaration ::= "sort" Sort
+
+  syntax Declaration ::= "imports" String
+                       | "axiom" Pattern
+                       | SymbolDeclaration
+                       | SortDeclaration
+
+  syntax Variable ::= "#hole"
+
+  // Sugar for `\exists #hole . #hole /\ floor(Arg1 -> Arg2)
+  syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
+
 endmodule
 ```
 
@@ -99,6 +133,7 @@ module KORE-HELPERS
   imports MAP
   imports INT
   imports STRING
+  imports PROVER-CONFIGURATION
 
   syntax String ::= SortToString(Sort) [function, functional, hook(STRING.token2string)]
 
@@ -110,6 +145,13 @@ module KORE-HELPERS
   syntax Patterns ::= Patterns "++Patterns" Patterns [function, right]
   rule (P1, P1s) ++Patterns P2s => P1, (P1s ++Patterns P2s)
   rule .Patterns ++Patterns P2s => P2s
+
+  syntax Patterns ::= Patterns "intersect" Patterns [function]
+  rule .Patterns intersect Ps => .Patterns
+  rule (P, Ps1) intersect Ps2 => P, (Ps1 intersect Ps2)
+    requires P in Ps2
+  rule (P, Ps1) intersect Ps2 => Ps1 intersect Ps2
+    requires notBool (P in Ps2)
 
   syntax Patterns ::= removeDuplicates(Patterns) [function]
   rule removeDuplicates(.Patterns) => .Patterns
@@ -125,6 +167,57 @@ module KORE-HELPERS
     requires P1 in P2s
   rule .Patterns -Patterns P2s => .Patterns
   rule P1s -Patterns .Patterns => P1s
+```
+
+```k
+  syntax Sort ::= getReturnSort(Pattern) [function]
+  rule getReturnSort( I:Int ) => Int
+  rule getReturnSort( _ { S } ) => S
+  rule getReturnSort( minus ( ARGS ) ) => Int
+  rule getReturnSort( select ( ARGS ) ) => Int
+  rule getReturnSort( union ( ARGS ) ) => SetInt
+  rule getReturnSort( singleton ( ARGS ) ) => SetInt
+  rule getReturnSort( emptyset ) => SetInt
+  rule getReturnSort( disjoint ( ARGS ) ) => Bool
+  rule getReturnSort( lt ( ARGS ) ) => Bool
+  rule getReturnSort( gt ( ARGS ) ) => Bool
+  rule getReturnSort( isMember ( _ ) ) => Bool
+  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
+       <declaration> symbol R ( _ ) : S </declaration>
+
+  syntax Bool ::= isUnfoldable(Symbol) [function]
+  rule [[ isUnfoldable(S:Symbol) => true ]]
+       <declaration> axiom \forall {_} \iff-lfp(S(_), _) </declaration>
+  rule isUnfoldable(S:Symbol) => false [owise]
+
+  syntax Patterns ::= getGroundTerms(Pattern) [function]
+  rule getGroundTerms(P) => getGroundTerms(P, .Patterns)
+  syntax Patterns ::= getGroundTerms(Pattern, Patterns) [function, klabel(getGroundTermsAux)]
+  rule getGroundTerms(S:Symbol, VARs) => S, .Patterns
+  rule getGroundTerms(I:Int, VARs) => I, .Patterns
+  rule getGroundTerms(X:Variable, VARs) => X, .Patterns requires notBool X in VARs
+  rule getGroundTerms(X:Variable, VARs) =>    .Patterns requires         X in VARs
+
+  rule getGroundTerms(\implies(LHS, RHS), VARs)
+    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs)
+  rule getGroundTerms(\equals(LHS, RHS), VARs)
+    => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs)
+  rule getGroundTerms(\forall { UNIVs } P, VARs)
+    => getGroundTerms(P, VARs ++Patterns UNIVs)
+  rule getGroundTerms(\exists { UNIVs } P, VARs)
+    => getGroundTerms(P, VARs ++Patterns UNIVs)
+  rule getGroundTerms(\and(.Patterns), VARs)
+    => .Patterns
+  rule getGroundTerms(\and(P, Ps), VARs)
+    => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\and(Ps), VARs)
+  rule getGroundTerms(\not(P), VARs)
+    => getGroundTerms(P, VARs)
+  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
+    => APPLY , getGroundTerms(\and(ARGS))
+    requires VARs -Patterns getFreeVariables(ARGS) ==K VARs
+  rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
+    => getGroundTerms(\and(ARGS))
+    requires VARs -Patterns getFreeVariables(ARGS) =/=K VARs
 ```
 
 ```k
@@ -158,6 +251,9 @@ module KORE-HELPERS
     => getFreeVariables(P, .Patterns) -Patterns Vs
   rule getFreeVariables(\forall { Vs } P,  .Patterns)
     => getFreeVariables(P, .Patterns) -Patterns Vs
+  rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
+    => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
+       -Patterns #hole, .Patterns
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
@@ -209,6 +305,10 @@ and values, passed to K's substitute.
        makeFreshSubstitution(REST)
   rule makeFreshSubstitution(.Patterns)
     => .Map
+
+  syntax Patterns ::= makeFreshVariables(Patterns) [function]
+  rule makeFreshVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makeFreshVariables(REST)
+  rule makeFreshVariables(.Patterns) => .Patterns
 ```
 
 ```k
@@ -250,18 +350,45 @@ Substitution: Substitute term or variable
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
 
-  syntax Pattern ::= Pattern "[" Map "]"     [function, klabel(substMap)]
-  syntax Pattern ::= substMap(Pattern,  Map) [function, klabel(substMap)]
-  rule substMap(BP, ((X |-> V):Map REST))
-    => substMap(subst(BP,X,V), REST:Map)
-  rule substMap(BP, .Map) => BP
+  rule subst(implicationContext(CTX, RHS), X, V)
+    => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
+
+  rule subst(R,_,_) => R [owise]
+
+  syntax Pair ::= pair(Patterns, Patterns)
+  syntax Pair ::= unzip(Map) [function]
+  rule unzip(.Map) => pair(.Patterns, .Patterns)
+  rule unzip((L |-> R) REST) => concatenatePair(pair((L, .Patterns), (R, .Patterns)), unzip(REST))
+
+  syntax Patterns ::= fst(Pair) [function]
+  syntax Patterns ::= snd(Pair) [function]
+  rule fst(pair(L, R)) => L
+  rule snd(pair(L, R)) => R
+
+  syntax Pair ::= concatenatePair(Pair, Pair) [function]
+  rule concatenatePair(pair(L1, R1), pair(L2, R2)) => pair(L1 ++Patterns L2, R1 ++Patterns R2)
+
+  syntax Pattern ::= Pattern "[" Map "]"    [function, klabel(substMap)]
+  syntax Pattern ::= substMap(Pattern, Map) [function, klabel(substMap)]
+  rule substMap(BP, M) => #fun(KVPAIR => #fun(FRESHs =>
+         substUnsafe( substUnsafe(BP, zip(fst(KVPAIR), FRESHs))
+                    , zip(FRESHs, snd(KVPAIR))
+                    )
+         )( makeFreshVariables(fst(KVPAIR)))
+         )( unzip(M) )
+
+  // Renames variables incrementally not simultaneously. Helper for substMap
+  syntax Pattern ::= substUnsafe(Pattern, Map) [function, klabel(substUnsafe)]
+  rule substUnsafe(BP, ((X |-> V):Map REST))
+    => substUnsafe(subst(BP,X,V), REST:Map)
+  rule substUnsafe(BP, .Map) => BP
 
   syntax Patterns ::= Patterns "[" Map "]"         [function, klabel(substPatternsMap)]
   syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
   rule substPatternsMap((BP, BPs), SUBST)
-    => substMap(BP, SUBST), substPatternsMap(BPs, SUBST)
+    => substUnsafe(BP, SUBST), substPatternsMap(BPs, SUBST)
 
-  rule .Patterns[SUBST] => .Patterns
+  rule substPatternsMap(.Patterns, SUBST) => .Patterns
 
   syntax Patterns ::= Patterns "[" Pattern "/" Pattern "]" [function]
   rule (BP, BPs)[X/V] => BP[X/V], (BPs[X/V])
@@ -285,9 +412,131 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V
   rule alphaRename(I:Int) => I
+  rule alphaRename(implicationContext(P, Qs))
+    => implicationContext(alphaRename(P), alphaRename(Qs))
 
   rule alphaRenamePs(.Patterns) => .Patterns
   rule alphaRenamePs(P, Ps) => alphaRename(P), alphaRenamePs(Ps)
+```
+
+Simplifications
+
+```k
+  syntax Patterns ::= #not(Patterns) [function]
+  rule #not(.Patterns) => .Patterns
+  rule #not(P, Ps) => \not(P), #not(Ps)
+  
+  syntax Pattern ::= #flattenAnd(Pattern) [function]
+  rule #flattenAnd(\and(Ps)) => \and(#flattenAnds(Ps))
+
+  syntax Patterns ::= #flattenAnds(Patterns) [function]
+  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
+  rule #flattenAnds(.Patterns) => .Patterns
+
+  syntax Patterns ::= #flattenSeps(Patterns) [function]
+  rule #flattenSeps(emp(.Patterns), Ps2) => #flattenSeps(Ps2)
+  rule #flattenSeps(sep(Ps1), Ps2) => #flattenSeps(Ps1) ++Patterns #flattenSeps(Ps2)
+  rule #flattenSeps(P, Ps) => P, #flattenSeps(Ps) [owise]
+  rule #flattenSeps(.Patterns) => .Patterns
+
+  syntax Patterns ::= #flattenOrs(Patterns) [function]
+  rule #flattenOrs(\or(Ps1), Ps2) => #flattenOrs(Ps1) ++Patterns #flattenOrs(Ps2)
+  rule #flattenOrs(P, Ps) => P ++Patterns #flattenOrs(Ps) [owise]
+  rule #flattenOrs(.Patterns) => .Patterns
+
+  syntax Pattern ::= #dnf(Pattern) [function]
+  rule #dnf(\or(Ps)) => \or(#dnfPs(Ps))
+
+  syntax Patterns ::= #dnfPs(Patterns) [function]
+
+  rule #dnfPs(.Patterns) => .Patterns
+  rule #dnfPs(P, Ps) => \and(P), #dnfPs(Ps)
+    requires isBasePattern(P)
+  rule #dnfPs(\not(P), Ps) => \and(\not(P)), #dnfPs(Ps)
+    requires isBasePattern(P)
+  rule #dnfPs(\exists{Vs} P, Ps) => #exists(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
+
+  syntax Patterns ::= #exists(Patterns, Patterns) [function]
+  rule #exists(.Patterns, _) => .Patterns
+  rule #exists((\and(Ps1), Ps2), Vs) => \exists{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #exists(Ps2, Vs)
+  rule #exists((\exists{Es} P, Ps2), Vs) => \exists{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #exists(Ps2, Vs)
+
+  rule #dnfPs(\not(\and(Ps)), REST) => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
+  rule #dnfPs(\not(\or(Ps)), REST)  => #dnfPs(\and(#not(Ps)), REST)
+
+  // Distribute \or over \and
+  rule #dnfPs(\and(\or(P, Ps1), Ps2), REST)
+    => #dnfPs(\and(P, Ps2)) ++Patterns #dnfPs(\and(\or(Ps1), Ps2))
+  rule #dnfPs(\and(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
+
+  // \and is assoc
+  rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
+
+  rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
+    requires isBaseConjunction(Ps)
+  rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
+    requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
+
+  syntax Bool ::= isBasePattern(Pattern) [function]
+  rule isBasePattern(S:Symbol(ARGS)) => true
+  rule isBasePattern(\equals(L, R)) => true
+  rule isBasePattern(\and(_)) => false
+  rule isBasePattern(\or(_)) => false
+  rule isBasePattern(\exists{Vs}_) => false
+  rule isBasePattern(\not(P)) => isBasePattern(P)
+
+  syntax Bool ::= isBaseConjunction(Patterns) [function]
+  rule isBaseConjunction(.Patterns) => true
+  rule isBaseConjunction(\and(P), Ps) => false
+  rule isBaseConjunction(P, Ps) => isBasePattern(P) andBool isBaseConjunction(Ps) [owise]
+
+  syntax Bool ::= isConjunction(Pattern) [function]
+  rule isConjunction(\and(P)) => true
+  rule isConjunction(_) => false [owise]
+```
+
+```k
+  syntax Bool ::= isPredicatePattern(Pattern) [function]
+  rule isPredicatePattern(\equals(_, _)) => true
+  rule isPredicatePattern(lt(_, _)) => true
+  rule isPredicatePattern(\not(P)) => isPredicatePattern(P)
+  rule isPredicatePattern(\and(.Patterns)) => true
+  rule isPredicatePattern(\and(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\and(Ps))
+  rule isPredicatePattern(\or(.Patterns)) => true
+  rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
+  rule isPredicatePattern(S:Symbol(ARGS)) => getReturnSort(S(ARGS)) ==K Bool
+
+  rule isPredicatePattern(sep(_)) => false
+  rule isPredicatePattern(pto(_)) => false
+  rule isPredicatePattern(emp(.Patterns)) => false
+  rule isPredicatePattern(\forall{_} implicationContext(\and(sep(_),_),_)) => false
+  rule isPredicatePattern(\forall{_} implicationContext(_,_)) => true
+    [owise]
+
+  syntax Bool ::= isSpatialPattern(Pattern) [function]
+  rule isSpatialPattern(pto(_)) => true
+  rule isSpatialPattern(emp(.Patterns)) => true
+  rule isSpatialPattern(sep(.Patterns)) => true
+  rule isSpatialPattern(sep(P, Ps)) => isSpatialPattern(P) andBool isSpatialPattern(sep(Ps))
+  rule isSpatialPattern(P) => false
+    requires isPredicatePattern(P)
+  rule isSpatialPattern(\and(_)) => false
+  rule isSpatialPattern(\or(_)) => false
+  rule isSpatialPattern(S:Symbol(ARGS)) => true
+    requires isUnfoldable(S) andBool getReturnSort(S(ARGS)) ==K Heap
+  rule isSpatialPattern(\forall{_} implicationContext(\and(sep(_),_),_)) => true
+  rule isSpatialPattern(\forall{_} implicationContext(_,_)) => false
+    [owise]
+
+```
+
+```k
+  syntax Bool ::= isDisjunction(Pattern) [function]
+  rule isDisjunction(\or(_)) => true
+  rule isDisjunction(_) => false
+    [owise]
 ```
 
 ```k

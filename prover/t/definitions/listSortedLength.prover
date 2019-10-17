@@ -1,4 +1,6 @@
 symbol listSortedLength(ArrayIntInt, Int, SetInt, Int, Int) : Bool
+axiom functional(listSortedLength)
+
 axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int }, LENGTH { Int } }
       \iff-lfp( listSortedLength(H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int }, LENGTH { Int })
               , \or( \exists { }

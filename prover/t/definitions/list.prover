@@ -1,4 +1,6 @@
 symbol list(ArrayIntInt, Int, SetInt) : Bool
+axiom functional(list)
+
 axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt } }
       \iff-lfp( list(H { ArrayIntInt }, X { Int }, F { SetInt })
               , \or( \exists {}

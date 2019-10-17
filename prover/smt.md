@@ -2,8 +2,6 @@
 module SMTLIB2-SYNTAX
   imports TOKENS-SYNTAX
   imports SMTLIB2
-  syntax SMTLIB2SimpleSymbol ::= LowerName                                        [token]
-                               | UpperName                                        [token]
   syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
 endmodule
 
@@ -12,14 +10,20 @@ module SMTLIB2
   imports BOOL-SYNTAX
   imports STRING
   imports K-IO
+  imports PROVER-CORE-SYNTAX
 
 // Tokens
   syntax SMTLIB2Numeral ::= Int
   syntax SMTLIB2SimpleSymbol ::= Bool
+                               | LowerName
+                               | UpperName
   syntax SMTLIB2Symbol ::= SMTLIB2SimpleSymbol
+                         | PipeQID
 
 // S Expressions
   syntax SMTLIB2SpecConstant ::= SMTLIB2Numeral
+                               | Decimal
+                               | String
   syntax SMTLIB2SExpr ::= SMTLIB2SpecConstant
                         | SMTLIB2Symbol
                         | "(" SMTLIB2SExprList ")"
@@ -48,24 +52,56 @@ module SMTLIB2
                        | "(" "exists" "(" SMTLIB2SortedVarList ")" SMTLIB2Term ")"
   syntax SMTLIB2TermList ::= List{SMTLIB2Term, ""} [klabel(SMTLIB2TermList)]
 
+// Constructors for datatypes
+  syntax SMTLIB2SelectorDec ::= "(" SMTLIB2Symbol SMTLIB2Sort ")"
+  syntax SMTLIB2SelectorDecList ::= List{SMTLIB2SelectorDec, ""} [klabel(SMTLIB2SelectorDecList)]
+
+  syntax SMTLIB2ConstructorDec ::= "(" SMTLIB2Symbol SMTLIB2SelectorDecList ")"
+  syntax SMTLIB2ConstructorDecList ::= List{SMTLIB2ConstructorDec, ""} [klabel(SMTLIB2ConstructorDecList)]
+
+  // TODO: SMTLIB2DatatypeDecList in here needs to be nonempty
+  syntax SMTLIB2DatatypeDec ::= "(" SMTLIB2ConstructorDecList ")"
+  syntax SMTLIB2DatatypeDecList ::= List{SMTLIB2DatatypeDec, ""} [klabel(SMTLIB2DatatypeDecList)]
+
+  syntax SMTLIB2SortDec ::= "(" SMTLIB2Symbol SMTLIB2Numeral ")"
+  syntax SMTLIB2SortDecList ::= List{SMTLIB2SortDec, ""} [klabel(SMTLIB2SortDecList)]
+
 // Commands
-  syntax SMTLIB2Command ::= "(" "assert"         SMTLIB2Term               ")"
-                          | "(" "declare-const"  SMTLIB2Symbol SMTLIB2Sort ")"
-                          | "(" "declare-fun"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
-                          | "(" "define-fun"     SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
-                          | "(" "define-fun-rec" SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
-                          | "(" "define-sort"    SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+  syntax SMTLIB2Command ::= "(" "assert"            SMTLIB2Term               ")"
+                          | "(" "declare-const"     SMTLIB2Symbol SMTLIB2Sort ")"
+                          | "(" "declare-fun"       SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "define-fun"        SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "define-fun-rec"    SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          | "(" "declare-datatype"  SMTLIB2Symbol SMTLIB2DatatypeDec ")"
+                          // TODO: SMTLIB2SortDecList and SMTLIB2DatatypeDecList in here both need to be nonempty
+                          | "(" "declare-datatypes" "(" SMTLIB2SortDecList ")" "(" SMTLIB2DatatypeDecList ")" ")"
+                          | "(" "define-sort"       SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
+                          | "(" "declare-sort"      SMTLIB2Sort Int ")"
+                          | "(" "set-logic"         SMTLIB2Symbol ")"
                           | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
-  // Core symbols
-  syntax SMTLIB2SimpleSymbol ::= "not"   [token]
-                               | "or"    [token]
-                               | "and"   [token]
-                               | "=>"    [token]
-                               | "="     [token]
-                               | "=>"    [token]
-                               | "ite"   [token]
+// For parsing strategies in smt files
+  syntax SMTLIB2Attribute ::= ":mlprover-strategy" [token]
+                            | ColonName
+
+  syntax SMTLIB2AttributeValue ::= Strategy
+                                 | SMTLIB2Symbol
+                                 | SMTLIB2SpecConstant
+                                 | SMTLIB2SExprList
+                                 | CheckSATResult
+
+  syntax SMTLIB2Command ::= "(" "set-info" SMTLIB2Attribute SMTLIB2AttributeValue ")"
+
+// Core symbols
+  syntax SMTLIB2SimpleSymbol ::= "not"      [token]
+                               | "or"       [token]
+                               | "and"      [token]
+                               | "=>"       [token]
+                               | "="        [token]
+                               | "=>"       [token]
+                               | "ite"      [token]
+                               | "distinct" [token]
 
   // Arithmetic
   syntax SMTLIB2SimpleSymbol ::= "*"     [token]
@@ -91,6 +127,7 @@ module SMTLIB2
   // Sorts
   syntax SMTLIB2SimpleSymbol ::= "Int" [token] | "Bool" [token]
                                | "Set" [token] | "Array" [token]
+                               | "Heap" [token]
 
   syntax CheckSATResult ::= "sat" | "unsat"
                           | "unknown" "(" K ")" | "error" "(" K ")"
@@ -108,8 +145,8 @@ module SMTLIB2
   syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
 
-  syntax Symbol ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
-  syntax Symbol ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
+  syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+  syntax LowerName ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToSymbol(SYMBOL) => StringToSymbol(SMTLIB2SimpleSymbolToString(SYMBOL))
 
   syntax Sort ::= StringToSort(String) [function, functional, hook(STRING.string2token)]
@@ -197,6 +234,10 @@ module SMTLIB2
        SMTLIB2SortToString(RET) +String
        SMTLIB2TermToString(BODY) +String
        ")"
+  rule SMTLIB2CommandToString( ( declare-sort SORT I ) )
+    => "( declare-sort " +String SMTLIB2SortToString(SORT) +String
+       " " +String Int2String(I) +String
+       " ) "
   rule SMTLIB2CommandToString( ( define-sort NAME (PARAMS) BODY) )
     => "( define-sort " +String SMTLIB2TermToString(NAME) +String
        " ( " +String SMTLIB2SortListToString(PARAMS) +String
@@ -262,5 +303,15 @@ module SMT-TEST-DRIVER
        <z3> . => Z3CheckSAT(SCRIPT) </z3>
   rule <claim> SCRIPT:SMTLIB2Script </claim>
        <cvc4> . => CVC4CheckSAT(SCRIPT) </cvc4>
+endmodule
+
+module SMTLIB-SL
+  imports SMTLIB2
+
+  syntax SMTLIB2SortPair ::= "(" SMTLIB2Sort SMTLIB2Sort ")"
+  syntax SMTLIB2SortPairList ::= List{SMTLIB2SortPair, ""} [klabel(SMTLIB2SortPairList)]
+
+  syntax SMTLIB2Command ::= "(" "declare-heap" SMTLIB2SortPairList ")"
+
 endmodule
 ```

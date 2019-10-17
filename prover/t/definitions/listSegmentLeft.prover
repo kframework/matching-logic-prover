@@ -1,4 +1,5 @@
 symbol listSegmentLeft(ArrayIntInt, Int, Int, SetInt) : Bool
+axiom functional(listSegmentLeft)
 
 axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt } }
       \iff-lfp( listSegmentLeft(H { ArrayIntInt }, X { Int }, Y { Int } , F { SetInt })

@@ -1,0 +1,11 @@
+<prover>
+  <k>
+    .
+  </k>
+  <goals>
+    .GoalCellSet
+  </goals>
+  <declarations>
+    .DeclarationCellSet
+  </declarations>
+</prover>

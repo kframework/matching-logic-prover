@@ -11,7 +11,7 @@ module STRATEGY-SIMPLIFICATION
 
 ```
          phi -> psi
-  ----------------------- 
+  -----------------------
   (\exists x. phi) -> psi
 ```
 
@@ -73,9 +73,18 @@ Normalize:
   rule <claim> \forall{Vs} P => P </claim>
        <strategy> smtlib-to-implication ... </strategy>
 
-  // TODO: want RHS to be \implies(#negative(Ps), #positive(Ps))
-  rule <claim> \or(Ps) => \implies(\top(), \and(Ps)) </claim>
-       <strategy> smtlib-to-implication => noop ... </strategy>
+  rule <claim> \or(Ps) => \implies(\and(#filterNegative(Ps)), \and(\or(#filterPositive(Ps)))) </claim>
+       <strategy> smtlib-to-implication => normalize ... </strategy>
+
+  syntax Patterns ::= "#filterNegative" "(" Patterns ")" [function]
+  rule #filterNegative(\not(P), Ps) => P, #filterNegative(Ps)
+  rule #filterNegative(P, Ps)       => #filterNegative(Ps) [owise]
+  rule #filterNegative(.Patterns)   => .Patterns
+
+  syntax Patterns ::= "#filterPositive" "(" Patterns ")" [function]
+  rule #filterPositive(\not(P), Ps) => #filterPositive(Ps)
+  rule #filterPositive(P, Ps)       => P, #filterPositive(Ps) [owise]
+  rule #filterPositive(.Patterns)   => .Patterns
 
   syntax Pattern ::= #normalize(Pattern) [function]
   syntax Patterns ::= #normalizePs(Patterns) [function]
@@ -90,21 +99,59 @@ Normalize:
     => #normalize(P)
 
   rule #normalize(\not(\exists{Vs} P)) => \forall{Vs} #normalize(\not(P))
-  rule #normalize(\not(\and(Ps))) => #normalize(\or(#pushNots(Ps)))
+  rule #normalize(\not(\and(Ps))) => #normalize(\or(#not(Ps)))
   rule #normalize(\not(\not(P))) => #normalize(P)
   rule #normalize(\or(Ps)) => \or(#normalizePs(Ps))
-  rule #normalize(\and(\not(P), Ps)) => \implies(\and(#normalizePs(Ps)), #normalize(P))
   rule #normalize(P) => P
     [owise]
+```
 
-  syntax Patterns ::= #pushNots(Patterns) [function]
-  rule #pushNots(.Patterns) => .Patterns
-  rule #pushNots(P, Ps) => \not(P), #pushNots(Ps)
+### lift-constraints
 
-  syntax Patterns ::= #flattenAnds(Patterns) [function]
-  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(P, Ps) => P ++Patterns #flattenAnds(Ps) [owise]
-  rule #flattenAnds(.Patterns) => .Patterns
+Bring predicate constraints to the top of a term.
+
+```k
+  rule <claim> \implies(\and(Ps) => #flattenAnd(#liftConstraints(\and(Ps)))
+                       , \exists { _ } (\and(Rs) => #flattenAnd(#liftConstraints(\and(Rs))))
+                       )
+       </claim>
+       <strategy> lift-constraints => noop ... </strategy>
+
+  syntax Pattern ::= #liftConstraints(Pattern) [function]
+  rule #liftConstraints(P) =>     P  requires isPredicatePattern(P)
+  rule #liftConstraints(S) => sep(S) requires isSpatialPattern(S)
+
+  rule #liftConstraints(sep(\and(.Patterns), REST)) => #liftConstraints(sep(REST))
+
+  rule #liftConstraints(sep(\and(P, Ps:Patterns), REST:Patterns))
+    => #liftConstraints(\and(sep(\and(Ps), REST), P, .Patterns))
+    requires isPredicatePattern(P)
+  rule #liftConstraints(sep(\and(P, Ps), REST))
+    => #liftConstraints(sep(\and(Ps), P, REST))
+    requires isSpatialPattern(P)
+  rule #liftConstraints(sep(\and(P, Ps), REST))
+    => #liftConstraints(sep(\and(#flattenAnds(#liftConstraints(P), Ps)), REST))
+    requires notBool isPredicatePattern(P) andBool notBool isSpatialPattern(P)
+
+  // Rotate
+  rule #liftConstraints(sep(S, Ps))
+    => #liftConstraints(sep(Ps ++Patterns S))
+    requires isSpatialPattern(S) andBool notBool isSpatialPattern(sep(S, Ps))
+
+  rule #liftConstraints(\and(sep(Ss), Ps))
+    => #liftConstraints(\and(#flattenAnds(#liftConstraints(sep(Ss)), .Patterns) ++Patterns Ps))
+    requires notBool isSpatialPattern(sep(Ss))
+
+  rule #liftConstraints(\and(S, Ps))
+    => \and(sep(S), #flattenAnds(#liftConstraints(\and(Ps)), .Patterns))
+    requires isSpatialPattern(S)
+
+  rule #liftConstraints(\and(\and(Ps), REST))
+    => #liftConstraints(\and(Ps ++Patterns REST))
+
+  rule #liftConstraints(\and(P, Ps))
+    => #liftConstraints(\and(Ps ++Patterns P))
+  requires isPredicatePattern(P) andBool notBool isPredicatePattern(\and(P, Ps))
 ```
 
 ### lift-or
@@ -119,7 +166,7 @@ Lift `\or`s on the left hand sides of implications
 
 ```k
   rule <claim> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </claim>
-       <strategy> lift-or => noop ... </strategy> 
+       <strategy> lift-or => noop ... </strategy>
 
   syntax Patterns ::= "#liftOr" "(" Patterns "," Pattern ")" [function]
   rule #liftOr(.Patterns, RHS) => .Patterns
@@ -157,47 +204,87 @@ Lift `\or`s on the left hand sides of implications
 
 ### Instantiate Existials
 
-       LHS -> \exists x. x = t(...) /\ REST
-    => LHS /\ x = t(...) -> REST
+```
+           phi /\ x = t -> psi
+     -------------------------------
+     phi -> \exists x . x = t /\ psi
+```
 
 ```k
-  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL
-        => #fun( INSTANTIATION =>
-                   \implies( \and(LHS ++Patterns INSTANTIATION)
-                           , \exists { EXIST -Patterns getFreeVariables(INSTANTIATION) }
-                             \and(RHS -Patterns INSTANTIATION)
-                           )
-               )
-               ( getAtomForcingInstantiation( RHS
-                                            , getUniversalVariables(GOAL)
-                                            , getExistentialVariables(GOAL)
-                                            )
-               )
+  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL </claim>
+       <strategy> (. => getAtomForcingInstantiation(RHS, getExistentialVariables(GOAL)))
+               ~> instantiate-existentials
+                  ...
+       </strategy>
+
+  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) )
+            => \implies( \and(LHS ++Patterns INSTANTIATION)
+                       , \exists { EXIST -Patterns getFreeVariables(INSTANTIATION) }
+                         \and(RHS -Patterns INSTANTIATION)
+                       )
        </claim>
-       <strategy> instantiate-existentials ... </strategy>
-       [owise]
+       <strategy> (INSTANTIATION => .) ~> instantiate-existentials ... </strategy>
 
-  rule <claim> \implies(\and(LHS), \exists { _ } \and(RHS)) #as GOAL </claim>
-       <strategy> instantiate-existentials => noop ... </strategy>
-    requires .Patterns
-         ==K getAtomForcingInstantiation( RHS
-                                        , getUniversalVariables(GOAL)
-                                        , getExistentialVariables(GOAL)
-                                        )
+  rule <strategy> (.Patterns ~> instantiate-existentials) => noop ... </strategy>
 
-  syntax Patterns ::= getAtomForcingInstantiation(Patterns, Patterns, Patterns) [function]
-  rule getAtomForcingInstantiation((\equals(X:Variable, P), Ps), FREE, EXISTENTIALS)
+  syntax Patterns ::= getAtomForcingInstantiation(Patterns, Patterns) [function]
+  rule getAtomForcingInstantiation((\equals(X:Variable, P), Ps), EXISTENTIALS)
     => \equals(X:Variable, P), .Patterns
     requires X in EXISTENTIALS
-     andBool getFreeVariables(P, .Patterns) -Patterns EXISTENTIALS ==K getFreeVariables(P, .Patterns)
-  rule getAtomForcingInstantiation((\equals(P, X:Variable), Ps), FREE, EXISTENTIALS)
+     andBool getFreeVariables(P, .Patterns) intersect EXISTENTIALS ==K .Patterns
+  rule getAtomForcingInstantiation((\equals(P, X:Variable), Ps), EXISTENTIALS)
     => \equals(X:Variable, P), .Patterns
     requires X in EXISTENTIALS
-     andBool getFreeVariables(P, .Patterns) -Patterns EXISTENTIALS ==K getFreeVariables(P, .Patterns)
-  rule getAtomForcingInstantiation((P, Ps), FREE, EXISTENTIALS)
-    => getAtomForcingInstantiation(Ps, FREE, EXISTENTIALS) [owise]
-  rule getAtomForcingInstantiation(.Patterns, FREE, EXISTENTIALS)
+     andBool getFreeVariables(P, .Patterns) intersect EXISTENTIALS ==K .Patterns
+  rule getAtomForcingInstantiation((P, Ps), EXISTENTIALS)
+    => getAtomForcingInstantiation(Ps, EXISTENTIALS) [owise]
+  rule getAtomForcingInstantiation(.Patterns, EXISTENTIALS)
     => .Patterns
+```
+
+### Substitute Equals for equals
+
+```
+     PHI[x/y] -> PSI[x/y]
+    ----------------------  where y is a variable
+     x = y /\ PHI -> PSI
+```
+
+```k
+  rule <claim> \implies(\and(LHS), _) </claim>
+       <strategy> substitute-equals-for-equals
+               => (makeEqualitySubstitution(LHS) ~> substitute-equals-for-equals)
+                  ...
+       </strategy>
+
+  rule <strategy> (SUBST:Map ~> substitute-equals-for-equals)
+               => noop
+                  ...
+       </strategy>
+    requires SUBST ==K .Map
+
+  rule <claim> \implies( \and(LHS => removeTrivialEqualities(substPatternsMap(LHS, SUBST)))
+                       , \exists { _ }
+                         ( \and(RHS => removeTrivialEqualities(substPatternsMap(RHS, SUBST))) )
+                       )
+       </claim>
+       <strategy> (SUBST:Map ~> substitute-equals-for-equals)
+               => substitute-equals-for-equals
+                  ...
+       </strategy>
+    requires SUBST =/=K .Map
+
+  syntax Map ::= makeEqualitySubstitution(Patterns) [function]
+  rule makeEqualitySubstitution(.Patterns) => .Map
+  rule makeEqualitySubstitution(\equals(X:Variable, T), Ps) => (X |-> T) .Map
+  rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
+    requires notBool(isVariable(T))
+  rule makeEqualitySubstitution((P, Ps:Patterns)) => makeEqualitySubstitution(Ps) [owise]
+
+  syntax Patterns ::= removeTrivialEqualities(Patterns) [function]
+  rule removeTrivialEqualities(.Patterns) => .Patterns
+  rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
+  rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
 ```
 
 ```k

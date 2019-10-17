@@ -1,4 +1,6 @@
 symbol bt(ArrayIntInt, Int, SetInt) : Bool
+axiom functional(bt)
+
 axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt } }
       \iff-lfp( bt(H { ArrayIntInt }, X { Int }, F { SetInt } )
               , \or( \exists { }

@@ -1,4 +1,6 @@
 symbol isEmpty ( SetInt ) : Bool
+axiom functional(isEmpty)
+
 axiom \forall { S { SetInt } }
       \iff-lfp( isEmpty( S { SetInt })
               , \or( \exists { } \and(\equals(S { SetInt } , emptyset)))
@@ -6,5 +8,5 @@ axiom \forall { S { SetInt } }
 claim \implies( \and(\equals(S { SetInt }, emptyset))
               , \and(isEmpty(S { SetInt }))
               )
-strategy search-bound(2) 
-// strategy right-unfold ; simplify ; instantiate-existentials ; smt-z3
+
+strategy right-unfold ; simplify ; instantiate-existentials ; smt-cvc4

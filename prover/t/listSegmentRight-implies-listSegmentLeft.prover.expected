@@ -4,15 +4,7 @@
   </k>
   <goals>
     <goal>
-      <id>
-        root
-      </id>
-      <active>
-        true
-      </active>
-      <parent>
-        .
-      </parent>
+      active: true, id: root, parent: .
       <claim>
         \implies ( \and ( listSegmentRight ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( listSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , .Patterns ) )
       </claim>
@@ -29,6 +21,10 @@
       axiom \forall { H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns } \iff-lfp ( listSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( X { Int } , Y { Int } ) , \equals ( F { SetInt } , emptyset ) , .Patterns ) , \exists { X1 { Int } , F1 { SetInt } , .Patterns } \and ( gt ( X { Int } , 0 , .Patterns ) , listSegmentLeft ( H { ArrayIntInt } , X1 { Int } , Y { Int } , F1 { SetInt } , .Patterns ) , \equals ( select ( H { ArrayIntInt } , X { Int } , .Patterns ) , X1 { Int } ) , \equals ( F { SetInt } , union ( F1 { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) ) , disjoint ( F1 { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom \forall { H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns } \iff-lfp ( listSegmentRight ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( X { Int } , Y { Int } ) , \equals ( F { SetInt } , emptyset ) , .Patterns ) , \exists { Y1 { Int } , F1 { SetInt } , .Patterns } \and ( listSegmentRight ( H { ArrayIntInt } , X { Int } , Y1 { Int } , F1 { SetInt } , .Patterns ) , gt ( Y1 { Int } , 0 , .Patterns ) , \equals ( Y { Int } , select ( H { ArrayIntInt } , Y1 { Int } , .Patterns ) ) , \equals ( F { SetInt } , union ( F1 { SetInt } , singleton ( Y1 { Int } , .Patterns ) , .Patterns ) ) , disjoint ( F1 { SetInt } , singleton ( Y1 { Int } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( listSegmentLeft )
+    </declaration> <declaration>
+      axiom functional ( listSegmentRight )
     </declaration> <declaration>
       symbol listSegmentLeft ( ArrayIntInt , Int , Int , SetInt , .Sorts ) : Bool
     </declaration> <declaration>

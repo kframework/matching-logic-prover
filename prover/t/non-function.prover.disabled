@@ -1,0 +1,8 @@
+// non-functional symbol r
+symbol topBool() : Bool
+
+// not (true \in topBool and false \in topBool)
+// will return success (valid) if topBool is functional, but fail (satisfiable) if topBool is not necessarily functional
+claim \not(\and(\implies(true, topBool()), \implies(false, topBool())))
+
+strategy smt

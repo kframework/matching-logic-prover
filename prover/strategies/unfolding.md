@@ -4,11 +4,6 @@ module STRATEGY-UNFOLDING
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-HELPERS
 
-  syntax Bool ::= isUnfoldable(Symbol) [function]
-  rule [[ isUnfoldable(S:Symbol) => true ]]
-       <declaration> axiom \forall {_} \iff-lfp(S(_), _) </declaration>
-  rule isUnfoldable(S:Symbol) => false [owise]
-
   syntax Pattern ::= unfold(Pattern) [function]
   rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(DEF, zip(Vs, ARGs))) ]]
        <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
@@ -32,6 +27,7 @@ module STRATEGY-UNFOLDING
   rule getUnfoldables(S:Symbol(ARGS), REST)
     => getUnfoldables(REST)
     requires notBool isUnfoldable(S)
+    andBool S =/=K sep
   rule getUnfoldables(I:Int, REST)
     => getUnfoldables(REST)
   rule getUnfoldables(V:Variable, REST)
@@ -39,6 +35,8 @@ module STRATEGY-UNFOLDING
   rule getUnfoldables(\not(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
   rule getUnfoldables(\and(Ps), REST)
+    => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
+  rule getUnfoldables(sep(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
   rule getUnfoldables(\or(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
@@ -149,9 +147,10 @@ Note that the resulting goals is stonger than the initial goal (i.e.
 ```
 
 ```k
+  // TODO: -Patterns does not work here. We need to substitute RRP with BODY
   rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
         => \implies(LHS, \exists { E1 ++Patterns E2 }
-                         \and((RHS -Patterns (RRP, .Patterns)) ++Patterns BODY))
+                         \and(substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns))))) ...
        </claim>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
        <trace> .K => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) ... </trace>

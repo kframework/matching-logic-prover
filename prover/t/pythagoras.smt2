@@ -9,3 +9,5 @@
 (assert (= (+ (* x x) (* y y)) (* z z)))
 
 (check-sat)
+
+(set-info :mlprover-strategy smt)

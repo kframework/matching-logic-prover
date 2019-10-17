@@ -13,6 +13,12 @@ KDefinition( proj
            , krun_flags = '--interpret'
            )
 KDefinition( proj
+           , alias = 'test-matching'
+           , backend = 'ocaml'
+           , directory = proj.builddir('defn/test-matching')
+           , krun_flags = '--interpret'
+           )
+KDefinition( proj
            , alias = 'smtlib'
            , backend = 'java'
            , directory = proj.builddir('defn/smtlib')
