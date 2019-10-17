@@ -11,8 +11,11 @@ module UNIT-TESTS-SYNTAX
     imports PROVER-SYNTAX
 ```
 
-The program parsing grammar does not include subsorting into KItem. We must do
-this manually, so that we can use `Pattern`s as keys/values in Maps etc.
+When K generates the grammar for parsing rules in modules, it adds a production
+for every sort into the KItem sort. This is *not* done for the program parsing
+grammar. The consequence of this is that `Pattern`s etc will not be parsed
+as keys/values in `Map`s, since `Map` uses `KItem` directly in it's productions.
+To work around this, we manually add such productions below.
 
 ```k
     syntax KItem ::= Pattern
