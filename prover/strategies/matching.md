@@ -25,9 +25,7 @@ Instantiate existentials using matching on the spatial part of goals:
                        => \exists { Vs -Patterns fst(unzip(SUBST)) } substMap(\and(RHS), SUBST)
                        )
        </claim>
-       <strategy> ( #matchResult( subst: SUBST
-                                , rest:  .Patterns
-                                )
+       <strategy> ( #matchResult(subst: SUBST, rest: .Patterns)
                   ; .MatchResults
                  ~> match
                   )
