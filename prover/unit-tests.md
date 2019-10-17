@@ -19,6 +19,7 @@ To work around this, we manually add such productions below.
 
 ```k
     syntax KItem ::= Pattern
+                   | MatchResults
 ```
 
 ```k
@@ -30,7 +31,7 @@ module UNIT-TESTS
   imports STRATEGY-MATCHING
   imports PROVER-DRIVER
 
-  syntax Declaration ::= "assert" "(" MatchResults "==" MatchResults ")" [format(%1%2%i%i%n%3%d%n%4%i%n%5%d%d%6%n)]
+  syntax Declaration ::= "assert" "(" KItem "==" KItem ")" [format(%1%2%i%i%n%3%d%n%4%i%n%5%d%d%6%n)]
   rule assert(EXPECTED == EXPECTED) => .K
 endmodule
 ```
