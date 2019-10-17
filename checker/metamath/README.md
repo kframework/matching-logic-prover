@@ -11,5 +11,6 @@
 # FAQ
 
 Q: What is Metamath?
+
 A: See http://us.metamath.org/. In short, Metamath is a very simple program that allows one to define the metalevel of any formal systems and logics. 
 
