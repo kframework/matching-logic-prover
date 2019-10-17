@@ -20,7 +20,7 @@ claim \implies( \and( listSegmentRightLength( H { ArrayIntInt }
                                             )
                    )
               ) 
-strategy search-bound(3)
+strategy search-fol(bound: 3)
 /*
 strategy right-unfold-Nth(0, 1) ; simplify ; direct-proof
 */

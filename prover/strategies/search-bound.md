@@ -8,11 +8,11 @@ module STRATEGY-SEARCH-BOUND
   imports PROVER-CORE
   imports PROVER-HORN-CLAUSE-SYNTAX
 
-  rule <strategy> search-bound(0) => fail </strategy>
-  rule <strategy> search-bound(N)
+  rule <strategy> search-fol(bound: 0) => fail </strategy>
+  rule <strategy> search-fol(bound: N)
                => simplify ; ( ( instantiate-existentials ; smt-cvc4 )
-                             | (kt                 ; search-bound(N -Int 1))
-                             | (right-unfold       ; search-bound(N -Int 1))
+                             | (kt           ; search-fol(bound: N -Int 1))
+                             | (right-unfold ; search-fol(bound: N -Int 1))
                              )
                   ...
        </strategy>

@@ -10,7 +10,7 @@ claim \implies( \and( bst( H { ArrayIntInt }
                     )
               , \and( bt( H { ArrayIntInt }, X { Int }, F { SetInt }) )
               )
-strategy search-bound(5)
+strategy search-fol(bound: 5)
 // strategy kt ; ( ( right-unfold-Nth(0,0) ; ( instantiate-existentials ; (smt-z3 | smt-cvc4) ) )
 //               | ( right-unfold-Nth(0,1) ; right-unfold-Nth(0,0) ; right-unfold-Nth(0,0) ; ( instantiate-existentials ; (smt-z3 | smt-cvc4) ) )
 //               | ( instantiate-existentials ; (smt-z3 | smt-cvc4) )

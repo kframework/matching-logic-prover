@@ -59,7 +59,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   imports INT-SYNTAX
   imports KORE-SUGAR
 
-  syntax Strategy ::= "search-bound" "(" Int ")"
+  syntax Strategy ::= "search-fol" "(" "bound" ":" Int ")"
                     | "remove-lhs-existential" | "normalize" | "smtlib-to-implication" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "lift-constraints"
