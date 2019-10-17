@@ -404,6 +404,21 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
     requires isPredicatePattern(CTXCONSTRAINT)
      andBool CTXCONSTRAINT in LHS
 
+  rule <claim> \implies(\and( sep ( \forall { UNIVs }
+                                    implicationContext( \and( sep(_)
+                                                            , ( CTXCONSTRAINT, CTXCONSTRAINTs )
+                                                            ) , _)
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> kt-collapse => fail ... </strategy>
+    requires isPredicatePattern(CTXCONSTRAINT)
+     andBool notBool (CTXCONSTRAINT in LHS)
+
 ```
 
 #### Infrastructure

@@ -35,6 +35,15 @@ Instantiate existentials using matching on the spatial part of goals:
                   ...
        </strategy>
 
+  rule <strategy> ( #matchResult(subst: _, rest: Ps)
+                  ; .MatchResults
+                 ~> match
+                  )
+               => fail
+                  ...
+       </strategy>
+     requires Ps =/=K .Patterns
+
   rule <strategy> (.MatchResults ~> match) => fail ... </strategy>
 ```
 

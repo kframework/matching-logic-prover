@@ -73,6 +73,9 @@ Normalize:
   rule <claim> \forall{Vs} P => P </claim>
        <strategy> smtlib-to-implication ... </strategy>
 
+  rule <claim> \implies(L, R) </claim>
+       <strategy> smtlib-to-implication => noop ... </strategy>
+
   rule <claim> \or(Ps) => \implies(\and(#filterNegative(Ps)), \and(\or(#filterPositive(Ps)))) </claim>
        <strategy> smtlib-to-implication => normalize ... </strategy>
 
