@@ -438,6 +438,10 @@ ${
     prule-mp     $a |- Q $.
 $}
 
+$( 
+    Our first theorem, "id".
+$)
+
 id $p |- ( \imp P P ) $=
   wfP wfP wfP wfimp wfimp wfP wfP wfimp wfP wfP prule-proposition-1 wfP wfP wfP
   wfimp wfP wfimp wfimp wfP wfP wfP wfimp wfimp wfP wfP wfimp wfimp wfP wfP wfP
@@ -468,6 +472,10 @@ prule-propagation-bot-right $a |- ( \imp ( \app P \bot ) \bot ) $.
 prule-propagation-or-left 
   $a |- ( \imp ( \app ( \imp ( \imp P \bot ) Q ) R )
                ( \imp ( \imp ( \app P R ) \bot ) ( \app Q R ) ) ) $.
+prule-propagation-or-right 
+  $a |- ( \imp ( \app R ( \imp ( \imp P \bot ) Q ) )
+               ( \imp ( \imp ( \app R P ) \bot ) ( \app R Q ) ) ) $.
+
 ${
     prule-framing-left.1 $e |- ( \imp f g ) $.
     prule-framing-left   $a |- ( \imp ( \app f P ) ( \app g P ) ) $.
@@ -491,10 +499,6 @@ $(
 $)
 
 $( ... $)
-
-$( 
-    Our first theorem.
-$)
 
 ${
     p2inf.1 $e |- ( \imp P ( \imp Q R ) ) $.
