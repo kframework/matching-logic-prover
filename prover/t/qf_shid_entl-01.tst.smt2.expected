@@ -6,7 +6,7 @@
     <goal>
       active: true, id: root, parent: .
       <claim>
-        \implies ( \and ( sep ( pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , RList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( \or ( RList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) )
+        \implies ( \and ( sep ( pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , RList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( sep ( RList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         success

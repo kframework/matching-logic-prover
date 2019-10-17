@@ -114,6 +114,11 @@ module SMTLIB-TO-KORE
            ...
       </k>
 
+  rule <k> P:Pattern ~> (check-sat) .SMTLIB2Script
+        => claim \not(P) strategy search-sl(bound: 6) ~> P
+           ...
+      </k>
+
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
   rule #normalizeDefinition(\or(Ps)) => \or(#exists(#flattenOrs(#dnfPs(Ps)), .Patterns))
 
