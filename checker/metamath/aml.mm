@@ -438,6 +438,12 @@ ${
     prule-mp     $a |- Q $.
 $}
 
+id $p |- ( \imp P P ) $=
+  wfP wfP wfP wfimp wfimp wfP wfP wfimp wfP wfP prule-proposition-1 wfP wfP wfP
+  wfimp wfP wfimp wfimp wfP wfP wfP wfimp wfimp wfP wfP wfimp wfimp wfP wfP wfP
+  wfimp prule-proposition-1 wfP wfP wfP wfimp wfP prule-proposition-2 prule-mp
+  prule-mp $.
+
 $(
     AML proof rules Part B: FOL reasoning.
 $)
@@ -456,6 +462,21 @@ $}
 $(
     AML proof rules Part C: Frame reasoning.
 $)
+
+prule-propagation-bot-left  $a |- ( \imp ( \app \bot P ) \bot ) $.
+prule-propagation-bot-right $a |- ( \imp ( \app P \bot ) \bot ) $.
+prule-propagation-or-left 
+  $a |- ( \imp ( \app ( \imp ( \imp P \bot ) Q ) R )
+               ( \imp ( \imp ( \app P R ) \bot ) ( \app Q R ) ) ) $.
+${
+    prule-framing-left.1 $e |- ( \imp f g ) $.
+    prule-framing-left   $a |- ( \imp ( \app f P ) ( \app g P ) ) $.
+$}
+
+${
+    prule-framing-right.1 $e |- ( \imp f g ) $.
+    prule-framing-right   $a |- ( \imp ( \app P f ) ( \app P g ) ) $.
+$}
 
 $( ... $)
 
@@ -556,6 +577,8 @@ ${
       wfneg wfQ wfneg wfP wfbot wfimp wfQ wfbot wfimp wfP df-neg wfQ df-neg
       metaeq-imp wfQ wfP wfimp metaeq-self metaeq-imp metaeq-thm $.
 $}
+
+
 
 $(
     Defind \forall x P === \neg ( \exists x ( \neg P ) )
