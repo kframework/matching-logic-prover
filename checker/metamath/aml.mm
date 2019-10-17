@@ -1,391 +1,572 @@
-$( Declare AML pattern constructs, one per line. $)
-$c 
-    \bot
-	\imp
-	\app 
-	\ex 
-	\mu 
-	( 
-	)
-$.
-
-$( Declare AML's "syntactic categories":
-   Wellformedness:          wf
-   AML variables:           var
-     Element AML variables: ev
-     Set AML variables:     sv
-   Symbols:                 sy
+$( 
+    Declare AML pattern constructs, one per line. 
 $)
-$c
-    wf var ev sv sy
-$.
 
-$( Declare AML provability relation. $)
-$c 
-    |- 
-$.
+$c \bot $.    $( the bottom pattern $)
+$c \imp $.    $( the implication pattern ( \imp P Q ) $)
+$c \app $.    $( the application pattern ( \app P Q ) $)
+$c \exists $. $( the exists quantifier ( \ex x P ) $)
+$c \mu $.     $( the mu fixpoint binder ( \mu X P ) $)
 
-$( Auxiliary stuffs:
-     non-positive occurrence of a variable: npo
-     non-negative occurrence of a variable: nno  
-     variable not occur free in a pattern:  fresh
-     substitution:                          subst
-     application context:                   appctx
+$(
+    Declare parentheses for pattern grouping.
 $)
-$c
-    fresh subst npo nno appctx
-$.
 
-$( Declare metamath variables $)
+$c ( $. $( left  parenthesis $)
+$c ) $. $( right parenthesis $)
+
+
+$( 
+    Declare AML's syntactic categories.
+$)
+
+$c wf $.   $( wellformedness token, 
+              read as "the following token sequence forms a wellformed pattern" $)
+$c var $.  $( AML variables token,
+              read as "the following token sequence forms a variable" $)
+              
+$(
+    A varialbe is either an element variable or a set variable. 
+$)
+
+$c evar $. $( element variables token,
+              read as "the following token sequence forms an element variable" $)
+$c svar $. $( set variables token,
+              read as "the following token sequence forms a set variable" $)
+$c symb $. $( AML symbols token,
+              read as "the following token sequence forms an AML symbol" $)
+
+$(
+    Declare AML provability relation, the token "|-",
+    read as "the following token sequence forms a provable pattern".
+$)
+
+$c |- $. $( the provability token $)
+
+$(
+    We declare some auxiliary stuffs of AML's metalevel.
+$)
+
+$c npositive $. $( non-positive occurrence token, whose expected form is "npositive X P",
+                   read as "the set variable X does not occur positively in P". $)
+                   
+$c nnegative $. $( non-negative occurrence token, whose expected form is "nnegative X P",
+                   read as "the set variable X does not occur negatively in P". $)
+
+$c nfree $. $( not-occur-free token, whose expected form is "nfree xx P",
+               read as "the variable xx does not occur free in P". $)
+               
+$c subst $. $( capture-avoiding substitution, whose expected form is "subst P Q R xx",
+               read as "P is the result of substituting R for xx in Q". $)
+               
+$c appctx $. $( application context token, whose expected form is "appctx P xx",
+                read as "P is an application context wrt variable xx". $)
+
+$( 
+    Declare metamath variables 
+$)
+
 $v 
-    P Q R P' Q' R' x y z X Y Z f g h xx yy
+    P Q R P' Q' R' 
+    x y z 
+    X Y Z 
+    f g h 
+    xx yy
 $.
 
-$( Specify the ranges of metamath variables $)
-wfP $f wf P $.
-wfPp $f wf P' $.
-wfQ $f wf Q $.
-wfQp $f wf Q' $.
-wfRp $f wf R' $.
-wfR $f wf R $.
-evx $f ev x $.
-evy $f ev y $.
-evz $f ev z $.
-svX $f sv X $.
-svY $f sv Y $.
-svZ $f sv Z $.
-syf $f sv f $.
-syg $f sv g $.
-syh $f sv h $.
+$( 
+    State the ranges of the above metamath variables.
+$)
+
+wfP   $f wf P $.
+wfPp  $f wf P' $.
+wfQ   $f wf Q $.
+wfQp  $f wf Q' $.
+wfRp  $f wf R' $.
+wfR   $f wf R $.
+
+evarx $f evar x $.
+evary $f evar y $.
+evarz $f evar z $.
+
+svarX $f svar X $.
+svarY $f svar Y $.
+svarZ $f svar Z $.
+
+symbf $f symb f $.
+symbg $f symb g $.
+symbh $f symb h $.
+
 varxx $f var xx $.
 varyy $f var yy $.
 
-$( Variables = Element variables + Set variables. $)
-evar $a var x $.
-svar $a var X $.
+$(
+    State that element/set variables are variables.
+$)
 
-$( Define wellformedness patterns: wf $)
-wfev   $a wf x $. $( this shouldn't be needed $)
-wfsv   $a wf X $. $( this shuoldn't be needed $)
-wfvar  $a wf xx $. 
-wfbot  $a wf \bot $.
-wfimp  $a wf ( \imp P Q ) $.
-wfapp  $a wf ( \app P Q ) $.
-wfex   $a wf ( \ex x P ) $.
+varevar $a var x $.
+varsvar $a var X $.
+
+$(
+    Define wellformedness token "wf ...". 
+$)
+
+wfvar    $a wf xx $. 
+wfbot    $a wf \bot $.
+wfimp    $a wf ( \imp P Q ) $.
+wfapp    $a wf ( \app P Q ) $.
+wfexists $a wf ( \exists x P ) $.
 ${
-    wfmu.nno $e nno X P $.
-    wfmu     $a wf ( \mu X P ) $.
+    wfmu.nnegative $e nnegative X P $.
+    wfmu           $a wf ( \mu X P ) $.
 $}
 
-$( Define fresh-ness of variables: fresh $)
+$(
+    Prove that element/set variables are wellformed patterns,
+    (because they are variables and variables are wellformed patterns).
+$)
+
+${
+    wfevar $p wf x $=
+      evarx varevar wfvar $.
+$}
+
+${
+    wfsvar $p wf X $=
+      svarX varsvar wfvar $.
+$}
+
+$( 
+    Define nfree token "nfree xx P".
+$)
 
 ${
     $d xx yy $.
-	fresh-var $a fresh xx yy $.
+	nfree-var $a nfree xx yy $.
 $}
 
-fresh-sy  $a fresh xx f $.
-fresh-bot $a fresh xx \bot $.
+nfree-symb $a nfree xx f $.
+nfree-bot  $a nfree xx \bot $.
 
 ${
-    fresh-imp.1 $e fresh xx P $.
-    fresh-imp.2 $e fresh xx Q $.
-    fresh-imp   $a fresh xx ( \imp P Q ) $.
+    nfree-imp.1 $e nfree xx P $.
+    nfree-imp.2 $e nfree xx Q $.
+    nfree-imp   $a nfree xx ( \imp P Q ) $.
 $}
 
 ${
-    fresh-app.1 $e fresh xx P $.
-    fresh-app.2 $e fresh xx Q $.
-    fresh-app   $a fresh xx ( \app P Q ) $.
+    nfree-app.1 $e nfree xx P $.
+    nfree-app.2 $e nfree xx Q $.
+    nfree-app   $a nfree xx ( \app P Q ) $.
 $}
 
-fresh-exbinding $a fresh x ( \ex x P ) $.
+nfree-exists-binding $a nfree x ( \exists x P ) $.
 
 ${
     $d xx y $.
-    fresh-exbody.1 $e fresh xx P $.
-    fresh-exbody   $a fresh xx ( \ex y P ) $.
+    nfree-exists-body.1 $e nfree xx P $.
+    nfree-exists-body   $a nfree xx ( \exists y P ) $.
 $}
 
-fresh-mubinding $a fresh X ( \mu X P ) $.
+nfree-mu-binding $a nfree X ( \mu X P ) $.
 
 ${
     $d xx Y $.
-    fresh-mubody.1 $e fresh xx P $.
-    fresh-mubody   $a fresh xx ( \ex Y P ) $.
+    nfree-mu-body.1 $e nfree xx P $.
+    nfree-mu-body   $a nfree xx ( \exists Y P ) $.
 $}
 
-$( Define non-negative/non-positive occurrence checking: nno/npo $)
-$( nno/npo takes 2 arguments: a set variable and a pattern $)
-nno-ev  $a nno X x $.
-nno-sv  $a nno X Y $.
-nno-sy  $a nno X f $.
-nno-bot $a nno X \bot $.
-${
-    nno-imp.1 $e npo X P $.
-    nno-imp.2 $e nno X Q $.
-    nno-imp   $a nno X ( \imp P Q ) $.
-$}
+$(
+    Define non-negative occurrence token "nnegative X P".
+$)
 
+nnegative-var  $a nnegative X xx $.
+nnegative-symb $a nnegative X f $.
+nnegative-bot  $a nnegative X \bot $.
 ${
-    nno-app.1 $e nno X P $.
-    nno-app.2 $e nno X Q $.
-    nno-app   $a nno X ( \app P Q ) $.
+    nnegative-imp.1 $e npositive X P $.
+    nnegative-imp.2 $e nnegative X Q $.
+    nnegative-imp   $a nnegative X ( \imp P Q ) $.
 $}
 
 ${
-   nno-ex.1 $e nno X P $.
-   nno-ex   $a nno X ( \ex x P ) $.
-$}
-
-nno-mu-binding $a nno X ( \mu X P ) $.
-
-${
-    $d X Y $.
-    nno-mu-body.1 $e nno X P $.
-    nno-mu-body   $a nno X ( \mu X P ) $.
-$}
-
-npo-ev  $a npo X x $.
-npo-sv  $a npo X Y $.
-npo-sy  $a npo X f $.
-npo-bot $a npo X \bot $.
-${
-    npo-imp.1 $e nno X P $.
-    npo-imp.2 $e npo X Q $.
-    npo-imp   $a npo X ( \imp P Q ) $.
+    nnegative-app.1 $e nnegative X P $.
+    nnegative-app.2 $e nnegative X Q $.
+    nnegative-app   $a nnegative X ( \app P Q ) $.
 $}
 
 ${
-    npo-app.1 $e npo X P $.
-    npo-app.2 $e npo X Q $.
-    npo-app   $a npo X ( \app P Q ) $.
+   nnegative-exists.1 $e nnegative X P $.
+   nnegative-exists   $a nnegative X ( \exists x P ) $.
 $}
 
-${
-   npo-ex.1 $e npo X P $.
-   npo-ex   $a npo X ( \ex x P ) $.
-$}
-
-npo-mu-binding $a npo X ( \mu X P ) $.
+nnegative-mu-binding $a nnegative X ( \mu X P ) $.
 
 ${
     $d X Y $.
-    npo-mu-body.1 $e npo X P $.
-    npo-mu-body   $a npo X ( \mu X P ) $.
+    nnegative-mu-body.1 $e nnegative X P $.
+    nnegative-mu-body   $a nnegative X ( \mu Y P ) $.
 $}
 
-$( Define substitution: subst result origin replacer variable $)
+$(
+    Define non-positive occurrence token "npositive X P".
+$)
 
-subst-varsame $a subst R xx R xx $.
+npositive-evar  $a npositive X x $.
+${
+    $d X Y $.
+    npositive-svar  $a npositive X Y $.
+$}
+npositive-symb $a npositive X f $.
+npositive-bot  $a npositive X \bot $.
+${
+    npositive-imp.1 $e nnegative X P $.
+    npositive-imp.2 $e npositive X Q $.
+    npositive-imp   $a npositive X ( \imp P Q ) $.
+$}
+
+${
+    npositive-app.1 $e npositive X P $.
+    npositive-app.2 $e npositive X Q $.
+    npositive-app   $a npositive X ( \app P Q ) $.
+$}
+
+${
+   npositive-exists.1 $e npositive X P $.
+   npositive-exists   $a npositive X ( \exists x P ) $.
+$}
+
+npositive-mu-binding $a npositive X ( \mu X P ) $.
+
+${
+    $d X Y $.
+    npositive-mu-body.1 $e npositive X P $.
+    npositive-mu-body   $a npositive X ( \mu Y P ) $.
+$}
+
+$( 
+    Define capture-avoiding substitution "subst P Q R xx",
+    meaning that P is the result of substituting R for xx in Q.
+    Note that xx can be either element variable or set variable.
+$)
+
+subst-var-same $a subst R xx R xx $.
 
 ${
     $d xx yy $.
-    subst-vardiff $a subst x xx R yy $.
+    subst-var-diff $a subst yy yy R xx $.
 $}
 
-subst-sy  $a subst f f R yy $.
-substev-bot $a subst \bot \bot R yy $.
+subst-symb  $a subst f f R xx $.
+subst-bot $a subst \bot \bot R xx $.
 
 ${
-    subst-imp.1 $e subst P' P R yy $.
-    subst-imp.2 $e subst Q' Q R yy $.
-    subst-imp   $a subst ( \imp P' Q' ) ( \imp P Q ) R yy $.
+    subst-imp.1 $e subst P  Q  R xx $.
+    subst-imp.2 $e subst P' Q' R xx $.
+    subst-imp   $a subst ( \imp P P' ) ( \imp Q Q' ) R xx $.
 $}
 
 ${
-    subst-app.1 $e subst P' P R yy $.
-    subst-app.2 $e subst Q' Q R yy $.
-    subst-app   $a subst ( \app P' Q' ) ( \app P Q ) R yy $.
+    subst-app.1 $e subst P  Q  R xx $.
+    subst-app.2 $e subst P' Q' R xx $.
+    subst-app   $a subst ( \app P P' ) ( \app Q Q' ) R xx $.
 $}
 
-subst-exbinding $a subst ( \ex y P ) ( \ex y P ) R y $.
+subst-exists-binding $a subst ( \exists x Q ) ( \exists x Q ) R x $.
 
 ${
-    $d x yy z $.
-    subst-exbody.1 $e subst Q P z x $.
-    subst-exbody.2 $e subst Q' Q R yy $.
-    subst-exbody   $a subst ( \ex z Q' ) ( \ex x P ) R yy $.
+    $d y xx z $.
+    subst-exists-body.1 $e subst Q P z y $.
+    subst-exists-body.2 $e subst Q' Q R xx $.
+    subst-exists-body   $a subst ( \exists z Q' ) ( \exists y P ) R xx $.
 $}
 
-subst-mubinding $a subst ( \mu Y P ) ( \mu Y P ) R Y $.
+subst-mu-binding $a subst ( \mu X P ) ( \mu X P ) R X $.
 
 ${
-    $d X yy Z $.
-    subst-mubody.1 $e subst Q P Z X $.
-    subst-mubody.2 $e subst Q' Q R yy $.
-    subst-mubody   $a subst ( \mu Z Q' ) ( \mu X P ) R yy $.
+    $d Y xx Z $.
+    subst-mu-body.1 $e subst Q P Z Y $.
+    subst-mu-body.2 $e subst Q' Q R xx $.
+    subst-mu-body   $a subst ( \mu Z Q' ) ( \mu Y P ) R xx $.
 $}
-
-$( Define appliation context checking: appctx $)
-
-appctx-ini $a appctx x x $.
-${
-    appctx-app-left.1 $e appctx P x $.
-    appctx-app-left.2 $e fresh x Q $.
-    appctx-app-left   $a appctx ( \app P Q ) x $.
-$}
-${
-    appctx-app-right.1 $e appctx Q x $.
-    appctx-app-right.2 $e fresh x P $.
-    appctx-app-right   $a appctx ( \app P Q ) x $.
-$}
-
-$( State the metalevel equality: me $)
-
-$c me $.
-
-$( Define metalevel equality over patterns $)
-
-df-me-var $a me xx xx $.
-df-me-sy  $a me f f $.
-df-me-bot $a me \bot \bot $.
-${
-    df-me-imp.1 $e me P P' $.
-	df-me-imp.2 $e me Q Q' $.
-	df-me-imp $a me ( \imp P Q ) ( \imp P' Q' ) $.
-$}
-${
-    df-me-app.1 $e me P P' $.
-	df-me-app.2 $e me Q Q' $.
-	df-me-app $a me ( \app P Q ) ( \app P' Q' ) $.
-$}
-${
-    df-me-ex.1 $e me x y $.
-	df-me-ex.2 $e me P Q $.
-	df-me-ex   $a me ( \ex x P ) ( \ex y Q ) $.
-$}
-${
-    df-me-mu.1 $e me x y $.
-	df-me-mu.2 $e me P Q $.
-	df-me-mu   $a me ( \mu x P ) ( \mu y Q ) $.
-$}
-
-$( Propagate metalevel equality everywhere $)
 
 $(
-	me-wf.1 $e wf Q $.
-	me-wf.2 $e me P Q $.
-	me-wf   $a wf P $.
+    Define appliation context "appctx P xx".
 $)
-${ 
-	me-var.1 $e var yy $.
-	me-var.2 $e me xx yy $.
-	me-var   $a var xx $.
-$}
-${ 
-	me-ev.1 $e ev y $.
-	me-ev.2 $e me x y $.
-	me-ev   $a ev x $.
-$}
-${ 
-	me-sv.1 $e sv Y $.
-	me-sv.2 $e me X Y $.
-	me-sv   $a sv X $.
-$}
-${ 
-	me-sy.1 $e sy g $.
-	me-sy.2 $e me f g $.
-	me-sy   $a sy f $.
-$}
-${  
-	me-fresh.1 $e fresh yy Q $.
-    me-fresh.2 $e me xx yy $.
-	me-fresh.3 $e me P Q $.
-    me-fresh $a fresh xx P $.
-$}
+
+appctx-var $a appctx xx xx $.
+
 ${
-	me-subst.1 $e subst P' Q' R' xx $.
-	me-subst.2 $e me P P' $.
-	me-subst.3 $e me Q Q' $.
-	me-subst.4 $e me R R' $.
-	me-subst.5 $e me yy xx $.
-	me-subst $a subst P Q R yy $.
-$}
-${
-    me-nno.1 $e nno Y Q $.
-	me-nno.2 $e me X Y $.
-	me-nno.3 $e me P Q $.
-    me-nno   $a nno X P $.
-$}
-${
-    me-npo.1 $e npo Y Q $.
-	me-npo.2 $e me X Y $.
-	me-npo.3 $e me P Q $.
-    me-npo   $a npo X P $.
-$}
-${
-    me-appctx.1 $e appctx y Q $.
-	me-appctx.2 $e me x y $.
-	me-appctx.3 $e me P Q $.
-    me-appctx $a appctx x P $.
-$}
-${
-    me-thm.1 $e |- Q $.
-	me-thm.2 $e me P Q $.
-    me-thm   $a |- P $.
+    appctx-app-left.1 $e appctx P xx $.
+    appctx-app-left.2 $e nfree xx Q $.
+    appctx-app-left   $a appctx ( \app P Q ) xx $.
 $}
 
-$( State the propositional rules $)
+${
+    appctx-app-right.1 $e appctx Q xx $.
+    appctx-app-right.2 $e nfree xx P $.
+    appctx-app-right   $a appctx ( \app P Q ) xx $.
+$}
 
-ax1 $a |- ( \imp P ( \imp Q P ) ) $.
+$(
+    Define the metalevel equality token "me".
+$)
 
-ax2 $a |- ( \imp ( \imp P ( \imp Q R ) )
-                   ( \imp ( \imp P Q ) ( \imp P R ) ) ) $.
+$c metaeq $.
+
+metaeq-self $a metaeq P P $.
+
+${
+    metaeq-imp.1 $e metaeq P  Q $.
+	metaeq-imp.2 $e metaeq P' Q' $.
+	metaeq-imp   $a metaeq ( \imp P P' ) ( \imp Q Q' ) $.
+$}
+
+${
+    metaeq-app.1 $e metaeq P Q $.
+	metaeq-app.2 $e metaeq P' Q' $.
+	metaeq-app   $a metaeq ( \app P P' ) ( \app Q Q' ) $.
+$}
+
+${
+    metaeq-exists.1 $e metaeq x y $.
+	metaeq-exists.2 $e metaeq P Q $.
+	metaeq-exists   $a metaeq ( \exists x P ) ( \exists y Q ) $.
+$}
+
+${
+    metaeq-mu.1 $e metaeq x y $.
+	metaeq-mu.2 $e metaeq P Q $.
+	metaeq-mu   $a metaeq ( \mu x P ) ( \mu y Q ) $.
+$}
+
+$(
+    Propagate metalevel equality "metaeq" everywhere.
+$)
+
+$(  DON'T NEED THESE RIGHT NOW.
+	metaeq-wf.1 $e wf Q $.
+	metaeq-wf.2 $e metaeq P Q $.
+	metaeq-wf   $a wf P $.
+$)
+
+$(  DON'T NEED THESE RIGHT NOW.
+	metaeq-var.1 $e var yy $.
+	metaeq-var.2 $e metaeq xx yy $.
+	metaeq-var   $a var xx $.
+$)
+
+$(  DON'T NEED THESE RIGHT NOW.
+	metaeq-evar.1 $e ev y $.
+	metaeq-evar.2 $e metaeq x y $.
+	metaeq-evar   $a ev x $.
+$)
+
+$(  DON'T NEED THESE RIGHT NOW. 
+	metaeq-svar.1 $e sv Y $.
+	metaeq-svar.2 $e metaeq X Y $.
+	metaeq-svar   $a sv X $.
+$)
+
+$(  DON'T NEED THESE RIGHT NOW. 
+	metaeq-symb.1 $e symb g $.
+	metaeq-symb.2 $e metaeq f g $.
+	metaeq-symb   $a symb f $.
+$)
+
+${
+    metaeq-nfree.1 $e nfree yy Q $.
+    metaeq-nfree.2 $e metaeq xx yy $.
+	metaeq-nfree.3 $e metaeq P Q $.
+    metaeq-nfree   $a nfree xx P $.
+$}
+
+${
+	metaeq-subst.1 $e subst P' Q' R' xx $.
+	metaeq-subst.2 $e metaeq P P' $.
+	metaeq-subst.3 $e metaeq Q Q' $.
+	metaeq-subst.4 $e metaeq R R' $.
+	metaeq-subst.5 $e metaeq yy xx $.
+	metaeq-subst $a subst P Q R yy $.
+$}
+
+${
+    metaeq-nnegative.1 $e nnegative Y Q $.
+	metaeq-nnegative.2 $e metaeq X Y $.
+	metaeq-nnegative.3 $e metaeq P Q $.
+    metaeq-nnegative   $a nnegative X P $.
+$}
+
+${
+    metaeq-npositive.1 $e npositive Y Q $.
+	metaeq-npositive.2 $e metaeq X Y $.
+	metaeq-npositive.3 $e metaeq P Q $.
+    metaeq-npositive   $a npositive X P $.
+$}
+
+${
+    metaeq-appctx.1 $e appctx y Q $.
+	metaeq-appctx.2 $e metaeq x y $.
+	metaeq-appctx.3 $e metaeq P Q $.
+    metaeq-appctx   $a appctx x P $.
+$}
+
+${
+    metaeq-thm.1 $e |- Q $.
+	metaeq-thm.2 $e metaeq P Q $.
+    metaeq-thm   $a |- P $.
+$}
+
+$(
+    State AML proof rules (prule).
+$)
+
+$(
+    AML proof rules Part A: Propositional reasoning.
+$)
+
+prule-proposition-1 $a |- ( \imp P ( \imp Q P ) ) $.
+
+prule-proposition-2 $a |- ( \imp ( \imp P ( \imp Q R ) )
+                                 ( \imp ( \imp P Q ) ( \imp P R ) ) ) $.
 				   
-ax3 $a |- ( ( ( \imp P \bot ) \bot ) P ) $.
+prule-proposition-3 $a |- ( \imp ( \imp ( \imp P \bot ) \bot ) P ) $.
 
 ${
-    mp.1   $e |- P $.
-    mp.2   $e |- ( \imp P Q ) $.
-    mp     $a |- Q $.
+    prule-mp.1   $e |- P $.
+    prule-mp.2   $e |- ( \imp P Q ) $.
+    prule-mp     $a |- Q $.
 $}
 
-$( State the FOL reasoning rules $)
-
-${
-	ax4.1 $e subst P' P y x $.
-	ax4   $a |- ( \imp P' ( \ex x P ) ) $.
-$}
-
-${
-	ug.1 $e fresh x P $.
-	ug   $a |- ( \imp P ( \ex x Q ) ) $.
-$}
-
-$( State the frame reasoning rules $)
-$( ... $)
-
-$( State the fixpoint reasoning rules $)
-$( ... $)
-
-$( State technical rules $)
-$( ... $)
-
-$( Our first theorem:
-         |- P -> (Q -> R)
-    -------------------------
-     |- (P -> Q) -> (P -> R)
+$(
+    AML proof rules Part B: FOL reasoning.
 $)
 
 ${
-    ax2-inf.1 $e |- ( \imp P ( \imp Q R ) ) $.
-    ax2-inf   $p |- ( \imp ( \imp P Q ) ( \imp P R ) ) $=
-      wfP wfQ wfR wfimp wfimp wfP wfQ wfimp wfP wfR wfimp wfimp ax2-inf.1 wfP
-      wfQ wfR ax2 mp $.
+	prule-exists-inst.1 $e subst P Q y x $.
+	prule-exists-inst   $a |- ( \imp P ( \exists x Q ) ) $.
 $}
 
-$( Deifne negation ( \neg P ) === ( \imp P \bot ) $)
-$c \neg $.
-wfneg  $a wf ( \neg P ) $. $( We don't even need this one $)
-df-neg $a me ( \neg P ) ( \imp P \bot ) $.
-
-$( Prove metalevel properties about negations $)
 ${
-	fresh-neg.1 $e fresh xx P $.
-	fresh-neg   $p fresh xx ( \neg P ) $=
-  wfP wfneg wfP wfbot wfimp varxx varxx wfP wfbot varxx fresh-neg.1 varxx
-  fresh-bot fresh-imp varxx df-me-var wfP df-neg me-fresh $.
+    prule-exists-gen.1 $e |- ( \imp P Q ) $.
+	prule-exists-gen.2 $e nfree x P $.
+	prule-exists-gen   $a |- ( \imp P ( \exists x Q ) ) $.
 $}
+
+$(
+    AML proof rules Part C: Frame reasoning.
+$)
+
+$( ... $)
+
+$(
+    AML proof rules Part D: Fixpoint reasoning.
+$)
+
+$( ... $)
+
+$(
+    AML proof rules Part E: Misc technical proof rules.
+$)
+
+$( ... $)
+
+$( 
+    Our first theorem.
+$)
+
+${
+    p2inf.1 $e |- ( \imp P ( \imp Q R ) ) $.
+    p2inf   $p |- ( \imp ( \imp P Q ) ( \imp P R ) ) $=
+      wfP wfQ wfR wfimp wfimp wfP wfQ wfimp wfP wfR wfimp wfimp p2inf.1 wfP
+      wfQ wfR prule-proposition-2 prule-mp $.
+$}
+
+${
+    nflipb $p |- ( \imp ( \imp ( \imp P \bot ) ( \imp Q \bot ) ) ( \imp Q P ) ) $= ? $.
+$}
+
+$( 
+    Our first definition: negation.
+    ( \neg P ) === ( \imp P \bot ) 
+$)
+
+$c \neg $.
+
+wfneg  $a wf ( \neg P ) $. $( Ideally we do not even need this one. $)
+
+df-neg $a metaeq ( \neg P ) ( \imp P \bot ) $.
+
+$( 
+    Prove metalevel properties about negations.
+$)
+
+${
+	nfree-neg.1 $e nfree xx P $.
+	nfree-neg   $p nfree xx ( \neg P ) $=
+  wfP wfneg wfP wfbot wfimp varxx varxx wfP wfbot varxx nfree-neg.1 varxx
+  nfree-bot nfree-imp varxx wfvar metaeq-self wfP df-neg metaeq-nfree $.
+$}
+
+${
+    subst-neg.1 $e subst P' P R yy $.
+    subst-neg   $p subst ( \neg P' ) ( \neg P ) R yy $=
+      wfPp wfneg wfPp wfbot wfimp wfP wfneg wfP wfbot wfimp wfR wfR varyy varyy
+      wfPp wfbot wfP wfbot wfR varyy subst-neg.1 wfR varyy subst-bot subst-imp
+      wfPp df-neg wfP df-neg wfR metaeq-self varyy wfvar metaeq-self
+      metaeq-subst $.
+$}
+
+${
+    nnegative-neg.1 $e npositive X P $.
+    nnegative-neg   $p nnegative X ( \neg P ) $=
+      wfP wfneg wfP wfbot wfimp svarX svarX wfP wfbot svarX nnegative-neg.1 
+      svarX nnegative-bot nnegative-imp svarX wfsvar metaeq-self wfP df-neg 
+      metaeq-nnegative $.
+$}
+
+${
+    npositive-neg.1 $e nnegative X P $.
+    npositive-neg   $p npositive X ( \neg P ) $=
+      wfP wfneg wfP wfbot wfimp svarX svarX wfP wfbot svarX npositive-neg.1 
+      svarX npositive-bot npositive-imp svarX wfsvar metaeq-self wfP df-neg 
+      metaeq-npositive $.
+$}
+
+$( 
+    Prove some metatheorems about negations. 
+$)
+
+${
+    nn $p |- ( \imp ( \neg ( \neg P ) ) P ) $=
+      wfP wfneg wfneg wfP wfimp wfP wfneg wfbot wfimp wfP wfimp wfP wfneg wfbot
+      wfimp wfP wfimp wfP wfbot wfimp wfbot wfimp wfP wfimp wfP
+      prule-proposition-3 wfP wfneg wfbot wfimp wfP wfP wfbot wfimp wfbot wfimp
+      wfP wfP wfneg wfbot wfP wfbot wfimp wfbot wfP df-neg wfbot metaeq-self
+      metaeq-imp wfP metaeq-self metaeq-imp metaeq-thm wfP wfneg wfneg wfP wfP
+      wfneg wfbot wfimp wfP wfP wfneg df-neg wfP metaeq-self metaeq-imp
+      metaeq-thm $.
+$}
+
+${
+    nflip $p |- ( \imp ( \imp ( \neg P ) ( \neg Q ) ) ( \imp Q P ) ) $=
+      wfP wfneg wfQ wfneg wfimp wfQ wfP wfimp wfimp wfP wfbot wfimp wfQ wfbot
+      wfimp wfimp wfQ wfP wfimp wfimp wfP wfQ nflipb wfP wfneg wfQ wfneg wfimp
+      wfQ wfP wfimp wfP wfbot wfimp wfQ wfbot wfimp wfimp wfQ wfP wfimp wfP
+      wfneg wfQ wfneg wfP wfbot wfimp wfQ wfbot wfimp wfP df-neg wfQ df-neg
+      metaeq-imp wfQ wfP wfimp metaeq-self metaeq-imp metaeq-thm $.
+$}
+
+$(
+    Defind \forall x P === \neg ( \exists x ( \neg P ) )
+$)
+
+$c \forall $.
+
+wfforall $a \forall x P $.
+
+df-forall $a metaeq ( \forall x P ) ( \neg ( \exists x ( \neg P ) ) ) $.
+
+
 
 
