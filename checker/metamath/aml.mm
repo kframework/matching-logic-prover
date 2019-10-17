@@ -475,30 +475,58 @@ prule-propagation-or-left
 prule-propagation-or-right 
   $a |- ( \imp ( \app R ( \imp ( \imp P \bot ) Q ) )
                ( \imp ( \imp ( \app R P ) \bot ) ( \app R Q ) ) ) $.
-
 ${
-    prule-framing-left.1 $e |- ( \imp f g ) $.
-    prule-framing-left   $a |- ( \imp ( \app f P ) ( \app g P ) ) $.
+    prule-propagation-exists-left.1
+      $e nfree x Q $.
+    prule-propagation-exists-left
+      $a |- ( \imp ( \app ( \exists x P ) Q )
+                   ( \exists x ( \app P Q ) ) ) $.
 $}
 
 ${
-    prule-framing-right.1 $e |- ( \imp f g ) $.
-    prule-framing-right   $a |- ( \imp ( \app P f ) ( \app P g ) ) $.
+    prule-propagation-exists-right.1
+      $e nfree x Q $.
+    prule-propagation-exists-right
+      $a |- ( \imp ( \app Q ( \exists x P ) )
+                   ( \exists x ( \app Q P ) ) ) $.
 $}
 
-$( ... $)
+${
+    prule-framing-left.1 $e |- ( \imp P Q ) $.
+    prule-framing-left   $a |- ( \imp ( \app P R ) ( \app Q R ) ) $.
+$}
+
+${
+    prule-framing-right.1 $e |- ( \imp P Q ) $.
+    prule-framing-right   $a |- ( \imp ( \app R P ) ( \app R Q ) ) $.
+$}
 
 $(
     AML proof rules Part D: Fixpoint reasoning.
 $)
 
-$( ... $)
+${
+    prule-svar-subst.1 $e |- Q $.
+    prule-svar-subst.2 $e subst P Q R Y $.
+    prule-svar-subst $a |- P $.
+$}
+
+${
+    prule-prefixpoint.1 $e subst Q P ( \mu X P ) X $.
+    prule-prefixpoint   $a |- ( \imp Q ( \mu X P ) ) $.
+$}
+
+${
+    prule-kt.1 $e |- ( \imp R Q ) $.
+    prule-kt.2 $e subst R P Q X $.
+    prule-kt   $a |- ( \imp ( \mu X P ) Q ) $.
+$}
 
 $(
     AML proof rules Part E: Misc technical proof rules.
 $)
 
-$( ... $)
+prule-existence $a |- ( \exists x x ) $.
 
 ${
     p2inf.1 $e |- ( \imp P ( \imp Q R ) ) $.
@@ -506,6 +534,10 @@ ${
       wfP wfQ wfR wfimp wfimp wfP wfQ wfimp wfP wfR wfimp wfimp p2inf.1 wfP
       wfQ wfR prule-proposition-2 prule-mp $.
 $}
+
+$(
+    Singelton Variables.
+$)
 
 ${
     nflipb $p |- ( \imp ( \imp ( \imp P \bot ) ( \imp Q \bot ) ) ( \imp Q P ) ) $= ? $.
