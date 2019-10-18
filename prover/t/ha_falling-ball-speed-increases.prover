@@ -1,4 +1,4 @@
-imports "t/definitions/ha_bouncing-ball.prover"
+imports "t/definitions/ha_falling-ball.prover"
 
 claim \implies( \and( gt( S1 { Int }, 0)
                     , reach( S1 { Int }, S2 { Int } ))
@@ -7,5 +7,5 @@ claim \implies( \and( gt( S1 { Int }, 0)
 
 
 // Strategy
-right-unfold
+strategy right-unfold
 
