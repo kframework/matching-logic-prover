@@ -164,11 +164,11 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
   rule #matchShowFailures( term: T, pattern: _, variables: Vs )
     => #matchFailure( "AlphaRenaming not done" ), .MatchResults
     requires getFreeVariables(T) intersect Vs =/=K .Patterns
-    
-    
+
+
   rule #match( term: T, pattern: P, variables: Vs )
     => #filterMatchFailures(#matchShowFailures( term: T, pattern: P, variables: Vs ))
-    
+
   syntax MatchResults ::= #filterMatchFailures(MatchResults) [function]
   rule #filterMatchFailures(MF:MatchFailure , MRs) => #filterMatchFailures(MRs)
   rule #filterMatchFailures(MF              , MRs) => MF , #filterMatchFailures(MRs)
@@ -206,7 +206,7 @@ Recurse over assoc-only constructors (including `pto`):
                 , results:   .MatchResults
                 , subst:     SUBST
                 )
-    => #matchFailure("Constructors do not match"), .MatchResults     
+    => #matchFailure("Constructors do not match"), .MatchResults
     requires S1 =/=K S2
      andBool S1 =/=K sep
 
@@ -219,7 +219,7 @@ Recurse over assoc-only constructors (including `pto`):
                 )
     => #matchResult(subst: SUBST), .MatchResults
     requires S =/=K sep
-    
+
   // Application, can susbstitute
   rule #matchAux( terms:     S:Symbol(ARG, ARGs), .Patterns
                           => S(ARGs), .Patterns
@@ -231,7 +231,7 @@ Recurse over assoc-only constructors (including `pto`):
                 )
     requires S =/=K sep
      andBool P_ARG in Vs
-     
+
   // Application, ground: don't need substitution
   rule #matchAux( terms:     S:Symbol(ARG, ARGs) , .Patterns
                           => S:Symbol(ARGs:Patterns) , .Patterns
