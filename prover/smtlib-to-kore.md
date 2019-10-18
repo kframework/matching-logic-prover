@@ -127,8 +127,8 @@ module SMTLIB-TO-KORE
 
   syntax Pattern ::= SMTLIB2TermToPattern(SMTLIB2Term, Patterns) [function]
   rule SMTLIB2TermToPattern( (exists ( ARGS ) T), Vs ) => \exists { SMTLIB2SortedVarListToPatterns(ARGS) } SMTLIB2TermToPattern(T, SMTLIB2SortedVarListToPatterns(ARGS) ++Patterns Vs)
-  rule SMTLIB2TermToPattern((and L R), Vs) => \and(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((or L R), Vs) => \or(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((and Ts), Vs) => \and(SMTLIB2TermListToPatterns(Ts, Vs))
+  rule SMTLIB2TermToPattern((or Ts), Vs) => \or(SMTLIB2TermListToPatterns(Ts, Vs))
   rule SMTLIB2TermToPattern((distinct L R), Vs) => \not(\equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern((= L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((< L R), Vs) => lt(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
@@ -136,7 +136,7 @@ module SMTLIB-TO-KORE
   rule SMTLIB2TermToPattern((+ L R), Vs) => plus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((- L R), Vs) => minus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((* L R), Vs) => mult(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((not P), Vs) => \not(SMTLIB2TermToPattern(P, Vs))
+  rule SMTLIB2TermToPattern((not T), Vs) => \not(SMTLIB2TermToPattern(T, Vs))
   rule SMTLIB2TermToPattern((ite C L R), Vs) => \or( \and(SMTLIB2TermToPattern(C, Vs), SMTLIB2TermToPattern(L, Vs))
                                                    , \and(\not(SMTLIB2TermToPattern(C, Vs)), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern(I:Int, _) => I
