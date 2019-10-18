@@ -4,6 +4,16 @@ symbol reach( State , State ) : Bool
 
 axiom functional(reach)
 
+symbol evolve( State , Duration ) : State
+
+axiom functional(evolve)
+
+axiom \forall { S1 { State }, T { Duration } }
+            \equals( evolve( S1 { State } , T { Duration })
+                   , plus( S1 { State }, mult( S1 { State }, T) )
+                   )
+
+
 axiom \forall { S1 { State },  S2 { State } }
       \iff-lfp( reach( S1 { State } , S2 { State } )
               , \or ( \exists { } \and ( \equals ( S1 { State }, S2 { State } )
@@ -12,10 +22,9 @@ axiom \forall { S1 { State },  S2 { State } }
                                                                 , evolve( S1 { State } , T { Duration }))
                                                       , .Patterns
                                                       )
-                    , \exists { SI { State } }  \and ( reach(S1, SI)
-                                                     , reach(SI, S2)
+                    , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
+                                                     , reach(SI { State }, S2 { State })
                                                      )
                     )
               )
-
 

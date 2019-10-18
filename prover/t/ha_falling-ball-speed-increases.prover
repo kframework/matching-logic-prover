@@ -1,8 +1,10 @@
 imports "t/definitions/ha_bouncing-ball.prover"
 
+claim \forall { S1 { State }, S2 { State } }
+        \implies( \and( gt( S1 { State }, 0)
+                      , reach( S1 { State }, S2 { State } ))
+                , gt(S2 { State }, 0)
+                )
 
 
-claim \forall { S1 : State, S2 : State }
-        \implies( \and(S1 > 0 , reach(S1, S2)), S2 > 0 )
-
-
+// Strategy
