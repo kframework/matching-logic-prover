@@ -51,20 +51,13 @@ test_driver = proj.definition( alias = 'test-driver'
                              , other = other_md_files + ['prover.md']
                              , runner_script = './prover'
                              )
-test_driver.tests(alias = 'unit-tests', inputs = glob('t/match-unit-tests'))
-
-# SMTLIB Translation
-# ==================
-
-smtlib_testdriver = proj.definition( alias = 'smtlib'
-                                   , backend = 'java'
-                                   , main = 'smt.md'
-                                   , flags = '--main-module SMT-TEST-DRIVER --syntax-module SMT-TEST-DRIVER'
-                                   , runner_script = './prover'
-                                   )
-
-smtlib_testdriver.proofs( glob = proj.tangle('smtlib2-tests.md').path # TODO: FIXME
-                        , alias = 'smtlib2-tests'
-                        )
+def remove(blacklist, iter):
+    def f(item):
+        return not item in blacklist
+    return filter(f, iter)
+test_driver.tests( alias = 'unit-tests'
+                 , inputs = remove(['t/unit/expected'], glob('t/unit/*'))
+                 , expected='t/unit/expected'
+                 )
 
 proj.main()

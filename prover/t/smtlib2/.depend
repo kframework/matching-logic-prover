@@ -1,6 +1,0 @@
-smtlib2-kompiled/timestamp : \
-    /home/njr/co/github.com/kframework/matching-logic-prover/prover/ext/k/k-distribution/target/release/k/include/builtin/domains.k \
-    /home/njr/co/github.com/kframework/matching-logic-prover/prover/ext/k/k-distribution/tests/regression-new/smtlib2/./smtlib2.k \
-    /home/njr/co/github.com/kframework/matching-logic-prover/prover/ext/k/k-distribution/target/release/k/include/builtin/smt.k \
-    /home/njr/co/github.com/kframework/matching-logic-prover/prover/ext/k/k-distribution/target/release/k/include/builtin/kast.k \
-
