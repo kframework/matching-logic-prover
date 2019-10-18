@@ -1,30 +1,30 @@
 // Kore axiomatization of bouncing ball HA
 
-symbol reach( State , State ) : Bool
+symbol reach( Int , Int ) : Bool
 
 axiom functional(reach)
 
-symbol evolve( State , Duration ) : State
+symbol evolve( Int , Int ) : Int
 
 axiom functional(evolve)
 
-axiom \forall { S1 { State }, T { Duration } }
-            \equals( evolve( S1 { State } , T { Duration })
-                   , plus( S1 { State }, mult( S1 { State }, T) )
-                   )
+axiom smt-lemma( \forall { S1 { Int }, T { Int } }
+                \equals( evolve( S1 { Int } , T { Int })
+                       , plus( S1 { Int }, mult( 10 , T { Int }) )
+                       )
+               )
 
 
-axiom \forall { S1 { State },  S2 { State } }
-      \iff-lfp( reach( S1 { State } , S2 { State } )
-              , \or ( \exists { } \and ( \equals ( S1 { State }, S2 { State } )
-                                       , .Patterns )
-                    , \exists { T { Duration } } \and ( \equals ( S2 { State }
-                                                                , evolve( S1 { State } , T { Duration }))
-                                                      , .Patterns
-                                                      )
-                    , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
-                                                     , reach(SI { State }, S2 { State })
-                                                     )
+axiom \forall { S1 { Int },  S2 { Int } }
+      \iff-lfp( reach( S1 { Int } , S2 { Int } )
+              , \or ( \exists { } \and ( \equals ( S1 { Int }, S2 { Int } ))
+                    , \exists { T { Int } } \and(  gt( T { Int }, 0 )
+                                                , \equals ( S2 { Int }
+                                                          , evolve( S1 { Int } , T { Int })
+                                                          )
+                                                )
+                    , \exists { SI { Int } }  \and ( reach(S1 { Int }, SI { Int })
+                                                   , reach(SI { Int }, S2 { Int })
+                                                   )
                     )
               )
-
