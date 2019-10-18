@@ -33,7 +33,7 @@ module ML-TO-SMTLIB2
   rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
     => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
        DeclarationsToSMTLIB(Ds)
-    requires isFunctional(S)  
+    requires isFunctional(S)
 
   rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
     => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) (Set SortToSMTLIB2Sort(SORT)) ) ++SMTLIB2Script
@@ -56,6 +56,7 @@ module ML-TO-SMTLIB2
 
   rule DeclarationsToSMTLIB((axiom \forall { Vs } \iff-lfp(_, _)) Ds) => DeclarationsToSMTLIB(Ds)
   rule DeclarationsToSMTLIB((axiom functional(_)) Ds) => DeclarationsToSMTLIB(Ds)
+  rule DeclarationsToSMTLIB((axiom smt-lemma(P)) Ds) => (assert PatternToSMTLIB2Term(P)) DeclarationsToSMTLIB(Ds)
 
   // TODO: All symbols must be functional!
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]
