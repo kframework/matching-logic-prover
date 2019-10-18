@@ -115,13 +115,29 @@ module SMTLIB-TO-KORE
   rule <k> P:Pattern ~> (check-sat) ~> (set-info :mlprover-strategy S) .SMTLIB2Script
         => claim \not(P) strategy S ~> P
            ...
-      </k>
+       </k>
 
-  rule <k> P:Pattern ~> (check-sat) ~> .SMTLIB2Script
+  rule <k> P:Pattern ~> (check-sat)
         => claim \not(P) strategy search-sl(bound: 6) ~> P
            ...
-      </k>
+       </k>
+      // TODO: workaround for SL-COMP benchmark
+   requires notBool P ==K  \exists { .Patterns } \and ( .Patterns )
+```
 
+Some of the SL-COMP18 benchmarks call `(check-sat)` when the assertion set is empty,
+and have the expected result set to `unsat`. This is just plain wrong. The following
+works around that issue:
+
+```k
+  rule <k> (\exists { .Patterns } \and ( .Patterns )) #as P
+        ~> (check-sat)
+        => P:Pattern
+           ...
+       </k>
+```
+
+```k
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
   rule #normalizeDefinition(\or(Ps)) => \or(#exists(#flattenOrs(#dnfPs(Ps)), .Patterns))
 
