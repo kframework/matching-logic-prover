@@ -67,11 +67,12 @@ only in this scenario*.
 
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
-                   
+
                    // sugar for commonly needed axioms
                    | "functional" "(" Symbol ")"
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
+                   | "smt-lemma" "(" Pattern ")"
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
@@ -426,7 +427,7 @@ Simplifications
   syntax Patterns ::= #not(Patterns) [function]
   rule #not(.Patterns) => .Patterns
   rule #not(P, Ps) => \not(P), #not(Ps)
-  
+
   syntax Pattern ::= #flattenAnd(Pattern) [function]
   rule #flattenAnd(\and(Ps)) => \and(#flattenAnds(Ps))
 
