@@ -1,10 +1,11 @@
 imports "t/definitions/ha_bouncing-ball.prover"
 
-claim \forall { S1 { State }, S2 { State } }
-        \implies( \and( gt( S1 { State }, 0)
-                      , reach( S1 { State }, S2 { State } ))
-                , gt(S2 { State }, 0)
-                )
+claim \implies( \and( gt( S1 { Int }, 0)
+                    , reach( S1 { Int }, S2 { Int } ))
+              , gt(S2 { Int }, 0)
+              )
 
 
 // Strategy
+right-unfold
+
