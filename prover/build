@@ -75,7 +75,6 @@ sl_comp_test('qf_shid_entl/19.tst.smt2')
 # sl_comp_test('qf_shid_entl/21.tst.smt2')
 sl_comp_test('qf_shid_entl/22.tst.smt2')
 
-
 # Unit Tests
 # ----------
 
