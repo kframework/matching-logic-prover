@@ -26,7 +26,7 @@ Instantiate existentials using matching on the spatial part of goals:
                        )
        </claim>
        <strategy> ( #matchResult(subst: SUBST, rest: .Patterns)
-                  ; .MatchResults
+                  , .MatchResults
                  ~> match
                   )
                => noop
@@ -34,7 +34,7 @@ Instantiate existentials using matching on the spatial part of goals:
        </strategy>
 
   rule <strategy> ( #matchResult(subst: _, rest: Ps)
-                  ; .MatchResults
+                  , .MatchResults
                  ~> match
                   )
                => fail
@@ -83,7 +83,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                          , RHS
                          )
          </claim>
-         <strategy> ( #matchResult( subst: SUBST, rest: _ ) ; MRs
+         <strategy> ( #matchResult( subst: SUBST, rest: _ ) , MRs
                    ~> instantiate-axiom(\forall { Vs }
                                         \implies( _
                                                 , AXIOM_RHS
@@ -121,7 +121,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                        | MatchFailure
                        | "#matchResult" "(" "subst:" Map ")"
   syntax MatchFailure ::= "#matchFailure" "(" String ")"
-  syntax MatchResults ::= List{MatchResult, ";"} [klabel(MatchResults), format(%1%n%2 %3)]
+  syntax MatchResults ::= List{MatchResult, ","} [klabel(MatchResults), format(%1%n%2 %3)]
 
   syntax MatchResults ::= "#match" "(" "term:"      Pattern
                                    "," "pattern:"   Pattern
@@ -139,30 +139,30 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                                       ")" [function]
 
   syntax MatchResults ::= MatchResults "++MatchResults" MatchResults [function, right]
-  rule (MR1; MR1s) ++MatchResults MR2s => MR1; (MR1s ++MatchResults MR2s)
+  rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
   syntax MatchResults ::= #getMatchResults(Pattern, Pattern, MatchResults) [function]
-  rule #getMatchResults(T, P, MF:MatchFailure; MRs)
+  rule #getMatchResults(T, P, MF:MatchFailure, MRs)
     => MF
-     ; #getMatchResults(T, P, MRs)
-  rule #getMatchResults(T, P, (#matchResult(subst: _, rest: _) #as MR); MRs)
+     , #getMatchResults(T, P, MRs)
+  rule #getMatchResults(T, P, (#matchResult(subst: _, rest: _) #as MR), MRs)
     => MR
-     ; #getMatchResults(T, P, MRs)
+     , #getMatchResults(T, P, MRs)
   rule #getMatchResults(T, P, .MatchResults) => .MatchResults
-  rule #getMatchResults(S(ARGs), S(P_ARGs), #matchResult(subst: SUBST); MRs)
+  rule #getMatchResults(S(ARGs), S(P_ARGs), #matchResult(subst: SUBST), MRs)
     => #matchResult(subst: SUBST, rest: .Patterns)
-     ; #getMatchResults(S(ARGs), S(P_ARGs), MRs)
+     , #getMatchResults(S(ARGs), S(P_ARGs), MRs)
     requires S =/=K sep
-  rule #getMatchResults(sep(ARGs), sep(P_ARGs), #matchResult(subst: SUBST); MRs)
+  rule #getMatchResults(sep(ARGs), sep(P_ARGs), #matchResult(subst: SUBST), MRs)
     => #matchResult(subst: SUBST, rest: ARGs -Patterns substPatternsMap(P_ARGs, SUBST))
-     ; #getMatchResults(sep(ARGs), sep(P_ARGs), MRs)
+     , #getMatchResults(sep(ARGs), sep(P_ARGs), MRs)
 
   rule #matchShowFailures( term: T , pattern: P, variables: Vs )
     => #getMatchResults( T, P, #matchAux( terms: T , pattern: P, variables: Vs, results: .MatchResults, subst: .Map ) )
     requires getFreeVariables(T) intersect Vs ==K .Patterns
   rule #matchShowFailures( term: T, pattern: _, variables: Vs )
-    => #matchFailure( "AlphaRenaming not done" ); .MatchResults
+    => #matchFailure( "AlphaRenaming not done" ), .MatchResults
     requires getFreeVariables(T) intersect Vs =/=K .Patterns
     
     
@@ -170,8 +170,8 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
     => #filterMatchFailures(#matchShowFailures( term: T, pattern: P, variables: Vs ))
     
   syntax MatchResults ::= #filterMatchFailures(MatchResults) [function]
-  rule #filterMatchFailures(MF:MatchFailure ; MRs) => #filterMatchFailures(MRs)
-  rule #filterMatchFailures(MF              ; MRs) => MF ; #filterMatchFailures(MRs)
+  rule #filterMatchFailures(MF:MatchFailure , MRs) => #filterMatchFailures(MRs)
+  rule #filterMatchFailures(MF              , MRs) => MF , #filterMatchFailures(MRs)
     requires notBool isMatchFailure(MF)
   rule #filterMatchFailures(.MatchResults) => .MatchResults
 ```
@@ -188,11 +188,11 @@ Work around OCaml not producing reasonable error messages:
                           ~> \n ~> "results:" ~> MRs
                           ~> \n ~> "subst:" ~> SUBST
                   )
-     ; .MatchResults
+     , .MatchResults
     [owise]
   rule #getMatchResults(T, P, MRs)
     => #matchStuck( "GET RESULTS" ~> "term:" ~> T ~> "pattern:" ~> P ~> "MRs:" ~> MRs )
-     ; .MatchResults
+     , .MatchResults
     [owise]
 ```
 
@@ -206,7 +206,7 @@ Recurse over assoc-only constructors (including `pto`):
                 , results:   .MatchResults
                 , subst:     SUBST
                 )
-    => #matchFailure("Constructors do not match"); .MatchResults     
+    => #matchFailure("Constructors do not match"), .MatchResults     
     requires S1 =/=K S2
      andBool S1 =/=K sep
 
@@ -217,7 +217,7 @@ Recurse over assoc-only constructors (including `pto`):
                 , results:   .MatchResults
                 , subst:     SUBST
                 )
-    => #matchResult(subst: SUBST); .MatchResults
+    => #matchResult(subst: SUBST), .MatchResults
     requires S =/=K sep
     
   // Application, can susbstitute
@@ -251,7 +251,7 @@ Recurse over assoc-only constructors (including `pto`):
                 , results:   .MatchResults
                 , subst:     _
                 )
-    => #matchFailure( "No valid substitution" ); .MatchResults
+    => #matchFailure( "No valid substitution" ), .MatchResults
     requires S =/=K sep
      andBool ARG =/=K P_ARG
      andBool notBool P_ARG in Vs
@@ -286,7 +286,7 @@ Recurse over assoc-comm `sep`:
                 , results:   .MatchResults
                 , subst:     SUBST
                 )
-    => #matchResult(subst: SUBST); .MatchResults
+    => #matchResult(subst: SUBST), .MatchResults
 
   // Base case: If pattern is larger than term, there can be no match 
   rule #matchAux( terms:     sep(.Patterns), .Patterns
@@ -295,7 +295,7 @@ Recurse over assoc-comm `sep`:
                 , results:   .MatchResults
                 , subst:     SUBST
                 )
-    => #matchFailure( "Pattern larger than term" ); .MatchResults
+    => #matchFailure( "Pattern larger than term" ), .MatchResults
 
   // Recursive case: AC match on arguments
   rule #matchAux( terms:     sep(ARGs), .Patterns
@@ -326,7 +326,7 @@ Distribute results for nested matching over current call:
   rule #matchAux( terms:     Ts
                 , pattern:   P
                 , variables: Vs
-                , results:   #matchResult(subst: SUBST1); .MatchResults
+                , results:   #matchResult(subst: SUBST1), .MatchResults
                 , subst:     SUBST2
                 )
     => #matchAux( terms:     Ts
@@ -339,16 +339,16 @@ Distribute results for nested matching over current call:
   rule #matchAux( terms:     Ts
                 , pattern:   P
                 , variables: Vs
-                , results:   (#matchFailure(_) #as MF); .MatchResults
+                , results:   (#matchFailure(_) #as MF), .MatchResults
                 , subst:     SUBST2
                 )
-    => MF; .MatchResults
+    => MF, .MatchResults
 
   // Recursive case
   rule #matchAux( terms:     Ts
                 , pattern:   P
                 , variables: Vs
-                , results:   MR; MRs
+                , results:   MR, MRs
                 , subst:     SUBST
                 )
     => #matchAux( terms:     Ts

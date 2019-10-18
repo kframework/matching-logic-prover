@@ -335,7 +335,7 @@ TODO: Extend to multiple matches:
                        , RHS:Pattern
                        )
        </claim>
-       <strategy> ( #matchResult(subst: SUBST, rest: REST); .MatchResults
+       <strategy> ( #matchResult(subst: SUBST, rest: REST), .MatchResults
                  ~> kt-collapse
                   )
                => kt-collapse
@@ -372,7 +372,7 @@ TODO: Extend to multiple matches:
                        , RHS:Pattern
                        )
        </claim>
-       <strategy> ( #matchResult(subst: SUBST, rest: REST); .MatchResults
+       <strategy> ( #matchResult(subst: SUBST, rest: REST), .MatchResults
                  ~> kt-collapse
                   )
                => kt-collapse
