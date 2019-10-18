@@ -10,7 +10,12 @@ axiom \forall { S1 { State },  S2 { State } }
                                        , .Patterns )
                     , \exists { T { Duration } } \and ( \equals ( S2 { State }
                                                                 , evolve( S1 { State } , T { Duration }))
-                                                       , .Patterns )
+                                                      , .Patterns
+                                                      )
+                    , \exists { SI { State } }  \and ( reach(S1, SI)
+                                                     , reach(SI, S2)
+                                                     )
                     )
               )
+
 
