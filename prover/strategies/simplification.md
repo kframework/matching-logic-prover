@@ -227,6 +227,7 @@ Lift `\or`s on the left hand sides of implications
                        )
        </claim>
        <strategy> (INSTANTIATION => .) ~> instantiate-existentials ... </strategy>
+     requires INSTANTIATION =/=K .Patterns
 
   rule <strategy> (.Patterns ~> instantiate-existentials) => noop ... </strategy>
 
