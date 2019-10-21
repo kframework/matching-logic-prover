@@ -19,7 +19,20 @@ symbol mode( State ) : Int
 axiom functional(mode)
 axiom functional(evolve)
 
+symbol transition( State , State ) : Bool
 axiom functional( transition )
+
+axiom smt-lemma( \forall { S1 { State }, S2 { State } }
+                    \equals( transition( S1 { State }, S2 { State })
+                            , \and( \equals( mode( S1 { State }), mode( S2 { State } ))
+                                  , \equals( valZ( S1 { State }), 0 )
+                                  , \equals( valZ( S2 { State }), 0 )
+                                  , \equals( valV( S2 { State })
+                                           , mult( -1, valV( S1 { State }))
+                                           )
+                                  )
+                            )
+               )
 
 symbol modeInvariant( State , Real ) : Bool
 
@@ -70,6 +83,7 @@ axiom \forall { S1 { State },  S2 { State } }
                                                            )
                                                  , modeInvariant( S1 { State } , T { Real } )
                                                  )
+             //       , \exists { } \and( transition(S1 { State }, S2 { State }) )
                     , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
                                                      , reach(SI { State }, S2 { State })
                                                      )
