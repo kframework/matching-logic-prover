@@ -38,6 +38,13 @@ symbol modeInvariant( State , Real ) : Bool
 
 axiom functional(modeInvariant)
 
+symbol jump(State) : Bool
+
+axiom functional(jump)
+
+axiom smt-lemma( \forall { S { State } }
+                    \and (\equals (jump( S { State } ), \equals( valZ( S { Int }), 0))))
+
 axiom smt-lemma( \forall { S1 { State }, T { Real } }
                     \and( \equals( mode(evolve( S1 { State } , T { Real }))
                                  , mode(S1 { State } )
@@ -83,7 +90,7 @@ axiom \forall { S1 { State },  S2 { State } }
                                                            )
                                                  , modeInvariant( S1 { State } , T { Real } )
                                                  )
-             //       , \exists { } \and( transition(S1 { State }, S2 { State }) )
+                    , \exists { } \and(jump(S1 { State }) , transition( S1 {State }, S2 { State }) )
                     , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
                                                      , reach(SI { State }, S2 { State })
                                                      )
