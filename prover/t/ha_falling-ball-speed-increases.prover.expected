@@ -1,0 +1,34 @@
+<prover>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <claim>
+        \implies ( \and ( reach ( S1 { Real } , S2 { Real } , .Patterns ) , gt ( S1 { Real } , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( gt ( S2 { Real } , 0 , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { S1 { Real } , S2 { Real } , .Patterns } \iff-lfp ( reach ( S1 { Real } , S2 { Real } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( S1 { Real } , S2 { Real } ) , .Patterns ) , \exists { T { Real } , .Patterns } \and ( gt ( T { Real } , 0 , .Patterns ) , \equals ( S2 { Real } , evolve ( S1 { Real } , T { Real } , .Patterns ) ) , .Patterns ) , \exists { SI { Real } , .Patterns } \and ( reach ( S1 { Real } , SI { Real } , .Patterns ) , reach ( SI { Real } , S2 { Real } , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( evolve )
+    </declaration> <declaration>
+      axiom functional ( reach )
+    </declaration> <declaration>
+      axiom smt-lemma ( \forall { S1 { Real } , T { Real } , .Patterns } \equals ( evolve ( S1 { Real } , T { Real } , .Patterns ) , plus ( S1 { Real } , mult ( 10 , T { Real } , .Patterns ) , .Patterns ) ) )
+    </declaration> <declaration>
+      symbol evolve ( Real , Real , .Sorts ) : Real
+    </declaration> <declaration>
+      symbol reach ( Real , Real , .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>

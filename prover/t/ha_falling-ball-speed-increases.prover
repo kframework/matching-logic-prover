@@ -1,11 +1,10 @@
 imports "t/definitions/ha_falling-ball.prover"
 
-claim \implies( \and( gt( S1 { Int }, 0)
-                    , reach( S1 { Int }, S2 { Int } ))
-              , gt(S2 { Int }, 0)
+claim \implies( \and( reach( S1 { Real }, S2 { Real } )
+                      , gt( S1 { Real }, 0))
+              , \and( gt(S2 { Real }, 0))
               )
 
 
-// Strategy
-strategy right-unfold
+strategy kt ; (smt-cvc4)
 
