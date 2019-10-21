@@ -114,7 +114,7 @@ module SMTLIB-TO-KORE
            ...
       </k>
 
-  rule <k> P:Pattern ~> (check-sat) .SMTLIB2Script
+  rule <k> P:Pattern ~> (check-sat) ~> .SMTLIB2Script
         => claim \not(P) strategy search-sl(bound: 6) ~> P
            ...
       </k>
