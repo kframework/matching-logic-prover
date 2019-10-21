@@ -9,4 +9,4 @@ claim \implies( \and(\equals(S { SetInt }, emptyset))
               , \and(isEmpty(S { SetInt }))
               )
 
-strategy right-unfold ; simplify ; instantiate-existentials ; smt-cvc4
+strategy right-unfold . simplify . instantiate-existentials . smt-cvc4

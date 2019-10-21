@@ -12,6 +12,6 @@
 (check-sat)
 
 (set-info :mlprover-strategy
-            normalize ; smtlib-to-implication ; or-split-rhs
-          ; right-unfold ; smt
+            normalize . smtlib-to-implication . or-split-rhs
+          . right-unfold . smt
 )

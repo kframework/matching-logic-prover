@@ -75,11 +75,11 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= ktForEachLRP(Patterns)
   rule <strategy> ktForEachLRP(.Patterns) => noop ... </strategy>
   rule <strategy> ( ktForEachLRP((LRP, LRPs))
-                 => ( remove-lhs-existential ; normalize ; or-split-rhs ; lift-constraints
-                    ; kt-wrap(LRP) ; kt-forall-intro
-                    ; kt-unfold ; lift-or ; and-split ; remove-lhs-existential
-                    ; kt-unwrap
-                    ; simplify ; normalize ; or-split-rhs; lift-constraints; kt-collapse
+                 => ( remove-lhs-existential . normalize . or-split-rhs . lift-constraints
+                    . kt-wrap(LRP) . kt-forall-intro
+                    . kt-unfold . lift-or . and-split . remove-lhs-existential
+                    . kt-unwrap
+                    . simplify . normalize . or-split-rhs. lift-constraints. kt-collapse
                     )
                     | ktForEachLRP(LRPs)
                   )
@@ -491,7 +491,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
                => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), LHS), STRAT)
                                         , \and(LHS, RHS)
                                         )
-                  ; kt-solve-implications(STRAT)
+                  . kt-solve-implications(STRAT)
                   )
                   ...
        </strategy>

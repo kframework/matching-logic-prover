@@ -22,5 +22,5 @@ claim \implies( \and( listSegmentRightLength( H { ArrayIntInt }
               ) 
 strategy search-fol(bound: 3)
 /*
-strategy right-unfold-Nth(0, 1) ; simplify ; direct-proof
+strategy right-unfold-Nth(0, 1) . simplify . direct-proof
 */

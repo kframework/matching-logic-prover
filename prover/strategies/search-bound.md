@@ -10,9 +10,9 @@ module STRATEGY-SEARCH-BOUND
 
   rule <strategy> search-fol(bound: 0) => fail </strategy>
   rule <strategy> search-fol(bound: N)
-               => simplify ; ( ( instantiate-existentials ; smt-cvc4 )
-                             | (kt           ; search-fol(bound: N -Int 1))
-                             | (right-unfold ; search-fol(bound: N -Int 1))
+               => simplify . ( ( instantiate-existentials . smt-cvc4 )
+                             | (kt           . search-fol(bound: N -Int 1))
+                             | (right-unfold . search-fol(bound: N -Int 1))
                              )
                   ...
        </strategy>
@@ -20,13 +20,13 @@ module STRATEGY-SEARCH-BOUND
 
   rule <strategy> search-sl(bound: 0) => fail </strategy>
   rule <strategy> search-sl(bound: N)
-               => normalize ; smtlib-to-implication ; or-split-rhs ; normalize
-                ; lift-constraints ; instantiate-existentials ; substitute-equals-for-equals
-                ; ( ( match ; instantiate-separation-logic-axioms
-                    ; spatial-patterns-equal ; smt-cvc4
+               => normalize . smtlib-to-implication . or-split-rhs . normalize
+                . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                . ( ( match . instantiate-separation-logic-axioms
+                    . spatial-patterns-equal . smt-cvc4
                     )
-                  | ( kt           ; search-sl(bound: N -Int 1) )
-                  | ( right-unfold ; search-sl(bound: N -Int 1) )
+                  | ( kt           . search-sl(bound: N -Int 1) )
+                  | ( right-unfold . search-sl(bound: N -Int 1) )
                   )
                   ...
        </strategy>

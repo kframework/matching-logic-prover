@@ -17,8 +17,8 @@ claim \implies( \and( listSortedLength( H { ArrayIntInt }
               )
 strategy search-fol(bound: 5)
 /*
-strategy kt ; ( (right-unfold-Nth(0, 0) ; simplify ; direct-proof)
-              | simplify ; direct-proof
-              | (right-unfold-Nth(0, 1) ; simplify ; direct-proof)
+strategy kt . ( (right-unfold-Nth(0, 0) . simplify . direct-proof)
+              | simplify . direct-proof
+              | (right-unfold-Nth(0, 1) . simplify . direct-proof)
               )
 */

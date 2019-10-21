@@ -24,16 +24,16 @@
 
 (set-info :mlprover-strategy
             normalize
-          ; smtlib-to-implication ; or-split-rhs
-          ; kt ; ( ( right-unfold ; smt )
-                 | ( kt-solve-implications(smt) ; normalize
-                 ; kt ; ( ( right-unfold-Nth(0, 1) ; normalize
-                          ; right-unfold-Nth(0, 1) ; normalize
-                          ; right-unfold-Nth(0, 0) ; normalize
-                          ; smt
+          . smtlib-to-implication . or-split-rhs
+          . kt . ( ( right-unfold . smt )
+                 | ( kt-solve-implications(smt) . normalize
+                 . kt . ( ( right-unfold-Nth(0, 1) . normalize
+                          . right-unfold-Nth(0, 1) . normalize
+                          . right-unfold-Nth(0, 0) . normalize
+                          . smt
                           )
-                        | ( kt-solve-implications(smt) ; normalize
-                          ; smt
+                        | ( kt-solve-implications(smt) . normalize
+                          . smt
                           )
                         )
                    )

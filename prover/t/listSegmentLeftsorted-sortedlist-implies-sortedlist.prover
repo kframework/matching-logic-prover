@@ -38,11 +38,11 @@ claim \implies( \and( listSegmentLeftSorted( H { ArrayIntInt }
                      )
               )
 
-strategy kt ; normalize
-            ; ( ( simplify
-                ; left-unfold-Nth(0) ;
-                  ( ( right-unfold-Nth(0, 0) ; smt)
-                  | ( right-unfold-Nth(0, 1) ; smt)
+strategy kt . normalize
+            . ( ( simplify
+                . left-unfold-Nth(0) .
+                  ( ( right-unfold-Nth(0, 0) . smt)
+                  | ( right-unfold-Nth(0, 1) . smt)
                   )
                 )
               )
