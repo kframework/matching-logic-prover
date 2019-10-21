@@ -34,10 +34,11 @@ def prover(alias, flags = None):
                           , main = 'prover.md'
                           , other = other_md_files
                           , runner_script = './prover'
+                          , flags = flags
                           )
 
-prover_kore = prover('prover-kore')
-prover_smt  = prover('prover-smt')
+prover_kore = prover('prover-kore', '--syntax-module PROVER-KORE-SYNTAX')
+prover_smt  = prover('prover-smt', '--syntax-module PROVER-SMT-SYNTAX')
 
 # Functional tests
 # ----------------

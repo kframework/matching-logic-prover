@@ -98,12 +98,22 @@ module PROVER-COMMON
   syntax Declarations ::= Declaration Declarations
 endmodule
 
-module PROVER-SYNTAX
+module PROVER-COMMON-SYNTAX
   imports PROVER-COMMON
   imports TOKENS-SYNTAX
+  syntax Declarations ::= "" [klabel(.Declarations)]
+endmodule
+
+module PROVER-KORE-SYNTAX
+  imports PROVER-COMMON-SYNTAX
   imports SMTLIB2-SYNTAX
   imports SMTLIB-SL
-  syntax Declarations ::= "" [klabel(.Declarations)]
+endmodule
+
+module PROVER-SMT-SYNTAX
+  imports PROVER-COMMON-SYNTAX
+  imports SMTLIB2-SYNTAX
+  imports SMTLIB-SL
 endmodule
 ```
 
@@ -117,7 +127,7 @@ module PROVER-DRIVER
 
   // K changes directory to "REPODIR/.krun-TIMESTAMP"
   rule <k> imports FILE:String
-        => #system("kast --directory ../.build/defn/prover '../" +String FILE +String "'")
+        => #system("kast --directory ../.build/defn/prover-kore '../" +String FILE +String "'")
            ...
        </k>
   rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKAST(KAST_STRING) ... </k>

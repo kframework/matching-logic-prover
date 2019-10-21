@@ -8,7 +8,7 @@ requires "prover.k"
 module UNIT-TESTS-SYNTAX
     imports TOKENS-SYNTAX
     imports UNIT-TESTS
-    imports PROVER-SYNTAX
+    imports PROVER-KORE-SYNTAX
 ```
 
 When K generates the grammar for parsing rules in modules, it adds a production
