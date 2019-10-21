@@ -26,6 +26,8 @@
     </declaration> <declaration>
       axiom functional ( reach )
     </declaration> <declaration>
+      axiom functional ( transition )
+    </declaration> <declaration>
       axiom functional ( valV )
     </declaration> <declaration>
       axiom functional ( valZ )
@@ -39,6 +41,8 @@
       symbol mode ( State , .Sorts ) : Int
     </declaration> <declaration>
       symbol reach ( State , State , .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol transition ( State , .Sorts ) : State
     </declaration> <declaration>
       symbol valV ( State , .Sorts ) : Real
     </declaration> <declaration>

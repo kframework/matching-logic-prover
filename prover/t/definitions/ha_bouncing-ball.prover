@@ -9,17 +9,21 @@ axiom functional(reach)
 symbol evolve( State , Real ) : State
 
 symbol valZ( State ) : Real
-
 symbol valV( State ) : Real
-
-symbol mode( State ) : Int
 
 axiom functional(valZ)
 axiom functional(valV)
 
-axiom functional(mode)
+symbol mode( State ) : Int
 
+axiom functional(mode)
 axiom functional(evolve)
+
+axiom functional( transition )
+
+symbol modeInvariant( State , Real ) : Bool
+
+axiom functional(modeInvariant)
 
 axiom smt-lemma( \forall { S1 { State }, T { Real } }
                     \and( \equals( mode(evolve( S1 { State } , T { Real }))
@@ -35,13 +39,23 @@ axiom smt-lemma( \forall { S1 { State }, T { Real } }
                                              )
                                        )
                                  )
-                //        , plus( valZ( S1 { State })
-                //              , plus( mult(valV( S1 { State }), T { Real })
-                //                     , div(mult(10, mult(T { Real }, T { Real })), 2)
-                //                    )
-                //              )
-                          )
+                         )
                 )
+
+
+axiom smt-lemma( \forall { S1 { State }, T { Real } }
+                     \equals(  modeInvariant( S1 { State }, T { Real } )
+                            , \implies( \and( gt( valZ( S1 { State }), 0), gt( T { Real }, 0))
+                                        , gt( plus( valZ( S1 { State })
+                                                   , plus( mult(valV( S1 { State }), T { Real })
+                                                          , div(mult(10, mult(T { Real }, T { Real })), 2)
+                                                         )
+                                                   )
+                                            , 0
+                                            )
+                                        )
+                            )
+               )
 
 
 axiom \forall { S1 { State },  S2 { State } }
@@ -54,6 +68,7 @@ axiom \forall { S1 { State },  S2 { State } }
                                                  , \equals ( S2 { State }
                                                            , evolve( S1 { State } , T { Real })
                                                            )
+                                                 , modeInvariant( S1 { State } , T { Real } )
                                                  )
                     , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
                                                      , reach(SI { State }, S2 { State })
