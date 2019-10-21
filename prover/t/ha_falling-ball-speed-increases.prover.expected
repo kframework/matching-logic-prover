@@ -6,7 +6,7 @@
     <goal>
       active: true, id: root, parent: .
       <claim>
-        \implies ( \and ( reach ( S1 { Real } , S2 { Real } , .Patterns ) , gt ( S1 { Real } , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( gt ( S2 { Real } , 0 , .Patterns ) , .Patterns ) )
+        \implies ( \and ( reach ( S1 { State } , S2 { State } , .Patterns ) , gt ( val ( S1 { State } , .Patterns ) , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( gt ( val ( S2 { State } , .Patterns ) , 0 , .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         success
@@ -18,17 +18,27 @@
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { S1 { Real } , S2 { Real } , .Patterns } \iff-lfp ( reach ( S1 { Real } , S2 { Real } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( S1 { Real } , S2 { Real } ) , .Patterns ) , \exists { T { Real } , .Patterns } \and ( gt ( T { Real } , 0 , .Patterns ) , \equals ( S2 { Real } , evolve ( S1 { Real } , T { Real } , .Patterns ) ) , .Patterns ) , \exists { SI { Real } , .Patterns } \and ( reach ( S1 { Real } , SI { Real } , .Patterns ) , reach ( SI { Real } , S2 { Real } , .Patterns ) , .Patterns ) , .Patterns ) )
+      axiom \forall { S1 { State } , S2 { State } , .Patterns } \iff-lfp ( reach ( S1 { State } , S2 { State } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( val ( S1 { State } , .Patterns ) , val ( S2 { State } , .Patterns ) ) , \equals ( mode ( S1 { State } , .Patterns ) , mode ( S2 { State } , .Patterns ) ) , .Patterns ) , \exists { T { Real } , .Patterns } \and ( gt ( T { Real } , 0 , .Patterns ) , \equals ( S2 { State } , evolve ( S1 { State } , T { Real } , .Patterns ) ) , .Patterns ) , \exists { SI { State } , .Patterns } \and ( reach ( S1 { State } , SI { State } , .Patterns ) , reach ( SI { State } , S2 { State } , .Patterns ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom functional ( evolve )
     </declaration> <declaration>
+      axiom functional ( mode )
+    </declaration> <declaration>
       axiom functional ( reach )
     </declaration> <declaration>
-      axiom smt-lemma ( \forall { S1 { Real } , T { Real } , .Patterns } \equals ( evolve ( S1 { Real } , T { Real } , .Patterns ) , plus ( S1 { Real } , mult ( 10 , T { Real } , .Patterns ) , .Patterns ) ) )
+      axiom functional ( val )
     </declaration> <declaration>
-      symbol evolve ( Real , Real , .Sorts ) : Real
+      axiom smt-lemma ( \forall { S1 { State } , T { Real } , .Patterns } \and ( \equals ( mode ( evolve ( S1 { State } , T { Real } , .Patterns ) , .Patterns ) , mode ( S1 { State } , .Patterns ) ) , \equals ( val ( evolve ( S1 { State } , T { Real } , .Patterns ) , .Patterns ) , plus ( val ( S1 { State } , .Patterns ) , mult ( 10 , T { Real } , .Patterns ) , .Patterns ) ) , .Patterns ) )
     </declaration> <declaration>
-      symbol reach ( Real , Real , .Sorts ) : Bool
+      sort State
+    </declaration> <declaration>
+      symbol evolve ( State , Real , .Sorts ) : State
+    </declaration> <declaration>
+      symbol mode ( State , .Sorts ) : Int
+    </declaration> <declaration>
+      symbol reach ( State , State , .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol val ( State , .Sorts ) : Real
     </declaration>
   </declarations>
 </prover>
