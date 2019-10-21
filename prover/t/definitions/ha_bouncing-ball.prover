@@ -1,0 +1,62 @@
+// Kore axiomatization of bouncing ball HA
+
+sort State
+
+symbol reach( State , State ) : Bool
+
+axiom functional(reach)
+
+symbol evolve( State , Real ) : State
+
+symbol valZ( State ) : Real
+
+symbol valV( State ) : Real
+
+symbol mode( State ) : Int
+
+axiom functional(valZ)
+axiom functional(valV)
+
+axiom functional(mode)
+
+axiom functional(evolve)
+
+axiom smt-lemma( \forall { S1 { State }, T { Real } }
+                    \and( \equals( mode(evolve( S1 { State } , T { Real }))
+                                 , mode(S1 { State } )
+                                 )
+                        , \equals( valV(evolve ( S1 { State }, T { Real }))
+                                 , plus(valV(S1 { State }), mult(10, T { Real }))
+                                 )
+                        , \equals( valZ(evolve ( S1 { State }, T { Real }))
+                                 , plus( valZ( S1 { State })
+                                       , plus( mult(valV( S1 { State }), T { Real })
+                                              , div(mult(10, mult(T { Real }, T { Real })), 2)
+                                             )
+                                       )
+                                 )
+                //        , plus( valZ( S1 { State })
+                //              , plus( mult(valV( S1 { State }), T { Real })
+                //                     , div(mult(10, mult(T { Real }, T { Real })), 2)
+                //                    )
+                //              )
+                          )
+                )
+
+
+axiom \forall { S1 { State },  S2 { State } }
+      \iff-lfp( reach( S1 { State } , S2 { State } )
+              , \or ( \exists { } \and ( \equals ( valZ(S1 { State }), valZ(S2 { State }) )
+                                       , \equals ( valV(S1 { State }), valV(S2 { State }) )
+                                       , \equals ( mode(S1 { State }), mode(S2 { State }) )
+                                       )
+                    , \exists { T { Real } } \and( gt( T { Real }, 0 )
+                                                 , \equals ( S2 { State }
+                                                           , evolve( S1 { State } , T { Real })
+                                                           )
+                                                 )
+                    , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
+                                                     , reach(SI { State }, S2 { State })
+                                                     )
+                    )
+              )

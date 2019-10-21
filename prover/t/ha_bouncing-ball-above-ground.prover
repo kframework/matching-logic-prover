@@ -1,0 +1,11 @@
+imports "t/definitions/ha_bouncing-ball.prover"
+
+claim \implies( \and( reach( S1 { State }, S2 { State } )
+                    , gt( valV( S1 { State }), 0))
+              , \and( gt(valV(S2 { State }), 0))
+              )
+
+
+strategy kt ;  smt-cvc4
+
+

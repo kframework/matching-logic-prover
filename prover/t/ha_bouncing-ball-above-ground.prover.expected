@@ -1,0 +1,48 @@
+<prover>
+  <k>
+    .
+  </k>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <claim>
+        \implies ( \and ( reach ( S1 { State } , S2 { State } , .Patterns ) , gt ( valV ( S1 { State } , .Patterns ) , 0 , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( gt ( valV ( S2 { State } , .Patterns ) , 0 , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <trace>
+        .
+      </trace>
+    </goal>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { S1 { State } , S2 { State } , .Patterns } \iff-lfp ( reach ( S1 { State } , S2 { State } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( valZ ( S1 { State } , .Patterns ) , valZ ( S2 { State } , .Patterns ) ) , \equals ( valV ( S1 { State } , .Patterns ) , valV ( S2 { State } , .Patterns ) ) , \equals ( mode ( S1 { State } , .Patterns ) , mode ( S2 { State } , .Patterns ) ) , .Patterns ) , \exists { T { Real } , .Patterns } \and ( gt ( T { Real } , 0 , .Patterns ) , \equals ( S2 { State } , evolve ( S1 { State } , T { Real } , .Patterns ) ) , .Patterns ) , \exists { SI { State } , .Patterns } \and ( reach ( S1 { State } , SI { State } , .Patterns ) , reach ( SI { State } , S2 { State } , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( evolve )
+    </declaration> <declaration>
+      axiom functional ( mode )
+    </declaration> <declaration>
+      axiom functional ( reach )
+    </declaration> <declaration>
+      axiom functional ( valV )
+    </declaration> <declaration>
+      axiom functional ( valZ )
+    </declaration> <declaration>
+      axiom smt-lemma ( \forall { S1 { State } , T { Real } , .Patterns } \and ( \equals ( mode ( evolve ( S1 { State } , T { Real } , .Patterns ) , .Patterns ) , mode ( S1 { State } , .Patterns ) ) , \equals ( valV ( evolve ( S1 { State } , T { Real } , .Patterns ) , .Patterns ) , plus ( valV ( S1 { State } , .Patterns ) , mult ( 10 , T { Real } , .Patterns ) , .Patterns ) ) , \equals ( valZ ( evolve ( S1 { State } , T { Real } , .Patterns ) , .Patterns ) , plus ( valZ ( S1 { State } , .Patterns ) , plus ( mult ( valV ( S1 { State } , .Patterns ) , T { Real } , .Patterns ) , div ( mult ( 10 , mult ( T { Real } , T { Real } , .Patterns ) , .Patterns ) , 2 , .Patterns ) , .Patterns ) , .Patterns ) ) , .Patterns ) )
+    </declaration> <declaration>
+      sort State
+    </declaration> <declaration>
+      symbol evolve ( State , Real , .Sorts ) : State
+    </declaration> <declaration>
+      symbol mode ( State , .Sorts ) : Int
+    </declaration> <declaration>
+      symbol reach ( State , State , .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol valV ( State , .Sorts ) : Real
+    </declaration> <declaration>
+      symbol valZ ( State , .Sorts ) : Real
+    </declaration>
+  </declarations>
+</prover>
