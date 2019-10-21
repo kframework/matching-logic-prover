@@ -27,20 +27,23 @@ other_md_files = [ 'smt.md'
                  , 'strategies/smt.md'
                  , 'strategies/unfolding.md'
                  ]
-prover = proj.definition( alias = 'prover'
-                        , backend = 'ocaml'
-                        , main = 'prover.md'
-                        , other = other_md_files
-                        , runner_script = './prover'
-                        )
+
+def prover(alias, flags = None):
+    return proj.definition( alias = alias
+                          , backend = 'ocaml'
+                          , main = 'prover.md'
+                          , other = other_md_files
+                          , runner_script = './prover'
+                          )
+
+prover_kore = prover('prover-kore')
+prover_smt  = prover('prover-smt')
 
 # Functional tests
 # ----------------
 
-prover.tests( inputs = glob('t/*.kore')
-            , implicit_inputs = glob('t/definitions/*.kore')
-            )
-prover.tests(inputs = glob('t/*.smt2'))
+prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'))
+prover_smt .tests(inputs = glob('t/*.smt2'))
 
 # Unit Tests
 # ----------

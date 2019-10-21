@@ -7,9 +7,15 @@ from kninja.runner import *
 
 proj = KProject(extdir = extdir)
 KDefinition( proj
-           , alias = 'prover'
+           , alias = 'prover-kore'
            , backend = 'ocaml'
-           , directory = proj.builddir('defn/prover')
+           , directory = proj.builddir('defn/prover-kore')
+           , krun_flags = '--interpret'
+           )
+KDefinition( proj
+           , alias = 'prover-smt'
+           , backend = 'ocaml'
+           , directory = proj.builddir('defn/prover-smt')
            , krun_flags = '--interpret'
            )
 KDefinition( proj
@@ -17,10 +23,5 @@ KDefinition( proj
            , backend = 'ocaml'
            , directory = proj.builddir('defn/test-driver')
            , krun_flags = '--interpret'
-           )
-KDefinition( proj
-           , alias = 'smtlib'
-           , backend = 'java'
-           , directory = proj.builddir('defn/smtlib')
            )
 KRunner(proj).main()
