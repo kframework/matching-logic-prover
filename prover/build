@@ -37,8 +37,8 @@ prover = proj.definition( alias = 'prover'
 # Functional tests
 # ----------------
 
-prover.tests( inputs = glob('t/*.prover')
-            , implicit_inputs = glob('t/definitions/*.prover')
+prover.tests( inputs = glob('t/*.kore')
+            , implicit_inputs = glob('t/definitions/*.kore')
             )
 prover.tests(inputs = glob('t/*.smt2'))
 

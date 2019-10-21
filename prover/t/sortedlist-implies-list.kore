@@ -1,5 +1,5 @@
-imports "t/definitions/listSorted.prover"
-imports "t/definitions/list.prover"
+imports "t/definitions/listSorted.kore"
+imports "t/definitions/list.kore"
 
 
 claim \implies( \and( listSorted( H { ArrayIntInt }

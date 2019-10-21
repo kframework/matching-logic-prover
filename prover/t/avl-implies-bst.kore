@@ -1,5 +1,5 @@
-imports "t/definitions/avl.prover"
-imports "t/definitions/bst.prover"
+imports "t/definitions/avl.kore"
+imports "t/definitions/bst.kore"
 
 claim \implies( \and( avl( H { ArrayIntInt }
                          , X { Int }
