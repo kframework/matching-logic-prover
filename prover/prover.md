@@ -119,6 +119,12 @@ module PROVER-SMT-SYNTAX
   syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
 ```
 
+When parsing with the SMTLIB2 syntax, we use semicolons as comments:
+
+```k
+  syntax #Layout ::= r"(;[^\\n\\r]*)"     // SMTLIB2 style semicolon comments
+                   | r"([\\ \\n\\r\\t])"  // whitespace
+
 endmodule
 ```
 
