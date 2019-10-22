@@ -114,6 +114,11 @@ module PROVER-SMT-SYNTAX
   imports PROVER-COMMON-SYNTAX
   imports SMTLIB2-SYNTAX
   imports SMTLIB-SL
+
+  // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
+  syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
+```
+
 endmodule
 ```
 
