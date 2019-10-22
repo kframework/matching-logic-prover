@@ -14,46 +14,31 @@
     )
 )
 
-(declare-heap (RefGTyp GTyp) 
-)
-(define-funs-rec (
-    (ListE ((x RefGTyp)(y RefGTyp)) Bool
+(declare-heap (RefGTyp GTyp))
+(define-funs-rec
+    ( (ListE ((x RefGTyp)(y RefGTyp)) Bool)
+      (ListO ((x RefGTyp)(y RefGTyp)) Bool)
     )
 
-    (ListO ((x RefGTyp)(y RefGTyp)) Bool
-    )
-    )
-    ((exists ((xp RefGTyp))
-     
-        (and 
-            (distinct (as nil RefGTyp) x)
-        (sep 
-            (pto x (c_GTyp xp ))
-            (ListO xp y )
-        )
-
-        )
-
-        )
-(or 
-        (and 
+    (   (exists ((xp RefGTyp))
+          (and
+             (distinct (as nil RefGTyp) x)
+             (sep (pto x (c_GTyp xp ))
+                  (ListO xp y )
+             )
+        ) )
+        (or 
+          (and 
             (distinct (as nil RefGTyp) x)
             (pto x (c_GTyp y ))
-        )
-
-        (exists ((xp RefGTyp))
-     
-        (and 
-            (distinct (as nil RefGTyp) x)
-        (sep 
-            (pto x (c_GTyp xp ))
-            (ListE xp y )
-        )
-
-        )
-
-        )
-
+          )
+          (exists ((xp RefGTyp))
+            (and (distinct (as nil RefGTyp) x)
+              (sep (pto x (c_GTyp xp ))
+                   (ListE xp y )
+              )
+            )
+          )
     )   )
 )
 
