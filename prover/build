@@ -46,6 +46,36 @@ prover_smt  = prover('prover-smt', '--syntax-module PROVER-SMT-SYNTAX')
 prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'))
 prover_smt .tests(inputs = glob('t/*.smt2'))
 
+def sl_comp_test(test):
+    proj.source('t/SL-COMP18/bench/' + test) \
+        .then(prover_smt.krun()) \
+        .default()
+
+sl_comp_test('qf_shid_entl/01.tst.smt2')
+sl_comp_test('qf_shid_entl/02.tst.smt2')
+sl_comp_test('qf_shid_entl/03.tst.smt2')
+sl_comp_test('qf_shid_entl/04.tst.smt2')
+sl_comp_test('qf_shid_entl/05.tst.smt2')
+sl_comp_test('qf_shid_entl/06.tst.smt2')
+sl_comp_test('qf_shid_entl/07.tst.smt2')
+sl_comp_test('qf_shid_entl/08.tst.smt2')
+sl_comp_test('qf_shid_entl/09.tst.smt2')
+# sl_comp_test('qf_shid_entl/10.tst.smt2')
+
+# sl_comp_test('qf_shid_entl/11.tst.smt2')
+# sl_comp_test('qf_shid_entl/12.tst.smt2')
+# sl_comp_test('qf_shid_entl/13.tst.smt2')
+# sl_comp_test('qf_shid_entl/14.tst.smt2')
+sl_comp_test('qf_shid_entl/15.tst.smt2')
+# sl_comp_test('qf_shid_entl/16.tst.smt2')
+# sl_comp_test('qf_shid_entl/17.tst.smt2')
+# sl_comp_test('qf_shid_entl/18.tst.smt2')
+sl_comp_test('qf_shid_entl/19.tst.smt2')
+
+# sl_comp_test('qf_shid_entl/21.tst.smt2')
+sl_comp_test('qf_shid_entl/22.tst.smt2')
+
+
 # Unit Tests
 # ----------
 
