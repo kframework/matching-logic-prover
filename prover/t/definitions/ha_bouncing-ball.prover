@@ -34,9 +34,16 @@ axiom smt-lemma( \forall { S1 { State }, S2 { State } }
                             )
                )
 
-symbol modeInvariant( State , Real ) : Bool
+symbol stateSatisfiesInvariant( State ) : Bool
 
-axiom functional(modeInvariant)
+axiom functional(stateSatisfiesInvariant)
+
+axiom smt-lemma( \forall { S1 { State } }
+                     \equals( stateSatisfiesInvariant(S1 { State })
+                            , gt(valZ(S1 { State } ), 0)
+                            )
+               )
+
 
 symbol jump(State) : Bool
 
@@ -45,37 +52,26 @@ axiom functional(jump)
 axiom smt-lemma( \forall { S { State } }
                     \and (\equals (jump( S { State } ), \equals( valZ( S { Int }), 0))))
 
-axiom smt-lemma( \forall { S1 { State }, T { Real } }
-                    \and( \equals( mode(evolve( S1 { State } , T { Real }))
-                                 , mode(S1 { State } )
+axiom smt-lemma( \forall { S1 { State }, S2 { State }, T { Real } }
+                  \implies( \and( gt(T { Real }, 0)
+                                , \equals( S2 { State }, evolve( S1 { State } , T { Real }))
+                                )
+                          , \and( \equals( mode(S2 { State })
+                                         , mode(S1 { State })
+                                         )
+                                , \equals( valV(S2 { State })
+                                         , plus(valV(S1 { State }), mult(10, T { Real }))
+                                         )
+                                , \equals( valZ(S2 { State })
+                                         , plus( valZ( S1 { State })
+                                               , plus( mult(valV( S1 { State }), T { Real })
+                                                      , div(mult(10, mult(T { Real }, T { Real })), 2)
+                                                     )
+                                               )
+                                         )
                                  )
-                        , \equals( valV(evolve ( S1 { State }, T { Real }))
-                                 , plus(valV(S1 { State }), mult(10, T { Real }))
-                                 )
-                        , \equals( valZ(evolve ( S1 { State }, T { Real }))
-                                 , plus( valZ( S1 { State })
-                                       , plus( mult(valV( S1 { State }), T { Real })
-                                              , div(mult(10, mult(T { Real }, T { Real })), 2)
-                                             )
-                                       )
-                                 )
-                         )
+                          )
                 )
-
-
-axiom smt-lemma( \forall { S1 { State }, T { Real } }
-                     \equals(  modeInvariant( S1 { State }, T { Real } )
-                            , \implies( \and( gt( valZ( S1 { State }), 0), gt( T { Real }, 0))
-                                        , gt( plus( valZ( S1 { State })
-                                                   , plus( mult(valV( S1 { State }), T { Real })
-                                                          , div(mult(10, mult(T { Real }, T { Real })), 2)
-                                                         )
-                                                   )
-                                            , 0
-                                            )
-                                        )
-                            )
-               )
 
 
 axiom \forall { S1 { State },  S2 { State } }
@@ -85,12 +81,15 @@ axiom \forall { S1 { State },  S2 { State } }
                                        , \equals ( mode(S1 { State }), mode(S2 { State }) )
                                        )
                     , \exists { T { Real } } \and( gt( T { Real }, 0 )
-                                                 , \equals ( S2 { State }
-                                                           , evolve( S1 { State } , T { Real })
-                                                           )
-                                                 , modeInvariant( S1 { State } , T { Real } )
+                                                 , \equals( S2 { State }, evolve( S1 { State }, T { Real }))
+                                                 , stateSatisfiesInvariant( S1 { State } )
+                                                 , \forall { T2 { Real } }
+                                                    \and( gt(T2 { Real }, 0 )
+                                                        , lt( T2 { Real }, T { Real })
+                                                        , stateSatisfiesInvariant(evolve(S1 { State }, T2 { Real }))
+                                                        )
                                                  )
-                    , \exists { } \and(jump(S1 { State }) , transition( S1 {State }, S2 { State }) )
+                    //, \exists { } \and(jump(S1 { State }) , transition( S1 {State }, S2 { State }) )
                     , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
                                                      , reach(SI { State }, S2 { State })
                                                      )
