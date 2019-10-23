@@ -93,9 +93,9 @@ axiom smt-lemma( \forall { T { Real } }
                                 )
                     )
 axiom smt-lemma( \forall { T { Real } }
-                    \implies( lt( T { Real }, )
+                    \implies( lt( T { Real }, 0)
                             , \forall { S1 { State } , S2 { State } }
-                                        \not \equals( S2 { State } , evolve(S1 { State }, T))
+                                        \not(\equals( S2 { State } , evolve(S1 { State }, T { Real })))
                             )
                )
 
