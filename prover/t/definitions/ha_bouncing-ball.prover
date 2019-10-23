@@ -34,12 +34,12 @@ axiom smt-lemma( \forall { S1 { State }, S2 { State } }
                             )
                )
 
-symbol stateSatisfiesInvariant( State ) : Bool
+symbol invariantSatisfiedInState( State ) : Bool
 
-axiom functional(stateSatisfiesInvariant)
+axiom functional(invariantSatisfiedInState)
 
 axiom smt-lemma( \forall { S1 { State } }
-                     \equals( stateSatisfiesInvariant(S1 { State })
+                     \equals( invariantSatisfiedInState(S1 { State })
                             , gt(valZ(S1 { State } ), 0)
                             )
                )
@@ -108,12 +108,12 @@ axiom functional(invariantSatisfiedInInterval)
 axiom smt-lemma( \forall { S { State } , T { Real } }
                     \equals( invariantSatisfiedInInterval( S { State } , T { Real })
                            , \and ( gt( T { Real } , 0 )
-                                  , stateSatisfiesInvariant( S { State } )
+                                  , invariantSatisfiedInState( S { State } )
                                   , \forall { T2 { Real } }
                                         \implies( \and( gt( T2 { Real }, 0)
                                                       , lt( T2 { Real }, T { Real })
                                                       )
-                                                , stateSatisfiesInvariant(evolve( S { State }, T2 { Real }))
+                                                , invariantSatisfiedInState(evolve( S { State }, T2 { Real }))
                                                 )
                                   )
                            )
@@ -131,7 +131,7 @@ axiom \forall { S1 { State },  S2 { State } }
                                        )
                     , \exists { T { Real } } \and( gt( T { Real }, 0 )
                                                  , \equals( S2 { State }, evolve( S1 { State }, T { Real }))
-                                                 , stateSatisfiesInvariant( S1 { State } )
+                                                 , invariantSatisfiedInState( S1 { State } )
                                                  , invariantSatisfiedInInterval( S1 { State }, T { Real })
                                                  )
                     //, \exists { } \and(jump(S1 { State }) , transition( S1 {State }, S2 { State }) )
