@@ -98,26 +98,6 @@ axiom smt-lemma( \forall { T { Real } , S1 { State } , S2 { State } }
                             )
                )
 
-// axiom smt-lemma( \forall { S1 { State }, S2 { State }, T { Real } }
-//                   \implies( \and( gt(T { Real }, 0)
-//                                 , \equals( S2 { State }, evolve( S1 { State } , T { Real }))
-//                                 )
-//                           , \and( \equals( mode(S2 { State })
-//                                          , mode(S1 { State })
-//                                          )
-//                                 , \equals( valV(S2 { State })
-//                                          , plus(valV(S1 { State }), mult(10, T { Real }))
-//                                          )
-//                                 , \equals( valZ(S2 { State })
-//                                          , plus( valZ( S1 { State })
-//                                                , plus( mult(valV( S1 { State }), T { Real })
-//                                                       , div(mult(10, mult(T { Real }, T { Real })), 2)
-//                                                      )
-//                                                )
-//                                          )
-//                                  )
-//                           )
-//                 )
 
 
 symbol invariantSatisfiedInInterval( State , Real ) : Bool
@@ -141,29 +121,6 @@ axiom smt-lemma( \forall { S { State } , T { Real } }
 
 
 
-// axiom smt-lemma(  \forall { S { State } , T { Real } }
-//                     \and( \implies( gt(T { Real }, 0)
-//                                   , \equals(invariantSatisfiedInInterval( S { State } , T { Real })
-//                                            , \forall { T2 { Real } }
-//                                               \implies( \and( gt( T2 { Real }, 0)
-//                                                             , lt( T2 { Real }, T { Real })
-//                                                             )
-//                                                      , gt( valZ(evolve( S { State }, T2 { Real })), 0)
-//                                                      )
-//                                           )
-//                                   )
-//                         , \implies(\equals(invariantSatisfiedInInterval( S { State } , T { Real })
-//                                           , \forall { T2 { Real } }
-//                                              \implies( \and( gt( T2 { Real }, 0)
-//                                                            , lt( T2 { Real }, T { Real })
-//                                                            )
-//                                                     , gt( valZ(evolve( S { State }, T2 { Real })), 0)
-//                                                     )
-//                                          )
-//                                   , gt( T { Real }, 0)
-//                                   )
-//                         )
-//                 )
 
 
 axiom \forall { S1 { State },  S2 { State } }
