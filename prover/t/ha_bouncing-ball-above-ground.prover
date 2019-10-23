@@ -7,7 +7,4 @@ claim \implies( \and( reach( S1 { State }, S2 { State } )
               )
 
 
-strategy kt ; smt-cvc4
-
-
-
+strategy kt ; ( smt-z3 | smt-debug )
