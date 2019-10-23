@@ -52,25 +52,6 @@ axiom functional(jump)
 axiom smt-lemma( \forall { S { State } }
                     \and (\equals (jump( S { State } ), \equals( valZ( S { Int }), 0))))
 
-symbol isValidEvolution( State , State , Real ) : Bool
-
-axiom smt-lemma( \equals( isValidEvolution( S1 { State } , S2 { State } , T { Real })
-                        , \and( \equals( mode(S2 { State })
-                                       , mode(S1 { State })
-                                       )
-                              , \equals( valV(S2 { State })
-                                       , plus(valV(S1 { State }), mult(10, T { Real }))
-                                       )
-                              , \equals( valZ(S2 { State })
-                                       , plus( valZ( S1 { State })
-                                             , plus( mult(valV( S1 { State }), T { Real })
-                                                    , div(mult(10, mult(T { Real }, T { Real })), 2)
-                                                   )
-                                             )
-                                       )
-                               )
-                         )
-
 
 // Easier way to define iff ?
 axiom smt-lemma( \forall { T { Real } }
@@ -111,27 +92,33 @@ axiom smt-lemma( \forall { T { Real } }
                                      )
                                 )
                     )
+axiom smt-lemma( \forall { T { Real } }
+                    \implies( lt( T { Real }, )
+                            , \forall { S1 { State } , S2 { State } }
+                                        \not \equals( S2 { State } , evolve(S1 { State }, T))
+                            )
+               )
 
-axiom smt-lemma( \forall { S1 { State }, S2 { State }, T { Real } }
-                  \implies( \and( gt(T { Real }, 0)
-                                , \equals( S2 { State }, evolve( S1 { State } , T { Real }))
-                                )
-                          , \and( \equals( mode(S2 { State })
-                                         , mode(S1 { State })
-                                         )
-                                , \equals( valV(S2 { State })
-                                         , plus(valV(S1 { State }), mult(10, T { Real }))
-                                         )
-                                , \equals( valZ(S2 { State })
-                                         , plus( valZ( S1 { State })
-                                               , plus( mult(valV( S1 { State }), T { Real })
-                                                      , div(mult(10, mult(T { Real }, T { Real })), 2)
-                                                     )
-                                               )
-                                         )
-                                 )
-                          )
-                )
+// axiom smt-lemma( \forall { S1 { State }, S2 { State }, T { Real } }
+//                   \implies( \and( gt(T { Real }, 0)
+//                                 , \equals( S2 { State }, evolve( S1 { State } , T { Real }))
+//                                 )
+//                           , \and( \equals( mode(S2 { State })
+//                                          , mode(S1 { State })
+//                                          )
+//                                 , \equals( valV(S2 { State })
+//                                          , plus(valV(S1 { State }), mult(10, T { Real }))
+//                                          )
+//                                 , \equals( valZ(S2 { State })
+//                                          , plus( valZ( S1 { State })
+//                                                , plus( mult(valV( S1 { State }), T { Real })
+//                                                       , div(mult(10, mult(T { Real }, T { Real })), 2)
+//                                                      )
+//                                                )
+//                                          )
+//                                  )
+//                           )
+//                 )
 
 
 axiom \forall { S1 { State },  S2 { State } }
