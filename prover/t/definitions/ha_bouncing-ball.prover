@@ -121,6 +121,24 @@ axiom smt-lemma( \forall { T { Real } }
 //                 )
 
 
+symbol invariantSatisfiedInInterval( State , Real ) : Bool
+
+axiom functional(invariantSatisfiedInInterval)
+
+axiom smt-lemma(  \forall { S { State } , T { Real } }
+                    \implies( gt(T { Real }, 0)
+                            , \equals(invariantSatisfiedInInterval( S { State } , T { Real })
+                                     , \forall { T2 { Real } }
+                                        \implies( \and( gt( T2 { Real }, 0)
+                                                      , lt( T2 { Real }, T { Real })
+                                                      )
+                                               , gt( valZ(evolve( S { State }, T2 { Real })), 0)
+                                               )
+                                    )
+                            )
+                )
+
+
 axiom \forall { S1 { State },  S2 { State } }
       \iff-lfp( reach( S1 { State } , S2 { State } )
               , \or ( \exists { } \and ( \equals ( valZ(S1 { State }), valZ(S2 { State }) )
@@ -130,11 +148,7 @@ axiom \forall { S1 { State },  S2 { State } }
                     , \exists { T { Real } } \and( gt( T { Real }, 0 )
                                                  , \equals( S2 { State }, evolve( S1 { State }, T { Real }))
                                                  , stateSatisfiesInvariant( S1 { State } )
-                                                 , \forall { T2 { Real } }
-                                                    \and( gt(T2 { Real }, 0 )
-                                                        , lt( T2 { Real }, T { Real })
-                                                        , stateSatisfiesInvariant(evolve(S1 { State }, T2 { Real }))
-                                                        )
+                                                 , invariantSatisfiedInInterval( S1 { State }, T { Real })
                                                  )
                     //, \exists { } \and(jump(S1 { State }) , transition( S1 {State }, S2 { State }) )
                     , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
