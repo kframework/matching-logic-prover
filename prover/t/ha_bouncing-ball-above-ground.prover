@@ -1,8 +1,9 @@
 imports "t/definitions/ha_bouncing-ball.prover"
 
 claim \implies( \and( reach( S1 { State }, S2 { State } )
-                    , gt( valV( S1 { State }), 0))
-              , \and( gt(valV(S2 { State }), 0))
+                    , gt( valZ( S1 { State }), 0)
+                    , \equals( valV( S1 { State }), 0))
+              , \and( gt(valZ(S2 { State }), 0))
               )
 
 
