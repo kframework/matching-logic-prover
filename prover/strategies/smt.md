@@ -1,5 +1,5 @@
 ```k
-requires "../smt.k"
+requires "lang/smt-lang.k"
 ```
 
 ML to SMTLIB2

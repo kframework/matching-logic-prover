@@ -1,6 +1,6 @@
 ```k
-requires "kore.k"
-requires "smtlib-to-kore.k"
+requires "lang/kore-lang.k"
+requires "drivers/smt-driver.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"

@@ -16,9 +16,9 @@ proj = KProject()
 # Matching Logic Prover
 # =====================
 
-other_md_files = [ 'smt.md'
-                 , 'kore.md'
-                 , 'smtlib-to-kore.md'
+other_md_files = [ 'lang/smt-lang.md'
+                 , 'lang/kore-lang.md'
+                 , 'drivers/smt-driver.md'
                  , 'strategies/core.md'
                  , 'strategies/knaster-tarski.md'
                  , 'strategies/matching.md'
@@ -80,7 +80,7 @@ sl_comp_test('qf_shid_entl/22.tst.smt2')
 
 test_driver = proj.definition( alias = 'test-driver'
                              , backend = 'ocaml'
-                             , main = 'unit-tests.md'
+                             , main = 'drivers/unit-tests.md'
                              , other = other_md_files + ['prover.md']
                              , runner_script = './prover'
                              )
