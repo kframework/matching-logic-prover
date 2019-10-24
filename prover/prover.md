@@ -81,4 +81,3 @@ module PROVER
   imports STRATEGY-KNASTER-TARSKI
 endmodule
 ```
-
