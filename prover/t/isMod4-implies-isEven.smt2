@@ -20,7 +20,6 @@
 (declare-const x Int)
 (assert (isDiv4Pos x))
 (assert (not (isEvenPos x)))
-(check-sat)
 
 (set-info :mlprover-strategy
             normalize
@@ -39,3 +38,4 @@
                    )
                  )
 )
+(check-sat)

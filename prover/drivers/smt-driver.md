@@ -13,38 +13,62 @@ module SMT-DRIVER
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
 
+  syntax GoalBuilder ::= "#goal" "(" "goal:"     Pattern
+                                 "," "strategy:" Strategy
+                                 ")"
+
   rule <k> S:SMTLIB2Script
-        => \exists { .Patterns } \and( .Patterns ) ~> S
+        => #goal( goal: \exists { .Patterns } \and( .Patterns )
+                , strategy: search-sl(bound: 6)
+                )
+        ~> S
            ...
        </k>
 
-  rule <k> P:Pattern ~> C Cs:SMTLIB2Script
-        => P ~> C ~> Cs
+  rule <k> _:GoalBuilder
+        ~> (C Cs:SMTLIB2Script => C ~> Cs)
            ...
        </k>
 
-  rule <k> \exists { Us } \and(Ps) ~> ((set-logic _) => .) ... </k>
-  rule <k> \exists { Us } \and(Ps) ~> ((set-info ATTR _) => .) ... </k>
+  rule <k> _:GoalBuilder
+        ~> ((set-logic _) => .)
+           ...
+       </k>
+
+  rule <k> _:GoalBuilder
+        ~> ((set-info ATTR _) => .)
+           ...
+       </k>
     requires ATTR =/=K :mlprover-strategy
 
-  rule <k> \exists { Us } \and(Ps) ~> (assert TERM)
-        => \exists { Us } \and(SMTLIB2TermToPattern(TERM, Us), Ps)
+  rule <k> #goal( goal: \exists { Us }
+                        \and(Ps => (SMTLIB2TermToPattern(TERM, Us), Ps))
+                , strategy: _
+                )
+        ~> ( (assert TERM) => .K )
            ...
        </k>
 
-  rule <k> \exists { Us } \and(Ps) ~> ((declare-sort SORT 0) => .) ... </k>
+  rule <k> _:GoalBuilder ~> ((declare-sort SORT 0) => .) ... </k>
        <declarations> ( .Bag
                      => <declaration> sort SMTLIB2SortToSort(SORT) </declaration>
                       ) ...
        </declarations>
 
-  rule <k> \exists { Us } \and(Ps) ~> (declare-const ID SORT)
-        => \exists { SMTLIB2SimpleSymbolToVariableName(ID) { SMTLIB2SortToSort(SORT) }, Us } \and(Ps)
+  rule <k> #goal( goal: \exists { Us
+                               => (SMTLIB2SimpleSymbolToVariableName(ID) { SMTLIB2SortToSort(SORT) }, Us)
+                                }
+                        \and(Ps)
+                , strategy: _
+                )
+        ~> ( (declare-const ID SORT) => .K )
            ...
        </k>
 
-  rule <k> \exists { Us } \and(Ps) ~> (declare-heap (LOC DATA) .SMTLIB2SortPairList)
-        => \exists { Us } \and(Ps)
+  rule <k> _:GoalBuilder
+        ~> ( (declare-heap (LOC DATA) .SMTLIB2SortPairList)
+          => .K
+           )
            ...
        </k>
        <declarations> ( .Bag
@@ -58,10 +82,15 @@ module SMT-DRIVER
                       ) ...
        </declarations>
 
-  rule <k> \exists { Us } \and(Ps) ~> ((declare-datatypes ( .SMTLIB2SortDecList ) ( .SMTLIB2DatatypeDecList )) => .) ... </k>
+  rule <k> _:GoalBuilder
+        ~> ((declare-datatypes ( .SMTLIB2SortDecList ) ( .SMTLIB2DatatypeDecList )) => .)
+           ...
+       </k>
 
-  rule <k> \exists { Us } \and(Ps) ~> (declare-datatypes ( (SORT1 0) SDECs ) ( ( ( CTOR SELDECs ) .SMTLIB2ConstructorDecList ) DDECs ) )
-        => \exists { Us } \and(Ps) ~> (declare-datatypes ( SDECs ) ( DDECs ))
+  rule <k> _:GoalBuilder
+        ~> ( (declare-datatypes ( (SORT1 0) SDECs ) ( ( ( CTOR SELDECs ) .SMTLIB2ConstructorDecList ) DDECs ) )
+          => (declare-datatypes ( SDECs ) ( DDECs ))
+           )
            ...
        </k>
        <declarations> ( .Bag
@@ -74,8 +103,10 @@ module SMT-DRIVER
   rule SelectorDecListToSorts(.SMTLIB2SelectorDecList) => .Sorts
   rule SelectorDecListToSorts((_ SORT) SELDECs) => SMTLIB2SortToSort(SORT), SelectorDecListToSorts(SELDECs)
 
-  rule <k> \exists { Us } \and(Ps) ~> (define-fun-rec ID (ARGS) RET BODY)
-        => \exists { Us } \and(Ps)
+  rule <k> _:GoalBuilder
+        ~> ( (define-fun-rec ID (ARGS) RET BODY)
+          => .K
+           )
            ...
        </k>
        <declarations> ( .Bag
@@ -117,16 +148,12 @@ module SMT-DRIVER
   rule #containsSpatialSymbolPatterns(.Patterns) => false
   rule #containsSpatialSymbolPatterns(P, Ps) => #containsSpatialSymbol(P) orBool #containsSpatialSymbolPatterns(Ps)
 
-  rule <k> P:Pattern ~> (check-sat) ~> (set-info :mlprover-strategy S) .SMTLIB2Script
-        => claim \not(P) strategy S ~> P
+  rule <k> #goal( goal: P:Pattern, strategy: S )
+        ~> (check-sat)
+        => claim \not(P) strategy S
+        ~> #goal( goal: P:Pattern, strategy: S )
            ...
        </k>
-
-  rule <k> P:Pattern ~> (check-sat)
-        => claim \not(P) strategy search-sl(bound: 6) ~> P
-           ...
-       </k>
-      // TODO: workaround for SL-COMP benchmark
    requires notBool P ==K  \exists { .Patterns } \and ( .Patterns )
 ```
 
@@ -135,9 +162,11 @@ and have the expected result set to `unsat`. This is just plain wrong. The follo
 works around that issue:
 
 ```k
-  rule <k> (\exists { .Patterns } \and ( .Patterns )) #as P
+  rule <k> #goal( goal: \exists { .Patterns } \and ( .Patterns )
+                , strategy: _
+                ) #as GOAL:GoalBuilder
         ~> (check-sat)
-        => P:Pattern
+        => GOAL
            ...
        </k>
 ```
