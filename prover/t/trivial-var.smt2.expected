@@ -1,7 +1,10 @@
 <prover>
   <k>
-    \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns )
+    .
   </k>
+  <exit-code>
+    0
+  </exit-code>
   <goals>
     <goal>
       active: true, id: root, parent: .
@@ -11,10 +14,12 @@
       <strategy>
         success
       </strategy>
-      <trace>
-        smt-cvc4
-      </trace>
-    </goal>
+      <expected>
+        success
+      </expected>
+    <trace>
+      smt-cvc4
+    </trace>
   </goals>
   <declarations>
     .DeclarationCellSet

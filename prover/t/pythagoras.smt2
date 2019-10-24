@@ -1,3 +1,5 @@
+(set-info :status sat)
+
 (declare-const x Int)
 (declare-const y Int)
 (declare-const z Int)

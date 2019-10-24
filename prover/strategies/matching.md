@@ -33,6 +33,15 @@ Instantiate existentials using matching on the spatial part of goals:
                   ...
        </strategy>
 
+  rule <claim> \implies(LHS, \exists { Vs } \and(RSPATIAL, RHS)) </claim>
+       <strategy> match => fail ... </strategy>
+    requires isPredicatePattern(LHS)
+     andBool isSpatialPattern(RSPATIAL)
+  rule <claim> \implies(\and(LSPATIAL, LHS), \exists { Vs } RHS) </claim>
+       <strategy> match => fail ... </strategy>
+    requires isPredicatePattern(RHS)
+     andBool isSpatialPattern(LSPATIAL)
+
   rule <strategy> ( #matchResult(subst: _, rest: Ps)
                   , .MatchResults
                  ~> match

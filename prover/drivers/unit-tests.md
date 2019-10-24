@@ -41,5 +41,8 @@ module UNIT-TESTS
 
   syntax Declaration ::= "assert" "(" KItem "==" KItem ")" [format(%1%2%i%i%n%3%d%n%4%i%n%5%d%d%6%n)]
   rule assert(EXPECTED == EXPECTED) => .K
+
+  rule <k> .K </k>
+       <exit-code> 1 => 0 </exit-code>
 endmodule
 ```

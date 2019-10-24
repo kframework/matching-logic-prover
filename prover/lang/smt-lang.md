@@ -83,6 +83,7 @@ module SMTLIB2
 
 // For parsing strategies in smt files
   syntax SMTLIB2Attribute ::= ":mlprover-strategy" [token]
+                            | ":status"            [token]
                             | ColonName
 
   syntax SMTLIB2AttributeValue ::= Strategy
@@ -130,6 +131,7 @@ module SMTLIB2
                                | "Heap" [token]
 
   syntax CheckSATResult ::= "sat" | "unsat"
+                          | "unknown"
                           | "unknown" "(" K ")" | "error" "(" K ")"
 
 // Concatenation:

@@ -1,7 +1,10 @@
 <prover>
   <k>
-    \exists { Vx { Int } , .Patterns } \and ( \not ( isEvenPos ( Vx { Int } , .Patterns ) ) , isDiv4Pos ( Vx { Int } , .Patterns ) , .Patterns )
+    .
   </k>
+  <exit-code>
+    0
+  </exit-code>
   <goals>
     <goal>
       active: true, id: root, parent: .
@@ -11,10 +14,12 @@
       <strategy>
         success
       </strategy>
-      <trace>
-        .
-      </trace>
-    </goal>
+      <expected>
+        success
+      </expected>
+    <trace>
+      .
+    </trace>
   </goals>
   <declarations>
     <declaration>

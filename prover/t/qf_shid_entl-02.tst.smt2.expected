@@ -1,7 +1,10 @@
 <prover>
   <k>
-    \exists { Vz { RefGTyp } , Vy { RefGTyp } , Vx { RefGTyp } , .Patterns } \and ( \not ( RList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) ) , sep ( RList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , RList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns )
+    .
   </k>
+  <exit-code>
+    0
+  </exit-code>
   <goals>
     <goal>
       active: true, id: root, parent: .
@@ -11,10 +14,12 @@
       <strategy>
         success
       </strategy>
-      <trace>
-        .
-      </trace>
-    </goal>
+      <expected>
+        success
+      </expected>
+    <trace>
+      .
+    </trace>
   </goals>
   <declarations>
     <declaration>
