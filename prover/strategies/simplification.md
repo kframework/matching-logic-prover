@@ -7,6 +7,15 @@ module STRATEGY-SIMPLIFICATION
   imports KORE-HELPERS
 ```
 
+### Normalize ImplicativeForms
+
+TODO: Make this part of a strategy
+
+```k
+  rule <claim> \implies(LHS, \and(RHS) => \exists { .Patterns } \and(RHS)) </claim>
+```
+
+
 ### remove-lhs-existential
 
 ```

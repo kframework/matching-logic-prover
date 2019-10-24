@@ -186,12 +186,6 @@ module PROVER-DRIVER
        </goals>
 ```
 
-Normalize ImplicativeForms:
-
-```k
-  rule <claim> \implies(LHS, \and(RHS) => \exists { .Patterns } \and(RHS)) </claim>
-```
-
 ```k
 endmodule
 ```
