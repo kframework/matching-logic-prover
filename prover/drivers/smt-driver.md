@@ -15,11 +15,13 @@ module SMT-DRIVER
 
   syntax GoalBuilder ::= "#goal" "(" "goal:"     Pattern
                                  "," "strategy:" Strategy
+                                 "," "expected:" K
                                  ")"
 
   rule <k> S:SMTLIB2Script
         => #goal( goal: \exists { .Patterns } \and( .Patterns )
                 , strategy: search-sl(bound: 6)
+                , expected: success
                 )
         ~> S
            ...
@@ -30,20 +32,31 @@ module SMT-DRIVER
            ...
        </k>
 
-  rule <k> _:GoalBuilder
-        ~> ((set-logic _) => .)
-           ...
-       </k>
-
-  rule <k> _:GoalBuilder
-        ~> ((set-info ATTR _) => .)
-           ...
-       </k>
+  rule <k> _:GoalBuilder ~> ((set-logic _) => .) ... </k>
+  rule <k> _:GoalBuilder ~> ((set-info ATTR _) => .) ... </k>
     requires ATTR =/=K :mlprover-strategy
+     andBool ATTR =/=K :status
+
+  rule <k> #goal( goal:     _
+                , strategy: _
+                , expected: _ => #statusToTerminalStrategy(STATUS)
+                )
+        ~> ((set-info :status STATUS) => .)
+          ...
+      </k>
+
+  rule <k> #goal( goal:     _
+                , strategy: _ => STRAT
+                , expected: _
+                )
+        ~> ((set-info :mlprover-strategy STRAT) => .)
+          ...
+      </k>
 
   rule <k> #goal( goal: \exists { Us }
                         \and(Ps => (SMTLIB2TermToPattern(TERM, Us), Ps))
                 , strategy: _
+                , expected: _
                 )
         ~> ( (assert TERM) => .K )
            ...
@@ -60,6 +73,7 @@ module SMT-DRIVER
                                 }
                         \and(Ps)
                 , strategy: _
+                , expected: _
                 )
         ~> ( (declare-const ID SORT) => .K )
            ...
@@ -148,13 +162,26 @@ module SMT-DRIVER
   rule #containsSpatialSymbolPatterns(.Patterns) => false
   rule #containsSpatialSymbolPatterns(P, Ps) => #containsSpatialSymbol(P) orBool #containsSpatialSymbolPatterns(Ps)
 
-  rule <k> #goal( goal: P:Pattern, strategy: S )
+  rule <k> #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
         ~> (check-sat)
-        => claim \not(P) strategy S
-        ~> #goal( goal: P:Pattern, strategy: S )
+        => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
            ...
        </k>
-   requires notBool P ==K  \exists { .Patterns } \and ( .Patterns )
+       <goals>
+         ( .Bag =>
+           <goal>
+             <id> root </id>
+             <active> true:Bool </active>
+             <parent> .K </parent>
+             <claim> \not(PATTERN) </claim>
+             <strategy> STRAT </strategy>
+             <expected> EXPECTED </expected>
+             <trace> .K </trace>
+           </goal>
+         )
+         ...
+       </goals>
+   requires notBool PATTERN ==K  \exists { .Patterns } \and ( .Patterns )
 ```
 
 Some of the SL-COMP18 benchmarks call `(check-sat)` when the assertion set is empty,
@@ -164,6 +191,7 @@ works around that issue:
 ```k
   rule <k> #goal( goal: \exists { .Patterns } \and ( .Patterns )
                 , strategy: _
+                , expected: _
                 ) #as GOAL:GoalBuilder
         ~> (check-sat)
         => GOAL
@@ -171,9 +199,23 @@ works around that issue:
        </k>
 ```
 
+Clear the `<k>` cell once we are done:
+
+```k
+  rule <k> _:GoalBuilder ~> .SMTLIB2Script
+        => .K
+       </k>
+```
+
 ```k
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
   rule #normalizeDefinition(\or(Ps)) => \or(#exists(#flattenOrs(#dnfPs(Ps)), .Patterns))
+
+  syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]
+  rule #statusToTerminalStrategy(unsat)      => success
+  rule #statusToTerminalStrategy(sat)        => fail
+  rule #statusToTerminalStrategy(unknown)    => fail
+  rule #statusToTerminalStrategy(unknown(_)) => fail
 
   syntax Pattern ::= SMTLIB2TermToPattern(SMTLIB2Term, Patterns) [function]
   rule SMTLIB2TermToPattern( (exists ( ARGS ) T), Vs ) => \exists { SMTLIB2SortedVarListToPatterns(ARGS) } SMTLIB2TermToPattern(T, SMTLIB2SortedVarListToPatterns(ARGS) ++Patterns Vs)

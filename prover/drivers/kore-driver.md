@@ -74,11 +74,19 @@ The `claim` Declaration creates a new `<goal>` cell:
              <parent> .K </parent>
              <claim> PATTERN </claim>
              <strategy> STRAT </strategy>
+             <expected> success </expected>
              <trace> .K </trace>
            </goal>
          )
          ...
        </goals>
+```
+
+```k
+  rule <id> root </id>
+       <expected> S:TerminalStrategy </expected>
+       <strategy> S </strategy>
+       <exit-code> 1 => 0 </exit-code>
 ```
 
 ```k
