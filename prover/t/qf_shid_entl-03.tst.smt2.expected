@@ -38,8 +38,6 @@
     </declaration> <declaration>
       symbol emp ( .Sorts ) : Heap
     </declaration> <declaration>
-      symbol f0 ( GTyp , .Sorts ) : RefGTyp
-    </declaration> <declaration>
       symbol nil ( .Sorts ) : RefGTyp
     </declaration> <declaration>
       symbol pto ( RefGTyp , GTyp , .Sorts ) : Heap
