@@ -1,5 +1,10 @@
+SMT Driver
+==========
+
+This file is responsible for loading definitions in the SMT2 format.
+
 ```k
-module SMTLIB-TO-KORE
+module SMT-DRIVER
   imports KORE-SUGAR
   imports KORE-HELPERS
   imports PROVER-CONFIGURATION
@@ -182,3 +187,23 @@ works around that issue:
 ```k
 endmodule
 ```
+
+```k
+module PROVER-SMT-SYNTAX
+  imports PROVER-COMMON-SYNTAX
+  imports SMTLIB2-SYNTAX
+  imports SMTLIB-SL
+
+  // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
+  syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
+```
+
+When parsing with the SMTLIB2 syntax, we use semicolons as comments:
+
+```k
+  syntax #Layout ::= r"(;[^\\n\\r]*)"     // SMTLIB2 style semicolon comments
+                   | r"([\\ \\n\\r\\t])"  // whitespace
+
+endmodule
+```
+

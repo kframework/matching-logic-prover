@@ -1,6 +1,8 @@
 ```k
 requires "lang/kore-lang.k"
 requires "drivers/smt-driver.k"
+requires "drivers/kore-driver.k"
+requires "drivers/configuration.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -8,47 +10,6 @@ requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/unfolding.k"
-```
-
-Configuration
-=============
-
-The configuration consists of a assoc-commutative bag of goals. Only goals
-marked `<active>` are executed to control the non-determinism in the system. The
-`<claim>` cell contains the Matching Logic Pattern for which we are searching for a
-proof. The `<strategy>` cell contains an imperative language that controls which
-(high-level) proof rules are used to complete the goal. The `<trace>` cell
-stores a log of the strategies used in the search of a proof and other debug
-information. Eventually, this could be used for constructing a proof object.
-
-```k
-module PROVER-CONFIGURATION
-  imports KORE-SUGAR
-  imports DOMAINS-SYNTAX
-
-  syntax Pgm
-  syntax Strategy
-
-  syntax GoalId ::= "root" | Int
-
-  configuration
-      <prover>
-        <k> $PGM:Pgm </k>
-        <goals>
-          <goal multiplicity="*" type="Set" format="%1%i%n%2, %3, %4%n%5%n%6%n%7%n%d%8">
-            <active format="active: %2"> true:Bool </active>
-            <id format="id: %2"> root </id>
-            <parent format="parent: %2"> .K </parent>
-            <claim> .K </claim>
-            <strategy> .K </strategy>
-            <trace> .K </trace>
-          </goal>
-        </goals>
-        <declarations>
-          <declaration multiplicity="*" type="Set">  .K </declaration>
-        </declarations>
-      </prover>
-endmodule
 ```
 
 Strategies for the Horn Clause fragment
@@ -99,94 +60,9 @@ module PROVER-COMMON
 endmodule
 
 module PROVER-COMMON-SYNTAX
-  imports PROVER-COMMON
+  imports KORE-DRIVER
   imports TOKENS-SYNTAX
   syntax Declarations ::= "" [klabel(.Declarations)]
-endmodule
-
-module PROVER-KORE-SYNTAX
-  imports PROVER-COMMON-SYNTAX
-  imports SMTLIB2-SYNTAX
-  imports SMTLIB-SL
-endmodule
-
-module PROVER-SMT-SYNTAX
-  imports PROVER-COMMON-SYNTAX
-  imports SMTLIB2-SYNTAX
-  imports SMTLIB-SL
-
-  // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
-  syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
-```
-
-When parsing with the SMTLIB2 syntax, we use semicolons as comments:
-
-```k
-  syntax #Layout ::= r"(;[^\\n\\r]*)"     // SMTLIB2 style semicolon comments
-                   | r"([\\ \\n\\r\\t])"  // whitespace
-
-endmodule
-```
-
-```k
-module PROVER-DRIVER
-  imports PROVER-COMMON
-  imports PROVER-CORE
-  imports K-IO
-
-  syntax Declarations ::= ".Declarations" [klabel(.Declarations)]
-
-  // K changes directory to "REPODIR/.krun-TIMESTAMP"
-  rule <k> imports FILE:String
-        => #system("kast --directory ../.build/defn/prover-kore '../" +String FILE +String "'")
-           ...
-       </k>
-  rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKAST(KAST_STRING) ... </k>
-
-  rule <k> (D:Declaration Ds:Declarations)
-        => (D ~> Ds)
-           ...
-       </k>
-  rule <k> .Declarations => .K ... </k>
-
-  rule <k> (symbol _ ( _ ) : _ #as DECL:Declaration) => .K ... </k>
-       <declarations>
-         (.Bag => <declaration> DECL </declaration>)
-         ...
-       </declarations>
-
-  rule <k> (sort _ #as DECL:Declaration) => .K ... </k>
-       <declarations>
-         (.Bag => <declaration> DECL </declaration>)
-         ...
-       </declarations>
-
-  rule <k> (axiom _ #as DECL:Declaration) => .K ... </k>
-       <declarations>
-         (.Bag => <declaration> DECL </declaration>)
-         ...
-       </declarations>
-  rule <k> claim PATTERN
-           strategy STRAT
-        => .K
-           ...
-       </k>
-       <goals>
-         ( .Bag =>
-           <goal>
-             <id> root </id>
-             <active> true:Bool </active>
-             <parent> .K </parent>
-             <claim> PATTERN </claim>
-             <strategy> STRAT </strategy>
-             <trace> .K </trace>
-           </goal>
-         )
-         ...
-       </goals>
-```
-
-```k
 endmodule
 ```
 
@@ -195,8 +71,8 @@ Main Modules
 
 ```k
 module PROVER
-  imports PROVER-DRIVER
-  imports SMTLIB-TO-KORE
+  imports KORE-DRIVER
+  imports SMT-DRIVER
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION

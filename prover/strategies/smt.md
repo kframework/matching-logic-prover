@@ -12,7 +12,7 @@ module ML-TO-SMTLIB2
   imports KORE-SUGAR
   imports KORE-HELPERS
   imports STRATEGY-UNFOLDING
-  imports PROVER-DRIVER
+  imports KORE-DRIVER
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
   rule ML2SMTLIB(PATTERN)

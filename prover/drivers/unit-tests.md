@@ -30,14 +30,14 @@ endmodule
 
 ```k
 module UNIT-TESTS
-  imports SMTLIB-TO-KORE
+  imports SMT-DRIVER
+  imports KORE-DRIVER
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION
   imports STRATEGY-MATCHING
   imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
-  imports PROVER-DRIVER
 
   syntax Declaration ::= "assert" "(" KItem "==" KItem ")" [format(%1%2%i%i%n%3%d%n%4%i%n%5%d%d%6%n)]
   rule assert(EXPECTED == EXPECTED) => .K
