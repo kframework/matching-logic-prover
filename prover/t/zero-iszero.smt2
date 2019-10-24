@@ -9,9 +9,8 @@
 
 (assert (not (iszero 0)))
 
-(check-sat)
-
 (set-info :mlprover-strategy
             normalize . smtlib-to-implication . or-split-rhs
           . right-unfold . smt
 )
+(check-sat)

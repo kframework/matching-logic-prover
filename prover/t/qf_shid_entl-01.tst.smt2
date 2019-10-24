@@ -56,8 +56,6 @@
 			(RList x z )
 ))
 
-(check-sat)
-
 ; (set-info :mlprover-strategy
 ;     normalize
 ;   . smtlib-to-implication
@@ -74,3 +72,4 @@
 ;       )
 ;     )
 ; )
+(check-sat)
