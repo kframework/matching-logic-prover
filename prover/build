@@ -86,13 +86,10 @@ test_driver = proj.definition( alias = 'test-driver'
                              , other = other_md_files + ['prover.md']
                              , runner_script = './prover'
                              )
-def remove(blacklist, iter):
-    def f(item):
-        return not item in blacklist
-    return filter(f, iter)
-test_driver.tests( alias = 'unit-tests'
-                 , inputs = remove(['t/unit/expected'], glob('t/unit/*'))
-                 , expected='t/unit/expected'
-                 )
+
+unit_tests = []
+for test in glob('t/unit/*'):
+    unit_tests += [proj.source(test).then(test_driver.krun())]
+proj.alias('unit-tests', unit_tests).default()
 
 proj.main()
