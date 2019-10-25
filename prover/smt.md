@@ -157,6 +157,7 @@ module SMTLIB2
 
   syntax String ::= SMTLIB2NumeralToString(SMTLIB2Numeral) [function]
   rule SMTLIB2NumeralToString(I:Int) => Int2String(I)
+  syntax String ::= SMTLIB2SpecConstantToString(SMTLIB2SpecConstant) [function, functional, hook(STRING.token2string)]
 
   syntax String ::= SMTLIB2SimpleSymbolToString(SMTLIB2SimpleSymbol)   [function, functional, hook(STRING.token2string)]
   rule SMTLIB2SimpleSymbolToString(true)  => "true"
@@ -173,6 +174,7 @@ module SMTLIB2
 
   syntax String ::= SMTLIB2TermToString(SMTLIB2Term)         [function]
   rule SMTLIB2TermToString( N:SMTLIB2Numeral ) => SMTLIB2NumeralToString(N)
+  rule SMTLIB2TermToString( C:SMTLIB2SpecConstant ) => SMTLIB2SpecConstantToString( C )
   rule SMTLIB2TermToString( Op:SMTLIB2SimpleSymbol ) => SMTLIB2SimpleSymbolToString( Op )
   rule SMTLIB2TermToString( ( ID:SMTLIB2QualIdentifier Ts ) )
     => "(" +String SMTLIB2TermToString(ID) +String " " +String SMTLIB2TermListToString(Ts) +String ")"

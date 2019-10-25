@@ -24,7 +24,9 @@ module TOKENS-SYNTAX
   // TODO: PipeQID interacts badly with _ | _ strategy
   // syntax PipeQID ::= r"\\|[^\\|]*\\|" [token, autoReject]
   syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
-                   | "2.0" [token]
+                   | "2.0"  [token]
+                   | "10.0" [token]
+                   | "0.0"  [token]
 endmodule
 
 module KORE-SUGAR
@@ -49,6 +51,7 @@ only in this scenario*.
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
   syntax Pattern ::= Int
+                   | Decimal
                    | Variable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]

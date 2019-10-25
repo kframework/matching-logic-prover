@@ -66,6 +66,7 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(\not(P)) => ( not PatternToSMTLIB2Term(P) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(I:Int) => I                                          requires I >=Int 0
   rule PatternToSMTLIB2Term(I:Int) => ( #token("-", "SMTLIB2SimpleSymbol") absInt(I) ):SMTLIB2Term requires I  <Int 0
+  rule PatternToSMTLIB2Term(D:Decimal) => D
   rule PatternToSMTLIB2Term(emptyset) => emptysetx:SMTLIB2Term
   rule PatternToSMTLIB2Term(singleton(P1)) => ( singleton PatternToSMTLIB2Term(P1) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(lt(P1, P2)) => ( < PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
