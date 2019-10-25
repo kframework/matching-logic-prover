@@ -1,10 +1,10 @@
 imports "t/definitions/ha_bouncing-ball.prover"
 
 claim \implies( \and( reach( S1 { State }, S2 { State } )
-                    , gt( valZ( S1 { State }), 0)
-                    , \equals( valV( S1 { State }), 0))
-              , \and( gt(valZ(S2 { State }), 0))
+                    , invariantSatisfiedInState( S1 { State } )
+                    , \equals( valV( S1 { State }), 0.0))
+              , \and(invariantSatisfiedInState( S2 { State } ))
               )
 
 
-strategy kt ; ( smt-z3 | smt-debug )
+strategy kt ; ( smt-cvc4 | smt-debug )
