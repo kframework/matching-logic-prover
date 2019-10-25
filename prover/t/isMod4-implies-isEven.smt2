@@ -23,7 +23,7 @@
 
 (set-info :mlprover-strategy
             normalize
-          . smtlib-to-implication . or-split-rhs
+          . or-split-rhs
           . kt . ( ( right-unfold . smt )
                  | ( kt-solve-implications(smt) . normalize
                  . kt . ( ( right-unfold-Nth(0, 1) . normalize

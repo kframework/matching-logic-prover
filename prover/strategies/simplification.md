@@ -79,25 +79,6 @@ Normalize:
   rule <claim> \not(_) #as P => #normalize(P) </claim>
        <strategy> normalize => noop ... </strategy>
 
-  rule <claim> \forall{Vs} P => P </claim>
-       <strategy> smtlib-to-implication ... </strategy>
-
-  rule <claim> \implies(L, R) </claim>
-       <strategy> smtlib-to-implication => noop ... </strategy>
-
-  rule <claim> \or(Ps) => \implies(\and(#filterNegative(Ps)), \and(\or(#filterPositive(Ps)))) </claim>
-       <strategy> smtlib-to-implication => normalize ... </strategy>
-
-  syntax Patterns ::= "#filterNegative" "(" Patterns ")" [function]
-  rule #filterNegative(\not(P), Ps) => P, #filterNegative(Ps)
-  rule #filterNegative(P, Ps)       => #filterNegative(Ps) [owise]
-  rule #filterNegative(.Patterns)   => .Patterns
-
-  syntax Patterns ::= "#filterPositive" "(" Patterns ")" [function]
-  rule #filterPositive(\not(P), Ps) => #filterPositive(Ps)
-  rule #filterPositive(P, Ps)       => P, #filterPositive(Ps) [owise]
-  rule #filterPositive(.Patterns)   => .Patterns
-
   syntax Pattern ::= #normalize(Pattern) [function]
   syntax Patterns ::= #normalizePs(Patterns) [function]
 
