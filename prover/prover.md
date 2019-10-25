@@ -21,7 +21,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
   imports KORE-SUGAR
 
   syntax Strategy ::= "search-fol" "(" "bound" ":" Int ")" | "search-sl" "(" "bound" ":" Int ")"
-                    | "remove-lhs-existential" | "normalize" | "smtlib-to-implication" | "lift-or"
+                    | "remove-lhs-existential" | "normalize" | "lift-or"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "lift-constraints"
                     | "direct-proof"

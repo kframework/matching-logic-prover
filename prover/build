@@ -78,6 +78,8 @@ sl_comp_test('qf_shid_entl/15.tst.smt2')
 # sl_comp_test('qf_shid_entl/22.tst.smt2')
 
 sl_comp_test('qf_shid_entl/eolseg_01.sb.smt2')
+sl_comp_test('qf_shid_entl/dll-vc14.smt2')
+sl_comp_test('qf_shid_entl/dll-vc16.smt2')
 
 # Unit Tests
 # ----------

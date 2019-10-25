@@ -172,7 +172,7 @@ module SMT-DRIVER
   rule #containsSpatialPatterns(.Patterns, _) => false
   rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
 
-  rule <k> #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
+  rule <k> #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
         ~> (check-sat)
         => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
            ...
@@ -183,7 +183,7 @@ module SMT-DRIVER
              <id> root </id>
              <active> true:Bool </active>
              <parent> .K </parent>
-             <claim> \not(PATTERN) </claim>
+             <claim> \implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps)))) </claim>
              <strategy> STRAT </strategy>
              <expected> EXPECTED </expected>
              <trace> .K </trace>
@@ -192,6 +192,18 @@ module SMT-DRIVER
          ...
        </goals>
    requires notBool PATTERN ==K  \exists { .Patterns } \and ( .Patterns )
+```
+
+```k
+  syntax Patterns ::= "#filterNegative" "(" Patterns ")" [function]
+  rule #filterNegative(\not(P), Ps) => P, #filterNegative(Ps)
+  rule #filterNegative(P, Ps)       => #filterNegative(Ps) [owise]
+  rule #filterNegative(.Patterns)   => .Patterns
+
+  syntax Patterns ::= "#filterPositive" "(" Patterns ")" [function]
+  rule #filterPositive(\not(P), Ps) => #filterPositive(Ps)
+  rule #filterPositive(P, Ps)       => P, #filterPositive(Ps) [owise]
+  rule #filterPositive(.Patterns)   => .Patterns
 ```
 
 Some of the SL-COMP18 benchmarks call `(check-sat)` when the assertion set is empty,

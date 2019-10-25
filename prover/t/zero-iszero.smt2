@@ -10,7 +10,7 @@
 (assert (not (iszero 0)))
 
 (set-info :mlprover-strategy
-            normalize . smtlib-to-implication . or-split-rhs
+            normalize . or-split-rhs
           . right-unfold . smt
 )
 (check-sat)

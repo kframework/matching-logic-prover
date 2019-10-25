@@ -20,7 +20,7 @@ module STRATEGY-SEARCH-BOUND
 
   rule <strategy> search-sl(bound: 0) => fail </strategy>
   rule <strategy> search-sl(bound: N)
-               => normalize . smtlib-to-implication . or-split-rhs . normalize
+               => or-split-rhs . normalize
                 . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                 . ( ( match . instantiate-separation-logic-axioms
                     . spatial-patterns-equal . smt-cvc4
