@@ -14,6 +14,93 @@ module TOKENS
   syntax Symbol ::= LowerName
   syntax VariableName ::= UpperName
   syntax Sort ::= UpperName
+
+  // Identifiers used directly in the semantics
+
+  syntax LowerName ::= "emptysetx"  [token]
+                     | "unionx"     [token]
+                     | "singleton"  [token]
+                     | "intersectx" [token]
+                     | "in"         [token]
+                     | "disjointx"  [token]
+                     | "const"      [token]
+                     | "n"          [token]
+                     | "x"          [token]
+                     | "s"          [token]
+                     | "y"          [token]
+                     | "ite"        [token]
+                     | "setAdd"     [token]
+                     | "setDel"     [token]
+                     | "setminus"   [token]
+                     | "max"        [token]
+
+  syntax LowerName ::= "emptyset"      [token]
+                     | "singleton"     [token]
+                     | "union"         [token]
+                     | "disjoint"      [token]
+                     | "disjointUnion" [token]
+                     | "isMember"      [token]
+                     | "add"           [token]
+                     | "del"           [token]
+
+  // sep-logic symbols
+  syntax LowerName ::= "pto" [token]
+                     | "sep" [token]
+                     | "nil" [token]
+                     | "emp" [token]
+
+  // Arith
+  syntax LowerName ::= "plus"          [token]
+                     | "minus"         [token]
+                     | "mult"          [token]
+                     | "div"           [token]
+                     | "lt"            [token]
+                     | "gt"            [token]
+                     | "max"           [token]
+
+  // TODO: These aren't LowerNames
+  syntax LowerName ::= "*"     [token]
+                     | "+"     [token]
+                     | "/"     [token]
+                     | "-"     [token]
+                     | "^"     [token]
+                     | ">"     [token]
+                     | "<"     [token]
+
+  // Array
+  syntax LowerName ::= "store"         [token]
+                     | "select"        [token]
+
+  // Core symbols
+  syntax LowerName ::= "not"      [token]
+                     | "or"       [token]
+                     | "and"      [token]
+                     | "=>"       [token]
+                     | "="        [token]
+                     | "=>"       [token]
+                     | "ite"      [token]
+                     | "distinct" [token]
+
+  // Sets (defined by CVC4, but not Z3)
+  syntax LowerName ::= "emptyset"     [token]
+                     | "singleton"    [token]
+                     | "union"        [token]
+                     | "intersection" [token]
+                     | "member"       [token]
+
+  // Extensional Arrays
+  syntax LowerName ::= "select" [token]
+                     | "store"  [token]
+                     | "map"    [token]
+
+  // Sorts
+  syntax UpperName ::= "Array" [token]
+                     | "ArrayIntInt" [token]
+                     | "Bool" [token]
+                     | "Heap" [token]
+                     | "Int" [token]
+                     | "Set" [token]
+                     | "SetInt" [token]
 endmodule
 
 module TOKENS-SYNTAX
@@ -32,11 +119,6 @@ module KORE-SUGAR
   imports STRING-SYNTAX
 
   syntax Ints ::= List{Int, ","}
-  syntax Sort ::= "Bool"        [token]
-                | "Int"         [token]
-                | "ArrayIntInt" [token]
-                | "SetInt"      [token]
-                | "Heap"        [token]
 ```
 
 We allow two "variaties" of variables: the first, identified by a String, is for
@@ -65,7 +147,7 @@ only in this scenario*.
 
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
-                   
+
                    // sugar for commonly needed axioms
                    | "functional" "(" Symbol ")"
                    | "partial" "(" Patterns ")"
@@ -73,34 +155,6 @@ only in this scenario*.
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
-
-  syntax Symbol ::= "emptyset"      [token]
-                  | "singleton"     [token]
-                  | "union"         [token]
-                  | "disjoint"      [token]
-                  | "disjointUnion" [token]
-                  | "isMember"      [token]
-                  | "add"           [token]
-                  | "del"           [token]
-
-  // sep-logic symbols
-  syntax LowerName ::= "pto" [token]
-                     | "sep" [token]
-                     | "nil" [token]
-                     | "emp" [token]
-
-  // Arith
-  syntax Symbol ::= "plus"          [token]
-                  | "minus"         [token]
-                  | "mult"          [token]
-                  | "div"           [token]
-                  | "lt"            [token]
-                  | "gt"            [token]
-                  | "max"           [token]
-
-  // Array
-  syntax Symbol ::= "store"         [token]
-                  | "select"        [token]
 
   syntax Patterns ::= List{Pattern, ","}                        [klabel(Patterns)]
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
@@ -424,7 +478,7 @@ Simplifications
   syntax Patterns ::= #not(Patterns) [function]
   rule #not(.Patterns) => .Patterns
   rule #not(P, Ps) => \not(P), #not(Ps)
-  
+
   syntax Pattern ::= #flattenAnd(Pattern) [function]
   rule #flattenAnd(\and(Ps)) => \and(#flattenAnds(Ps))
 

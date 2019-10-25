@@ -94,42 +94,6 @@ module SMTLIB2
 
   syntax SMTLIB2Command ::= "(" "set-info" SMTLIB2Attribute SMTLIB2AttributeValue ")"
 
-// Core symbols
-  syntax SMTLIB2SimpleSymbol ::= "not"      [token]
-                               | "or"       [token]
-                               | "and"      [token]
-                               | "=>"       [token]
-                               | "="        [token]
-                               | "=>"       [token]
-                               | "ite"      [token]
-                               | "distinct" [token]
-
-  // Arithmetic
-  syntax SMTLIB2SimpleSymbol ::= "*"     [token]
-                               | "+"     [token]
-                               | "/"     [token]
-                               | "-"     [token]
-                               | "^"     [token]
-                               | ">"     [token]
-                               | "<"     [token]
-
-  // Sets (defined by CVC4, but not Z3)
-  syntax SMTLIB2SimpleSymbol ::= "emptyset"     [token]
-                               | "singleton"    [token]
-                               | "union"        [token]
-                               | "intersection" [token]
-                               | "member"       [token]
-
-  // Extensional Arrays
-  syntax SMTLIB2SimpleSymbol ::= "select" [token]
-                               | "store"  [token]
-                               | "map"    [token]
-
-  // Sorts
-  syntax SMTLIB2SimpleSymbol ::= "Int" [token] | "Bool" [token]
-                               | "Set" [token] | "Array" [token]
-                               | "Heap" [token]
-
   syntax CheckSATResult ::= "sat" | "unsat"
                           | "unknown"
                           | "unknown" "(" K ")" | "error" "(" K ")"
