@@ -53,10 +53,21 @@ symbol invariantSatisfiedInState( State ) : Bool
 
 axiom functional(invariantSatisfiedInState)
 
+symbol gte( Real , Real) : Bool
+
+axiom functional(gte)
+
+axiom smt-lemma ( \forall { R1 { Real } , R2 { Real } }
+                    \equals( gte( R1 { Real } , R2 { Real } )
+                           , \or( gt( R1 { Real } , R2 { Real })
+                                , \equals( R1 { Real } , R2 { Real } )
+                                )
+                           )
+
 axiom smt-lemma( \forall { S1 { State } }
                      \equals( invariantSatisfiedInState(S1 { State })
                             , \or( \equals( valZ( S1 { State } ), 0.0 )
-                                  , gt(valZ(S1 { State } ), 0.0)
+                                  , gte(valZ(S1 { State } ), 0.0)
                                  )
                             )
                )
@@ -104,7 +115,6 @@ symbol invariantSatisfiedInInterval( State , Real ) : Bool
 
 axiom functional(invariantSatisfiedInInterval)
 
-
 axiom smt-lemma( \forall { S { State } , T { Real } }
                 \and( \implies( \and( invariantSatisfiedInInterval( S { State }, T { Real } )
                                     , gt( T { Real }, 0.0 )
@@ -143,6 +153,7 @@ axiom \forall { S1 { State },  S2 { State } }
                                                  , \equals( S2 { State }, evolve( S1 { State }, T { Real }))
                                                  , invariantSatisfiedInState( S1 { State } )
                                                  , invariantSatisfiedInInterval( S1 { State }, T { Real })
+                                                 , invariantSatisfiedInState( S2 { State } )
                                                  )
                     , \exists { } \and(\equals( S2 { State }, discreteTransitionFrom( S1 {State })))
                     , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
