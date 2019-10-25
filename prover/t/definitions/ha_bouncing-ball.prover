@@ -106,21 +106,31 @@ axiom functional(invariantSatisfiedInInterval)
 
 
 axiom smt-lemma( \forall { S { State } , T { Real } }
-                    \equals( invariantSatisfiedInInterval( S { State } , T { Real })
-                           , \and ( gt( T { Real } , 0 )
-                                  , invariantSatisfiedInState( S { State } )
-                                  , \forall { T2 { Real } }
-                                        \implies( \and( gt( T2 { Real }, 0)
-                                                      , lt( T2 { Real }, T { Real })
-                                                      )
-                                                , invariantSatisfiedInState(evolve( S { State }, T2 { Real }))
-                                                )
-                                  )
-                           )
+                \and( \implies( \and( invariantSatisfiedInInterval( S { State }, T { Real } )
+                                    , gt( T { Real }, 0.0 )
+                                    )
+                              , \and( invariantSatisfiedInState( S { State } )
+                                    , \forall { T2 { Real } }
+                                          \implies( \and( gt( T2 { Real }, 0.0 )
+                                                        , lt( T2 { Real }, T { Real })
+                                                        )
+                                                  , invariantSatisfiedInState(evolve( S { State }, T2 { Real }))
+                                                  )
+                                    )
+                              )
+                    , \implies( \and ( gt( T { Real } , 0.0 )
+                                     , invariantSatisfiedInState( S { State } )
+                                     , \forall { T2 { Real } }
+                                           \implies( \and( gt( T2 { Real }, 0.0 )
+                                                         , lt( T2 { Real }, T { Real })
+                                                         )
+                                                   , invariantSatisfiedInState(evolve( S { State }, T2 { Real }))
+                                                   )
+                                     )
+                              , invariantSatisfiedInInterval( S { State } , T { Real })
+                              )
+                    )
                 )
-
-
-
 
 
 axiom \forall { S1 { State },  S2 { State } }
