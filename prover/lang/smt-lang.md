@@ -111,13 +111,13 @@ module SMTLIB2
   syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
 
-  // TODO: fix this
-  syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
-  syntax LowerName ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
-  rule SMTLIB2SimpleSymbolToSymbol(SYMBOL) => StringToSymbol(SMTLIB2SimpleSymbolToString(SYMBOL))
+  syntax Symbol ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
+  rule SMTLIB2SimpleSymbolToSymbol(SYMBOL:UpperName) => SYMBOL
+  rule SMTLIB2SimpleSymbolToSymbol(SYMBOL:LowerName) => SYMBOL
 
   syntax Sort ::= SMTLIB2SortToSort(SMTLIB2Sort) [function]
   rule SMTLIB2SortToSort(SORT:UpperName) => SORT
+  rule SMTLIB2SortToSort(SORT:LowerName) => SORT
 
 // Serialize to String:
 

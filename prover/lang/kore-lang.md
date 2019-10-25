@@ -11,9 +11,9 @@ module TOKENS
   syntax Decimal
 
   // Abstract
-  syntax Symbol ::= LowerName
+  syntax Symbol ::= UpperName | LowerName
   syntax VariableName ::= UpperName
-  syntax Sort ::= UpperName
+  syntax Sort ::= UpperName | LowerName
 
   // Identifiers used directly in the semantics
 

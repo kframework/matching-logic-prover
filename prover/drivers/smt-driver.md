@@ -125,7 +125,7 @@ module SMT-DRIVER
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGS))
-                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)), SMTLIB2SortToSort(RET))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)), SMTLIB2SortToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
                         </declaration>
                         <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGS) }
                                          \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGS))
@@ -138,29 +138,39 @@ module SMT-DRIVER
 
   // Note: We cannot call isPredicatePattern because that requires knowing the return type of the
   // symbols inside before calling. This is not feasible since they may be recursive symbols.
-  syntax Sort ::= #returnSort(Pattern, Sort) [function]
-  rule #returnSort(P, Bool) => Heap
-    requires #containsSpatialSymbol(P)
-  rule #returnSort(P, Bool) => Bool
+  syntax Sort ::= #returnSort(Pattern, Sort, Symbol) [function]
+  rule #returnSort(P, Bool, S) => Heap
+    requires #containsSpatial(P, S)
+  rule #returnSort(P, Bool, _) => Bool
     [owise]
 
-  syntax Bool ::= #containsSpatialSymbol(Pattern) [function]
-  syntax Bool ::= #containsSpatialSymbolPatterns(Patterns) [function]
-  rule #containsSpatialSymbol(_{_}) => false
-  rule #containsSpatialSymbol(_:Int) => false
-  rule #containsSpatialSymbol(sep(_)) => true
-  rule #containsSpatialSymbol(pto(_)) => true
-  rule #containsSpatialSymbol(\equals(P1, P2)) => #containsSpatialSymbol(P1) orBool #containsSpatialSymbol(P2)
-  rule #containsSpatialSymbol(\forall{_}(P)) => #containsSpatialSymbol(P)
-  rule #containsSpatialSymbol(\exists{_}(P)) => #containsSpatialSymbol(P)
-  rule #containsSpatialSymbol(\not(P)) => #containsSpatialSymbol(P)
-  rule #containsSpatialSymbol(\and(Ps)) => #containsSpatialSymbolPatterns(Ps)
-  rule #containsSpatialSymbol(\or(Ps)) => #containsSpatialSymbolPatterns(Ps)
-  rule #containsSpatialSymbol(S(Ps)) => #containsSpatialSymbolPatterns(Ps)
+  syntax Bool ::= #containsSpatial(Pattern, Symbol)          [function]
+  syntax Bool ::= #containsSpatialPatterns(Patterns, Symbol) [function]
+  rule #containsSpatial(_{_}, _) => false
+  rule #containsSpatial(_:Int, _) => false
+  rule #containsSpatial(sep(_), _) => true
+  rule #containsSpatial(pto(_), _) => true
+  rule #containsSpatial(\equals(P1, P2), S) => #containsSpatial(P1, S) orBool #containsSpatial(P2, S)
+  rule #containsSpatial(\forall{_}(P), S) => #containsSpatial(P, S)
+  rule #containsSpatial(\exists{_}(P), S) => #containsSpatial(P, S)
+  rule #containsSpatial(\not(P), S) => #containsSpatial(P, S)
+  rule #containsSpatial(\and(Ps), S) => #containsSpatialPatterns(Ps, S)
+  rule #containsSpatial(\or(Ps), S) => #containsSpatialPatterns(Ps, S)
+
+  // For recursive calls: must only check arguments of calls to avoid infinite looping
+  rule #containsSpatial(S(Ps), S) => #containsSpatialPatterns(Ps, S)
     requires S =/=K sep andBool S =/=K pto
 
-  rule #containsSpatialSymbolPatterns(.Patterns) => false
-  rule #containsSpatialSymbolPatterns(P, Ps) => #containsSpatialSymbol(P) orBool #containsSpatialSymbolPatterns(Ps)
+  // If S2 calls another symbol S1 that returns a heap, then S2 is spatial
+  rule #containsSpatial(S1(Ps), S2) => true
+    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(S1(Ps)) ==K Heap
+
+  // If S2 calls another symbol S1 that does not return a heap, then recurse on the arguments of S1
+  rule #containsSpatial(S1(Ps), S2) => #containsSpatialPatterns(Ps, S2)
+    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(S1(Ps)) =/=K Heap
+
+  rule #containsSpatialPatterns(.Patterns, _) => false
+  rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
 
   rule <k> #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
         ~> (check-sat)
