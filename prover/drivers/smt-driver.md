@@ -139,9 +139,9 @@ module SMT-DRIVER
   // Note: We cannot call isPredicatePattern because that requires knowing the return type of the
   // symbols inside before calling. This is not feasible since they may be recursive symbols.
   syntax Sort ::= #returnSort(Pattern, Sort) [function]
-  rule #returnSort(P, Bool) => Heap:Sort
+  rule #returnSort(P, Bool) => Heap
     requires #containsSpatialSymbol(P)
-  rule #returnSort(P, Bool) => Bool:Sort
+  rule #returnSort(P, Bool) => Bool
     [owise]
 
   syntax Bool ::= #containsSpatialSymbol(Pattern) [function]
