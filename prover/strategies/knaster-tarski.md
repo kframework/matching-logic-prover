@@ -28,6 +28,8 @@ for guessing an instantiation of the inductive hypothesis.
      andBool S =/=K sep
   rule getKTUnfoldables(I:Int, REST)
     => getKTUnfoldables(REST)
+  rule getKTUnfoldables(D:Decimal, REST)
+    => getKTUnfoldables(REST)
   rule getKTUnfoldables(V:Variable, REST)
     => getKTUnfoldables(REST)
   rule getKTUnfoldables(\not(Ps), REST)
@@ -460,6 +462,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
   syntax Bool ::= hasImplicationContextPs(Patterns)  [function]
   rule hasImplicationContext(X:Variable) => false
   rule hasImplicationContext(X:Int) => false
+  rule hasImplicationContext(D:Decimal) => false
   rule hasImplicationContext(S:Symbol) => false
   rule hasImplicationContext(\implies(LHS, RHS))
     => hasImplicationContext(LHS) orBool hasImplicationContext(RHS)
@@ -537,7 +540,7 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                   ...
        </strategy>
     requires notBool isTerminalStrategy(S)
-    
+
   rule <strategy> T:TerminalStrategy ~> kt-solve-implication(#hole, RHS)
                => kt-solve-implication(T, RHS)
                   ...
@@ -564,15 +567,15 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                   ...
        </strategy>
 
-  rule <claim> \implies(\and(LHS => P, LHS), RHS) </claim> 
-       <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
+  rule <claim> \implies(\and(LHS => P, LHS), RHS) </claim>
+       <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs
                                  , _
                                  )
                   ...
        </strategy>
     requires notBool P in LHS
-  rule <claim> \implies(\and(LHS), RHS) </claim> 
-       <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs 
+  rule <claim> \implies(\and(LHS), RHS) </claim>
+       <strategy> instantiate-universals-with-ground-terms( (\forall { .Patterns } P:Pattern , REST_FORALLs) => REST_FORALLs
                                  , _
                                  )
                   ...
@@ -589,8 +592,8 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   syntax Patterns ::= getForalls(Patterns) [function]
   rule getForalls(((\forall { _ } _) #as P), Ps) => P, getForalls(Ps)
   rule getForalls(                       P , Ps) =>    getForalls(Ps) [owise]
-  rule getForalls(.Patterns) => .Patterns 
-  
+  rule getForalls(.Patterns) => .Patterns
+
   syntax Patterns ::= filterBySort(Patterns, Sort) [function]
   rule filterBySort((P, Ps), S) => P, filterBySort(Ps, S) requires getReturnSort(P) ==K S
   rule filterBySort((P, Ps), S) =>    filterBySort(Ps, S) requires getReturnSort(P) =/=K S

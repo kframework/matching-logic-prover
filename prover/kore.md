@@ -238,6 +238,7 @@ module KORE-HELPERS
     requires Ps =/=K .Patterns
 
   rule getFreeVariables(N:Int, .Patterns) => .Patterns
+  rule getFreeVariables(D:Decimal, .Patterns) => .Patterns
   rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
   rule getFreeVariables(S:Symbol, .Patterns) => .Patterns
   rule getFreeVariables(S:Symbol(ARGS) , .Patterns) => getFreeVariables(ARGS)
@@ -417,6 +418,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V
   rule alphaRename(I:Int) => I
+  rule alphaRename(D:Decimal) => D
   rule alphaRename(implicationContext(P, Qs))
     => implicationContext(alphaRename(P), alphaRename(Qs))
 
