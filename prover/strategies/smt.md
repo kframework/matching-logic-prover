@@ -129,23 +129,6 @@ module ML-TO-SMTLIB2
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
 
-  syntax SMTLIB2SimpleSymbol ::= "emptysetx"  [token]
-                               | "unionx"     [token]
-                               | "singleton"  [token]
-                               | "intersectx" [token]
-                               | "in"         [token]
-                               | "disjointx"  [token]
-                               | "const"      [token]
-                               | "SetInt"     [token]
-                               | "n"          [token]
-                               | "x"          [token]
-                               | "s"          [token]
-                               | "y"          [token]
-                               | "ite"        [token]
-                               | "setAdd"     [token]
-                               | "setDel"     [token]
-                               | "setminus"     [token]
-                               | "max"        [token]
   syntax SMTLIB2Script ::= "Z3Prelude" [function]
   rule Z3Prelude
     => ( ( define-sort SetInt (.SMTLIB2SortList) ( Array Int  Bool ) )
