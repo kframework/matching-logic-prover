@@ -56,10 +56,16 @@ axiom functional(invariantSatisfiedInState)
 
 axiom smt-lemma( \forall { S1 { State } }
                      \equals( invariantSatisfiedInState(S1 { State })
-                            , gte( S1 { State}, 0.0 )
+                            , gt( S1 { State }, 0.0 )
                             )
                )
 
+symbol acc ( Real ) : Real
+
+axiom functional(acc)
+
+axiom smt-lemma( \forall { R { Real } }
+                    \equals( acc( R { Real } ) , minus(0.0, R { Real } )))
 
 axiom smt-lemma( \forall { S1 { State } , S2 { State } , T { Real } }
                     \and( \implies( \and( gt ( T { Real }, 0.0 )
@@ -69,12 +75,12 @@ axiom smt-lemma( \forall { S1 { State } , S2 { State } , T { Real } }
                                         )
                                   , \and( \equals( mode(S2 { State }) , mode(S1 { State }))
                                         , \equals( valV(S2 { State })
-                                                 , plus(valV(S1 { State }), mult(-10.0, T { Real }))
+                                                 , plus(valV(S1 { State }), mult(acc(10.0), T { Real }))
                                                  )
                                         , \equals( valZ(S2 { State })
                                                  , plus( valZ( S1 { State })
                                                        , plus( mult(valV( S1 { State }), T { Real })
-                                                              , div(mult(-10.0, mult(T { Real }, T { Real })), 2.0)
+                                                              , div(mult(acc(10.0), mult(T { Real }, T { Real })), 2.0)
                                                              )
                                                        )
                                                  )
@@ -83,12 +89,12 @@ axiom smt-lemma( \forall { S1 { State } , S2 { State } , T { Real } }
                          , \implies ( \and( gt( T { Real }, 0.0 )
                                           , \equals( mode(S2 { State }) , mode(S1 { State }))
                                           , \equals( valV(S2 { State })
-                                                   , plus(valV(S1 { State }), mult(-10.0, T { Real }))
+                                                   , plus(valV(S1 { State }), mult(acc(10.0), T { Real }))
                                                    )
                                           , \equals( valZ(S2 { State })
                                                    , plus( valZ( S1 { State })
                                                          , plus( mult(valV( S1 { State }), T { Real })
-                                                                , div(mult(-10.0, mult(T { Real }, T { Real })), 2.0)
+                                                                , div(mult(acc(10.0), mult(T { Real }, T { Real })), 2.0)
                                                                )
                                                          )
                                                    )
