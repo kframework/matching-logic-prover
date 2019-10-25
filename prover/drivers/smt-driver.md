@@ -20,7 +20,7 @@ module SMT-DRIVER
 
   rule <k> S:SMTLIB2Script
         => #goal( goal: \exists { .Patterns } \and( .Patterns )
-                , strategy: search-sl(bound: 6)
+                , strategy: search-sl(bound: 5)
                 , expected: success
                 )
         ~> S
