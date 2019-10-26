@@ -1,10 +1,20 @@
 imports "t/definitions/ha_bouncing-ball.prover"
 
+
+symbol aboveGround( State ) : Bool
+axiom functional(aboveGround)
+
+axiom smt-lemma( \forall { S1 { State } }
+                    \equals( aboveGround( S1 { State } )
+                           , \not(lt( valZ(S1 { State }) , 0.0))
+                           )
+               )
+
 claim \implies( \and( reach( S1 { State }, S2 { State } )
-                    , invariantSatisfiedInState( S1 { State } )
-                    , \equals( valV( S1 { State }), 0.0))
-              , \and(invariantSatisfiedInState( S2 { State } ))
+                    , aboveGround( S1 { State } )
+                    )
+              , \and( aboveGround( S2 { State } ))
               )
 
+strategy kt ; smt-cvc4
 
-strategy kt ; ( smt-cvc4 | smt-debug )

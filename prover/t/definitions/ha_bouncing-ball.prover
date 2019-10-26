@@ -31,7 +31,7 @@ axiom smt-lemma( \forall { S1 { State } , S2 { State } }
                                  , \equals( valZ( S1 { State }), 0.0 )
                                  , \equals( valZ( S2 { State }), 0.0 )
                                  , \equals( valV( S2 { State })
-                                          , mult( -1, valV( S1 { State }))
+                                          , minus( 0.0, valV( S1 { State }))
                                           )
                                  )
                            )
@@ -49,13 +49,13 @@ axiom smt-lemma( \forall { S1 { State } , S2 { State } }
                         )
                )
 
-symbol invariantSatisfiedInState( State ) : Bool
+symbol stateSatisfiesModeInvariant( State ) : Bool
 
-axiom functional(invariantSatisfiedInState)
+axiom functional(stateSatisfiesModeInvariant)
 
 
 axiom smt-lemma( \forall { S1 { State } }
-                     \equals( invariantSatisfiedInState(S1 { State })
+                     \equals( stateSatisfiesModeInvariant(S1 { State })
                             , \not(lt( valZ(S1 { State }), 0.0 ))
                             )
                )
@@ -105,33 +105,33 @@ axiom smt-lemma( \forall { S1 { State } , S2 { State } , T { Real } }
                   )
 
 
-symbol invariantSatisfiedInInterval( State , Real ) : Bool
+symbol intervalSatisfiesModeInvariant( State , Real ) : Bool
 
-axiom functional(invariantSatisfiedInInterval)
+axiom functional(intervalSatisfiesModeInvariant)
 
 axiom smt-lemma( \forall { S { State } , T { Real } }
-                \and( \implies( \and( invariantSatisfiedInInterval( S { State }, T { Real } )
+                \and( \implies( \and( intervalSatisfiesModeInvariant( S { State }, T { Real } )
                                     , gt( T { Real }, 0.0 )
                                     )
-                              , \and( invariantSatisfiedInState( S { State } )
+                              , \and( stateSatisfiesModeInvariant( S { State } )
                                     , \forall { T2 { Real } }
                                           \implies( \and( gt( T2 { Real }, 0.0 )
                                                         , lt( T2 { Real }, T { Real })
                                                         )
-                                                  , invariantSatisfiedInState(evolve( S { State }, T2 { Real }))
+                                                  , stateSatisfiesModeInvariant(evolve( S { State }, T2 { Real }))
                                                   )
                                     )
                               )
                     , \implies( \and ( gt( T { Real } , 0.0 )
-                                     , invariantSatisfiedInState( S { State } )
+                                     , stateSatisfiesModeInvariant( S { State } )
                                      , \forall { T2 { Real } }
                                            \implies( \and( gt( T2 { Real }, 0.0 )
                                                          , lt( T2 { Real }, T { Real })
                                                          )
-                                                   , invariantSatisfiedInState(evolve( S { State }, T2 { Real }))
+                                                   , stateSatisfiesModeInvariant(evolve( S { State }, T2 { Real }))
                                                    )
                                      )
-                              , invariantSatisfiedInInterval( S { State } , T { Real })
+                              , intervalSatisfiesModeInvariant( S { State } , T { Real })
                               )
                     )
                 )
@@ -139,19 +139,21 @@ axiom smt-lemma( \forall { S { State } , T { Real } }
 
 axiom \forall { S1 { State },  S2 { State } }
       \iff-lfp( reach( S1 { State } , S2 { State } )
-              , \or ( \exists { } \and ( \equals ( valZ(S1 { State }), valZ(S2 { State }) )
-                                       , \equals ( valV(S1 { State }), valV(S2 { State }) )
-                                       , \equals ( mode(S1 { State }), mode(S2 { State }) )
+              , \or ( \exists { } \and ( \equals(valV( S1 { State }), valV( S2 { State }))
+                                       , \equals(valZ( S1 { State }), valZ( S2 { State }))
+                                       , \equals(mode( S1 { State }), mode( S2 { State }))
                                        )
                     , \exists { T { Real } } \and( gt( T { Real }, 0.0 )
+                                                 , \equals( mode ( S1 { State }), mode( S2 { State } ))
                                                  , \equals( S2 { State }, evolve( S1 { State }, T { Real }))
-                                                 , invariantSatisfiedInState( S1 { State } )
-                                                 , invariantSatisfiedInInterval( S1 { State }, T { Real })
-                                                 , invariantSatisfiedInState( S2 { State } )
+                                                 , stateSatisfiesModeInvariant( S1 { State } )
+                                                 , intervalSatisfiesModeInvariant( S1 { State }, T { Real })
+                                                 , stateSatisfiesModeInvariant( S2 { State } )
                                                  )
-                    //, \exists { } \and(\equals( S2 { State }, discreteTransitionFrom( S1 {State })))
+                    , \exists { } \and( stateSatisfiesModeInvariant(S1 { State })
+                                      , \equals( S2 { State }, discreteTransitionFrom( S1 {State })))
                     , \exists { SI { State } }  \and ( reach(S1 { State }, SI { State })
-                                                     , reach(SI { State }, S2 { State })
+                                                     , reach( SI { State }, S2 { State })
                                                      )
                     )
               )
