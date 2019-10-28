@@ -10,13 +10,6 @@ t/SL-COMP18/bench/qf_shid_entl/09.tst.smt2
 t/SL-COMP18/bench/qf_shid_entl/15.tst.smt2
 t/SL-COMP18/bench/qf_shid_entl/19.tst.smt2
 t/SL-COMP18/bench/qf_shid_entl/20.tst.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc04.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc06.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc08.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc10.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc12.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc13.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc14.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll-vc15.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll_append_dllnull_entails_dllnull.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll_append_tail_entails_dll.sb.smt2
