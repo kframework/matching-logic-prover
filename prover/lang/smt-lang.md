@@ -14,8 +14,7 @@ module SMTLIB2
 
 // Tokens
   syntax SMTLIB2Numeral ::= Int
-  syntax SMTLIB2SimpleSymbol ::= Bool
-                               | LowerName
+  syntax SMTLIB2SimpleSymbol ::= LowerName
                                | UpperName
   syntax SMTLIB2Symbol ::= SMTLIB2SimpleSymbol
                          | PipeQID
@@ -124,9 +123,7 @@ module SMTLIB2
   syntax String ::= SMTLIB2NumeralToString(SMTLIB2Numeral) [function]
   rule SMTLIB2NumeralToString(I:Int) => Int2String(I)
 
-  syntax String ::= SMTLIB2SimpleSymbolToString(SMTLIB2SimpleSymbol)   [function, functional, hook(STRING.token2string)]
-  rule SMTLIB2SimpleSymbolToString(true)  => "true"
-  rule SMTLIB2SimpleSymbolToString(false) => "false"
+  syntax String ::= SMTLIB2SimpleSymbolToString(SMTLIB2SimpleSymbol) [function, functional, hook(STRING.token2string)]
 
   syntax String ::= SMTLIB2IndexToString(SMTLIB2Index)             [function]
   rule SMTLIB2IndexToString(I:SMTLIB2Numeral) => SMTLIB2TermToString(I)

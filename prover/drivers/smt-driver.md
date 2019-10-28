@@ -264,9 +264,9 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern((ite C L R), Vs) => \or( \and(SMTLIB2TermToPattern(C, Vs), SMTLIB2TermToPattern(L, Vs))
                                                    , \and(\not(SMTLIB2TermToPattern(C, Vs)), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern(I:Int, _) => I
-  rule SMTLIB2TermToPattern(true, _) => \top()
-  rule SMTLIB2TermToPattern(false, _) => \bottom()
-  rule SMTLIB2TermToPattern((as nil _), _) => nil(.Patterns)
+  rule SMTLIB2TermToPattern(#token("true", "LowerName"), _) => \top()
+  rule SMTLIB2TermToPattern(#token("false", "LowerName"), _) => \bottom()
+  rule SMTLIB2TermToPattern((as nil SORT), _) => parameterizedSymbol(nil, SMTLIB2SortToSort(SORT))(.Patterns)
   rule SMTLIB2TermToPattern((underscore emp _ _), _) => emp(.Patterns)
 
   rule SMTLIB2TermToPattern((ID Ts), Vs) => SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2TermListToPatterns(Ts, Vs))
