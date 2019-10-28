@@ -9,7 +9,7 @@
     <goal>
       active: true, id: root, parent: .
       <claim>
-        \not ( \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns ) )
+        \implies ( \and ( .Patterns ) , \exists { .Patterns } \and ( \or ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         success
