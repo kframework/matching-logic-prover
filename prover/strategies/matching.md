@@ -254,6 +254,7 @@ Recurse over assoc-only constructors (including `pto`):
                 )
     requires S =/=K sep
      andBool P_ARG in Vs
+     andBool getReturnSort(ARG) ==K getReturnSort(P_ARG)
 
   // Application, ground: don't need substitution
   rule #matchAux( terms:     S:Symbol(ARG, ARGs) , .Patterns
@@ -278,6 +279,7 @@ Recurse over assoc-only constructors (including `pto`):
     requires S =/=K sep
      andBool ARG =/=K P_ARG
      andBool notBool P_ARG in Vs
+     andBool getReturnSort(ARG) ==K getReturnSort(P_ARG)
 
   // Application, nested: recurse
   rule #matchAux( terms:   ( S:Symbol((S1:Symbol(_) #as ARG), ARGs) , .Patterns
