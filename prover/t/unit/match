@@ -111,3 +111,15 @@ assert( #matchResult( subst: F8 { RefGTyp } |-> Vy { RefGTyp }
               , variables: F8 { RefGTyp }
               )
       )
+
+// No match, since sorts are different
+assert( #matchResult( subst: .Map
+                    , rest:
+                    )
+     == #match( term:      sep ( pto ( Vf { A } , c_GTyp ( Vg { A }) )
+                               )
+              , pattern:   sep ( pto ( Bx { B } , c_GTyp ( By { B }) )
+                               )
+              , variables: Ax { A }, Bx { B }, Ay { A }, By { B }
+              )
+      )
