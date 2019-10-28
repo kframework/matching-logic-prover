@@ -58,15 +58,29 @@ Instantiate heap axioms:
 
 ```k
     syntax Strategy ::= "instantiate-axiom" "(" Pattern ")"
+                      | "instantiate-separation-logic-axioms" "(" Patterns ")"
     rule <strategy> instantiate-separation-logic-axioms
-                 => instantiate-axiom( \forall { !L { LOC }, !D {DATA} }
+                 => instantiate-separation-logic-axioms(gatherHeapAxioms(.Patterns))
+                    ...
+         </strategy>
+         <declaration> axiom heap(LOC, DATA) </declaration>
+
+    syntax Patterns ::= gatherHeapAxioms(Patterns) [function]
+    rule [[ gatherHeapAxioms(AXs) => gatherHeapAxioms(heap(LOC, DATA), AXs) ]]
+         <declaration> axiom heap(LOC, DATA) </declaration>
+      requires notBool(heap(LOC, DATA) in AXs)
+    rule gatherHeapAxioms(AXs) => AXs [owise]
+
+    rule <strategy> instantiate-separation-logic-axioms(heap(LOC, DATA), AXs)
+                 => instantiate-separation-logic-axioms(AXs)
+                  . instantiate-axiom( \forall { !L { LOC }, !D {DATA} }
                                        \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
-                                               , \not(\equals( nil(.Patterns), !L { LOC }))
+                                               , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
                                                )
                                      )
                     ...
          </strategy>
-         <declaration> axiom heap(LOC, DATA) </declaration>
+    rule <strategy> instantiate-separation-logic-axioms(.Patterns) => noop ... </strategy>
 ```
 
 Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil 
