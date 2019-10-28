@@ -80,19 +80,29 @@ module SMT-DRIVER
        </k>
 
   rule <k> _:GoalBuilder
-        ~> ( (declare-heap (LOC DATA) .SMTLIB2SortPairList)
+        ~> ( (declare-heap .SMTLIB2SortPairList)
           => .K
            )
            ...
        </k>
        <declarations> ( .Bag
                      => <declaration> sort Heap </declaration>
-                        <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
                         <declaration> symbol sep(Heap, Heap) : Heap </declaration>
-                        <declaration> symbol nil ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
                         <declaration> symbol emp ( .Sorts ) : Heap </declaration>
-                        <declaration> axiom  functional(nil) </declaration>
+                      ) ...
+       </declarations>
+
+  rule <k> _:GoalBuilder
+        ~> ( (declare-heap (LOC DATA) SORTPAIRs)
+          => (declare-heap SORTPAIRs)
+           )
+           ...
+       </k>
+       <declarations> ( .Bag
+                     => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
+                        <declaration> symbol parameterizedSymbol(nil, SMTLIB2SortToSort(LOC)) ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
                         <declaration> axiom  heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
+                        <declaration> axiom  functional(parameterizedSymbol(nil, SMTLIB2SortToSort(LOC))) </declaration>
                       ) ...
        </declarations>
 

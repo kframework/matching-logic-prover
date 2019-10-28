@@ -188,7 +188,12 @@ module KORE-HELPERS
   imports STRING
   imports PROVER-CONFIGURATION
 
-  syntax String ::= SortToString(Sort) [function, functional, hook(STRING.token2string)]
+  syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
+  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
+  syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+
+  syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
+  rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))
 
   syntax Bool ::= Pattern "in" Patterns [function]
   rule P in (P,  P1s) => true

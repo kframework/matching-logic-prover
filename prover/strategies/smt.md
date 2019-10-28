@@ -106,11 +106,9 @@ module ML-TO-SMTLIB2
     => .SMTLIB2TermList
 
   syntax SMTLIB2Symbol ::= SymbolToSMTLIB2Symbol(Symbol) [function]
-  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   rule SymbolToSMTLIB2Symbol(S:Symbol) => StringToSMTLIB2SimpleSymbol(SymbolToString(S))
 
   syntax SMTLIB2Symbol ::= SymbolToSMTLIB2SymbolFresh(Symbol) [function]
-  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   rule SymbolToSMTLIB2SymbolFresh(S:Symbol) => StringToSMTLIB2SimpleSymbol("fresh_" +String SymbolToString(S))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
