@@ -93,6 +93,8 @@ for guessing an instantiation of the inductive hypothesis.
 >
 > where `C'[psi(x)] ≡ \exists #hole . #hole /\ ⌊C[#hole] -> psi(x)⌋`
 
+## kt-wrap (FOL)
+
 ```k
   syntax Strategy ::= "kt-wrap" "(" Pattern ")"
   rule <claim> \implies(\and(LHS:Patterns), RHS)
@@ -102,7 +104,11 @@ for guessing an instantiation of the inductive hypothesis.
        <trace> .K => kt-wrap(LRP)  ... </trace>
     requires LRP in LHS
      andBool isPredicatePattern(\and(LHS))
+```
 
+## kt-wrap (SL)
+
+```k
   rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT:Patterns), RHS)
             => \implies(LRP, implicationContext(\and( sep(#hole, (LSPATIAL -Patterns LRP))
                                                     , LCONSTRAINT
