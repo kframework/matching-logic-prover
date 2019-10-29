@@ -181,6 +181,15 @@ approach succeeds:
      andBool notBool(isTerminalStrategy(S2))
 ```
 
+The S { N } construct allows us to repeat a strategy S N times
+
+```k
+  syntax Strategy ::= Strategy "{" Int "}"
+  rule <strategy> S { M } => noop ... </strategy>
+    requires M <=Int 0
+  rule <strategy> S { N } => S . (S { N -Int 1 }) ... </strategy>
+```
+
 Internal strategy used to implement `or-split` and `and-split`.
 
 ```k
