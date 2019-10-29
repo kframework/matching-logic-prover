@@ -78,6 +78,11 @@ Instantiate heap axioms:
                                                , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
                                                )
                                      )
+                  . instantiate-axiom( \forall { !L1 { LOC }, !D1 {DATA}, !L2 { LOC }, !D2 { DATA } }
+                                       \implies( \and(sep(pto(!L1 { LOC }, !D1 { DATA }), pto(!L2 { LOC }, !D2 { DATA })) )
+                                               , \not(\equals( !L1 { LOC }, !L2 { LOC }) )
+                                               )
+                                     )
                     ...
          </strategy>
     rule <strategy> instantiate-separation-logic-axioms(.Patterns) => noop ... </strategy>
