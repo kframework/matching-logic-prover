@@ -121,6 +121,12 @@ Note that the resulting goals is stonger than the initial goal (i.e.
   syntax Strategy ::= "right-unfold-eachRRP" "(" Patterns")"
                     | "right-unfold-eachBody" "(" Pattern "," Pattern ")"
                     | "right-unfold-oneBody"  "(" Pattern "," Pattern ")"
+
+  rule <strategy> right-unfold ( SYMBOL )
+               => right-unfold-eachRRP( filterByConstructor(getUnfoldables(RHS), SYMBOL) )
+                  ...
+       </strategy>
+       <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
   rule <strategy> right-unfold
                => right-unfold-eachRRP(getUnfoldables(RHS))
                   ...
