@@ -27,7 +27,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "direct-proof"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
-                    | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
+                    | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")" | "right-unfold" "(" Symbol ")"
                     | "kt"     | "kt"     "#" KTFilter
                     | "kt-gfp" | "kt-gfp" "#" KTFilter
                     | "kt-solve-implications" "(" Strategy ")"
