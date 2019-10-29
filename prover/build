@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import shutil
 from os import (path, environ)
 
 repo_dir = path.dirname(__file__)
@@ -48,12 +49,35 @@ prover_smt  = prover('prover-smt', '--syntax-module PROVER-SMT-SYNTAX')
 prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'))
 prover_smt .tests(inputs = glob('t/*.smt2'))
 
-known_passing = list(map(str.strip, open('t/passing/qf_shid_entl').readlines()))
+
+def log_on_success(file, message):
+    return proj.rule( 'log-to-success'
+                    , description = '$out: $message'
+                    , command = "echo '$message' >> '$log_file'"
+                    ) \
+               .variable('log_file', 't/passing/qf_shid_entl.all') \
+                        .variable('message',  message) \
+                        .output('t/passing/qf_shid_entl.' + message.replace('/', '.'))
+
+def krun_with_timeout(timeout_flags):
+    timeout_cmd = 'gtimeout' if shutil.which("gtimeout") else 'timeout'
+    return prover_smt.krun() \
+                     .ext('timeout') \
+                     .variable('env', timeout_cmd + ' ' + timeout_flags + ' opam config exec --')
+
+known_passing = list(map(str.strip, open('t/passing/qf_shid_entl.unsat').readlines()))
+tests_with_timeout = []
 def sl_comp_test(test):
-    t = proj.source(test).then(prover_smt.krun())
-    if test in known_passing: t.default()
+    global tests_with_timeout
+    t_no_timeout = proj.source(test).then(prover_smt.krun())
+    if test in known_passing: t_no_timeout.default()
+    t_timeout = proj.source(test) \
+                    .then(krun_with_timeout('10m')) \
+                    .then(log_on_success('t/passing/qf_shid_entl.all', test))
+    tests_with_timeout += [t_timeout]
 for t in glob('t/SL-COMP18/bench/qf_shid_entl/*.smt2'):
     sl_comp_test(t)
+proj.alias('collect-qf-shid-entl', tests_with_timeout)
 
 # Unit Tests
 # ----------
