@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+qf_shid_entl=t/SL-COMP18/bench/qf_shid_entl/*.smt2
+
+known_passing()    { sort t/passing/qf_shid_entl ; }
+mutual_recursion() { grep -lr 'define-funs-rec'        $qf_shid_entl; }
+unsat_tests()      { grep -lr 'set-info :status unsat' $qf_shid_entl; }
+
+unsat_minus_known_passing() { comm -23 <(unsat_tests | sort) <(known_passing | sort) ; }
+next_test()  {  comm -23 <(unsat_minus_known_passing | sort) <(mutual_recursion | sort)  ; }
+ 
+next_test
