@@ -56,6 +56,8 @@ module TOKENS
                      | "div"           [token]
                      | "lt"            [token]
                      | "gt"            [token]
+                     | "lte"           [token]
+                     | "gte"           [token]
                      | "max"           [token]
 
   // TODO: These aren't LowerNames
@@ -66,6 +68,8 @@ module TOKENS
                      | "^"     [token]
                      | ">"     [token]
                      | "<"     [token]
+                     | ">="    [token]
+                     | "<="    [token]
 
   // Array
   syntax LowerName ::= "store"         [token]
@@ -243,8 +247,10 @@ module KORE-HELPERS
   rule getReturnSort( singleton ( ARGS ) ) => SetInt
   rule getReturnSort( emptyset ) => SetInt
   rule getReturnSort( disjoint ( ARGS ) ) => Bool
-  rule getReturnSort( lt ( ARGS ) ) => Bool
-  rule getReturnSort( gt ( ARGS ) ) => Bool
+  rule getReturnSort( lt  ( ARGS ) ) => Bool
+  rule getReturnSort( gt  ( ARGS ) ) => Bool
+  rule getReturnSort( lte ( ARGS ) ) => Bool
+  rule getReturnSort( gte ( ARGS ) ) => Bool
   rule getReturnSort( isMember ( _ ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>

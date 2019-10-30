@@ -274,6 +274,8 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern((= L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((< L R), Vs) => lt(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((> L R), Vs) => gt(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((<= L R), Vs) => lte(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((>= L R), Vs) => gte(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((+ L R), Vs) => plus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((- L R), Vs) => minus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
   rule SMTLIB2TermToPattern((* L R), Vs) => mult(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
