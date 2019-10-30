@@ -56,6 +56,8 @@ module TOKENS
                      | "div"           [token]
                      | "lt"            [token]
                      | "gt"            [token]
+                     | "lte"           [token]
+                     | "gte"           [token]
                      | "max"           [token]
 
   // TODO: These aren't LowerNames
@@ -66,6 +68,8 @@ module TOKENS
                      | "^"     [token]
                      | ">"     [token]
                      | "<"     [token]
+                     | ">="    [token]
+                     | "<="    [token]
 
   // Array
   syntax LowerName ::= "store"         [token]
@@ -559,6 +563,9 @@ Simplifications
   syntax Bool ::= isPredicatePattern(Pattern) [function]
   rule isPredicatePattern(\equals(_, _)) => true
   rule isPredicatePattern(lt(_, _)) => true
+  rule isPredicatePattern(gt(_, _)) => true
+  rule isPredicatePattern(lte(_, _)) => true
+  rule isPredicatePattern(gte(_, _)) => true
   rule isPredicatePattern(\not(P)) => isPredicatePattern(P)
   rule isPredicatePattern(\and(.Patterns)) => true
   rule isPredicatePattern(\and(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\and(Ps))
