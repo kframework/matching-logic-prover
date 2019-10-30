@@ -343,18 +343,38 @@ module STRATEGY-MATCHING
   imports MATCHING-FUNCTIONAL
 ```
 
+The `with-each-match` strategy 
+
+```k
+  syntax Strategy ::= "with-each-match" "(" MatchResults "," Strategy ")"
+  rule <strategy> with-each-match( (MR, MRs), S )
+               => with-each-match(MR, S) | with-each-match(MRs, S)
+                  ...
+       </strategy>
+    requires MRs =/=K .MatchResults
+
+  rule <strategy> with-each-match( (MR, .MatchResults), S )
+               => MR ~> S
+                  ...
+       </strategy>
+       
+  rule <strategy> with-each-match( .MatchResults, S )
+               => fail
+                  ...
+       </strategy>
+```
+
 Instantiate existentials using matching on the spatial part of goals:
 
 ```k
-  rule <claim> \implies( \and(sep(LSPATIAL), LHS)
-                       , \exists { Vs } \and(sep(RSPATIAL), RHS)
-                       )
-       </claim>
-       <strategy> match => #match( terms: LSPATIAL
-                                 , pattern: RSPATIAL
-                                 , variables: Vs
+  rule <claim> \implies(\and(sep(LSPATIAL), LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
+       <strategy> match
+               => with-each-match(#match( terms: LSPATIAL
+                                        , pattern: RSPATIAL
+                                        , variables: Vs
+                                        )
+                                 , match
                                  )
-                        ~> match
                   ...
        </strategy>
     requires isSpatialPattern(sep(LSPATIAL))
@@ -364,10 +384,7 @@ Instantiate existentials using matching on the spatial part of goals:
                        => \exists { Vs -Patterns fst(unzip(SUBST)) } substMap(\and(RHS), SUBST)
                        )
        </claim>
-       <strategy> ( #matchResult(subst: SUBST, rest: .Patterns)
-                  , .MatchResults
-                 ~> match
-                  )
+       <strategy> ( #matchResult(subst: SUBST, rest: .Patterns) ~> match )
                => noop
                   ...
        </strategy>
@@ -381,16 +398,11 @@ Instantiate existentials using matching on the spatial part of goals:
     requires isPredicatePattern(RHS)
      andBool isSpatialPattern(LSPATIAL)
 
-  rule <strategy> ( #matchResult(subst: _, rest: Ps)
-                  , .MatchResults
-                 ~> match
-                  )
+  rule <strategy> ( #matchResult(subst: _, rest: REST) ~> match )
                => fail
                   ...
        </strategy>
-     requires Ps =/=K .Patterns
-
-  rule <strategy> (.MatchResults ~> match) => fail ... </strategy>
+     requires REST =/=K .Patterns
 ```
 
 Instantiate heap axioms:

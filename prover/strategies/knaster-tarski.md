@@ -318,15 +318,13 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
                        )
        </claim>
        <strategy> kt-collapse
-               => ( #match(terms: LSPATIAL, pattern: CTXLHS, variables: UNIVs)
-                 ~> kt-collapse
-                  )
+               => with-each-match( #match(terms: LSPATIAL, pattern: CTXLHS, variables: UNIVs)
+                                 , kt-collapse
+                                 )
                   ...
        </strategy>
      requires UNIVs =/=K .Patterns
 ```
-
-TODO: Extend to multiple matches:
 
 ```k
   rule <claim> \implies(\and( ( sep ( \forall { UNIVs => .Patterns }
@@ -341,9 +339,7 @@ TODO: Extend to multiple matches:
                        , RHS:Pattern
                        )
        </claim>
-       <strategy> ( #matchResult(subst: SUBST, rest: REST), .MatchResults
-                 ~> kt-collapse
-                  )
+       <strategy> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
                => kt-collapse
                   ...
        </strategy>
@@ -361,9 +357,19 @@ TODO: Extend to multiple matches:
                        )
        </claim>
        <strategy> kt-collapse
+<<<<<<< HEAD
                => ( #match(terms: LSPATIAL, pattern: CTXLHS, variables: .Patterns)
                  ~> kt-collapse
                   )
+||||||| parent of 6ddd966... matching: Create a with-each-match() strategy for handling multiple matches
+               => ( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: .Patterns)
+                 ~> kt-collapse
+                  )
+=======
+               => with-each-match( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: .Patterns)
+                                 , kt-collapse
+                                 )
+>>>>>>> 6ddd966... matching: Create a with-each-match() strategy for handling multiple matches
                   ...
        </strategy>
 
@@ -378,16 +384,10 @@ TODO: Extend to multiple matches:
                        , RHS:Pattern
                        )
        </claim>
-       <strategy> ( #matchResult(subst: SUBST, rest: REST), .MatchResults
-                 ~> kt-collapse
-                  )
+       <strategy> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
                => kt-collapse
                   ...
        </strategy>
-```
-
-```k
-  rule <strategy> .MatchResults ~> kt-collapse => fail ... </strategy>
 ```
 
 TODO: This is pretty adhoc: Remove constraints in the context that are already in the LHS
@@ -424,7 +424,6 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
        <strategy> kt-collapse => fail ... </strategy>
     requires isPredicatePattern(CTXCONSTRAINT)
      andBool notBool (CTXCONSTRAINT in LHS)
-
 ```
 
 #### Infrastructure
