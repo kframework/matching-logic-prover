@@ -6,13 +6,11 @@ symbol energy( State ) : Real
 axiom functional( energy )
 
 axiom smt-lemma( \forall { S { State } }
-                    \implies( \not(lt(valZ( S { State }), 0.0))
-                            , \equals( energy( S { State } )
-                                     , plus( valZ( S { State })
-                                           , div( mult(valZ( S { State }), valZ(S { State} )), 2.0 )
+                             \equals( energy( S { State } )
+                                     , plus( mult(10.0, valZ( S { State }))
+                                           , div(  mult(valV( S { State }), valV(S { State} )), 2.0 )
                                            )
                                     )
-                            )
                 )
 
 symbol energyConserved( State, State ) : Bool
@@ -21,14 +19,15 @@ axiom functional(energyConserved)
 
 axiom smt-lemma( \forall { S1 { State },  S2 { State } }
                     \equals(energyConserved( S1 { State } , S2 { State } )
-                           , \not(gt(energy( S2 { State }), energy( S1 { State })))
+                           , \equals(energy( S2 { State }), energy( S1 { State }))
                            )
                )
 
- claim \implies( \and( reach( S1 { State }, S2 { State })
-                     , \not(lt(valZ( S1 { State }), 0.0 ))
-                     )
-               , \and( energyConserved( S1 { State } , S2 { State } ) )
-               )
 
-strategy kt ; ( smt-cvc4 | smt-debug )
+claim \implies( \and( reach( S1 { State }, S2 { State })
+                 , \not(lt( valZ( S { State } , 0.0 ) ) )
+                 )
+           , \and( energyConserved( S1 { State } , S2 { State } ) )
+           )
+
+strategy kt ; smt-z3
