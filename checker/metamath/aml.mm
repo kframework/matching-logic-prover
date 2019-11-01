@@ -85,8 +85,8 @@ $(
     State that element/set variables are variables.
 $)
 
-varevar $a #var x $.
-varsvar $a #var X $.
+var-evar $a #var x $.
+var-svar $a #var X $.
 
 $(
     We declare some auxiliary stuffs of AML's metalevel.
@@ -100,82 +100,25 @@ $c #nnegative $. $( non-negative occurrence token, whose expected form is "#nneg
 
 $c #nfree $. $( not-occur-free token, whose expected form is "#nfree xX P",
                 read as "the variable xX does not occur free in P". $)
-            
-$c \subst $. $( capture-avoiding substitution, whose expected form is "\subst P Q xx",
-                denoting the result of substitution. $)
-               
+                          
 $c #appctx $. $( application context token, whose expected form is "#appctx P xx",
                 read as "P is an application context wrt variable xx". $)
 				
-$c #subst $.  $( TO BE REMOVED $)
+$c #subst $.  $( capture-avoiding substitution token, whose expected form is
+                 "#subst P Q R xX", read as "P is the result of substituting R for xx in Q". $)
 
 $(
-    Define wellformedness token "wf ...". 
+    Define wellformedness token "#wf ...". 
 $)
 
-wfvar    $a #wf xX $. 
-wfbot    $a #wf \bot $.
-wfimp    $a #wf ( \imp P Q ) $.
-wfapp    $a #wf ( \app P Q ) $.
-wfexists $a #wf ( \exists x P ) $.
+wf-var    $a #wf xX $. 
+wf-bot    $a #wf \bot $.
+wf-imp    $a #wf ( \imp P Q ) $.
+wf-app    $a #wf ( \app P Q ) $.
+wf-exists $a #wf ( \exists x P ) $.
 ${
-    wfmu.nnegative $e #nnegative X P $.
-    wfmu           $a #wf ( \mu X P ) $.
-$}
-
-$(
-    Prove that element/set variables are wellformed patterns,
-    (because they are variables and variables are wellformed patterns).
-$)
-
-${
-    wfevar $p #wf x $=
-      evarx varevar wfvar $.
-$}
-
-${
-    wfsvar $p #wf X $=
-      svarX varsvar wfvar $.
-$}
-
-$( 
-    Define #nfree token "#nfree xX P".
-$)
-
-${
-    $d xX yY $.
-    nfree-var $a #nfree xX yY $.
-$}
-
-nfree-symb $a #nfree xX f $.
-nfree-bot  $a #nfree xX \bot $.
-
-${
-    nfree-imp.1 $e #nfree xX P $.
-    nfree-imp.2 $e #nfree xX Q $.
-    nfree-imp   $a #nfree xX ( \imp P Q ) $.
-$}
-
-${
-    nfree-app.1 $e #nfree xX P $.
-    nfree-app.2 $e #nfree xX Q $.
-    nfree-app   $a #nfree xX ( \app P Q ) $.
-$}
-
-nfree-exists-binding $a #nfree x ( \exists x P ) $.
-
-${
-    $d xX y $.
-    nfree-exists-body.1 $e #nfree xX P $.
-    nfree-exists-body   $a #nfree xX ( \exists y P ) $.
-$}
-
-nfree-mu-binding $a #nfree X ( \mu X P ) $.
-
-${
-    $d xX Y $.
-    nfree-mu-body.1 $e #nfree xX P $.
-    nfree-mu-body   $a #nfree xX ( \exists Y P ) $.
+    wf-mu.nnegative $e #nnegative X P $.
+    wf-mu           $a #wf ( \mu X P ) $.
 $}
 
 $(
@@ -244,6 +187,116 @@ ${
     $d X Y $.
     npositive-mu-body.1 $e #npositive X P $.
     npositive-mu-body   $a #npositive X ( \mu Y P ) $.
+$}
+
+$(
+    Prove that element/set variables are wellformed patterns,
+    (because they are variables and variables are wellformed patterns).
+$)
+
+${
+    wf-evar $p #wf x $=
+      evarx var-evar wf-var $.
+$}
+
+${
+    wf-svar $p #wf X $=
+      svarX var-svar wf-var $.
+$}
+
+$( Define propositional logic $)
+
+rl-1 $a |- ( \imp P ( \imp Q P ) ) $.
+
+rl-2 $a |- ( \imp ( \imp P ( \imp Q R ) )
+                  ( \imp ( \imp P Q ) ( \imp P R ) ) ) $.
+                   
+rl-3 $a |- ( \imp ( \imp ( \imp P \bot ) \bot ) P ) $.
+
+${
+    rl-mp.1   $e |- P $.
+    rl-mp.2   $e |- ( \imp P Q ) $.
+    rl-mp     $a |- Q $.
+$}
+
+$( 
+    Our first theorem, "id".
+$)
+
+id $p |- ( \imp P P ) $=
+  wfP wfP wfP wf-imp wf-imp wfP wfP wf-imp wfP wfP rl-1 wfP wfP wfP
+  wf-imp wfP wf-imp wf-imp wfP wfP wfP wf-imp wf-imp wfP wfP wf-imp wf-imp wfP wfP wfP
+  wf-imp rl-1 wfP wfP wfP wf-imp wfP rl-2 rl-mp
+  rl-mp $.
+
+$(
+	\iff is a derived construct that can be defined from \imp and \bot. 
+	For now, we add it here as a builtin.
+$)
+$c \iff $.
+wf-iff $a #wf ( \iff P Q ) $.
+${
+    iff-intro.1 $e |- ( \imp P Q ) $.
+	iff-intro.2 $e |- ( \imp Q P ) $.
+	iff-intro   $a |- ( \iff P Q ) $.
+$}
+${
+	iff-elim-fw.1 $e |- ( \iff P Q ) $.
+	iff-elim-fw   $a |- ( \imp P Q ) $.
+$}
+${
+	iff-elim-bw.1 $e |- ( \iff P Q ) $.
+	iff-elim-bw   $a |- ( \imp Q P ) $.
+$}
+
+$(
+	\iff yields a congruence relation in terms of provability.
+$)
+${
+	iff-thm.1 $e |- ( \iff P Q ) $.
+	iff-thm.2 $e |- P $.
+	iff-thm   $p |- Q $=
+  wfP wfQ iff-thm.2 wfP wfQ iff-thm.1 iff-elim-fw rl-mp $.
+$}
+
+$( 
+    Define #nfree token "#nfree xX P".
+$)
+
+${
+    $d xX yY $.
+    nfree-var $a #nfree xX yY $.
+$}
+
+nfree-symb $a #nfree xX f $.
+nfree-bot  $a #nfree xX \bot $.
+
+${
+    nfree-imp.1 $e #nfree xX P $.
+    nfree-imp.2 $e #nfree xX Q $.
+    nfree-imp   $a #nfree xX ( \imp P Q ) $.
+$}
+
+${
+    nfree-app.1 $e #nfree xX P $.
+    nfree-app.2 $e #nfree xX Q $.
+    nfree-app   $a #nfree xX ( \app P Q ) $.
+$}
+
+nfree-exists-binding $a #nfree x ( \exists x P ) $.
+
+${
+    $d xX y $.
+    nfree-exists-body.1 $e #nfree xX P $.
+    nfree-exists-body   $a #nfree xX ( \exists y P ) $.
+$}
+
+nfree-mu-binding $a #nfree X ( \mu X P ) $.
+
+${
+    $d xX Y $.
+    nfree-mu-body.1 $e #nfree xX P $.
+    nfree-mu-body   $a #nfree xX ( \exists Y P ) $.
 $}
 
 $( 
@@ -344,11 +397,12 @@ ${
     eqq-mu   $a #eqq ( \mu x P ) ( \mu y Q ) $.
 $}
 
-${
+
+$(  THIS DOESN'T WORK: P Q must be #wf already.
     eqq-wf.1 $e #wf Q $.
     eqq-wf.2 $e #eqq P Q $.
     eqq-wf   $a #wf P $.
-$}
+$)
 
 $(  DON'T NEED THESE RIGHT NOW.
     eqq-var.1 $e #var yY $.
@@ -418,87 +472,60 @@ ${
 $}
 
 $(
-    State AML proof rules (prule).
+    State AML proof rules (rl).
 $)
-
-$(
-    AML proof rules Part A: Propositional reasoning.
-$)
-
-prule-proposition-1 $a |- ( \imp P ( \imp Q P ) ) $.
-
-prule-proposition-2 $a |- ( \imp ( \imp P ( \imp Q R ) )
-                                 ( \imp ( \imp P Q ) ( \imp P R ) ) ) $.
-                   
-prule-proposition-3 $a |- ( \imp ( \imp ( \imp P \bot ) \bot ) P ) $.
-
-${
-    prule-mp.1   $e |- P $.
-    prule-mp.2   $e |- ( \imp P Q ) $.
-    prule-mp     $a |- Q $.
-$}
-
-$( 
-    Our first theorem, "id".
-$)
-
-id $p |- ( \imp P P ) $=
-  wfP wfP wfP wfimp wfimp wfP wfP wfimp wfP wfP prule-proposition-1 wfP wfP wfP
-  wfimp wfP wfimp wfimp wfP wfP wfP wfimp wfimp wfP wfP wfimp wfimp wfP wfP wfP
-  wfimp prule-proposition-1 wfP wfP wfP wfimp wfP prule-proposition-2 prule-mp
-  prule-mp $.
 
 $(
     AML proof rules Part B: FOL reasoning.
 $)
 
 ${
-    prule-exists-inst.1 $e #subst P Q y x $.
-    prule-exists-inst   $a |- ( \imp P ( \exists x Q ) ) $.
+    rl-exists-inst.1 $e #subst P Q y x $.
+    rl-exists-inst   $a |- ( \imp P ( \exists x Q ) ) $.
 $}
 
 ${
-    prule-exists-gen.1 $e |- ( \imp P Q ) $.
-    prule-exists-gen.2 $e #nfree x P $.
-    prule-exists-gen   $a |- ( \imp P ( \exists x Q ) ) $.
+    rl-exists-gen.1 $e |- ( \imp P Q ) $.
+    rl-exists-gen.2 $e #nfree x P $.
+    rl-exists-gen   $a |- ( \imp P ( \exists x Q ) ) $.
 $}
 
 $(
     AML proof rules Part C: Frame reasoning.
 $)
 
-prule-propagation-bot-left  $a |- ( \imp ( \app \bot P ) \bot ) $.
-prule-propagation-bot-right $a |- ( \imp ( \app P \bot ) \bot ) $.
-prule-propagation-or-left 
+rl-propagation-bot-left  $a |- ( \imp ( \app \bot P ) \bot ) $.
+rl-propagation-bot-right $a |- ( \imp ( \app P \bot ) \bot ) $.
+rl-propagation-or-left 
   $a |- ( \imp ( \app ( \imp ( \imp P \bot ) Q ) R )
                ( \imp ( \imp ( \app P R ) \bot ) ( \app Q R ) ) ) $.
-prule-propagation-or-right 
+rl-propagation-or-right 
   $a |- ( \imp ( \app R ( \imp ( \imp P \bot ) Q ) )
                ( \imp ( \imp ( \app R P ) \bot ) ( \app R Q ) ) ) $.
 ${
-    prule-propagation-exists-left.1
+    rl-propagation-exists-left.1
       $e #nfree x Q $.
-    prule-propagation-exists-left
+    rl-propagation-exists-left
       $a |- ( \imp ( \app ( \exists x P ) Q )
                    ( \exists x ( \app P Q ) ) ) $.
 $}
 
 ${
-    prule-propagation-exists-right.1
+    rl-propagation-exists-right.1
       $e #nfree x Q $.
-    prule-propagation-exists-right
+    rl-propagation-exists-right
       $a |- ( \imp ( \app Q ( \exists x P ) )
                    ( \exists x ( \app Q P ) ) ) $.
 $}
 
 ${
-    prule-framing-left.1 $e |- ( \imp P Q ) $.
-    prule-framing-left   $a |- ( \imp ( \app P R ) ( \app Q R ) ) $.
+    rl-framing-left.1 $e |- ( \imp P Q ) $.
+    rl-framing-left   $a |- ( \imp ( \app P R ) ( \app Q R ) ) $.
 $}
 
 ${
-    prule-framing-right.1 $e |- ( \imp P Q ) $.
-    prule-framing-right   $a |- ( \imp ( \app R P ) ( \app R Q ) ) $.
+    rl-framing-right.1 $e |- ( \imp P Q ) $.
+    rl-framing-right   $a |- ( \imp ( \app R P ) ( \app R Q ) ) $.
 $}
 
 $(
@@ -506,33 +533,33 @@ $(
 $)
 
 ${
-    prule-svar-subst.1 $e |- Q $.
-    prule-svar-subst.2 $e #subst P Q R Y $.
-    prule-svar-subst $a |- P $.
+    rl-svar-subst.1 $e |- Q $.
+    rl-svar-subst.2 $e #subst P Q R Y $.
+    rl-svar-subst $a |- P $.
 $}
 
 ${
-    prule-prefixpoint.1 $e #subst Q P ( \mu X P ) X $.
-    prule-prefixpoint   $a |- ( \imp Q ( \mu X P ) ) $.
+    rl-prefixpoint.1 $e #subst Q P ( \mu X P ) X $.
+    rl-prefixpoint   $a |- ( \imp Q ( \mu X P ) ) $.
 $}
 
 ${
-    prule-kt.1 $e |- ( \imp R Q ) $.
-    prule-kt.2 $e #subst R P Q X $.
-    prule-kt   $a |- ( \imp ( \mu X P ) Q ) $.
+    rl-kt.1 $e |- ( \imp R Q ) $.
+    rl-kt.2 $e #subst R P Q X $.
+    rl-kt   $a |- ( \imp ( \mu X P ) Q ) $.
 $}
 
 $(
     AML proof rules Part E: Misc technical proof rules.
 $)
 
-prule-existence $a |- ( \exists x x ) $.
+rl-existence $a |- ( \exists x x ) $.
 
 ${
     p2inf.1 $e |- ( \imp P ( \imp Q R ) ) $.
     p2inf   $p |- ( \imp ( \imp P Q ) ( \imp P R ) ) $=
-      wfP wfQ wfR wfimp wfimp wfP wfQ wfimp wfP wfR wfimp wfimp p2inf.1 wfP
-      wfQ wfR prule-proposition-2 prule-mp $.
+      wfP wfQ wfR wf-imp wf-imp wfP wfQ wf-imp wfP wfR wf-imp wf-imp p2inf.1 wfP
+      wfQ wfR rl-2 rl-mp $.
 $}
 
 $(
@@ -549,9 +576,7 @@ $(
 $)
 
 $c \neg $.
-
-wfneg  $a #wf ( \neg P ) $. $( Ideally we do not even need this one. $)
-
+wf-neg $a #wf ( \neg P ) $.
 df-neg $a #eqq ( \neg P ) ( \imp P \bot ) $.
 
 $( 
@@ -561,31 +586,31 @@ $)
 ${
     nfree-neg.1 $e #nfree xX P $.
     nfree-neg   $p #nfree xX ( \neg P ) $=
-  wfP wfneg wfP wfbot wfimp varxX varxX wfP wfbot varxX nfree-neg.1 varxX
-  nfree-bot nfree-imp varxX wfvar eqq-self wfP df-neg eqq-nfree $.
+  wfP wf-neg wfP wf-bot wf-imp varxX varxX wfP wf-bot varxX nfree-neg.1 varxX
+  nfree-bot nfree-imp varxX wf-var eqq-self wfP df-neg eqq-nfree $.
 $}
 
 ${
     subst-neg.1 $e #subst P' P R yY $.
     subst-neg   $p #subst ( \neg P' ) ( \neg P ) R yY $=
-      wfPp wfneg wfP wfneg wfR wfPp wfbot wfimp wfP wfbot wfimp wfR varyY varyY
-      wfPp wfP wfR wfbot wfbot varyY subst-neg.1 wfR varyY subst-bot subst-imp
-      wfPp df-neg wfP df-neg wfR eqq-self varyY wfvar eqq-self eqq-subst $.
+      wfPp wf-neg wfP wf-neg wfR wfPp wf-bot wf-imp wfP wf-bot wf-imp wfR varyY varyY
+      wfPp wfP wfR wf-bot wf-bot varyY subst-neg.1 wfR varyY subst-bot subst-imp
+      wfPp df-neg wfP df-neg wfR eqq-self varyY wf-var eqq-self eqq-subst $.
 $}
 
 ${
     nnegative-neg.1 $e #npositive X P $.
     nnegative-neg   $p #nnegative X ( \neg P ) $=
-      wfP wfneg wfP wfbot wfimp svarX svarX wfP wfbot svarX nnegative-neg.1 
-      svarX nnegative-bot nnegative-imp svarX wfsvar eqq-self wfP df-neg 
+      wfP wf-neg wfP wf-bot wf-imp svarX svarX wfP wf-bot svarX nnegative-neg.1 
+      svarX nnegative-bot nnegative-imp svarX wf-svar eqq-self wfP df-neg 
       eqq-nnegative $.
 $}
 
 ${
     npositive-neg.1 $e #nnegative X P $.
     npositive-neg   $p #npositive X ( \neg P ) $=
-      wfP wfneg wfP wfbot wfimp svarX svarX wfP wfbot svarX npositive-neg.1 
-      svarX npositive-bot npositive-imp svarX wfsvar eqq-self wfP df-neg 
+      wfP wf-neg wfP wf-bot wf-imp svarX svarX wfP wf-bot svarX npositive-neg.1 
+      svarX npositive-bot npositive-imp svarX wf-svar eqq-self wfP df-neg 
       eqq-npositive $.
 $}
 
@@ -595,21 +620,21 @@ $)
 
 ${
     nn $p |- ( \imp ( \neg ( \neg P ) ) P ) $=
-      wfP wfneg wfneg wfP wfimp wfP wfneg wfbot wfimp wfP wfimp wfP wfneg wfbot
-      wfimp wfP wfimp wfP wfbot wfimp wfbot wfimp wfP wfimp wfP
-      prule-proposition-3 wfP wfneg wfbot wfimp wfP wfbot wfimp wfbot wfimp wfP
-      wfP wfP wfneg wfP wfbot wfimp wfbot wfbot wfP df-neg wfbot eqq-self
-      eqq-imp wfP eqq-self eqq-imp eqq-thm wfP wfneg wfneg wfP wfneg wfbot
-      wfimp wfP wfP wfP wfneg df-neg wfP eqq-self eqq-imp eqq-thm $.
+      wfP wf-neg wf-neg wfP wf-imp wfP wf-neg wf-bot wf-imp wfP wf-imp wfP wf-neg wf-bot
+      wf-imp wfP wf-imp wfP wf-bot wf-imp wf-bot wf-imp wfP wf-imp wfP
+      rl-3 wfP wf-neg wf-bot wf-imp wfP wf-bot wf-imp wf-bot wf-imp wfP
+      wfP wfP wf-neg wfP wf-bot wf-imp wf-bot wf-bot wfP df-neg wf-bot eqq-self
+      eqq-imp wfP eqq-self eqq-imp eqq-thm wfP wf-neg wf-neg wfP wf-neg wf-bot
+      wf-imp wfP wfP wfP wf-neg df-neg wfP eqq-self eqq-imp eqq-thm $.
 $}
 
 ${
     nflip $p |- ( \imp ( \imp ( \neg P ) ( \neg Q ) ) ( \imp Q P ) ) $=
-      wfP wfneg wfQ wfneg wfimp wfQ wfP wfimp wfimp wfP wfbot wfimp wfQ wfbot
-      wfimp wfimp wfQ wfP wfimp wfimp wfP wfQ nflipb wfP wfneg wfQ wfneg wfimp
-      wfP wfbot wfimp wfQ wfbot wfimp wfimp wfQ wfP wfimp wfQ wfP wfimp wfP
-      wfneg wfP wfbot wfimp wfQ wfneg wfQ wfbot wfimp wfP df-neg wfQ df-neg
-      eqq-imp wfQ wfP wfimp eqq-self eqq-imp eqq-thm $.
+      wfP wf-neg wfQ wf-neg wf-imp wfQ wfP wf-imp wf-imp wfP wf-bot wf-imp wfQ wf-bot
+      wf-imp wf-imp wfQ wfP wf-imp wf-imp wfP wfQ nflipb wfP wf-neg wfQ wf-neg wf-imp
+      wfP wf-bot wf-imp wfQ wf-bot wf-imp wf-imp wfQ wfP wf-imp wfQ wfP wf-imp wfP
+      wf-neg wfP wf-bot wf-imp wfQ wf-neg wfQ wf-bot wf-imp wfP df-neg wfQ df-neg
+      eqq-imp wfQ wfP wf-imp eqq-self eqq-imp eqq-thm $.
 $}
 
 
@@ -619,53 +644,28 @@ $(
 $)
 
 $c \forall $.
-
 wfforall $a \forall x P $.
-
 df-forall $a #eqq ( \forall x P ) ( \neg ( \exists x ( \neg P ) ) ) $.
 
-$( IMP Definitions $)
+$c \app2 $.
+wf-app2 $a #wf ( \app2 P Q R ) $.
+df-app2 $a #eqq ( \app2 P Q R ) ( \app ( \app P Q ) R ) $.
+
+$c \eq $.
+wf-eq $a #wf ( \eq P Q ) $.
+${
+	eq-thm.1 $e |- ( \eq P Q ) $.
+	eq-thm.2 $e |- Q $.
+	eq-thm   $a |- P $.
+$}
+
+$( SIMP Definitions $)
 
 $(
 
-module IMP-SYNTAX
-  imports DOMAINS-SYNTAX
-  syntax Exp ::= Int
-               | Id
-               | Exp "+" Exp
-               | Exp "-" Exp
-               | "(" Exp ")" [bracket]
-
-  syntax Stmt ::= Id "=" Exp ";" [strict(2)]
-                | "if" "(" Exp ")" Stmt Stmt [strict(1)]
-                | "while" "(" Exp ")" Stmt
-                | "{" Stmt "}" [bracket]
-                | "{" "}"
-                > Stmt Stmt [left]
-
-  syntax Pgm ::= "int" Ids ";" Stmt
-  syntax Ids ::= List{Id, ","}
-endmodule
-
-module IMP imports IMP-SYNTAX
-  imports DOMAINS
-  syntax KResult ::= Int
-  configuration
-  <T> <k> $PGM:Pgm </k> <state> .Map </state> </T>
-  rule <k> X:Id => I ...</k>
-       <state>... X |-> I ...</state>
-  rule I1 + I2 => I1 +Int I2
-  rule I1 - I2 => I1 -Int I2
-  rule <k> X = I:Int; => . ...</k>
-       <state>... X |-> (_ => I) ...</state>
-  rule S1:Stmt S2:Stmt => S1 ~> S2
-  rule if (I) S _ => S requires I =/=Int 0
-  rule if (0) _ S => S
-  rule while(B) S => if(B) {S while(B) S} {}
-  rule {} => .
-  rule <k> int (X, Xs => Xs); S </k>
-       <state>... (. => X |-> 0) </state>
-  rule int .Ids; S => S
+module SIMP
+  syntax State ::= pair(Int,Int)
+  rule pair(X,Y) => pair(X-1,Y+X) requires X >=Int 1
 endmodule
 
 $)
@@ -676,9 +676,93 @@ $c Int Id KResult K List Map $.
 
 $c Exp Stmt Pgm Ids $.
 
-$c KCell StateCell TopCell $.
+$c KCell StateCell TopCell k state t $.
 
+$( int n, s; n = 1; while(n){s=s+n; n=n-1} $)
 
+$c plusExp minusExp seqStmt ifStmt whileStmt assignStmt decvarPgm n s $.
+
+$c SUM1 WHILE BODY ASSIGN-S ASSIGN-N  $.
+
+symbInt $a #symb Int $.
+symbId $a #symb Id $.
+symbKResult $a #symb KResult $.
+symbK $a #symb K $.
+symbList $a #symb List $.
+symbMap $a #symb Map $.
+
+$( Some definitions about integers and maps $)
+$c zero succ $. $( natural number constructors $)
+symbzero $a #symb zero $.
+symbsucc $a #symb succ $.
+
+$c 0 1 2 3 4 5 $. $( literal values $)
+symb0 $a #symb 0 $.
+symb1 $a #symb 1 $.
+symb2 $a #symb 2 $.
+symb3 $a #symb 3 $.
+symb4 $a #symb 4 $.
+symb5 $a #symb 5 $.
+
+df-0 $a #eqq 0 zero $.
+df-1 $a #eqq 1 ( \app succ 0 ) $.
+df-2 $a #eqq 2 ( \app succ 1 ) $.
+df-3 $a #eqq 3 ( \app succ 2 ) $.
+df-4 $a #eqq 4 ( \app succ 3 ) $.
+df-5 $a #eqq 5 ( \app succ 4 ) $.
+
+$c nil cons $. $( cons-lists constructors $)
+symbnil $a #symb nil $.
+symbcons $a #symb cons $.
+
+$c list1 list2 $.
+symblist1 $a #symb list1 $.
+symblist2 $a #symb list2 $.
+df-list1 $a |- ( \eq ( \app list1 P ) ( \app2 cons P nil ) ) $.
+df-list2 $a |- ( \eq ( \app2 list2 P Q ) ( \app2 cons P ( \app list1 P ) ) ) $.
+
+$c map2 mapsto $.
+ 
+symbExp $a #symb Exp $.
+symbStmt $a #symb Stmt $.
+symbPgm $a #symb Pgm $.
+symbIds $a #symb Ids $.
+ 
+symbKCell $a #symb KCell $.
+symbStateCell $a #symb StateCell $.
+symbTopCell $a #symb TopCell $.
+symbk $a #symb k $.
+symbstate $a #symb state $.
+symbt $a #symb t $.
+ 
+symbplusExp $a #symb plusExp $.
+symbminusExp $a #symb minusExp $.
+symbseqStmt $a #symb seqStmt $.
+symbifStmt $a #symb ifStmt $.
+symbwhileStmt $a #symb whileStmt $.
+symbassignStmt $a #symb assignStmt $.
+symbdecvarPgm $a #symb decvarPgm $.
+symbn $a #symb n $.
+symbs $a #symb s $.
+
+symbSUM1 $a #symb SUM1 $.
+symbWHILE $a #symb WHILE $.
+symbBODY $a #symb BODY $.
+symbASSIGN-S $a #symb ASSIGN-S $.
+symbASSIGN-N $a #symb ASSIGN-N $.
+
+df-ASSIGN-S $a #eqq ASSIGN-S ( \app2 assignStmt s ( \app2 plusExp  s n ) ) $.
+df-ASSIGN-N $a #eqq ASSIGN-N ( \app2 assignStmt n ( \app2 minusExp n 1 ) ) $.
+df-BODY $a #eqq BODY ( \app2 seqStmt ASSIGN-S ASSIGN-N ) $.
+df-WHILE $a #eqq WHILE ( \app2 whileStmt n  BODY ) $.
+df-SUM1 $a #eqq SUM1 ( \app2 decvarPgm ( \app2 list2 n s ) ( \app2 seqStmt ( \app2 assignStmt n 1 ) WHILE ) ) $.
+
+$( Representing SUM configurations: code, value of n, value of s $)
+
+$c \cfg $.
+wf-cfg $a #wf ( \cfg P Q R ) $.
+df-cfg $a #eqq ( \cfg P Q R ) 
+               ( \app2 t ( \app k P ) ( \app state ( map2 ( \app2 mapsto n Q ) ( \app2 mapsto s R ) ) ) ) $.
 
 
 
