@@ -232,9 +232,6 @@ module STRATEGY-SMT
        <trace> .K => smt-z3 ... </trace>
 
   rule <claim> GOAL </claim>
-       <strategy> smt-z3 => fail </strategy>
-
-  rule <claim> GOAL </claim>
        <strategy> smt-cvc4
                => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))) ==K unsat
                   then success
