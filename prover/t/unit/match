@@ -116,10 +116,17 @@ assert( #matchResult( subst: F8 { RefGTyp } |-> Vy { RefGTyp }
 assert( #matchResult( subst: .Map
                     , rest:
                     )
-     == #match( term:      sep ( pto ( Vf { A } , c_GTyp ( Vg { A }) )
-                               )
-              , pattern:   sep ( pto ( Bx { B } , c_GTyp ( By { B }) )
-                               )
+     == #match( term:      sep ( pto ( Vf { A } , c_GTyp ( Vg { A }) ) )
+              , pattern:   sep ( pto ( Bx { B } , c_GTyp ( By { B }) ) )
               , variables: Ax { A }, Bx { B }, Ay { A }, By { B }
+              )
+      )
+
+assert(
+     == #match( term:      sep ( pto ( Vf { A } , c_GTyp ( Vg { A }) ) )
+              , pattern:   sep ( pto ( Bx { B } , c_GTyp ( By { B }) )
+                               , pto ( Vf { A } , c_GTyp ( Vg { A }) )
+                               )
+              , variables: Bx { B }, By { B }
               )
       )
