@@ -128,23 +128,38 @@ module SMT-DRIVER
   rule SelectorDecListToSorts((_ SORT) SELDECs) => SMTLIB2SortToSort(SORT), SelectorDecListToSorts(SELDECs)
 
   rule <k> _:GoalBuilder
-        ~> ( (define-fun-rec ID (ARGS) RET BODY)
+        ~> ( (define-fun-rec ID (ARGs) RET BODY)
           => .K
            )
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGS))
-                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)), SMTLIB2SortToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
+                     => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGs))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SortToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
                         </declaration>
-                        <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGS) }
-                                         \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGS))
-                                                 , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGS)))
+                        <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGs) }
+                                         \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
+                                                 , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)))
                                                  )
                         </declaration>
                         <declaration> axiom functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
                       ) ...
        </declarations>
+
+  rule <k> _:GoalBuilder
+        ~> ( (define-funs-rec ( .SMTLIB2FunctionDecList ) ( .SMTLIB2TermList ) )
+          => .K
+           )
+           ...
+       </k>
+
+  rule <k> _:GoalBuilder
+        ~> ( (define-funs-rec ( (SYM (ARGs) SORT) FDs ) ( T Ts ) )
+          => (define-fun-rec SYM (ARGs) SORT T)
+          ~> (define-funs-rec ( FDs ) ( Ts ) )
+           )
+           ...
+       </k>
 
   // Note: We cannot call isPredicatePattern because that requires knowing the return type of the
   // symbols inside before calling. This is not feasible since they may be recursive symbols.
@@ -242,6 +257,7 @@ Clear the `<k>` cell once we are done:
 ```k
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
   rule #normalizeDefinition(\or(Ps)) => \or(#exists(#flattenOrs(#dnfPs(Ps)), .Patterns))
+  rule #normalizeDefinition(P) => #normalizeDefinition(\or(P, .Patterns)) [owise]
 
   syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]
   rule #statusToTerminalStrategy(unsat)      => success
