@@ -65,12 +65,18 @@ module SMTLIB2
   syntax SMTLIB2SortDec ::= "(" SMTLIB2Symbol SMTLIB2Numeral ")"
   syntax SMTLIB2SortDecList ::= List{SMTLIB2SortDec, ""} [klabel(SMTLIB2SortDecList)]
 
+// For mutually recursive definitions
+  syntax SMTLIB2FunctionDec ::= "(" SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort ")"
+  syntax SMTLIB2FunctionDecList ::= List{SMTLIB2FunctionDec, ""} [klabel(SMTLIB2FunctionDecList)]
+
 // Commands
   syntax SMTLIB2Command ::= "(" "assert"            SMTLIB2Term               ")"
                           | "(" "declare-const"     SMTLIB2Symbol SMTLIB2Sort ")"
                           | "(" "declare-fun"       SMTLIB2Symbol "(" SMTLIB2SortList ")" SMTLIB2Sort ")"
                           | "(" "define-fun"        SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
                           | "(" "define-fun-rec"    SMTLIB2Symbol "(" SMTLIB2SortedVarList ")" SMTLIB2Sort SMTLIB2Term ")"
+                          // TODO: SMTLIB2FunctionDecList and SMTLIB2TermList in here both need to be nonempty
+                          | "(" "define-funs-rec"   "(" SMTLIB2FunctionDecList ")" "(" SMTLIB2TermList ")" ")"
                           | "(" "declare-datatype"  SMTLIB2Symbol SMTLIB2DatatypeDec ")"
                           // TODO: SMTLIB2SortDecList and SMTLIB2DatatypeDecList in here both need to be nonempty
                           | "(" "declare-datatypes" "(" SMTLIB2SortDecList ")" "(" SMTLIB2DatatypeDecList ")" ")"
