@@ -225,6 +225,12 @@ module KORE-HELPERS
     requires P1 in P2s
   rule .Patterns -Patterns P2s => .Patterns
   rule P1s -Patterns .Patterns => P1s
+
+  syntax Patterns ::= removeFirst(Pattern, Patterns) [function]
+  rule removeFirst(P, (P, Ps)) => Ps
+  rule removeFirst(P1, (P2, Ps)) => P2, removeFirst(P1, Ps)
+    requires P1 =/=K P2
+  rule removeFirst(_, .Patterns) => .Patterns
 ```
 
 ```k
@@ -570,6 +576,7 @@ Simplifications
   rule isPredicatePattern(sep(_)) => false
   rule isPredicatePattern(pto(_)) => false
   rule isPredicatePattern(emp(.Patterns)) => false
+  rule isPredicatePattern(\exists{.Patterns} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{_} implicationContext(\and(sep(_),_),_)) => false
   rule isPredicatePattern(\forall{_} implicationContext(_,_)) => true
     [owise]

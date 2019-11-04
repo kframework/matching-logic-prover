@@ -263,7 +263,7 @@ Recurse over assoc-only constructors (including `pto`):
 
   // Application, ground: don't need substitution
   rule #matchAux( terms:     S:Symbol(ARG, ARGs) , .Patterns
-                          => S:Symbol(ARGs:Patterns) , .Patterns
+                          => S:Symbol(ARG, ARGs:Patterns) , .Patterns
                 , pattern:   S:Symbol(ARG:Variable, P_ARGs:Patterns)
                           => S:Symbol(P_ARGs)
                 , variables: Vs
@@ -337,15 +337,42 @@ Recurse over assoc-comm `sep`:
     => #matchAux( terms:     sep(ARGs)
                 , pattern:   sep(P_ARGs)
                 , variables: Vs
-                , results:   #matchAux( terms:     ARGs
-                                      , pattern:   P_ARG
-                                      , variables: Vs
-                                      , results:  .MatchResults
-                                      , subst:    SUBST
-                                      )
+                , results:   #getMatchResults( sep(ARGs)
+                                             , sep(P_ARG, P_ARGs)
+                                             , #matchAux( terms:     ARGs
+                                                        , pattern:   P_ARG
+                                                        , variables: Vs
+                                                        , results:  .MatchResults
+                                                        , subst:    SUBST
+                                                        )
+                                             )
                 , subst:     SUBST
                 )
     requires ARGs =/=K .Patterns
+
+  // Recursive case: AC match on arguments
+  rule #matchAux( terms:     sep(ARGs), .Patterns
+                , pattern:   sep(P_ARG, P_ARGs)
+                , variables: Vs
+                , results:   .MatchResults
+                , subst:     SUBST
+                )
+    => #matchAux( terms:     sep(ARGs)
+                , pattern:   sep(P_ARGs)
+                , variables: Vs
+                , results:   #getMatchResults( sep(ARGs)
+                                             , sep(P_ARG, P_ARGs)
+                                             , #matchAux( terms:     ARGs
+                                                        , pattern:   P_ARG
+                                                        , variables: Vs
+                                                        , results:  .MatchResults
+                                                        , subst:    SUBST
+                                                        )
+                                             )
+                , subst:     SUBST
+                )
+    requires ARGs =/=K .Patterns
+
 ```
 
 Distribute results for nested matching over current call:
@@ -353,13 +380,13 @@ Distribute results for nested matching over current call:
 ```k
   // Base case: Apply substitution from nested term
   // TODO: don't want to call substUnsafe directly (obviously)
-  rule #matchAux( terms:     Ts
+  rule #matchAux( terms:     S:Symbol(ARGs), Ts
                 , pattern:   P
                 , variables: Vs
-                , results:   #matchResult(subst: SUBST1), .MatchResults
+                , results:   #matchResult(subst: SUBST1, rest: REST), .MatchResults
                 , subst:     SUBST2
                 )
-    => #matchAux( terms:     Ts
+    => #matchAux( terms:     S:Symbol(removeFirst(REST, ARGs)), Ts
                 , pattern:   substUnsafe(P, SUBST1)
                 , variables: Vs -Patterns fst(unzip(SUBST1))
                 , results:   .MatchResults
