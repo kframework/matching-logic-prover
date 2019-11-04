@@ -22,9 +22,9 @@ module STRATEGY-SEARCH-BOUND
   rule <strategy> search-sl(bound: N)
                => or-split-rhs . normalize
                 . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                . ( ( match . instantiate-separation-logic-axioms
-                    . spatial-patterns-equal . smt-cvc4
-                    )
+                . instantiate-separation-logic-axioms
+                . check-lhs-constraint-unsat
+                . ( ( match . spatial-patterns-equal . smt-cvc4 )
                   | ( kt           . search-sl(bound: N -Int 1) )
                   | ( right-unfold . search-sl(bound: N -Int 1) )
                   )

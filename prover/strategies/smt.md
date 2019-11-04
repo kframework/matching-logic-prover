@@ -35,9 +35,9 @@ module ML-TO-SMTLIB2
        DeclarationsToSMTLIB(Ds)
     requires isFunctional(S)  
 
+// We only translate functional symbols to SMT
   rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
-    => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) (Set SortToSMTLIB2Sort(SORT)) ) ++SMTLIB2Script
-       DeclarationsToSMTLIB(Ds)
+    => DeclarationsToSMTLIB(Ds)
     requires notBool isFunctional(S)
 
   rule DeclarationsToSMTLIB((axiom heap(_, _)) Ds)
@@ -222,6 +222,19 @@ module STRATEGY-SMT
                   ...
        </strategy>
        <trace> .K => smt-cvc4 ... </trace>
+     requires isPredicatePattern(GOAL)
+
+// If the constraints are unsatisfiable, the entire term is unsatisfiable
+  rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
+       <strategy> check-lhs-constraint-unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\and(LCONSTRAINTS), #collectDeclarations(.Declarations))) ==K unsat
+                  then success
+                  else noop
+                  fi
+                  ...
+       </strategy>
+       <trace> .K => check-lhs-constraint-unsat ... </trace>
+     requires isPredicatePattern(\and(LCONSTRAINTS))
 
   syntax DeclarationCelLSet
   syntax Declarations ::= #collectDeclarations(Declarations) [function]
@@ -275,6 +288,7 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                   ...
        </strategy>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
+     requires isPredicatePattern(GOAL)
 ```
 
 ```k
