@@ -120,6 +120,7 @@ module SMT-DRIVER
        <declarations> ( .Bag
                      => <declaration> sort SMTLIB2SortToSort(SORT1) </declaration>
                         <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SortToSort(SORT1) </declaration>
+                        <declaration> axiom functional(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
                       ) ...
        </declarations>
 
