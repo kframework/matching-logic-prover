@@ -564,7 +564,6 @@ Simplifications
 ```k
   syntax Bool ::= isPredicatePattern(Pattern) [function]
   rule isPredicatePattern(\equals(_, _)) => true
-  rule isPredicatePattern(lt(_, _)) => true
   rule isPredicatePattern(\not(P)) => isPredicatePattern(P)
   rule isPredicatePattern(\and(.Patterns)) => true
   rule isPredicatePattern(\and(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\and(Ps))
