@@ -1,5 +1,5 @@
-$( 
-    Declare AML pattern constructs, one per line. 
+$(
+	Level 1: ML Syntax Primitives
 $)
 
 $c \bot $.    $( the bottom pattern $)
@@ -7,45 +7,18 @@ $c \imp $.    $( the implication pattern ( \imp P Q ) $)
 $c \app $.    $( the application pattern ( \app P Q ) $)
 $c \exists $. $( the exists quantifier ( \exists x P ) $)
 $c \mu $.     $( the mu fixpoint binder ( \mu X P ) $)
+$c ( $.       $( left parenthesis $)
+$c ) $.       $( right parenthesis $)
 
-$(
-    Declare parentheses for pattern grouping.
-$)
+$c #wf $.     $( wellformedness token $)
+$c #var $.    $( variable token $)
+$c #symb $.   $( symbols token $)
+$c #evar $.   $( element variables token $)
+$c #svar $.   $( set variables token $)
 
-$c ( $. $( left  parenthesis $)
-$c ) $. $( right parenthesis $)
+$c |- $.      $( the provability token $)
 
-
-$( 
-    Declare AML's syntactic categories.
-$)
-
-$c #wf $.     $( wellformedness token, 
-                 read as "the following token sequence forms a wellformed pattern" $)
-$c #var $.    $( AML variables token,
-                 read as "the following token sequence forms a variable" $)
-$c #symb $.   $( AML symbols token,
-                 read as "the following token sequence forms an AML symbol" $)
-              
-$(
-    A varialbe is either an element variable or a set variable. 
-$)
-
-$c #evar $. $( element variables token,
-              read as "the following token sequence forms an element variable" $)
-$c #svar $. $( set variables token,
-              read as "the following token sequence forms a set variable" $)
-
-$(
-    Declare AML provability relation, the token "|-",
-    read as "the following token sequence forms a provable pattern".
-$)
-
-$c |- $. $( the provability token $)
-
-$( 
-    Declare metamath variables 
-$)
+$( Declare metamath variables and their ranges. $)
 
 $v 
 	P Q R P' Q' R' 
@@ -54,10 +27,6 @@ $v
     f g h 
     xX yY
 $.
-
-$( 
-    State the ranges of the above metamath variables.
-$)
 
 wfP   $f #wf P $.
 wfQ   $f #wf Q $.
@@ -81,35 +50,27 @@ symbh $f #symb h $.
 varxX $f #var xX $.
 varyY $f #var yY $.
 
-$(
-    State that element/set variables are variables.
-$)
+$( State that element/set variables are variables. $)
 
 var-evar $a #var x $.
 var-svar $a #var X $.
 
-$(
-    We declare some auxiliary stuffs of AML's metalevel.
-$)
+$( auxiliary tokens $)
 
-$c #npositive $. $( non-positive occurrence token, whose expected form is "#npositive X P",
-                    read as "the set variable X does not occur positively in P". $)
-                   
-$c #nnegative $. $( non-negative occurrence token, whose expected form is "#nnegative X P",
-                    read as "the set variable X does not occur negatively in P". $)
+$c #nnegative $. $( non-negative occurrence token; 
+                  ( #nnegative X P ) means X does not occur negatively in P. $)
+				  
+$c #npositive $. $( non-positive occurrence token; 
+                  ( #npositive X P ) means X does not occur positively in P. $)
 
-$c #nfree $. $( not-occur-free token, whose expected form is "#nfree xX P",
-                read as "the variable xX does not occur free in P". $)
+$c #nfree $.     $( not-occur-free token;
+                  ( #nfree xX P ) means xX does not occur 
+				  free in P. $)
                           
-$c #appctx $. $( application context token, whose expected form is "#appctx P xx",
-                read as "P is an application context wrt variable xx". $)
-				
-$c #subst $.  $( capture-avoiding substitution token, whose expected form is
-                 "#subst P Q R xX", read as "P is the result of substituting R for xx in Q". $)
+$c #appctx $.    $( application context token;
+                  ( #appctx P xX ) means P is an application context wrt variable xX. $)
 
-$(
-    Define wellformedness token "#wf ...". 
-$)
+$( Define wellformedness token #wf. $)
 
 wf-var    $a #wf xX $. 
 wf-bot    $a #wf \bot $.
@@ -117,13 +78,11 @@ wf-imp    $a #wf ( \imp P Q ) $.
 wf-app    $a #wf ( \app P Q ) $.
 wf-exists $a #wf ( \exists x P ) $.
 ${
-    wf-mu.nnegative $e #nnegative X P $.
-    wf-mu           $a #wf ( \mu X P ) $.
+    wf-mu.1 $e #nnegative X P $.
+    wf-mu   $a #wf ( \mu X P ) $.
 $}
 
-$(
-    Define non-negative occurrence token "nnegative X P".
-$)
+$( Define non-negative occurrence token ( #nnegative X P ). $)
 
 nnegative-var  $a #nnegative X xX $.
 nnegative-symb $a #nnegative X f $.
@@ -133,34 +92,27 @@ ${
     nnegative-imp.2 $e #nnegative X Q $.
     nnegative-imp   $a #nnegative X ( \imp P Q ) $.
 $}
-
 ${
     nnegative-app.1 $e #nnegative X P $.
     nnegative-app.2 $e #nnegative X Q $.
     nnegative-app   $a #nnegative X ( \app P Q ) $.
 $}
-
 ${
    nnegative-exists.1 $e #nnegative X P $.
    nnegative-exists   $a #nnegative X ( \exists x P ) $.
 $}
-
 nnegative-mu-binding $a #nnegative X ( \mu X P ) $.
-
 ${
     $d X Y $.
     nnegative-mu-body.1 $e #nnegative X P $.
     nnegative-mu-body   $a #nnegative X ( \mu Y P ) $.
 $}
 
-$(
-    Define non-positive occurrence token "npositive X P".
-$)
+$( Define non-positive occurrence token ( #npositive X P ). $)
 
-npositive-evar  $a #npositive X x $.
 ${
-    $d X Y $.
-    npositive-svar  $a #npositive X Y $.
+    $d X xX $.
+    npositive-var  $a #npositive X xX $.
 $}
 npositive-symb $a #npositive X f $.
 npositive-bot  $a #npositive X \bot $.
@@ -169,40 +121,193 @@ ${
     npositive-imp.2 $e #npositive X Q $.
     npositive-imp   $a #npositive X ( \imp P Q ) $.
 $}
-
 ${
     npositive-app.1 $e #npositive X P $.
     npositive-app.2 $e #npositive X Q $.
     npositive-app   $a #npositive X ( \app P Q ) $.
 $}
-
 ${
    npositive-exists.1 $e #npositive X P $.
    npositive-exists   $a #npositive X ( \exists x P ) $.
 $}
-
 npositive-mu-binding $a #npositive X ( \mu X P ) $.
-
 ${
     $d X Y $.
     npositive-mu-body.1 $e #npositive X P $.
     npositive-mu-body   $a #npositive X ( \mu Y P ) $.
 $}
 
+$( Prove that element/set variables are wellformed. $)
+
+wf-evar $p #wf x $= 
+  evarx var-evar wf-var $.
+wf-svar $p #wf X $=
+  svarX var-svar wf-var $.
+
+$( Define #nfree token ( #nfree xX P ). $)
+
+${
+    $d xX yY $.
+    nfree-var $a #nfree xX yY $.
+$}
+nfree-symb $a #nfree xX f $.
+nfree-bot  $a #nfree xX \bot $.
+${
+    nfree-imp.1 $e #nfree xX P $.
+    nfree-imp.2 $e #nfree xX Q $.
+    nfree-imp   $a #nfree xX ( \imp P Q ) $.
+$}
+${
+    nfree-app.1 $e #nfree xX P $.
+    nfree-app.2 $e #nfree xX Q $.
+    nfree-app   $a #nfree xX ( \app P Q ) $.
+$}
+nfree-exists-binding $a #nfree x ( \exists x P ) $.
+${
+    $d xX y $.
+    nfree-exists-body.1 $e #nfree xX P $.
+    nfree-exists-body   $a #nfree xX ( \exists y P ) $.
+$}
+nfree-mu-binding $a #nfree X ( \mu X P ) $.
+${
+    $d xX Y $.
+    nfree-mu-body.1 $e #nfree xX P $.
+    nfree-mu-body   $a #nfree xX ( \exists Y P ) $.
+$}
+
+$( Define appliation context token ( #appctx P xX ). $)
+
+appctx-var $a #appctx xX xX $.
+${
+    appctx-app-left.1 $e #appctx P xX $.
+    appctx-app-left.2 $e #nfree xX Q $.
+    appctx-app-left   $a #appctx ( \app P Q ) xX $.
+$}
+${
+    appctx-app-right.1 $e #appctx Q xX $.
+    appctx-app-right.2 $e #nfree xX P $.
+    appctx-app-right   $a #appctx ( \app P Q ) xX $.
+$}
+
 $(
-    Prove that element/set variables are wellformed patterns,
-    (because they are variables and variables are wellformed patterns).
+	Level 2: ML Metalevel Extension
 $)
 
+$c #eqq $. $( the metalevel equality ( #eqq P Q ) $)
+
+eqq-self $a #eqq P P $.
 ${
-    wf-evar $p #wf x $=
-      evarx var-evar wf-var $.
+    eqq-imp.1 $e #eqq P Q $.
+    eqq-imp.2 $e #eqq P' Q' $.
+    eqq-imp   $a #eqq ( \imp P P' ) ( \imp Q Q' ) $.
+$}
+${
+    eqq-app.1 $e #eqq P Q $.
+    eqq-app.2 $e #eqq P' Q' $.
+    eqq-app   $a #eqq ( \app P P' ) ( \app Q Q' ) $.
+$}
+${
+    eqq-exists.1 $e #eqq P Q $.
+    eqq-exists   $a #eqq ( \exists x P ) ( \exists x Q ) $.
+$}
+${
+    eqq-mu.1 $e #eqq P Q $.
+    eqq-mu   $a #eqq ( \mu X P ) ( \mu X Q ) $.
 $}
 
 ${
-    wf-svar $p #wf X $=
-      svarX var-svar wf-var $.
+    eqq-nfree.1 $e #nfree yY Q $.
+    eqq-nfree.2 $e #eqq xX yY $.
+    eqq-nfree.3 $e #eqq P Q $.
+    eqq-nfree   $a #nfree xX P $.
 $}
+
+${
+    eqq-subst.1 $e #subst P' Q' R' xX $.
+    eqq-subst.2 $e #eqq P P' $.
+    eqq-subst.3 $e #eqq Q Q' $.
+    eqq-subst.4 $e #eqq R R' $.
+    eqq-subst.5 $e #eqq yY xX $.
+    eqq-subst $a #subst P Q R yY $.
+$}
+
+${
+    eqq-nnegative.1 $e #nnegative Y Q $.
+    eqq-nnegative.2 $e #eqq X Y $.
+    eqq-nnegative.3 $e #eqq P Q $.
+    eqq-nnegative   $a #nnegative X P $.
+$}
+
+${
+    eqq-npositive.1 $e #npositive Y Q $.
+    eqq-npositive.2 $e #eqq X Y $.
+    eqq-npositive.3 $e #eqq P Q $.
+    eqq-npositive   $a #npositive X P $.
+$}
+
+${
+    eqq-appctx.1 $e #appctx y Q $.
+    eqq-appctx.2 $e #eqq x y $.
+    eqq-appctx.3 $e #eqq P Q $.
+    eqq-appctx   $a #appctx x P $.
+$}
+
+${
+    eqq-thm.1 $e |- Q $.
+    eqq-thm.2 $e #eqq P Q $.
+    eqq-thm   $a |- P $.
+$}
+
+$c #subst $.     $( capture-avoiding substitution token; 
+				  ( #subst P Q R xX ) means P is the result of
+                  substituting R for xX in Q. $)
+
+$( 
+    Define capture-avoiding substitution "subst P Q R xx",
+    meaning that P is the result of substituting R for xX in Q.
+    Note that xX can be either element variable or set variable.
+$)
+
+subst-var-same $a #subst R xX R xX $.
+
+${
+    $d xX yY $.
+    subst-var-diff $a #subst yY yY R xX $.
+$}
+
+subst-symb  $a #subst f f R xX $.
+subst-bot $a #subst \bot \bot R xX $.
+
+${
+    subst-imp.1 $e #subst P  Q  R xX $.
+    subst-imp.2 $e #subst P' Q' R xX $.
+    subst-imp   $a #subst ( \imp P P' ) ( \imp Q Q' ) R xX $.
+$}
+
+${
+    subst-app.1 $e #subst P  Q  R xX $.
+    subst-app.2 $e #subst P' Q' R xX $.
+    subst-app   $a #subst ( \app P P' ) ( \app Q Q' ) R xX $.
+$}
+
+subst-exists-binding $a #subst ( \exists x Q ) ( \exists x Q ) R x $.
+
+${
+    $d y xX z $.
+    subst-exists-body.1 $e #subst Q P z y $.
+    subst-exists-body.2 $e #subst Q' Q R xX $.
+    subst-exists-body   $a #subst ( \exists z Q' ) ( \exists y P ) R xX $.
+$}
+
+subst-mu-binding $a #subst ( \mu X P ) ( \mu X P ) R X $.
+
+${
+    $d Y xX Z $.
+    subst-mu-body.1 $e #subst Q P Z Y $.
+    subst-mu-body.2 $e #subst Q' Q R xX $.
+    subst-mu-body   $a #subst ( \mu Z Q' ) ( \mu Y P ) R xX $.
+$}
+
 
 $( Define propositional logic $)
 
@@ -259,143 +364,12 @@ ${
   wfP wfQ iff-thm.2 wfP wfQ iff-thm.1 iff-elim-fw rl-mp $.
 $}
 
-$( 
-    Define #nfree token "#nfree xX P".
-$)
 
-${
-    $d xX yY $.
-    nfree-var $a #nfree xX yY $.
-$}
 
-nfree-symb $a #nfree xX f $.
-nfree-bot  $a #nfree xX \bot $.
 
-${
-    nfree-imp.1 $e #nfree xX P $.
-    nfree-imp.2 $e #nfree xX Q $.
-    nfree-imp   $a #nfree xX ( \imp P Q ) $.
-$}
 
-${
-    nfree-app.1 $e #nfree xX P $.
-    nfree-app.2 $e #nfree xX Q $.
-    nfree-app   $a #nfree xX ( \app P Q ) $.
-$}
 
-nfree-exists-binding $a #nfree x ( \exists x P ) $.
 
-${
-    $d xX y $.
-    nfree-exists-body.1 $e #nfree xX P $.
-    nfree-exists-body   $a #nfree xX ( \exists y P ) $.
-$}
-
-nfree-mu-binding $a #nfree X ( \mu X P ) $.
-
-${
-    $d xX Y $.
-    nfree-mu-body.1 $e #nfree xX P $.
-    nfree-mu-body   $a #nfree xX ( \exists Y P ) $.
-$}
-
-$( 
-    Define capture-avoiding substitution "subst P Q R xx",
-    meaning that P is the result of substituting R for xX in Q.
-    Note that xX can be either element variable or set variable.
-$)
-
-subst-var-same $a #subst R xX R xX $.
-
-${
-    $d xX yY $.
-    subst-var-diff $a #subst yY yY R xX $.
-$}
-
-subst-symb  $a #subst f f R xX $.
-subst-bot $a #subst \bot \bot R xX $.
-
-${
-    subst-imp.1 $e #subst P  Q  R xX $.
-    subst-imp.2 $e #subst P' Q' R xX $.
-    subst-imp   $a #subst ( \imp P P' ) ( \imp Q Q' ) R xX $.
-$}
-
-${
-    subst-app.1 $e #subst P  Q  R xX $.
-    subst-app.2 $e #subst P' Q' R xX $.
-    subst-app   $a #subst ( \app P P' ) ( \app Q Q' ) R xX $.
-$}
-
-subst-exists-binding $a #subst ( \exists x Q ) ( \exists x Q ) R x $.
-
-${
-    $d y xX z $.
-    subst-exists-body.1 $e #subst Q P z y $.
-    subst-exists-body.2 $e #subst Q' Q R xX $.
-    subst-exists-body   $a #subst ( \exists z Q' ) ( \exists y P ) R xX $.
-$}
-
-subst-mu-binding $a #subst ( \mu X P ) ( \mu X P ) R X $.
-
-${
-    $d Y xX Z $.
-    subst-mu-body.1 $e #subst Q P Z Y $.
-    subst-mu-body.2 $e #subst Q' Q R xX $.
-    subst-mu-body   $a #subst ( \mu Z Q' ) ( \mu Y P ) R xX $.
-$}
-
-$(
-    Define appliation context "appctx P xx".
-$)
-
-appctx-var $a #appctx xX xX $.
-
-${
-    appctx-app-left.1 $e #appctx P xX $.
-    appctx-app-left.2 $e #nfree xX Q $.
-    appctx-app-left   $a #appctx ( \app P Q ) xX $.
-$}
-
-${
-    appctx-app-right.1 $e #appctx Q xX $.
-    appctx-app-right.2 $e #nfree xX P $.
-    appctx-app-right   $a #appctx ( \app P Q ) xX $.
-$}
-
-$(
-    Define the metalevel equality token "#eqq P Q".
-$)
-
-$c #eqq $.
-
-eqq-self $a #eqq P P $.
-
-$( Propagate $eqq through all metalevel definitions. $)
-
-${
-    eqq-imp.1 $e #eqq P  Q $.
-    eqq-imp.2 $e #eqq P' Q' $.
-    eqq-imp   $a #eqq ( \imp P P' ) ( \imp Q Q' ) $.
-$}
-
-${
-    eqq-app.1 $e #eqq P Q $.
-    eqq-app.2 $e #eqq P' Q' $.
-    eqq-app   $a #eqq ( \app P P' ) ( \app Q Q' ) $.
-$}
-
-${
-    eqq-exists.1 $e #eqq x y $.
-    eqq-exists.2 $e #eqq P Q $.
-    eqq-exists   $a #eqq ( \exists x P ) ( \exists y Q ) $.
-$}
-
-${
-    eqq-mu.1 $e #eqq x y $.
-    eqq-mu.2 $e #eqq P Q $.
-    eqq-mu   $a #eqq ( \mu x P ) ( \mu y Q ) $.
-$}
 
 
 $(  THIS DOESN'T WORK: P Q must be #wf already.
@@ -428,48 +402,7 @@ $(  DON'T NEED THESE RIGHT NOW.
     eqq-symb   $a #symb f $.
 $)
 
-${
-    eqq-nfree.1 $e #nfree yY Q $.
-    eqq-nfree.2 $e #eqq xX yY $.
-    eqq-nfree.3 $e #eqq P Q $.
-    eqq-nfree   $a #nfree xX P $.
-$}
 
-${
-    eqq-subst.1 $e #subst P' Q' R' xX $.
-    eqq-subst.2 $e #eqq P P' $.
-    eqq-subst.3 $e #eqq Q Q' $.
-    eqq-subst.4 $e #eqq R R' $.
-    eqq-subst.5 $e #eqq yY xX $.
-    eqq-subst $a #subst P Q R yY $.
-$}
-
-${
-    eqq-nnegative.1 $e #nnegative Y Q $.
-    eqq-nnegative.2 $e #eqq X Y $.
-    eqq-nnegative.3 $e #eqq P Q $.
-    eqq-nnegative   $a #nnegative X P $.
-$}
-
-${
-    eqq-npositive.1 $e #npositive Y Q $.
-    eqq-npositive.2 $e #eqq X Y $.
-    eqq-npositive.3 $e #eqq P Q $.
-    eqq-npositive   $a #npositive X P $.
-$}
-
-${
-    eqq-appctx.1 $e #appctx y Q $.
-    eqq-appctx.2 $e #eqq x y $.
-    eqq-appctx.3 $e #eqq P Q $.
-    eqq-appctx   $a #appctx x P $.
-$}
-
-${
-    eqq-thm.1 $e |- Q $.
-    eqq-thm.2 $e #eqq P Q $.
-    eqq-thm   $a |- P $.
-$}
 
 $(
     State AML proof rules (rl).
