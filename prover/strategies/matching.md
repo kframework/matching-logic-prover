@@ -366,7 +366,7 @@ Recurse over assoc-comm `sep`:
                                                         , pattern:   P_ARG
                                                         , variables: Vs
                                                         , results:  .MatchResults
-                                                        , subst:    SUBST
+                                                        , subst:    .Map
                                                         )
                                              )
                 , subst:     SUBST
@@ -392,6 +392,7 @@ Distribute results for nested matching over current call:
                 , results:   .MatchResults
                 , subst:     SUBST1 SUBST2
                 )
+    requires intersectSet(keys(SUBST1), keys(SUBST2)) ==K .Set
 
   rule #matchAux( terms:     Ts
                 , pattern:   P
