@@ -82,16 +82,21 @@ proj.alias('collect-qf-shid-entl', tests_with_timeout)
 # Unit Tests
 # ----------
 
+# TODO: LLVM errors are miles better than OCaml (a pretty low bar).
+# However, we're still waiting on mkstemp for the SMT test, and
+# on parseKore for the rest of the implementation.
+
 test_driver = proj.definition( alias = 'test-driver'
-                             , backend = 'ocaml'
+                             , backend = 'llvm'
                              , main = 'drivers/unit-tests.md'
                              , other = other_md_files + ['prover.md']
                              , runner_script = './prover'
+                             , flags = '-ccopt -g -ccopt -O0'
                              )
 
 unit_tests = []
-for test in glob('t/unit/*'):
-    unit_tests += [proj.source(test).then(test_driver.krun())]
+unit_tests += [proj.source('t/unit/match').then(test_driver.krun())]
+# unit_tests += [proj.source('t/unit/smt')  .then(test_driver.krun())]
 proj.alias('unit-tests', unit_tests).default()
 
 proj.main()

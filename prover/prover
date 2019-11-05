@@ -20,8 +20,7 @@ KDefinition( proj
            )
 KDefinition( proj
            , alias = 'test-driver'
-           , backend = 'ocaml'
+           , backend = 'llvm'
            , directory = proj.builddir('defn/test-driver')
-           , krun_flags = '--interpret'
            )
 KRunner(proj).main()
