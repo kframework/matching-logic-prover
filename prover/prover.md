@@ -58,12 +58,13 @@ module PROVER-COMMON
   syntax Pgm ::= SMTLIB2Script
                | Declarations
   syntax Declarations ::= Declaration Declarations
+  syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
 endmodule
 
 module PROVER-COMMON-SYNTAX
   imports KORE-DRIVER
   imports TOKENS-SYNTAX
-  syntax Declarations ::= "" [klabel(.Declarations)]
+  syntax Declarations ::= "" [klabel(.Declarations), symbol]
 endmodule
 ```
 

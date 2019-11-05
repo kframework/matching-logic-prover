@@ -11,10 +11,6 @@ module KORE-DRIVER
   imports K-IO
 ```
 
-```k
-  syntax Declarations ::= ".Declarations" [klabel(.Declarations)]
-```
-
 Handle each `Declaration` sequentially:
 
 ```k
