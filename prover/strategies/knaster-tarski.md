@@ -204,7 +204,7 @@ for guessing an instantiation of the inductive hypothesis.
 ```k
   syntax Strategy ::= "kt-unwrap"
   rule <claim> \implies(LHS, \forall { UNIV } implicationContext(CTX, RHS))
-        => \implies(CTX[#hole/LHS], RHS)
+        => \implies(subst(CTX, #hole, LHS), RHS)
        </claim>
        <strategy> kt-unwrap => noop ... </strategy>
 ```
@@ -434,7 +434,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
   syntax Patterns ::= substituteWithEach(Pattern, Variable, Patterns) [function]
   rule substituteWithEach(_, _, .Patterns) => .Patterns
   rule substituteWithEach(P, V, (I, Is))
-    => P[V/I], substituteWithEach(P, V, Is)
+    => subst(P, V, I), substituteWithEach(P, V, Is)
 
   syntax Patterns ::= filterVariablesBySort(Patterns, Sort) [function]
   rule filterVariablesBySort(.Patterns, _) => .Patterns
