@@ -318,7 +318,7 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
                        )
        </claim>
        <strategy> kt-collapse
-               => ( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: UNIVs)
+               => ( #match(terms: LSPATIAL, pattern: CTXLHS, variables: UNIVs)
                  ~> kt-collapse
                   )
                   ...
@@ -361,7 +361,7 @@ TODO: Extend to multiple matches:
                        )
        </claim>
        <strategy> kt-collapse
-               => ( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: .Patterns)
+               => ( #match(terms: LSPATIAL, pattern: CTXLHS, variables: .Patterns)
                  ~> kt-collapse
                   )
                   ...

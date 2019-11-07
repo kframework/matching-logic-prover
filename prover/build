@@ -91,11 +91,12 @@ test_driver = proj.definition( alias = 'test-driver'
                              , main = 'drivers/unit-tests.md'
                              , other = other_md_files + ['prover.md']
                              , runner_script = './prover'
-                             , flags = '-ccopt -g -ccopt -O0'
+                             , flags = '-ccopt -g' # -ccopt -O0'
                              )
 
 unit_tests = []
-unit_tests += [proj.source('t/unit/match').then(test_driver.krun())]
+unit_tests += [proj.source('t/unit/match-assoc')     .then(test_driver.krun())]
+unit_tests += [proj.source('t/unit/match-assoc-comm').then(test_driver.krun())]
 # unit_tests += [proj.source('t/unit/smt')  .then(test_driver.krun())]
 proj.alias('unit-tests', unit_tests).default()
 
