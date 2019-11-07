@@ -9,26 +9,38 @@ module MATCHING-FUNCTIONAL
   syntax MatchFailure ::= "#matchFailure" "(" String ")"
   syntax MatchResults ::= List{MatchResult, ","} [klabel(MatchResults), format(%1%n%2 %3)]
 
-  syntax MatchResults ::= "#match" "(" "term:"      Pattern
-                                   "," "pattern:"   Pattern
+  syntax MatchResults ::= "#match" "(" "terms:"     Patterns
+                                   "," "pattern:"   Patterns
                                    "," "variables:" Patterns
                                    ")" [function]
-  syntax MatchResults ::= "#matchShowFailures" "(" "term:"      Pattern
-                                               "," "pattern:"   Pattern
+  syntax MatchResults ::= "#matchShowFailures" "(" "terms:"     Patterns
+                                               "," "pattern:"   Patterns
                                                "," "variables:" Patterns
                                                ")" [function]
   syntax MatchResults ::= "#matchAux" "(" "terms:"     Patterns
-                                      "," "pattern:"   Pattern
+                                      "," "pattern:"   Patterns
                                       "," "variables:" Patterns
                                       "," "results:"   MatchResults
                                       "," "subst:"     Map
                                       ")" [function]
+                                      
+  syntax MatchResults ::= "#matchAssoc" "(" "terms:"     Patterns
+                                        "," "pattern:"   Patterns
+                                        "," "variables:" Patterns
+                                        "," "subst:"     Map
+                                        ")" [function]
+  syntax MatchResults ::= "#matchAssocComm" "(" "terms:"     Patterns
+                                            "," "pattern:"   Patterns
+                                            "," "variables:" Patterns
+                                            "," "results:"   MatchResults
+                                            "," "subst:"     Map
+                                            ")" [function]
 
   syntax MatchResults ::= MatchResults "++MatchResults" MatchResults [function, right]
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
-  syntax MatchResults ::= #getMatchResults(Pattern, Pattern, MatchResults) [function]
+  syntax MatchResults ::= #getMatchResults(Patterns, Patterns, MatchResults) [function]
   rule #getMatchResults(T, P, MF:MatchFailure, MRs)
     => MF
      , #getMatchResults(T, P, MRs)
@@ -36,24 +48,20 @@ module MATCHING-FUNCTIONAL
     => MR
      , #getMatchResults(T, P, MRs)
   rule #getMatchResults(T, P, .MatchResults) => .MatchResults
-  rule #getMatchResults(S(ARGs), S(P_ARGs), #matchResult(subst: SUBST), MRs)
-    => #matchResult(subst: SUBST, rest: .Patterns)
-     , #getMatchResults(S(ARGs), S(P_ARGs), MRs)
-    requires S =/=K sep
-  rule #getMatchResults(sep(ARGs), sep(P_ARGs), #matchResult(subst: SUBST), MRs)
+  rule #getMatchResults(ARGs, P_ARGs, #matchResult(subst: SUBST), MRs)
     => #matchResult(subst: SUBST, rest: ARGs -Patterns substPatternsMap(P_ARGs, SUBST))
-     , #getMatchResults(sep(ARGs), sep(P_ARGs), MRs)
+     , #getMatchResults(ARGs, P_ARGs, MRs)
 
-  rule #matchShowFailures( term: T , pattern: P, variables: Vs )
+  rule #matchShowFailures( terms: T , pattern: P, variables: Vs )
     => #getMatchResults( T, P, #matchAux( terms: T , pattern: P, variables: Vs, results: .MatchResults, subst: .Map ) )
     requires getFreeVariables(T) intersect Vs ==K .Patterns
-  rule #matchShowFailures( term: T, pattern: _, variables: Vs )
+  rule #matchShowFailures( terms: T, pattern: _, variables: Vs )
     => #matchFailure( "AlphaRenaming not done" ), .MatchResults
     requires getFreeVariables(T) intersect Vs =/=K .Patterns
 
 
-  rule #match( term: T, pattern: P, variables: Vs )
-    => #filterMatchFailures(#matchShowFailures( term: T, pattern: P, variables: Vs ))
+  rule #match( terms: T, pattern: P, variables: Vs )
+    => #filterMatchFailures(#matchShowFailures( terms: T, pattern: P, variables: Vs ))
 
   syntax MatchResults ::= #filterMatchFailures(MatchResults) [function]
   rule #filterMatchFailures(MF:MatchFailure , MRs) => #filterMatchFailures(MRs)
@@ -77,7 +85,7 @@ Work around OCaml not producing reasonable error messages:
      , .MatchResults
     [owise]
   rule #getMatchResults(T, P, MRs)
-    => #matchStuck( "GET RESULTS" ~> "term:" ~> T ~> "pattern:" ~> P ~> "MRs:" ~> MRs )
+    => #matchStuck( "GET RESULTS" ~> "terms:" ~> T ~> "pattern:" ~> P ~> "MRs:" ~> MRs )
      , .MatchResults
     [owise]
 ```
@@ -85,152 +93,154 @@ Work around OCaml not producing reasonable error messages:
 Recurse over assoc-only constructors (including `pto`):
 
 ```k
+  // Base case
+  rule #matchAssoc( terms:     .Patterns
+                  , pattern:   .Patterns
+                  , variables: Vs
+                  , subst:     SUBST
+                  )
+    => #matchResult(subst: SUBST), .MatchResults
+    
+  rule #matchAssoc( terms:     Ts
+                  , pattern:   Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  )
+    => #matchFailure("Mismatch in length of arguments"), .MatchResults
+    requires (Ts ==K .Patterns orBool Ps ==K .Patterns)
+     andBool notBool (Ts ==K .Patterns andBool Ps ==K .Patterns)
+
   // Non-matching constructors
-  rule #matchAux( terms:     S1:Symbol(_) , .Patterns
-                , pattern:   S2:Symbol(_)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST
-                )
+  rule #matchAssoc( terms:     S1:Symbol(_), Ts
+                  , pattern:   S2:Symbol(_), Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  )
     => #matchFailure("Constructors do not match"), .MatchResults
     requires S1 =/=K S2
-     andBool S1 =/=K sep
-
-  // Empty application
-  rule #matchAux( terms:     S:Symbol(.Patterns) , .Patterns
-                , pattern:   S:Symbol(.Patterns)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST
-                )
-    => #matchResult(subst: SUBST), .MatchResults
+    
+  // Constructors match: Recurse over arguments
+  rule #matchAssoc( terms:     S:Symbol(T_ARGs), Ts
+                            => T_ARGs ++Patterns Ts
+                  , pattern:   S:Symbol(P_ARGs), Ps
+                            => P_ARGs ++Patterns Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  )
     requires S =/=K sep
 
-  // Application, can susbstitute
-  rule #matchAux( terms:     S:Symbol(ARG, ARGs), .Patterns
-                          => S(ARGs), .Patterns
-                , pattern:   S:Symbol(P_ARG:Variable, P_ARGs)
-                          => S(P_ARGs)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST => (P_ARG |-> ARG) SUBST
-                )
-    requires S =/=K sep
-     andBool P_ARG in Vs
-     andBool getReturnSort(ARG) ==K getReturnSort(P_ARG)
+  // ground variable: mismatched
+  rule #matchAssoc( terms:     T, Ts
+                  , pattern:   P:Variable, Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  )
+    => #matchFailure("Variable does not match"), .MatchResults
+    requires T =/=K P
+     andBool notBool P in Vs
 
-  // Application, ground: don't need substitution
-  rule #matchAux( terms:     S:Symbol(ARG, ARGs) , .Patterns
-                          => S:Symbol(ARG, ARGs:Patterns) , .Patterns
-                , pattern:   S:Symbol(ARG:Variable, P_ARGs:Patterns)
-                          => S:Symbol(P_ARGs)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     _
-                )
-    requires S =/=K sep
-     andBool notBool ARG in Vs
+  // ground variable: identical
+  rule #matchAssoc( terms:     P:Variable, Ts => Ts
+                  , pattern:   P:Variable, Ps => Ps
+                  , variables: Vs
+                  , subst:     _
+                  )
+    requires notBool P in Vs
 
-  // Application, ground: cannot substitute variable
-  rule #matchAux( terms:     S:Symbol(ARG, _:Patterns) , .Patterns
-                , pattern:   S:Symbol(P_ARG:Variable, _:Patterns)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     _
-                )
+  // ground variable: non-identical
+  rule #matchAssoc( terms:     T, Ts
+                  , pattern:   P:Variable, Ps
+                  , variables: Vs
+                  , subst:     _
+                  )
     => #matchFailure( "No valid substitution" ), .MatchResults
-    requires S =/=K sep
-     andBool ARG =/=K P_ARG
-     andBool notBool P_ARG in Vs
-     andBool getReturnSort(ARG) ==K getReturnSort(P_ARG)
+    requires T =/=K P
+     andBool notBool P in Vs
 
-  // Application, nested: recurse
-  rule #matchAux( terms:   ( S:Symbol((S1:Symbol(_) #as ARG), ARGs) , .Patterns
-                          => S:Symbol(ARGs) , .Patterns
-                           )
-                , pattern: ( S:Symbol((S1:Symbol(_) #as P_ARG), P_ARGs)
-                          => S:Symbol(P_ARGs)
-                           )
-                , variables: Vs
-                , results:   .MatchResults 
-                          => #matchAux( terms:   ARG, .Patterns
-                                      , pattern: P_ARG
-                                      , variables: Vs
-                                      , results: .MatchResults
-                                      , subst: SUBST
-                                      )
-                , subst:     SUBST
-                )
-    requires S =/=K sep
+  // free variable: extend substitution
+  rule #matchAssoc( terms:     T         , Ts => Ts 
+                  , pattern:   P:Variable, Ps => substPatternsMap(Ps, P |-> T)
+                  , variables: Vs
+                  , subst:     SUBST => ((P |-> T) SUBST)
+                  )
+    requires T =/=K P
+     andBool P in Vs
+     andBool getReturnSort(T) ==K getReturnSort(P)
 ```
 
 Recurse over assoc-comm `sep`:
 
 ```k
-  // Base case: emp matches all heaps
-  rule #matchAux( terms:     sep(ARGs), .Patterns
-                , pattern:   sep(.Patterns)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST
-                )
-    => #matchResult(subst: SUBST), .MatchResults
+// Base case: If pattern is larger than term, there can be no match 
+rule #matchAssocComm( terms:     .Patterns
+                    , pattern:   P, Ps
+                    , variables: Vs
+                    , results:   .MatchResults
+                    , subst:     SUBST
+                    )
+  => #matchFailure( "Pattern larger than term" ), .MatchResults
 
-  // Base case: If pattern is larger than term, there can be no match 
-  rule #matchAux( terms:     sep(.Patterns), .Patterns
-                , pattern:   sep(P, Ps)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST
-                )
-    => #matchFailure( "Pattern larger than term" ), .MatchResults
+// Base case: emp matches all heaps
+rule #matchAssocComm( terms:     Ts
+                    , pattern:   .Patterns
+                    , variables: Vs
+                    , results:   .MatchResults
+                    , subst:     SUBST
+                    )
+  => #matchResult(subst: SUBST), .MatchResults
+  
+  rule #matchAssocComm( terms:     T, .Patterns
+                    , pattern:   P, .Patterns
+                    , variables: Vs
+                    , results:   .MatchResults
+                    , subst:     SUBST
+                    )
+    => #matchAssoc( terms: T
+                  , pattern: P
+                  , variables: Vs
+                  , subst: SUBST
+                  )
 
-  // Recursive case: AC match on arguments
-  rule #matchAux( terms:     sep(ARGs), .Patterns
-                , pattern:   sep(P_ARG, P_ARGs)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST
-                )
-    => #matchAux( terms:     sep(ARGs)
-                , pattern:   sep(P_ARGs)
-                , variables: Vs
-                , results:   #getMatchResults( sep(ARGs)
-                                             , sep(P_ARG, P_ARGs)
-                                             , #matchAux( terms:     ARGs
-                                                        , pattern:   P_ARG
-                                                        , variables: Vs
-                                                        , results:  .MatchResults
-                                                        , subst:    SUBST
-                                                        )
-                                             )
-                , subst:     SUBST
-                )
+  rule #matchAssocComm( terms:     T, Ts
+                      , pattern:   P, .Patterns
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      )
+    => #matchAssoc( terms:     T
+                  , pattern:   P, .Patterns
+                  , variables: Vs
+                  , subst:     SUBST
+                  ) // ++MatchResults
+ //      #matchAssocComm( terms:     Ts
+ //                     , pattern:   P, .Patterns
+ //                     , variables: Vs
+ //                     , results:   .MatchResults
+ //                     , subst:     SUBST
+ //                     )
+    requires Ts =/=K .Patterns
+
+  rule #matchAssocComm( terms:     ARGs
+                      , pattern:   P_ARG, P_ARGs
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      )
+    => #matchAssocComm( terms:     ARGs
+                      , pattern:   P_ARGs
+                      , variables: Vs
+                      , results:   #getMatchResults( ARGs
+                                                   , (P_ARG, P_ARGs)
+                                                   , #matchAssocComm( terms:     ARGs
+                                                                    , pattern:   P_ARG
+                                                                    , variables: Vs
+                                                                    , results:  .MatchResults
+                                                                    , subst:    .Map
+                                                                    )
+                                                   )
+                      , subst:     SUBST
+                      )
     requires ARGs =/=K .Patterns
-
-  // Recursive case: AC match on arguments
-  rule #matchAux( terms:     sep(ARGs), .Patterns
-                , pattern:   sep(P_ARG, P_ARGs)
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST
-                )
-    => #matchAux( terms:     sep(ARGs)
-                , pattern:   sep(P_ARGs)
-                , variables: Vs
-                , results:   #getMatchResults( sep(ARGs)
-                                             , sep(P_ARG, P_ARGs)
-                                             , #matchAux( terms:     ARGs
-                                                        , pattern:   P_ARG
-                                                        , variables: Vs
-                                                        , results:  .MatchResults
-                                                        , subst:    .Map
-                                                        )
-                                             )
-                , subst:     SUBST
-                )
-    requires ARGs =/=K .Patterns
-
 ```
 
 Distribute results for nested matching over current call:
@@ -238,42 +248,70 @@ Distribute results for nested matching over current call:
 ```k
   // Base case: Apply substitution from nested term
   // TODO: don't want to call substUnsafe directly (obviously)
-  rule #matchAux( terms:     S:Symbol(ARGs), Ts
+  rule #matchAux( terms:     T, .Patterns
                 , pattern:   P
                 , variables: Vs
                 , results:   #matchResult(subst: SUBST1, rest: REST), .MatchResults
                 , subst:     SUBST2
                 )
-    => #matchAux( terms:     S:Symbol(removeFirst(REST, ARGs)), Ts
+    => #matchAux( terms:     T, .Patterns
                 , pattern:   substUnsafe(P, SUBST1)
                 , variables: Vs -Patterns fst(unzip(SUBST1))
-                , results:   .MatchResults
+                , results:   #matchResult(subst: .Map, rest: REST), .MatchResults
                 , subst:     SUBST1 SUBST2
                 )
-    requires intersectSet(keys(SUBST1), keys(SUBST2)) ==K .Set
+    requires intersectSet(keys(SUBST1), keys(SUBST2)) ==K .Set 
+     andBool SUBST1 =/=K .Map
+     
+  rule #matchAux( terms:     ARGs, .Patterns
+                , pattern:   PATTERN
+                , variables: Vs
+                , results:   #matchResult(subst: .Map, rest: REST), .MatchResults
+                , subst:     SUBST
+                )
+    => #matchAux( terms:     REST, .Patterns
+                , pattern:   PATTERN // Pattern already has matched part removed
+                , variables: Vs
+                , results:   .MatchResults
+                , subst:     SUBST
+                )
 
-  rule #matchAux( terms:     Ts
+  rule #matchAux( terms:     S:Symbol(ARG, ARGs), .Patterns
+                , pattern:   PATTERN
+                , variables: Vs
+                , results:   #matchResult(subst: .Map, rest: .Patterns), .MatchResults
+                , subst:     SUBST
+                )
+    => #matchAux( terms:     S(ARGs), .Patterns
+                , pattern:   PATTERN
+                , variables: Vs
+                , results:   .MatchResults
+                , subst:     SUBST 
+                )
+    requires S =/=K sep
+
+  rule #matchAux( terms:     T, .Patterns
                 , pattern:   P
                 , variables: Vs
                 , results:   (#matchFailure(_) #as MF), .MatchResults
                 , subst:     SUBST2
                 )
     => MF, .MatchResults
-
+    
   // Recursive case
-  rule #matchAux( terms:     Ts
+  rule #matchAux( terms:     T, .Patterns
                 , pattern:   P
                 , variables: Vs
                 , results:   MR, MRs
                 , subst:     SUBST
                 )
-    => #matchAux( terms:     Ts
+    => #matchAux( terms:     T
                 , pattern:   P
                 , variables: Vs
                 , results:   MR
                 , subst:     SUBST
                 ) ++MatchResults
-       #matchAux( terms:     Ts
+       #matchAux( terms:     T
                 , pattern:   P
                 , variables: Vs
                 , results:   MRs
@@ -282,28 +320,7 @@ Distribute results for nested matching over current call:
     requires MRs =/=K .MatchResults
 ```
 
-Recurse over terms. This implements commutative matching:
-
 ```k
-  rule #matchAux( terms:     T, Ts
-                , pattern:   P
-                , variables: Vs
-                , results:   RESULTS
-                , subst:     SUBST
-                )
-    => #matchAux( terms:     T
-                , pattern:   P
-                , variables: Vs
-                , results:   RESULTS
-                , subst:     SUBST
-                ) ++MatchResults
-       #matchAux( terms:     Ts
-                , pattern:   P
-                , variables: Vs
-                , results:   RESULTS
-                , subst:     SUBST
-                )
-    requires Ts =/=K .Patterns
 endmodule
 ```
 
@@ -321,7 +338,7 @@ Instantiate existentials using matching on the spatial part of goals:
 
 ```k
   rule <claim> \implies(\and(LSPATIAL, LHS) , \exists { Vs } \and(RSPATIAL, RHS)) </claim>
-       <strategy> match => #match( term: LSPATIAL
+       <strategy> match => #match( terms: LSPATIAL
                                  , pattern: RSPATIAL
                                  , variables: Vs
                                  )
@@ -407,7 +424,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                                               , AXIOM_RHS
                                               )
                                      ) #as STRAT
-                 => ( #match( term: LSPATIAL
+                 => ( #match( terms: LSPATIAL
                             , pattern:  sep(Ps)
                             , variables: Vs
                             )
