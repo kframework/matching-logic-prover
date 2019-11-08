@@ -40,6 +40,7 @@ assert( #matchFailure( "Mismatch in length of arguments" )
       )
 // Base Case: Empty patterns
 assert( #matchResult( subst: .Map
+                    , rest:
                     )
      == #matchAssoc( terms:     
                    , pattern:   
@@ -50,6 +51,7 @@ assert( #matchResult( subst: .Map
 // Basic Matching
 assert( #matchResult( subst: Z { Loc }  |-> X { Loc }
                              W { Data } |-> Y { Data }
+                    , rest:
                     )
      == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
                    , pattern:   pto( Z { Loc }, W { Data })
@@ -60,6 +62,7 @@ assert( #matchResult( subst: Z { Loc }  |-> X { Loc }
 // Match multiple occurances of a variable
 assert( #matchResult( subst: Z { Loc }  |-> X { Loc }
                              W { Data } |-> Y { Data }
+                    , rest:
                     )
      == #matchAssoc( terms:     c( X { Loc }, Y { Data }), d( X { Loc }, Y { Data })
                    , pattern:   c( Z { Loc }, W { Data }), d( Z { Loc }, W { Data })
