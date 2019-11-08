@@ -576,9 +576,10 @@ Simplifications
   rule isPredicatePattern(sep(_)) => false
   rule isPredicatePattern(pto(_)) => false
   rule isPredicatePattern(emp(.Patterns)) => false
-  rule isPredicatePattern(\exists{.Patterns} P) => isPredicatePattern(P)
-  rule isPredicatePattern(\forall{_} implicationContext(\and(sep(_),_),_)) => false
-  rule isPredicatePattern(\forall{_} implicationContext(_,_)) => true
+  rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
+  rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
+  rule isPredicatePattern(implicationContext(\and(sep(_),_),_)) => false
+  rule isPredicatePattern(implicationContext(_,_)) => true
     [owise]
 
   syntax Bool ::= isSpatialPattern(Pattern) [function]
