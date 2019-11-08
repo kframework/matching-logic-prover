@@ -441,7 +441,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                          , RHS
                          )
          </claim>
-         <strategy> ( #matchResult( subst: SUBST ) , MRs
+         <strategy> ( #matchResult( subst: SUBST, rest: _ ) , MRs
                    ~> instantiate-axiom(\forall { Vs }
                                         \implies( _
                                                 , AXIOM_RHS
