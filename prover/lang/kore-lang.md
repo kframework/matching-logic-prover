@@ -570,7 +570,8 @@ Simplifications
   rule isPredicatePattern(\or(.Patterns)) => true
   rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
   rule isPredicatePattern(\implies(P1, P2)) => isPredicatePattern(P1) andBool isPredicatePattern(P2)
-  rule isPredicatePattern(S:Symbol(ARGS)) => getReturnSort(S(ARGS)) ==K Bool
+  rule isPredicatePattern(S:Symbol(ARGS)) => true
+    requires getReturnSort(S(ARGS)) ==K Bool
 
   rule isPredicatePattern(sep(_)) => false
   rule isPredicatePattern(pto(_)) => false

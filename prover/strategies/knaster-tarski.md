@@ -393,7 +393,7 @@ TODO: Extend to multiple matches:
 TODO: This is pretty adhoc: Remove constraints in the context that are already in the LHS
 
 ```k
-  rule <claim> \implies(\and( sep ( \forall { UNIVs }
+  rule <claim> \implies(\and( sep ( \forall { .Patterns }
                                     implicationContext( \and( sep(_)
                                                             , ( CTXCONSTRAINT, CTXCONSTRAINTs
                                                              => CTXCONSTRAINTs
@@ -410,7 +410,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
     requires isPredicatePattern(CTXCONSTRAINT)
      andBool CTXCONSTRAINT in LHS
 
-  rule <claim> \implies(\and( sep ( \forall { UNIVs }
+  rule <claim> \implies(\and( sep ( \forall { .Patterns }
                                     implicationContext( \and( sep(_)
                                                             , ( CTXCONSTRAINT, CTXCONSTRAINTs )
                                                             ) , _)

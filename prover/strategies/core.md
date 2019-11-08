@@ -187,7 +187,8 @@ The S { N } construct allows us to repeat a strategy S N times
   syntax Strategy ::= Strategy "{" Int "}"
   rule <strategy> S { M } => noop ... </strategy>
     requires M <=Int 0
-  rule <strategy> S { N } => S . (S { N -Int 1 }) ... </strategy>
+  rule <strategy> S { M } => S . (S { M -Int 1 }) ... </strategy>
+    requires M >Int 0
 ```
 
 Internal strategy used to implement `or-split` and `and-split`.

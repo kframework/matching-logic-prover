@@ -20,7 +20,7 @@ module STRATEGY-SEARCH-BOUND
 
   rule <strategy> search-sl(bound: 0) => fail </strategy>
   rule <strategy> search-sl(bound: N)
-               => or-split-rhs . normalize
+               => normalize . or-split-rhs
                 . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                 . instantiate-separation-logic-axioms
                 . check-lhs-constraint-unsat
