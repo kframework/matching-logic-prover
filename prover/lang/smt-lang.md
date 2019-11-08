@@ -94,7 +94,7 @@ module SMTLIB2
   syntax SMTLIB2AttributeValue ::= Strategy
                                  | SMTLIB2Symbol
                                  | SMTLIB2SpecConstant
-                                 | SMTLIB2SExprList
+                                 | "(" SMTLIB2SExprList ")"
                                  | CheckSATResult
 
   syntax SMTLIB2Command ::= "(" "set-info" SMTLIB2Attribute SMTLIB2AttributeValue ")"
