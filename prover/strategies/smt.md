@@ -89,6 +89,7 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(\and(.Patterns)) => #token("true", "LowerName")
   // rule PatternToSMTLIB2Term(true) => true
   rule PatternToSMTLIB2Term(\or(P, Ps)) => (or PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
+    requires Ps =/=K .Patterns
   rule PatternToSMTLIB2Term(\or(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
   rule PatternToSMTLIB2Term(\or(.Patterns)) => #token("false", "LowerName")
   // rule PatternToSMTLIB2Term(false) => false
