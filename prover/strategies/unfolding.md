@@ -159,7 +159,11 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                          \and(substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns))))) ...
        </claim>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
-       <trace> .K => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) ... </trace>
+       <trace> .K
+            => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY))
+               ~> RHS ~> substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
+               ...
+       </trace>
 ```
 
 ### Right-Unfold-Nth

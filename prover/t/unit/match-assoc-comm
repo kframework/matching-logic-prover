@@ -1,19 +1,22 @@
-assert( #matchResult( subst: .Map )
+assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
      == #matchAssocComm( terms:     pto( Z { Loc }, W { Data })
                        , pattern: 
                        , variables:
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
 assert( #matchResult( subst: Z { Loc } |-> X { Loc } 
                              W { Data } |-> Y { Data }
+                    , rest:
                     )
      == #matchAssocComm( terms:     pto( X { Loc }, Y { Data })
                        , pattern:   pto( Z { Loc }, W { Data })
                        , variables: Z { Loc }, W { Data }
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
 
@@ -23,21 +26,25 @@ assert( #matchFailure("Pattern larger than term")
                        , variables: Z { Loc }, W { Data }
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
-assert( #matchResult( subst: .Map )
+assert( #matchResult( subst: .Map , rest: )
      == #matchAssocComm( terms:
                        , pattern:
                        , variables:
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
 assert( #matchResult( subst: Z1 { Loc }  |-> X1 { Loc }
                              W1 { Data } |-> Y1 { Data }
+                    , rest: pto( X2 { Loc }, Y2 { Data })
                     )
       , #matchResult( subst: Z1 { Loc }  |-> X2 { Loc }
                              W1 { Data } |-> Y2 { Data }
+                    , rest: pto( X1 { Loc }, Y1 { Data })
                     )
      == #matchAssocComm( terms:     pto( X1 { Loc }, Y1 { Data })
                                   , pto( X2 { Loc }, Y2 { Data })
@@ -45,6 +52,7 @@ assert( #matchResult( subst: Z1 { Loc }  |-> X1 { Loc }
                        , variables: Z1 { Loc }, W1 { Data }
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
 assert( #matchFailure ( "Variable does not match" )
@@ -56,11 +64,14 @@ assert( #matchFailure ( "Variable does not match" )
                        , variables: X { Loc }, Y { Loc }, Z { Loc }
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
 
 assert( #matchFailure ( "Variable does not match" ) 
-      , #matchResult( subst: F8 { RefGTyp } |-> Vy { RefGTyp } )
+      , #matchResult( subst: F8 { RefGTyp } |-> Vy { RefGTyp }
+                    , rest:
+                    )
      == #matchAssocComm( terms:      pto ( Vy { RefGTyp } , c_GTyp ( Vz { RefGTyp }) )
                                    , pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp }) )
                        , pattern:    pto ( Vx { RefGTyp } , c_GTyp ( F8 { RefGTyp }) )
@@ -68,6 +79,7 @@ assert( #matchFailure ( "Variable does not match" )
                        , variables: F8 { RefGTyp }
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
 
@@ -78,5 +90,6 @@ assert( #matchFailure("Variable sort does not match term")
                        , variables: Bx { B }, By { B }
                        , results:
                        , subst:     .Map
+                       , rest:
                        )
       )
