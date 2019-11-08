@@ -394,7 +394,7 @@ Substitution: Substitute term or variable
 
 ```k
   syntax Pattern ::= subst(Pattern, Pattern, Pattern)    [function, klabel(subst)]
-  rule subst(X:Variable,X,V) => V
+  rule subst(T,T,V) => V // We allow substitution over arbitary patterns
   rule subst(X:Variable,Y,V) => X requires X =/=K Y
   rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_)=> \top()
