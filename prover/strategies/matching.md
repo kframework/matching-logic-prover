@@ -43,7 +43,7 @@ module MATCHING-FUNCTIONAL
 
   rule #match( terms: T, pattern: P, variables: Vs )
     => #filterMatchFailures(#matchAssocComm( terms: T, pattern: P, variables: Vs
-                                           , results: .MapResults, subst: .Map
+                                           , results: .MatchResults, subst: .Map
                                            )
                            )
 
