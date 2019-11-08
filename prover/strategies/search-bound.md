@@ -10,10 +10,11 @@ module STRATEGY-SEARCH-BOUND
 
   rule <strategy> search-fol(bound: 0) => fail </strategy>
   rule <strategy> search-fol(bound: N)
-               => simplify . ( ( instantiate-existentials . smt-cvc4 )
-                             | (kt           . search-fol(bound: N -Int 1))
-                             | (right-unfold . search-fol(bound: N -Int 1))
-                             )
+               => normalize . simplify
+                . ( ( instantiate-existentials . smt-cvc4 )
+                  | (kt           . search-fol(bound: N -Int 1))
+                  | (right-unfold . search-fol(bound: N -Int 1))
+                  )
                   ...
        </strategy>
     requires N >Int 0
