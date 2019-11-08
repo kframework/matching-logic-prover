@@ -98,6 +98,6 @@ unit_tests = []
 unit_tests += [proj.source('t/unit/match-assoc')     .then(test_driver.krun())]
 unit_tests += [proj.source('t/unit/match-assoc-comm').then(test_driver.krun())]
 # unit_tests += [proj.source('t/unit/smt')  .then(test_driver.krun())]
-proj.alias('unit-tests', unit_tests).default()
+proj.alias('unit-tests', unit_tests)
 
 proj.main()
