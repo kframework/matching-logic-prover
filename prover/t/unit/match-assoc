@@ -78,3 +78,12 @@ assert( #matchFailure( "Variable does not match" )
                    , subst:     .Map
                    )
       )
+
+// Match constructor against variable
+assert( #matchFailure("Constructor does not match term")
+     == #matchAssoc( terms:     X { Loc }, Y { Data }
+                   , pattern:   c( Z { Loc }, W { Data }), c( Y { Loc }, W { Data })
+                   , variables: Z { Loc }, W { Data }
+                   , subst:     .Map
+                   )
+      )
