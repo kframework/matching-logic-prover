@@ -1,7 +1,7 @@
 ```k
 module MATCHING-FUNCTIONAL
   imports MAP
-  imports KORE-HELPERS 
+  imports KORE-HELPERS
 
   syntax MatchResult ::= "#matchResult" "(" "subst:" Map "," "rest:" Patterns ")" [format(%1%2%i%n%3%i%n%4%d%n%5%i%6%n%7%d%d%8)]
                        | MatchFailure
@@ -13,17 +13,6 @@ module MATCHING-FUNCTIONAL
                                    "," "pattern:"   Patterns
                                    "," "variables:" Patterns
                                    ")" [function]
-  syntax MatchResults ::= "#matchShowFailures" "(" "terms:"     Patterns
-                                               "," "pattern:"   Patterns
-                                               "," "variables:" Patterns
-                                               ")" [function]
-  syntax MatchResults ::= "#matchAux" "(" "terms:"     Patterns
-                                      "," "pattern:"   Patterns
-                                      "," "variables:" Patterns
-                                      "," "results:"   MatchResults
-                                      "," "subst:"     Map
-                                      ")" [function]
-                                      
   syntax MatchResults ::= "#matchAssoc" "(" "terms:"     Patterns
                                         "," "pattern:"   Patterns
                                         "," "variables:" Patterns
@@ -52,16 +41,11 @@ module MATCHING-FUNCTIONAL
     => #matchResult(subst: SUBST, rest: ARGs -Patterns substPatternsMap(P_ARGs, SUBST))
      , #getMatchResults(ARGs, P_ARGs, MRs)
 
-  rule #matchShowFailures( terms: T , pattern: P, variables: Vs )
-    => #getMatchResults( T, P, #matchAux( terms: T , pattern: P, variables: Vs, results: .MatchResults, subst: .Map ) )
-    requires getFreeVariables(T) intersect Vs ==K .Patterns
-  rule #matchShowFailures( terms: T, pattern: _, variables: Vs )
-    => #matchFailure( "AlphaRenaming not done" ), .MatchResults
-    requires getFreeVariables(T) intersect Vs =/=K .Patterns
-
-
   rule #match( terms: T, pattern: P, variables: Vs )
-    => #filterMatchFailures(#matchShowFailures( terms: T, pattern: P, variables: Vs ))
+    => #filterMatchFailures(#matchAssocComm( terms: T, pattern: P, variables: Vs
+                                           , results: .MapResults, subst: .Map
+                                           )
+                           )
 
   syntax MatchResults ::= #filterMatchFailures(MatchResults) [function]
   rule #filterMatchFailures(MF:MatchFailure , MRs) => #filterMatchFailures(MRs)
@@ -74,18 +58,18 @@ Work around OCaml not producing reasonable error messages:
 
 ```k
   syntax MatchFailure ::= "#matchStuck" "(" K ")"
-  syntax KItem ::= "\\n" [format(%n)] 
-  rule #matchAux( terms: Ts , pattern: P, variables: Vs, results: MRs, subst: SUBST )
-    => #matchStuck( "AUX" ~> \n ~> "terms:" ~> Ts
-                          ~> \n ~> "pattern:" ~> P
-                          ~> \n ~> "vars:" ~> Vs
-                          ~> \n ~> "results:" ~> MRs
-                          ~> \n ~> "subst:" ~> SUBST
-                  )
-     , .MatchResults
-    [owise]
+  syntax KItem ::= "\\n" [format(%n)]
   rule #getMatchResults(T, P, MRs)
     => #matchStuck( "GET RESULTS" ~> "terms:" ~> T ~> "pattern:" ~> P ~> "MRs:" ~> MRs )
+     , .MatchResults
+    [owise]
+  rule #matchAssocComm(terms: T, pattern: P, variables: Vs, results: MRs, subst: SUBST)
+    => #matchStuck( "AC" 
+            ~> "terms:" ~> T
+            ~> "pattern:" ~> P
+            ~> "variables:" ~> Vs
+            ~> "subst:" ~> SUBST
+            ~> "MRs:" ~> MRs )
      , .MatchResults
     [owise]
 ```
@@ -100,7 +84,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   )
     => #matchResult(subst: SUBST), .MatchResults
-    
+
   rule #matchAssoc( terms:     Ts
                   , pattern:   Ps
                   , variables: Vs
@@ -118,7 +102,7 @@ Recurse over assoc-only constructors (including `pto`):
                   )
     => #matchFailure("Constructors do not match"), .MatchResults
     requires S1 =/=K S2
-    
+
   // Constructors match: Recurse over arguments
   rule #matchAssoc( terms:     S:Symbol(T_ARGs), Ts
                             => T_ARGs ++Patterns Ts
@@ -156,9 +140,20 @@ Recurse over assoc-only constructors (including `pto`):
     => #matchFailure( "No valid substitution" ), .MatchResults
     requires T =/=K P
      andBool notBool P in Vs
+     
+  // free variable: different sorts
+  rule #matchAssoc( terms:     T         , Ts
+                  , pattern:   P:Variable, Ps
+                  , variables: Vs
+                  , subst:     _
+                  )
+    => #matchFailure("Variable sort does not match term"), .MatchResults
+    requires T =/=K P
+     andBool P in Vs
+     andBool getReturnSort(T) =/=K getReturnSort(P)
 
   // free variable: extend substitution
-  rule #matchAssoc( terms:     T         , Ts => Ts 
+  rule #matchAssoc( terms:     T         , Ts => Ts
                   , pattern:   P:Variable, Ps => substPatternsMap(Ps, P |-> T)
                   , variables: Vs
                   , subst:     SUBST => ((P |-> T) SUBST)
@@ -171,55 +166,66 @@ Recurse over assoc-only constructors (including `pto`):
 Recurse over assoc-comm `sep`:
 
 ```k
-// Base case: If pattern is larger than term, there can be no match 
-rule #matchAssocComm( terms:     .Patterns
-                    , pattern:   P, Ps
-                    , variables: Vs
-                    , results:   .MatchResults
-                    , subst:     SUBST
-                    )
-  => #matchFailure( "Pattern larger than term" ), .MatchResults
+// Base case: If pattern is larger than term, there can be no match
+  rule #matchAssocComm( terms:     .Patterns
+                      , pattern:   P, Ps
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      )
+    => #matchFailure( "Pattern larger than term" ), .MatchResults
 
 // Base case: emp matches all heaps
-rule #matchAssocComm( terms:     Ts
-                    , pattern:   .Patterns
-                    , variables: Vs
-                    , results:   .MatchResults
-                    , subst:     SUBST
-                    )
-  => #matchResult(subst: SUBST), .MatchResults
-  
+  rule #matchAssocComm( terms:     Ts
+                      , pattern:   .Patterns
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      )
+    => #matchResult(subst: SUBST), .MatchResults
+
+// Base case: If matching a single term, agains an atomic pattern, use Assoc Matching
   rule #matchAssocComm( terms:     T, .Patterns
-                    , pattern:   P, .Patterns
-                    , variables: Vs
-                    , results:   .MatchResults
-                    , subst:     SUBST
-                    )
+                      , pattern:   P, .Patterns
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      )
     => #matchAssoc( terms: T
                   , pattern: P
                   , variables: Vs
                   , subst: SUBST
                   )
+```
 
+Matching an atomic pattern against multiple terms: return a disjunction of the solutions
+
+```k
   rule #matchAssocComm( terms:     T, Ts
                       , pattern:   P, .Patterns
                       , variables: Vs
                       , results:   .MatchResults
                       , subst:     SUBST
                       )
-    => #matchAssoc( terms:     T
-                  , pattern:   P, .Patterns
-                  , variables: Vs
-                  , subst:     SUBST
-                  ) // ++MatchResults
- //      #matchAssocComm( terms:     Ts
- //                     , pattern:   P, .Patterns
- //                     , variables: Vs
- //                     , results:   .MatchResults
- //                     , subst:     SUBST
- //                     )
+    => #matchAssocComm( terms:     T
+                      , pattern:   P, .Patterns
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      ) ++MatchResults
+       #matchAssocComm( terms:     Ts
+                      , pattern:   P, .Patterns
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      )
     requires Ts =/=K .Patterns
+```
 
+Matching a non-atomic pattern against multiple terms: Match the first
+atom in the pattern against any of the terms, and then extend those solutions.
+
+```k
   rule #matchAssocComm( terms:     ARGs
                       , pattern:   P_ARG, P_ARGs
                       , variables: Vs
@@ -229,94 +235,70 @@ rule #matchAssocComm( terms:     Ts
     => #matchAssocComm( terms:     ARGs
                       , pattern:   P_ARGs
                       , variables: Vs
-                      , results:   #getMatchResults( ARGs
-                                                   , (P_ARG, P_ARGs)
-                                                   , #matchAssocComm( terms:     ARGs
-                                                                    , pattern:   P_ARG
-                                                                    , variables: Vs
-                                                                    , results:  .MatchResults
-                                                                    , subst:    .Map
-                                                                    )
-                                                   )
+                      , results: #getMatchResults( ARGs
+                                                 , P_ARG
+                                                 , #matchAssocComm( terms:     ARGs
+                                                                  , pattern:   P_ARG
+                                                                  , variables: Vs
+                                                                  , results:  .MatchResults
+                                                                  , subst:    .Map
+                                                                  )
+                                                 )
                       , subst:     SUBST
                       )
     requires ARGs =/=K .Patterns
+     andBool P_ARGs =/=K .Patterns
 ```
 
-Distribute results for nested matching over current call:
+With each returned result, we apply the substitution and continue matching over
+the unmatched part of the term:
 
 ```k
-  // Base case: Apply substitution from nested term
   // TODO: don't want to call substUnsafe directly (obviously)
-  rule #matchAux( terms:     T, .Patterns
-                , pattern:   P
-                , variables: Vs
-                , results:   #matchResult(subst: SUBST1, rest: REST), .MatchResults
-                , subst:     SUBST2
-                )
-    => #matchAux( terms:     T, .Patterns
-                , pattern:   substUnsafe(P, SUBST1)
-                , variables: Vs -Patterns fst(unzip(SUBST1))
-                , results:   #matchResult(subst: .Map, rest: REST), .MatchResults
-                , subst:     SUBST1 SUBST2
-                )
-    requires intersectSet(keys(SUBST1), keys(SUBST2)) ==K .Set 
-     andBool SUBST1 =/=K .Map
-     
-  rule #matchAux( terms:     ARGs, .Patterns
-                , pattern:   PATTERN
-                , variables: Vs
-                , results:   #matchResult(subst: .Map, rest: REST), .MatchResults
-                , subst:     SUBST
-                )
-    => #matchAux( terms:     REST, .Patterns
-                , pattern:   PATTERN // Pattern already has matched part removed
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST
-                )
+  rule #matchAssocComm( terms:     Ts => REST
+                      , pattern:   P  => substPatternsMap(P, SUBST1)
+                      , variables: Vs => Vs -Patterns fst(unzip(SUBST1))
+                      , results:   #matchResult(subst: SUBST1, rest: REST), .MatchResults
+                                => .MatchResults
+                      , subst:     SUBST2
+                                => (SUBST1 SUBST2)
+                      )
+    requires intersectSet(keys(SUBST1), keys(SUBST2)) ==K .Set
+```
 
-  rule #matchAux( terms:     S:Symbol(ARG, ARGs), .Patterns
-                , pattern:   PATTERN
-                , variables: Vs
-                , results:   #matchResult(subst: .Map, rest: .Patterns), .MatchResults
-                , subst:     SUBST
-                )
-    => #matchAux( terms:     S(ARGs), .Patterns
-                , pattern:   PATTERN
-                , variables: Vs
-                , results:   .MatchResults
-                , subst:     SUBST 
-                )
-    requires S =/=K sep
+Failures are propagated:
 
-  rule #matchAux( terms:     T, .Patterns
-                , pattern:   P
-                , variables: Vs
-                , results:   (#matchFailure(_) #as MF), .MatchResults
-                , subst:     SUBST2
-                )
+```k
+ rule #matchAssocComm( terms:     Ts
+                     , pattern:   P
+                     , variables: Vs
+                     , results:   MF:MatchFailure, .MatchResults
+                     , subst:     SUBST
+                     )
     => MF, .MatchResults
-    
-  // Recursive case
-  rule #matchAux( terms:     T, .Patterns
-                , pattern:   P
-                , variables: Vs
-                , results:   MR, MRs
-                , subst:     SUBST
-                )
-    => #matchAux( terms:     T
-                , pattern:   P
-                , variables: Vs
-                , results:   MR
-                , subst:     SUBST
-                ) ++MatchResults
-       #matchAux( terms:     T
-                , pattern:   P
-                , variables: Vs
-                , results:   MRs
-                , subst:     SUBST
-                )
+```
+
+If the nested call returns a disjunction of solutions, we distribute the disjunction:
+
+```k
+  rule #matchAssocComm( terms:     Ts
+                      , pattern:   P
+                      , variables: Vs
+                      , results:   MR, MRs
+                      , subst:     SUBST
+                      )
+    => #matchAssocComm( terms:     Ts
+                      , pattern:   P
+                      , variables: Vs
+                      , results:   MR
+                      , subst:     SUBST
+                      ) ++MatchResults
+       #matchAssocComm( terms:     Ts
+                      , pattern:   P
+                      , variables: Vs
+                      , results:   MRs
+                      , subst:     SUBST
+                      )
     requires MRs =/=K .MatchResults
 ```
 
@@ -415,7 +397,7 @@ Instantiate heap axioms:
     rule <strategy> instantiate-separation-logic-axioms(.Patterns) => noop ... </strategy>
 ```
 
-Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil 
+Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 
 ```k
     rule <claim> \implies(\and((sep(_) #as LSPATIAL), LCONSTRAINT), RHS) </claim>
