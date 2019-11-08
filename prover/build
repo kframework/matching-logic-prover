@@ -41,7 +41,7 @@ def prover(alias, flags = None):
                           )
 
 prover_kore = prover('prover-kore', '--syntax-module PROVER-KORE-SYNTAX')
-prover_smt  = prover('prover-smt', '--syntax-module PROVER-SMT-SYNTAX')
+prover_smt  = prover('prover-smt', '--syntax-module PROVER-SMT-SYNTAX --check-races')
 
 # Functional tests
 # ----------------
