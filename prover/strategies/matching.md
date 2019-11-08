@@ -319,7 +319,10 @@ module STRATEGY-MATCHING
 Instantiate existentials using matching on the spatial part of goals:
 
 ```k
-  rule <claim> \implies(\and(LSPATIAL, LHS) , \exists { Vs } \and(RSPATIAL, RHS)) </claim>
+  rule <claim> \implies( \and(sep(LSPATIAL), LHS)
+                       , \exists { Vs } \and(sep(RSPATIAL), RHS)
+                       )
+       </claim>
        <strategy> match => #match( terms: LSPATIAL
                                  , pattern: RSPATIAL
                                  , variables: Vs
@@ -327,8 +330,8 @@ Instantiate existentials using matching on the spatial part of goals:
                         ~> match
                   ...
        </strategy>
-    requires isSpatialPattern(LSPATIAL)
-     andBool isSpatialPattern(RSPATIAL)
+    requires isSpatialPattern(sep(LSPATIAL))
+     andBool isSpatialPattern(sep(RSPATIAL))
   rule <claim> \implies( \and( LSPATIAL, LHS)
                        ,  \exists { Vs } \and( RHS )
                        => \exists { Vs -Patterns fst(unzip(SUBST)) } substMap(\and(RHS), SUBST)
