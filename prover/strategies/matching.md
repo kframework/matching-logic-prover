@@ -103,6 +103,15 @@ Recurse over assoc-only constructors (including `pto`):
     => #matchFailure("Constructors do not match"), .MatchResults
     requires S1 =/=K S2
 
+  // Non-matching constructors
+  rule #matchAssoc( terms:     X:Variable, Ts
+                  , pattern:   S2:Symbol(_), Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+    => #matchFailure("Constructors do not match"), .MatchResults
+
   // Constructors match: Recurse over arguments
   rule #matchAssoc( terms:     S:Symbol(T_ARGs), Ts
                             => T_ARGs ++Patterns Ts
