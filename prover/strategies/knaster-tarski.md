@@ -510,9 +510,9 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 
   syntax Patterns ::= removeImplicationContexts(Patterns) [function]
   rule removeImplicationContexts(P, Ps) => P, removeImplications(Ps)
-    requires P :/=K \implicationContext(_,_)
+    requires P :/=K implicationContext(?LHS, ?RHS)
   rule removeImplicationContexts(P, Ps) => removeImplicationContexts(Ps)
-    requires P :=K \implicationContext(_,_)
+    requires P :=K implicationContext(?LHS, ?RHS)
   rule removeImplicationContexts(.Patterns) => .Patterns
 
   rule <claim> \implies( \and(P:Pattern, REST:Patterns)
