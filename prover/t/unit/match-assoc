@@ -15,6 +15,7 @@ assert( #matchFailure("Variable does not match")
                    , pattern:   pto( Z { Loc }, W { Data })
                    , variables: W { Data }
                    , subst:     .Map
+                   , rest:
                    )
       )
 assert( #matchFailure("Constructors do not match")
@@ -22,6 +23,7 @@ assert( #matchFailure("Constructors do not match")
                    , pattern:   d( Z { Loc }, W { Data })
                    , variables: Z { Loc }, W { Data }
                    , subst:     .Map
+                   , rest:
                    )
       )
 assert( #matchFailure( "Mismatch in length of arguments" )
@@ -29,6 +31,7 @@ assert( #matchFailure( "Mismatch in length of arguments" )
                    , pattern:   
                    , variables:
                    , subst:     .Map
+                   , rest:
                    )
       )
 assert( #matchFailure( "Mismatch in length of arguments" )
@@ -36,6 +39,7 @@ assert( #matchFailure( "Mismatch in length of arguments" )
                    , pattern:   c(X { Loc }, Y { Data }, Y { Data })
                    , variables:
                    , subst:     .Map
+                   , rest:
                    )
       )
 // Base Case: Empty patterns
@@ -46,6 +50,7 @@ assert( #matchResult( subst: .Map
                    , pattern:   
                    , variables: Z { Loc }, W { Data }
                    , subst:     .Map
+                   , rest:
                    )
       )
 // Basic Matching
@@ -57,6 +62,7 @@ assert( #matchResult( subst: Z { Loc }  |-> X { Loc }
                    , pattern:   pto( Z { Loc }, W { Data })
                    , variables: Z { Loc }, W { Data }
                    , subst:     .Map
+                   , rest:
                    )
       )
 // Match multiple occurances of a variable
@@ -68,6 +74,7 @@ assert( #matchResult( subst: Z { Loc }  |-> X { Loc }
                    , pattern:   c( Z { Loc }, W { Data }), d( Z { Loc }, W { Data })
                    , variables: Z { Loc }, W { Data }
                    , subst:     .Map
+                   , rest:
                    )
       )
 // Matching multiple occurances to different values does not work
@@ -76,6 +83,7 @@ assert( #matchFailure( "Variable does not match" )
                    , pattern:   c( Z { Loc }, W { Data }), c( Y { Loc }, W { Data })
                    , variables: Z { Loc }, W { Data }
                    , subst:     .Map
+                   , rest:
                    )
       )
 
@@ -85,5 +93,6 @@ assert( #matchFailure("Constructor does not match term")
                    , pattern:   c( Z { Loc }, W { Data }), c( Y { Loc }, W { Data })
                    , variables: Z { Loc }, W { Data }
                    , subst:     .Map
+                   , rest:
                    )
       )
