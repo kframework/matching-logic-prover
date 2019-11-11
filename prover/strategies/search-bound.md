@@ -23,15 +23,26 @@ module STRATEGY-SEARCH-BOUND
   rule <strategy> search-sl(bound: N)
                => normalize . or-split-rhs
                 . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                . instantiate-separation-logic-axioms
-                . check-lhs-constraint-unsat
-                . ( ( match . spatial-patterns-equal . smt-cvc4 )
-                  | ( kt           . search-sl(bound: N -Int 1) )
-                  | ( right-unfold . search-sl(bound: N -Int 1) )
+                . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
+                    . ( right-unfold-or-match { N } )
+                    . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                    . match . spatial-patterns-equal . smt-cvc4
+                    )
+                  | ( kt . search-sl(bound: N -Int 1) )
                   )
                   ...
        </strategy>
     requires N >Int 0
+
+  syntax Strategy ::= "right-unfold-or-match" [function]
+  rule right-unfold-or-match
+    => normalize . or-split-rhs
+     . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+     . instantiate-separation-logic-axioms
+     . check-lhs-constraint-unsat
+     . ( ( match . spatial-patterns-equal . smt-cvc4 )
+       | ( right-unfold)
+       )
 endmodule
 ```
 
