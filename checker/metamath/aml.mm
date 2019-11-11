@@ -1,7 +1,12 @@
 $(
-	Level 1: ML Syntax Primitives
+	The Metalevel of Matching Logic, i.e., Matching Logic Proof Checker.
 $)
 
+$(
+	Part 1: Primitive Patterns and Metalevel Assertions.
+$)
+
+$( ML primitive syntax of patterns $)
 $c \bot $.    $( the bottom pattern $)
 $c \imp $.    $( the implication pattern ( \imp P Q ) $)
 $c \app $.    $( the application pattern ( \app P Q ) $)
@@ -10,6 +15,7 @@ $c \mu $.     $( the mu fixpoint binder ( \mu X P ) $)
 $c ( $.       $( left parenthesis $)
 $c ) $.       $( right parenthesis $)
 
+$( ML metalevel assertions about pattern structures $)
 $c #wf $.     $( wellformedness token $)
 $c #var $.    $( variable token $)
 $c #symb $.   $( symbols token $)
@@ -21,7 +27,7 @@ $c |- $.      $( the provability token $)
 $( Declare metamath variables and their ranges. $)
 
 $v 
-	P Q R P' Q' R' 
+	P Q R P' Q' R' P1 P2 Q1 Q2
     x y z 
     X Y Z 
     f g h 
@@ -34,6 +40,10 @@ wfR   $f #wf R $.
 wfPp  $f #wf P' $.
 wfQp  $f #wf Q' $.
 wfRp  $f #wf R' $.
+wfP1  $f #wf P1 $.
+wfP2  $f #wf P2 $.
+wfQ1  $f #wf Q1 $.
+wfQ2  $f #wf Q2 $.
 
 evarx $f #evar x $.
 evary $f #evar y $.
@@ -55,7 +65,7 @@ $( State that element/set variables are variables. $)
 var-evar $a #var x $.
 var-svar $a #var X $.
 
-$( auxiliary tokens $)
+$( Auxiliary metalevel assertions about pattern structures $)
 
 $c #nnegative $. $( non-negative occurrence token; 
                   ( #nnegative X P ) means X does not occur negatively in P. $)
@@ -69,6 +79,10 @@ $c #nfree $.     $( not-occur-free token;
                           
 $c #appctx $.    $( application context token;
                   ( #appctx P xX ) means P is an application context wrt variable xX. $)
+                  
+$c #subst $.     $( capture-avoiding substitution token;
+                  ( #subst P Q R xX ) means P is the result of substituting R for xX in Q,
+                  where alpha-renaming happens implicitly to prevent variable capturing. $)
 
 $( Define wellformedness token #wf. $)
 
@@ -177,7 +191,7 @@ $}
 
 $( Define appliation context token ( #appctx P xX ). $)
 
-appctx-var $a #appctx xX xX $.
+appctx-ini $a #appctx xX xX $.
 ${
     appctx-app-left.1 $e #appctx P xX $.
     appctx-app-left.2 $e #nfree xX Q $.
@@ -189,84 +203,8 @@ ${
     appctx-app-right   $a #appctx ( \app P Q ) xX $.
 $}
 
-$(
-	Level 2: ML Metalevel Extension
-$)
-
-$c #eqq $. $( the metalevel equality ( #eqq P Q ) $)
-
-eqq-self $a #eqq P P $.
-${
-    eqq-imp.1 $e #eqq P Q $.
-    eqq-imp.2 $e #eqq P' Q' $.
-    eqq-imp   $a #eqq ( \imp P P' ) ( \imp Q Q' ) $.
-$}
-${
-    eqq-app.1 $e #eqq P Q $.
-    eqq-app.2 $e #eqq P' Q' $.
-    eqq-app   $a #eqq ( \app P P' ) ( \app Q Q' ) $.
-$}
-${
-    eqq-exists.1 $e #eqq P Q $.
-    eqq-exists   $a #eqq ( \exists x P ) ( \exists x Q ) $.
-$}
-${
-    eqq-mu.1 $e #eqq P Q $.
-    eqq-mu   $a #eqq ( \mu X P ) ( \mu X Q ) $.
-$}
-
-${
-    eqq-nfree.1 $e #nfree yY Q $.
-    eqq-nfree.2 $e #eqq xX yY $.
-    eqq-nfree.3 $e #eqq P Q $.
-    eqq-nfree   $a #nfree xX P $.
-$}
-
-${
-    eqq-subst.1 $e #subst P' Q' R' xX $.
-    eqq-subst.2 $e #eqq P P' $.
-    eqq-subst.3 $e #eqq Q Q' $.
-    eqq-subst.4 $e #eqq R R' $.
-    eqq-subst.5 $e #eqq yY xX $.
-    eqq-subst $a #subst P Q R yY $.
-$}
-
-${
-    eqq-nnegative.1 $e #nnegative Y Q $.
-    eqq-nnegative.2 $e #eqq X Y $.
-    eqq-nnegative.3 $e #eqq P Q $.
-    eqq-nnegative   $a #nnegative X P $.
-$}
-
-${
-    eqq-npositive.1 $e #npositive Y Q $.
-    eqq-npositive.2 $e #eqq X Y $.
-    eqq-npositive.3 $e #eqq P Q $.
-    eqq-npositive   $a #npositive X P $.
-$}
-
-${
-    eqq-appctx.1 $e #appctx y Q $.
-    eqq-appctx.2 $e #eqq x y $.
-    eqq-appctx.3 $e #eqq P Q $.
-    eqq-appctx   $a #appctx x P $.
-$}
-
-${
-    eqq-thm.1 $e |- Q $.
-    eqq-thm.2 $e #eqq P Q $.
-    eqq-thm   $a |- P $.
-$}
-
-$c #subst $.     $( capture-avoiding substitution token; 
-				  ( #subst P Q R xX ) means P is the result of
-                  substituting R for xX in Q. $)
-
-$( 
-    Define capture-avoiding substitution "subst P Q R xx",
-    meaning that P is the result of substituting R for xX in Q.
-    Note that xX can be either element variable or set variable.
-$)
+$( Define #subst token ( #subst P Q R xX ). $)
+$( That is, P is the result of substituting R for xX in Q. $)
 
 subst-var-same $a #subst R xX R xX $.
 
@@ -275,8 +213,8 @@ ${
     subst-var-diff $a #subst yY yY R xX $.
 $}
 
-subst-symb  $a #subst f f R xX $.
-subst-bot $a #subst \bot \bot R xX $.
+subst-symb $a #subst f f R xX $.
+subst-bot  $a #subst \bot \bot R xX $.
 
 ${
     subst-imp.1 $e #subst P  Q  R xX $.
@@ -292,24 +230,36 @@ $}
 
 subst-exists-binding $a #subst ( \exists x Q ) ( \exists x Q ) R x $.
 
+$( 
+	See http://fsl.cs.illinois.edu/FSL/papers/2017/rosu-2017-lmcs/rosu-2017-lmcs-public.pdf,
+	Page 8, Lines 3-4.
+$)
+
 ${
-    $d y xX z $.
-    subst-exists-body.1 $e #subst Q P z y $.
-    subst-exists-body.2 $e #subst Q' Q R xX $.
+	$d y xX $.
+	subst-exists-body.1 $e #nfree z R $.
+    subst-exists-body.2 $e #subst Q P z y $.   $( Q === P[z/y] $)
+    subst-exists-body.3 $e #subst Q' Q R xX $. $( Q' === Q[R/xX] $)
     subst-exists-body   $a #subst ( \exists z Q' ) ( \exists y P ) R xX $.
 $}
 
 subst-mu-binding $a #subst ( \mu X P ) ( \mu X P ) R X $.
 
 ${
-    $d Y xX Z $.
-    subst-mu-body.1 $e #subst Q P Z Y $.
-    subst-mu-body.2 $e #subst Q' Q R xX $.
+    $d Y xX $.
+    subst-mu-body.1 $e #nfree Z R $.
+    subst-mu-body.2 $e #subst Q P Z Y $.   $( Q === P[Z/Y] $)
+    subst-mu-body.3 $e #subst Q' Q R xX $. $( Q' === Q[R/xX] $)
     subst-mu-body   $a #subst ( \mu Z Q' ) ( \mu Y P ) R xX $.
 $}
 
+$(
+	Part 2: Matching Logic Proof System
+$)
 
-$( Define propositional logic $)
+$( TODO: Use simpler ids for proof rules. $)
+
+$( Part 2.1: Propositional Reasoning $)
 
 rl-1 $a |- ( \imp P ( \imp Q P ) ) $.
 
@@ -324,93 +274,7 @@ ${
     rl-mp     $a |- Q $.
 $}
 
-$( 
-    Our first theorem, "id".
-$)
-
-id $p |- ( \imp P P ) $=
-  wfP wfP wfP wf-imp wf-imp wfP wfP wf-imp wfP wfP rl-1 wfP wfP wfP
-  wf-imp wfP wf-imp wf-imp wfP wfP wfP wf-imp wf-imp wfP wfP wf-imp wf-imp wfP wfP wfP
-  wf-imp rl-1 wfP wfP wfP wf-imp wfP rl-2 rl-mp
-  rl-mp $.
-
-$(
-	\iff is a derived construct that can be defined from \imp and \bot. 
-	For now, we add it here as a builtin.
-$)
-$c \iff $.
-wf-iff $a #wf ( \iff P Q ) $.
-${
-    iff-intro.1 $e |- ( \imp P Q ) $.
-	iff-intro.2 $e |- ( \imp Q P ) $.
-	iff-intro   $a |- ( \iff P Q ) $.
-$}
-${
-	iff-elim-fw.1 $e |- ( \iff P Q ) $.
-	iff-elim-fw   $a |- ( \imp P Q ) $.
-$}
-${
-	iff-elim-bw.1 $e |- ( \iff P Q ) $.
-	iff-elim-bw   $a |- ( \imp Q P ) $.
-$}
-
-$(
-	\iff yields a congruence relation in terms of provability.
-$)
-${
-	iff-thm.1 $e |- ( \iff P Q ) $.
-	iff-thm.2 $e |- P $.
-	iff-thm   $p |- Q $=
-  wfP wfQ iff-thm.2 wfP wfQ iff-thm.1 iff-elim-fw rl-mp $.
-$}
-
-
-
-
-
-
-
-
-
-$(  THIS DOESN'T WORK: P Q must be #wf already.
-    eqq-wf.1 $e #wf Q $.
-    eqq-wf.2 $e #eqq P Q $.
-    eqq-wf   $a #wf P $.
-$)
-
-$(  DON'T NEED THESE RIGHT NOW.
-    eqq-var.1 $e #var yY $.
-    eqq-var.2 $e #eqq xX yY $.
-    eqq-var   $a #var xX $.
-$)
-
-$(  DON'T NEED THESE RIGHT NOW.
-    eqq-evar.1 $e ev y $.
-    eqq-evar.2 $e #eqq x y $.
-    eqq-evar   $a ev x $.
-$)
-
-$(  DON'T NEED THESE RIGHT NOW. 
-    eqq-svar.1 $e sv Y $.
-    eqq-svar.2 $e #eqq X Y $.
-    eqq-svar   $a sv X $.
-$)
-
-$(  DON'T NEED THESE RIGHT NOW. 
-    eqq-symb.1 $e #symb g $.
-    eqq-symb.2 $e #eqq f g $.
-    eqq-symb   $a #symb f $.
-$)
-
-
-
-$(
-    State AML proof rules (rl).
-$)
-
-$(
-    AML proof rules Part B: FOL reasoning.
-$)
+$( Part 2.2: FOL Reasoning $)
 
 ${
     rl-exists-inst.1 $e #subst P Q y x $.
@@ -423,9 +287,7 @@ ${
     rl-exists-gen   $a |- ( \imp P ( \exists x Q ) ) $.
 $}
 
-$(
-    AML proof rules Part C: Frame reasoning.
-$)
+$( Part 2.3: Frame Reasoning $)
 
 rl-propagation-bot-left  $a |- ( \imp ( \app \bot P ) \bot ) $.
 rl-propagation-bot-right $a |- ( \imp ( \app P \bot ) \bot ) $.
@@ -461,9 +323,7 @@ ${
     rl-framing-right   $a |- ( \imp ( \app R P ) ( \app R Q ) ) $.
 $}
 
-$(
-    AML proof rules Part D: Fixpoint reasoning.
-$)
+$( Part 2.4: Fixpoint Reasoning $)
 
 ${
     rl-svar-subst.1 $e |- Q $.
@@ -482,12 +342,96 @@ ${
     rl-kt   $a |- ( \imp ( \mu X P ) Q ) $.
 $}
 
-$(
-    AML proof rules Part E: Misc technical proof rules.
-$)
+$( Part 2.5: Misc technical rules $)
 
 rl-existence $a |- ( \exists x x ) $.
 
+${
+	rl-singleton.1 $e #appctx R xX $.
+	rl-singleton.2 $e #appctx R' xX $.
+	rl-singleton.3 $e #subst Q  R ( \imp ( \imp x ( \imp P \bot ) ) \bot ) xX $.
+	rl-singleton.4 $e #subst Q' R ( \imp ( \imp x P               ) \bot ) xX $.
+	rl-singleton   $a |- ( \imp Q ( \imp Q' \bot ) ) $.
+$}
+
+$(
+	Part 3: Metalevel Equality (Introducing Syntactic Sugar to the Metalevel)
+$)
+
+$c #eqq $. $( the metalevel equality ( #eqq P Q ) $)
+
+$( Define #eqq to be a congruence relation wrt all metalevel definitions. $)
+
+eqq-self $a #eqq P P $.
+${
+    eqq-imp.1 $e #eqq P Q $.
+    eqq-imp.2 $e #eqq P' Q' $.
+    eqq-imp   $a #eqq ( \imp P P' ) ( \imp Q Q' ) $.
+$}
+${
+    eqq-app.1 $e #eqq P Q $.
+    eqq-app.2 $e #eqq P' Q' $.
+    eqq-app   $a #eqq ( \app P P' ) ( \app Q Q' ) $.
+$}
+${
+    eqq-exists.1 $e #eqq P Q $.
+    eqq-exists   $a #eqq ( \exists x P ) ( \exists x Q ) $.
+$}
+${
+    eqq-mu.1 $e #eqq P Q $.
+    eqq-mu   $a #eqq ( \mu X P ) ( \mu X Q ) $.
+$}
+${
+    eqq-nfree.1 $e #eqq P Q $.
+    eqq-nfree.2 $e #nfree xX Q $.
+    eqq-nfree   $a #nfree xX P $.
+$}
+${
+    eqq-nnegative.1 $e #eqq P Q $.
+    eqq-nnegative.2 $e #nnegative X Q $.
+    eqq-nnegative   $a #nnegative X P $.
+$}
+${
+    eqq-npositive.1 $e #eqq P Q $.
+    eqq-npositive.2 $e #npositive X Q $.
+    eqq-npositive   $a #npositive X P $.
+$}
+${
+    eqq-subst.1 $e #eqq P P' $.
+    eqq-subst.2 $e #eqq Q Q' $.
+    eqq-subst.3 $e #eqq R R' $.
+    eqq-subst.4 $e #subst P' Q' R' xX $.
+    eqq-subst   $a #subst P Q R xX $.
+$}
+${
+    eqq-appctx.1 $e #eqq P Q $.
+    eqq-appctx.2 $e #appctx Q xX $.
+    eqq-appctx   $a #appctx P xX $.
+$}
+${
+    eqq-thm.1 $e #eqq P Q $.
+    eqq-thm.2 $e |- Q $.
+    eqq-thm   $a |- P $.
+$}
+
+$(
+	So far we have defined the metalevel of ML, i.e., the proof checker.
+	Next, we show how to prove metatheorems about ML (i.e., proof objects).
+$)
+
+$(
+	Part 4: Prove metatheorems about ML.
+	Remark: This part is not complete. Read it to see examples of various metatheorems.
+$)
+
+$( We can prove axiom schemas. $)
+id $p |- ( \imp P P ) $=
+  wfP wfP wfP wf-imp wf-imp wfP wfP wf-imp wfP wfP rl-1 wfP wfP wfP
+  wf-imp wfP wf-imp wf-imp wfP wfP wfP wf-imp wf-imp wfP wfP wf-imp wf-imp wfP wfP wfP
+  wf-imp rl-1 wfP wfP wfP wf-imp wfP rl-2 rl-mp
+  rl-mp $.
+
+$( We can prove proof rule schemas. $)
 ${
     p2inf.1 $e |- ( \imp P ( \imp Q R ) ) $.
     p2inf   $p |- ( \imp ( \imp P Q ) ( \imp P R ) ) $=
@@ -495,82 +439,113 @@ ${
       wfQ wfR rl-2 rl-mp $.
 $}
 
-$(
-    Singelton Variables.
-$)
-
+$( We can state metatheorems and leave their proofs as future work. $)
 ${
     nflipb $p |- ( \imp ( \imp ( \imp P \bot ) ( \imp Q \bot ) ) ( \imp Q P ) ) $= ? $.
 $}
 
-$( 
-    Our first definition: negation.
-    ( \neg P ) === ( \imp P \bot ) 
-$)
+$( We can use #eqq to define syntactic sugar. $)
 
 $c \neg $.
 wf-neg $a #wf ( \neg P ) $.
 df-neg $a #eqq ( \neg P ) ( \imp P \bot ) $.
 
-$( 
-    Prove metalevel properties about negations.
-$)
+$( We can prove all metalevel properties about \neg from its definition. $)
 
 ${
     nfree-neg.1 $e #nfree xX P $.
     nfree-neg   $p #nfree xX ( \neg P ) $=
-  wfP wf-neg wfP wf-bot wf-imp varxX varxX wfP wf-bot varxX nfree-neg.1 varxX
-  nfree-bot nfree-imp varxX wf-var eqq-self wfP df-neg eqq-nfree $.
-$}
-
-${
-    subst-neg.1 $e #subst P' P R yY $.
-    subst-neg   $p #subst ( \neg P' ) ( \neg P ) R yY $=
-      wfPp wf-neg wfP wf-neg wfR wfPp wf-bot wf-imp wfP wf-bot wf-imp wfR varyY varyY
-      wfPp wfP wfR wf-bot wf-bot varyY subst-neg.1 wfR varyY subst-bot subst-imp
-      wfPp df-neg wfP df-neg wfR eqq-self varyY wf-var eqq-self eqq-subst $.
+      wfP wf-neg wfP wf-bot wf-imp varxX wfP df-neg wfP wf-bot varxX
+      nfree-neg.1 varxX nfree-bot nfree-imp eqq-nfree $.
 $}
 
 ${
     nnegative-neg.1 $e #npositive X P $.
     nnegative-neg   $p #nnegative X ( \neg P ) $=
-      wfP wf-neg wfP wf-bot wf-imp svarX svarX wfP wf-bot svarX nnegative-neg.1 
-      svarX nnegative-bot nnegative-imp svarX wf-svar eqq-self wfP df-neg 
-      eqq-nnegative $.
+      wfP wf-neg wfP wf-bot wf-imp svarX wfP df-neg wfP wf-bot svarX
+      nnegative-neg.1 svarX nnegative-bot nnegative-imp eqq-nnegative $.
 $}
 
 ${
     npositive-neg.1 $e #nnegative X P $.
     npositive-neg   $p #npositive X ( \neg P ) $=
-      wfP wf-neg wfP wf-bot wf-imp svarX svarX wfP wf-bot svarX npositive-neg.1 
-      svarX npositive-bot npositive-imp svarX wf-svar eqq-self wfP df-neg 
-      eqq-npositive $.
+      wfP wf-neg wfP wf-bot wf-imp svarX wfP df-neg wfP wf-bot svarX
+      npositive-neg.1 svarX npositive-bot npositive-imp eqq-npositive $.
 $}
 
-$( 
-    Prove some metatheorems about negations. 
-$)
+${
+    subst-neg.1 $e #subst P' P R yY $.
+    subst-neg   $p #subst ( \neg P' ) ( \neg P ) R yY $=
+      wfPp wf-neg wfP wf-neg wfR wfPp wf-bot wf-imp wfP wf-bot wf-imp wfR varyY
+      wfPp df-neg wfP df-neg wfR eqq-self wfPp wfP wfR wf-bot wf-bot varyY
+      subst-neg.1 wfR varyY subst-bot subst-imp eqq-subst $.
+$}
 
 ${
     nn $p |- ( \imp ( \neg ( \neg P ) ) P ) $=
-      wfP wf-neg wf-neg wfP wf-imp wfP wf-neg wf-bot wf-imp wfP wf-imp wfP wf-neg wf-bot
-      wf-imp wfP wf-imp wfP wf-bot wf-imp wf-bot wf-imp wfP wf-imp wfP
-      rl-3 wfP wf-neg wf-bot wf-imp wfP wf-bot wf-imp wf-bot wf-imp wfP
-      wfP wfP wf-neg wfP wf-bot wf-imp wf-bot wf-bot wfP df-neg wf-bot eqq-self
-      eqq-imp wfP eqq-self eqq-imp eqq-thm wfP wf-neg wf-neg wfP wf-neg wf-bot
-      wf-imp wfP wfP wfP wf-neg df-neg wfP eqq-self eqq-imp eqq-thm $.
+      wfP wf-neg wf-neg wfP wf-imp wfP wf-neg wf-bot wf-imp wfP wf-imp wfP
+      wf-neg wf-neg wfP wf-neg wf-bot wf-imp wfP wfP wfP wf-neg df-neg wfP
+      eqq-self eqq-imp wfP wf-neg wf-bot wf-imp wfP wf-imp wfP wf-bot wf-imp
+      wf-bot wf-imp wfP wf-imp wfP wf-neg wf-bot wf-imp wfP wf-bot wf-imp
+      wf-bot wf-imp wfP wfP wfP wf-neg wfP wf-bot wf-imp wf-bot wf-bot wfP
+      df-neg wf-bot eqq-self eqq-imp wfP eqq-self eqq-imp wfP rl-3 eqq-thm
+      eqq-thm $.
 $}
 
 ${
     nflip $p |- ( \imp ( \imp ( \neg P ) ( \neg Q ) ) ( \imp Q P ) ) $=
-      wfP wf-neg wfQ wf-neg wf-imp wfQ wfP wf-imp wf-imp wfP wf-bot wf-imp wfQ wf-bot
-      wf-imp wf-imp wfQ wfP wf-imp wf-imp wfP wfQ nflipb wfP wf-neg wfQ wf-neg wf-imp
-      wfP wf-bot wf-imp wfQ wf-bot wf-imp wf-imp wfQ wfP wf-imp wfQ wfP wf-imp wfP
-      wf-neg wfP wf-bot wf-imp wfQ wf-neg wfQ wf-bot wf-imp wfP df-neg wfQ df-neg
-      eqq-imp wfQ wfP wf-imp eqq-self eqq-imp eqq-thm $.
+      wfP wf-neg wfQ wf-neg wf-imp wfQ wfP wf-imp wf-imp wfP wf-bot wf-imp wfQ
+      wf-bot wf-imp wf-imp wfQ wfP wf-imp wf-imp wfP wf-neg wfQ wf-neg wf-imp
+      wfP wf-bot wf-imp wfQ wf-bot wf-imp wf-imp wfQ wfP wf-imp wfQ wfP wf-imp
+      wfP wf-neg wfP wf-bot wf-imp wfQ wf-neg wfQ wf-bot wf-imp wfP df-neg wfQ
+      df-neg eqq-imp wfQ wfP wf-imp eqq-self eqq-imp wfP wfQ nflipb eqq-thm $.
 $}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$( DO NOT REVIEW BELOW $)
+
+$c \iff $.
+wf-iff $a #wf ( \iff P Q ) $.
+${
+    iff-intro.1 $e |- ( \imp P Q ) $.
+	iff-intro.2 $e |- ( \imp Q P ) $.
+	iff-intro   $a |- ( \iff P Q ) $.
+$}
+${
+	iff-elim-fw.1 $e |- ( \iff P Q ) $.
+	iff-elim-fw   $a |- ( \imp P Q ) $.
+$}
+${
+	iff-elim-bw.1 $e |- ( \iff P Q ) $.
+	iff-elim-bw   $a |- ( \imp Q P ) $.
+$}
+
+$(
+	\iff yields a congruence relation in terms of provability.
+$)
+${
+	iff-thm.1 $e |- ( \iff P Q ) $.
+	iff-thm.2 $e |- P $.
+	iff-thm   $p |- Q $=
+  wfP wfQ iff-thm.2 wfP wfQ iff-thm.1 iff-elim-fw rl-mp $.
+$}
 
 $(
     Defind \forall x P === \neg ( \exists x ( \neg P ) )
