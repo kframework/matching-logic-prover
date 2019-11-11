@@ -2,8 +2,8 @@
    iszero ((x Int)) Bool
    (
     ite (= x 0) 
-        true 
-        false
+        (= 0 0)
+        (= 0 1)
    )
 )
 
