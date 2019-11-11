@@ -1,9 +1,9 @@
 $(
-	The Metalevel of Matching Logic, i.e., Matching Logic Proof Checker.
+    The Metalevel of Matching Logic, i.e., Matching Logic Proof Checker.
 $)
 
 $(
-	Part 1: Primitive Patterns and Metalevel Assertions.
+    Part 1: Primitive Patterns and Metalevel Assertions.
 $)
 
 $( ML primitive syntax of patterns $)
@@ -27,7 +27,7 @@ $c |- $.      $( the provability token $)
 $( Declare metamath variables and their ranges. $)
 
 $v 
-	P Q R P' Q' R' P1 P2 Q1 Q2
+    P Q R P' Q' R' P1 P2 Q1 Q2
     x y z 
     X Y Z 
     f g h 
@@ -69,13 +69,13 @@ $( Auxiliary metalevel assertions about pattern structures $)
 
 $c #nnegative $. $( non-negative occurrence token; 
                   ( #nnegative X P ) means X does not occur negatively in P. $)
-				  
+                  
 $c #npositive $. $( non-positive occurrence token; 
                   ( #npositive X P ) means X does not occur positively in P. $)
 
 $c #nfree $.     $( not-occur-free token;
                   ( #nfree xX P ) means xX does not occur 
-				  free in P. $)
+                  free in P. $)
                           
 $c #appctx $.    $( application context token;
                   ( #appctx P xX ) means P is an application context wrt variable xX. $)
@@ -231,13 +231,13 @@ $}
 subst-exists-binding $a #subst ( \exists x Q ) ( \exists x Q ) R x $.
 
 $( 
-	See http://fsl.cs.illinois.edu/FSL/papers/2017/rosu-2017-lmcs/rosu-2017-lmcs-public.pdf,
-	Page 8, Lines 3-4.
+    See http://fsl.cs.illinois.edu/FSL/papers/2017/rosu-2017-lmcs/rosu-2017-lmcs-public.pdf,
+    Page 8, Lines 3-4.
 $)
 
 ${
-	$d y xX $.
-	subst-exists-body.1 $e #nfree z R $.
+    $d y xX $.
+    subst-exists-body.1 $e #nfree z R $.
     subst-exists-body.2 $e #subst Q P z y $.   $( Q === P[z/y] $)
     subst-exists-body.3 $e #subst Q' Q R xX $. $( Q' === Q[R/xX] $)
     subst-exists-body   $a #subst ( \exists z Q' ) ( \exists y P ) R xX $.
@@ -254,7 +254,7 @@ ${
 $}
 
 $(
-	Part 2: Matching Logic Proof System
+    Part 2: Matching Logic Proof System
 $)
 
 $( TODO: Use simpler ids for proof rules. $)
@@ -347,15 +347,15 @@ $( Part 2.5: Misc technical rules $)
 rl-existence $a |- ( \exists x x ) $.
 
 ${
-	rl-singleton.1 $e #appctx R xX $.
-	rl-singleton.2 $e #appctx R' xX $.
-	rl-singleton.3 $e #subst Q  R ( \imp ( \imp x ( \imp P \bot ) ) \bot ) xX $.
-	rl-singleton.4 $e #subst Q' R ( \imp ( \imp x P               ) \bot ) xX $.
-	rl-singleton   $a |- ( \imp Q ( \imp Q' \bot ) ) $.
+    rl-singleton.1 $e #appctx R xX $.
+    rl-singleton.2 $e #appctx R' xX $.
+    rl-singleton.3 $e #subst Q  R ( \imp ( \imp x ( \imp P \bot ) ) \bot ) xX $.
+    rl-singleton.4 $e #subst Q' R ( \imp ( \imp x P               ) \bot ) xX $.
+    rl-singleton   $a |- ( \imp Q ( \imp Q' \bot ) ) $.
 $}
 
 $(
-	Part 3: Metalevel Equality (Introducing Syntactic Sugar to the Metalevel)
+    Part 3: Metalevel Equality (Introducing Syntactic Sugar to the Metalevel)
 $)
 
 $c #eqq $. $( the metalevel equality ( #eqq P Q ) $)
@@ -415,13 +415,13 @@ ${
 $}
 
 $(
-	So far we have defined the metalevel of ML, i.e., the proof checker.
-	Next, we show how to prove metatheorems about ML (i.e., proof objects).
+    So far we have defined the metalevel of ML, i.e., the proof checker.
+    Next, we show how to prove metatheorems about ML (i.e., proof objects).
 $)
 
 $(
-	Part 4: Prove metatheorems about ML.
-	Remark: This part is not complete. Read it to see examples of various metatheorems.
+    Part 4: Prove metatheorems about ML.
+    Remark: This part is not complete. Read it to see examples of various metatheorems.
 $)
 
 $( We can prove axiom schemas. $)
@@ -525,25 +525,25 @@ $c \iff $.
 wf-iff $a #wf ( \iff P Q ) $.
 ${
     iff-intro.1 $e |- ( \imp P Q ) $.
-	iff-intro.2 $e |- ( \imp Q P ) $.
-	iff-intro   $a |- ( \iff P Q ) $.
+    iff-intro.2 $e |- ( \imp Q P ) $.
+    iff-intro   $a |- ( \iff P Q ) $.
 $}
 ${
-	iff-elim-fw.1 $e |- ( \iff P Q ) $.
-	iff-elim-fw   $a |- ( \imp P Q ) $.
+    iff-elim-fw.1 $e |- ( \iff P Q ) $.
+    iff-elim-fw   $a |- ( \imp P Q ) $.
 $}
 ${
-	iff-elim-bw.1 $e |- ( \iff P Q ) $.
-	iff-elim-bw   $a |- ( \imp Q P ) $.
+    iff-elim-bw.1 $e |- ( \iff P Q ) $.
+    iff-elim-bw   $a |- ( \imp Q P ) $.
 $}
 
 $(
-	\iff yields a congruence relation in terms of provability.
+    \iff yields a congruence relation in terms of provability.
 $)
 ${
-	iff-thm.1 $e |- ( \iff P Q ) $.
-	iff-thm.2 $e |- P $.
-	iff-thm   $p |- Q $=
+    iff-thm.1 $e |- ( \iff P Q ) $.
+    iff-thm.2 $e |- P $.
+    iff-thm   $p |- Q $=
   wfP wfQ iff-thm.2 wfP wfQ iff-thm.1 iff-elim-fw rl-mp $.
 $}
 
@@ -562,9 +562,9 @@ df-app2 $a #eqq ( \app2 P Q R ) ( \app ( \app P Q ) R ) $.
 $c \eq $.
 wf-eq $a #wf ( \eq P Q ) $.
 ${
-	eq-thm.1 $e |- ( \eq P Q ) $.
-	eq-thm.2 $e |- Q $.
-	eq-thm   $a |- P $.
+    eq-thm.1 $e |- ( \eq P Q ) $.
+    eq-thm.2 $e |- Q $.
+    eq-thm   $a |- P $.
 $}
 
 $( SIMP Definitions $)
