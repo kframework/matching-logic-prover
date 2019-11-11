@@ -617,6 +617,11 @@ Simplifications
   rule isDisjunction(\or(_)) => true
   rule isDisjunction(_) => false
     [owise]
+
+  syntax Bool ::= isApplication(Pattern) [function]
+  rule isApplication(S:Symbol(_)) => true
+  rule isApplication(_) => false
+    [owise]
 ```
 
 ```k
