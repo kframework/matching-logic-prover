@@ -576,11 +576,13 @@ Simplifications
   rule isPredicatePattern(\or(.Patterns)) => true
   rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
   rule isPredicatePattern(\implies(P1, P2)) => isPredicatePattern(P1) andBool isPredicatePattern(P2)
+
+  // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
   rule isPredicatePattern(S:Symbol(ARGS)) => true
     requires getReturnSort(S(ARGS)) ==K Bool
 
-  rule isPredicatePattern(sep(_)) => false
-  rule isPredicatePattern(pto(_)) => false
+  rule isPredicatePattern(S:Symbol(ARGS)) => false
+    requires getReturnSort(S(ARGS)) ==K Heap
   rule isPredicatePattern(emp(.Patterns)) => false
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
@@ -599,6 +601,11 @@ Simplifications
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires isUnfoldable(S) andBool getReturnSort(S(ARGS)) ==K Heap
+
+  // TODO: Perhaps normalization should get rid of this?
+  rule isSpatialPattern(\exists{_} implicationContext(\and(sep(_),_),_)) => true
+  rule isSpatialPattern(\exists{_} implicationContext(_,_)) => false
+    [owise]
   rule isSpatialPattern(\forall{_} implicationContext(\and(sep(_),_),_)) => true
   rule isSpatialPattern(\forall{_} implicationContext(_,_)) => false
     [owise]
