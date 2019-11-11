@@ -194,7 +194,11 @@ module KORE-HELPERS
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
-  syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+  syntax Symbol ::= StringToSymbol(String) [function]
+  rule StringToSymbol(S) => StringToLowerName(S)
+  syntax Sort ::= StringToSort(String) [function]
+  rule StringToSort(S) => StringToLowerName(S)
+  syntax LowerName ::= StringToLowerName(String) [function, functional, hook(STRING.string2token)]
 
   syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
   rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))
