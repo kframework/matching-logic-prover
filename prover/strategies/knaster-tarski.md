@@ -357,19 +357,9 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
                        )
        </claim>
        <strategy> kt-collapse
-<<<<<<< HEAD
-               => ( #match(terms: LSPATIAL, pattern: CTXLHS, variables: .Patterns)
-                 ~> kt-collapse
-                  )
-||||||| parent of 6ddd966... matching: Create a with-each-match() strategy for handling multiple matches
-               => ( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: .Patterns)
-                 ~> kt-collapse
-                  )
-=======
-               => with-each-match( #match(term: sep(LSPATIAL), pattern: sep(CTXLHS), variables: .Patterns)
+               => with-each-match( #match(terms: LSPATIAL, pattern: CTXLHS, variables: .Patterns)
                                  , kt-collapse
                                  )
->>>>>>> 6ddd966... matching: Create a with-each-match() strategy for handling multiple matches
                   ...
        </strategy>
 
