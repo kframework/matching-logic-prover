@@ -38,10 +38,8 @@ module STRATEGY-SEARCH-BOUND
   rule right-unfold-or-match
     => normalize . or-split-rhs
      . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-     . instantiate-separation-logic-axioms
-     . check-lhs-constraint-unsat
      . ( ( match . spatial-patterns-equal . smt-cvc4 )
-       | ( right-unfold)
+       | ( right-unfold )
        )
 endmodule
 ```
