@@ -201,7 +201,7 @@ module STRATEGY-SMT
   imports Z3
   imports CVC4
   imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
   imports ML-TO-SMTLIB2
 
   rule <claim> GOAL </claim>

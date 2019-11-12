@@ -1,7 +1,7 @@
 ```k
 module STRATEGY-UNFOLDING
   imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
 
   syntax Pattern ::= unfold(Pattern) [function]

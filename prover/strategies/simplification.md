@@ -3,7 +3,7 @@ These strategies encompass a variety of simplification strategies
 ```k
 module STRATEGY-SIMPLIFICATION
   imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
 ```
 

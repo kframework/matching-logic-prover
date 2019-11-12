@@ -16,7 +16,7 @@ Strategies for the Horn Clause fragment
 =======================================
 
 ```k
-module PROVER-HORN-CLAUSE-SYNTAX
+module STRATEGIES-EXPORTED-SYNTAX
   imports INT-SYNTAX
   imports KORE
 
