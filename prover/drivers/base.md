@@ -46,7 +46,7 @@ Driver & Syntax
 The driver is responsible for loading prover files into the configuration.
 
 ```k
-module DRIVER-BASE
+module DRIVER-BASE-COMMON
   imports PROVER-CORE-SYNTAX
   imports STRATEGIES-EXPORTED-SYNTAX
   imports SMTLIB2
@@ -54,14 +54,15 @@ module DRIVER-BASE
 
   syntax Pgm ::= SMTLIB2Script
                | Declarations
-  syntax Declarations ::= Declaration Declarations
-  syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
+endmodule
+
+module DRIVER-BASE
+  imports DRIVER-BASE-COMMON
 endmodule
 
 module DRIVER-BASE-SYNTAX
-  imports DRIVER-KORE
+  imports DRIVER-BASE-COMMON
   imports TOKENS-SYNTAX
   syntax Declarations ::= "" [klabel(.Declarations), symbol]
 endmodule
 ```
-

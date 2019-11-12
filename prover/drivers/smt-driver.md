@@ -335,4 +335,3 @@ Clear the `<k>` cell once we are done:
 ```k
 endmodule
 ```
-
