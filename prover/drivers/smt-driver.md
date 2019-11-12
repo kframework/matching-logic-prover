@@ -11,7 +11,7 @@ module DRIVER-SMT
   imports SMTLIB2
   imports SMTLIB-SL
   imports PROVER-CORE-SYNTAX
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
 
   syntax GoalBuilder ::= "#goal" "(" "goal:"     Pattern
                                  "," "strategy:" Strategy

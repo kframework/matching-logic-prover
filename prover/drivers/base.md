@@ -48,7 +48,7 @@ The driver is responsible for loading prover files into the configuration.
 ```k
 module DRIVER-BASE
   imports PROVER-CORE-SYNTAX
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
   imports SMTLIB2
   imports KORE
 

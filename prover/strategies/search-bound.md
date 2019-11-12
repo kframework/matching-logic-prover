@@ -6,7 +6,7 @@ The `search-bound` strategy peforms a bounded depth-first search for a proof, ap
 ```k
 module STRATEGY-SEARCH-BOUND
   imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
 
   rule <strategy> search-fol(bound: 0) => fail </strategy>
   rule <strategy> search-fol(bound: N)
