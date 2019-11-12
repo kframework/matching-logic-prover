@@ -9,7 +9,7 @@ or, by requiring several strategies succeed.
 
 ```k
 module PROVER-CORE-SYNTAX
-  imports KORE-SUGAR
+  imports KORE
 
   syntax Declaration ::= "claim" Pattern "strategy" Strategy
 ```

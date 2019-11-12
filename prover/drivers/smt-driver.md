@@ -5,7 +5,7 @@ This file is responsible for loading definitions in the SMT2 format.
 
 ```k
 module SMT-DRIVER
-  imports KORE-SUGAR
+  imports KORE
   imports KORE-HELPERS
   imports PROVER-CONFIGURATION
   imports SMTLIB2
