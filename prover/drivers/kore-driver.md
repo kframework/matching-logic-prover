@@ -5,7 +5,7 @@ This module is responsible for loading files in the kore syntax into the
 configuration.
 
 ```k
-module KORE-DRIVER
+module DRIVER-KORE
   imports PROVER-COMMON
   imports PROVER-CORE
   imports K-IO
@@ -90,7 +90,7 @@ endmodule
 ```
 
 ```k
-module PROVER-KORE-SYNTAX
+module DRIVER-KORE-SYNTAX
   imports PROVER-COMMON-SYNTAX
   imports SMTLIB2-SYNTAX
   imports SMTLIB-SL

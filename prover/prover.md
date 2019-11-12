@@ -62,7 +62,7 @@ module PROVER-COMMON
 endmodule
 
 module PROVER-COMMON-SYNTAX
-  imports KORE-DRIVER
+  imports DRIVER-KORE
   imports TOKENS-SYNTAX
   syntax Declarations ::= "" [klabel(.Declarations), symbol]
 endmodule
@@ -73,8 +73,8 @@ Main Modules
 
 ```k
 module PROVER
-  imports KORE-DRIVER
-  imports SMT-DRIVER
+  imports DRIVER-KORE
+  imports DRIVER-SMT
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION

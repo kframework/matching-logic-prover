@@ -4,7 +4,7 @@ SMT Driver
 This file is responsible for loading definitions in the SMT2 format.
 
 ```k
-module SMT-DRIVER
+module DRIVER-SMT
   imports KORE
   imports KORE-HELPERS
   imports PROVER-CONFIGURATION
@@ -311,7 +311,7 @@ endmodule
 ```
 
 ```k
-module PROVER-SMT-SYNTAX
+module DRIVER-SMT-SYNTAX
   imports PROVER-COMMON-SYNTAX
   imports SMTLIB2-SYNTAX
   imports SMTLIB-SL
