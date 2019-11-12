@@ -39,3 +39,29 @@ module PROVER-CONFIGURATION
       </prover>
 endmodule
 ```
+
+Driver & Syntax
+===============
+
+The driver is responsible for loading prover files into the configuration.
+
+```k
+module DRIVER-BASE
+  imports PROVER-CORE-SYNTAX
+  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports SMTLIB2
+  imports KORE
+
+  syntax Pgm ::= SMTLIB2Script
+               | Declarations
+  syntax Declarations ::= Declaration Declarations
+  syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
+endmodule
+
+module DRIVER-BASE-SYNTAX
+  imports DRIVER-KORE
+  imports TOKENS-SYNTAX
+  syntax Declarations ::= "" [klabel(.Declarations), symbol]
+endmodule
+```
+

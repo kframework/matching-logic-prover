@@ -2,7 +2,7 @@
 requires "lang/kore-lang.k"
 requires "drivers/smt-driver.k"
 requires "drivers/kore-driver.k"
-requires "drivers/configuration.k"
+requires "drivers/base.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -40,31 +40,6 @@ module PROVER-HORN-CLAUSE-SYNTAX
   syntax KTFilter ::= head(Symbol)
                     | index(Int)
                     | ".KTFilter"
-endmodule
-```
-
-Driver & Syntax
-===============
-
-The driver is responsible for loading prover files into the configuration.
-
-```k
-module PROVER-COMMON
-  imports PROVER-CORE-SYNTAX
-  imports PROVER-HORN-CLAUSE-SYNTAX
-  imports SMTLIB2
-  imports KORE
-
-  syntax Pgm ::= SMTLIB2Script
-               | Declarations
-  syntax Declarations ::= Declaration Declarations
-  syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
-endmodule
-
-module PROVER-COMMON-SYNTAX
-  imports DRIVER-KORE
-  imports TOKENS-SYNTAX
-  syntax Declarations ::= "" [klabel(.Declarations), symbol]
 endmodule
 ```
 
