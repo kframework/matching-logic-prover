@@ -8,7 +8,7 @@ ML to SMTLIB2
 ```k
 module ML-TO-SMTLIB2
   imports STRING-SYNTAX
-  imports SMTLIB2
+  imports SMTLIB2-HELPERS
   imports KORE
   imports KORE-HELPERS
   imports STRATEGY-UNFOLDING
@@ -279,7 +279,7 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                               fi
                              )
                         fi
-                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))))
+                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))):CheckSATResult)
                   ...
        </strategy>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
@@ -288,7 +288,7 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 ```k
   rule <claim> GOAL </claim>
        <strategy> smt-debug
-               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))))
+               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))):CheckSATResult
                   ...
        </strategy>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
@@ -297,7 +297,7 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 
 ```k
   syntax Bool ::= isUnknown(CheckSATResult) [function]
-  rule isUnknown(unknown(_)) => true
+  rule isUnknown(unknown) => true
   rule isUnknown(_) => false [owise]
 ```
 

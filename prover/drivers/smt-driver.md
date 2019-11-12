@@ -4,13 +4,40 @@ SMT Driver
 This file is responsible for loading definitions in the SMT2 format.
 
 ```k
+module DRIVER-SMT-COMMON
+  imports SMTLIB-SL
+  imports STRATEGIES-EXPORTED-SYNTAX
+  syntax SMTLIB2AttributeValue ::= Strategy
+endmodule
+```
+
+```k
+module DRIVER-SMT-SYNTAX
+  imports DRIVER-BASE-SYNTAX
+  imports DRIVER-SMT-COMMON
+  imports SMTLIB2-SYNTAX
+
+  // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
+  syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
+```
+
+When parsing with the SMTLIB2 syntax, we use semicolons as comments:
+
+```k
+  syntax #Layout ::= r"(;[^\\n\\r]*)"     // SMTLIB2 style semicolon comments
+                   | r"([\\ \\n\\r\\t])"  // whitespace
+
+endmodule
+```
+
+```k
 module DRIVER-SMT
+  imports DRIVER-SMT-COMMON
   imports KORE
   imports KORE-HELPERS
   imports PROVER-CONFIGURATION
-  imports SMTLIB2
-  imports SMTLIB-SL
   imports PROVER-CORE-SYNTAX
+  imports SMTLIB2-HELPERS
   imports STRATEGIES-EXPORTED-SYNTAX
 
   syntax GoalBuilder ::= "#goal" "(" "goal:"     Pattern
@@ -264,7 +291,6 @@ Clear the `<k>` cell once we are done:
   rule #statusToTerminalStrategy(unsat)      => success
   rule #statusToTerminalStrategy(sat)        => fail
   rule #statusToTerminalStrategy(unknown)    => fail
-  rule #statusToTerminalStrategy(unknown(_)) => fail
 
   syntax Pattern ::= SMTLIB2TermToPattern(SMTLIB2Term, Patterns) [function]
   rule SMTLIB2TermToPattern( (exists ( ARGS ) T), Vs ) => \exists { SMTLIB2SortedVarListToPatterns(ARGS) } SMTLIB2TermToPattern(T, SMTLIB2SortedVarListToPatterns(ARGS) ++Patterns Vs)
@@ -307,25 +333,6 @@ Clear the `<k>` cell once we are done:
 ```
 
 ```k
-endmodule
-```
-
-```k
-module DRIVER-SMT-SYNTAX
-  imports DRIVER-BASE-SYNTAX
-  imports SMTLIB2-SYNTAX
-  imports SMTLIB-SL
-
-  // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
-  syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
-```
-
-When parsing with the SMTLIB2 syntax, we use semicolons as comments:
-
-```k
-  syntax #Layout ::= r"(;[^\\n\\r]*)"     // SMTLIB2 style semicolon comments
-                   | r"([\\ \\n\\r\\t])"  // whitespace
-
 endmodule
 ```
 
