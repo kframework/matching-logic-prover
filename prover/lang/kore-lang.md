@@ -169,11 +169,12 @@ only in this scenario*.
 
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
-
   syntax Declaration ::= "imports" String
                        | "axiom" Pattern
                        | SymbolDeclaration
                        | SortDeclaration
+  syntax Declarations ::= Declaration Declarations
+  syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
 
   syntax Variable ::= "#hole"
 
