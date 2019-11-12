@@ -40,8 +40,8 @@ def prover(alias, flags = None):
                           , flags = flags
                           )
 
-prover_kore = prover('prover-kore', '--syntax-module PROVER-KORE-SYNTAX')
-prover_smt  = prover('prover-smt', '--syntax-module PROVER-SMT-SYNTAX --check-races')
+prover_kore = prover('prover-kore', '--syntax-module DRIVER-KORE-SYNTAX')
+prover_smt  = prover('prover-smt',  '--syntax-module DRIVER-SMT-SYNTAX' )
 
 # Functional tests
 # ----------------

@@ -8,7 +8,7 @@ requires "prover.k"
 module UNIT-TESTS-SYNTAX
     imports TOKENS-SYNTAX
     imports UNIT-TESTS
-    imports PROVER-KORE-SYNTAX
+    imports DRIVER-KORE-SYNTAX
 ```
 
 When K generates the grammar for parsing rules in modules, it adds a production
@@ -30,8 +30,8 @@ endmodule
 
 ```k
 module UNIT-TESTS
-  imports SMT-DRIVER
-  imports KORE-DRIVER
+  imports DRIVER-SMT
+  imports DRIVER-KORE
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION
