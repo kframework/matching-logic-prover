@@ -5,7 +5,7 @@ Kore Sugar
 module TOKENS
   // Lexical
   syntax UpperName
-  syntax LowerName
+  syntax LowerName ::= CheckSATResult
   syntax ColonName
   syntax PipeQID
   syntax Decimal
@@ -14,6 +14,10 @@ module TOKENS
   syntax Symbol ::= UpperName | LowerName
   syntax VariableName ::= UpperName
   syntax Sort ::= UpperName | LowerName
+
+  syntax CheckSATResult ::= "sat"       [token] 
+                          | "unsat"     [token]
+                          | "unknown"   [token]
 
   // Identifiers used directly in the semantics
 

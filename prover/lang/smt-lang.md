@@ -9,8 +9,7 @@ module SMTLIB2
   imports INT-SYNTAX
   imports BOOL-SYNTAX
   imports STRING
-  imports K-IO
-  imports PROVER-CORE-SYNTAX
+  imports KORE
 
 // Tokens
   syntax SMTLIB2Numeral ::= Int
@@ -91,17 +90,22 @@ module SMTLIB2
                             | ":status"            [token]
                             | ColonName
 
-  syntax SMTLIB2AttributeValue ::= Strategy
-                                 | SMTLIB2Symbol
+  syntax SMTLIB2AttributeValue ::= SMTLIB2Symbol
                                  | SMTLIB2SpecConstant
                                  | "(" SMTLIB2SExprList ")"
-                                 | CheckSATResult
 
   syntax SMTLIB2Command ::= "(" "set-info" SMTLIB2Attribute SMTLIB2AttributeValue ")"
+endmodule
+```
 
-  syntax CheckSATResult ::= "sat" | "unsat"
-                          | "unknown"
-                          | "unknown" "(" K ")" | "error" "(" K ")"
+```k
+module SMTLIB2-HELPERS
+  imports K-IO
+  imports SMTLIB2
+  imports PROVER-CORE-SYNTAX
+
+  syntax SMTLIB2AttributeValue ::=  CheckSATResult
+  syntax CheckSATResult ::= "error" "(" K ")"
 
 // Concatenation:
 
@@ -238,20 +242,20 @@ module SMTLIB2
   syntax CheckSATResult ::= "CheckSAT.parseResult" "(" KItem ")" [function]
   rule CheckSAT.parseResult(#systemResult(0, "sat\n", STDERR))     => sat
   rule CheckSAT.parseResult(#systemResult(0, "unsat\n", STDERR))   => unsat
-  rule CheckSAT.parseResult(#systemResult(0, "unknown\n", STDERR)) => unknown(.K)
+  rule CheckSAT.parseResult(#systemResult(0, "unknown\n", STDERR)) => unknown
   rule CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))      => error(#systemResult(I, STDOUT, STDERR))
     requires I =/=Int 0
 endmodule
 
 module Z3
-  imports SMTLIB2
+  imports SMTLIB2-HELPERS
   syntax CheckSATResult ::= Z3CheckSAT(SMTLIB2Script) [function]
   rule Z3CheckSAT(QUERY)
     => CheckSATHelper( SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n", "z3 -T:5 ")
 endmodule
 
 module CVC4
-  imports SMTLIB2
+  imports SMTLIB2-HELPERS
   syntax CheckSATResult ::= CVC4CheckSAT(SMTLIB2Script) [function]
   rule CVC4CheckSAT(QUERY)
     => CheckSATHelper( "( set-logic ALL_SUPPORTED ) \n "
