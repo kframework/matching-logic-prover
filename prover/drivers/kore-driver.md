@@ -6,7 +6,7 @@ configuration.
 
 ```k
 module DRIVER-KORE
-  imports PROVER-COMMON
+  imports DRIVER-BASE
   imports PROVER-CORE
   imports K-IO
 ```
@@ -91,7 +91,7 @@ endmodule
 
 ```k
 module DRIVER-KORE-SYNTAX
-  imports PROVER-COMMON-SYNTAX
+  imports DRIVER-BASE-SYNTAX
   imports SMTLIB2-SYNTAX
   imports SMTLIB-SL
 endmodule

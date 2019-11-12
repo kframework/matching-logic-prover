@@ -19,7 +19,7 @@ proj = KProject()
 
 other_md_files = [ 'lang/smt-lang.md'
                  , 'lang/kore-lang.md'
-                 , 'drivers/configuration.md'
+                 , 'drivers/base.md'
                  , 'drivers/smt-driver.md'
                  , 'drivers/kore-driver.md'
                  , 'strategies/core.md'

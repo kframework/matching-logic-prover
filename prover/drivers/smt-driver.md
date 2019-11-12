@@ -312,7 +312,7 @@ endmodule
 
 ```k
 module DRIVER-SMT-SYNTAX
-  imports PROVER-COMMON-SYNTAX
+  imports DRIVER-BASE-SYNTAX
   imports SMTLIB2-SYNTAX
   imports SMTLIB-SL
 
