@@ -116,7 +116,7 @@ module TOKENS-SYNTAX
                    | "2.0" [token]
 endmodule
 
-module KORE-SUGAR
+module KORE
   imports TOKENS
   imports INT-SYNTAX
   imports BOOL-SYNTAX
@@ -186,7 +186,7 @@ Here we define helpers for manipulating Kore formulae.
 
 ```k
 module KORE-HELPERS
-  imports KORE-SUGAR
+  imports KORE
   imports MAP
   imports INT
   imports STRING

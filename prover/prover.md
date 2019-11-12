@@ -18,7 +18,7 @@ Strategies for the Horn Clause fragment
 ```k
 module PROVER-HORN-CLAUSE-SYNTAX
   imports INT-SYNTAX
-  imports KORE-SUGAR
+  imports KORE
 
   syntax Strategy ::= "search-fol" "(" "bound" ":" Int ")" | "search-sl" "(" "bound" ":" Int ")"
                     | "remove-lhs-existential" | "normalize" | "lift-or"
@@ -53,7 +53,7 @@ module PROVER-COMMON
   imports PROVER-CORE-SYNTAX
   imports PROVER-HORN-CLAUSE-SYNTAX
   imports SMTLIB2
-  imports KORE-SUGAR
+  imports KORE
 
   syntax Pgm ::= SMTLIB2Script
                | Declarations

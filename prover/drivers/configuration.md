@@ -11,7 +11,7 @@ information. Eventually, this could be used for constructing a proof object.
 
 ```k
 module PROVER-CONFIGURATION
-  imports KORE-SUGAR
+  imports KORE
   imports DOMAINS-SYNTAX
 
   syntax Pgm

@@ -9,7 +9,7 @@ ML to SMTLIB2
 module ML-TO-SMTLIB2
   imports STRING-SYNTAX
   imports SMTLIB2
-  imports KORE-SUGAR
+  imports KORE
   imports KORE-HELPERS
   imports STRATEGY-UNFOLDING
   imports KORE-DRIVER
