@@ -48,7 +48,13 @@ module DRIVER-SMT
                                  "," "strategy:" Strategy
                                  "," "expected:" K
                                  ")"
-
+  rule <k> --default-strategy STRAT
+        => #goal( goal: \exists { .Patterns } \and( .Patterns )
+                , strategy: search-sl(bound: 5)
+                , expected: success
+                )
+           ...
+       </k>
   rule <k> S:SMTLIB2Script
         => #goal( goal: \exists { .Patterns } \and( .Patterns )
                 , strategy: search-sl(bound: 5)
