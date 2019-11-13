@@ -17,6 +17,9 @@ module DRIVER-SMT-SYNTAX
   imports DRIVER-SMT-COMMON
   imports SMTLIB2-SYNTAX
 
+  // TODO: Why doesn't this work in TOKENS-SYNTAX
+  syntax LowerName ::= Bool [token]
+
   // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
   syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
 ```
