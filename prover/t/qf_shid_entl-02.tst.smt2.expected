@@ -23,11 +23,13 @@
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { Vx { RefGTyp } , Vy { RefGTyp } , .Patterns } \iff-lfp ( RList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( \equals ( nil ( .Patterns ) , Vx { RefGTyp } ) ) , pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { Vxp { RefGTyp } , .Patterns } \and ( \not ( \equals ( nil ( .Patterns ) , Vxp { RefGTyp } ) ) , sep ( pto ( Vxp { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , RList ( Vx { RefGTyp } , Vxp { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+      axiom \forall { Vx { RefGTyp } , Vy { RefGTyp } , .Patterns } \iff-lfp ( RList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , \or ( \exists { .Patterns } \and ( \not ( \equals ( nil_RefGTyp ( .Patterns ) , Vx { RefGTyp } ) ) , pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { Vxp { RefGTyp } , .Patterns } \and ( \not ( \equals ( nil_RefGTyp ( .Patterns ) , Vxp { RefGTyp } ) ) , sep ( pto ( Vxp { RefGTyp } , c_GTyp ( Vy { RefGTyp } , .Patterns ) , .Patterns ) , RList ( Vx { RefGTyp } , Vxp { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom functional ( RList )
     </declaration> <declaration>
-      axiom functional ( nil )
+      axiom functional ( c_GTyp )
+    </declaration> <declaration>
+      axiom functional ( nil_RefGTyp )
     </declaration> <declaration>
       axiom heap ( RefGTyp , GTyp )
     </declaration> <declaration>
@@ -43,7 +45,7 @@
     </declaration> <declaration>
       symbol emp ( .Sorts ) : Heap
     </declaration> <declaration>
-      symbol nil ( .Sorts ) : RefGTyp
+      symbol nil_RefGTyp ( .Sorts ) : RefGTyp
     </declaration> <declaration>
       symbol pto ( RefGTyp , GTyp , .Sorts ) : Heap
     </declaration> <declaration>
