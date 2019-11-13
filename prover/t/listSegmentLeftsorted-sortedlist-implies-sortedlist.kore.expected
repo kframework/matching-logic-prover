@@ -9,7 +9,7 @@
     <goal>
       active: true, id: root, parent: .
       <claim>
-        \implies ( \and ( listSegmentLeftSorted ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , MIN { Int } , MAX { Int } , .Patterns ) , listSorted ( H { ArrayIntInt } , Y { Int } , G { SetInt } , MIN2 { Int } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , \not ( gt ( MAX { Int } , MIN2 { Int } , .Patterns ) ) , .Patterns ) , \exists { .Patterns } \and ( listSorted ( H { ArrayIntInt } , X { Int } , K { SetInt } , MIN { Int } , .Patterns ) , .Patterns ) )
+        \implies ( \and ( listSegmentLeftSorted ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , MIN { Int } , MAX { Int } , .Patterns ) , listSorted ( H { ArrayIntInt } , Y { Int } , G { SetInt } , MIN2 { Int } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , \not ( gt ( MAX { Int } , MIN2 { Int } , .Patterns ) ) , .Patterns ) , \and ( listSorted ( H { ArrayIntInt } , X { Int } , K { SetInt } , MIN { Int } , .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         success
