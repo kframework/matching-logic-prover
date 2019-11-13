@@ -42,19 +42,3 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | ".KTFilter"
 endmodule
 ```
-
-Main Modules
-============
-
-```k
-module PROVER
-  imports DRIVER-KORE
-  imports DRIVER-SMT
-  imports STRATEGY-SMT
-  imports STRATEGY-SEARCH-BOUND
-  imports STRATEGY-SIMPLIFICATION
-  imports STRATEGY-MATCHING
-  imports STRATEGY-UNFOLDING
-  imports STRATEGY-KNASTER-TARSKI
-endmodule
-```

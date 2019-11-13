@@ -36,6 +36,7 @@ endmodule
 ```k
 module DRIVER-SMT
   imports DRIVER-SMT-COMMON
+  imports DRIVER-KORE
   imports KORE
   imports KORE-HELPERS
   imports PROVER-CONFIGURATION
