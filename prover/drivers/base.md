@@ -16,11 +16,12 @@ module PROVER-CONFIGURATION
 
   syntax Pgm
   syntax Strategy
+  syntax CommandLine
   syntax GoalId ::= "root" | Int
 
   configuration
       <prover>
-        <k> $PGM:Pgm </k>
+        <k> $COMMANDLINE:CommandLine ~> $PGM:Pgm </k>
         <exit-code exit=""> 1 </exit-code>
         <goals>
           <goal multiplicity="*" type="Set" format="%1%i%n%2, %3, %4%n%5%n%6%n%7%n%d%8">
@@ -54,6 +55,10 @@ module DRIVER-BASE-COMMON
 
   syntax Pgm ::= SMTLIB2Script
                | Declarations
+
+  // TODO: Why does K not handle the empty token when parsing options?
+  syntax CommandLine ::= ".CommandLine" [klabel(.CommandLine)]
+                       | "--default-strategy" Strategy
 endmodule
 
 module DRIVER-BASE
@@ -64,11 +69,15 @@ module DRIVER-BASE
   imports STRATEGY-MATCHING
   imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
+
+  rule <k> .CommandLine => .K ... </k>
 endmodule
 
 module DRIVER-BASE-SYNTAX
   imports DRIVER-BASE-COMMON
   imports TOKENS-SYNTAX
   syntax Declarations ::= "" [klabel(.Declarations), symbol]
+  // TODO: Why doesn't this work?
+  // syntax CommandLine ::= "" [klabel(.CommandLine)]
 endmodule
 ```

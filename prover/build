@@ -46,40 +46,64 @@ prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module D
 # Functional tests
 # ----------------
 
-prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'))
-prover_smt .tests(inputs = glob('t/*.smt2'))
-
+prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
 
 def log_on_success(file, message):
     return proj.rule( 'log-to-success'
                     , description = '$out: $message'
                     , command = "echo '$message' >> '$log_file'"
                     ) \
-               .variable('log_file', 't/passing/qf_shid_entl.all') \
+               .variable('log_file', file) \
                         .variable('message',  message) \
-                        .output('t/passing/qf_shid_entl.' + message.replace('/', '.'))
+                        .ext(message.replace('/', '.'))
 
 def krun_with_timeout(timeout_flags):
+    # TODO: This timeout functionality should become a part of the runner script
+    # or KNinja
     timeout_cmd = 'gtimeout' if shutil.which("gtimeout") else 'timeout'
     return prover_smt.krun() \
                      .ext('timeout') \
-                     .variable('env', timeout_cmd + ' ' + timeout_flags + ' opam config exec --')
+                     .variable('env', timeout_cmd + ' ' + timeout_flags + ' opam config exec --') \
 
-known_passing = list(map(str.strip, open('t/passing/qf_shid_entl.unsat').readlines()))
+unsat_tests = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat').readlines()))
+passing_5   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.5').readlines()))
+passing_8   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.8').readlines()))
+
+def strategy_for_test(test):
+    if test == 't/SL-COMP18/bench/qf_shid_entl/nll-vc01.smt2':
+        return "   normalize . or-split-rhs . lift-constraints" \
+             + " . (right-unfold(nll) { 3 })"                   \
+             + " . (right-unfold(lso) { 7 })"                   \
+             + " . search-sl(bound: 1)"
+    if test in passing_5: return 'search-sl(bound: 5)'
+    if test in passing_8: return 'search-sl(bound: 8)'
+    else:                 return 'search-sl(bound: 8)'
+def known_passing(test):
+    return (test in passing_5) \
+        or (test in passing_8) \
+        or (test == 't/SL-COMP18/bench/qf_shid_entl/nll-vc01.smt2')
+
+def make_test(rule, test):
+    commandline = "'--default-strategy %s'" % strategy_for_test(test)
+    return proj.source(test) \
+               .then(rule.variable('flags', '-cCOMMANDLINE=%s' % commandline))
+
 tests_with_timeout = []
 def sl_comp_test(test):
     global tests_with_timeout
-    t_no_timeout = proj.source(test).then(prover_smt.krun())
-    if test in known_passing: t_no_timeout.default()
-    t_timeout = proj.source(test) \
-                    .then(krun_with_timeout('10m')) \
-                    .then(log_on_success('t/passing/qf_shid_entl.all', test))
-    tests_with_timeout += [t_timeout]
+    # test_no_timeout   = make_test(prover_smt.krun(), test)
+    test_with_timeout = make_test(krun_with_timeout('20m'), test) \
+                          .then(log_on_success('.build/passed', test))
+    if known_passing(test): test_with_timeout.default()
+    tests_with_timeout += [test_with_timeout]
+
 for t in glob('t/SL-COMP18/bench/qf_shid_entl/*.smt2'):
     sl_comp_test(t)
 proj.alias('collect-qf-shid-entl', tests_with_timeout)
 
-# Unit Tests
+
+#d Unit Tests
 # ----------
 
 # TODO: LLVM errors are miles better than OCaml (a pretty low bar).
