@@ -40,8 +40,8 @@ def prover(alias, flags = None):
                           , flags = flags
                           )
 
-prover_kore = prover('prover-kore', '--syntax-module DRIVER-KORE-SYNTAX')
-prover_smt  = prover('prover-smt',  '--syntax-module DRIVER-SMT-SYNTAX' )
+prover_kore = prover('prover-kore', '--main-module DRIVER-KORE --syntax-module DRIVER-KORE-SYNTAX')
+prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module DRIVER-SMT-SYNTAX' )
 
 # Functional tests
 # ----------------
