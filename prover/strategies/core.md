@@ -26,6 +26,8 @@ module PROVER-CORE-SYNTAX
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
   syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs"
   syntax Strategy ::= "prune" "(" Patterns ")"
+
+  syntax Strategy ::= Strategy "{" Int "}"
 ```
 
 TODO: Should we allow `success` and `fail` in the program syntax? All other
@@ -184,7 +186,6 @@ approach succeeds:
 The S { N } construct allows us to repeat a strategy S N times
 
 ```k
-  syntax Strategy ::= Strategy "{" Int "}"
   rule <strategy> S { M } => noop ... </strategy>
     requires M <=Int 0
   rule <strategy> S { M } => S . (S { M -Int 1 }) ... </strategy>
