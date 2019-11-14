@@ -351,7 +351,8 @@ Clear the `<k>` cell once we are done:
 ```
 
 ```k
-  // TODO: normalize will put the qfree part in dnf form, then gather the existentials and put those back at the top
+  // TODO: normalize will put the qfree part in dnf form, then gather the existentials and put those back at the top.
+  // Then it will push the existentials under the outer disjunction
   syntax Patterns ::= #getExistentialVariables(Pattern) [function]
   syntax Patterns ::= #getExistentialVariablesPatterns(Patterns) [function]
   rule #getExistentialVariables(\exists { Vs } P) => Vs ++Patterns #getExistentialVariables(P)
@@ -382,10 +383,12 @@ Clear the `<k>` cell once we are done:
 
   syntax Pattern ::= #normalizeQFree(Pattern) [function]
                    | #normalizeDefinition(Pattern) [function]
-  rule #normalizeDefinition(P) => \exists { #getExistentialVariables(P) } #normalizeQFree(#removeExistentials(P))
+                   | #pushExistentialsDisjunction(Pattern) [function]
+  rule #normalizeDefinition(P) => #pushExistentialsDisjunction(\exists { #getExistentialVariables(P) } #normalizeQFree(#removeExistentials(P)))
   rule #normalizeQFree(\or(Ps)) => \or(#flattenOrs(#dnfPs(Ps)))
   rule #normalizeQFree(P) => #normalizeQFree(\or(P, .Patterns))
     [owise]
+  rule #pushExistentialsDisjunction(\exists{Vs} \or(Ps)) => \or(#exists(Ps, Vs))
 
   syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]
   rule #statusToTerminalStrategy(unsat)      => success
