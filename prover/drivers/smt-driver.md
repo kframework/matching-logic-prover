@@ -35,14 +35,15 @@ endmodule
 
 ```k
 module DRIVER-SMT
-  imports DRIVER-SMT-COMMON
   imports DRIVER-KORE
+  imports DRIVER-SMT-COMMON
   imports KORE
   imports KORE-HELPERS
   imports PROVER-CONFIGURATION
   imports PROVER-CORE-SYNTAX
   imports SMTLIB2-HELPERS
   imports STRATEGIES-EXPORTED-SYNTAX
+  imports STRATEGY-KNASTER-TARSKI
 
   syntax GoalBuilder ::= "#goal" "(" "goal:"     Pattern
                                  "," "strategy:" Strategy
@@ -184,20 +185,77 @@ module DRIVER-SMT
                       ) ...
        </declarations>
 
+  syntax K ::= #rest(SMTLIB2FunctionDecList, SMTLIB2TermList)
+
   rule <k> _:GoalBuilder
-        ~> ( (define-funs-rec ( .SMTLIB2FunctionDecList ) ( .SMTLIB2TermList ) )
+        ~> ( #rest(_, _)
+          ~> (define-funs-rec ( .SMTLIB2FunctionDecList ) ( .SMTLIB2TermList ) )
           => .K
            )
            ...
        </k>
 
   rule <k> _:GoalBuilder
-        ~> ( (define-funs-rec ( (SYM (ARGs) SORT) FDs ) ( T Ts ) )
-          => (define-fun-rec SYM (ARGs) SORT T)
-          ~> (define-funs-rec ( FDs ) ( Ts ) )
+        ~> (.K => #rest(FDs, BODIEs))
+        ~> (define-funs-rec ( FDs ) ( BODIEs ) )
+           ...
+       </k>
+  rule <k> _:GoalBuilder
+        ~> #rest(FDALLs, BODYALLs)
+        ~> ( (define-funs-rec ( (ID (ARGs) RET) FDs ) ( BODY BODIEs ) )
+          => unfoldMR( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
+                     , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs))
+                     , #gatherRest(FDALLs, BODYALLs) )
+          ~> (define-funs-rec ( FDs ) ( BODIEs ) )
            )
            ...
        </k>
+       <declarations> ( .Bag
+                     => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGs))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SortToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
+                        </declaration>
+                      ) ...
+       </declarations>
+
+  syntax PatternTuple ::= "(" Pattern "," Pattern ")"
+  syntax PatternTupleList ::= List{PatternTuple, ","} [klabel(PatternTupleList)]
+  syntax PatternTupleList ::= #gatherRest(SMTLIB2FunctionDecList, SMTLIB2TermList) [function]
+  rule #gatherRest(.SMTLIB2FunctionDecList, .SMTLIB2TermList ) => .PatternTupleList
+  rule #gatherRest((ID (ARGs) RET) FDs, BODY BODIEs )
+    => ( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
+       , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs))
+       ), #gatherRest(FDs, BODIEs)
+
+  syntax K ::= unfoldMR(Pattern, Pattern, PatternTupleList)
+  rule <k> _:GoalBuilder ~> #rest(_, _)
+        ~> ( unfoldMR(ID:Symbol(ARGs), BODY, .PatternTupleList)
+          => .K
+           )
+           ...
+       </k>
+       <declarations> ( .Bag
+                     => <declaration> axiom \forall { ARGs }
+                                         \iff-lfp( ID(ARGs)
+                                                 , #normalizeDefinition(#normalizeDefinition(BODY))
+                                                 )
+                        </declaration>
+                      ) ...
+       </declarations>
+
+  rule <k> _:GoalBuilder ~> #rest(_, _)
+        ~> ( unfoldMR(ID:Symbol(ARGs1), BODY1, ((ID:Symbol(ARGs2), BODY2), REST))
+          => unfoldMR(ID:Symbol(ARGs1), BODY1, REST)
+           )
+           ...
+       </k>
+
+  rule <k> _:GoalBuilder ~> #rest(_, _)
+        ~> ( unfoldMR(ID1:Symbol(ARGs1), BODY1, ((ID2:Symbol(ARGs2), BODY2), REST))
+          => unfoldMR(ID1:Symbol(ARGs1), substituteBRPs(BODY1, ID2, ARGs2, BODY2), REST)
+           )
+           ...
+       </k>
+     requires ID1 =/=K ID2
 
   // Note: We cannot call isPredicatePattern because that requires knowing the return type of the
   // symbols inside before calling. This is not feasible since they may be recursive symbols.

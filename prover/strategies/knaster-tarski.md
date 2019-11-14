@@ -175,7 +175,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule substituteBRPs(S:Symbol(ARGS) #as P, RP, Vs, RHS) => P
     requires S =/=K RP
      andBool S =/=K sep
-  rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, (\forall { Qs } implicationContext(CTX, P)) #as RHS)
+  rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, RHS)
     => alphaRename(substMap(RHS, zip(ARGS, BODY_ARGS)))
 
   rule substituteBRPs(\top(), RP, Vs, RHS) => \top()
