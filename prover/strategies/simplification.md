@@ -151,16 +151,10 @@ Lift `\or`s on the left hand sides of implications
 ```k
   rule <claim> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </claim>
        <strategy> lift-or => noop ... </strategy>
-  rule <claim> \implies(\exists{Vs} \or(LHSs), RHS) => \and( #liftOrVs(LHSs, RHS, Vs)) </claim>
-       <strategy> lift-or => noop ... </strategy>
 
   syntax Patterns ::= "#liftOr" "(" Patterns "," Pattern ")" [function]
   rule #liftOr(.Patterns, RHS) => .Patterns
   rule #liftOr((LHS, LHSs), RHS) => \implies(LHS, RHS), #liftOr(LHSs, RHS)
-
-  syntax Patterns ::= "#liftOrVs" "(" Patterns "," Pattern "," Patterns ")" [function]
-  rule #liftOrVs(.Patterns, RHS, Vs) => .Patterns
-  rule #liftOrVs((LHS, LHSs), RHS, Vs) => \implies(\exists{Vs} LHS, RHS), #liftOrVs(LHSs, RHS, Vs)
 ```
 
 ### Simplify
