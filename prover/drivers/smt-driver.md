@@ -351,9 +351,41 @@ Clear the `<k>` cell once we are done:
 ```
 
 ```k
-  syntax Pattern ::= #normalizeDefinition(Pattern) [function]
-  rule #normalizeDefinition(\or(Ps)) => \or(#exists(#flattenOrs(#dnfPs(Ps)), .Patterns))
-  rule #normalizeDefinition(P) => #normalizeDefinition(\or(P, .Patterns)) [owise]
+  // TODO: normalize will put the qfree part in dnf form, then gather the existentials and put those back at the top
+  syntax Patterns ::= #getExistentialVariables(Pattern) [function]
+  syntax Patterns ::= #getExistentialVariablesPatterns(Patterns) [function]
+  rule #getExistentialVariables(\exists { Vs } P) => Vs ++Patterns #getExistentialVariables(P)
+  rule #getExistentialVariables(\forall { Vs } P) => #getExistentialVariables(P)
+  rule #getExistentialVariables(\and(Ps)) => #getExistentialVariablesPatterns(Ps)
+  rule #getExistentialVariables(\or(Ps)) => #getExistentialVariablesPatterns(Ps)
+  rule #getExistentialVariables(\not(P)) => #getExistentialVariables(P)
+  rule #getExistentialVariables(S:Symbol(Ps)) => #getExistentialVariablesPatterns(Ps)
+  rule #getExistentialVariables(_) => .Patterns
+    [owise]
+
+  rule #getExistentialVariablesPatterns(P, Ps) => #getExistentialVariables(P) ++Patterns #getExistentialVariablesPatterns(Ps)
+  rule #getExistentialVariablesPatterns(.Patterns) => .Patterns
+
+  syntax Pattern ::= #removeExistentials(Pattern) [function]
+  syntax Patterns ::= #removeExistentialsPatterns(Patterns) [function]
+  rule #removeExistentials(\exists { Vs } P) => #removeExistentials(P)
+  rule #removeExistentials(\forall { Vs } P) => \forall { Vs } #removeExistentials(P)
+  rule #removeExistentials(\and(Ps)) => \and(#removeExistentialsPatterns(Ps))
+  rule #removeExistentials(\or(Ps)) => \or(#removeExistentialsPatterns(Ps))
+  rule #removeExistentials(\not(P)) => \not(#removeExistentials(P))
+  rule #removeExistentials(S:Symbol(Ps)) => S(#removeExistentialsPatterns(Ps))
+  rule #removeExistentials(P) => P
+    [owise]
+
+  rule #removeExistentialsPatterns(P, Ps) => #removeExistentials(P) ++Patterns #removeExistentialsPatterns(Ps)
+  rule #removeExistentialsPatterns(.Patterns) => .Patterns
+
+  syntax Pattern ::= #normalizeQFree(Pattern) [function]
+                   | #normalizeDefinition(Pattern) [function]
+  rule #normalizeDefinition(P) => \exists { #getExistentialVariables(P) } #normalizeQFree(#removeExistentials(P))
+  rule #normalizeQFree(\or(Ps)) => \or(#flattenOrs(#dnfPs(Ps)))
+  rule #normalizeQFree(P) => #normalizeQFree(\or(P, .Patterns))
+    [owise]
 
   syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]
   rule #statusToTerminalStrategy(unsat)      => success

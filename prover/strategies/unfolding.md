@@ -141,9 +141,18 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => fail
                   ...
        </strategy>
+  rule <strategy> right-unfold-eachBody(RRP, \exists{Vs} \or(BODY, BODIES))
+               => right-unfold-oneBody(RRP, \exists{Vs} BODY)
+                | right-unfold-eachBody(RRP, \exists{Vs} \or(BODIES))
+                  ...
+       </strategy>
   rule <strategy> right-unfold-eachBody(RRP, \or(BODY, BODIES))
                => right-unfold-oneBody(RRP, BODY)
                 | right-unfold-eachBody(RRP, \or(BODIES))
+                  ...
+       </strategy>
+  rule <strategy> right-unfold-eachBody(RRP, \exists{Vs} \or(.Patterns))
+               => fail
                   ...
        </strategy>
   rule <strategy> right-unfold-eachBody(RRP, \or(.Patterns))
