@@ -72,10 +72,7 @@ passing_8   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.8').read
 
 def strategy_for_test(test):
     if test == 't/SL-COMP18/bench/qf_shid_entl/nll-vc01.smt2':
-        return "   normalize . or-split-rhs . lift-constraints" \
-             + " . (right-unfold(nll) { 3 })"                   \
-             + " . (right-unfold(lso) { 7 })"                   \
-             + " . search-sl(bound: 1)"
+        return 'search-sl(bound: 11)'
     if test in passing_5: return 'search-sl(bound: 5)'
     if test in passing_8: return 'search-sl(bound: 8)'
     else:                 return 'search-sl(bound: 8)'
