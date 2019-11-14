@@ -521,6 +521,9 @@ Simplifications
   rule #flattenOrs(P, Ps) => P ++Patterns #flattenOrs(Ps) [owise]
   rule #flattenOrs(.Patterns) => .Patterns
 
+  // TODO: dnf should be greatly refactored. Normalization along with lift-constraints
+  // should happen likely in the same function, with much fewer ad-hoc rules than we
+  // have below
   syntax Pattern ::= #dnf(Pattern) [function]
   rule #dnf(\or(Ps)) => \or(#dnfPs(Ps))
 
@@ -553,14 +556,36 @@ Simplifications
     requires isBaseConjunction(Ps)
   rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
     requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
+  rule #dnfPs(\and(sep(Ps1), Ps2), REST) => #dnfPs(\and(\or(#dnfPs(sep(Ps1), .Patterns)), Ps2), REST)
+    requires notBool isBaseConjunction(Ps1)
+
+  // sep is assoc
+  rule #dnfPs(sep(P, Ps), REST) => #dnfPs(sep(Ps ++Patterns P), REST)
+    requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
+
+  // borrowing code from lift-constraints
+  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(\and(sep(\and(Ps1), Ps2), P))
+    requires isPredicatePattern(P)
+  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(sep(\and(Ps1), P, Ps2))
+    requires isSpatialPattern(P)
+  rule #dnfPs(sep(\and(.Patterns), Ps), REST) => #dnfPs(sep(Ps), REST)
+
+  syntax Patterns ::= #dnfPsNew(Patterns) [function]
+
+  // Distribute \or over sep
+  rule #dnfPs(sep(\or(P, Ps1), Ps2), REST)
+    => #dnfPs(sep(P, Ps2)) ++Patterns #dnfPs(sep(\or(Ps1), Ps2))
+  rule #dnfPs(sep(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
 
   syntax Bool ::= isBasePattern(Pattern) [function]
   rule isBasePattern(S:Symbol(ARGS)) => true
+    [owise]
   rule isBasePattern(\equals(L, R)) => true
   rule isBasePattern(\and(_)) => false
   rule isBasePattern(\or(_)) => false
   rule isBasePattern(\exists{Vs}_) => false
   rule isBasePattern(\not(P)) => isBasePattern(P)
+  rule isBasePattern(sep(ARGS)) => isBaseConjunction(ARGS)
 
   syntax Bool ::= isBaseConjunction(Patterns) [function]
   rule isBaseConjunction(.Patterns) => true
