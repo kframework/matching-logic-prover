@@ -50,7 +50,7 @@ module DRIVER-SMT
                                  ")"
   rule <k> --default-strategy STRAT
         => #goal( goal: \exists { .Patterns } \and( .Patterns )
-                , strategy: search-sl(bound: 5)
+                , strategy: STRAT
                 , expected: success
                 )
            ...
