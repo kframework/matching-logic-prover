@@ -530,6 +530,7 @@ Simplifications
   syntax Patterns ::= #dnfPs(Patterns) [function]
 
   rule #dnfPs(.Patterns) => .Patterns
+  rule #dnfPs(\or(Ps), REST) => #dnfPs(Ps ++Patterns REST)
   rule #dnfPs(P, Ps) => \and(P), #dnfPs(Ps)
     requires isBasePattern(P)
   rule #dnfPs(\not(P), Ps) => \and(\not(P)), #dnfPs(Ps)
