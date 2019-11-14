@@ -630,7 +630,7 @@ Simplifications
   rule isSpatialPattern(\and(_)) => false
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
-    requires isUnfoldable(S) andBool getReturnSort(S(ARGS)) ==K Heap
+    requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
 
   // TODO: Perhaps normalization should get rid of this?
   rule isSpatialPattern(\exists{_} implicationContext(\and(sep(_),_),_)) => true
