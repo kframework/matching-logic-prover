@@ -195,11 +195,21 @@ module DRIVER-SMT
            ...
        </k>
 
-  rule <k> _:GoalBuilder
+  rule <k> #goal( goal: _, strategy: unfold-mut-recs . REST_STRAT, expected: _ )
         ~> (.K => #rest(FDs, BODIEs))
         ~> (define-funs-rec ( FDs ) ( BODIEs ) )
            ...
        </k>
+
+  rule <k> #goal( goal: _, strategy: STRAT, expected: _ )
+        ~> ( (define-funs-rec ( (ID (ARGs) RET) FDs ) ( BODY BODIEs ) )
+          => (define-fun-rec ID (ARGs) RET BODY)
+          ~> (define-funs-rec ( FDs ) ( BODIEs ) )
+           )
+           ...
+       </k>
+    requires STRAT :/=K unfold-mut-recs . ?REST
+
   rule <k> _:GoalBuilder
         ~> #rest(FDALLs, BODYALLs)
         ~> ( (define-funs-rec ( (ID (ARGs) RET) FDs ) ( BODY BODIEs ) )

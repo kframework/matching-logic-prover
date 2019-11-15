@@ -561,6 +561,9 @@ Simplifications
     requires notBool isBaseConjunction(Ps1)
 
   // sep is assoc
+  rule #dnfPs(sep(sep(Ps1), Ps2), REST) => #dnfPs(sep(Ps1 ++Patterns Ps2), REST)
+
+  // sep is commutative
   rule #dnfPs(sep(P, Ps), REST) => #dnfPs(sep(Ps ++Patterns P), REST)
     requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
 

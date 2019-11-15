@@ -71,8 +71,6 @@ passing_5   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.5').read
 passing_8   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.8').readlines()))
 
 def strategy_for_test(test):
-    if test == 't/SL-COMP18/bench/qf_shid_entl/nll-vc01.smt2':
-        return 'search-sl(bound: 11)'
     if test in passing_5: return 'search-sl(bound: 5)'
     if test in passing_8: return 'search-sl(bound: 8)'
     else:                 return 'search-sl(bound: 8)'
