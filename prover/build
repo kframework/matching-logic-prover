@@ -80,8 +80,7 @@ def strategy_for_test(test):
     else:                 return 'unfold-mut-recs . search-sl(bound: 8)'
 def known_passing(test):
     return (test in passing_5) \
-        or (test in passing_8) \
-        or (test == 't/SL-COMP18/bench/qf_shid_entl/nll-vc01.smt2')
+        or (test in passing_8)
 
 def make_test(rule, test):
     commandline = "'--default-strategy %s'" % strategy_for_test(test)
