@@ -69,11 +69,15 @@ def krun_with_timeout(timeout_flags):
 unsat_tests = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat').readlines()))
 passing_5   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.5').readlines()))
 passing_8   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.8').readlines()))
+no_unfold_5 = ['t/SL-COMP18/bench/qf_shid_entl/16.tst.smt2', 't/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-17.smt2']
+no_unfold_8 = []
 
 def strategy_for_test(test):
-    if test in passing_5: return 'search-sl(bound: 5)'
-    if test in passing_8: return 'search-sl(bound: 8)'
-    else:                 return 'search-sl(bound: 8)'
+    if test in no_unfold_5: return 'search-sl(bound: 5)'
+    if test in no_unfold_8: return 'search-sl(bound: 8)'
+    if test in passing_5: return 'unfold-mut-recs . search-sl(bound: 5)'
+    if test in passing_8: return 'unfold-mut-recs . search-sl(bound: 8)'
+    else:                 return 'unfold-mut-recs . search-sl(bound: 8)'
 def known_passing(test):
     return (test in passing_5) \
         or (test in passing_8) \

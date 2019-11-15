@@ -201,6 +201,13 @@ module DRIVER-SMT
            ...
        </k>
 
+  rule <k> _:GoalBuilder
+        ~> ( (define-funs-rec ( .SMTLIB2FunctionDecList ) ( .SMTLIB2TermList ) )
+          => .K
+           )
+           ...
+       </k>
+
   rule <k> #goal( goal: _, strategy: STRAT, expected: _ )
         ~> ( (define-funs-rec ( (ID (ARGs) RET) FDs ) ( BODY BODIEs ) )
           => (define-fun-rec ID (ARGs) RET BODY)
@@ -208,7 +215,15 @@ module DRIVER-SMT
            )
            ...
        </k>
-    requires STRAT :/=K unfold-mut-recs . ?REST
+    requires notBool #matchesUnfoldMutRecs(STRAT)
+
+  rule <strategy> unfold-mut-recs => noop ... </strategy>
+
+  syntax Bool ::= #matchesUnfoldMutRecs(Strategy) [function]
+  rule #matchesUnfoldMutRecs(unfold-mut-recs) => true
+  rule #matchesUnfoldMutRecs(unfold-mut-recs . _) => true
+  rule #matchesUnfoldMutRecs(_) => false
+    [owise]
 
   rule <k> _:GoalBuilder
         ~> #rest(FDALLs, BODYALLs)
