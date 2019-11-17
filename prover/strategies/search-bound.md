@@ -19,28 +19,21 @@ module STRATEGY-SEARCH-BOUND
        </strategy>
     requires N >Int 0
 
-  rule <strategy> search-sl(bound: 0) => fail </strategy>
-  rule <strategy> search-sl(bound: N)
+  rule <strategy> search-sl(kt-bound: 0, unfold-bound: UNFOLDBOUND) => fail ... </strategy>
+  rule <strategy> search-sl(kt-bound: KTBOUND, unfold-bound: UNFOLDBOUND)
                => normalize . or-split-rhs
                 . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                 . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
-                    . ( right-unfold-or-match { N } )
+                    . ( right-unfold-all(bound: UNFOLDBOUND) )
                     . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                     . match . spatial-patterns-equal . smt-cvc4
                     )
-                  | ( kt . search-sl(bound: N -Int 1) )
+                  | ( kt . search-sl(kt-bound: KTBOUND -Int 1, unfold-bound: UNFOLDBOUND) )
                   )
                   ...
        </strategy>
-    requires N >Int 0
+    requires KTBOUND >Int 0
 
-  syntax Strategy ::= "right-unfold-or-match" [function]
-  rule right-unfold-or-match
-    => normalize . or-split-rhs
-     . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-     . ( ( match . spatial-patterns-equal . smt-cvc4 )
-       | ( right-unfold )
-       )
 endmodule
 ```
 

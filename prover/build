@@ -73,11 +73,17 @@ no_unfold_5 = ['t/SL-COMP18/bench/qf_shid_entl/16.tst.smt2', 't/SL-COMP18/bench/
 no_unfold_8 = []
 
 def strategy_for_test(test):
-    if test in no_unfold_5: return 'search-sl(bound: 5)'
-    if test in no_unfold_8: return 'search-sl(bound: 8)'
-    if test in passing_5: return 'unfold-mut-recs . search-sl(bound: 5)'
-    if test in passing_8: return 'unfold-mut-recs . search-sl(bound: 8)'
-    else:                 return 'unfold-mut-recs . search-sl(bound: 8)'
+    if test == 't/SL-COMP18/bench/qf_shid_entl/ls_entail_ls_nonrec_07.sb.smt2':
+        return 'unfold-mut-recs . search-sl(kt-bound: 7, unfold-bound: 7)'
+    if test == 't/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-1.smt2':
+        return 'unfold-mut-recs . search-sl(kt-bound: 2, unfold-bound: 2)'
+    if test == 't/SL-COMP18/bench/qf_shid_entl/lsleftright_15.sb.smt2': # wip
+        return 'unfold-mut-recs . search-sl(kt-bound: 3, unfold-bound: 5)'
+    if test in no_unfold_5: return 'search-sl(kt-bound: 5, unfold-bound: 6)'
+    if test in no_unfold_8: return 'search-sl(kt-bound: 5, unfold-bound: 9)'
+    if test in passing_5: return 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 6)'
+    if test in passing_8: return 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 9)'
+    else:                 return 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 12)'
 def known_passing(test):
     return (test in passing_5) \
         or (test in passing_8)
@@ -91,7 +97,7 @@ tests_with_timeout = []
 def sl_comp_test(test):
     global tests_with_timeout
     # test_no_timeout   = make_test(prover_smt.krun(), test)
-    test_with_timeout = make_test(krun_with_timeout('20m'), test) \
+    test_with_timeout = make_test(krun_with_timeout('5m'), test) \
                           .then(log_on_success('.build/passed', test))
     if known_passing(test): test_with_timeout.default()
     tests_with_timeout += [test_with_timeout]

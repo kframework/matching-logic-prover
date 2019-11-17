@@ -16,6 +16,13 @@ module STRATEGY-UNFOLDING
   rule [[ getSymbolDeclaration(S) => DECL ]]
        <declaration> symbol S (_) : _ #as DECL </declaration>
 
+  syntax Patterns ::= getRecursiveSymbols(Patterns) [function]
+  rule [[ getRecursiveSymbols(SYMs) => getRecursiveSymbols(SYM, SYMs) ]]
+       <declaration> axiom \forall { Vs } \iff-lfp(SYM(Vs), DEF) </declaration>
+     requires notBool SYM in SYMs
+  rule getRecursiveSymbols(SYMs) => SYMs
+    [owise]
+
   syntax Patterns ::= getUnfoldables(Patterns)   [function]
   rule getUnfoldables(.Patterns) => .Patterns
   rule getUnfoldables(R(ARGS), REST)
@@ -132,6 +139,38 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                   ...
        </strategy>
        <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
+  rule <strategy> right-unfold-all(bound: N)
+               => right-unfold-all(symbols: getRecursiveSymbols(.Patterns), bound: N)
+                  ...
+       </strategy>
+  rule <strategy> right-unfold-all(symbols: SYMs, bound: N)
+               => right-unfold-perm(permutations: perm(SYMs), bound: N)
+                  ...
+       </strategy>
+  rule <strategy> right-unfold-perm(permutations: .List, bound: _)
+               => noop
+                  ...
+       </strategy>
+  rule <strategy> right-unfold-perm(permutations: ListItem(Ps) L, bound: N)
+               => right-unfold(symbols: Ps, bound: N)
+                | right-unfold-perm(permutations: L, bound: N)
+                  ...
+       </strategy>
+  rule <strategy> right-unfold(symbols: Ps, bound: N)
+               => fail
+                  ...
+       </strategy>
+    requires Ps ==K .Patterns orBool N <=Int 0
+  rule <strategy> right-unfold(symbols: P, Ps, bound: N)
+               => normalize . or-split-rhs . lift-constraints
+                . instantiate-existentials . substitute-equals-for-equals
+                . ( ( match . spatial-patterns-equal . smt-cvc4 )
+                  | ( right-unfold(P) . right-unfold(symbols: P, Ps, bound: N -Int 1) )
+                  | ( right-unfold(symbols: Ps, bound: N) )
+                  )
+                  ...
+       </strategy>
+    requires N =/=Int 0
   rule <strategy> right-unfold-eachRRP(P, PS)
                => right-unfold-eachBody(P, unfold(P))
                 | right-unfold-eachRRP(PS)
@@ -150,6 +189,22 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => fail
                   ...
        </strategy>
+```
+
+### Permuting list of recursive symbols for use in right-unfold-all
+
+```k
+syntax List ::= perm(Patterns) [function]
+              | permHelp(Patterns, Patterns) [function]
+              | addPattern(Pattern, List) [function]
+rule perm(.Patterns) => ListItem(.Patterns)
+rule perm(Ps) => permHelp(Ps, Ps)
+  requires Ps =/=K .Patterns
+rule permHelp(.Patterns, _) => .List
+rule permHelp((P, Ps1), Ps2) => addPattern(P, perm(Ps2 -Patterns P)) permHelp(Ps1, Ps2)
+
+rule addPattern(P, .List) => .List
+rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
 ```
 
 ```k

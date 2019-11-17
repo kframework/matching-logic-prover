@@ -58,7 +58,7 @@ module DRIVER-SMT
        </k>
   rule <k> S:SMTLIB2Script
         => #goal( goal: \exists { .Patterns } \and( .Patterns )
-                , strategy: search-sl(bound: 5)
+                , strategy: search-sl(kt-bound: 3, unfold-bound: 5)
                 , expected: success
                 )
         ~> S
