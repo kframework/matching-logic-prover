@@ -344,6 +344,7 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
                   ...
        </strategy>
      requires UNIVs =/=K .Patterns
+      andBool UNIVs -Patterns fst(unzip(SUBST)) ==K .Patterns
 ```
 
 ```k

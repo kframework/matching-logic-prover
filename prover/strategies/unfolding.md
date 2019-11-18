@@ -82,6 +82,17 @@ module STRATEGY-UNFOLDING
        </claim>
        <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
+       requires LRP in LHS
+
+  rule <claim> \implies( \and( sep( (LHS => ((LHS -Patterns (LRP, .Patterns)) ++Patterns \and(BODY))) )
+                             , _
+                             )
+                       , RHS
+                       )
+       </claim>
+       <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
+       <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
+       requires LRP in LHS
 ```
 
 ### Left Unfold Nth

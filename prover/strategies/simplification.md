@@ -90,6 +90,49 @@ Normalize:
     [owise]
 ```
 
+### purify
+
+LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
+
+```k
+  rule <claim> \implies(LHS => #purify(LHS), RHS) ... </claim>
+       <strategy> purify => noop ... </strategy>
+
+  syntax Pattern ::= #purify(Pattern) [function]
+  syntax Patterns ::= #purifyPs(Patterns) [function]
+  rule #purify(S(ARGs))
+    => #fun( VARs
+          => \and( S(VARs), #makeEqualities(VARs, ARGs) )
+           )( makePureVariables(ARGs) )
+    requires isUnfoldable(S)
+  rule #purify(\and(Ps)) => \and(#purifyPs(Ps))
+  rule #purify(sep(Ps)) => sep(#purifyPs(Ps))
+  rule #purify(\not(P)) => \not(#purify(P))
+  rule #purify(\equals(P1, P2)) => \equals(P1, P2)
+  rule #purify(S:Symbol(Ps)) => S(Ps)
+    [owise]
+  rule #purifyPs(.Patterns) => .Patterns
+  rule #purifyPs(P, Ps) => #purify(P), #purifyPs(Ps)
+
+  syntax Patterns ::= makePureVariables(Patterns) [function]
+  rule makePureVariables(V:Variable, REST) => V, makePureVariables(REST)
+  rule makePureVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makePureVariables(REST)
+    requires notBool isVariable(P)
+  rule makePureVariables(.Patterns) => .Patterns
+
+  syntax Patterns ::= #getNonVariables(Patterns) [function]
+  rule #getNonVariables(.Patterns) => .Patterns
+  rule #getNonVariables(V:Variable, Ps) => #getNonVariables(Ps)
+  rule #getNonVariables(P, Ps) => P, #getNonVariables(Ps)
+    requires notBool isVariable(P)
+
+  syntax Patterns ::= #makeEqualities(Patterns, Patterns) [function]
+  rule #makeEqualities(.Patterns, .Patterns) => .Patterns
+  rule #makeEqualities((V, Vs), (V, Ps)) => #makeEqualities(Vs, Ps)
+  rule #makeEqualities((V, Vs), (P, Ps)) => \equals(V, P), #makeEqualities(Vs, Ps)
+    requires V =/=K P
+```
+
 ### lift-constraints
 
 Bring predicate constraints to the top of a term.

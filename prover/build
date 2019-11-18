@@ -83,13 +83,15 @@ test_lists = [ (True,   3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , (True,   5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
              , (True,   5,  6, '20m', read_list('t/test-lists/qf_shid_entl.unsat.5'))
              , (True,   5,  9, '20m', read_list('t/test-lists/qf_shid_entl.unsat.8'))
-             , (False,  8,  9, '40m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
              , (False,  3,  5, '20m', no_unfold_3_5_20)
              , (True,   7,  7, '20m', ['t/SL-COMP18/bench/qf_shid_entl/ls_entail_ls_nonrec_07.sb.smt2'])
              , (True,   2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-1.smt2'])
              , (True,   2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-10.smt2'])
-             , (True,   4,  3, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_15.sb.smt2'])
+             , (True,   5,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_15.sb.smt2'])
              , (True,   8,  9, '20m', ['t/SL-COMP18/bench/qf_shid_entl/eolseg_07.sb.smt2'])
+             ## last 2 regression tests failing below
+             , (False,  8,  9, '40m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
+             , (True,   8,  9, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_14.sb.smt2'])
              ]
 
 for (l1, l2) in combinations(test_lists, 2):
