@@ -2,7 +2,8 @@
 
 import sys
 import shutil
-from os import (path, environ)
+from os        import (path, environ)
+from itertools import combinations
 
 repo_dir = path.dirname(__file__)
 sys.path.append(path.join(repo_dir, 'ext/'))
@@ -46,8 +47,8 @@ prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module D
 # Functional tests
 # ----------------
 
-prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
-prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
+# prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
+# prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
 
 def log_on_success(file, message):
     return proj.rule( 'log-to-success'
@@ -66,32 +67,52 @@ def krun_with_timeout(timeout_flags):
                      .ext('timeout') \
                      .variable('env', timeout_cmd + ' ' + timeout_flags + ' opam config exec --') \
 
-unsat_tests = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat').readlines()))
-passing_5   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.5').readlines()))
-passing_8   = list(map(str.strip, open('t/test-lists/qf_shid_entl.unsat.8').readlines()))
+
+def read_list(file):
+    return list(map(str.strip, open(file).readlines()))
+
+unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 no_unfold_5 = ['t/SL-COMP18/bench/qf_shid_entl/16.tst.smt2', 't/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-17.smt2']
-no_unfold_8 = []
+
+test_lists = [ (True,   3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
+             , (True,   5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
+             , (True,   5,  6, '20m', read_list('t/test-lists/qf_shid_entl.unsat.5'))
+             , (True,   5,  9, '20m', read_list('t/test-lists/qf_shid_entl.unsat.8'))
+             , (True,   4,  4, '20m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
+             , (False,  5,  6, '20m', no_unfold_5)
+             , (True,   7,  7, '20m', ['t/SL-COMP18/bench/qf_shid_entl/ls_entail_ls_nonrec_07.sb.smt2'])
+             , (True,   2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-1.smt2'])
+             , (True,   2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-10.smt2'])
+             , (True,   4,  3, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_15.sb.smt2'])
+             ]
+
+for (l1, l2) in combinations(test_lists, 2):
+    (_, _, _, _, ts1) = l1
+    (_, _, _, _, ts2) = l2
+    assert (set(ts1) & set(ts2) == set()), set(ts1) & set(ts2)
+
+def config_for_test(test):
+    for list_config in test_lists:
+        unfold_mut_rec, ktbound, unfold_bound, timeout, list = list_config
+        if not test in list: continue
+        strategy = ''
+        if unfold_mut_rec: strategy = 'unfold-mut-recs . '
+        strategy += 'search-sl(kt-bound: %d, unfold-bound: %d)' % (ktbound, unfold_bound)
+        return (strategy, timeout, True)
+    return ( 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 12)'
+           , '20m'
+           , False
+           )
 
 def strategy_for_test(test):
-    if test == 't/SL-COMP18/bench/qf_shid_entl/ls_entail_ls_nonrec_07.sb.smt2':
-        return 'unfold-mut-recs . search-sl(kt-bound: 7, unfold-bound: 7)'
-    if test == 't/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-1.smt2':
-        return 'unfold-mut-recs . search-sl(kt-bound: 2, unfold-bound: 2)'
-    if test == 't/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-10.smt2':
-        return 'unfold-mut-recs . search-sl(kt-bound: 2, unfold-bound: 2)'
-    if test == 't/SL-COMP18/bench/qf_shid_entl/lsleftright_15.sb.smt2':
-        return 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 2)'
-    # todo: the below times out with 20m bound
-    if test == 't/SL-COMP18/bench/qf_shid_entl/lsegex4_slk-3.smt2':
-        return 'unfold-mut-recs . search-sl(kt-bound: 1, unfold-bound: 10)'
-    if test in no_unfold_5: return 'search-sl(kt-bound: 5, unfold-bound: 6)'
-    if test in no_unfold_8: return 'search-sl(kt-bound: 5, unfold-bound: 9)'
-    if test in passing_5: return 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 6)'
-    if test in passing_8: return 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 9)'
-    else:                 return 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 12)'
+    strategy, timeout, passing = config_for_test(test)
+    return strategy
+def timeout_for_test(test):
+    strategy, timeout, passing = config_for_test(test)
+    return timeout
 def known_passing(test):
-    return (test in passing_5) \
-        or (test in passing_8)
+    strategy, timeout, passing = config_for_test(test)
+    return passing
 
 def make_test(rule, test):
     commandline = "'--default-strategy %s'" % strategy_for_test(test)
@@ -101,18 +122,18 @@ def make_test(rule, test):
 tests_with_timeout = []
 def sl_comp_test(test):
     global tests_with_timeout
-    # test_no_timeout   = make_test(prover_smt.krun(), test)
-    test_with_timeout = make_test(krun_with_timeout('20m'), test) \
+    test_no_timeout   = make_test(prover_smt.krun(), test)
+    test_with_timeout = make_test(krun_with_timeout(timeout_for_test(test)), test) \
                           .then(log_on_success('.build/passed', test))
     if known_passing(test): test_with_timeout.default()
     tests_with_timeout += [test_with_timeout]
 
-for t in glob('t/SL-COMP18/bench/qf_shid_entl/*.smt2'):
+for t in unsat_tests:
     sl_comp_test(t)
 proj.alias('collect-qf-shid-entl', tests_with_timeout)
 
 
-#d Unit Tests
+# Unit Tests
 # ----------
 
 # TODO: LLVM errors are miles better than OCaml (a pretty low bar).
