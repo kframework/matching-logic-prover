@@ -34,6 +34,20 @@ module STRATEGY-SEARCH-BOUND
        </strategy>
     requires KTBOUND >Int 0
 
+  rule <strategy> alternate-search-sl(kt-bound: 0, unfold-bound: UNFOLDBOUND) => fail ... </strategy>
+  rule <strategy> alternate-search-sl(kt-bound: KTBOUND, unfold-bound: UNFOLDBOUND)
+               => normalize . or-split-rhs
+                . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
+                    . ( right-unfold { UNFOLDBOUND } )
+                    . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                    . match . spatial-patterns-equal . smt-cvc4
+                    )
+                  | ( kt . alternate-search-sl(kt-bound: KTBOUND -Int 1, unfold-bound: UNFOLDBOUND) )
+                  )
+                  ...
+       </strategy>
+    requires KTBOUND >Int 0
 endmodule
 ```
 
