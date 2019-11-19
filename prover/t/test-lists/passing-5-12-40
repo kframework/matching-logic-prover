@@ -5,7 +5,6 @@ t/SL-COMP18/bench/qf_shid_entl/ls_even_join_entails_ls.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/ls_even_join_ls_entails_ls.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/ls_even_odd_join_entails_ls.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_06.sb.smt2
-t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_16.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/ls_odd_append_tl_entails_ls.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/ls_odd_join_entails_ls.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/lsevenodd_01.sb.smt2
