@@ -120,18 +120,18 @@ def make_test(rule, test):
     return proj.source(test) \
                .then(rule.variable('flags', '-cCOMMANDLINE=%s' % commandline))
 
-def sl_comp_test(test):
+def sl_comp_test(test, log_file):
     global tests_with_timeout
     test_no_timeout   = make_test(prover_smt.krun(), test)
     test_with_timeout = make_test(krun_with_timeout(timeout_for_test(test)), test) \
-                          .then(log_on_success('.build/passed', test))
+                          .then(log_on_success(log_file, test))
     return (test_no_timeout, test_with_timeout)
 
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 known_passing_tests = []
 remaining_tests     = []
 for t in qf_shid_entl_unsat_tests:
-    (test_no_timeout, test_with_timeout) = sl_comp_test(t)
+    (test_no_timeout, test_with_timeout) = sl_comp_test(t, '.build/passed')
     if known_passing(t): known_passing_tests += [test_with_timeout]
     else:                remaining_tests     += [test_with_timeout]
 proj.alias('known-passing',   known_passing_tests).default()
@@ -141,7 +141,7 @@ def secondary_tests(alias, file):
     list = read_list(file)
     tests = []
     for t in list:
-        (test_no_timeout , test_with_timeout) = sl_comp_test(t)
+        (test_no_timeout , test_with_timeout) = sl_comp_test(t, '.build/%s.passed' % alias)
         tests += [test_with_timeout]
     proj.alias(alias, tests)
 secondary_tests('qf_shidlia_entl_unsat_tests', 't/test-lists/qf_shidlia_entl.unsat')
