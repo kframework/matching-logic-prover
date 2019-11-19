@@ -26,6 +26,7 @@ t/SL-COMP18/bench/qf_shid_entl/append_dll_slk-3.smt2
 t/SL-COMP18/bench/qf_shid_entl/append_dll_slk-4.smt2
 t/SL-COMP18/bench/qf_shid_entl/append_dll_slk-5.smt2
 t/SL-COMP18/bench/qf_shid_entl/append_dll_slk-6.smt2
+t/SL-COMP18/bench/qf_shid_entl/append_dll_slk-7.smt2
 t/SL-COMP18/bench/qf_shid_entl/append_dll_slk-8.smt2
 t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-11.smt2
 t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-12.smt2
