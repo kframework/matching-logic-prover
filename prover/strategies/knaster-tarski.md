@@ -305,8 +305,6 @@ Then we apply the substitution to the context, including the constraints.
 Next, duplicate constraints are removed using the ad-hoc rule below until the implication
 context has no constraints.
 
-Finally, we use matching on the no universal quantifiers case to collapse the context.
-
 ```k
   rule <claim> \implies(\and( sep ( \forall { UNIVs }
                                     implicationContext( \and(sep(#hole, CTXLHS:Patterns), CTXLCONSTRAINTS) , _)
@@ -346,6 +344,8 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
      requires UNIVs =/=K .Patterns
       andBool UNIVs -Patterns fst(unzip(SUBST)) ==K .Patterns
 ```
+
+Finally, we use matching on the no universal quantifiers case to collapse the context.
 
 ```k
   rule <claim> \implies(\and( sep ( \forall { .Patterns }
