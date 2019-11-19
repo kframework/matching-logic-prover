@@ -89,9 +89,9 @@ test_lists = [ (True,   3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , (True,   2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-10.smt2'])
              , (True,   5,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_15.sb.smt2'])
              , (True,   8,  9, '20m', ['t/SL-COMP18/bench/qf_shid_entl/eolseg_07.sb.smt2'])
+             , (True,   5,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_14.sb.smt2'])
              ## last 2 regression tests failing below
              , (False,  8,  9, '40m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
-             , (True,   8,  9, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_14.sb.smt2'])
              ]
 
 for (l1, l2) in combinations(test_lists, 2):
