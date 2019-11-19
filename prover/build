@@ -56,8 +56,8 @@ def log_on_success(file, message):
                     , command = "echo '$message' >> '$log_file'"
                     ) \
                .variable('log_file', file) \
-                        .variable('message',  message) \
-                        .ext(message.replace('/', '.'))
+               .variable('message',  message) \
+               .ext(file.replace('/', '.'))
 
 def krun_with_timeout(timeout_flags):
     # TODO: This timeout functionality should become a part of the runner script
@@ -67,11 +67,9 @@ def krun_with_timeout(timeout_flags):
                      .ext('timeout') \
                      .variable('env', timeout_cmd + ' ' + timeout_flags + ' opam config exec --') \
 
-
 def read_list(file):
     return list(map(str.strip, open(file).readlines()))
 
-unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 no_unfold_3_5_20 = [ 't/SL-COMP18/bench/qf_shid_entl/16.tst.smt2'
                    , 't/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-17.smt2'
                    , 't/SL-COMP18/bench/qf_shid_entl/lsegex4_slk-3.smt2'
@@ -101,24 +99,20 @@ for (l1, l2) in combinations(test_lists, 2):
 def config_for_test(test):
     for list_config in test_lists:
         unfold_mut_rec, ktbound, unfold_bound, timeout, list = list_config
-        if not test in list: continue
-        strategy = ''
-        if unfold_mut_rec: strategy = 'unfold-mut-recs . '
-        strategy += 'search-sl(kt-bound: %d, unfold-bound: %d)' % (ktbound, unfold_bound)
-        return (strategy, timeout, True)
-    return ( 'unfold-mut-recs . search-sl(kt-bound: 5, unfold-bound: 12)'
-           , '20m'
-           , False
-           )
-
+        passing = True
+        if test in list: return (unfold_mut_rec, ktbound, unfold_bound, timeout, passing)
+    return (True, 5, 12, '20m', False)
 def strategy_for_test(test):
-    strategy, timeout, passing = config_for_test(test)
+    (unfold_mut_rec, ktbound, unfold_bound, timeout, passing) = config_for_test(test)
+    strategy = ''
+    if unfold_mut_rec: strategy = 'unfold-mut-recs . '
+    strategy += 'search-sl(kt-bound: %d, unfold-bound: %d)' % (ktbound, unfold_bound)
     return strategy
 def timeout_for_test(test):
-    strategy, timeout, passing = config_for_test(test)
+    (unfold_mut_rec, ktbound, unfold_bound, timeout, passing) = config_for_test(test)
     return timeout
 def known_passing(test):
-    strategy, timeout, passing = config_for_test(test)
+    (unfold_mut_rec, ktbound, unfold_bound, timeout, passing) = config_for_test(test)
     return passing
 
 def make_test(rule, test):
@@ -126,19 +120,33 @@ def make_test(rule, test):
     return proj.source(test) \
                .then(rule.variable('flags', '-cCOMMANDLINE=%s' % commandline))
 
-tests_with_timeout = []
 def sl_comp_test(test):
     global tests_with_timeout
     test_no_timeout   = make_test(prover_smt.krun(), test)
     test_with_timeout = make_test(krun_with_timeout(timeout_for_test(test)), test) \
                           .then(log_on_success('.build/passed', test))
-    if known_passing(test): test_with_timeout.default()
-    tests_with_timeout += [test_with_timeout]
+    return (test_no_timeout, test_with_timeout)
 
-for t in unsat_tests:
-    sl_comp_test(t)
-proj.alias('collect-qf-shid-entl', tests_with_timeout)
+qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
+known_passing_tests = []
+remaining_tests     = []
+for t in qf_shid_entl_unsat_tests:
+    (test_no_timeout, test_with_timeout) = sl_comp_test(t)
+    if known_passing(t): known_passing_tests += [test_with_timeout]
+    else:                remaining_tests     += [test_with_timeout]
+proj.alias('known-passing',   known_passing_tests).default()
+proj.alias('remaining-tests', remaining_tests)
 
+def secondary_tests(alias, file):
+    list = read_list(file)
+    tests = []
+    for t in list:
+        (test_no_timeout , test_with_timeout) = sl_comp_test(t)
+        tests += [test_with_timeout]
+    proj.alias(alias, tests)
+secondary_tests('qf_shidlia_entl_unsat_tests', 't/test-lists/qf_shidlia_entl.unsat')
+secondary_tests('qf_shlid_entl_unsat_tests',   't/test-lists/qf_shlid_entl.unsat')
+secondary_tests('shid_entl_unsat_tests',       't/test-lists/shid_entl.unsat')
 
 # Unit Tests
 # ----------
