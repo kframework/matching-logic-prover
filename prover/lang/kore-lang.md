@@ -656,6 +656,10 @@ Simplifications
   rule isApplication(S:Symbol(_)) => true
   rule isApplication(_) => false
     [owise]
+
+  syntax Int ::= lengthPatterns(Patterns) [function]
+  rule lengthPatterns(.Patterns) => 0
+  rule lengthPatterns(P, Ps) => 1 +Int lengthPatterns(Ps)
 ```
 
 ```k

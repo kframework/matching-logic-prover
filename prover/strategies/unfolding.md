@@ -154,10 +154,18 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => right-unfold-all(symbols: getRecursiveSymbols(.Patterns), bound: N)
                   ...
        </strategy>
+// Gather permutations of recursive symbols, provided the number of recursive symbols is small enough
   rule <strategy> right-unfold-all(symbols: SYMs, bound: N)
                => right-unfold-perm(permutations: perm(SYMs), bound: N)
                   ...
        </strategy>
+    requires lengthPatterns(SYMs) <Int 8
+// When there are too many recursive symbols, apply previous unfolding strategy with bound N
+  rule <strategy> right-unfold-all(symbols: SYMs, bound: N)
+               => right-unfold { N }
+                  ...
+       </strategy>
+    requires lengthPatterns(SYMs) >=Int 8
   rule <strategy> right-unfold-perm(permutations: .List, bound: _)
                => noop
                   ...
