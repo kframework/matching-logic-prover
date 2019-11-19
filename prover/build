@@ -76,12 +76,18 @@ no_unfold_3_5_20 = [ 't/SL-COMP18/bench/qf_shid_entl/16.tst.smt2'
                    , 't/SL-COMP18/bench/qf_shid_entl/lsegex4_slk-4.smt2'
                    , 't/SL-COMP18/bench/qf_shid_entl/lsegex4_slk-5.smt2'
                    ]
+unfold_3_5_20 = [ 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_01.sb.smt2'
+                , 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_02.sb.smt2'
+                , 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_05.sb.smt2'
+                , 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_06.sb.smt2'
+                ]
 
 test_lists = [ (True,   3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , (True,   5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
              , (True,   5,  6, '20m', read_list('t/test-lists/qf_shid_entl.unsat.5'))
              , (True,   5,  9, '20m', read_list('t/test-lists/qf_shid_entl.unsat.8'))
              , (False,  3,  5, '20m', no_unfold_3_5_20)
+             , (True,   3,  5, '20m', unfold_3_5_20)
              , (True,   7,  7, '20m', ['t/SL-COMP18/bench/qf_shid_entl/ls_entail_ls_nonrec_07.sb.smt2'])
              , (True,   2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-1.smt2'])
              , (True,   2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-10.smt2'])
@@ -136,6 +142,7 @@ for t in qf_shid_entl_unsat_tests:
     else:                remaining_tests     += [test_with_timeout]
 proj.alias('known-passing',   known_passing_tests).default()
 proj.alias('remaining-tests', remaining_tests)
+print('known-passing:', len(known_passing_tests))
 
 def secondary_tests(alias, file):
     list = read_list(file)
