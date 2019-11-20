@@ -75,6 +75,8 @@ def config_for_test(test):
     return (True, 5, 12, '20m', False)
 def strategy_for_test(test):
     (unfold_mut_rec, ktbound, unfold_bound, timeout, passing) = config_for_test(test)
+    if test == 't/SL-COMP18/bench/qf_shid_entl/dll-rev-entails-dll.smt2':
+        return 'abstract . search-sl(kt-bound: %d, unfold-bound: %d)' % (ktbound, unfold_bound)
     if test == 't/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2':
         return 'alternate-search-sl(kt-bound: %d, unfold-bound: %d)' % (ktbound, unfold_bound)
     strategy = ''

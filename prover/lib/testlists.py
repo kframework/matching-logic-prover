@@ -52,6 +52,7 @@ test_lists = [ (True,   3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , (True,   8,  9, '20m', ['t/SL-COMP18/bench/qf_shid_entl/eolseg_07.sb.smt2'])
              , (True,   5,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_14.sb.smt2'])
              , (False,  3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
+             , (False,  3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-rev-entails-dll.smt2'])
              ]
 
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
