@@ -133,6 +133,65 @@ LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
     requires V =/=K P
 ```
 
+### abstraction
+
+obligation of the form R(T, Vs) => R(T', Vs') becomes
+R(V, Vs) => exists V', R(V', Vs') and V = V'
+
+```k
+  rule <claim> \implies(LHS, RHS) </claim>
+       <strategy> abstract
+               => #getNewVariables(LHS, .Patterns)
+               ~> #getNewVariables(RHS, .Patterns)
+               ~> abstract
+              ...
+       </strategy>
+
+  rule <claim> \implies(LHS, \and(\or(RHS)))
+            => \implies( #abstract(LHS, VsLHS)
+                       , \exists{ VsRHS } \and( #dnf(\or(\and(#createEqualities(VsLHS, VsRHS))))
+                                                , #abstract(RHS, VsRHS)
+                                                )
+                       )
+       </claim>
+       <strategy> (VsLHS:Patterns ~> VsRHS:Patterns ~> abstract) => noop ... </strategy>
+
+  syntax Patterns ::= #getNewVariables(Pattern, Patterns) [function]
+  syntax Patterns ::= #getNewVariablesPs(Patterns, Patterns) [function]
+  rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(S(ARGs), Ps)
+    => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
+    requires isUnfoldable(S)
+
+  rule #getNewVariablesPs(.Patterns, _) => .Patterns
+  rule #getNewVariablesPs((P, Ps), Vs) => #getNewVariables(P, Vs) ++Patterns #getNewVariablesPs(Ps, Vs)
+
+  syntax Pattern ::= #abstract(Pattern, Patterns) [function]
+  syntax Patterns ::= #abstractPs(Patterns, Patterns) [function]
+  rule #abstract(\and(Ps), Vs) => \and(#abstractPs(Ps, Vs))
+  rule #abstract(\or(Ps), Vs) => \or(#abstractPs(Ps, Vs))
+  rule #abstract(S(ARGs), Vs)
+    => S(#replaceNewVariables(ARGs, Vs))
+    requires isUnfoldable(S)
+
+  rule #abstractPs(.Patterns, _) => .Patterns
+  rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs), #abstractPs(Ps, Vs)
+
+  syntax Patterns ::= #replaceNewVariables(Patterns, Patterns) [function]
+  rule #replaceNewVariables((V1:Variable, Ps), Vs) => V1, #replaceNewVariables(Ps, Vs)
+  rule #replaceNewVariables((P, Ps), (V, Vs)) => V, #replaceNewVariables(Ps, Vs)
+    requires notBool isVariable(P)
+  rule #replaceNewVariables(.Patterns, .Patterns) => .Patterns
+
+  syntax Patterns ::= #createEqualities(Patterns, Patterns) [function]
+  syntax Patterns ::= #createEqualitiesVar(Patterns, Pattern) [function]
+  rule #createEqualities(VsLHS, .Patterns) => .Patterns
+  rule #createEqualities(VsLHS, (VRHS, VsRHS)) => \or(#createEqualitiesVar(VsLHS, VRHS)), #createEqualities(VsLHS, VsRHS)
+  rule #createEqualitiesVar(.Patterns, VRHS) => .Patterns
+  rule #createEqualitiesVar((VLHS, VsLHS), VRHS) => \equals(VRHS, VLHS), #createEqualitiesVar(VsLHS, VRHS)
+```
+
 ### lift-constraints
 
 Bring predicate constraints to the top of a term.

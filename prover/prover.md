@@ -24,7 +24,7 @@ module STRATEGIES-EXPORTED-SYNTAX
   syntax Strategy ::= "search-fol" "(" "bound" ":" Int ")"
                     | "search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "alternate-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
-                    | "remove-lhs-existential" | "normalize" | "lift-or" | "purify"
+                    | "remove-lhs-existential" | "normalize" | "lift-or" | "purify" | "abstract"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "lift-constraints"
                     | "direct-proof"
