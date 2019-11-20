@@ -160,9 +160,11 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #getNewVariablesPs(Patterns, Patterns) [function]
   rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(sep(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(S(ARGs), Ps)
     => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
     requires isUnfoldable(S)
+  rule #getNewVariables(pto(ARGs), Ps) => Ps
 
   rule #getNewVariablesPs(.Patterns, _) => .Patterns
   rule #getNewVariablesPs((P, Ps), Vs) => #getNewVariables(P, Vs) ++Patterns #getNewVariablesPs(Ps, Vs)
@@ -171,9 +173,11 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #abstractPs(Patterns, Patterns) [function]
   rule #abstract(\and(Ps), Vs) => \and(#abstractPs(Ps, Vs))
   rule #abstract(\or(Ps), Vs) => \or(#abstractPs(Ps, Vs))
+  rule #abstract(sep(Ps), Vs) => sep(#abstractPs(Ps, Vs))
   rule #abstract(S(ARGs), Vs)
     => S(#replaceNewVariables(ARGs, Vs))
     requires isUnfoldable(S)
+  rule #abstract(pto(ARGs), Vs) => pto(ARGs)
 
   rule #abstractPs(.Patterns, _) => .Patterns
   rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs), #abstractPs(Ps, Vs)
