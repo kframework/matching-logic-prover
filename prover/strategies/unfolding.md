@@ -3,6 +3,7 @@ module STRATEGY-UNFOLDING
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
+  imports STRATEGY-SIMPLIFICATION
 
   syntax Pattern ::= unfold(Pattern) [function]
   rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(alphaRename(DEF), zip(Vs, ARGs))) ]]
@@ -223,6 +224,44 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
   rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
         => \implies(LHS, \exists { E1 ++Patterns E2 }
                          \and(substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns))))) ...
+       </claim>
+       <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
+       <trace> .K
+            => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY))
+               ~> RHS ~> substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
+               ...
+       </trace>
+    requires notBool hasImplicationContext(LHS)
+
+  syntax Pattern ::= #moveHoleToFront(Pattern) [function]
+  rule #moveHoleToFront(\and(sep(#hole, REST_SEP), REST_AND)) => \and(sep(#hole, REST_SEP), REST_AND)
+  rule #moveHoleToFront(\and(sep(P, REST_SEP), REST_AND)) => #moveHoleToFront(\and(sep(REST_SEP ++Patterns P), REST_AND))
+    requires P =/=K #hole:Variable
+
+  // right unfolding within an implication context
+  rule <claim> \implies(\and( sep ( \forall { UNIVs => UNIVs ++Patterns E2 }
+                                    implicationContext( ( \and( sep( #hole
+                                                                   , CTXLHS
+                                                                   )
+                                                              , CTXLCONSTRAINTS
+                                                              )
+                                                        )
+                                                       => #moveHoleToFront(#flattenAnd(
+                                                            #liftConstraints( \and( sep( #hole
+                                                                                       , substPatternsMap(CTXLHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
+                                                                                       )
+                                                                                  , CTXLCONSTRAINTS
+                                                                                  )
+                                                                            )
+                                                          ))
+                                                      , _
+                                                      )
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
        </claim>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
        <trace> .K

@@ -24,6 +24,7 @@ module STRATEGIES-EXPORTED-SYNTAX
   syntax Strategy ::= "search-fol" "(" "bound" ":" Int ")"
                     | "search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "alternate-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
+                    | "kt-unfold-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "remove-lhs-existential" | "normalize" | "lift-or" | "purify" | "abstract"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "lift-constraints"
@@ -37,6 +38,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "right-unfold-perm" "(" "permutations" ":" List "," "bound" ":" Int ")"
                     | "right-unfold"      "(" "symbols" ":" Patterns "," "bound" ":" Int ")"
                     | "kt"     | "kt"     "#" KTFilter
+                    | "kt-unf" | "kt-unf" "#" KTFilter
                     | "kt-gfp" | "kt-gfp" "#" KTFilter
                     | "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
