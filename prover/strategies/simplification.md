@@ -160,11 +160,13 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #getNewVariablesPs(Patterns, Patterns) [function]
   rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(\not(P), Vs) => #getNewVariablesPs(P, Vs)
   rule #getNewVariables(sep(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(S(ARGs), Ps)
     => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
     requires isUnfoldable(S)
-  rule #getNewVariables(pto(ARGs), Ps) => Ps
+  rule #getNewVariables(pto(_), Ps) => Ps
+  rule #getNewVariables(\equals(_, _), Ps) => Ps
 
   rule #getNewVariablesPs(.Patterns, _) => .Patterns
   rule #getNewVariablesPs((P, Ps), Vs) => #getNewVariables(P, Vs) ++Patterns #getNewVariablesPs(Ps, Vs)
@@ -173,11 +175,13 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #abstractPs(Patterns, Patterns) [function]
   rule #abstract(\and(Ps), Vs) => \and(#abstractPs(Ps, Vs))
   rule #abstract(\or(Ps), Vs) => \or(#abstractPs(Ps, Vs))
+  rule #abstract(\not(P), Vs) => \not(#abstract(P, Vs))
   rule #abstract(sep(Ps), Vs) => sep(#abstractPs(Ps, Vs))
   rule #abstract(S(ARGs), Vs)
     => S(#replaceNewVariables(ARGs, Vs))
     requires isUnfoldable(S)
   rule #abstract(pto(ARGs), Vs) => pto(ARGs)
+  rule #abstract(\equals(L, R), Vs) => \equals(L, R)
 
   rule #abstractPs(.Patterns, _) => .Patterns
   rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs), #abstractPs(Ps, Vs)
@@ -186,7 +190,7 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #replaceNewVariables((V1:Variable, Ps), Vs) => V1, #replaceNewVariables(Ps, Vs)
   rule #replaceNewVariables((P, Ps), (V, Vs)) => V, #replaceNewVariables(Ps, Vs)
     requires notBool isVariable(P)
-  rule #replaceNewVariables(.Patterns, .Patterns) => .Patterns
+  rule #replaceNewVariables(.Patterns, _) => .Patterns
 
   syntax Patterns ::= #createEqualities(Patterns, Patterns) [function]
   syntax Patterns ::= #createEqualitiesVar(Patterns, Pattern) [function]
