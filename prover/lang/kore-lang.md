@@ -610,6 +610,7 @@ Simplifications
   rule isPredicatePattern(\or(.Patterns)) => true
   rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
   rule isPredicatePattern(\implies(P1, P2)) => isPredicatePattern(P1) andBool isPredicatePattern(P2)
+  rule isPredicatePattern(#hole) => false
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
   rule isPredicatePattern(S:Symbol(ARGS)) => true
@@ -635,6 +636,7 @@ Simplifications
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
+  rule isSpatialPattern(#hole) => true
 
   // TODO: Perhaps normalization should get rid of this?
   rule isSpatialPattern(\exists{_} implicationContext(\and(sep(_),_),_)) => true
@@ -660,6 +662,26 @@ Simplifications
   syntax Int ::= lengthPatterns(Patterns) [function]
   rule lengthPatterns(.Patterns) => 0
   rule lengthPatterns(P, Ps) => 1 +Int lengthPatterns(Ps)
+
+  syntax Bool ::= hasImplicationContext(Pattern)  [function]
+  syntax Bool ::= hasImplicationContextPs(Patterns)  [function]
+  rule hasImplicationContext(X:Variable) => false
+  rule hasImplicationContext(X:Int) => false
+  rule hasImplicationContext(S:Symbol) => false
+  rule hasImplicationContext(\implies(LHS, RHS))
+    => hasImplicationContext(LHS) orBool hasImplicationContext(RHS)
+  rule hasImplicationContext(\equals(LHS, RHS))
+    => hasImplicationContext(LHS) orBool hasImplicationContext(RHS)
+  rule hasImplicationContext(S:Symbol (ARGS)) => hasImplicationContextPs(ARGS)
+  rule hasImplicationContext(\and(Ps)) => hasImplicationContextPs(Ps)
+  rule hasImplicationContext(\or(Ps)) => hasImplicationContextPs(Ps)
+  rule hasImplicationContext(\not(P)) => hasImplicationContext(P)
+  rule hasImplicationContext(\exists{ _ } P ) => hasImplicationContext(P)
+  rule hasImplicationContext(\forall{ _ } P ) => hasImplicationContext(P)
+  rule hasImplicationContext(implicationContext(_, _)) => true
+  rule hasImplicationContextPs(.Patterns) => false
+  rule hasImplicationContextPs(P, Ps)
+    => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
 ```
 
 ```k

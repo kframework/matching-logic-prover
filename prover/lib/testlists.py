@@ -62,6 +62,10 @@ test_lists = [ ('unfold-mut-recs . ',  3,  3,  '5m', read_list('t/test-lists/pas
              , ('normalize . or-split-rhs . lift-constraints . left-unfold-Nth(0) . alternate-',
                                        1,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-7.smt2'])
              , ('',                    1,  3, '10m', ['t/SL-COMP18/bench/qf_shid_entl/append_dll_slk-9.smt2'])
+             , ('kt-unfold-',          3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_lsrev_concat_entail_ls_1.sb.smt2'])
+             , ('kt-unfold-',          4,  4, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_lsrev_concat_entail_ls_2.sb.smt2'])
+             , ('kt-unfold-',          4,  4, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_lsrev_concat_entail_ls_3.sb.smt2'])
+             , ('kt-unfold-',          4,  4, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_lsrev_concat_entail_ls_4.sb.smt2'])
              ]
 
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')

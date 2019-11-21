@@ -87,6 +87,48 @@ for guessing an instantiation of the inductive hypothesis.
        </strategy>
 ```
 
+```k
+  rule <strategy> kt-unf => kt-unf # .KTFilter ... </strategy>
+  rule <claim> \implies(\and(LHS), RHS) </claim>
+       <strategy> kt-unf # FILTER
+               => getKTUnfoldables(LHS) ~> kt-unf # FILTER
+                  ...
+       </strategy>
+  rule <strategy> LRPs:Patterns ~> kt-unf # head(HEAD)
+               => filterByConstructor(LRPs, HEAD) ~> kt-unf # .KTFilter
+                  ...
+       </strategy>
+  rule <strategy> LRPs:Patterns ~> kt-unf # index(I:Int)
+               => getMember(I, LRPs), .Patterns ~> kt-unf # .KTFilter
+                  ...
+       </strategy>
+  rule <strategy> LRPs:Patterns ~> kt-unf # .KTFilter
+               => ktUnfForEachLRP(LRPs)
+                  ...
+       </strategy>
+```
+
+`ktUnfForEachLRP` iterates over the recursive predicates on the LHS of the goal:
+
+```k
+  syntax Strategy ::= ktUnfForEachLRP(Patterns)
+  rule <strategy> ktUnfForEachLRP(.Patterns) => noop ... </strategy>
+  rule <strategy> ( ktUnfForEachLRP((LRP, LRPs))
+                 => ( remove-lhs-existential . normalize . or-split-rhs . lift-constraints
+                    . kt-wrap(LRP) . kt-forall-intro
+                    . kt-unfold . lift-or . and-split . remove-lhs-existential
+                    . kt-unwrap
+                    . simplify . normalize . or-split-rhs. lift-constraints
+                    . ( ( kt-collapse )
+                      | ( imp-ctx-unfold . kt-collapse )
+                      )
+                    )
+                    | ktUnfForEachLRP(LRPs)
+                  )
+                 ~> REST
+       </strategy>
+```
+
 >   phi(x) -> C'[psi(x)]
 >   --------------------
 >   C[phi(x)] -> psi(x)
@@ -222,6 +264,10 @@ If there are no implication contexts to collapse, we are done:
   rule <claim> GOAL </claim>
        <strategy> kt-collapse => noop ... </strategy>
     requires notBool(hasImplicationContext(GOAL))
+
+  rule <claim> GOAL </claim>
+       <strategy> imp-ctx-unfold => noop ... </strategy>
+    requires notBool(hasImplicationContext(GOAL))
 ```
 
 #### Normalizing terms
@@ -244,6 +290,13 @@ Bring terms containing the implication context to the front:
             => \implies(\and(sep(Ss ++Patterns S), Ps), RHS)
        </claim>
        <strategy> kt-collapse ... </strategy>
+    requires notBool hasImplicationContext(S)
+     andBool hasImplicationContext(LSPATIAL)
+
+  rule <claim> \implies(\and((sep(S, Ss) #as LSPATIAL), Ps), RHS)
+            => \implies(\and(sep(Ss ++Patterns S), Ps), RHS)
+       </claim>
+       <strategy> imp-ctx-unfold ... </strategy>
     requires notBool hasImplicationContext(S)
      andBool hasImplicationContext(LSPATIAL)
 ```
@@ -343,6 +396,24 @@ context has no constraints.
        </strategy>
      requires UNIVs =/=K .Patterns
       andBool UNIVs -Patterns fst(unzip(SUBST)) ==K .Patterns
+
+  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => .Patterns }
+                                      ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
+                                      )
+                                    , LSPATIAL
+                                    )
+                              )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
+               => fail
+                  ...
+       </strategy>
+     requires UNIVs =/=K .Patterns
+      andBool UNIVs -Patterns fst(unzip(SUBST)) =/=K .Patterns
 ```
 
 Finally, we use matching on the no universal quantifiers case to collapse the context.
@@ -417,6 +488,43 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
      andBool notBool (CTXCONSTRAINT in LHS)
 ```
 
+### Unfolding within the implication context
+
+```k
+  syntax Strategy ::= "imp-ctx-unfold"
+```
+
+```k
+  rule <claim> \implies(\and( sep ( \forall { UNIVs }
+                                    implicationContext( \and( sep( #hole
+                                                                 , CTXLHS:Patterns
+                                                                 )
+                                                            , CTXLCONSTRAINTS
+                                                            )
+                                                      , _
+                                                      )
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> imp-ctx-unfold => right-unfold-eachRRP(getUnfoldables(CTXLHS)) ... </strategy>
+     requires UNIVs =/=K .Patterns
+
+  rule <claim> \implies(\and( sep ( \forall { .Patterns }
+                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> imp-ctx-unfold => right-unfold-eachRRP(getUnfoldables(CTXLHS)) ... </strategy>
+```
+
 #### Infrastructure
 
 
@@ -451,26 +559,6 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
                    )
        </claim>
        <strategy> kt-collapse ... </strategy>
-
-  syntax Bool ::= hasImplicationContext(Pattern)  [function]
-  syntax Bool ::= hasImplicationContextPs(Patterns)  [function]
-  rule hasImplicationContext(X:Variable) => false
-  rule hasImplicationContext(X:Int) => false
-  rule hasImplicationContext(S:Symbol) => false
-  rule hasImplicationContext(\implies(LHS, RHS))
-    => hasImplicationContext(LHS) orBool hasImplicationContext(RHS)
-  rule hasImplicationContext(\equals(LHS, RHS))
-    => hasImplicationContext(LHS) orBool hasImplicationContext(RHS)
-  rule hasImplicationContext(S:Symbol (ARGS)) => hasImplicationContextPs(ARGS)
-  rule hasImplicationContext(\and(Ps)) => hasImplicationContextPs(Ps)
-  rule hasImplicationContext(\or(Ps)) => hasImplicationContextPs(Ps)
-  rule hasImplicationContext(\not(P)) => hasImplicationContext(P)
-  rule hasImplicationContext(\exists{ _ } P ) => hasImplicationContext(P)
-  rule hasImplicationContext(\forall{ _ } P ) => hasImplicationContext(P)
-  rule hasImplicationContext(implicationContext(_, _)) => true
-  rule hasImplicationContextPs(.Patterns) => false
-  rule hasImplicationContextPs(P, Ps)
-    => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
 ```
 
 >   gamma -> alpha     beta /\ gamma -> psi
