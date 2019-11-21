@@ -51,11 +51,16 @@ test_lists = [ ('unfold-mut-recs . ',  3,  3,  '5m', read_list('t/test-lists/pas
              , ('unfold-mut-recs . ',  5,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_15.sb.smt2'])
              , ('unfold-mut-recs . ',  8,  9, '20m', ['t/SL-COMP18/bench/qf_shid_entl/eolseg_07.sb.smt2'])
              , ('unfold-mut-recs . ',  5,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_14.sb.smt2'])
-             , ('alternate',           3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
+             , ('alternate-',           3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
              , ('abstract . ',         3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-rev-entails-dll.smt2'])
              , ('abstract . ',         3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll-rev.smt2'])
              , ('abstract . ',         3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll0+.smt2'])
+             , ('abstract . ',         3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/node-node-dll-entails-dll.smt2'])
              , ('abstract . ',         3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll_append_tail_entails_dllnull_nil.sb.smt2'])
+             , ('normalize . or-split-rhs . lift-constraints . left-unfold-Nth(0) . alternate-',
+                                       1,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-16.smt2'])
+             , ('normalize . or-split-rhs . lift-constraints . left-unfold-Nth(0) . alternate-',
+                                       1,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-7.smt2'])
              ]
 
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
