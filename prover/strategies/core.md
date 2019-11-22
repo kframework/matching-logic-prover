@@ -233,6 +233,8 @@ Internal strategy used to implement `or-split` and `and-split`.
   rule <claim> \implies(LHS, \exists { Vs } \and(RHSs, REST)) </claim>
        <strategy> or-split-rhs => noop ... </strategy>
     requires notBool isDisjunction(RHSs)
+  rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+       <strategy> or-split-rhs => noop ... </strategy>
 
   rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
        <strategy> or-split-rhs => noop ... </strategy>
