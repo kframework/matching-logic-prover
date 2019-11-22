@@ -82,8 +82,46 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tseg_join_tree_entail_tseg.sb.smt2'])
              , ('normalize . or-split-rhs . lift-constraints . left-unfold-Nth(0) . alternate-',
                                          1,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-7.smt2'])
+             , (("   normalize . or-split-rhs . lift-constraints "
+                 " . right-unfold-Nth(0, 1) "
+                 " . normalize . or-split-rhs . lift-constraints . match-pto "
+                 " . frame "
+                 " . normalize . or-split-rhs . lift-constraints "
+                 " . right-unfold-Nth(0, 1) "
+                 " . normalize . or-split-rhs . lift-constraints . match-pto "
+                 " . frame "
+                 " . right-unfold-Nth(0, 1) "
+                 " . normalize . or-split-rhs . lift-constraints . match-pto "
+                 " . frame "
+                 " . right-unfold-Nth(0, 1) "
+                 " . normalize . or-split-rhs . lift-constraints . match-pto "
+                 " . frame "
+                 " . right-unfold-Nth(0, 1) "
+                 " . normalize . or-split-rhs . lift-constraints . match-pto "
+                 " . right-unfold-Nth(0, 0) "
+                 " . normalize . or-split-rhs . lift-constraints . match-pto "
+                 " . frame . "
+                ),                    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/skl2-vc03.smt2'])
+             , (("   normalize . or-split-rhs"
+                 " . lift-constraints . instantiate-existentials . substitute-equals-for-equals"
+                 " . left-unfold-Nth(0)"
+                 " . lift-constraints . instantiate-existentials . substitute-equals-for-equals"
+                 " . ( ( right-unfold-Nth(0, 1)"
+                 "     . right-unfold-Nth(0, 0)"
+                 "     . lift-constraints . instantiate-existentials . substitute-equals-for-equals"
+                 "     . normalize . or-split-rhs . lift-constraints . instantiate-existentials"
+                 "     . match . spatial-patterns-equal . smt-cvc4"
+                 "     )"
+                 "   | ( lift-constraints . instantiate-existentials . substitute-equals-for-equals"
+                 "     . right-unfold-Nth(0, 1)"
+                 "     . lift-constraints . instantiate-existentials . substitute-equals-for-equals"
+                 "     . match-pto . match-pto"
+                 "     . frame"
+                 "     . search-sl(kt-bound: 2, unfold-bound: 3)"
+                 "     )"
+                 "   ) ."
+                ),                    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-5.smt2'])
              ]
-
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 
 for (l1, l2) in combinations(test_lists, 2):
