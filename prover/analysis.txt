@@ -10,11 +10,10 @@ t/SL-COMP18/bench/qf_shid_entl/dll2-spaghetti.smt2
 
 t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2
-t/SL-COMP18/bench/qf_shid_entl/dll-vc17.smt2
- - ??
-
 t/SL-COMP18/bench/qf_shid_entl/dll-vc11.smt2
- - special case, songbird failure
+ - Requires to prove LHS unsat.
+ - 05,11,17: RU ~> PM ~> Realize to prove LHS unsat ~> matched-LHS -> \exists c d . y |-> <c,d>
+ - 07: RU ~> PM ~> Split spatial/constraints ~> (spatial just PM) ~> for constraints: Left-Unfold
 
 t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_14.sb.smt2
 t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_15.sb.smt2
