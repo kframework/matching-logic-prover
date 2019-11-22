@@ -6,7 +6,7 @@ t/SL-COMP18/bench/qf_shid_entl/22.tst.smt2
 
 t/SL-COMP18/bench/qf_shid_entl/dll-spaghetti.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll2-spaghetti.smt2
- - Framing
+ - Framing (try these later; large obligations!)
 
 t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2
