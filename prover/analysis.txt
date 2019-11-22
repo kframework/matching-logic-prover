@@ -6,7 +6,7 @@ t/SL-COMP18/bench/qf_shid_entl/22.tst.smt2
 
 t/SL-COMP18/bench/qf_shid_entl/dll-spaghetti.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll2-spaghetti.smt2
- - framing
+ - Framing
 
 t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2
 t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2
@@ -28,8 +28,8 @@ t/SL-COMP18/bench/qf_shid_entl/nll-vc03.smt2
 t/SL-COMP18/bench/qf_shid_entl/nll-vc04.smt2
 t/SL-COMP18/bench/qf_shid_entl/nll-vc08.smt2
 t/SL-COMP18/bench/qf_shid_entl/nll-vc10.smt2
- - ??
-
+ - Framing
+ 
 t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-5.smt2
  - know how to prove
  - require an *Abstraction* on variables (not nil)
@@ -43,7 +43,7 @@ t/SL-COMP18/bench/qf_shid_entl/skl3-vc07.smt2
 t/SL-COMP18/bench/qf_shid_entl/skl3-vc08.smt2
 t/SL-COMP18/bench/qf_shid_entl/skl3-vc09.smt2
 t/SL-COMP18/bench/qf_shid_entl/skl3-vc10.smt2
- - framing for at least some, skl3-vc04,5,6 are songbird failures
+ - Framing; skl3-vc04,5,6 are songbird failures
 
 t/SL-COMP18/bench/qf_shid_entl/tll-pp-entails-tll-pp-rev.smt2
  - ??
