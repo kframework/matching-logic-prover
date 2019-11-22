@@ -44,7 +44,8 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "instantiate-universals-with-ground-terms"
                     | "instantiate-separation-logic-axioms"
                     | "spatial-patterns-equal"
-                    | "match"
+                    | "match" | "match-pto"
+                    | "frame"
                     | "unfold-mut-recs"
 
   syntax KTFilter ::= head(Symbol)

@@ -348,19 +348,25 @@ The `with-each-match` strategy
 
 ```k
   syntax Strategy ::= "with-each-match" "(" MatchResults "," Strategy ")"
-  rule <strategy> with-each-match( (MR, MRs), S )
-               => with-each-match(MR, S) | with-each-match(MRs, S)
+  rule <strategy> with-each-match( MRs, S )
+               => with-each-match( MRs, S, fail )
+                  ...
+       </strategy>
+  syntax Strategy ::= "with-each-match" "(" MatchResults "," Strategy "," Strategy ")"
+  rule <strategy> with-each-match( (MR, MRs), SUCCESS , FAILURE )
+               => with-each-match(MR,  SUCCESS, FAILURE)
+                | with-each-match(MRs, SUCCESS, FAILURE)
                   ...
        </strategy>
     requires MRs =/=K .MatchResults
 
-  rule <strategy> with-each-match( (MR, .MatchResults), S )
-               => MR ~> S
+  rule <strategy> with-each-match( (MR, .MatchResults), SUCCESS, FAILURE )
+               => MR ~> SUCCESS
                   ...
        </strategy>
        
-  rule <strategy> with-each-match( .MatchResults, S )
-               => fail
+  rule <strategy> with-each-match( .MatchResults, SUCCESS, FAILURE )
+               => FAILURE
                   ...
        </strategy>
 ```
@@ -404,6 +410,55 @@ Instantiate existentials using matching on the spatial part of goals:
                   ...
        </strategy>
      requires REST =/=K .Patterns
+```
+
+```k
+  syntax Strategy ::= "match-pto" "(" Patterns ")"
+  rule <claim> \implies( \and(sep(LSPATIAL), LHS)
+                       , \exists { Vs } \and(sep(RSPATIAL), RHS)
+                       )
+       </claim>
+       <strategy> match-pto => match-pto(getPartiallyInstantiatedPtos(RSPATIAL, Vs)) ... </strategy>
+  rule <strategy> match-pto(.Patterns)
+               => noop
+                  ...
+       </strategy>
+
+  rule <claim> \implies( \and(sep(LSPATIAL), LHS:Patterns)
+                       , \exists { Vs } \and(sep(RSPATIAL), RHS:Patterns))
+       </claim>
+       <strategy> match-pto(P, Ps:Patterns)
+               => with-each-match(
+                    #match( terms: LSPATIAL:Patterns
+                                         , pattern: P
+                                         , variables: Vs:Patterns
+                                         )
+                                 , match-pto
+                                 , noop
+                                 )
+                . match-pto(Ps:Patterns)
+                  ...
+       </strategy>
+  rule <claim> \implies( _
+                       ,  (\exists { Vs } \and( RHS ))
+                       => ( \exists { Vs -Patterns fst(unzip(SUBST)) }
+                            substMap(\and(RHS), SUBST)
+                          )
+                       )
+       </claim>
+       <strategy> ( #matchResult(subst: SUBST, rest: _) ~> match-pto )
+               => noop
+                  ...
+       </strategy>
+
+  syntax Patterns ::= getPartiallyInstantiatedPtos(Patterns, Patterns) [function]
+  rule getPartiallyInstantiatedPtos((pto(L, R), Ps), Vs)
+    => pto(L, R), getPartiallyInstantiatedPtos(Ps, Vs)
+    requires notBool L in Vs
+     andBool getFreeVariables(R) intersect Vs =/=K .Patterns
+  rule getPartiallyInstantiatedPtos((P, Ps), Vs) => getPartiallyInstantiatedPtos(Ps, Vs)
+    [owise]
+  rule getPartiallyInstantiatedPtos(.Patterns, Vs) => .Patterns
 ```
 
 Instantiate heap axioms:
@@ -493,6 +548,94 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
          <strategy> spatial-patterns-equal => fail ... </strategy>
       requires LSPATIAL -Patterns RSPATIAL =/=K .Patterns
         orBool RSPATIAL -Patterns LSPATIAL =/=K .Patterns
+```
+
+```k
+    rule <claim> \implies( \and(sep( LSPATIAL ) , _ )
+                         , \exists {_}
+                           \and(sep( RSPATIAL ) , _ )
+                         )
+         </claim>
+         <strategy> frame => frame(LSPATIAL intersect RSPATIAL) ... </strategy>
+```
+
+```k
+    syntax Strategy ::= "frame" "(" Patterns ")"
+    rule <claim> \implies( LHS
+                         , \exists { .Patterns }
+                           \and( sep(_),  RCONSTRAINTs )
+                         )
+         </claim>
+         <strategy> frame(pto(LOC, VAL), Ps)
+                 => subgoal( \implies( LHS
+                                     , \and(filterClausesInvolvingVariable(LOC, RCONSTRAINTs))
+                                     )
+                           , normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                           . ( noop | left-unfold-Nth(0) | left-unfold-Nth(1) | left-unfold-Nth(2) )
+                           . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                           . instantiate-separation-logic-axioms . subsume-spatial . (smt-cvc4)
+                           )
+                 ~> frame(pto(LOC, VAL))
+                 ~> frame(Ps)
+                    ...
+         </strategy>
+
+    rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
+                         , \exists { .Patterns }
+                           \and( (sep(RSPATIAL => RSPATIAL -Patterns P)) , (RCONSTRAINTs => RCONSTRAINTs -Patterns filterClausesInvolvingVariable(LOC, RCONSTRAINTs)) )
+                         )
+         </claim>
+         <strategy> success
+                 ~> frame((pto(LOC, VAL) #as P), .Patterns)
+                 => .K
+                    ...
+         </strategy>
+      requires P in LSPATIAL
+       andBool P in RSPATIAL
+
+    rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
+                         , \exists { .Patterns }
+                           \and( (sep(RSPATIAL => RSPATIAL -Patterns P)) , RCONSTRAINTs )
+                         )
+         </claim>
+         <strategy> frame((S:Symbol(_) #as P), Ps)  => frame(Ps)
+                    ...
+         </strategy>
+      requires notBool S ==K pto
+
+    rule <strategy> frame(.Patterns) => noop ... </strategy>
+
+    syntax Patterns ::= filterPredicates(Patterns) [function]
+    rule filterPredicates(P, Ps) => P, filterPredicates(Ps)
+      requires isPredicatePattern(P)
+    rule filterPredicates(P, Ps) => filterPredicates(Ps)
+      requires notBool isPredicatePattern(P)
+    rule filterPredicates(.Patterns) => .Patterns
+
+    syntax Patterns ::= filterClausesInvolvingVariable(Variable, Patterns) [function]
+    rule filterClausesInvolvingVariable(V, (P, Ps))
+      => P, filterClausesInvolvingVariable(V, Ps)
+      requires V in getFreeVariables(P)
+    rule filterClausesInvolvingVariable(V, (P, Ps))
+      => filterClausesInvolvingVariable(V, Ps)
+      requires notBool V in getFreeVariables(P)
+    rule filterClausesInvolvingVariable(_, .Patterns)
+      => .Patterns
+
+    syntax Strategy ::= "subsume-spatial"
+    rule <claim> \implies( \and( sep(LSPATIAL:Patterns) , LCONSTRAINTs:Patterns)
+                        => \and(                 LCONSTRAINTs:Patterns)
+                         , \exists { Vs:Patterns }
+                           \and( RHS:Patterns )
+                         )
+         </claim>
+         <strategy> subsume-spatial => noop
+                    ...
+         </strategy>
+      requires isPredicatePattern(\and(RHS))
+```
+
+```k
 endmodule
 ```
 
