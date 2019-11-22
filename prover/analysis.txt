@@ -31,7 +31,9 @@ t/SL-COMP18/bench/qf_shid_entl/nll-vc10.smt2
  - ??
 
 t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-5.smt2
- - special case
+ - know how to prove
+ - require an *Abstraction* on variables (not nil)
+ - turn RHS (olseg b b ) into (olseg b k), where k is fresh (i.e., abstraction). 
 
 t/SL-COMP18/bench/qf_shid_entl/skl2-vc03.smt2
 t/SL-COMP18/bench/qf_shid_entl/skl3-vc04.smt2
