@@ -16,6 +16,51 @@ unfold_3_5_20 = [ 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_01.sb.smt2'
                 , 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_05.sb.smt2'
                 , 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_06.sb.smt2'
                 ]
+
+tst_22_strategy = """
+    normalize . or-split-rhs
+  . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+  . kt # index(0)
+  . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
+      . right-unfold-Nth(0,1)
+      . right-unfold-Nth(0,0)
+      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+      . match
+      . left-unfold-Nth(0)
+      . ( ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . right-unfold-Nth(0,0)
+          . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . spatial-patterns-equal . smt-cvc4
+          )
+        | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . instantiate-separation-logic-axioms
+          . right-unfold-Nth(0,1)
+          . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . match . spatial-patterns-equal . smt-cvc4
+          )
+        )
+      )
+    | ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
+      . right-unfold-Nth(0,1)
+      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+      . match
+      . left-unfold-Nth(1)
+      . ( ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . right-unfold-Nth(1,0)
+          . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . spatial-patterns-equal . smt-cvc4
+          )
+        | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . instantiate-separation-logic-axioms
+          . right-unfold-Nth(1,1)
+          . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+          . match . spatial-patterns-equal . smt-cvc4
+          )
+        )
+      )
+    ) .
+""".replace('\n',' ')
+
     #         prefix   KT  RU timeout tests
 test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , ('unfold-mut-recs . ',    5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
@@ -121,6 +166,7 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
                  "     )"
                  "   ) ."
                 ),                    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-5.smt2'])
+             , (tst_22_strategy,      0,  0, '10m', ['t/SL-COMP18/bench/qf_shid_entl/22.tst.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 
