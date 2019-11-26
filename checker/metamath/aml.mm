@@ -189,7 +189,7 @@ ${
     nfree-mu-body   $a #nfree xX ( \exists Y P ) $.
 $}
 
-$( Define appliation context token ( #appctx P xX ). $)
+$( Define application context token ( #appctx P xX ). $)
 
 appctx-ini $a #appctx xX xX $.
 ${
@@ -284,7 +284,7 @@ $}
 ${
     rl-exists-gen.1 $e |- ( \imp P Q ) $.
     rl-exists-gen.2 $e #nfree x P $.
-    rl-exists-gen   $a |- ( \imp P ( \exists x Q ) ) $.
+    rl-exists-gen   $a |- ( \imp ( \exists x P ) Q ) $.
 $}
 
 $( Part 2.3: Frame Reasoning $)
