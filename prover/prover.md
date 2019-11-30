@@ -64,7 +64,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "lift-constraints"
                     | "direct-proof"
-                    | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
+                    | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug" | "smt-z3-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")"
                     | "kt"     | "kt"     "#" KTFilter
@@ -73,7 +73,7 @@ module PROVER-HORN-CLAUSE-SYNTAX
                     | "instantiate-universals-with-ground-terms"
                     | "instantiate-separation-logic-axioms"
                     | "spatial-patterns-equal"
-                    | "match" 
+                    | "match"
 
   syntax KTFilter ::= head(Symbol)
                     | index(Int)

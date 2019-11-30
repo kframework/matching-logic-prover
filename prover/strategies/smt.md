@@ -293,6 +293,13 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                   ...
        </strategy>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
+
+  rule <claim> GOAL </claim>
+       <strategy> smt-z3-debug
+               => wait ~> (Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))))
+                  ...
+       </strategy>
+       <trace> .K => smt-z3 ~> Z3Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
 ```
 
 ```k
