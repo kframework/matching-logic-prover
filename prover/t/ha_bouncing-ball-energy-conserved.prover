@@ -22,12 +22,20 @@ axiom smt-lemma( \forall { S1 { State },  S2 { State } }
                            , \equals(energy( S2 { State }), energy( S1 { State }))
                            )
                )
+symbol aboveGround( State ) : Bool
+axiom functional(aboveGround)
+
+axiom smt-lemma( \forall { S { State } }
+                    \equals(aboveGround( S { State })
+                           , \not(lt(valZ( S { State }), 0.0))
+                           )
+               )
 
 
 claim \implies( \and( reach( S1 { State }, S2 { State })
-                 , \not(lt( valZ( S { State } , 0.0 ) ) )
-                 )
-           , \and( energyConserved( S1 { State } , S2 { State } ) )
-           )
+                    ,   aboveGround( S1 { State } )
+                    )
+              , \and( energyConserved( S1 { State } , S2 { State } ) )
+              )
 
-strategy kt ; smt-z3
+strategy kt ;  smt-z3
