@@ -557,6 +557,25 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                          )
          </claim>
          <strategy> frame => frame(LSPATIAL intersect RSPATIAL) ... </strategy>
+         
+    rule <claim> \implies( \and(sep( LSPATIAL ) , _ )
+                         , \exists {_}
+                           \and(sep( RSPATIAL ) , _ )
+                         )
+         </claim>
+         <strategy> frame-Nth(N:Int)
+                 => frame(getMember(N, LSPATIAL), .Patterns)
+                    ...
+         </strategy>
+      requires getMember(N, LSPATIAL) in RSPATIAL
+
+    rule <claim> \implies( \and(sep( LSPATIAL ) , _ )
+                         , \exists {_}
+                           \and(sep( RSPATIAL ) , _ )
+                         )
+         </claim>
+         <strategy> frame-Nth(N:Int) => noop ... </strategy>
+      requires notBool getMember(N, LSPATIAL) in RSPATIAL
 ```
 
 ```k
@@ -571,7 +590,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                                      , \and(filterClausesInvolvingVariable(LOC, RCONSTRAINTs))
                                      )
                            , normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                           . ( noop | left-unfold-Nth(0) | left-unfold-Nth(1) | left-unfold-Nth(2) )
+                           . ( ( noop | left-unfold-Nth(0) | left-unfold-Nth(1) | left-unfold-Nth(2)| left-unfold-Nth(3) ) { 2 } )
                            . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                            . instantiate-separation-logic-axioms . subsume-spatial . (smt-cvc4)
                            )
@@ -579,6 +598,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                  ~> frame(Ps)
                     ...
          </strategy>
+      requires notBool Ps ==K .Patterns
 
     rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
                          , \exists { .Patterns }
@@ -592,6 +612,12 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
          </strategy>
       requires P in LSPATIAL
        andBool P in RSPATIAL
+       
+   rule <strategy> fail
+                ~> frame((pto(LOC, VAL) #as P), .Patterns)
+                => .K
+                   ...
+        </strategy>
 
     rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
                          , \exists { .Patterns }
