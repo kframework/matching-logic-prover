@@ -6,7 +6,7 @@
     <goal>
       active: true, id: root, parent: .
       <claim>
-        \implies ( \and ( reach ( S1 { State } , S2 { State } , .Patterns ) , aboveGround ( S1 { State } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( aboveGround ( S2 { State } , .Patterns ) , .Patterns ) )
+        \implies ( \and ( reach ( S1 { State } , S2 { State } , .Patterns ) , aboveGround ( S1 { State } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( \equals ( energy ( S1 { State } , .Patterns ) , energy ( S2 { State } , .Patterns ) ) , .Patterns ) )
       </claim>
       <strategy>
         success
@@ -18,13 +18,15 @@
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { S1 { State } , S2 { State } , .Patterns } \iff-lfp ( reach ( S1 { State } , S2 { State } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( valV ( S1 { State } , .Patterns ) , valV ( S2 { State } , .Patterns ) ) , \equals ( valZ ( S1 { State } , .Patterns ) , valZ ( S2 { State } , .Patterns ) ) , \equals ( mode ( S1 { State } , .Patterns ) , mode ( S2 { State } , .Patterns ) ) , .Patterns ) , \exists { T { Real } , .Patterns } \and ( gt ( T { Real } , 0.0 , .Patterns ) , \equals ( mode ( S1 { State } , .Patterns ) , mode ( S2 { State } , .Patterns ) ) , \equals ( S2 { State } , evolve ( S1 { State } , T { Real } , .Patterns ) ) , stateSatisfiesModeInvariant ( S1 { State } , .Patterns ) , intervalSatisfiesModeInvariant ( S1 { State } , T { Real } , .Patterns ) , stateSatisfiesModeInvariant ( S2 { State } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( stateSatisfiesModeInvariant ( S1 { State } , .Patterns ) , \equals ( S2 { State } , discreteTransitionFrom ( S1 { State } , .Patterns ) ) , .Patterns ) , \exists { SI { State } , .Patterns } \and ( reach ( S1 { State } , SI { State } , .Patterns ) , reach ( SI { State } , S2 { State } , .Patterns ) , .Patterns ) , .Patterns ) )
+      axiom \forall { S1 { State } , S2 { State } , .Patterns } \iff-lfp ( reach ( S1 { State } , S2 { State } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( S1 { State } , S2 { State } ) , \equals ( mode ( S1 { State } , .Patterns ) , mode ( S2 { State } , .Patterns ) ) , \equals ( valV ( S1 { State } , .Patterns ) , valV ( S2 { State } , .Patterns ) ) , \equals ( valZ ( S1 { State } , .Patterns ) , valZ ( S2 { State } , .Patterns ) ) , .Patterns ) , \exists { T { Real } , SI { State } , .Patterns } \and ( gt ( T { Real } , 0.0 , .Patterns ) , \equals ( mode ( SI { State } , .Patterns ) , mode ( S2 { State } , .Patterns ) ) , \equals ( S2 { State } , evolve ( SI { State } , T { Real } , .Patterns ) ) , stateSatisfiesModeInvariant ( SI { State } , .Patterns ) , intervalSatisfiesModeInvariant ( SI { State } , T { Real } , .Patterns ) , stateSatisfiesModeInvariant ( S2 { State } , .Patterns ) , reach ( S1 { State } , SI { State } , .Patterns ) , .Patterns ) , \exists { SI { State } , .Patterns } \and ( stateSatisfiesModeInvariant ( S1 { State } , .Patterns ) , stateSatisfiesModeInvariant ( SI { State } , .Patterns ) , reach ( S1 { State } , SI { State } , .Patterns ) , \equals ( S2 { State } , discreteTransitionFrom ( SI { State } , .Patterns ) ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom functional ( aboveGround )
     </declaration> <declaration>
       axiom functional ( acc )
     </declaration> <declaration>
       axiom functional ( discreteTransitionFrom )
+    </declaration> <declaration>
+      axiom functional ( energy )
     </declaration> <declaration>
       axiom functional ( evolve )
     </declaration> <declaration>
@@ -44,15 +46,17 @@
     </declaration> <declaration>
       axiom smt-lemma ( \forall { R { Real } , .Patterns } \equals ( acc ( R { Real } , .Patterns ) , minus ( 0.0 , R { Real } , .Patterns ) ) )
     </declaration> <declaration>
-      axiom smt-lemma ( \forall { S1 { State } , .Patterns } \equals ( aboveGround ( S1 { State } , .Patterns ) , \not ( lt ( valZ ( S1 { State } , .Patterns ) , 0.0 , .Patterns ) ) ) )
-    </declaration> <declaration>
       axiom smt-lemma ( \forall { S1 { State } , .Patterns } \equals ( stateSatisfiesModeInvariant ( S1 { State } , .Patterns ) , \not ( lt ( valZ ( S1 { State } , .Patterns ) , 0.0 , .Patterns ) ) ) )
     </declaration> <declaration>
       axiom smt-lemma ( \forall { S1 { State } , S2 { State } , .Patterns } \and ( \implies ( \equals ( S2 { State } , discreteTransitionFrom ( S1 { State } , .Patterns ) ) , jumpCondition ( S1 { State } , S2 { State } , .Patterns ) ) , \implies ( jumpCondition ( S1 { State } , S2 { State } , .Patterns ) , \equals ( S2 { State } , discreteTransitionFrom ( S1 { State } , .Patterns ) ) ) , .Patterns ) )
     </declaration> <declaration>
       axiom smt-lemma ( \forall { S1 { State } , S2 { State } , .Patterns } \equals ( jumpCondition ( S1 { State } , S2 { State } , .Patterns ) , \and ( \equals ( mode ( S1 { State } , .Patterns ) , mode ( S2 { State } , .Patterns ) ) , \equals ( valZ ( S1 { State } , .Patterns ) , 0.0 ) , \equals ( valZ ( S2 { State } , .Patterns ) , 0.0 ) , \equals ( valV ( S2 { State } , .Patterns ) , minus ( 0.0 , valV ( S1 { State } , .Patterns ) , .Patterns ) ) , .Patterns ) ) )
     </declaration> <declaration>
-      axiom smt-lemma ( \forall { S1 { State } , S2 { State } , T { Real } , .Patterns } \and ( \implies ( \and ( gt ( T { Real } , 0.0 , .Patterns ) , \equals ( S2 { State } , evolve ( S1 { State } , T { Real } , .Patterns ) ) , .Patterns ) , \and ( \equals ( mode ( S2 { State } , .Patterns ) , mode ( S1 { State } , .Patterns ) ) , \equals ( valV ( S2 { State } , .Patterns ) , plus ( valV ( S1 { State } , .Patterns ) , mult ( acc ( 10.0 , .Patterns ) , T { Real } , .Patterns ) , .Patterns ) ) , \equals ( valZ ( S2 { State } , .Patterns ) , plus ( valZ ( S1 { State } , .Patterns ) , plus ( mult ( valV ( S1 { State } , .Patterns ) , T { Real } , .Patterns ) , div ( mult ( acc ( 10.0 , .Patterns ) , mult ( T { Real } , T { Real } , .Patterns ) , .Patterns ) , 2.0 , .Patterns ) , .Patterns ) , .Patterns ) ) , .Patterns ) ) , \implies ( \and ( gt ( T { Real } , 0.0 , .Patterns ) , \equals ( mode ( S2 { State } , .Patterns ) , mode ( S1 { State } , .Patterns ) ) , \equals ( valV ( S2 { State } , .Patterns ) , plus ( valV ( S1 { State } , .Patterns ) , mult ( acc ( 10.0 , .Patterns ) , T { Real } , .Patterns ) , .Patterns ) ) , \equals ( valZ ( S2 { State } , .Patterns ) , plus ( valZ ( S1 { State } , .Patterns ) , plus ( mult ( valV ( S1 { State } , .Patterns ) , T { Real } , .Patterns ) , div ( mult ( acc ( 10.0 , .Patterns ) , mult ( T { Real } , T { Real } , .Patterns ) , .Patterns ) , 2.0 , .Patterns ) , .Patterns ) , .Patterns ) ) , .Patterns ) , \equals ( S2 { State } , evolve ( S1 { State } , T { Real } , .Patterns ) ) ) , .Patterns ) )
+      axiom smt-lemma ( \forall { S1 { State } , S2 { State } , T { Real } , .Patterns } \and ( \implies ( \and ( gt ( T { Real } , 0.0 , .Patterns ) , \equals ( S2 { State } , evolve ( S1 { State } , T { Real } , .Patterns ) ) , .Patterns ) , \and ( \equals ( mode ( S2 { State } , .Patterns ) , mode ( S1 { State } , .Patterns ) ) , \equals ( valV ( S2 { State } , .Patterns ) , minus ( valV ( S1 { State } , .Patterns ) , mult ( 10.0 , T { Real } , .Patterns ) , .Patterns ) ) , \equals ( valZ ( S2 { State } , .Patterns ) , minus ( plus ( valZ ( S1 { State } , .Patterns ) , mult ( valV ( S1 { State } , .Patterns ) , T { Real } , .Patterns ) , .Patterns ) , div ( mult ( 10.0 , mult ( T { Real } , T { Real } , .Patterns ) , .Patterns ) , 2.0 , .Patterns ) , .Patterns ) ) , .Patterns ) ) , \implies ( \and ( \equals ( mode ( S2 { State } , .Patterns ) , mode ( S1 { State } , .Patterns ) ) , \equals ( valV ( S2 { State } , .Patterns ) , minus ( valV ( S1 { State } , .Patterns ) , mult ( 10.0 , T { Real } , .Patterns ) , .Patterns ) ) , \equals ( valZ ( S2 { State } , .Patterns ) , minus ( plus ( valZ ( S1 { State } , .Patterns ) , mult ( valV ( S1 { State } , .Patterns ) , T { Real } , .Patterns ) , .Patterns ) , div ( mult ( 10.0 , mult ( T { Real } , T { Real } , .Patterns ) , .Patterns ) , 2.0 , .Patterns ) , .Patterns ) ) , .Patterns ) , \equals ( S2 { State } , evolve ( S1 { State } , T { Real } , .Patterns ) ) ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom smt-lemma ( \forall { S { State } , .Patterns } \equals ( aboveGround ( S { State } , .Patterns ) , \not ( lt ( valZ ( S { State } , .Patterns ) , 0.0 , .Patterns ) ) ) )
+    </declaration> <declaration>
+      axiom smt-lemma ( \forall { S { State } , .Patterns } \equals ( energy ( S { State } , .Patterns ) , plus ( mult ( 10.0 , valZ ( S { State } , .Patterns ) , .Patterns ) , div ( mult ( valV ( S { State } , .Patterns ) , valV ( S { State } , .Patterns ) , .Patterns ) , 2.0 , .Patterns ) , .Patterns ) ) )
     </declaration> <declaration>
       axiom smt-lemma ( \forall { S { State } , T { Real } , .Patterns } \and ( \implies ( \and ( intervalSatisfiesModeInvariant ( S { State } , T { Real } , .Patterns ) , gt ( T { Real } , 0.0 , .Patterns ) , .Patterns ) , \and ( stateSatisfiesModeInvariant ( S { State } , .Patterns ) , \forall { T2 { Real } , .Patterns } \implies ( \and ( gt ( T2 { Real } , 0.0 , .Patterns ) , lt ( T2 { Real } , T { Real } , .Patterns ) , .Patterns ) , stateSatisfiesModeInvariant ( evolve ( S { State } , T2 { Real } , .Patterns ) , .Patterns ) ) , .Patterns ) ) , \implies ( \and ( gt ( T { Real } , 0.0 , .Patterns ) , stateSatisfiesModeInvariant ( S { State } , .Patterns ) , \forall { T2 { Real } , .Patterns } \implies ( \and ( gt ( T2 { Real } , 0.0 , .Patterns ) , lt ( T2 { Real } , T { Real } , .Patterns ) , .Patterns ) , stateSatisfiesModeInvariant ( evolve ( S { State } , T2 { Real } , .Patterns ) , .Patterns ) ) , .Patterns ) , intervalSatisfiesModeInvariant ( S { State } , T { Real } , .Patterns ) ) , .Patterns ) )
     </declaration> <declaration>
@@ -63,6 +67,8 @@
       symbol acc ( Real , .Sorts ) : Real
     </declaration> <declaration>
       symbol discreteTransitionFrom ( State , .Sorts ) : State
+    </declaration> <declaration>
+      symbol energy ( State , .Sorts ) : Real
     </declaration> <declaration>
       symbol evolve ( State , Real , .Sorts ) : State
     </declaration> <declaration>
