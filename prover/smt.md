@@ -99,7 +99,6 @@ module SMTLIB2
                                | "and"      [token]
                                | "=>"       [token]
                                | "="        [token]
-                               | "=>"       [token]
                                | "ite"      [token]
                                | "distinct" [token]
 
@@ -111,6 +110,8 @@ module SMTLIB2
                                | "^"     [token]
                                | ">"     [token]
                                | "<"     [token]
+                               | ">="    [token]
+                               | "<="    [token]
 
   // Sets (defined by CVC4, but not Z3)
   syntax SMTLIB2SimpleSymbol ::= "emptyset"     [token]
