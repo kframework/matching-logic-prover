@@ -101,7 +101,9 @@ only in this scenario*.
                   | "mult"          [token]
                   | "div"           [token]
                   | "lt"            [token]
+                  | "lte"           [token]
                   | "gt"            [token]
+                  | "gte"           [token]
                   | "max"           [token]
 
   // Array
