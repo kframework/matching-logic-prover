@@ -1,0 +1,23 @@
+imports "t/definitions/ha_hvac.prover"
+
+symbol withinRange( State ) : Bool
+
+axiom functional(withinRange)
+
+axiom smt-lemma( \forall { S { State } }
+                    \equals( withinRange( S { State } )
+                           , \and( gte( valT (S { State }), 18.0 )
+                                 , lte( valT( S { State }), 22.0 )
+                                 )
+                           )
+               )
+
+
+claim \implies( \and( reach( S1 { State }, S2 { State })
+                    ,   withinRange( S1 { State } )
+                    )
+              , \and( withinRange( S2 { State } ))
+              )
+
+
+strategy kt ; smt-z3
