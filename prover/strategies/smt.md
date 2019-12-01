@@ -223,7 +223,7 @@ module STRATEGY-SMT
 
   rule <claim> GOAL </claim>
        <strategy> smt-z3
-               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ==K unsat
+               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))) ==K unsat
                   then success
                   else fail
                   fi
