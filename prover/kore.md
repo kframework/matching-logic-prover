@@ -27,6 +27,8 @@ module TOKENS-SYNTAX
                    | "2.0"  [token]
                    | "10.0" [token]
                    | "0.0"  [token]
+                   | "18.0" [token]
+                   | "22.0" [token]
 endmodule
 
 module KORE-SUGAR

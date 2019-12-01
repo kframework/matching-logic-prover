@@ -1,0 +1,242 @@
+// Kore axiomatization of HVAC automaton
+
+sort State
+
+symbol reach( State , State ) : Bool
+axiom functional(reach)
+
+symbol mode( State ) : Int
+axiom functional(mode)
+
+symbol valT( State ) : Real
+axiom functional(valT)
+
+symbol evolveOn( State , Real ) : State
+axiom functional(evolveOn)
+
+symbol evolveOff( State , Real ) : State
+axiom functional(evolveOff)
+
+symbol discreteTransitionFromOn( State ) : State
+axiom functional( discreteTransitionFromOn )
+
+symbol discreteTransitionFromOff( State ) : State
+axiom functional( discreteTransitionFromOff )
+
+symbol jumpOnOff( State , State ) : Bool
+symbol jumpOffOn( State , State ) : Bool
+
+axiom functional( jumpOnOff )
+axiom functional( jumpOffOn )
+
+axiom smt-lemma( \forall { S1 { State } , S2 { State } }
+                    \equals( jumpOnOff( S1 { State }, S2 { State })
+                           , \and( \equals( mode( S1 { State }), 0)
+                                 , \equals( mode( S2 { State }), 1)
+                                 , gte(valT( S1 { State }), 22.0 )
+                                 , \equals( valT( S2 { State }), valT( S1 { State }))
+                                 )
+                            )
+                )
+
+axiom smt-lemma( \forall { S1 { State } , S2 { State } }
+                    \equals( jumpOffOn( S1 { State }, S2 { State })
+                           , \and( \equals( mode( S1 { State }), 1)
+                                 , \equals( mode( S2 { State }), 0)
+                                 , lte(valT( S1 { State }), 18.0 )
+                                 , \equals( valT( S2 { State }), valT( S1 { State }))
+                                 )
+                            )
+                )
+
+axiom smt-lemma( \forall { S1 { State } , S2 { State } }
+                    \and( \implies( \equals( S2 { State } , discreteTransitionFromOn( S1 { State }))
+                                  , jumpOnOff( S1 { State } , S2 { State })
+                                  )
+                        , \implies( jumpOnOff( S1 { State } , S2 { State })
+                                  , \equals( S2 { State } , discreteTransitionFromOn( S1 { State }))
+                                  )
+                        )
+               )
+
+axiom smt-lemma( \forall { S1 { State } , S2 { State } }
+                    \and( \implies( \equals( S2 { State } , discreteTransitionFromOff( S1 { State }))
+                                  , jumpOffOn( S1 { State } , S2 { State })
+                                  )
+                        , \implies( jumpOffOn( S1 { State } , S2 { State })
+                                  , \equals( S2 { State } , discreteTransitionFromOff( S1 { State }))
+                                  )
+                        )
+               )
+
+symbol stateSatisfiesModeOffInvariant( State ) : Bool
+symbol stateSatisfiesModeOnInvariant( State ) : Bool
+
+axiom functional(stateSatisfiesModeOffInvariant)
+axiom functional(stateSatisfiesModeOnInvariant)
+
+
+axiom smt-lemma( \forall { S1 { State } }
+                     \equals( stateSatisfiesModeOnInvariant(S1 { State })
+                            , \and( \equals(mode( S1 { State }), 0)
+                                  , lte(vaT( S1 { State }), 22.0))
+                            )
+               )
+
+axiom smt-lemma( \forall { S1 { State } }
+                     \equals( stateSatisfiesModeOffInvariant(S1 { State })
+                            , \and( \equals(mode( S1 { State }), 1)
+                                  , gte(vaT( S1 { State }), 22.0))
+                            )
+               )
+
+
+axiom smt-lemma( \forall { S1 { State } , S2 { State } , T { Real } }
+                    \and( \implies( \and( gt ( T { Real }, 0.0 )
+                                            , \equals( S2 { State }
+                                                     , evolveOn( S1 { State }, T { Real })
+                                                     )
+                                        )
+                                      , \and( \equals( mode(S1 { State }) , 0 )
+                                            , \equals( mode(S2 { State }) , 0 )
+                                            , \equals( valT(S2 { State })
+                                                     , plus(valT(S1 { State }), mult(2.0, T { Real }))
+                                                     )
+                                            )
+                                  )
+                        , \implies ( \and( \equals( mode(S1 { State }) , 0 )
+                                         , \equals( mode(S2 { State }) , 0 )
+                                         , \equals( valT(S2 { State })
+                                                  , plus(valT(S1 { State }), mult(2.0, T { Real }))
+                                                  )
+                                         )
+                                         , \equals( S2 { State } , evolveOn( S1 { State } , T { Real } ) )
+                                    )
+                          )
+                  )
+
+axiom smt-lemma( \forall { S1 { State } , S2 { State } , T { Real } }
+                    \and( \implies( \and( gt ( T { Real }, 0.0 )
+                                            , \equals( S2 { State }
+                                                     , evolveOff( S1 { State }, T { Real })
+                                                     )
+                                        )
+                                      , \and( \equals( mode(S1 { State }) , 1 )
+                                            , \equals( mode(S2 { State }) , 1 )
+                                            , \equals( valT(S2 { State })
+                                                     , minus(valT(S1 { State }), mult(2.0, T { Real }))
+                                                     )
+                                            )
+                                  )
+                        , \implies ( \and( \equals( mode(S1 { State }) , 1 )
+                                         , \equals( mode(S2 { State }) , 1 )
+                                         , \equals( valT(S2 { State })
+                                                  , minus(valT(S1 { State }), mult(2.0, T { Real }))
+                                                  )
+                                         )
+                                         , \equals( S2 { State } , evolveOff( S1 { State } , T { Real } ) )
+                                    )
+                          )
+                  )
+
+
+symbol intervalSatisfiesModeOnInvariant( State , Real ) : Bool
+
+axiom functional(intervalSatisfiesModeOnInvariant)
+
+axiom smt-lemma( \forall { S { State } , T { Real } }
+                \and( \implies( \and( intervalSatisfiesModeOnInvariant( S { State }, T { Real } )
+                                    , gt( T { Real }, 0.0 )
+                                    )
+                              , \and( stateSatisfiesModeOnInvariant( S { State } )
+                                    , \forall { T2 { Real } }
+                                          \implies( \and( gt( T2 { Real }, 0.0 )
+                                                        , lt( T2 { Real }, T { Real })
+                                                        )
+                                                  , stateSatisfiesModeOnInvariant(evolve( S { State }, T2 { Real }))
+                                                  )
+                                    )
+                              )
+                    , \implies( \and ( gt( T { Real } , 0.0 )
+                                     , stateSatisfiesModeOnInvariant( S { State } )
+                                     , \forall { T2 { Real } }
+                                           \implies( \and( gt( T2 { Real }, 0.0 )
+                                                         , lt( T2 { Real }, T { Real })
+                                                         )
+                                                   , stateSatisfiesModeOnInvariant(evolve( S { State }, T2 { Real }))
+                                                   )
+                                     )
+                              , intervalSatisfiesModeOnInvariant( S { State } , T { Real })
+                              )
+                    )
+                )
+
+symbol intervalSatisfiesModeOffInvariant( State , Real ) : Bool
+
+axiom functional(intervalSatisfiesModeOffInvariant)
+
+axiom smt-lemma( \forall { S { State } , T { Real } }
+                \and( \implies( \and( intervalSatisfiesModeOffInvariant( S { State }, T { Real } )
+                                    , gt( T { Real }, 0.0 )
+                                    )
+                              , \and( stateSatisfiesModeOffInvariant( S { State } )
+                                    , \forall { T2 { Real } }
+                                          \implies( \and( gt( T2 { Real }, 0.0 )
+                                                        , lt( T2 { Real }, T { Real })
+                                                        )
+                                                  , stateSatisfiesModeOffInvariant(evolve( S { State }, T2 { Real }))
+                                                  )
+                                    )
+                              )
+                    , \implies( \and ( gt( T { Real } , 0.0 )
+                                     , stateSatisfiesModeOffInvariant( S { State } )
+                                     , \forall { T2 { Real } }
+                                           \implies( \and( gt( T2 { Real }, 0.0 )
+                                                         , lt( T2 { Real }, T { Real })
+                                                         )
+                                                   , stateSatisfiesModeOffInvariant(evolve( S { State }, T2 { Real }))
+                                                   )
+                                     )
+                              , intervalSatisfiesModeOffInvariant( S { State } , T { Real })
+                              )
+                    )
+                )
+
+axiom \forall { S1 { State },  S2 { State } }
+      \iff-lfp( reach( S1 { State } , S2 { State } )
+              , \or ( \exists { } \and ( \equals( S1 { State }, S2 { State })
+                                       , \equals( mode(S1 { State }), mode(S2 { State }))
+                                       , \equals( valT(S1 { State }), valT(S2 { State }))
+                                       )
+                    , \exists { T { Real } , SI { State } } \and( gt( T { Real }, 0.0 )
+                                                                 , \equals( mode( SI { State } ), 0 )
+                                                                 , \equals( mode( S2 { State } ), 0)
+                                                                 , \equals( S2 { State }, evolveOn( SI { State }, T { Real }))
+                                                                 , stateSatisfiesModeOnInvariant( SI { State } )
+                                                                 , intervalSatisfiesModeOnInvariant( SI { State }, T { Real })
+                                                                 , stateSatisfiesModeOnInvariant( S2 { State } )
+                                                                 , reach( S1 { State } , SI { State })
+                                                                 )
+                    , \exists { T { Real } , SI { State } } \and( gt( T { Real }, 0.0 )
+                                                                 , \equals( mode( SI { State } ), 1 )
+                                                                 , \equals( mode( S2 { State } ), 1)
+                                                                 , \equals( mode ( SI { State }), mode( S2 { State } ))
+                                                                 , \equals( S2 { State }, evolveOff( SI { State }, T { Real }))
+                                                                 , stateSatisfiesModeOffInvariant( SI { State } )
+                                                                 , intervalSatisfiesModeOffInvariant( SI { State }, T { Real })
+                                                                 , stateSatisfiesModeOffInvariant( S2 { State } )
+                                                                 , reach( S1 { State } , SI { State })
+                                                                 )
+                    , \exists { SI { State } } \and( stateSatisfiesModeOnInvariant( SI { State })
+                                                   , stateSatisfiesModeOffInvariant( S2 { State })
+                                                   , \equals( S2 { State }, discreteTransitionFromOn( SI { State }))
+                                                   , reach( S1 { State } , SI { State})
+                                                   )
+
+                    , \exists { SI { State } } \and( stateSatisfiesModeOffInvariant( SI { State })
+                                                   , stateSatisfiesModeOnInvariant( S2 { State })
+                                                   , \equals( S2 { State }, discreteTransitionFromOff( SI { State }))
+                                                   , reach( S1 { State } , SI { State})
+                                                   )
+                    )
+              )
