@@ -1,0 +1,9 @@
+imports "t/definitions/ha_billiards.prover"
+
+claim \implies( \and( reach( S1 { State }, S2 { State })
+                    )
+              , \and( \equals( momentum( S1 { State }) , momentum( S2 { State } )))
+              )
+
+strategy kt
+       ; ( smt-z3 | smt-z3-debug)

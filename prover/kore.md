@@ -24,11 +24,12 @@ module TOKENS-SYNTAX
   // TODO: PipeQID interacts badly with _ | _ strategy
   // syntax PipeQID ::= r"\\|[^\\|]*\\|" [token, autoReject]
   syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
-                   | "2.0"  [token]
-                   | "10.0" [token]
-                   | "0.0"  [token]
-                   | "18.0" [token]
-                   | "22.0" [token]
+                   |   "2.0" [token]
+                   |  "10.0" [token]
+                   |   "0.0" [token]
+                   |  "18.0" [token]
+                   |  "22.0" [token]
+                   | "100.0" [token]
 endmodule
 
 module KORE-SUGAR

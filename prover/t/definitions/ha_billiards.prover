@@ -1,0 +1,214 @@
+// State
+// =====
+
+// Uninterpreted sort
+sort State
+
+// Projection functions
+symbol posX( State ) : Real
+axiom functional(posX)
+
+symbol posY( State ) : Real
+axiom functional(posY)
+
+symbol dX  ( State ) : Real
+axiom functional(  dX)
+
+symbol dY  ( State ) : Real
+axiom functional(  dY)
+
+symbol mode( State ) : Int
+axiom functional(mode)
+
+// Other state properties
+symbol momentum( State ) : Real
+axiom functional(momentum)
+axiom smt-lemma( \forall { S { State } }
+                 \equals( momentum( S { State } )
+                        , plus( dX(S {State})
+                              , dY(S {State})
+                              )
+                        )
+               )
+
+// Reachability
+// ============
+
+// Continuous evolution
+
+symbol evolve( State , Real ) : State
+axiom functional(evolve)
+axiom smt-lemma( \forall { S1 { State } , S2 { State } , T { Real } }
+                    \and( \implies( \and( gt ( T { Real }, 0.0 )
+                                            , \equals( S2 { State }
+                                                     , evolve( S1 { State }, T { Real })
+                                                     )
+                                            )
+                                  , \and( \equals( mode(S2 { State }) , mode(S1 { State }))
+                                        , \equals( posX(S2 { State })
+                                                 , plus(posX(S1 { State }), mult( dX ( S1 { State }) , T { Real }))
+                                                 )
+                                        , \equals( posY(S2 { State })
+                                                 , plus(posY(S1 { State }), mult(dY ( S1 { State }), T { Real }))
+                                                 )
+                                        , \equals( dX(S2 { State }) , dX(S1 { State }) )
+                                        , \equals( dY(S2 { State }) , dY(S1 { State }) )
+                                        )
+                                  )
+                        ,  \implies( \and( gt ( T { Real }, 0.0 )
+                                         , \equals( mode(S2 { State }) , mode(S1 { State }))
+                                         , \equals( posX(S2 { State })
+                                                  , plus(posX(S1 { State }), mult(dX ( S1 { State }), T { Real }))
+                                                  )
+                                         , \equals( posY(S2 { State })
+                                                  , plus(posY(S1 { State }), mult(dY ( S1{ State } ), T { Real }))
+                                                  )
+                                         , \equals( dX(S2 { State }) , dX(S1 { State }) )
+                                         , \equals( dY(S2 { State }) , dY(S1 { State }) )
+                                         )
+                                   , \and( \equals( S2 { State }
+                                                  , evolve( S1 { State }, T { Real })
+                                                  )
+                                         )
+                                   )
+                        )
+                )
+
+symbol stateSatisfiesModeInvariant( State ) : Bool
+axiom functional(stateSatisfiesModeInvariant)
+axiom smt-lemma( \forall { S1 { State } }
+                     \equals( stateSatisfiesModeInvariant(S1 { State })
+                            , \and( gte(posX( S1 { State }),   0.0)
+                                  , gte(posY( S1 { State }),   0.0)
+                                  , lte(posX( S1 { State }), 100.0)
+                                  , lte(posY( S1 { State }), 100.0)
+                                  )
+                            )
+               )
+
+symbol intervalSatisfiesModeInvariant( State , Real ) : Bool
+axiom functional(intervalSatisfiesModeInvariant)
+axiom smt-lemma( \forall { S { State } , T { Real } }
+                \and( \implies( \and( intervalSatisfiesModeInvariant( S { State }, T { Real } )
+                                    , gt( T { Real }, 0.0 )
+                                    )
+                              , \and( stateSatisfiesModeInvariant( S { State } )
+                                    , \forall { T2 { Real } }
+                                          \implies( \and( gt( T2 { Real }, 0.0 )
+                                                        , lt( T2 { Real }, T { Real })
+                                                        )
+                                                  , stateSatisfiesModeInvariant(evolve( S { State }, T2 { Real }))
+                                                  )
+                                    )
+                              )
+                    , \implies( \and ( gt( T { Real } , 0.0 )
+                                     , stateSatisfiesModeInvariant( S { State } )
+                                     , \forall { T2 { Real } }
+                                           \implies( \and( gt( T2 { Real }, 0.0 )
+                                                         , lt( T2 { Real }, T { Real })
+                                                         )
+                                                   , stateSatisfiesModeInvariant(evolve( S { State }, T2 { Real }))
+                                                   )
+                                     )
+                              , intervalSatisfiesModeInvariant( S { State } , T { Real })
+                              )
+                    )
+                )
+
+// Discrete Transitions
+
+symbol jumpCondition( State , State ) : Bool
+axiom functional( jumpCondition )
+axiom smt-lemma( \forall { S1 { State } , S2 { State } }
+                    \equals( jumpCondition( S1 { State }, S2 { State })
+                           , \or ( \and( \equals( posX( S1 { State }), 0.0 )
+                                       , lt     ( dX  ( S1 { State }), 0.0 )
+
+                                       , \equals( dX   ( S2 { State })
+                                                , minus( 0.0, dX ( S1 { State }))
+                                                )
+                                       , \equals( posY ( S2 { State })
+                                                , posY ( S1 { State })
+                                                )
+                                       , \equals( dY   ( S2 { State })
+                                                , dY   ( S1 { State })
+                                                )
+                                       )
+                                 , \and( \equals( posY( S1 { State }), 0.0 )
+                                       , lt     ( dY  ( S1 { State }), 0.0 )
+
+                                       , \equals( dY   ( S2 { State })
+                                                , minus( 0.0, dY ( S1 { State }))
+                                                )
+                                       , \equals( posX ( S2 { State })
+                                                , posX ( S1 { State })
+                                                )
+                                       , \equals( dX   ( S2 { State })
+                                                , dX   ( S1 { State })
+                                                )
+                                       )
+                                 , \and( \equals( posX( S1 { State }), 100.0 )
+                                       , gt     ( dX  ( S1 { State }), 0.0 )
+
+                                       , \equals( dX   ( S2 { State })
+                                                , minus( 0.0, dX ( S1 { State }))
+                                                )
+                                       , \equals( posY ( S2 { State })
+                                                , posY ( S1 { State })
+                                                )
+                                       , \equals( dY   ( S2 { State })
+                                                , dY   ( S1 { State })
+                                                )
+                                       )
+                                 , \and( \equals( posY( S1 { State }), 100.0 )
+                                       , gt     ( dY  ( S1 { State }), 0.0 )
+
+                                       , \equals( dY   ( S2 { State })
+                                                , minus( 0.0, dY ( S1 { State }))
+                                                )
+                                       , \equals( posX ( S2 { State })
+                                                , posX ( S1 { State })
+                                                )
+                                       , \equals( dX   ( S2 { State })
+                                                , dX   ( S1 { State })
+                                                )
+                                       )
+                                 )
+                           )
+                )
+
+symbol discreteTransitionFrom( State ) : State
+axiom functional( discreteTransitionFrom )
+axiom smt-lemma( \forall { S1 { State } , S2 { State } }
+                    \and( \implies( \equals( S2 { State } , discreteTransitionFrom( S1 { State }))
+                                  , jumpCondition( S1 { State } , S2 { State })
+                                  )
+                        , \implies( jumpCondition( S1 { State } , S2 { State })
+                                  , \equals( S2 { State } , discreteTransitionFrom( S1 { State }))
+                                  )
+                        )
+               )
+
+// Reach
+
+symbol reach( State , State ) : Bool
+axiom functional(reach)
+axiom \forall { S1 { State },  S2 { State } }
+      \iff-lfp( reach( S1 { State } , S2 { State } )
+              , \or ( \exists { } \and ( \equals( S1 { State }, S2 { State }) )
+                    , \exists { T { Real } , SI { State } } \and( gt( T { Real }, 0.0 )
+                                                                 , \equals( mode ( SI { State }), mode( S2 { State } ))
+                                                                 , \equals( S2 { State }, evolve( SI { State }, T { Real }))
+                                                                 , stateSatisfiesModeInvariant( SI { State } )
+                                                                 , intervalSatisfiesModeInvariant( SI { State }, T { Real })
+                                                                 , stateSatisfiesModeInvariant( S2 { State } )
+                                                                 , reach( S1 { State } , SI { State })
+                                                                 )
+                    , \exists { SI { State } } \and( stateSatisfiesModeInvariant( S1 { State })
+                                                   , stateSatisfiesModeInvariant( SI { State })
+                                                   , reach( S1 { State } , SI { State })
+                                                   , \equals( S2 { State }, discreteTransitionFrom( SI { State }))
+                                                   )
+                    )
+              )
+
