@@ -124,7 +124,6 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dllrev_append_dllrev_dll_entails_dllrev.sb.smt2'])
              , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dllrev_concat_dll_entails_dll.sb.smt2'])
              , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dllrev_concat_dll_entails_dllrev.sb.smt2'])
-             , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tseg_join_tree_entail_tseg.sb.smt2'])
              , ('normalize . or-split-rhs . lift-constraints . left-unfold-Nth(0) . alternate-',
                                          1,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-7.smt2'])
              , (("   normalize . or-split-rhs . lift-constraints "
