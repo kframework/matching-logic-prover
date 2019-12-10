@@ -1,2 +1,8 @@
 language: java
-
+git:
+    depth: 3
+jobs:
+    include:
+        - state: compile
+          script: "cd prover && ./build prover-smt"
+        - script: "cd prover && ./build prover-kore"
