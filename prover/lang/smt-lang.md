@@ -230,7 +230,7 @@ module SMTLIB2-HELPERS
   syntax CheckSATResult ::= "CheckSAT.doClose"  "(" /*Query*/String "," /*Command*/String "," IOFile "," K ")" [function]
   syntax CheckSATResult ::= "CheckSAT.doSystem" "(" /*Query*/String "," /*Command*/String "," String "," K ")" [function]
   rule CheckSATHelper(Q, C)
-    => CheckSAT.doWrite(Q, C, #mkstemp("query", ".smt"))
+    => CheckSAT.doWrite(Q, C, #mkstemp("query-XXXXXX.smt"))
   rule CheckSAT.doWrite(Q, C, #tempFile(FN, FD))
     => CheckSAT.doClose(Q, C, #tempFile(FN, FD), #write(FD, Q))
   rule CheckSAT.doClose(Q, C, #tempFile(FN, FD), .K)
