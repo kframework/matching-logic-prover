@@ -239,7 +239,6 @@ module STRATEGY-SMT
        <trace> .K => check-lhs-constraint-unsat ... </trace>
      requires isPredicatePattern(\and(LCONSTRAINTS))
 
-  syntax DeclarationCelLSet
   syntax Declarations ::= #collectDeclarations(Declarations) [function]
                         | #collectSortDeclarations(Declarations) [function]
 
