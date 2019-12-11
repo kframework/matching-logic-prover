@@ -4,6 +4,9 @@
 ## Vim
 *.swp
 
+## EXE binaries:
+*.exe
+
 ## Ocaml files:
 *.annot
 *.cmo
