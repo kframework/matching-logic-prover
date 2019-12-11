@@ -59,16 +59,17 @@
 			(PeList x z )
 ))
 
+; (set-info :mlprover-strategy
+;     normalize
+;   . smtlib-to-implication
+;   . kt
+;   . or-split-rhs . normalize . lift-constraints
+;   . instantiate-existentials . substitute-equals-for-equals
+;   . ( ( lift-constraints . spatial-patterns-equal . smt)
+;     | ( right-unfold-Nth(0, 1) . lift-constraints
+;       . match . instantiate-separation-logic-axioms . spatial-patterns-equal . smt-cvc4
+;       )
+;     )
+; )
 (check-sat)
-(set-info :mlprover-strategy
-    normalize
-  ; smtlib-to-implication
-  ; kt
-  ; or-split-rhs ; normalize ; lift-constraints
-  ; instantiate-existentials ; substitute-equals-for-equals
-  ; ( ( lift-constraints ; spatial-patterns-equal ; smt)
-    | ( right-unfold-Nth(0, 1) ; lift-constraints
-      ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
-      )
-    )
-)
+

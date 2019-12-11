@@ -2,16 +2,15 @@
    iszero ((x Int)) Bool
    (
     ite (= x 0) 
-        true 
-        false
+        (= 0 0)
+        (= 0 1)
    )
 )
 
 (assert (not (iszero 0)))
 
-(check-sat)
-
 (set-info :mlprover-strategy
-            normalize ; smtlib-to-implication ; or-split-rhs
-          ; right-unfold ; smt
+            normalize . or-split-rhs
+          . right-unfold . smt
 )
+(check-sat)

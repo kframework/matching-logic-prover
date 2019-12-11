@@ -1,0 +1,49 @@
+// Z3
+// ==
+
+assert( Z3CheckSAT((assert (= a b)))
+     == error(#systemResult(1, "(error \"line 1 column 13: unknown constant a\")\nsat\n" , ""))
+      )
+assert( Z3CheckSAT((declare-const a Bool) (assert (= a true)))
+     == sat
+      )
+assert( Z3CheckSAT((declare-const a Bool)
+                   (assert (= a true))
+                   (assert (= a false))
+                  )
+     == unsat
+      )
+
+// Fermat's last theorem (n = 3)
+assert( Z3CheckSAT((declare-const a Int) (declare-const b Int) (declare-const c Int)
+                   ( assert ( > a 0 )) ( assert ( > b 0 )) ( assert ( > c 0 ))
+                   ( assert ( = ( * c c c) ( + (* a a a) (* b b b))))
+                  )
+     == unknown(.K)
+      )
+
+
+// CVC4
+// ====
+
+// TODO: This test fails because the file name is non-deterministic
+// assert( CVC4CheckSAT((assert (= a b)))
+//      == error(#systemResult(1, "(error \"Parse Error: /tmp/querydcba3f.smt:2.14: Symbol a is not declared.\n\n   ( assert (= a b ))\n               ^\n\")\n" , ""))
+//       )
+assert( CVC4CheckSAT((declare-const a Bool) (assert (= a true)))
+     == sat
+      )
+assert( CVC4CheckSAT((declare-const a Bool)
+                   (assert (= a true))
+                   (assert (= a false))
+                  )
+     == unsat
+      )
+
+// Fermat's last theorem (n = 3)
+assert( CVC4CheckSAT((declare-const a Int) (declare-const b Int) (declare-const c Int)
+                   ( assert ( > a 0 )) ( assert ( > b 0 )) ( assert ( > c 0 ))
+                   ( assert ( = ( * c c c) ( + (* a a a) (* b b b))))
+                  )
+     == unknown(.K)
+      )

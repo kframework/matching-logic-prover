@@ -1,28 +1,35 @@
 <prover>
   <k>
-    \exists { Vz { RefGTyp } , Vy { RefGTyp } , Vx { RefGTyp } , .Patterns } \and ( \not ( PeList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) ) , sep ( PeList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , PeList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns )
+    .
   </k>
+  <exit-code>
+    0
+  </exit-code>
   <goals>
     <goal>
       active: true, id: root, parent: .
       <claim>
-        \implies ( \and ( sep ( PeList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , PeList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( \or ( PeList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) )
+        \implies ( \and ( sep ( PeList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , PeList ( Vy { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( sep ( PeList ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         success
       </strategy>
-      <trace>
-        .
-      </trace>
-    </goal>
+      <expected>
+        success
+      </expected>
+    <trace>
+      .
+    </trace>
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { Vx { RefGTyp } , Vy { RefGTyp } , .Patterns } \iff-lfp ( PeList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { RefGTyp } , Vy { RefGTyp } ) , emp ( .Patterns ) , .Patterns ) , \exists { Vxp { RefGTyp } , .Patterns } \and ( \not ( \equals ( nil ( .Patterns ) , Vx { RefGTyp } ) ) , sep ( pto ( Vx { RefGTyp } , c_GTyp ( Vxp { RefGTyp } , .Patterns ) , .Patterns ) , PeList ( Vxp { RefGTyp } , Vy { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+      axiom \forall { Vx { RefGTyp } , Vy { RefGTyp } , .Patterns } \iff-lfp ( PeList ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { RefGTyp } , Vy { RefGTyp } ) , emp ( .Patterns ) , .Patterns ) , \exists { Vxp { RefGTyp } , .Patterns } \and ( \not ( \equals ( nil_RefGTyp ( .Patterns ) , Vx { RefGTyp } ) ) , sep ( pto ( Vx { RefGTyp } , c_GTyp ( Vxp { RefGTyp } , .Patterns ) , .Patterns ) , PeList ( Vxp { RefGTyp } , Vy { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom functional ( PeList )
     </declaration> <declaration>
-      axiom functional ( nil )
+      axiom functional ( c_GTyp )
+    </declaration> <declaration>
+      axiom functional ( nil_RefGTyp )
     </declaration> <declaration>
       axiom heap ( RefGTyp , GTyp )
     </declaration> <declaration>
@@ -38,9 +45,7 @@
     </declaration> <declaration>
       symbol emp ( .Sorts ) : Heap
     </declaration> <declaration>
-      symbol f0 ( GTyp , .Sorts ) : RefGTyp
-    </declaration> <declaration>
-      symbol nil ( .Sorts ) : RefGTyp
+      symbol nil_RefGTyp ( .Sorts ) : RefGTyp
     </declaration> <declaration>
       symbol pto ( RefGTyp , GTyp , .Sorts ) : Heap
     </declaration> <declaration>

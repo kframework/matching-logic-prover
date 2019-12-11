@@ -5,10 +5,12 @@ Install these dependencies:
 
 * pandoc
 * ninja-build
-* Oracle java 8
+* opam
+* maven
+* openjdk-11-jdk
 
 Run `./build` to run all tests.
-Run `./build t/TEST-NAME.prover.test` to run an individual test.
+Run `./build .build/t/TEST-NAME.smt2.prover-smt-krun` to run an individual test.
 
 Repository Layout
 =================

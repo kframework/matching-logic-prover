@@ -1,0 +1,26 @@
+imports "t/definitions/listSegmentRightLength.kore"
+
+claim \implies( \and( listSegmentRightLength( H { ArrayIntInt }
+                                            , X { Int } 
+                                            , Y { Int } 
+                                            , FA { SetInt } 
+                                            , LA { Int }
+                                            ) 
+                    , \equals(F { SetInt }, union(FA { SetInt }, singleton(Y { Int })))
+                    , disjoint(FA { SetInt }, singleton(Y { Int }))
+                    , \equals(Z { Int }, select(H { ArrayIntInt }, Y { Int }))
+                    , \equals(LENGTH { Int }, plus(LA { Int }, 1))
+                    , gt(Y { Int }, 0)
+                    )
+              , \and( listSegmentRightLength( H { ArrayIntInt } 
+                                            , X { Int } 
+                                            , Z { Int } 
+                                            , F { SetInt } 
+                                            , LENGTH { Int }
+                                            )
+                   )
+              ) 
+strategy search-fol(bound: 3)
+/*
+strategy right-unfold-Nth(0, 1) . simplify . direct-proof
+*/

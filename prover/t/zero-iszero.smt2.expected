@@ -1,7 +1,10 @@
 <prover>
   <k>
-    \exists { .Patterns } \and ( \not ( iszero ( 0 , .Patterns ) ) , .Patterns )
+    .
   </k>
+  <exit-code>
+    0
+  </exit-code>
   <goals>
     <goal>
       active: true, id: root, parent: .
@@ -11,14 +14,16 @@
       <strategy>
         success
       </strategy>
-      <trace>
-        .
-      </trace>
-    </goal>
+      <expected>
+        success
+      </expected>
+    <trace>
+      .
+    </trace>
   </goals>
   <declarations>
     <declaration>
-      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( iszero ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { Int } , 0 ) , .Patterns ) , .Patterns ) )
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( iszero ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { Int } , 0 ) , \equals ( 0 , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , \equals ( 0 , 1 ) , .Patterns ) , .Patterns ) )
     </declaration> <declaration>
       axiom functional ( iszero )
     </declaration> <declaration>

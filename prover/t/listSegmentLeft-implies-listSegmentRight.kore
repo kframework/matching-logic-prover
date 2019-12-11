@@ -1,0 +1,26 @@
+imports "t/definitions/listSegmentLeft.kore"
+imports "t/definitions/listSegmentRight.kore"
+
+claim \implies( \and( listSegmentLeft (H { ArrayIntInt } , X { Int }, Y { Int }, F { SetInt }) )
+              , \and( listSegmentRight(H { ArrayIntInt } , X { Int }, Y { Int }, F { SetInt }) )
+              )
+
+// strategy search-bound(5)
+
+strategy kt . normalize . ( ( simplify . right-unfold-Nth(0, 0) . smt )
+                          | ( kt-solve-implications(smt) . normalize
+                            . kt . ( ( right-unfold-Nth(0, 1)
+                                     . right-unfold-Nth(0, 0)
+                                     . normalize
+                                     . instantiate-existentials
+                                     . smt
+                                     )
+                                   | ( right-unfold-Nth(0, 1)
+                                     . instantiate-existentials
+                                     . instantiate-universals-with-ground-terms
+                                     . normalize
+                                     . smt
+                                     )
+                                   )
+                            )
+                          )

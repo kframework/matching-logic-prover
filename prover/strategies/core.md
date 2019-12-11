@@ -3,13 +3,13 @@ Core Strategy Language
 
 The "strategy" language is an imperative language for describing which
 high-level proof rules to try, in an attempt to find a proof.
-Strategies can be composed: by sequencing via the `;` strategy;
-as alternatives picking the first one that succeeds via the `|` strategy;
+Strategies can be composed: by sequencing via the `.` strategy.
+as alternatives picking the first one that succeeds via the `|` strategy.
 or, by requiring several strategies succeed.
 
 ```k
 module PROVER-CORE-SYNTAX
-  imports KORE-SUGAR
+  imports KORE
 
   syntax Declaration ::= "claim" Pattern "strategy" Strategy
 ```
@@ -19,13 +19,15 @@ module PROVER-CORE-SYNTAX
                     | "(" Strategy ")"      [bracket]
                     | TerminalStrategy
                     | ResultStrategy
-  syntax SequenceStrategy ::= Strategy ";" Strategy [right]
+  syntax SequenceStrategy ::= Strategy "." Strategy [right]
   syntax ResultStrategy ::= "noop"
                           | TerminalStrategy
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
   syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs"
   syntax Strategy ::= "prune" "(" Patterns ")"
+
+  syntax Strategy ::= Strategy "{" Int "}"
 ```
 
 TODO: Should we allow `success` and `fail` in the program syntax? All other
@@ -48,10 +50,10 @@ module PROVER-CORE
   imports KORE-HELPERS
 ```
 
-`Strategy`s can be sequentially composed via the `;` operator.
+`Strategy`s can be sequentially composed via the `.` operator.
 
 ```k
-  rule <strategy> (S ; T) ; U => S ; (T ; U) ... </strategy>
+  rule <strategy> (S . T) . U => S . (T . U) ... </strategy>
 ```
 
 Since strategies do not live in the K cell, we must manually heat and cool.
@@ -60,23 +62,23 @@ cooled back into the sequence strategy.
 
 ```k
   syntax ResultStrategy ::= "#hole"
-  rule <strategy> S1 ; S2 => S1 ~> #hole ; S2 ... </strategy>
+  rule <strategy> S1 . S2 => S1 ~> #hole . S2 ... </strategy>
     requires notBool(isResultStrategy(S1))
      andBool notBool(isSequenceStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole ; S2 => S1 ; S2 ... </strategy>
+  rule <strategy> S1:ResultStrategy ~> #hole . S2 => S1 . S2 ... </strategy>
 ```
 
 The `noop` (no operation) strategy is the unit for sequential composition:
 
 ```k
-  rule <strategy> noop ; T => T ... </strategy>
+  rule <strategy> noop . T => T ... </strategy>
 ```
 
 The `success` and `fail` strategy indicate that a goal has been successfully
 proved, or that constructing a proof has failed.
 
 ```k
-  rule <strategy> T:TerminalStrategy ; S => T ... </strategy>
+  rule <strategy> T:TerminalStrategy . S => T ... </strategy>
 ```
 
 The `goalStrat(GoalId)` strategy is used to establish a reference to the result of
@@ -138,7 +140,7 @@ all succeed, it succeeds:
   rule <strategy> fail & S => fail ... </strategy>
   rule <strategy> S & success => S ... </strategy>
   rule <strategy> success & S => S ... </strategy>
-  rule <strategy> (S1 & S2) ; S3 => (S1 ; S3) & (S2 ; S3) ... </strategy>
+  rule <strategy> (S1 & S2) . S3 => (S1 . S3) & (S2 . S3) ... </strategy>
   rule <strategy> T:TerminalStrategy ~>  #hole & S2
                => T & S2
                   ...
@@ -164,7 +166,7 @@ approach succeeds:
   rule <strategy> fail | S => S ... </strategy>
   rule <strategy> S | success => success ... </strategy>
   rule <strategy> success | S => success ... </strategy>
-  rule <strategy> (S1 | S2) ; S3 => (S1 ; S3) | (S2 ; S3) ... </strategy>
+  rule <strategy> (S1 | S2) . S3 => (S1 . S3) | (S2 . S3) ... </strategy>
   rule <strategy> T:TerminalStrategy ~>  #hole | S2
                => T | S2
                   ...
@@ -179,6 +181,15 @@ approach succeeds:
        </prover>
     requires notBool(isTerminalStrategy(S1))
      andBool notBool(isTerminalStrategy(S2))
+```
+
+The S { N } construct allows us to repeat a strategy S N times
+
+```k
+  rule <strategy> S { M } => noop ... </strategy>
+    requires M <=Int 0
+  rule <strategy> S { M } => S . (S { M -Int 1 }) ... </strategy>
+    requires M >Int 0
 ```
 
 Internal strategy used to implement `or-split` and `and-split`.
@@ -222,6 +233,11 @@ Internal strategy used to implement `or-split` and `and-split`.
   rule <claim> \implies(LHS, \exists { Vs } \and(RHSs, REST)) </claim>
        <strategy> or-split-rhs => noop ... </strategy>
     requires notBool isDisjunction(RHSs)
+  rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+       <strategy> or-split-rhs => noop ... </strategy>
+
+  rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+       <strategy> or-split-rhs => noop ... </strategy>
 
   syntax Strategy ::= "#orSplitImplication" "(" Pattern "," Patterns "," Patterns "," Patterns ")" [function]
   rule #orSplitImplication(P, Vs, .Patterns, REST) => replace-goal(\implies(P, \exists{Vs} \and(\or(.Patterns))))

@@ -1,3 +1,5 @@
+(set-info :status sat)
+
 (declare-const x Int)
 (declare-const y Int)
 (declare-const z Int)
@@ -8,6 +10,5 @@
 
 (assert (= (+ (* x x) (* y y)) (* z z)))
 
-(check-sat)
-
 (set-info :mlprover-strategy smt)
+(check-sat)

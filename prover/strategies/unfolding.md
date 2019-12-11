@@ -1,11 +1,12 @@
 ```k
 module STRATEGY-UNFOLDING
   imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
+  imports STRATEGY-SIMPLIFICATION
 
   syntax Pattern ::= unfold(Pattern) [function]
-  rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(DEF, zip(Vs, ARGs))) ]]
+  rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(alphaRename(DEF), zip(Vs, ARGs))) ]]
        <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
     requires getFreeVariables(DEF) -Patterns Vs ==K .Patterns
   rule [[ unfold(S:Symbol(ARGs)) => {("ifflfp axiom has free variables!" ~> S ~> (getFreeVariables(DEF) -Patterns Vs))}:>Pattern ]]
@@ -15,6 +16,13 @@ module STRATEGY-UNFOLDING
   syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
   rule [[ getSymbolDeclaration(S) => DECL ]]
        <declaration> symbol S (_) : _ #as DECL </declaration>
+
+  syntax Patterns ::= getRecursiveSymbols(Patterns) [function]
+  rule [[ getRecursiveSymbols(SYMs) => getRecursiveSymbols(SYM, SYMs) ]]
+       <declaration> axiom \forall { Vs } \iff-lfp(SYM(Vs), DEF) </declaration>
+     requires notBool SYM in SYMs
+  rule getRecursiveSymbols(SYMs) => SYMs
+    [owise]
 
   syntax Patterns ::= getUnfoldables(Patterns)   [function]
   rule getUnfoldables(.Patterns) => .Patterns
@@ -75,6 +83,17 @@ module STRATEGY-UNFOLDING
        </claim>
        <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
+       requires LRP in LHS
+
+  rule <claim> \implies( \and( sep( (LHS => ((LHS -Patterns (LRP, .Patterns)) ++Patterns \and(BODY))) )
+                             , _
+                             )
+                       , RHS
+                       )
+       </claim>
+       <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
+       <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
+       requires LRP in LHS
 ```
 
 ### Left Unfold Nth
@@ -121,11 +140,49 @@ Note that the resulting goals is stonger than the initial goal (i.e.
   syntax Strategy ::= "right-unfold-eachRRP" "(" Patterns")"
                     | "right-unfold-eachBody" "(" Pattern "," Pattern ")"
                     | "right-unfold-oneBody"  "(" Pattern "," Pattern ")"
+
+  rule <strategy> right-unfold ( SYMBOL )
+               => right-unfold-eachRRP( filterByConstructor(getUnfoldables(RHS), SYMBOL) )
+                  ...
+       </strategy>
+       <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
   rule <strategy> right-unfold
                => right-unfold-eachRRP(getUnfoldables(RHS))
                   ...
        </strategy>
        <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
+  rule <strategy> right-unfold-all(bound: N)
+               => right-unfold-all(symbols: getRecursiveSymbols(.Patterns), bound: N)
+                  ...
+       </strategy>
+  rule <strategy> right-unfold-all(symbols: SYMs, bound: N)
+               => right-unfold-perm(permutations: perm(SYMs), bound: N)
+                  ...
+       </strategy>
+  rule <strategy> right-unfold-perm(permutations: .List, bound: _)
+               => noop
+                  ...
+       </strategy>
+  rule <strategy> right-unfold-perm(permutations: ListItem(Ps) L, bound: N)
+               => right-unfold(symbols: Ps, bound: N)
+                | right-unfold-perm(permutations: L, bound: N)
+                  ...
+       </strategy>
+  rule <strategy> right-unfold(symbols: Ps, bound: N)
+               => fail
+                  ...
+       </strategy>
+    requires Ps ==K .Patterns orBool N <=Int 0
+  rule <strategy> right-unfold(symbols: P, Ps, bound: N)
+               => normalize . or-split-rhs . lift-constraints
+                . instantiate-existentials . substitute-equals-for-equals
+                . ( ( match . spatial-patterns-equal . smt-cvc4 )
+                  | ( right-unfold(P) . right-unfold(symbols: P, Ps, bound: N -Int 1) )
+                  | ( right-unfold(symbols: Ps, bound: N) )
+                  )
+                  ...
+       </strategy>
+    requires N =/=Int 0
   rule <strategy> right-unfold-eachRRP(P, PS)
                => right-unfold-eachBody(P, unfold(P))
                 | right-unfold-eachRRP(PS)
@@ -146,6 +203,22 @@ Note that the resulting goals is stonger than the initial goal (i.e.
        </strategy>
 ```
 
+### Permuting list of recursive symbols for use in right-unfold-all
+
+```k
+syntax List ::= perm(Patterns) [function]
+              | permHelp(Patterns, Patterns) [function]
+              | addPattern(Pattern, List) [function]
+rule perm(.Patterns) => ListItem(.Patterns)
+rule perm(Ps) => permHelp(Ps, Ps)
+  requires Ps =/=K .Patterns
+rule permHelp(.Patterns, _) => .List
+rule permHelp((P, Ps1), Ps2) => addPattern(P, perm(Ps2 -Patterns P)) permHelp(Ps1, Ps2)
+
+rule addPattern(P, .List) => .List
+rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
+```
+
 ```k
   // TODO: -Patterns does not work here. We need to substitute RRP with BODY
   rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
@@ -153,7 +226,49 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                          \and(substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns))))) ...
        </claim>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
-       <trace> .K => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) ... </trace>
+       <trace> .K
+            => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY))
+               ~> RHS ~> substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
+               ...
+       </trace>
+    requires notBool hasImplicationContext(LHS)
+
+  syntax Pattern ::= #moveHoleToFront(Pattern) [function]
+  rule #moveHoleToFront(\and(sep(#hole, REST_SEP), REST_AND)) => \and(sep(#hole, REST_SEP), REST_AND)
+  rule #moveHoleToFront(\and(sep(P, REST_SEP), REST_AND)) => #moveHoleToFront(\and(sep(REST_SEP ++Patterns P), REST_AND))
+    requires P =/=K #hole:Variable
+
+  // right unfolding within an implication context
+  rule <claim> \implies(\and( sep ( \forall { UNIVs => UNIVs ++Patterns E2 }
+                                    implicationContext( ( \and( sep( #hole
+                                                                   , CTXLHS
+                                                                   )
+                                                              , CTXLCONSTRAINTS
+                                                              )
+                                                        )
+                                                       => #moveHoleToFront(#flattenAnd(
+                                                            #liftConstraints( \and( sep( #hole
+                                                                                       , substPatternsMap(CTXLHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
+                                                                                       )
+                                                                                  , CTXLCONSTRAINTS
+                                                                                  )
+                                                                            )
+                                                          ))
+                                                      , _
+                                                      )
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
+       <trace> .K
+            => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY))
+               ~> RHS ~> substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
+               ...
+       </trace>
 ```
 
 ### Right-Unfold-Nth

@@ -1,20 +1,25 @@
 <prover>
   <k>
-    \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns )
+    .
   </k>
+  <exit-code>
+    0
+  </exit-code>
   <goals>
     <goal>
       active: true, id: root, parent: .
       <claim>
-        \not ( \exists { Vx { Int } , .Patterns } \and ( \not ( \equals ( Vx { Int } , Vx { Int } ) ) , .Patterns ) )
+        \implies ( \and ( .Patterns ) , \and ( \or ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns ) , .Patterns ) )
       </claim>
       <strategy>
         success
       </strategy>
-      <trace>
-        smt-cvc4
-      </trace>
-    </goal>
+      <expected>
+        success
+      </expected>
+    <trace>
+      smt-cvc4
+    </trace>
   </goals>
   <declarations>
     .DeclarationCellSet

@@ -3,7 +3,7 @@ These strategies encompass a variety of simplification strategies
 ```k
 module STRATEGY-SIMPLIFICATION
   imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
 ```
 
@@ -70,22 +70,6 @@ Normalize:
   rule <claim> \not(_) #as P => #normalize(P) </claim>
        <strategy> normalize => noop ... </strategy>
 
-  rule <claim> \forall{Vs} P => P </claim>
-       <strategy> smtlib-to-implication ... </strategy>
-
-  rule <claim> \or(Ps) => \implies(\and(#filterNegative(Ps)), \and(\or(#filterPositive(Ps)))) </claim>
-       <strategy> smtlib-to-implication => normalize ... </strategy>
-
-  syntax Patterns ::= "#filterNegative" "(" Patterns ")" [function]
-  rule #filterNegative(\not(P), Ps) => P, #filterNegative(Ps)
-  rule #filterNegative(P, Ps)       => #filterNegative(Ps) [owise]
-  rule #filterNegative(.Patterns)   => .Patterns
-
-  syntax Patterns ::= "#filterPositive" "(" Patterns ")" [function]
-  rule #filterPositive(\not(P), Ps) => #filterPositive(Ps)
-  rule #filterPositive(P, Ps)       => P, #filterPositive(Ps) [owise]
-  rule #filterPositive(.Patterns)   => .Patterns
-
   syntax Pattern ::= #normalize(Pattern) [function]
   syntax Patterns ::= #normalizePs(Patterns) [function]
 
@@ -104,6 +88,116 @@ Normalize:
   rule #normalize(\or(Ps)) => \or(#normalizePs(Ps))
   rule #normalize(P) => P
     [owise]
+```
+
+### purify
+
+LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
+
+```k
+  rule <claim> \implies(LHS => #purify(LHS), RHS) ... </claim>
+       <strategy> purify => noop ... </strategy>
+
+  syntax Pattern ::= #purify(Pattern) [function]
+  syntax Patterns ::= #purifyPs(Patterns) [function]
+  rule #purify(S(ARGs))
+    => #fun( VARs
+          => \and( S(VARs), #makeEqualities(VARs, ARGs) )
+           )( makePureVariables(ARGs) )
+    requires isUnfoldable(S)
+  rule #purify(\and(Ps)) => \and(#purifyPs(Ps))
+  rule #purify(sep(Ps)) => sep(#purifyPs(Ps))
+  rule #purify(\not(P)) => \not(#purify(P))
+  rule #purify(\equals(P1, P2)) => \equals(P1, P2)
+  rule #purify(S:Symbol(Ps)) => S(Ps)
+    [owise]
+  rule #purifyPs(.Patterns) => .Patterns
+  rule #purifyPs(P, Ps) => #purify(P), #purifyPs(Ps)
+
+  syntax Patterns ::= makePureVariables(Patterns) [function]
+  rule makePureVariables(V:Variable, REST) => V, makePureVariables(REST)
+  rule makePureVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makePureVariables(REST)
+    requires notBool isVariable(P)
+  rule makePureVariables(.Patterns) => .Patterns
+
+  syntax Patterns ::= #getNonVariables(Patterns) [function]
+  rule #getNonVariables(.Patterns) => .Patterns
+  rule #getNonVariables(V:Variable, Ps) => #getNonVariables(Ps)
+  rule #getNonVariables(P, Ps) => P, #getNonVariables(Ps)
+    requires notBool isVariable(P)
+
+  syntax Patterns ::= #makeEqualities(Patterns, Patterns) [function]
+  rule #makeEqualities(.Patterns, .Patterns) => .Patterns
+  rule #makeEqualities((V, Vs), (V, Ps)) => #makeEqualities(Vs, Ps)
+  rule #makeEqualities((V, Vs), (P, Ps)) => \equals(V, P), #makeEqualities(Vs, Ps)
+    requires V =/=K P
+```
+
+### abstraction
+
+obligation of the form R(T, Vs) => R(T', Vs') becomes
+R(V, Vs) => exists V', R(V', Vs') and V = V'
+
+```k
+  rule <claim> \implies(LHS, RHS) </claim>
+       <strategy> abstract
+               => #getNewVariables(LHS, .Patterns)
+               ~> #getNewVariables(RHS, .Patterns)
+               ~> abstract
+              ...
+       </strategy>
+
+  rule <claim> \implies(LHS, \and(\or(RHS)))
+            => \implies( #abstract(LHS, VsLHS)
+                       , \exists{ VsRHS } \and( #dnf(\or(\and(#createEqualities(VsLHS, VsRHS))))
+                                                , #abstract(RHS, VsRHS)
+                                                )
+                       )
+       </claim>
+       <strategy> (VsLHS:Patterns ~> VsRHS:Patterns ~> abstract) => noop ... </strategy>
+
+  syntax Patterns ::= #getNewVariables(Pattern, Patterns) [function]
+  syntax Patterns ::= #getNewVariablesPs(Patterns, Patterns) [function]
+  rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(\not(P), Vs) => #getNewVariablesPs(P, Vs)
+  rule #getNewVariables(sep(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(S(ARGs), Ps)
+    => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
+    requires isUnfoldable(S)
+  rule #getNewVariables(pto(_), Ps) => Ps
+  rule #getNewVariables(\equals(_, _), Ps) => Ps
+
+  rule #getNewVariablesPs(.Patterns, _) => .Patterns
+  rule #getNewVariablesPs((P, Ps), Vs) => #getNewVariables(P, Vs) ++Patterns #getNewVariablesPs(Ps, Vs)
+
+  syntax Pattern ::= #abstract(Pattern, Patterns) [function]
+  syntax Patterns ::= #abstractPs(Patterns, Patterns) [function]
+  rule #abstract(\and(Ps), Vs) => \and(#abstractPs(Ps, Vs))
+  rule #abstract(\or(Ps), Vs) => \or(#abstractPs(Ps, Vs))
+  rule #abstract(\not(P), Vs) => \not(#abstract(P, Vs))
+  rule #abstract(sep(Ps), Vs) => sep(#abstractPs(Ps, Vs))
+  rule #abstract(S(ARGs), Vs)
+    => S(#replaceNewVariables(ARGs, Vs))
+    requires isUnfoldable(S)
+  rule #abstract(pto(ARGs), Vs) => pto(ARGs)
+  rule #abstract(\equals(L, R), Vs) => \equals(L, R)
+
+  rule #abstractPs(.Patterns, _) => .Patterns
+  rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs), #abstractPs(Ps, Vs)
+
+  syntax Patterns ::= #replaceNewVariables(Patterns, Patterns) [function]
+  rule #replaceNewVariables((V1:Variable, Ps), Vs) => V1, #replaceNewVariables(Ps, Vs)
+  rule #replaceNewVariables((P, Ps), (V, Vs)) => V, #replaceNewVariables(Ps, Vs)
+    requires notBool isVariable(P)
+  rule #replaceNewVariables(.Patterns, _) => .Patterns
+
+  syntax Patterns ::= #createEqualities(Patterns, Patterns) [function]
+  syntax Patterns ::= #createEqualitiesVar(Patterns, Pattern) [function]
+  rule #createEqualities(VsLHS, .Patterns) => .Patterns
+  rule #createEqualities(VsLHS, (VRHS, VsRHS)) => \or(#createEqualitiesVar(VsLHS, VRHS)), #createEqualities(VsLHS, VsRHS)
+  rule #createEqualitiesVar(.Patterns, VRHS) => .Patterns
+  rule #createEqualitiesVar((VLHS, VsLHS), VRHS) => \equals(VRHS, VLHS), #createEqualitiesVar(VsLHS, VRHS)
 ```
 
 ### lift-constraints
@@ -224,6 +318,7 @@ Lift `\or`s on the left hand sides of implications
                        )
        </claim>
        <strategy> (INSTANTIATION => .) ~> instantiate-existentials ... </strategy>
+     requires INSTANTIATION =/=K .Patterns
 
   rule <strategy> (.Patterns ~> instantiate-existentials) => noop ... </strategy>
 

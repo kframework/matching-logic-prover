@@ -1,5 +1,5 @@
 ```k
-requires "../smt.k"
+requires "lang/smt-lang.k"
 ```
 
 ML to SMTLIB2
@@ -8,11 +8,10 @@ ML to SMTLIB2
 ```k
 module ML-TO-SMTLIB2
   imports STRING-SYNTAX
-  imports SMTLIB2
-  imports KORE-SUGAR
+  imports SMTLIB2-HELPERS
+  imports KORE
   imports KORE-HELPERS
   imports STRATEGY-UNFOLDING
-  imports PROVER-DRIVER
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
   rule ML2SMTLIB(PATTERN)
@@ -35,9 +34,9 @@ module ML-TO-SMTLIB2
        DeclarationsToSMTLIB(Ds)
     requires isFunctional(S)  
 
+// We only translate functional symbols to SMT
   rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
-    => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) (Set SortToSMTLIB2Sort(SORT)) ) ++SMTLIB2Script
-       DeclarationsToSMTLIB(Ds)
+    => DeclarationsToSMTLIB(Ds)
     requires notBool isFunctional(S)
 
   rule DeclarationsToSMTLIB((axiom heap(_, _)) Ds)
@@ -69,6 +68,8 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(singleton(P1)) => ( singleton PatternToSMTLIB2Term(P1) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(lt(P1, P2)) => ( < PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(gt(P1, P2)) => ( > PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(lte(P1, P2)) => ( <= PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(gte(P1, P2)) => ( >= PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(plus(P1, P2)) => ( + PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(max(P1, P2)) => ( max PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(minus(P1, P2)) => ( - PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
@@ -84,12 +85,14 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(S:Symbol(.Patterns)) => SymbolToSMTLIB2SymbolFresh(S):SMTLIB2Term
   rule PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( SymbolToSMTLIB2SymbolFresh(S) PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term [owise]
   rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
+    requires Ps =/=K .Patterns
   rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\and(.Patterns)) => true
+  rule PatternToSMTLIB2Term(\and(.Patterns)) => #token("true", "LowerName")
   // rule PatternToSMTLIB2Term(true) => true
   rule PatternToSMTLIB2Term(\or(P, Ps)) => (or PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
+    requires Ps =/=K .Patterns
   rule PatternToSMTLIB2Term(\or(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\or(.Patterns)) => false
+  rule PatternToSMTLIB2Term(\or(.Patterns)) => #token("false", "LowerName")
   // rule PatternToSMTLIB2Term(false) => false
 
   rule PatternToSMTLIB2Term(\implies(LHS, RHS)) => ((=> PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(\and(RHS)))):SMTLIB2Term
@@ -106,11 +109,9 @@ module ML-TO-SMTLIB2
     => .SMTLIB2TermList
 
   syntax SMTLIB2Symbol ::= SymbolToSMTLIB2Symbol(Symbol) [function]
-  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   rule SymbolToSMTLIB2Symbol(S:Symbol) => StringToSMTLIB2SimpleSymbol(SymbolToString(S))
 
   syntax SMTLIB2Symbol ::= SymbolToSMTLIB2SymbolFresh(Symbol) [function]
-  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   rule SymbolToSMTLIB2SymbolFresh(S:Symbol) => StringToSMTLIB2SimpleSymbol("fresh_" +String SymbolToString(S))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
@@ -129,34 +130,17 @@ module ML-TO-SMTLIB2
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
 
-  syntax SMTLIB2SimpleSymbol ::= "emptysetx"  [token]
-                               | "unionx"     [token]
-                               | "singleton"  [token]
-                               | "intersectx" [token]
-                               | "in"         [token]
-                               | "disjointx"  [token]
-                               | "const"      [token]
-                               | "SetInt"     [token]
-                               | "n"          [token]
-                               | "x"          [token]
-                               | "s"          [token]
-                               | "y"          [token]
-                               | "ite"        [token]
-                               | "setAdd"     [token]
-                               | "setDel"     [token]
-                               | "setminus"     [token]
-                               | "max"        [token]
   syntax SMTLIB2Script ::= "Z3Prelude" [function]
   rule Z3Prelude
     => ( ( define-sort SetInt (.SMTLIB2SortList) ( Array Int  Bool ) )
-         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( ( as const SetInt ) false ) )
-         ( define-fun singleton ( ( x Int ) ) SetInt ( store emptysetx  x  true ) )
+         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( ( as const SetInt ) #token("false", "LowerName") ) )
+         ( define-fun singleton ( ( x Int ) ) SetInt ( store emptysetx  x  #token("true", "LowerName") ) )
          ( define-fun in ( ( n Int ) ( x SetInt ) ) Bool ( select x  n ) )
          ( define-fun unionx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map or ) x  y ) )
          ( define-fun intersectx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map and ) x  y ) )
          ( define-fun disjointx ( ( x SetInt )  ( y SetInt ) ) Bool ( = ( intersectx x  y ) emptysetx ) )
          ( define-fun setAdd ( ( s SetInt )  ( x Int ) ) SetInt ( unionx s ( singleton x ):SMTLIB2Term ) )
-         ( define-fun setDel ( ( s SetInt )  ( x Int ) ) SetInt ( store s x false ) )
+         ( define-fun setDel ( ( s SetInt )  ( x Int ) ) SetInt ( store s x #token("false", "LowerName") ) )
 
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
@@ -216,7 +200,7 @@ module STRATEGY-SMT
   imports Z3
   imports CVC4
   imports PROVER-CORE
-  imports PROVER-HORN-CLAUSE-SYNTAX
+  imports STRATEGIES-EXPORTED-SYNTAX
   imports ML-TO-SMTLIB2
 
   rule <claim> GOAL </claim>
@@ -241,6 +225,19 @@ module STRATEGY-SMT
                   ...
        </strategy>
        <trace> .K => smt-cvc4 ... </trace>
+     requires isPredicatePattern(GOAL)
+
+// If the constraints are unsatisfiable, the entire term is unsatisfiable
+  rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
+       <strategy> check-lhs-constraint-unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\and(LCONSTRAINTS), #collectDeclarations(.Declarations))) ==K unsat
+                  then success
+                  else noop
+                  fi
+                  ...
+       </strategy>
+       <trace> .K => check-lhs-constraint-unsat ... </trace>
+     requires isPredicatePattern(\and(LCONSTRAINTS))
 
   syntax DeclarationCelLSet
   syntax Declarations ::= #collectDeclarations(Declarations) [function]
@@ -281,7 +278,7 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                               fi
                              )
                         fi
-                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))))
+                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))):CheckSATResult)
                   ...
        </strategy>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
@@ -290,15 +287,16 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 ```k
   rule <claim> GOAL </claim>
        <strategy> smt-debug
-               => wait ~> (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))))
+               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))):CheckSATResult
                   ...
        </strategy>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
+     requires isPredicatePattern(GOAL)
 ```
 
 ```k
   syntax Bool ::= isUnknown(CheckSATResult) [function]
-  rule isUnknown(unknown(_)) => true
+  rule isUnknown(unknown) => true
   rule isUnknown(_) => false [owise]
 ```
 

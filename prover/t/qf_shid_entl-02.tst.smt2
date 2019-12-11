@@ -56,23 +56,23 @@
 			(RList x z )
 ))
 
+; (set-info :mlprover-strategy
+;     normalize
+;   . smtlib-to-implication
+;   . kt
+;   . or-split-rhs . normalize . lift-constraints
+;   . ( kt
+;     . or-split-rhs . normalize . lift-constraints
+;     . ( ( right-unfold-Nth(0,1)
+;         . right-unfold-Nth(0,0)
+;         . normalize . lift-constraints
+;         . match . instantiate-separation-logic-axioms . spatial-patterns-equal . smt-cvc4
+;         )
+;       | ( right-unfold-Nth(0,1)
+;         . normalize . lift-constraints
+;         . match . instantiate-separation-logic-axioms . spatial-patterns-equal . smt-cvc4
+;         )
+;       )
+;     )
+; )
 (check-sat)
-(set-info :mlprover-strategy
-    normalize
-  ; smtlib-to-implication
-  ; kt
-  ; or-split-rhs ; normalize ; lift-constraints
-  ; ( kt
-    ; or-split-rhs ; normalize ; lift-constraints
-    ; ( ( right-unfold-Nth(0,1)
-        ; right-unfold-Nth(0,0)
-        ; normalize ; lift-constraints
-        ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
-        )
-      | ( right-unfold-Nth(0,1)
-        ; normalize ; lift-constraints
-        ; match ; instantiate-separation-logic-axioms ; spatial-patterns-equal ; smt-cvc4
-        )
-      )
-    )
-)
