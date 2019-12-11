@@ -67,14 +67,14 @@ var-svar $a #var X $.
 
 $( Auxiliary metalevel assertions about pattern structures $)
 
-$c #nnegative $. $( non-negative occurrence token; 
-                  ( #nnegative X P ) means X does not occur negatively in P. $)
+$c #nonnegative $. $( non-negative occurrence token; 
+                  ( #nonnegative X P ) means X does not occur negatively in P. $)
                   
-$c #npositive $. $( non-positive occurrence token; 
-                  ( #npositive X P ) means X does not occur positively in P. $)
+$c #nonpositive $. $( non-positive occurrence token; 
+                  ( #nonpositive X P ) means X does not occur positively in P. $)
 
-$c #nfree $.     $( not-occur-free token;
-                  ( #nfree xX P ) means xX does not occur 
+$c #notfree $.     $( not-occur-free token;
+                  ( #notfree xX P ) means xX does not occur 
                   free in P. $)
                           
 $c #appctx $.    $( application context token;
@@ -92,63 +92,63 @@ wf-imp    $a #wf ( \imp P Q ) $.
 wf-app    $a #wf ( \app P Q ) $.
 wf-exists $a #wf ( \exists x P ) $.
 ${
-    wf-mu.1 $e #nnegative X P $.
+    wf-mu.1 $e #nonnegative X P $.
     wf-mu   $a #wf ( \mu X P ) $.
 $}
 
-$( Define non-negative occurrence token ( #nnegative X P ). $)
+$( Define non-negative occurrence token ( #nonnegative X P ). $)
 
-nnegative-var  $a #nnegative X xX $.
-nnegative-symb $a #nnegative X f $.
-nnegative-bot  $a #nnegative X \bot $.
+notnegative-var  $a #nonnegative X xX $.
+notnegative-symb $a #nonnegative X f $.
+notnegative-bot  $a #nonnegative X \bot $.
 ${
-    nnegative-imp.1 $e #npositive X P $.
-    nnegative-imp.2 $e #nnegative X Q $.
-    nnegative-imp   $a #nnegative X ( \imp P Q ) $.
+    notnegative-imp.1 $e #nonpositive X P $.
+    notnegative-imp.2 $e #nonnegative X Q $.
+    notnegative-imp   $a #nonnegative X ( \imp P Q ) $.
 $}
 ${
-    nnegative-app.1 $e #nnegative X P $.
-    nnegative-app.2 $e #nnegative X Q $.
-    nnegative-app   $a #nnegative X ( \app P Q ) $.
+    notnegative-app.1 $e #nonnegative X P $.
+    notnegative-app.2 $e #nonnegative X Q $.
+    notnegative-app   $a #nonnegative X ( \app P Q ) $.
 $}
 ${
-   nnegative-exists.1 $e #nnegative X P $.
-   nnegative-exists   $a #nnegative X ( \exists x P ) $.
+   notnegative-exists.1 $e #nonnegative X P $.
+   notnegative-exists   $a #nonnegative X ( \exists x P ) $.
 $}
-nnegative-mu-binding $a #nnegative X ( \mu X P ) $.
+notnegative-mu-binding $a #nonnegative X ( \mu X P ) $.
 ${
     $d X Y $.
-    nnegative-mu-body.1 $e #nnegative X P $.
-    nnegative-mu-body   $a #nnegative X ( \mu Y P ) $.
+    notnegative-mu-body.1 $e #nonnegative X P $.
+    notnegative-mu-body   $a #nonnegative X ( \mu Y P ) $.
 $}
 
-$( Define non-positive occurrence token ( #npositive X P ). $)
+$( Define non-positive occurrence token ( #nonpositive X P ). $)
 
 ${
     $d X xX $.
-    npositive-var  $a #npositive X xX $.
+    notpositive-var  $a #nonpositive X xX $.
 $}
-npositive-symb $a #npositive X f $.
-npositive-bot  $a #npositive X \bot $.
+notpositive-symb $a #nonpositive X f $.
+notpositive-bot  $a #nonpositive X \bot $.
 ${
-    npositive-imp.1 $e #nnegative X P $.
-    npositive-imp.2 $e #npositive X Q $.
-    npositive-imp   $a #npositive X ( \imp P Q ) $.
-$}
-${
-    npositive-app.1 $e #npositive X P $.
-    npositive-app.2 $e #npositive X Q $.
-    npositive-app   $a #npositive X ( \app P Q ) $.
+    notpositive-imp.1 $e #nonnegative X P $.
+    notpositive-imp.2 $e #nonpositive X Q $.
+    notpositive-imp   $a #nonpositive X ( \imp P Q ) $.
 $}
 ${
-   npositive-exists.1 $e #npositive X P $.
-   npositive-exists   $a #npositive X ( \exists x P ) $.
+    notpositive-app.1 $e #nonpositive X P $.
+    notpositive-app.2 $e #nonpositive X Q $.
+    notpositive-app   $a #nonpositive X ( \app P Q ) $.
 $}
-npositive-mu-binding $a #npositive X ( \mu X P ) $.
+${
+   notpositive-exists.1 $e #nonpositive X P $.
+   notpositive-exists   $a #nonpositive X ( \exists x P ) $.
+$}
+notpositive-mu-binding $a #nonpositive X ( \mu X P ) $.
 ${
     $d X Y $.
-    npositive-mu-body.1 $e #npositive X P $.
-    npositive-mu-body   $a #npositive X ( \mu Y P ) $.
+    notpositive-mu-body.1 $e #nonpositive X P $.
+    notpositive-mu-body   $a #nonpositive X ( \mu Y P ) $.
 $}
 
 $( Prove that element/set variables are wellformed. $)
@@ -158,35 +158,35 @@ wf-evar $p #wf x $=
 wf-svar $p #wf X $=
   svarX var-svar wf-var $.
 
-$( Define #nfree token ( #nfree xX P ). $)
+$( Define #notfree token ( #notfree xX P ). $)
 
 ${
     $d xX yY $.
-    nfree-var $a #nfree xX yY $.
+    notfree-var $a #notfree xX yY $.
 $}
-nfree-symb $a #nfree xX f $.
-nfree-bot  $a #nfree xX \bot $.
+notfree-symb $a #notfree xX f $.
+notfree-bot  $a #notfree xX \bot $.
 ${
-    nfree-imp.1 $e #nfree xX P $.
-    nfree-imp.2 $e #nfree xX Q $.
-    nfree-imp   $a #nfree xX ( \imp P Q ) $.
+    notfree-imp.1 $e #notfree xX P $.
+    notfree-imp.2 $e #notfree xX Q $.
+    notfree-imp   $a #notfree xX ( \imp P Q ) $.
 $}
 ${
-    nfree-app.1 $e #nfree xX P $.
-    nfree-app.2 $e #nfree xX Q $.
-    nfree-app   $a #nfree xX ( \app P Q ) $.
+    notfree-app.1 $e #notfree xX P $.
+    notfree-app.2 $e #notfree xX Q $.
+    notfree-app   $a #notfree xX ( \app P Q ) $.
 $}
-nfree-exists-binding $a #nfree x ( \exists x P ) $.
+notfree-exists-binding $a #notfree x ( \exists x P ) $.
 ${
     $d xX y $.
-    nfree-exists-body.1 $e #nfree xX P $.
-    nfree-exists-body   $a #nfree xX ( \exists y P ) $.
+    notfree-exists-body.1 $e #notfree xX P $.
+    notfree-exists-body   $a #notfree xX ( \exists y P ) $.
 $}
-nfree-mu-binding $a #nfree X ( \mu X P ) $.
+notfree-mu-binding $a #notfree X ( \mu X P ) $.
 ${
     $d xX Y $.
-    nfree-mu-body.1 $e #nfree xX P $.
-    nfree-mu-body   $a #nfree xX ( \exists Y P ) $.
+    notfree-mu-body.1 $e #notfree xX P $.
+    notfree-mu-body   $a #notfree xX ( \exists Y P ) $.
 $}
 
 $( Define application context token ( #appctx P xX ). $)
@@ -194,12 +194,12 @@ $( Define application context token ( #appctx P xX ). $)
 appctx-ini $a #appctx xX xX $.
 ${
     appctx-app-left.1 $e #appctx P xX $.
-    appctx-app-left.2 $e #nfree xX Q $.
+    appctx-app-left.2 $e #notfree xX Q $.
     appctx-app-left   $a #appctx ( \app P Q ) xX $.
 $}
 ${
     appctx-app-right.1 $e #appctx Q xX $.
-    appctx-app-right.2 $e #nfree xX P $.
+    appctx-app-right.2 $e #notfree xX P $.
     appctx-app-right   $a #appctx ( \app P Q ) xX $.
 $}
 
@@ -237,7 +237,7 @@ $)
 
 ${
     $d y xX $.
-    subst-exists-body.1 $e #nfree z R $.
+    subst-exists-body.1 $e #notfree z R $.
     subst-exists-body.2 $e #subst Q P z y $.   $( Q === P[z/y] $)
     subst-exists-body.3 $e #subst Q' Q R xX $. $( Q' === Q[R/xX] $)
     subst-exists-body   $a #subst ( \exists z Q' ) ( \exists y P ) R xX $.
@@ -247,7 +247,7 @@ subst-mu-binding $a #subst ( \mu X P ) ( \mu X P ) R X $.
 
 ${
     $d Y xX $.
-    subst-mu-body.1 $e #nfree Z R $.
+    subst-mu-body.1 $e #notfree Z R $.
     subst-mu-body.2 $e #subst Q P Z Y $.   $( Q === P[Z/Y] $)
     subst-mu-body.3 $e #subst Q' Q R xX $. $( Q' === Q[R/xX] $)
     subst-mu-body   $a #subst ( \mu Z Q' ) ( \mu Y P ) R xX $.
@@ -256,8 +256,6 @@ $}
 $(
     Part 2: Matching Logic Proof System
 $)
-
-$( TODO: Use simpler ids for proof rules. $)
 
 $( Part 2.1: Propositional Reasoning $)
 
@@ -277,63 +275,63 @@ $}
 $( Part 2.2: FOL Reasoning $)
 
 ${
-    rl-exists-inst.1 $e #subst P Q y x $.
-    rl-exists-inst   $a |- ( \imp P ( \exists x Q ) ) $.
+    rl-4.1 $e #subst P Q y x $.
+    rl-4   $a |- ( \imp P ( \exists x Q ) ) $.
 $}
 
 ${
-    rl-exists-gen.1 $e |- ( \imp P Q ) $.
-    rl-exists-gen.2 $e #nfree x P $.
-    rl-exists-gen   $a |- ( \imp ( \exists x P ) Q ) $.
+    rl-gen.1 $e |- ( \imp P Q ) $.
+    rl-gen.2 $e #notfree x P $.
+    rl-gen   $a |- ( \imp ( \exists x P ) Q ) $.
 $}
 
 $( Part 2.3: Frame Reasoning $)
 
-rl-propagation-bot-left  $a |- ( \imp ( \app \bot P ) \bot ) $.
-rl-propagation-bot-right $a |- ( \imp ( \app P \bot ) \bot ) $.
-rl-propagation-or-left 
+rl-5  $a |- ( \imp ( \app \bot P ) \bot ) $.
+rl-6 $a |- ( \imp ( \app P \bot ) \bot ) $.
+rl-7 
   $a |- ( \imp ( \app ( \imp ( \imp P \bot ) Q ) R )
                ( \imp ( \imp ( \app P R ) \bot ) ( \app Q R ) ) ) $.
-rl-propagation-or-right 
+rl-8 
   $a |- ( \imp ( \app R ( \imp ( \imp P \bot ) Q ) )
                ( \imp ( \imp ( \app R P ) \bot ) ( \app R Q ) ) ) $.
 ${
-    rl-propagation-exists-left.1
-      $e #nfree x Q $.
-    rl-propagation-exists-left
+    rl-9.1
+      $e #notfree x Q $.
+    rl-9
       $a |- ( \imp ( \app ( \exists x P ) Q )
                    ( \exists x ( \app P Q ) ) ) $.
 $}
 
 ${
-    rl-propagation-exists-right.1
-      $e #nfree x Q $.
-    rl-propagation-exists-right
+    rl-10.1
+      $e #notfree x Q $.
+    rl-10
       $a |- ( \imp ( \app Q ( \exists x P ) )
                    ( \exists x ( \app Q P ) ) ) $.
 $}
 
 ${
-    rl-framing-left.1 $e |- ( \imp P Q ) $.
-    rl-framing-left   $a |- ( \imp ( \app P R ) ( \app Q R ) ) $.
+    rl-fl.1 $e |- ( \imp P Q ) $.
+    rl-fl   $a |- ( \imp ( \app P R ) ( \app Q R ) ) $.
 $}
 
 ${
-    rl-framing-right.1 $e |- ( \imp P Q ) $.
-    rl-framing-right   $a |- ( \imp ( \app R P ) ( \app R Q ) ) $.
+    rl-fr.1 $e |- ( \imp P Q ) $.
+    rl-fr   $a |- ( \imp ( \app R P ) ( \app R Q ) ) $.
 $}
 
 $( Part 2.4: Fixpoint Reasoning $)
 
 ${
-    rl-svar-subst.1 $e |- Q $.
-    rl-svar-subst.2 $e #subst P Q R Y $.
-    rl-svar-subst $a |- P $.
+    rl-ss.1 $e |- Q $.
+    rl-ss.2 $e #subst P Q R Y $.
+    rl-ss $a |- P $.
 $}
 
 ${
-    rl-prefixpoint.1 $e #subst Q P ( \mu X P ) X $.
-    rl-prefixpoint   $a |- ( \imp Q ( \mu X P ) ) $.
+    rl-pf.1 $e #subst Q P ( \mu X P ) X $.
+    rl-pf   $a |- ( \imp Q ( \mu X P ) ) $.
 $}
 
 ${
@@ -344,14 +342,14 @@ $}
 
 $( Part 2.5: Misc technical rules $)
 
-rl-existence $a |- ( \exists x x ) $.
+rl-11 $a |- ( \exists x x ) $.
 
 ${
-    rl-singleton.1 $e #appctx R xX $.
-    rl-singleton.2 $e #appctx R' xX $.
-    rl-singleton.3 $e #subst Q  R ( \imp ( \imp x ( \imp P \bot ) ) \bot ) xX $.
-    rl-singleton.4 $e #subst Q' R ( \imp ( \imp x P               ) \bot ) xX $.
-    rl-singleton   $a |- ( \imp Q ( \imp Q' \bot ) ) $.
+    rl-12.1 $e #appctx R xX $.
+    rl-12.2 $e #appctx R' xX $.
+    rl-12.3 $e #subst Q  R ( \imp ( \imp x ( \imp P \bot ) ) \bot ) xX $.
+    rl-12.4 $e #subst Q' R ( \imp ( \imp x P               ) \bot ) xX $.
+    rl-12   $a |- ( \imp Q ( \imp Q' \bot ) ) $.
 $}
 
 $(
@@ -382,19 +380,19 @@ ${
     eqq-mu   $a #eqq ( \mu X P ) ( \mu X Q ) $.
 $}
 ${
-    eqq-nfree.1 $e #eqq P Q $.
-    eqq-nfree.2 $e #nfree xX Q $.
-    eqq-nfree   $a #nfree xX P $.
+    eqq-notfree.1 $e #eqq P Q $.
+    eqq-notfree.2 $e #notfree xX Q $.
+    eqq-notfree   $a #notfree xX P $.
 $}
 ${
-    eqq-nnegative.1 $e #eqq P Q $.
-    eqq-nnegative.2 $e #nnegative X Q $.
-    eqq-nnegative   $a #nnegative X P $.
+    eqq-notnegative.1 $e #eqq P Q $.
+    eqq-notnegative.2 $e #nonnegative X Q $.
+    eqq-notnegative   $a #nonnegative X P $.
 $}
 ${
-    eqq-npositive.1 $e #eqq P Q $.
-    eqq-npositive.2 $e #npositive X Q $.
-    eqq-npositive   $a #npositive X P $.
+    eqq-notpositive.1 $e #eqq P Q $.
+    eqq-notpositive.2 $e #nonpositive X Q $.
+    eqq-notpositive   $a #nonpositive X P $.
 $}
 ${
     eqq-subst.1 $e #eqq P P' $.
@@ -413,11 +411,6 @@ ${
     eqq-thm.2 $e |- Q $.
     eqq-thm   $a |- P $.
 $}
-
-$(
-    So far we have defined the metalevel of ML, i.e., the proof checker.
-    Next, we show how to prove metatheorems about ML (i.e., proof objects).
-$)
 
 $(
     Part 4: Prove metatheorems about ML.
@@ -453,24 +446,24 @@ df-neg $a #eqq ( \neg P ) ( \imp P \bot ) $.
 $( We can prove all metalevel properties about \neg from its definition. $)
 
 ${
-    nfree-neg.1 $e #nfree xX P $.
-    nfree-neg   $p #nfree xX ( \neg P ) $=
+    notfree-neg.1 $e #notfree xX P $.
+    notfree-neg   $p #notfree xX ( \neg P ) $=
       wfP wf-neg wfP wf-bot wf-imp varxX wfP df-neg wfP wf-bot varxX
-      nfree-neg.1 varxX nfree-bot nfree-imp eqq-nfree $.
+      notfree-neg.1 varxX notfree-bot notfree-imp eqq-notfree $.
 $}
 
 ${
-    nnegative-neg.1 $e #npositive X P $.
-    nnegative-neg   $p #nnegative X ( \neg P ) $=
+    notnegative-neg.1 $e #nonpositive X P $.
+    notnegative-neg   $p #nonnegative X ( \neg P ) $=
       wfP wf-neg wfP wf-bot wf-imp svarX wfP df-neg wfP wf-bot svarX
-      nnegative-neg.1 svarX nnegative-bot nnegative-imp eqq-nnegative $.
+      notnegative-neg.1 svarX notnegative-bot notnegative-imp eqq-notnegative $.
 $}
 
 ${
-    npositive-neg.1 $e #nnegative X P $.
-    npositive-neg   $p #npositive X ( \neg P ) $=
+    notpositive-neg.1 $e #nonnegative X P $.
+    notpositive-neg   $p #nonpositive X ( \neg P ) $=
       wfP wf-neg wfP wf-bot wf-imp svarX wfP df-neg wfP wf-bot svarX
-      npositive-neg.1 svarX npositive-bot npositive-imp eqq-npositive $.
+      notpositive-neg.1 svarX notpositive-bot notpositive-imp eqq-notpositive $.
 $}
 
 ${
@@ -502,22 +495,12 @@ ${
 $}
 
 
+$( Definedness $)
 
+$c ceil $.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+symb-ceil $a #symb ceil $.
+ax-definedness $a |- ( \app ceil x ) $.
 
 $( DO NOT REVIEW BELOW $)
 
