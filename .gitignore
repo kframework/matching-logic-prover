@@ -4,6 +4,9 @@
 ## Vim
 *.swp
 
+## EXE binaries
+*.exe
+
 ## Ocaml files:
 *.annot
 *.cmo
@@ -242,3 +245,4 @@ TSWLatexianTemp*
 
 ml2fol_translation/_build/*
 *.swp
+
