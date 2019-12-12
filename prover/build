@@ -138,4 +138,22 @@ unit_tests += [proj.source('t/unit/match-assoc-comm').then(test_driver.krun())]
 # unit_tests += [proj.source('t/unit/smt')  .then(test_driver.krun())]
 proj.alias('unit-tests', unit_tests)
 
+def sl_comp_test_path(name):
+    return ".build/t/SL-COMP18/bench/qf_shid_entl/%s.prover-smt-krun" % (name)
+
+proj.alias('smoke-tests', list(map( sl_comp_test_path, [ 
+           "02.tst.smt2"                         , # RList trans 
+           "10.tst.smt2"                         , # ListO * ListO -> ListE 
+           "16.tst.smt2"                         , # BinPath -> BinTreeSeg, needs no unfold of define-fun-recs 
+           "append_sll_cll_slk-7.smt2"           , # need left-unfold at start 
+           "22.tst.smt2"                         , # needs multiple left-unfolds within kts 
+           "dll-rev-entails-dll.smt2"            , # needs abstract 
+           "tll_slk-13.smt2"                     , # alternate-search-bound due to large number of rec defs, not using right-unfold-all 
+           "skl2-vc03.smt2"                      , # needs framing but not match-pto 
+           "odd-lseg3_slk-5.smt2"                , # needs framing and match-pto 
+           "nll-vc01.smt2"                       , # needs large number of unfolding but no kt
+           "ls_nonrec_entail_ls_07.sb.smt2"      , # 6 variable transitivity: ls_nonrec(x,x1) * ... * ls_nonrec(x4,x5) -> ls(x,x5)  - needs large number of kts and unfolding
+           "ls_lsrev_concat_entail_ls_1.sb.smt2" , # need unfolding within implication context
+          ])))
+
 if __name__ == "__main__": proj.main()
