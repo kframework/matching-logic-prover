@@ -1,5 +1,7 @@
 ```k
 requires "lang/kore-lang.k"
+requires "lang/coq-lang.k"
+requires "drivers/coq-driver.k"
 requires "drivers/smt-driver.k"
 requires "drivers/kore-driver.k"
 requires "drivers/base.k"

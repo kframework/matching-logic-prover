@@ -18,9 +18,11 @@ proj = KProject()
 # Matching Logic Prover
 # =====================
 
-other_md_files = [ 'lang/smt-lang.md'
+other_md_files = [ 'lang/coq-lang.md'
+                 , 'lang/smt-lang.md'
                  , 'lang/kore-lang.md'
                  , 'drivers/base.md'
+                 , 'drivers/coq-driver.md'
                  , 'drivers/smt-driver.md'
                  , 'drivers/kore-driver.md'
                  , 'strategies/apply-equation.md'
@@ -53,12 +55,15 @@ def prover(alias, flags = None):
 
 prover_kore = prover('prover-kore', '--main-module DRIVER-KORE --syntax-module DRIVER-KORE-SYNTAX')
 prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module DRIVER-SMT-SYNTAX' )
+prover_coq  = prover('prover-coq',  '--main-module DRIVER-COQ  --syntax-module DRIVER-COQ-SYNTAX' )
 
 # Functional tests
 # ----------------
 
 # prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
 # prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
+
+prover_coq .tests(inputs = glob('t/*.v'), flags = '-cCOMMANDLINE=.CommandLine')
 
 def log_on_success(file, message):
     return proj.rule( 'log-to-success'
