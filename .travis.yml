@@ -32,4 +32,4 @@ git:
 jobs:
     include:
         - stage: compile
-          script: "cd prover && ./build unit-tests"
+          script: "cd prover && ./build prover-smt"
