@@ -26,6 +26,7 @@ addons:
       - python3
       - time
       - zlib1g-dev
+      - z3
 git:
     depth: 3
 jobs:
