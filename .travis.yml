@@ -9,6 +9,7 @@ addons:
       - curl
       - flex
       - gcc
+      - libboost-all-dev
       - libffi-dev
       - libmpfr-dev
       - libtool
