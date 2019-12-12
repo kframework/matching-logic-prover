@@ -5,12 +5,15 @@ addons:
     update: true
     packages:
       - autoconf
+      - clang-8
       - curl
       - flex
       - gcc
       - libffi-dev
       - libmpfr-dev
       - libtool
+      - lld-8
+      - llvm-8-tools
       - make
       - maven
       - ninja-build
