@@ -18,20 +18,34 @@ module COQ
                    | "_"
   syntax CoqNames ::= List{CoqName, ""} [klabel(CoqNames)]
 
+// Hardcoded Coq Sorts
+  syntax CoqSort ::= "SProp"
+                   | "Prop"
+                   | "Set"
+                   | "Type"
+
 // Terms
-  syntax CoqTerm ::= "forall" CoqBinders "," CoqTerm
-                   | "fun" CoqBinders "=>" CoqTerm
+  syntax CoqTerm ::= "fun" CoqBinders "=>" CoqTerm
                    | "fix" CoqFixBodies
                    | "cofix" CoqCofixBodies
                    | "let" CoqIdent ":=" CoqTerm "in" CoqTerm
                    | "let" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "in" CoqTerm
+                   | CoqTerm CoqArg [right]
                    | "match" CoqMatchItems "with" CoqEquations "end"
-                   // TODO: more here
+                   | CoqQualID
+                   | CoqSort
                    | Int
+                   | "_"
+                   > "forall" CoqBinders "," CoqTerm
 
   syntax CoqBinder ::= CoqName
                      | "(" CoqNames ":" CoqTerm ")"
   syntax CoqBinders ::= List{CoqBinder, ""} [klabel(CoqBinders)]
+
+  syntax CoqArg ::= CoqTerm
+                  | "(" CoqIdent ":=" CoqTerm ")"
+                  | CoqArg CoqArg
+  syntax CoqTerms ::= List{CoqTerm, ""} [klabel(CoqTerms)]
 
   syntax CoqFixBody ::= CoqIdent CoqBinders ":=" CoqTerm
   syntax CoqFixBodyList ::= List{CoqFixBody, "with"}
@@ -62,8 +76,14 @@ module COQ
 
 // Vernacular
   syntax CoqSentence ::= CoqDefinition
-
+                       | CoqInductive
+  syntax CoqSentences ::= List{CoqSentence, ""} [klabel(CoqSentences)]
   syntax CoqDefinition ::= "Definition" CoqIdent ":=" CoqTerm "."
+
+  syntax CoqInductive ::= "Inductive" CoqIndBody "."
+  syntax CoqIndBody ::= CoqIdent CoqBinders ":" CoqTerm ":=" CoqIndCases
+  syntax CoqIndCase ::= CoqIdent CoqBinders ":" CoqTerm
+  syntax CoqIndCases ::= List{CoqIndCase, "|"}
 ```
 
 ```k

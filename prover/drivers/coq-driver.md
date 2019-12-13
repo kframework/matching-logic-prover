@@ -7,7 +7,7 @@ This file is responsible for loading definitions in the Coq format.
 module DRIVER-COQ-COMMON
   imports COQ
   imports STRATEGIES-EXPORTED-SYNTAX
-  syntax Pgm ::= CoqSentence
+  syntax Pgm ::= CoqSentences
 endmodule
 ```
 
