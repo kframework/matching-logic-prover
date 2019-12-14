@@ -9,6 +9,7 @@ module TOKENS
   syntax ColonName
   syntax PipeQID
   syntax Decimal
+  syntax Underscore
 
   // Abstract
   syntax Symbol ::= UpperName | LowerName
@@ -118,6 +119,7 @@ module TOKENS-SYNTAX
   syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
   syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
                    | "2.0" [token]
+  syntax Underscore ::= "_" [token]
 endmodule
 
 module KORE

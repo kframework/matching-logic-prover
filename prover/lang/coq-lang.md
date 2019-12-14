@@ -15,7 +15,7 @@ module COQ
                     | UpperName
   syntax CoqQualID ::= CoqIdent
   syntax CoqName ::= CoqIdent
-                   | "_"
+                   | Underscore
   syntax CoqNames ::= List{CoqName, ""} [klabel(CoqNames)]
 
 // Hardcoded Coq Sorts
@@ -35,7 +35,7 @@ module COQ
                    | CoqQualID
                    | CoqSort
                    | Int
-                   | "_"
+                   | Underscore
                    > "forall" CoqBinders "," CoqTerm
 
   syntax CoqBinder ::= CoqName
@@ -68,7 +68,7 @@ module COQ
                       | CoqPattern "as" CoqIdent
                       | CoqPattern "%" CoqIdent
                       | CoqQualID
-                      | "_"
+                      | Underscore
                       | Int
 
   syntax CoqMultPattern ::= List{CoqPattern, ","} [klabel(CoqMultPattern)]
