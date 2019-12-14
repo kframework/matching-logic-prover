@@ -37,6 +37,7 @@ module COQ
                    | Int
                    | Underscore
                    > "forall" CoqBinders "," CoqTerm
+                   > "(" CoqTerm ")" [bracket]
 
   syntax CoqBinder ::= CoqName
                      | "(" CoqNames ":" CoqTerm ")"
@@ -77,13 +78,16 @@ module COQ
 // Vernacular
   syntax CoqSentence ::= CoqDefinition
                        | CoqInductive
+  //                   | CoqCoInductive
   syntax CoqSentences ::= List{CoqSentence, ""} [klabel(CoqSentences)]
   syntax CoqDefinition ::= "Definition" CoqIdent ":=" CoqTerm "."
+                         | "Definition" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "."
 
   syntax CoqInductive ::= "Inductive" CoqIndBody "."
   syntax CoqIndBody ::= CoqIdent CoqBinders ":" CoqTerm ":=" CoqIndCases
   syntax CoqIndCase ::= CoqIdent CoqBinders ":" CoqTerm
   syntax CoqIndCases ::= List{CoqIndCase, "|"}
+
 ```
 
 ```k
