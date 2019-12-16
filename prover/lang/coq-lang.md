@@ -81,7 +81,7 @@ module COQ
   syntax CoqSentence ::= CoqDefinition
                        | CoqInductive
   //                   | CoqCoInductive
-  syntax CoqSentences ::= List{CoqSentence, ""} [klabel(CoqSentences)]
+  syntax CoqSentences ::= List{CoqSentence, ""} [klabel(CoqSentences), format(%1%n%2 %3)]
   syntax CoqDefinition ::= "Definition" CoqIdent ":=" CoqTerm "."
                          | "Definition" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "."
 
