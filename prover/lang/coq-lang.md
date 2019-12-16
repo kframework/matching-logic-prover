@@ -30,8 +30,9 @@ module COQ
                    | "cofix" CoqCofixBodies
                    | "let" CoqIdent ":=" CoqTerm "in" CoqTerm
                    | "let" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "in" CoqTerm
-                   | CoqTerm CoqArg [right]
+                   | "@" CoqQualID CoqTerm
                    | "match" CoqMatchItems "with" CoqEquations "end"
+                   > CoqTerm CoqArg [right]
                    | CoqQualID
                    | CoqSort
                    | Int
@@ -64,8 +65,9 @@ module COQ
   syntax CoqEquation ::= CoqMultPattern "=>" CoqTerm
   syntax CoqEquations ::= List{CoqEquation, "|"} [klabel(CoqEquations)]
 
-  syntax CoqPattern ::= CoqQualID CoqPatterns
-                      | "@" CoqQualID CoqPatterns
+  syntax CoqPattern ::= CoqQualID CoqPattern
+                      | "@" CoqQualID CoqPattern
+                      | CoqPattern CoqPattern
                       | CoqPattern "as" CoqIdent
                       | CoqPattern "%" CoqIdent
                       | CoqQualID

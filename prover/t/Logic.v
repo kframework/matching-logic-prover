@@ -23,15 +23,20 @@ Definition IF_then_else (P Q R : Prop) : Prop :=
 
 // All Theorems (Are we going to support those?)
 
-// Inductive ex (A:Type) (P:A -> Prop) : Prop :=
-//  ex_intro : forall x:A, P x -> ex (A:=A) P.
-// 
+Inductive ex1 (A : Type) (P : forall (x : A), Prop) : Prop :=
+  ex_intro1 : forall (x : A), forall (y : (P x)), ex1 A P .
 
-// Inductive ex (A : Type) (P : forall (x : A), Prop) : Prop :=
-//  ex_intro : forall x : A, forall y : (P x), ex (A:=A) P.
+Inductive ex2 (A : Type) (P : forall (x : A), Prop) : Prop :=
+  ex_intro2 : forall (x : A), forall (y : (P x)), ex2 P .
 
-// Definition AndComm := 
-//  fun (A B : Prop) (H : A /\ B) =>
-//    match H with
-//    | conj H0 H1 => conj H1 H0
-//    end .
+Inductive ex3 (A : Type) (P : forall (x : A), Prop) : Prop :=
+  ex_intro3 : forall (x : A), forall (y : (P x)), ex3 (A:=A) P .
+
+Inductive ex4 (A : Type) (P : forall (x : A), Prop) : Prop :=
+  ex_intro4 : forall (x : A), forall (y : (P x)), @ ex4 A P .
+
+Definition AndComm :=
+ fun (A B : Prop) (H : and A B) =>
+   match H with
+     conj H0 H1 => conj H1 H0
+   end .
