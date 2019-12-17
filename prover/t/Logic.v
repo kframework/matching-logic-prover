@@ -18,11 +18,6 @@ Definition iff (A B : Prop) : Prop :=
 Definition IF_then_else (P Q R : Prop) : Prop :=
   (or (and P Q)) (and (not P) R) .
 
-// Syntax in https://github.com/coq/coq/blob/master/theories/Init/Logic
-// that we cannot parse for now. 
-
-// All Theorems (Are we going to support those?)
-
 Inductive ex1 (A : Type) (P : forall (x : A), Prop) : Prop :=
   ex_intro1 : forall (x : A), forall (y : (P x)), ex1 A P .
 
@@ -40,3 +35,6 @@ Definition AndComm :=
    match H with
      conj H0 H1 => conj H1 H0
    end .
+
+Inductive eq (A:Type) (x:A) : forall (_:A), Prop :=
+    eq_refl : @ eq A x x .
