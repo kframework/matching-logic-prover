@@ -39,12 +39,12 @@ module ML-TO-SMTLIB2
     => DeclarationsToSMTLIB(Ds)
     requires notBool isFunctional(S)
 
-  rule DeclarationsToSMTLIB((axiom heap(_, _)) Ds)
+  rule DeclarationsToSMTLIB((axiom _: heap(_, _)) Ds)
     => DeclarationsToSMTLIB(Ds)
 
   syntax Bool ::= isFunctional(Symbol) [function]
   rule [[ isFunctional(S) => true ]]
-       <declaration> axiom functional(S) </declaration>
+       <declaration> axiom _: functional(S) </declaration>
   rule isFunctional(S) => false [owise]
 
   syntax SMTLIB2TermList ::= SMTLIB2SortedVarListToSMTLIB2TermList(SMTLIB2SortedVarList) [function]
@@ -53,8 +53,8 @@ module ML-TO-SMTLIB2
 
   rule DeclarationsToSMTLIB((sort SORT) Ds) => (declare-sort SortToSMTLIB2Sort(SORT) 0) ++SMTLIB2Script DeclarationsToSMTLIB(Ds)
 
-  rule DeclarationsToSMTLIB((axiom \forall { Vs } \iff-lfp(_, _)) Ds) => DeclarationsToSMTLIB(Ds)
-  rule DeclarationsToSMTLIB((axiom functional(_)) Ds) => DeclarationsToSMTLIB(Ds)
+  rule DeclarationsToSMTLIB((axiom _: \forall { Vs } \iff-lfp(_, _)) Ds) => DeclarationsToSMTLIB(Ds)
+  rule DeclarationsToSMTLIB((axiom _: functional(_)) Ds) => DeclarationsToSMTLIB(Ds)
 
   // TODO: All symbols must be functional!
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]

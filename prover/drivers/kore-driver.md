@@ -47,7 +47,9 @@ Add various standard Kore declarations to the configuration directly:
          ...
        </declarations>
 
-  rule <k> (axiom _ #as DECL:Declaration) => .K ... </k>
+  rule axiom (P:Pattern) => axiom (!N:AxiomName) : P
+
+  rule <k> (axiom _: _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
          ...
