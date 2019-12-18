@@ -18,11 +18,21 @@ module COQ
                    | Underscore
   syntax CoqNames ::= List{CoqName, ""} [klabel(CoqNames)]
 
-// Hardcoded Coq Sorts
+// Sorts
   syntax CoqSort ::= "SProp"
                    | "Prop"
                    | "Set"
                    | "Type"
+
+// Converting between Sorts:
+  syntax Sort ::= CoqTermToSort(CoqTerm) [function]
+  rule CoqTermToSort(SORT:UpperName) => SORT
+  rule CoqTermToSort(SORT:LowerName) => SORT
+
+  syntax Symbol ::= CoqIdentToSymbol(CoqIdent) [function]
+  rule CoqIdentToSymbol(IDENT:UpperName) => IDENT
+  rule CoqIdentToSymbol(IDENT:LowerName) => IDENT
+
 
 // Terms
   syntax CoqTerm ::= "fun" CoqBinders "=>" CoqTerm
@@ -88,7 +98,7 @@ module COQ
   syntax CoqInductive ::= "Inductive" CoqIndBody "."
   syntax CoqIndBody ::= CoqIdent CoqBinders ":" CoqTerm ":=" CoqIndCases
   syntax CoqIndCase ::= CoqIdent CoqBinders ":" CoqTerm
-  syntax CoqIndCases ::= List{CoqIndCase, "|"}
+  syntax CoqIndCases ::= List{CoqIndCase, "|"} [klabel(CoqIndCases)]
 
 ```
 
