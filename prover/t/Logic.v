@@ -1,14 +1,4 @@
-Inductive True : Prop :=
-  I : True .
-
-Inductive False : Prop := .
-
-Inductive and (A B : Prop) : Prop :=
-  conj : forall (x : A), forall (y : B), and A B .
-
-Inductive or (A B : Prop) : Prop :=
-    or_introl : forall (x : A), or A B
-  | or_intror : forall (y : A), or A B .
+Definition not := fun (A: Prop) => (forall (x : A), False) .
 
 Definition not (A : Prop) : Prop := forall (x : A), False .
 
@@ -31,10 +21,23 @@ Inductive ex4 (A : Type) (P : forall (x : A), Prop) : Prop :=
   ex_intro4 : forall (x : A), forall (y : (P x)), @ ex4 A P .
 
 Definition AndComm :=
- fun (A B : Prop) (H : and A B) ==>
+ fun (A B : Prop) (H : and A B) =>
    match H with
-     conj H0 H1 ==> conj H1 H0
+     conj H0 H1 => conj H1 H0
    end .
+
+
+Inductive True : Prop :=
+  I : True .
+
+Inductive False : Prop := .
+
+Inductive and (A B : Prop) : Prop :=
+  conj : forall (x : A), forall (y : B), and A B .
+
+Inductive or (A B : Prop) : Prop :=
+    or_introl : forall (x : A), or A B
+  | or_intror : forall (y : A), or A B .
 
 Inductive eq (A:Type) (x:A) : forall (_:A), Prop :=
     eq_refl : @ eq A x x .

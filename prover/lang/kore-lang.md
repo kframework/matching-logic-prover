@@ -164,6 +164,10 @@ only in this scenario*.
                    | "heap" "(" Sort "," Sort ")" // Location, Data
                    | "\\hole" "(" ")" [klabel(Phole)]
 
+                   // for Coq translation
+                   | "\\lambda" "{" Patterns "}" Pattern        [klabel(lambda)]
+                   | "\\pi"     "{" Patterns "}" Pattern        [klabel(pi)]
+
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
 
@@ -210,6 +214,8 @@ module KORE-HELPERS
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
   syntax UpperName ::= StringToSort(String) [function, functional, hook(STRING.string2token)]
+
+  syntax VariableName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
 
   syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
   rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))

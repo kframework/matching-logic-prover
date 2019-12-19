@@ -30,6 +30,24 @@ module DRIVER-COQ
 
   rule <k> CS:CoqSentence CSs:CoqSentences => CS ~> CSs ... </k>
 
+  rule <k> Definition ID BINDERs : TYPE := TERM .
+        => .K
+           ...
+       </k>
+       <declarations> ( .Bag
+                     => <declaration> symbol CoqIdentToSymbol(ID)(CoqBindersToSorts(BINDERs)) : CoqTermToSort(ID) </declaration>
+                      ) ...
+       </declarations>
+
+  rule <k> Definition ID := TERM .
+        => .K
+           ...
+       </k>
+       <declarations> ( .Bag
+                     => <declaration> axiom \equals(CoqIdentToSymbol(ID), CoqTermToPattern(TERM)) </declaration>
+                      ) ...
+       </declarations>       
+
   rule <k> Inductive ID BINDERs : TERM := .CoqIndCases .
         => .K
            ...
@@ -57,14 +75,20 @@ module DRIVER-COQ
   rule CoqNamesToSorts(.CoqNames) => .Sorts
   rule CoqNamesToSorts(NAME:CoqName NAMEs) => StringToSort("Term"), CoqNamesToSorts(NAMEs)
 
-  rule <k> Definition ID BINDERs : TYPE := TERM .
-        => .K
-           ...
-       </k>
-       <declarations> ( .Bag
-                     => <declaration> symbol CoqIdentToSymbol(ID)(CoqBindersToSorts(BINDERs)) : CoqTermToSort(ID) </declaration>
-                      ) ...
-       </declarations>
+  syntax Pattern ::= CoqTermToPattern(CoqTerm) [function]
+  rule CoqTermToPattern(fun BINDERs => TERM) => \lambda { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
+  rule CoqTermToPattern(forall BINDERs, TERM) => \forall { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
+  rule CoqTermToPattern(_:CoqTerm) => \bottom()
+
+  syntax Patterns ::= CoqBindersToPatterns(CoqBinders) [function]
+  rule CoqBindersToPatterns(.CoqBinders) => .Patterns
+  rule CoqBindersToPatterns(BINDER BINDERs:CoqBinders) =>
+       CoqBinderToPatterns(BINDER) ++Patterns CoqBindersToPatterns(BINDERs)
+
+  syntax Patterns ::= CoqBinderToPatterns(CoqBinder) [function]
+  rule CoqBinderToPatterns(NAME:CoqName) => CoqNameToVariableName(NAME) { StringToSort("Term") }
+  rule CoqBinderToPatterns((.CoqNames : TYPE:CoqTerm)) => .Patterns
+  rule CoqBinderToPatterns(((NAME:CoqName NAMES:CoqNames) : TYPE:CoqTerm)) => CoqNameToVariableName(NAME) { StringToSort("Term") }, CoqBinderToPatterns((NAMES : TYPE))
 ```
 
 ```k
