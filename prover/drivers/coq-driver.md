@@ -50,7 +50,21 @@ module DRIVER-COQ
 
   syntax Sorts ::= CoqBindersToSorts(CoqBinders) [function]
   rule CoqBindersToSorts(.CoqBinders) => .Sorts
-  rule CoqBindersToSorts((_ : SORT) BINDERs) => CoqTermToSort(SORT), CoqBindersToSorts(BINDERs)
+  rule CoqBindersToSorts(NAME:CoqName BINDERs) => StringToSort("Term"), CoqBindersToSorts(BINDERs)
+  rule CoqBindersToSorts((NAMES : TYPE) BINDERs) => CoqNamesToSorts(NAMES) ++Sorts CoqBindersToSorts(BINDERs)
+
+  syntax Sorts ::= CoqNamesToSorts(CoqNames) [function]
+  rule CoqNamesToSorts(.CoqNames) => .Sorts
+  rule CoqNamesToSorts(NAME:CoqName NAMEs) => StringToSort("Term"), CoqNamesToSorts(NAMEs)
+
+  rule <k> Definition ID BINDERs : TYPE := TERM .
+        => .K
+           ...
+       </k>
+       <declarations> ( .Bag
+                     => <declaration> symbol CoqIdentToSymbol(ID)(CoqBindersToSorts(BINDERs)) : CoqTermToSort(ID) </declaration>
+                      ) ...
+       </declarations>
 ```
 
 ```k

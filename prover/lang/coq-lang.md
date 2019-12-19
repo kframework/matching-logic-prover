@@ -8,7 +8,7 @@ module COQ
   imports INT-SYNTAX
   imports BOOL-SYNTAX
   imports STRING
-  imports KORE
+  imports KORE-HELPERS
 
 // Identifiers
   syntax CoqIdent ::= LowerName
@@ -26,8 +26,8 @@ module COQ
 
 // Converting between Sorts:
   syntax Sort ::= CoqTermToSort(CoqTerm) [function]
-  rule CoqTermToSort(SORT:UpperName) => SORT
-  rule CoqTermToSort(SORT:LowerName) => SORT
+  rule CoqTermToSort(SORT:UpperName) => StringToSort("Term")
+  rule CoqTermToSort(SORT:LowerName) => StringToSort("Term")
 
   syntax Symbol ::= CoqIdentToSymbol(CoqIdent) [function]
   rule CoqIdentToSymbol(IDENT:UpperName) => IDENT
