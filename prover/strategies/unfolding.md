@@ -62,6 +62,35 @@ module STRATEGY-UNFOLDING
     => getUnfoldables(P) ++Patterns getUnfoldables(REST)
 ```
 
+### Just Left Unfold Nth
+
+Just unfolds the Nth predicate on the LHS.
+
+```k
+  rule <strategy> just-left-unfold-Nth(M)
+               => just-left-unfold-Nth-#1(M, getUnfoldables(LHS))
+                  ...
+       </strategy>
+       <claim> \implies(\and(LHS), RHS) </claim>
+
+  syntax Strategy ::= "just-left-unfold-Nth-#1"  "(" Int "," Patterns ")"
+                    | "just-left-unfold-Nth-#2"  "(" Pattern "," Pattern ")"
+
+
+  rule <strategy> just-left-unfold-Nth-#1(M, PS)
+               => just-left-unfold-Nth-#2(getMember(M, PS), unfold(getMember(M, PS)))
+                  ...
+       </strategy>
+  requires 0 <=Int M andBool M <Int getLength(PS)
+
+  rule <claim> \implies(LHS => subst(LHS, PATTERN, BODY), RHS) </claim>
+       <strategy> just-left-unfold-Nth-#2(PATTERN, BODY)
+               => noop
+                  ...
+       </strategy>
+
+```
+
 ### Left Unfold (incomplete)
 
 ```k
