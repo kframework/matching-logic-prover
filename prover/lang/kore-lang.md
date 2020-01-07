@@ -250,6 +250,7 @@ module KORE-HELPERS
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
   rule getReturnSort( _ { S } ) => S
+  rule getReturnSort( plus ( ARGS ) ) => Int
   rule getReturnSort( minus ( ARGS ) ) => Int
   rule getReturnSort( select ( ARGS ) ) => Int
   rule getReturnSort( union ( ARGS ) ) => SetInt
@@ -289,6 +290,10 @@ module KORE-HELPERS
     => .Patterns
   rule getGroundTerms(\and(P, Ps), VARs)
     => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\and(Ps), VARs)
+  rule getGroundTerms(\or(.Patterns), VARs)
+    => .Patterns
+  rule getGroundTerms(\or(P, Ps), VARs)
+    => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\or(Ps), VARs)
   rule getGroundTerms(\not(P), VARs)
     => getGroundTerms(P, VARs)
   rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
@@ -487,6 +492,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
   rule alphaRename(\and(Ps)) => \and(alphaRenamePs(Ps))
   rule alphaRename(\or(Ps)) => \or(alphaRenamePs(Ps))
+  rule alphaRename(\implies(L,R)) => \implies(alphaRename(L), alphaRename(R))
   rule alphaRename(S:Symbol(ARGs)) => S(alphaRenamePs(ARGs))
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V
