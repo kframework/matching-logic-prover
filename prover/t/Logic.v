@@ -1,6 +1,15 @@
+Inductive True : Prop :=
+  I : True .
+
+Inductive False : Prop := .
+
+Inductive nat : Prop :=
+    Z : nat
+  | S : nat -> nat .
+
 Definition not := fun (A: Prop) => (forall (x : A), False) .
 
-Definition not (A : Prop) : Prop := forall (x : A), False .
+// Definition not (A : Prop) : Prop := forall (x : A), False .
 
 Definition iff (A B : Prop) : Prop :=
   (and (forall (x : A), B)) (forall (y : B), A) .
@@ -25,12 +34,6 @@ Definition AndComm :=
    match H with
      conj H0 H1 => conj H1 H0
    end .
-
-
-Inductive True : Prop :=
-  I : True .
-
-Inductive False : Prop := .
 
 Inductive and (A B : Prop) : Prop :=
   conj : forall (x : A), forall (y : B), and A B .

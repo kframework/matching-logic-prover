@@ -36,6 +36,9 @@ module COQ
   rule CoqIdentToSymbol(IDENT:UpperName) => IDENT
   rule CoqIdentToSymbol(IDENT:LowerName) => IDENT
 
+  syntax Symbol ::= CoqQualIDToSymbol(CoqQualID) [function]
+  rule CoqQualIDToSymbol(ID:CoqIdent) => CoqIdentToSymbol(ID)
+
   syntax VariableName ::= CoqNameToVariableName(CoqName) [function]
   rule CoqNameToVariableName(NAME) => StringToVariableName(CoqNameToString(NAME))
 
@@ -59,9 +62,9 @@ module COQ
                      | "(" CoqNames ":" CoqTerm ")"
   syntax CoqBinders ::= List{CoqBinder, ""} [klabel(CoqBinders)]
 
-  syntax CoqArg ::= CoqTerm
+  syntax CoqArg ::= CoqArg CoqArg
                   | "(" CoqIdent ":=" CoqTerm ")"
-                  | CoqArg CoqArg
+                  > CoqTerm
   syntax CoqTerms ::= List{CoqTerm, ""} [klabel(CoqTerms)]
 
   syntax CoqFixBody ::= CoqIdent CoqBinders ":=" CoqTerm

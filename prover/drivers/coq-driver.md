@@ -76,9 +76,49 @@ module DRIVER-COQ
   rule CoqNamesToSorts(NAME:CoqName NAMEs) => StringToSort("Term"), CoqNamesToSorts(NAMEs)
 
   syntax Pattern ::= CoqTermToPattern(CoqTerm) [function]
+  rule CoqTermToPattern(H:UpperName) => CoqIdentToSymbol(H)
   rule CoqTermToPattern(fun BINDERs => TERM) => \lambda { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(forall BINDERs, TERM) => \forall { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
-  rule CoqTermToPattern(_:CoqTerm) => \bottom()
+  rule CoqTermToPattern(match Ts with .CoqEquations end) => \bottom()
+  rule CoqTermToPattern(match Ts with (MP:CoqMultPattern => TM:CoqTerm) | EQs end) =>
+       \or( #flattenOrs(
+         \or( \exists { .Patterns }
+                \and( #equals(CoqMatchItemsToPatterns(Ts), CoqMultPatternToPatterns(MP))
+                    ++Patterns
+                    CoqTermToPattern(TM)
+                    )
+            ++Patterns
+            CoqTermToPattern(match Ts with EQs end)
+            ), .Patterns))
+  // TODO: if TM is not a QualID, still need to translate. ex: (fun x => x) 3
+  rule CoqTermToPattern(TM:CoqQualID ARG) => CoqIdentToSymbol(TM)(CoqArgToPatterns(ARG))
+
+  syntax Patterns ::= CoqArgToPatterns(CoqArg) [function]
+  rule CoqArgToPatterns(ARG1 ARG2) => CoqArgToPatterns(ARG1) ++Patterns CoqArgToPatterns(ARG2)
+  rule CoqArgToPatterns(TM:CoqTerm) => CoqTermToPattern(TM), .Patterns
+   [owise]
+
+  syntax Patterns ::= CoqMatchItemsToPatterns(CoqMatchItems) [function]
+  syntax Pattern ::= CoqMatchItemToPattern(CoqMatchItem) [function]
+  rule CoqMatchItemsToPatterns(.CoqMatchItems) => .Patterns
+  rule CoqMatchItemsToPatterns(MI:CoqMatchItem, MIs) => CoqMatchItemToPattern(MI), .Patterns
+
+  rule CoqMatchItemToPattern(MI:CoqTerm) => CoqTermToPattern(MI)
+
+  syntax Patterns ::= #equals(Patterns, Patterns) [function]
+  rule #equals(.Patterns, .Patterns) => .Patterns
+  rule #equals((P1, Ps1), (P2, Ps2)) => \equals(P1, P2), #equals(Ps1, Ps2)
+
+  syntax Pattern ::= CoqPatternToPattern(CoqPattern) [function]
+  syntax Patterns ::= CoqPatternToPatterns(CoqPattern) [function]
+  syntax Patterns ::= CoqMultPatternToPatterns(CoqMultPattern) [function]
+  rule CoqMultPatternToPatterns(.CoqMultPattern) => .Patterns
+  rule CoqMultPatternToPatterns(MP, MPs) => CoqPatternToPattern(MP), CoqMultPatternToPatterns(MPs)
+
+  rule CoqPatternToPattern(ID:CoqQualID) => CoqIdentToSymbol(ID)
+  rule CoqPatternToPattern(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID)(CoqPatternToPatterns(P))
+  rule CoqPatternToPatterns(ID:CoqQualID) => CoqIdentToSymbol(ID), .Patterns
+  rule CoqPatternToPatterns(P1:CoqPattern P2:CoqPattern) => CoqPatternToPatterns(P1) ++Patterns CoqPatternToPatterns(P2)
 
   syntax Patterns ::= CoqBindersToPatterns(CoqBinders) [function]
   rule CoqBindersToPatterns(.CoqBinders) => .Patterns
