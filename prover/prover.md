@@ -32,6 +32,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "check-lhs-constraint-unsat"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "just-left-unfold-Nth" "(" Int ")"
+                    | "just-right-unfold-Nth" "(" Int ")"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")" | "right-unfold" "(" Symbol ")"
                     | "right-unfold-all"  "(" "bound" ":" Int ")"
