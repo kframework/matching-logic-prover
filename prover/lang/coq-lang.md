@@ -86,7 +86,7 @@ module COQ
 
   syntax CoqPattern ::= CoqQualID CoqPattern
                       | "@" CoqQualID CoqPattern
-                      | CoqPattern CoqPattern
+                      // | CoqPattern CoqPattern
                       | CoqPattern "as" CoqIdent
                       | CoqPattern "%" CoqIdent
                       | CoqQualID
@@ -94,7 +94,7 @@ module COQ
                       | Int
 
   syntax CoqMultPattern ::= List{CoqPattern, ","} [klabel(CoqMultPattern)]
-  syntax CoqPatterns ::= List{CoqPattern, ""} [klabel(CoqPatterns)]
+  syntax CoqPatterns ::= NeList{CoqPattern, ""} [klabel(CoqPatterns)]
 
 // Vernacular
   syntax CoqSentence ::= CoqDefinition

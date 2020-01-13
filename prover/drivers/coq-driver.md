@@ -83,7 +83,7 @@ module DRIVER-COQ
   rule CoqTermToPattern(match Ts with .CoqEquations end) => \bottom()
   rule CoqTermToPattern(match Ts with (MP:CoqMultPattern => TM:CoqTerm) | EQs end) =>
        \or( #flattenOrs(
-         \or( \exists { .Patterns }
+         \or( \exists { CoqMultPatternToBinders(MP) }
                 \and( #equals(CoqMatchItemsToPatterns(Ts), CoqMultPatternToPatterns(MP))
                     ++Patterns
                     CoqTermToPattern(TM)
@@ -121,7 +121,15 @@ module DRIVER-COQ
   rule CoqPatternToPattern(ID:CoqQualID) => CoqIdentToSymbol(ID)
   rule CoqPatternToPattern(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID)(CoqPatternToPatterns(P))
   rule CoqPatternToPatterns(ID:CoqQualID) => CoqIdentToSymbol(ID), .Patterns
-  rule CoqPatternToPatterns(P1:CoqPattern P2:CoqPattern) => CoqPatternToPatterns(P1) ++Patterns CoqPatternToPatterns(P2)
+  rule CoqPatternToPatterns(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID) ++Patterns CoqPatternToPatterns(P)
+
+  // Get binders from MultPattern
+  syntax Patterns ::= CoqMultPatternToBinders(CoqMultPattern) [function]
+  syntax Patterns ::= CoqPatternToBinders(CoqMultPattern) [function]
+  rule CoqMultPatternToBinders(ID:CoqQualID) => .Patterns
+  rule CoqMultPatternToBinders(ID:CoqQualID P:CoqPattern) => CoqPatternToBinders(P)
+  rule CoqPatternToBinders(ID:CoqQualID) => CoqIdentToSymbol(ID), .Patterns
+  rule CoqPatternToBinders(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID), CoqPatternToBinders(P)
 
   syntax Patterns ::= CoqBindersToPatterns(CoqBinders) [function]
   rule CoqBindersToPatterns(.CoqBinders) => .Patterns
