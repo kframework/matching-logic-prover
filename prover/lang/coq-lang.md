@@ -68,6 +68,7 @@ module COQ
   syntax CoqTerms ::= List{CoqTerm, ""} [klabel(CoqTerms)]
 
   syntax CoqFixBody ::= CoqIdent CoqBinders ":=" CoqTerm
+                      | CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm
   syntax CoqFixBodyList ::= List{CoqFixBody, "with"}
   syntax CoqFixBodies ::= CoqFixBody
                         | CoqFixBody CoqFixBodyList "for" CoqIdent

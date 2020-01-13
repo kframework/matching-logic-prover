@@ -76,7 +76,8 @@ module DRIVER-COQ
   rule CoqNamesToSorts(NAME:CoqName NAMEs) => StringToSort("Term"), CoqNamesToSorts(NAMEs)
 
   syntax Pattern ::= CoqTermToPattern(CoqTerm) [function]
-  rule CoqTermToPattern(H:UpperName) => CoqIdentToSymbol(H)
+  rule CoqTermToPattern(UN:UpperName) => CoqIdentToSymbol(UN)
+  rule CoqTermToPattern(LN:LowerName) => CoqIdentToSymbol(LN)
   rule CoqTermToPattern(fun BINDERs => TERM) => \lambda { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(forall BINDERs, TERM) => \forall { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(match Ts with .CoqEquations end) => \bottom()
@@ -92,6 +93,8 @@ module DRIVER-COQ
             ), .Patterns))
   // TODO: if TM is not a QualID, still need to translate. ex: (fun x => x) 3
   rule CoqTermToPattern(TM:CoqQualID ARG) => CoqIdentToSymbol(TM)(CoqArgToPatterns(ARG))
+
+  rule CoqTermToPattern(fix ID BINDERs := TM) => \mu { CoqNameToVariableName(ID) {{ StringToSort("Term") }} } CoqTermToPattern(fun BINDERs => TM)
 
   syntax Patterns ::= CoqArgToPatterns(CoqArg) [function]
   rule CoqArgToPatterns(ARG1 ARG2) => CoqArgToPatterns(ARG1) ++Patterns CoqArgToPatterns(ARG2)

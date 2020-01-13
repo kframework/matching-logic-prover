@@ -137,9 +137,11 @@ is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
 
 ```k
-  syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
+  syntax Variable    ::= VariableName  "{" Sort "}"  [klabel(sortedVariable)]
+  syntax SetVariable ::= VariableName "{{" Sort "}}" [klabel(sortedSetVariable)]
   syntax Pattern ::= Int
                    | Variable
+                   | SetVariable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
 
@@ -154,6 +156,9 @@ only in this scenario*.
 
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
+
+                   | "\\mu" "{" Patterns "}" Pattern            [klabel(mu)]
+                   | "\\nu" "{" Patterns "}" Pattern            [klabel(nu)]
 
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
