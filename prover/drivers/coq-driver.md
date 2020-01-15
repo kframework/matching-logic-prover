@@ -29,7 +29,6 @@ module DRIVER-COQ
   imports STRATEGIES-EXPORTED-SYNTAX
 
   rule <k> CS:CoqSentence CSs:CoqSentences => CS ~> CSs ... </k>
-
   rule <k> Definition ID BINDERs : TYPE := TERM .
         => .K
            ...
@@ -53,7 +52,7 @@ module DRIVER-COQ
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> sort CoqTermToSort(ID) </declaration>
+                     => <declaration> symbol CoqIdentToSymbol(ID)(CoqBindersToSorts(BINDERs)) : CoqTermToSort(ID) </declaration>
                       ) ...
        </declarations>
 
@@ -63,6 +62,7 @@ module DRIVER-COQ
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol CoqIdentToSymbol(IDC)(CoqBindersToSorts(BINDERCs)) : CoqTermToSort(ID) </declaration>
+                        <declaration> axiom \type(CoqIdentToSymbol(IDC)(.Patterns), CoqTermToPattern(TERMC))  </declaration>
                       ) ...
        </declarations>
 

@@ -1,3 +1,11 @@
+Inductive nat : Type :=  Z : nat | S : forall (x : nat), nat .
+
+// symbol nat() : Term
+// symbol Z() : Term
+// symbol S() : Term
+
+// axiom \type(Z(), nat())
+
 Definition nat_ind := 
 fun (P : nat -> Prop) (f : P 0) (f0 : forall (n : nat), P n -> P (S n)) =>
 fix F (n : nat) := match n with

@@ -172,6 +172,7 @@ only in this scenario*.
                    // for Coq translation
                    | "\\lambda" "{" Patterns "}" Pattern        [klabel(lambda)]
                    | "\\pi"     "{" Patterns "}" Pattern        [klabel(pi)]
+                   | "\\type" "(" Pattern "," Pattern ")"       [klabel(type)]
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
