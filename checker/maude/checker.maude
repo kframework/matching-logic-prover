@@ -297,7 +297,7 @@ eq check-id-aux(Pi, N) = false [owise] .
 
 ---- Put a marker that separates the part that is checked from the rest. 
 
-op _check-step-marker_ : Proof Proof -> Bool [format(g bn nr o)] .
+op _check-step-marker_ : Proof Proof ~> Bool [format(g bn nr o)] .
 eq check-step(Pi) = .Proof check-step-marker Pi .
 eq Pi check-step-marker .Proof = true .
 
