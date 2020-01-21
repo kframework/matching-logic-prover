@@ -356,7 +356,7 @@ eq  Pi |- (N) (\ex (M1) (M2)) (WF) ;
  =  M1 < N and M2 < N and (M1) is-evar-in Pi .
 ceq Pi |- (N) (\mu (M1) (M2)) (WFMu (INNO)) ;
   = M1 < N and M2 < N and (M1) is-svar-in Pi
-if (#nno (M1) (M2)) := Pi[INNO] .
+if (#nno (M2) (M1)) := Pi[INNO] .
 eq  Pi |- (N) G:Claim (WF) ;
  = false [owise] .
 
