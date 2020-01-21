@@ -243,4 +243,13 @@ reduce checkPass(
 
 ).
 
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\svar) (WF) ; "X"
+(2) (#nno (0) (1)) (NNOBasic) ; "X not in FV(_|_)"
+(3) (\mu (1) (0)) (WFMu (2)) ; "mu X . _|_"
+
+).
+
 quit
