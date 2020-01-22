@@ -252,4 +252,16 @@ reduce checkPass(
 
 ).
 
+reduce checkPass(
+
+(0) (\bot) (WF) ;
+(1) (\evar) (WF) ;
+(2) (\svar) (WF) ;
+(3) (#nno (0) (2)) (NNOBasic) ;
+(4) (\mu (2) (0)) (WFMu (3)) ;
+(5) (#nf (1) (0)) (NFBasic) ;
+(6) (#nf (1) (4)) (NFMuBody (5)) ;
+
+).
+
 quit
