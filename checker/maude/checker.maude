@@ -316,6 +316,7 @@ op _|-_ : Proof Proof -> Bool [prec 46] .
 ---- Check if a digest/id is a wellformed pattern.
 op _is-wf-in_ : Id Proof -> Bool [prec 50] .
 eq (N) is-wf-in Pi1 ((N) D:Claim (WF) ;) Pi2 = true .
+eq (N) is-wf-in Pi1 ((N) D:Claim (WFMu (INNO)) ;) Pi2 = true .
 eq (N) is-wf-in Pi = false [owise] .
 
 ---- Check if a pattern is proved to be provable (not just wellformed).
