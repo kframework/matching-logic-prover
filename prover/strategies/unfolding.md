@@ -27,13 +27,14 @@ module STRATEGY-UNFOLDING
   syntax Patterns ::= getUnfoldables(Patterns)   [function]
   rule getUnfoldables(.Patterns) => .Patterns
   rule getUnfoldables(R(ARGS), REST)
-    => R(ARGS), getUnfoldables(REST)
+    => R(ARGS), (getUnfoldables(ARGS)
+       ++Patterns getUnfoldables(REST))
     requires isUnfoldable(R)
   rule getUnfoldables(S:Symbol, REST)
     => getUnfoldables(REST)
     requires notBool isUnfoldable(S)
   rule getUnfoldables(S:Symbol(ARGS), REST)
-    => getUnfoldables(REST)
+    => getUnfoldables(ARGS) ++Patterns getUnfoldables(REST)
     requires notBool isUnfoldable(S)
     andBool S =/=K sep
   rule getUnfoldables(I:Int, REST)
