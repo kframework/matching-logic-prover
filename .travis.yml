@@ -8,6 +8,7 @@ addons:
       - aspcud
       - clang-8
       - curl
+      - cvc4
       - flex
       - gcc
       - libboost-all-dev
