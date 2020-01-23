@@ -19,6 +19,7 @@ addons:
       - make
       - maven
       - ninja-build
+      - ocaml
       - opam
       - openjdk-8-jdk
       - pandoc
