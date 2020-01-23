@@ -56,7 +56,9 @@ Add various standard Kore declarations to the configuration directly:
        </declarations>
 ```
 
-The `claim` Declaration creates a new `<goal>` cell:
+The `claim` Declaration creates a new `<goal>` cell.
+We create a subgoal, so that all the reasoning happens
+in the subgoal and the claim of the named goal remains intact.
 
 ```k
   rule <k> claim PATTERN strategy STRAT
@@ -76,7 +78,7 @@ The `claim` Declaration creates a new `<goal>` cell:
              <active> true:Bool </active>
              <parent> .K </parent>
              <claim> PATTERN </claim>
-             <strategy> STRAT </strategy>
+             <strategy> subgoal(PATTERN, STRAT) </strategy>
              <expected> success </expected>
              <trace> .K </trace>
            </goal>
