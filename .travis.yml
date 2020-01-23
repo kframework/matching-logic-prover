@@ -34,7 +34,5 @@ git:
     depth: 3
 jobs:
     include:
-        - stage: compile
-          script: "cd prover && ./build prover-smt"
-        - stage: test
+        - stage: build and test
           script: "cd prover && ./build"
