@@ -32,7 +32,7 @@ git:
     depth: 3
 jobs:
     include:
-        - stage: ocaml
-          script: "./prover/ext/k/k-distribution/src/main/scripts/bin/k-configure-opam-dev"
+#        - stage: ocaml
+#          script: "./prover/ext/k/k-distribution/src/main/scripts/bin/k-configure-opam-dev"
         - stage: compile
           script: "cd prover && ./build prover-smt"
