@@ -8,13 +8,13 @@ from kninja.runner import *
 proj = KProject(extdir = extdir)
 KDefinition( proj
            , alias = 'prover-kore'
-           , backend = 'llvm'
+           , backend = 'ocaml'
            , directory = proj.builddir('defn/prover-kore')
            , krun_flags = '--interpret'
            )
 KDefinition( proj
            , alias = 'prover-smt'
-           , backend = 'llvm'
+           , backend = 'ocaml'
            , directory = proj.builddir('defn/prover-smt')
            , krun_flags = '--interpret'
            )
