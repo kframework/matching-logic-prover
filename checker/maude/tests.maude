@@ -15,9 +15,9 @@ eq checkFail(Pi) = check-result-to-testfail-result(check(Pi)) .
 op check-result-to-testpass-result : Bool -> TestResult .
 op check-result-to-testfail-result : Bool -> TestResult .
 eq check-result-to-testpass-result(true) = pass! .
-eq check-result-to-testpass-result(false) = pass! .
-eq check-result-to-testfail-result(true) = pass! .
-eq check-result-to-testfail-result(false) = pass! .
+eq check-result-to-testpass-result(B:[Bool]) = fail! [owise] .
+eq check-result-to-testfail-result(true) = fail! .
+eq check-result-to-testfail-result(B:[Bool]) = pass! [owise] .
 
 endfm
 
@@ -65,7 +65,7 @@ reduce checkPass(
 (3) (\imp (1) (1)) (WF) ;
 (4) (#nf (2) (1)) (NFBasic) ;
 (5) (#nf (2) (3)) (NFImp (4) (4)) ;
-(5) (#nf (2) (3)) (NFImp (4) (4)) ;
+(6) (#nf (2) (3)) (NFImp (4) (4)) ;
 
 ).
 
@@ -261,6 +261,15 @@ reduce checkPass(
 (4) (\mu (2) (0)) (WFMu (3)) ;
 (5) (#nf (1) (0)) (NFBasic) ;
 (6) (#nf (1) (4)) (NFMuBody (5)) ;
+
+).
+
+red checkFail(
+
+(0) (\bot)  (WF) ;
+(1) (\evar) (WF) ; "x"
+(2) (\evar) (WF) ; "y"
+(3) (#subst (0) (1) (0) (2)) (SubstVariable) ; "_|_ == x[_|_ / y]"
 
 ).
 
