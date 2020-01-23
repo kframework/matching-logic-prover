@@ -5,6 +5,7 @@ addons:
     update: true
     packages:
       - autoconf
+      - aspcud
       - clang-8
       - curl
       - flex
