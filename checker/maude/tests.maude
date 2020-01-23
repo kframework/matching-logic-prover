@@ -264,4 +264,21 @@ reduce checkPass(
 
 ).
 
+reduce checkPass(
+
+(0)  (\bot) (WF) ;
+(1)  (\svar) (WF) ; "X"
+(2)  (#nno (0) (1)) (NNOBasic) ;
+(3)  (\mu (1) (0)) (WFMu (2)) ; "mu X . _|_"
+(4)  (\evar) (WF) ; "y"
+(5)  (#nno (4) (1)) (NNOBasic) ;
+(6)  (\mu (1) (4)) (WFMu (5)) ; "mu X . y"
+(7)  (#nf (1) (0)) (NFBasic) ; "X not in FV(_|_)"
+(8)  (#subst (4) (4) (1) (1)) (SubstVariable) ; "y == y[X / X] "
+(9)  (#subst (0) (4) (0) (4)) (SubstVariable) ; "_|_ == y[_|_ / y] "
+(10) (#subst (3) (6) (0) (4)) (SubstMuBody (1) (7) (8) (9)) ;
+  "mu X . _|_ == (mu X . y)[_|_ / y] "
+
+).
+
 quit
