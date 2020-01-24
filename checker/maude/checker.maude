@@ -729,7 +729,7 @@ ceq Pi |- (N) (M) (PropagationOrL) ;
 ---- desugar to primitive form
 ---- R ((P -> \bot) -> Q)
 ----   -> ((RP -> \bot) -> RQ)
-ceq Pi |- (N) (M) (PropagationOrL) ;
+ceq Pi |- (N) (M) (PropagationOrR) ;
   = true
  if (\imp (IdLHS) (IdRHS)) := Pi[M]
  /\ (\app (IdR) (IdLHS1)) := Pi[IdLHS]    ---- IdLHS1: (P -> \bot) -> Q
