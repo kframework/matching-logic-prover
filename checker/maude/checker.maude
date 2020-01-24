@@ -751,7 +751,7 @@ ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
  /\ (#nf (IdX) (IQ)) := Pi[IdNF] .
 
 ---- (PropagationExR)  Q (\ex X . P) -> \ex X . (Q P) requires (#nf X Q)
-ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
+ceq Pi |- (N) (M) (PropagationExR (IdNF)) ;
   = true 
  if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: Q (\ex X . P), IdRHS: \ex X . (Q P)
  /\ (\app (IQ) (IdLHS1)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
