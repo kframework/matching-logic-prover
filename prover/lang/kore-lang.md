@@ -244,6 +244,11 @@ module KORE-HELPERS
   rule removeFirst(P1, (P2, Ps)) => P2, removeFirst(P1, Ps)
     requires P1 =/=K P2
   rule removeFirst(_, .Patterns) => .Patterns
+
+  syntax Set ::= PatternsToSet(Patterns) [function]
+  rule PatternsToSet(.Patterns) => .Set
+  rule PatternsToSet(P, Ps) => SetItem(P) PatternsToSet(Ps)
+
 ```
 
 ```k

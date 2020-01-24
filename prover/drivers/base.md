@@ -69,6 +69,7 @@ module DRIVER-BASE
   imports STRATEGY-MATCHING
   imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
+  imports SYNTACTIC-MATCH-RULES
 
   rule <k> .CommandLine => .K ... </k>
 endmodule

@@ -1,12 +1,20 @@
 ```k
-module MATCHING-FUNCTIONAL
+module MATCHING-COMMON
   imports MAP
   imports KORE-HELPERS
+  syntax MatchFailure
+  syntax MatchResult ::= MatchFailure
 
   syntax MatchResult ::= "#matchResult" "(" "subst:" Map "," "rest:" Patterns ")" [format(%1%2%i%n%3%i%n%4%d%n%5%i%6%n%7%d%d%8)]
                        | MatchFailure
                        | "#matchResult" "(" "subst:" Map ")"
   syntax MatchFailure ::= "#matchFailure" "(" String ")"
+
+endmodule
+
+module MATCHING-FUNCTIONAL
+  imports MATCHING-COMMON
+
   syntax MatchResults ::= List{MatchResult, ","} [klabel(MatchResults), format(%1%n%2 %3)]
 
   syntax MatchResults ::= "#match" "(" "terms:"     Patterns

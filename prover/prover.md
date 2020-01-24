@@ -10,6 +10,7 @@ requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/unfolding.k"
+requires "utils/syntactic-match.k"
 ```
 
 Strategies for the Horn Clause fragment
