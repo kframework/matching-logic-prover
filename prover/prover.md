@@ -11,6 +11,7 @@ requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/unfolding.k"
 requires "utils/syntactic-match.k"
+requires "utils/visitor.k"
 ```
 
 Strategies for the Horn Clause fragment

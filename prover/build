@@ -31,6 +31,7 @@ other_md_files = [ 'lang/smt-lang.md'
                  , 'strategies/smt.md'
                  , 'strategies/unfolding.md'
                  , 'utils/syntactic-match.md'
+                 , 'utils/visitor.md'
                  ]
 
 def prover(alias, flags = None):
