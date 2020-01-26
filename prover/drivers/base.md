@@ -72,6 +72,7 @@ module DRIVER-BASE
   imports SYNTACTIC-MATCH-RULES
   imports VISITOR
   imports PATTERN-LENGTH
+  imports HEATCOOL-RULES
 
   rule <k> .CommandLine => .K ... </k>
 endmodule

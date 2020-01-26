@@ -160,6 +160,7 @@ only in this scenario*.
                    | "functional" "(" Symbol ")"
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
+                   | "\\hole" "(" ")" [klabel(Phole)]
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]

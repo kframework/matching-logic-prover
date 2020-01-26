@@ -10,6 +10,7 @@ requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/unfolding.k"
+requires "utils/heatcool.k"
 requires "utils/syntactic-match.k"
 requires "utils/visitor.k"
 ```
