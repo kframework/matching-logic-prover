@@ -35,4 +35,4 @@ git:
 jobs:
     include:
         - stage: build and test
-          script: "cd prover && ./build"
+          script: "cd prover && ./build smoke-tests"
