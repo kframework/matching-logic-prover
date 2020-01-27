@@ -23,8 +23,8 @@ Inductive ex1 (A : Type) (P : forall (x : A), Prop) : Prop :=
 Inductive ex2 (A : Type) (P : forall (x : A), Prop) : Prop :=
   ex_intro2 : forall (x : A), forall (y : (P x)), ex2 P .
 
-Inductive ex3 (A : Type) (P : forall (x : A), Prop) : Prop :=
-  ex_intro3 : forall (x : A), forall (y : (P x)), ex3 (A:=A) P .
+// Inductive ex3 (A : Type) (P : forall (x : A), Prop) : Prop :=
+//   ex_intro3 : forall (x : A), forall (y : (P x)), ex3 (A:=A) P .
 
 Inductive ex4 (A : Type) (P : forall (x : A), Prop) : Prop :=
   ex_intro4 : forall (x : A), forall (y : (P x)), @ ex4 A P .
@@ -42,5 +42,5 @@ Inductive or (A B : Prop) : Prop :=
     or_introl : forall (x : A), or A B
   | or_intror : forall (y : A), or A B .
 
-Inductive eq (A:Type) (x:A) : forall (_:A), Prop :=
-    eq_refl : @ eq A x x .
+// Inductive eq (A:Type) (x:A) : forall (_:A), Prop :=
+//     eq_refl : @ eq A x x .

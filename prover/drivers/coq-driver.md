@@ -29,6 +29,11 @@ module DRIVER-COQ
   imports STRATEGIES-EXPORTED-SYNTAX
 
   rule <k> CS:CoqSentence CSs:CoqSentences => CS ~> CSs ... </k>
+       <declarations> ( .Bag
+                     => <declaration> sort StringToSort("Term") </declaration>
+                      ) ...
+       </declarations>
+
   rule <k> Definition ID BINDERs : TYPE := TERM .
         => .K
            ...
