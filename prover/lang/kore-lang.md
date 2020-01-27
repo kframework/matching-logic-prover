@@ -143,7 +143,7 @@ only in this scenario*.
                    | Variable
                    | SetVariable
                    | Symbol
-                   | Symbol "(" Patterns ")"                    [klabel(apply)]
+                   | Pattern "(" Patterns ")"                   [klabel(apply)]
 
                    | "\\top"    "(" ")"                         [klabel(top)]
                    | "\\bottom" "(" ")"                         [klabel(bottom)]

@@ -96,10 +96,9 @@ module DRIVER-COQ
             ++Patterns
             CoqTermToPattern(match Ts with EQs end)
             ), .Patterns))
-  // TODO: if TM is not a QualID, still need to translate. ex: (fun x => x) 3
-  rule CoqTermToPattern(TM:CoqQualID ARG) => CoqIdentToSymbol(TM)(CoqArgToPatterns(ARG))
-
+  rule CoqTermToPattern(TM:CoqTerm ARG) => CoqTermToPattern(TM)(CoqArgToPatterns(ARG))
   rule CoqTermToPattern(fix ID BINDERs := TM) => \mu { CoqNameToVariableName(ID) {{ StringToSort("Term") }} } CoqTermToPattern(fun BINDERs => TM)
+  rule CoqTermToPattern(@ QID:CoqQualID TM:CoqTerm) => CoqIdentToSymbol(QID)(CoqTermToPattern(TM))
 
   syntax Patterns ::= CoqArgToPatterns(CoqArg) [function]
   rule CoqArgToPatterns(ARG1 ARG2) => CoqArgToPatterns(ARG1) ++Patterns CoqArgToPatterns(ARG2)
