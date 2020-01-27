@@ -332,6 +332,7 @@ module DRIVER-SMT
              <claim> \implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps)))) </claim>
              <strategy> STRAT </strategy>
              <expected> EXPECTED </expected>
+             <claim-name> .K </claim-name>
              <trace> .K </trace>
            </goal>
          )

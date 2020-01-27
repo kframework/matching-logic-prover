@@ -59,7 +59,12 @@ Add various standard Kore declarations to the configuration directly:
 The `claim` Declaration creates a new `<goal>` cell:
 
 ```k
-  rule <k> claim PATTERN
+  rule <k> claim PATTERN strategy STRAT
+        => claim !N:ClaimName : PATTERN strategy STRAT
+           ...
+       </k>
+
+  rule <k> claim NAME : PATTERN
            strategy STRAT
         => .K
            ...
@@ -70,6 +75,7 @@ The `claim` Declaration creates a new `<goal>` cell:
              <id> root </id>
              <active> true:Bool </active>
              <parent> .K </parent>
+             <claim-name> NAME </claim-name>
              <claim> PATTERN </claim>
              <strategy> STRAT </strategy>
              <expected> success </expected>

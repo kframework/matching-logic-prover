@@ -170,6 +170,7 @@ only in this scenario*.
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
   syntax AxiomName ::= LowerName | UpperName
+  syntax ClaimName ::= LowerName | UpperName
 
   syntax Declaration ::= "imports" String
                        | "axiom" Pattern
@@ -691,6 +692,12 @@ Simplifications
                      | freshAxiomName(Int)       [freshGenerator, function, functional]
 
   rule freshAxiomName(I:Int) => StringToAxiomName("ax" +String Int2String(I))
+
+  syntax ClaimName ::= StringToClaimName(String) [function, functional, hook(STRING.string2token)]
+                     | freshClaimName(Int)       [freshGenerator, function, functional]
+
+  rule freshClaimName(I:Int) => StringToClaimName("cl" +String Int2String(I))
+
 ```
 
 ```k
