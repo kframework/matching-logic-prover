@@ -11,7 +11,6 @@ requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/reflexivity.k"
->>>>>>> 492a1ba... rename rewrite to apply-equation
 requires "strategies/unfolding.k"
 requires "utils/heatcool.k"
 requires "utils/syntactic-match.k"
@@ -29,6 +28,7 @@ module STRATEGIES-EXPORTED-SYNTAX
 
   syntax Strategy ::= "search-fol" "(" "bound" ":" Int ")"
                     | "search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
+                    | "reflexivity"
                     | "alternate-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "kt-unfold-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "remove-lhs-existential" | "normalize" | "lift-or" | "purify" | "abstract"
