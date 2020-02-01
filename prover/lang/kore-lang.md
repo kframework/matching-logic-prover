@@ -169,8 +169,12 @@ only in this scenario*.
 
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
+  syntax AxiomName ::= LowerName | UpperName
+  syntax ClaimName ::= LowerName | UpperName
+
   syntax Declaration ::= "imports" String
                        | "axiom" Pattern
+                       | "axiom" AxiomName ":" Pattern
                        | SymbolDeclaration
                        | SortDeclaration
   syntax Declarations ::= Declaration Declarations
@@ -262,7 +266,7 @@ module KORE-HELPERS
 
   syntax Bool ::= isUnfoldable(Symbol) [function]
   rule [[ isUnfoldable(S:Symbol) => true ]]
-       <declaration> axiom \forall {_} \iff-lfp(S(_), _) </declaration>
+       <declaration> axiom _ : \forall {_} \iff-lfp(S(_), _) </declaration>
   rule isUnfoldable(S:Symbol) => false [owise]
 
   syntax Patterns ::= getGroundTerms(Pattern) [function]
@@ -682,6 +686,18 @@ Simplifications
   rule hasImplicationContextPs(.Patterns) => false
   rule hasImplicationContextPs(P, Ps)
     => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
+
+
+  syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]
+                     | freshAxiomName(Int)       [freshGenerator, function, functional]
+
+  rule freshAxiomName(I:Int) => StringToAxiomName("ax" +String Int2String(I))
+
+  syntax ClaimName ::= StringToClaimName(String) [function, functional, hook(STRING.string2token)]
+                     | freshClaimName(Int)       [freshGenerator, function, functional]
+
+  rule freshClaimName(I:Int) => StringToClaimName("cl" +String Int2String(I))
+
 ```
 
 ```k

@@ -139,8 +139,8 @@ module DRIVER-SMT
        <declarations> ( .Bag
                      => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
                         <declaration> symbol parameterizedSymbol(nil, SMTLIB2SortToSort(LOC)) ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
-                        <declaration> axiom  heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
-                        <declaration> axiom  functional(parameterizedSymbol(nil, SMTLIB2SortToSort(LOC))) </declaration>
+                        <declaration> axiom !N:AxiomName : heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
+                        <declaration> axiom !N:AxiomName : functional(parameterizedSymbol(nil, SMTLIB2SortToSort(LOC))) </declaration>
                       ) ...
        </declarations>
 
@@ -158,7 +158,7 @@ module DRIVER-SMT
        <declarations> ( .Bag
                      => <declaration> sort SMTLIB2SortToSort(SORT1) </declaration>
                         <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SortToSort(SORT1) </declaration>
-                        <declaration> axiom functional(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
+                        <declaration> axiom !N:AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
                       ) ...
        </declarations>
 
@@ -176,12 +176,12 @@ module DRIVER-SMT
                      => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGs))
                                              : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SortToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
                         </declaration>
-                        <declaration> axiom \forall { SMTLIB2SortedVarListToPatterns(ARGs) }
+                        <declaration> axiom !N:AxiomName : \forall { SMTLIB2SortedVarListToPatterns(ARGs) }
                                          \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
                                                  , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)))
                                                  )
                         </declaration>
-                        <declaration> axiom functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
+                        <declaration> axiom !N:AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
                       ) ...
        </declarations>
 
@@ -259,7 +259,7 @@ module DRIVER-SMT
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> axiom \forall { ARGs }
+                     => <declaration> axiom !N:AxiomName : \forall { ARGs }
                                          \iff-lfp( ID(ARGs)
                                                  , #normalizeDefinition(#normalizeDefinition(BODY))
                                                  )
@@ -326,7 +326,7 @@ module DRIVER-SMT
        <goals>
          ( .Bag =>
            <goal>
-             <id> root </id>
+             <id> !N:ClaimName </id>
              <active> true:Bool </active>
              <parent> .K </parent>
              <claim> \implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps)))) </claim>

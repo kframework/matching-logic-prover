@@ -12,6 +12,7 @@ module PROVER-CORE-SYNTAX
   imports KORE
 
   syntax Declaration ::= "claim" Pattern "strategy" Strategy
+                       | "claim" ClaimName ":" Pattern "strategy" Strategy
 ```
 
 ```k

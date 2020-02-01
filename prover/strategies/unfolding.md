@@ -7,10 +7,10 @@ module STRATEGY-UNFOLDING
 
   syntax Pattern ::= unfold(Pattern) [function]
   rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(alphaRename(DEF), zip(Vs, ARGs))) ]]
-       <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
+       <declaration> axiom _: \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
     requires getFreeVariables(DEF) -Patterns Vs ==K .Patterns
   rule [[ unfold(S:Symbol(ARGs)) => {("ifflfp axiom has free variables!" ~> S ~> (getFreeVariables(DEF) -Patterns Vs))}:>Pattern ]]
-       <declaration> axiom \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
+       <declaration> axiom _: \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
     requires getFreeVariables(DEF) -Patterns Vs =/=K .Patterns
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
@@ -19,7 +19,7 @@ module STRATEGY-UNFOLDING
 
   syntax Patterns ::= getRecursiveSymbols(Patterns) [function]
   rule [[ getRecursiveSymbols(SYMs) => getRecursiveSymbols(SYM, SYMs) ]]
-       <declaration> axiom \forall { Vs } \iff-lfp(SYM(Vs), DEF) </declaration>
+       <declaration> axiom _: \forall { Vs } \iff-lfp(SYM(Vs), DEF) </declaration>
      requires notBool SYM in SYMs
   rule getRecursiveSymbols(SYMs) => SYMs
     [owise]

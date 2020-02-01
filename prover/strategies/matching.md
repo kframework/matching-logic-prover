@@ -470,11 +470,11 @@ Instantiate heap axioms:
                  => instantiate-separation-logic-axioms(gatherHeapAxioms(.Patterns))
                     ...
          </strategy>
-         <declaration> axiom heap(LOC, DATA) </declaration>
+         <declaration> axiom _: heap(LOC, DATA) </declaration>
 
     syntax Patterns ::= gatherHeapAxioms(Patterns) [function]
     rule [[ gatherHeapAxioms(AXs) => gatherHeapAxioms(heap(LOC, DATA), AXs) ]]
-         <declaration> axiom heap(LOC, DATA) </declaration>
+         <declaration> axiom _: heap(LOC, DATA) </declaration>
       requires notBool(heap(LOC, DATA) in AXs)
     rule gatherHeapAxioms(AXs) => AXs [owise]
 

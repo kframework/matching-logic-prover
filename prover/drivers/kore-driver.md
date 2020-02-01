@@ -47,7 +47,9 @@ Add various standard Kore declarations to the configuration directly:
          ...
        </declarations>
 
-  rule <k> (axiom _ #as DECL:Declaration) => .K ... </k>
+  rule axiom (P:Pattern) => axiom (!N:AxiomName) : P
+
+  rule <k> (axiom _: _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
          ...
@@ -57,7 +59,12 @@ Add various standard Kore declarations to the configuration directly:
 The `claim` Declaration creates a new `<goal>` cell:
 
 ```k
-  rule <k> claim PATTERN
+  rule <k> claim PATTERN strategy STRAT
+        => claim !N:ClaimName : PATTERN strategy STRAT
+           ...
+       </k>
+
+  rule <k> claim NAME : PATTERN
            strategy STRAT
         => .K
            ...
@@ -65,7 +72,7 @@ The `claim` Declaration creates a new `<goal>` cell:
        <goals>
          ( .Bag =>
            <goal>
-             <id> root </id>
+             <id> NAME </id>
              <active> true:Bool </active>
              <parent> .K </parent>
              <claim> PATTERN </claim>
@@ -79,7 +86,7 @@ The `claim` Declaration creates a new `<goal>` cell:
 ```
 
 ```k
-  rule <id> root </id>
+  rule <id> _:ClaimName </id>
        <expected> S:TerminalStrategy </expected>
        <strategy> S </strategy>
        <exit-code> 1 => 0 </exit-code>
