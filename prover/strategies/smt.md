@@ -235,28 +235,6 @@ module STRATEGY-SMT
        <trace> .K => check-lhs-constraint-unsat ... </trace>
      requires isPredicatePattern(\and(LCONSTRAINTS))
 
-  syntax Declarations ::= #collectDeclarations(Declarations) [function]
-                        | #collectSortDeclarations(Declarations) [function]
-
-  rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
-    <declaration> D </declaration>
-    requires notBool (D inDecls Ds) andBool notBool isSortDeclaration(D)
-
-  // We need to gather sort declarations last so sorts are declared correctly
-  // when translating to smt
-  // TODO: do we need to gather symbol decs last as well?
-  rule [[ #collectSortDeclarations(Ds) => #collectSortDeclarations(D Ds) ]]
-    <declaration> (sort _ #as D:Declaration) </declaration>
-    requires notBool (D inDecls Ds)
-
-  rule #collectDeclarations(Ds) => #collectSortDeclarations(Ds) [owise]
-  rule #collectSortDeclarations(Ds) => Ds [owise]
-
-  syntax Bool ::= Declaration "inDecls" Declarations [function]
-  rule _ inDecls .Declarations => false
-  rule D inDecls D Ds => true
-  rule D inDecls D' Ds => D inDecls Ds
-    requires D =/=K D'
 ```
 
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
