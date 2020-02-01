@@ -172,6 +172,7 @@ only in this scenario*.
   syntax SortDeclaration ::= "sort" Sort
   syntax AxiomName ::= LowerName | UpperName
   syntax ClaimName ::= LowerName | UpperName
+  syntax AxiomOrClaimName ::= AxiomName | ClaimName
 
   syntax Declaration ::= "imports" String
                        | "axiom" Pattern

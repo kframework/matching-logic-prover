@@ -3,12 +3,15 @@ requires "lang/kore-lang.k"
 requires "drivers/smt-driver.k"
 requires "drivers/kore-driver.k"
 requires "drivers/base.k"
+requires "strategies/apply-equation.k"
 requires "strategies/core.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
+requires "strategies/reflexivity.k"
+>>>>>>> 492a1ba... rename rewrite to apply-equation
 requires "strategies/unfolding.k"
 requires "utils/heatcool.k"
 requires "utils/syntactic-match.k"
@@ -50,6 +53,14 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "match" | "match-pto"
                     | "frame"
                     | "unfold-mut-recs"
+                    | "apply-equation"
+                        RewriteDirection AxiomOrClaimName
+                        "at" Int "by" "[" Strategies "]"
+
+  syntax RewriteDirection ::= "->" | "<-"
+
+  syntax Strategies ::= List{Strategy, ","}                        [klabel(Strategies)]
+
 
   syntax KTFilter ::= head(Symbol)
                     | index(Int)
