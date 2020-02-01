@@ -17,21 +17,20 @@ module PROVER-CONFIGURATION
   syntax Pgm
   syntax Strategy
   syntax CommandLine
-  syntax GoalId ::= "root" | Int
+  syntax GoalId ::= ClaimName | Int
 
   configuration
       <prover>
         <k> $COMMANDLINE:CommandLine ~> $PGM:Pgm </k>
         <exit-code exit=""> 1 </exit-code>
         <goals>
-          <goal multiplicity="*" type="Set" format="%1%i%n%2, %3, %4%n%5%n%6%n%7%n%8%n%d%9">
+          <goal multiplicity="*" type="Set" format="%1%i%n%2, %3, %4%n%5%n%6%n%7%n%d%8">
             <active format="active: %2"> true:Bool </active>
-            <id format="id: %2"> root </id>
+            <id format="id: %2"> .K </id>
             <parent format="parent: %2"> .K </parent>
             <claim> .K </claim>
             <strategy> .K </strategy>
             <expected> .K </expected>
-            <claim-name> .K </claim-name>
             <trace> .K </trace>
           </goal>
         </goals>

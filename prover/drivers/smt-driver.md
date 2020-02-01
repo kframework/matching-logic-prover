@@ -326,13 +326,12 @@ module DRIVER-SMT
        <goals>
          ( .Bag =>
            <goal>
-             <id> root </id>
+             <id> !N:ClaimName </id>
              <active> true:Bool </active>
              <parent> .K </parent>
              <claim> \implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps)))) </claim>
              <strategy> STRAT </strategy>
              <expected> EXPECTED </expected>
-             <claim-name> .K </claim-name>
              <trace> .K </trace>
            </goal>
          )

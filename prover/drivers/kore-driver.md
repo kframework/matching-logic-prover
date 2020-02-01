@@ -72,10 +72,9 @@ The `claim` Declaration creates a new `<goal>` cell:
        <goals>
          ( .Bag =>
            <goal>
-             <id> root </id>
+             <id> NAME </id>
              <active> true:Bool </active>
              <parent> .K </parent>
-             <claim-name> NAME </claim-name>
              <claim> PATTERN </claim>
              <strategy> STRAT </strategy>
              <expected> success </expected>
@@ -87,7 +86,7 @@ The `claim` Declaration creates a new `<goal>` cell:
 ```
 
 ```k
-  rule <id> root </id>
+  rule <id> _:ClaimName </id>
        <expected> S:TerminalStrategy </expected>
        <strategy> S </strategy>
        <exit-code> 1 => 0 </exit-code>
