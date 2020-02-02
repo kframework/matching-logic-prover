@@ -202,6 +202,7 @@ module KORE-HELPERS
   imports INT
   imports STRING
   imports PROVER-CONFIGURATION
+  imports PROVER-CORE-SYNTAX
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
@@ -701,18 +702,35 @@ Simplifications
     => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
 
 
+  syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
   syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]
                      | freshAxiomName(Int)       [freshGenerator, function, functional]
 
   rule freshAxiomName(I:Int) => StringToAxiomName("ax" +String Int2String(I))
 
+  syntax String ::= ClaimNameToString(ClaimName) [function, hook(STRING.token2string)]
   syntax ClaimName ::= StringToClaimName(String) [function, functional, hook(STRING.string2token)]
                      | freshClaimName(Int)       [freshGenerator, function, functional]
 
   rule freshClaimName(I:Int) => StringToClaimName("cl" +String Int2String(I))
 
-  syntax Declarations ::= #collectDeclarations(Declarations) [function]
+  syntax Set ::= collectClaimNames() [function]
+               | #collectClaimNames(Set) [function]
+
+  rule collectClaimNames() => #collectClaimNames(.Set)
+
+  rule [[ #collectClaimNames(Ns)
+          => #collectClaimNames(Ns SetItem(ClaimNameToString(N))) ]]
+       <id> N:ClaimName </id>
+       requires notBool (ClaimNameToString(N) in Ns)
+
+  rule #collectClaimNames(Ns) => Ns [owise]
+
+  syntax Declarations ::= collectDeclarations() [function]
+                        | #collectDeclarations(Declarations) [function]
                         | #collectSortDeclarations(Declarations) [function]
+
+  rule collectDeclarations() => #collectDeclarations(.Declarations)
 
   rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
     <declaration> D </declaration>
@@ -733,6 +751,46 @@ Simplifications
   rule D inDecls D Ds => true
   rule D inDecls D' Ds => D inDecls Ds
     requires D =/=K D'
+
+
+  syntax String ::= getFreshName(String, Set) [function]
+                  | getFreshNameNonum(String, Set)
+                  | #getFreshName(String, Int, Set) [function]
+
+  rule getFreshName(Prefix, S) => #getFreshName(Prefix, 0, S)
+  rule #getFreshName(Prefix, N => N +Int 1, S)
+       requires (Prefix +String Int2String(N)) in S
+  rule #getFreshName(Prefix, N, S) => Prefix +String Int2String(N)
+       requires (notBool ((Prefix +String Int2String(N)) in S))
+
+  rule getFreshNameNonum(Prefix, S)
+       => #if Prefix in S #then
+            getFreshName(Prefix, S)
+          #else
+            Prefix
+          #fi
+
+  syntax Set ::= collectAxiomNames() [function]
+               | #collectAxiomNames(Declarations) [function]
+
+  rule collectAxiomNames() => #collectAxiomNames(collectDeclarations())
+  rule #collectAxiomNames(.Declarations) => .Set
+  rule #collectAxiomNames((axiom N : _) Ds)
+       => SetItem(AxiomNameToString(N)) #collectAxiomNames(Ds)
+  rule #collectAxiomNames(D Ds => Ds) [owise]
+
+
+  syntax Set ::= collectNamed() [function]
+  rule collectNamed() => collectAxiomNames() collectClaimNames()
+
+  syntax AxiomName ::= getFreshAxiomName() [function]
+  rule getFreshAxiomName()
+       => StringToAxiomName(getFreshName("ax", collectNamed()))
+
+  syntax ClaimName ::= getFreshClaimName() [function]
+  rule getFreshClaimName()
+       => StringToClaimName(getFreshName("cl", collectNamed()))
+
 ```
 
 ```k

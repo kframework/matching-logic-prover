@@ -47,7 +47,7 @@ Add various standard Kore declarations to the configuration directly:
          ...
        </declarations>
 
-  rule axiom (P:Pattern) => axiom (!N:AxiomName) : P
+  rule axiom (P:Pattern) => axiom getFreshAxiomName() : P
 
   rule <k> (axiom _: _ #as DECL:Declaration) => .K ... </k>
        <declarations>
@@ -62,7 +62,7 @@ in the subgoal and the claim of the named goal remains intact.
 
 ```k
   rule <k> claim PATTERN strategy STRAT
-        => claim !N:ClaimName : PATTERN strategy STRAT
+        => claim getFreshClaimName() : PATTERN strategy STRAT
            ...
        </k>
 
