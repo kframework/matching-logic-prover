@@ -318,6 +318,9 @@ module KORE-HELPERS
   rule getSortForVariableName(VNAME1, VNAME2 { SORT }, Vs) => getSortForVariableName(VNAME1, Vs)
     requires VNAME1 =/=K VNAME2
 
+  syntax Bool ::= isClosed(Pattern) [function]
+  rule isClosed(P) => getFreeVariables(P) ==K .Patterns
+
   syntax Patterns ::= getFreeVariables(Patterns) [function]
   rule getFreeVariables(.Patterns) => .Patterns
   rule getFreeVariables(P, Ps)

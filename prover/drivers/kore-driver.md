@@ -80,6 +80,7 @@ in the subgoal and the claim of the named goal remains intact.
              <claim> PATTERN </claim>
              <strategy> subgoal(PATTERN, STRAT) </strategy>
              <expected> success </expected>
+             <local-context> .Bag </local-context>
              <trace> .K </trace>
            </goal>
          )

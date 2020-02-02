@@ -5,6 +5,7 @@ requires "drivers/kore-driver.k"
 requires "drivers/base.k"
 requires "strategies/apply-equation.k"
 requires "strategies/core.k"
+requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
 requires "strategies/search-bound.k"
@@ -56,6 +57,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "apply-equation"
                         RewriteDirection AxiomOrClaimName
                         "at" Int "by" "[" Strategies "]"
+                    | "intros" AxiomName
 
   syntax RewriteDirection ::= "->" | "<-"
 
