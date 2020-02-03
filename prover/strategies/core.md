@@ -117,6 +117,7 @@ Proving a goal may involve proving other subgoals:
                <parent> PARENT </parent>
                <strategy> SUBSTRAT </strategy>
                <claim> SUBGOAL </claim>
+               <local-context> LC </local-context>
                <trace> TRACE </trace>
                ...
              </goal>
@@ -125,6 +126,7 @@ Proving a goal may involve proving other subgoals:
            <id> PARENT </id>
            <active> true => false </active>
            <strategy> subgoal(SUBGOAL, SUBSTRAT) => goalStrat(!ID:Int) ... </strategy>
+           <local-context> LC::Bag </local-context>
            <trace> TRACE </trace>
            ...
          </goal>
