@@ -12,6 +12,7 @@ requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/reflexivity.k"
+requires "strategies/replace-evar-with-func-constant.k"
 requires "strategies/unfolding.k"
 requires "utils/heatcool.k"
 requires "utils/syntactic-match.k"
@@ -58,10 +59,12 @@ module STRATEGIES-EXPORTED-SYNTAX
                         RewriteDirection AxiomOrClaimName
                         "at" Int "by" "[" Strategies "]"
                     | "intros" AxiomName
+                    | "replace-evar-with-func-constant" Variables
 
   syntax RewriteDirection ::= "->" | "<-"
 
   syntax Strategies ::= List{Strategy, ","}                        [klabel(Strategies)]
+  syntax Variables ::= List{Variable, ","}                 [klabel(Variables)]
 
 
   syntax KTFilter ::= head(Symbol)

@@ -220,6 +220,11 @@ module KORE-HELPERS
   rule (P1, P1s) ++Patterns P2s => P1, (P1s ++Patterns P2s)
   rule .Patterns ++Patterns P2s => P2s
 
+  syntax Declarations
+  ::= Declarations "++Declarations" Declarations [function, right]
+  rule (D1 D1s) ++Declarations D2s => D1 (D1s ++Declarations D2s)
+  rule .Declarations ++Declarations D2s => D2s
+
   syntax Patterns ::= Patterns "intersect" Patterns [function]
   rule .Patterns intersect Ps => .Patterns
   rule (P, Ps1) intersect Ps2 => P, (Ps1 intersect Ps2)
@@ -390,6 +395,7 @@ and values, passed to K's substitute.
 ```
 
 ```k
+  syntax String ::= VariableName2String(VariableName) [function, functional, hook(STRING.token2string)]
   syntax VariableName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
   rule freshVariableName(I:Int) => String2VariableName("F" +String Int2String(I))
@@ -729,6 +735,30 @@ Simplifications
 
   rule #collectClaimNames(Ns) => Ns [owise]
 
+  syntax Declarations
+    ::= collectAllDeclarations(GoalId) [function]
+    | collectLocalDeclarations(GoalId) [function]
+    | #collectLocalDeclarations(GoalId, Declarations) [function]
+
+  rule collectAllDeclarations(GId)
+       => collectDeclarations() ++Declarations
+          collectLocalDeclarations(GId)
+
+  syntax Declarations
+  ::= collectLocalDeclarations(GoalId) [function]
+    | #collectLocalDeclarations(GoalId, Declarations) [function]
+
+  rule collectLocalDeclarations(GId)
+       => #collectLocalDeclarations(GId, .Declarations)
+
+  rule [[ #collectLocalDeclarations(GId, Ds)
+       => #collectLocalDeclarations(GId, D Ds) ]]
+    <id> GId </id>
+    <local-decl> D </local-decl>
+    requires notBool (D inDecls Ds)
+
+  rule #collectLocalDeclarations(_, Ds) => Ds [owise]
+
   syntax Declarations ::= collectDeclarations() [function]
                         | #collectDeclarations(Declarations) [function]
                         | #collectSortDeclarations(Declarations) [function]
@@ -757,7 +787,7 @@ Simplifications
 
 
   syntax String ::= getFreshName(String, Set) [function]
-                  | getFreshNameNonum(String, Set)
+                  | getFreshNameNonum(String, Set) [function]
                   | #getFreshName(String, Int, Set) [function]
 
   rule getFreshName(Prefix, S) => #getFreshName(Prefix, 0, S)
@@ -793,6 +823,24 @@ Simplifications
   syntax ClaimName ::= getFreshClaimName() [function]
   rule getFreshClaimName()
        => StringToClaimName(getFreshName("cl", collectNamed()))
+
+  syntax Set ::= collectSymbolsS(GoalId) [function]
+               | #collectSymbolsS(Declarations) [function]
+
+  rule collectSymbolsS(GId)
+       => #collectSymbolsS(collectAllDeclarations(GId))
+
+  rule #collectSymbolsS(.Declarations) => .Set
+  rule #collectSymbolsS( (symbol S ( _ ) : _) Ds)
+       => SetItem(SymbolToString(S)) #collectSymbolsS(Ds)
+  rule #collectSymbolsS(_ Ds) => #collectSymbolsS(Ds) [owise]
+
+  syntax Symbol ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+
+  syntax Symbol ::= getFreshSymbol(GoalId, String) [function]
+  rule getFreshSymbol(GId, Base)
+       => StringToSymbol(
+            getFreshNameNonum(Base, collectSymbolsS(GId)))
 
 ```
 
