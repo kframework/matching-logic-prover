@@ -1,3 +1,17 @@
+# apply-equation
+```
+Gamma contains H: \forall X1 PHI1 ->
+                  \forall X2 PHI2 -> ... -> \forall Xn . L = R
+Gamma |- PHI1[Theta1]
+Gamma |- PHI1[Theta1][Theta2]
+...
+Gamma |- PHIn[Theta1]...[Thetan]
+Gamma |- C[R[Theta1]...[Thetan]]
+where P matches L with substitution Theta1 ... Thetan
+--------------------------------------------------------------------
+Gamma |- C[P]
+```
+
 ```k
 module STRATEGY-APPLY-EQUATION
   imports PROVER-CORE
