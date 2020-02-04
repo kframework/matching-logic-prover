@@ -804,23 +804,34 @@ Simplifications
           #fi
 
   syntax Set ::= collectGlobalAxiomNames() [function]
-               | #collectGlobalAxiomNames(Declarations) [function]
+               | collectLocalAxiomNames(GoalId) [function]
+               | #declarationsToAxiomNames(Declarations) [function]
 
   rule collectGlobalAxiomNames()
-    => #collectGlobalAxiomNames(collectGlobalDeclarations())
-  rule #collectGlobalAxiomNames(.Declarations) => .Set
-  rule #collectGlobalAxiomNames((axiom N : _) Ds)
-       => SetItem(AxiomNameToString(N)) #collectGlobalAxiomNames(Ds)
-  rule #collectGlobalAxiomNames(D Ds => Ds) [owise]
+    => #declarationsToAxiomNames(collectGlobalDeclarations())
+  rule collectLocalAxiomNames(GId)
+    => #declarationsToAxiomNames(collectLocalDeclarations(GId))
+  rule #declarationsToAxiomNames(.Declarations) => .Set
+  rule #declarationsToAxiomNames((axiom N : _) Ds)
+       => SetItem(AxiomNameToString(N)) #declarationsToAxiomNames(Ds)
+  rule #declarationsToAxiomNames(D Ds => Ds) [owise]
 
 
   syntax Set ::= collectGlobalNamed() [function]
   rule collectGlobalNamed()
     => collectGlobalAxiomNames() collectClaimNames()
 
+  syntax Set ::= collectNamed(GoalId) [function]
+  rule collectNamed(GId)
+    => collectGlobalNamed() collectLocalAxiomNames(GId)
+
   syntax AxiomName ::= getFreshGlobalAxiomName() [function]
   rule getFreshGlobalAxiomName()
        => StringToAxiomName(getFreshName("ax", collectGlobalNamed()))
+
+  syntax AxiomName ::= getFreshAxiomName(GoalId) [function]
+  rule getFreshAxiomName(GId)
+       => StringToAxiomName(getFreshName("ax", collectNamed(GId)))
 
   syntax ClaimName ::= getFreshClaimName() [function]
   rule getFreshClaimName()
