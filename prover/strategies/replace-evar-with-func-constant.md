@@ -1,3 +1,9 @@
+```
+Gamma U {functional f} |- PHI(f()) where f fresh
+------------------------------------------------
+Gamma |- PHI(x:S)
+```
+
 ```k
 module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
   imports PROVER-CORE

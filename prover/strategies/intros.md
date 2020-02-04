@@ -1,3 +1,9 @@
+```
+Gamma U {H} |- G where H closed predicate
+---------------------
+Gamma |- H -> G
+```
+
 ```k
 module STRATEGY-INTROS
   imports PROVER-CORE
