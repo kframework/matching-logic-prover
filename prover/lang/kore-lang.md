@@ -261,12 +261,32 @@ module KORE-HELPERS
 
 ```k
   syntax Bool ::= isFunctional(GoalId, Symbol) [function]
+
+  rule isFunctional(_, plus #Or minus #Or select #Or union
+         #Or singleton #Or emptyset) => true
+
   rule [[ isFunctional(_, S) => true ]]
        <declaration> axiom _: functional(S) </declaration>
   rule [[ isFunctional(GId, S) => true ]]
        <id> GId </id>
        <local-decl> axiom _: functional(S) </local-decl>
   rule isFunctional(_, S) => false [owise]
+
+  syntax Bool ::= isSurelyFunctional(GoalId, Pattern) [function]
+  rule isSurelyFunctional(GId, P)
+    => areSurelyFunctional(GId, P, .Patterns)
+
+  syntax Bool ::= areSurelyFunctional(GoalId, Patterns) [function]
+
+  rule areSurelyFunctional(_, .Patterns) => true
+  rule areSurelyFunctional(GId, I:Int, Ps)
+    => areSurelyFunctional(GId, Ps)
+  rule areSurelyFunctional(GId, V{S}, Ps)
+    => areSurelyFunctional(GId, Ps)
+  rule areSurelyFunctional(GId, R ( ARGS ), Ps)
+    => isFunctional(GId, R) andBool
+       areSurelyFunctional(GId, ARGS ++Patterns Ps)
+  rule areSurelyFunctional(_, _) => false [owise]
 
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
@@ -438,7 +458,6 @@ and values, passed to K's substitute.
   rule PatternsToVariableNameSet(.Patterns) => .Set
   rule PatternsToVariableNameSet(N{_}, Ps)
        => SetItem(N) PatternsToVariableNameSet(Ps)
-
 ```
 
 Substitution: Substitute term or variable
@@ -529,7 +548,6 @@ Substitution: Substitute term or variable
     => substUnsafe(BP, SUBST), substPatternsMap(BPs, SUBST)
 
   rule substPatternsMap(.Patterns, SUBST) => .Patterns
-
 
   // the Bool param: avoid capture
   syntax Patterns ::= Patterns "[" Bool "," Pattern "/" Pattern "]" [function]

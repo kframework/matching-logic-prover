@@ -1,0 +1,12 @@
+sort A
+symbol a() : A
+axiom functional(a)
+symbol f(Int,Int) : Int
+claim \implies(
+  \forall{} \forall{X{Int}, Y{A}} \equals(f(X{Int},Y{A}), 0),
+  \equals(f(3, a()), 0)
+)
+strategy intros H
+       . instantiate-universals(in: H, vars: X,Y, with: 3,a())
+       . apply-equation -> H at 0 by []
+       . reflexivity
