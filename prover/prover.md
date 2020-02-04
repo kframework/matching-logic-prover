@@ -5,12 +5,14 @@ requires "drivers/kore-driver.k"
 requires "drivers/base.k"
 requires "strategies/apply-equation.k"
 requires "strategies/core.k"
+requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
 requires "strategies/search-bound.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/reflexivity.k"
+requires "strategies/replace-evar-with-func-constant.k"
 requires "strategies/unfolding.k"
 requires "utils/heatcool.k"
 requires "utils/syntactic-match.k"
@@ -56,10 +58,13 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "apply-equation"
                         RewriteDirection AxiomOrClaimName
                         "at" Int "by" "[" Strategies "]"
+                    | "intros" AxiomName
+                    | "replace-evar-with-func-constant" Variables
 
   syntax RewriteDirection ::= "->" | "<-"
 
   syntax Strategies ::= List{Strategy, ","}                        [klabel(Strategies)]
+  syntax Variables ::= List{Variable, ","}                 [klabel(Variables)]
 
 
   syntax KTFilter ::= head(Symbol)

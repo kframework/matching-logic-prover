@@ -202,6 +202,7 @@ module KORE-HELPERS
   imports INT
   imports STRING
   imports PROVER-CONFIGURATION
+  imports PROVER-CORE-SYNTAX
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
@@ -218,6 +219,11 @@ module KORE-HELPERS
   syntax Patterns ::= Patterns "++Patterns" Patterns [function, right]
   rule (P1, P1s) ++Patterns P2s => P1, (P1s ++Patterns P2s)
   rule .Patterns ++Patterns P2s => P2s
+
+  syntax Declarations
+  ::= Declarations "++Declarations" Declarations [function, right]
+  rule (D1 D1s) ++Declarations D2s => D1 (D1s ++Declarations D2s)
+  rule .Declarations ++Declarations D2s => D2s
 
   syntax Patterns ::= Patterns "intersect" Patterns [function]
   rule .Patterns intersect Ps => .Patterns
@@ -317,6 +323,9 @@ module KORE-HELPERS
   rule getSortForVariableName(VNAME1, VNAME2 { SORT }, Vs) => getSortForVariableName(VNAME1, Vs)
     requires VNAME1 =/=K VNAME2
 
+  syntax Bool ::= isClosed(Pattern) [function]
+  rule isClosed(P) => getFreeVariables(P) ==K .Patterns
+
   syntax Patterns ::= getFreeVariables(Patterns) [function]
   rule getFreeVariables(.Patterns) => .Patterns
   rule getFreeVariables(P, Ps)
@@ -386,6 +395,7 @@ and values, passed to K's substitute.
 ```
 
 ```k
+  syntax String ::= VariableName2String(VariableName) [function, functional, hook(STRING.token2string)]
   syntax VariableName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
   rule freshVariableName(I:Int) => String2VariableName("F" +String Int2String(I))
@@ -701,15 +711,149 @@ Simplifications
     => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
 
 
+  syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
   syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]
                      | freshAxiomName(Int)       [freshGenerator, function, functional]
 
   rule freshAxiomName(I:Int) => StringToAxiomName("ax" +String Int2String(I))
 
+  syntax String ::= ClaimNameToString(ClaimName) [function, hook(STRING.token2string)]
   syntax ClaimName ::= StringToClaimName(String) [function, functional, hook(STRING.string2token)]
                      | freshClaimName(Int)       [freshGenerator, function, functional]
 
   rule freshClaimName(I:Int) => StringToClaimName("cl" +String Int2String(I))
+
+  syntax Set ::= collectClaimNames() [function]
+               | #collectClaimNames(Set) [function]
+
+  rule collectClaimNames() => #collectClaimNames(.Set)
+
+  rule [[ #collectClaimNames(Ns)
+          => #collectClaimNames(Ns SetItem(ClaimNameToString(N))) ]]
+       <id> N:ClaimName </id>
+       requires notBool (ClaimNameToString(N) in Ns)
+
+  rule #collectClaimNames(Ns) => Ns [owise]
+
+  syntax Declarations
+    ::= collectDeclarations(GoalId) [function]
+    | collectLocalDeclarations(GoalId) [function]
+    | #collectLocalDeclarations(GoalId, Declarations) [function]
+
+  rule collectDeclarations(GId)
+       => collectGlobalDeclarations() ++Declarations
+          collectLocalDeclarations(GId)
+
+  syntax Declarations
+  ::= collectLocalDeclarations(GoalId) [function]
+    | #collectLocalDeclarations(GoalId, Declarations) [function]
+
+  rule collectLocalDeclarations(GId)
+       => #collectLocalDeclarations(GId, .Declarations)
+
+  rule [[ #collectLocalDeclarations(GId, Ds)
+       => #collectLocalDeclarations(GId, D Ds) ]]
+    <id> GId </id>
+    <local-decl> D </local-decl>
+    requires notBool (D inDecls Ds)
+
+  rule #collectLocalDeclarations(_, Ds) => Ds [owise]
+
+  syntax Declarations ::= collectGlobalDeclarations() [function]
+                        | #collectGlobalDeclarations(Declarations) [function]
+                        | #collectSortDeclarations(Declarations) [function]
+
+  rule collectGlobalDeclarations() => #collectGlobalDeclarations(.Declarations)
+
+  rule [[ #collectGlobalDeclarations(Ds) => #collectGlobalDeclarations(D Ds) ]]
+    <declaration> D </declaration>
+    requires notBool (D inDecls Ds) andBool notBool isSortDeclaration(D)
+
+  // We need to gather sort declarations last so sorts are declared correctly
+  // when translating to smt
+  // TODO: do we need to gather symbol decs last as well?
+  rule [[ #collectSortDeclarations(Ds) => #collectSortDeclarations(D Ds) ]]
+    <declaration> (sort _ #as D:Declaration) </declaration>
+    requires notBool (D inDecls Ds)
+
+  rule #collectGlobalDeclarations(Ds) => #collectSortDeclarations(Ds) [owise]
+  rule #collectSortDeclarations(Ds) => Ds [owise]
+
+  syntax Bool ::= Declaration "inDecls" Declarations [function]
+  rule _ inDecls .Declarations => false
+  rule D inDecls D Ds => true
+  rule D inDecls D' Ds => D inDecls Ds
+    requires D =/=K D'
+
+
+  syntax String ::= getFreshName(String, Set) [function]
+                  | getFreshNameNonum(String, Set) [function]
+                  | #getFreshName(String, Int, Set) [function]
+
+  rule getFreshName(Prefix, S) => #getFreshName(Prefix, 0, S)
+  rule #getFreshName(Prefix, N => N +Int 1, S)
+       requires (Prefix +String Int2String(N)) in S
+  rule #getFreshName(Prefix, N, S) => Prefix +String Int2String(N)
+       requires (notBool ((Prefix +String Int2String(N)) in S))
+
+  rule getFreshNameNonum(Prefix, S)
+       => #if Prefix in S #then
+            getFreshName(Prefix, S)
+          #else
+            Prefix
+          #fi
+
+  syntax Set ::= collectGlobalAxiomNames() [function]
+               | collectLocalAxiomNames(GoalId) [function]
+               | #declarationsToAxiomNames(Declarations) [function]
+
+  rule collectGlobalAxiomNames()
+    => #declarationsToAxiomNames(collectGlobalDeclarations())
+  rule collectLocalAxiomNames(GId)
+    => #declarationsToAxiomNames(collectLocalDeclarations(GId))
+  rule #declarationsToAxiomNames(.Declarations) => .Set
+  rule #declarationsToAxiomNames((axiom N : _) Ds)
+       => SetItem(AxiomNameToString(N)) #declarationsToAxiomNames(Ds)
+  rule #declarationsToAxiomNames(D Ds => Ds) [owise]
+
+
+  syntax Set ::= collectGlobalNamed() [function]
+  rule collectGlobalNamed()
+    => collectGlobalAxiomNames() collectClaimNames()
+
+  syntax Set ::= collectNamed(GoalId) [function]
+  rule collectNamed(GId)
+    => collectGlobalNamed() collectLocalAxiomNames(GId)
+
+  syntax AxiomName ::= getFreshGlobalAxiomName() [function]
+  rule getFreshGlobalAxiomName()
+       => StringToAxiomName(getFreshName("ax", collectGlobalNamed()))
+
+  syntax AxiomName ::= getFreshAxiomName(GoalId) [function]
+  rule getFreshAxiomName(GId)
+       => StringToAxiomName(getFreshName("ax", collectNamed(GId)))
+
+  syntax ClaimName ::= getFreshClaimName() [function]
+  rule getFreshClaimName()
+       => StringToClaimName(getFreshName("cl", collectGlobalNamed()))
+
+  syntax Set ::= collectSymbolsS(GoalId) [function]
+               | #collectSymbolsS(Declarations) [function]
+
+  rule collectSymbolsS(GId)
+       => #collectSymbolsS(collectDeclarations(GId))
+
+  rule #collectSymbolsS(.Declarations) => .Set
+  rule #collectSymbolsS( (symbol S ( _ ) : _) Ds)
+       => SetItem(SymbolToString(S)) #collectSymbolsS(Ds)
+  rule #collectSymbolsS(_ Ds) => #collectSymbolsS(Ds) [owise]
+
+  syntax Symbol ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+
+  syntax Symbol ::= getFreshSymbol(GoalId, String) [function]
+  rule getFreshSymbol(GId, Base)
+       => StringToSymbol(
+            getFreshNameNonum(Base, collectSymbolsS(GId)))
 
 ```
 

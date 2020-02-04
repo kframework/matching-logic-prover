@@ -19,38 +19,45 @@ module ML-TO-SMTLIB2
        declareUninterpretedFunctions(removeDuplicates(getUnfoldables(PATTERN))) ++SMTLIB2Script
        (assert PatternToSMTLIB2Term(PATTERN))
 
-  syntax SMTLIB2Script ::= ML2SMTLIBDecls(Pattern, Declarations) [function]
-  syntax SMTLIB2Script ::= DeclarationsToSMTLIB(Declarations) [function]
-  rule ML2SMTLIBDecls(PATTERN, DECLS)
-    => DeclarationsToSMTLIB(DECLS) ++SMTLIB2Script
+  syntax SMTLIB2Script
+    ::= ML2SMTLIBDecls(GoalId, Pattern, Declarations) [function]
+  rule ML2SMTLIBDecls(GId, PATTERN, DECLS)
+    => DeclarationsToSMTLIB(GId, DECLS) ++SMTLIB2Script
        declareVariables(getUniversalVariables(PATTERN)) ++SMTLIB2Script
        (assert PatternToSMTLIB2Term(PATTERN))
 
-  syntax SMTLIB2Script ::= DeclarationsToSMTLIB(Declarations) [function]
+  syntax SMTLIB2Script
+    ::= DeclarationsToSMTLIB(GoalId, Declarations) [function]
 
-  rule DeclarationsToSMTLIB(.Declarations) => .SMTLIB2Script
-  rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
+  rule DeclarationsToSMTLIB(_, .Declarations) => .SMTLIB2Script
+  rule DeclarationsToSMTLIB(GId, (symbol S(ARGS) : SORT) Ds)
     => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
-       DeclarationsToSMTLIB(Ds)
-    requires isFunctional(S)  
+       DeclarationsToSMTLIB(GId, Ds)
+    requires isFunctional(GId, S)
 
 // We only translate functional symbols to SMT
-  rule DeclarationsToSMTLIB((symbol S(ARGS) : SORT) Ds)
-    => DeclarationsToSMTLIB(Ds)
-    requires notBool isFunctional(S)
+  rule DeclarationsToSMTLIB(GId, (symbol S(ARGS) : SORT) Ds)
+    => DeclarationsToSMTLIB(GId, Ds)
+    requires notBool isFunctional(GId, S)
 
-  syntax Bool ::= isFunctional(Symbol) [function]
-  rule [[ isFunctional(S) => true ]]
+  syntax Bool ::= isFunctional(GoalId, Symbol) [function]
+  rule [[ isFunctional(_, S) => true ]]
        <declaration> axiom _: functional(S) </declaration>
-  rule isFunctional(S) => false [owise]
+  rule [[ isFunctional(GId, S) => true ]]
+       <id> GId </id>
+       <local-decl> axiom _: functional(S) </local-decl>
+  rule isFunctional(_, S) => false [owise]
 
   syntax SMTLIB2TermList ::= SMTLIB2SortedVarListToSMTLIB2TermList(SMTLIB2SortedVarList) [function]
   rule SMTLIB2SortedVarListToSMTLIB2TermList(.SMTLIB2SortedVarList) => .SMTLIB2TermList
   rule SMTLIB2SortedVarListToSMTLIB2TermList((V _) Vs) => V SMTLIB2SortedVarListToSMTLIB2TermList(Vs)
 
-  rule DeclarationsToSMTLIB((sort SORT) Ds) => (declare-sort SortToSMTLIB2Sort(SORT) 0) ++SMTLIB2Script DeclarationsToSMTLIB(Ds)
+  rule DeclarationsToSMTLIB(GId, (sort SORT) Ds)
+    => (declare-sort SortToSMTLIB2Sort(SORT) 0) ++SMTLIB2Script
+       DeclarationsToSMTLIB(GId, Ds)
 
-  rule DeclarationsToSMTLIB((axiom _: _) Ds) => DeclarationsToSMTLIB(Ds)
+  rule DeclarationsToSMTLIB(GId, (axiom _: _) Ds)
+    => DeclarationsToSMTLIB(GId, Ds)
 
   // TODO: All symbols must be functional!
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]
@@ -213,8 +220,9 @@ module STRATEGY-SMT
        <strategy> smt-z3 => fail </strategy>
 
   rule <claim> GOAL </claim>
+       <id> GId </id>
        <strategy> smt-cvc4
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))) ==K unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))) ==K unsat
                   then success
                   else fail
                   fi
@@ -225,8 +233,9 @@ module STRATEGY-SMT
 
 // If the constraints are unsatisfiable, the entire term is unsatisfiable
   rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
+       <id> GId </id>
        <strategy> check-lhs-constraint-unsat
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\and(LCONSTRAINTS), #collectDeclarations(.Declarations))) ==K unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat
                   then success
                   else noop
                   fi
@@ -235,28 +244,6 @@ module STRATEGY-SMT
        <trace> .K => check-lhs-constraint-unsat ... </trace>
      requires isPredicatePattern(\and(LCONSTRAINTS))
 
-  syntax Declarations ::= #collectDeclarations(Declarations) [function]
-                        | #collectSortDeclarations(Declarations) [function]
-
-  rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
-    <declaration> D </declaration>
-    requires notBool (D inDecls Ds) andBool notBool isSortDeclaration(D)
-
-  // We need to gather sort declarations last so sorts are declared correctly
-  // when translating to smt
-  // TODO: do we need to gather symbol decs last as well?
-  rule [[ #collectSortDeclarations(Ds) => #collectSortDeclarations(D Ds) ]]
-    <declaration> (sort _ #as D:Declaration) </declaration>
-    requires notBool (D inDecls Ds)
-
-  rule #collectDeclarations(Ds) => #collectSortDeclarations(Ds) [owise]
-  rule #collectSortDeclarations(Ds) => Ds [owise]
-
-  syntax Bool ::= Declaration "inDecls" Declarations [function]
-  rule _ inDecls .Declarations => false
-  rule D inDecls D Ds => true
-  rule D inDecls D' Ds => D inDecls Ds
-    requires D =/=K D'
 ```
 
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
@@ -281,11 +268,12 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 
 ```k
   rule <claim> GOAL </claim>
+       <id> GId </id>
        <strategy> smt-debug
-               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))):CheckSATResult
+               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))):CheckSATResult
                   ...
        </strategy>
-       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
+       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId)) ... </trace>
      requires isPredicatePattern(GOAL)
 ```
 
