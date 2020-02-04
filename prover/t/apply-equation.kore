@@ -1,0 +1,18 @@
+symbol f(Int, Int) : Int
+
+axiom f_X_Y: \forall{X{Int}, Y{Int}}
+  \implies(
+    \or(\equals(X{Int}, 0), \equals(X{Int}, 3)),
+    \implies(
+      gte(Y{Int}, 0),
+      \equals(f(X{Int}, Y{Int}), Y{Int})
+    )
+  )
+
+claim \equals(1,1)
+strategy reflexivity
+
+//claim \equals(f(0,1), 1)
+claim \equals(f(0,1),f(3,f(0,1)))
+strategy apply-equation -> f_X_Y at 2 by [smt-cvc4, smt-cvc4]
+       . reflexivity

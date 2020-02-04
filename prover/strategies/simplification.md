@@ -50,11 +50,20 @@ module STRATEGY-SIMPLIFICATION
 
 Normalize:
 
+ - convert claim to implication
  - RHS has existential qunatifier
  - Implications on the LHS of the goal are always universally quantified.
  - All \ands are flattened
 
 ```k
+
+  rule <claim> P::Pattern => \and(P) </claim>
+       <strategy> normalize ... </strategy>
+       requires \and(...) :/=K P andBool \implies(...) :/=K P
+
+  rule <claim> \and(P) => \implies(\and(.Patterns), \and(P)) </claim>
+       <strategy> normalize ... </strategy>
+
   rule <claim> \implies(LHS, \and(RHS))
         => \implies(LHS, \exists { .Patterns } \and(RHS))
        </claim>

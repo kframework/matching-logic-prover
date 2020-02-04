@@ -67,8 +67,14 @@ module DRIVER-BASE
   imports STRATEGY-SEARCH-BOUND
   imports STRATEGY-SIMPLIFICATION
   imports STRATEGY-MATCHING
+  imports STRATEGY-APPLY-EQUATION
+  imports STRATEGY-REFLEXIVITY
   imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
+  imports SYNTACTIC-MATCH-RULES
+  imports VISITOR
+  imports PATTERN-LENGTH
+  imports HEATCOOL-RULES
 
   rule <k> .CommandLine => .K ... </k>
 endmodule
