@@ -47,7 +47,7 @@ Add various standard Kore declarations to the configuration directly:
          ...
        </declarations>
 
-  rule axiom (P:Pattern) => axiom getFreshAxiomName() : P
+  rule axiom (P:Pattern) => axiom getFreshGlobalAxiomName() : P
 
   rule <k> (axiom _: _ #as DECL:Declaration) => .K ... </k>
        <declarations>

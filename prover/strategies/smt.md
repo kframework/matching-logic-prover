@@ -213,8 +213,9 @@ module STRATEGY-SMT
        <strategy> smt-z3 => fail </strategy>
 
   rule <claim> GOAL </claim>
+       <id> GId </id>
        <strategy> smt-cvc4
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))) ==K unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), collectDeclarations(GId))) ==K unsat
                   then success
                   else fail
                   fi
@@ -225,8 +226,9 @@ module STRATEGY-SMT
 
 // If the constraints are unsatisfiable, the entire term is unsatisfiable
   rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
+       <id> GId </id>
        <strategy> check-lhs-constraint-unsat
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\and(LCONSTRAINTS), #collectDeclarations(.Declarations))) ==K unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat
                   then success
                   else noop
                   fi
@@ -259,11 +261,12 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 
 ```k
   rule <claim> GOAL </claim>
+       <id> GId </id>
        <strategy> smt-debug
-               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations))):CheckSATResult
+               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), collectDeclarations(GId))):CheckSATResult
                   ...
        </strategy>
-       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), #collectDeclarations(.Declarations)) ... </trace>
+       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(\not(GOAL), collectDeclarations(GId)) ... </trace>
      requires isPredicatePattern(GOAL)
 ```
 

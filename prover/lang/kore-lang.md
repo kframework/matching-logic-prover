@@ -736,12 +736,12 @@ Simplifications
   rule #collectClaimNames(Ns) => Ns [owise]
 
   syntax Declarations
-    ::= collectAllDeclarations(GoalId) [function]
+    ::= collectDeclarations(GoalId) [function]
     | collectLocalDeclarations(GoalId) [function]
     | #collectLocalDeclarations(GoalId, Declarations) [function]
 
-  rule collectAllDeclarations(GId)
-       => collectDeclarations() ++Declarations
+  rule collectDeclarations(GId)
+       => collectGlobalDeclarations() ++Declarations
           collectLocalDeclarations(GId)
 
   syntax Declarations
@@ -759,13 +759,13 @@ Simplifications
 
   rule #collectLocalDeclarations(_, Ds) => Ds [owise]
 
-  syntax Declarations ::= collectDeclarations() [function]
-                        | #collectDeclarations(Declarations) [function]
+  syntax Declarations ::= collectGlobalDeclarations() [function]
+                        | #collectGlobalDeclarations(Declarations) [function]
                         | #collectSortDeclarations(Declarations) [function]
 
-  rule collectDeclarations() => #collectDeclarations(.Declarations)
+  rule collectGlobalDeclarations() => #collectGlobalDeclarations(.Declarations)
 
-  rule [[ #collectDeclarations(Ds) => #collectDeclarations(D Ds) ]]
+  rule [[ #collectGlobalDeclarations(Ds) => #collectGlobalDeclarations(D Ds) ]]
     <declaration> D </declaration>
     requires notBool (D inDecls Ds) andBool notBool isSortDeclaration(D)
 
@@ -776,7 +776,7 @@ Simplifications
     <declaration> (sort _ #as D:Declaration) </declaration>
     requires notBool (D inDecls Ds)
 
-  rule #collectDeclarations(Ds) => #collectSortDeclarations(Ds) [owise]
+  rule #collectGlobalDeclarations(Ds) => #collectSortDeclarations(Ds) [owise]
   rule #collectSortDeclarations(Ds) => Ds [owise]
 
   syntax Bool ::= Declaration "inDecls" Declarations [function]
@@ -803,32 +803,34 @@ Simplifications
             Prefix
           #fi
 
-  syntax Set ::= collectAxiomNames() [function]
-               | #collectAxiomNames(Declarations) [function]
+  syntax Set ::= collectGlobalAxiomNames() [function]
+               | #collectGlobalAxiomNames(Declarations) [function]
 
-  rule collectAxiomNames() => #collectAxiomNames(collectDeclarations())
-  rule #collectAxiomNames(.Declarations) => .Set
-  rule #collectAxiomNames((axiom N : _) Ds)
-       => SetItem(AxiomNameToString(N)) #collectAxiomNames(Ds)
-  rule #collectAxiomNames(D Ds => Ds) [owise]
+  rule collectGlobalAxiomNames()
+    => #collectGlobalAxiomNames(collectGlobalDeclarations())
+  rule #collectGlobalAxiomNames(.Declarations) => .Set
+  rule #collectGlobalAxiomNames((axiom N : _) Ds)
+       => SetItem(AxiomNameToString(N)) #collectGlobalAxiomNames(Ds)
+  rule #collectGlobalAxiomNames(D Ds => Ds) [owise]
 
 
-  syntax Set ::= collectNamed() [function]
-  rule collectNamed() => collectAxiomNames() collectClaimNames()
+  syntax Set ::= collectGlobalNamed() [function]
+  rule collectGlobalNamed()
+    => collectGlobalAxiomNames() collectClaimNames()
 
-  syntax AxiomName ::= getFreshAxiomName() [function]
-  rule getFreshAxiomName()
-       => StringToAxiomName(getFreshName("ax", collectNamed()))
+  syntax AxiomName ::= getFreshGlobalAxiomName() [function]
+  rule getFreshGlobalAxiomName()
+       => StringToAxiomName(getFreshName("ax", collectGlobalNamed()))
 
   syntax ClaimName ::= getFreshClaimName() [function]
   rule getFreshClaimName()
-       => StringToClaimName(getFreshName("cl", collectNamed()))
+       => StringToClaimName(getFreshName("cl", collectGlobalNamed()))
 
   syntax Set ::= collectSymbolsS(GoalId) [function]
                | #collectSymbolsS(Declarations) [function]
 
   rule collectSymbolsS(GId)
-       => #collectSymbolsS(collectAllDeclarations(GId))
+       => #collectSymbolsS(collectDeclarations(GId))
 
   rule #collectSymbolsS(.Declarations) => .Set
   rule #collectSymbolsS( (symbol S ( _ ) : _) Ds)
