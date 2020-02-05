@@ -28,36 +28,32 @@ module DRIVER-COQ
   imports PROVER-CORE-SYNTAX
   imports STRATEGIES-EXPORTED-SYNTAX
 
+// Add sort "Term" to declarations
   rule <k> CS:CoqSentence CSs:CoqSentences => CS ~> CSs ... </k>
        <declarations> ( .Bag
                      => <declaration> sort StringToSort("Term") </declaration>
                       ) ...
        </declarations>
 
-  rule <k> Definition ID BINDERs : TYPE := TERM .
-        => .K
-           ...
-       </k>
-       <declarations> ( .Bag
-                     => <declaration> symbol CoqIdentToSymbol(ID)(CoqBindersToSorts(BINDERs)) : CoqTermToSort(ID) </declaration>
-                      ) ...
-       </declarations>
-
+// Add symbol (of sort Term) and equality axiom corresponding to each definition
+  rule Definition ID BINDERs : TYPE := TERM . => Definition ID := TERM .
   rule <k> Definition ID := TERM .
         => .K
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> axiom \equals(CoqIdentToSymbol(ID), CoqTermToPattern(TERM)) </declaration>
+                     => <declaration> symbol CoqIdentToSymbol(ID)(.Sorts) : StringToSort("Term") </declaration>
+                        <declaration> axiom \equals(CoqIdentToSymbol(ID), CoqTermToPattern(TERM)) </declaration>
                       ) ...
        </declarations>       
 
+// Translate inductive cases
   rule <k> Inductive ID BINDERs : TERM := .CoqIndCases .
         => .K
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol CoqIdentToSymbol(ID)(CoqBindersToSorts(BINDERs)) : CoqTermToSort(ID) </declaration>
+                     => <declaration> symbol CoqIdentToSymbol(ID)(.Sorts) : StringToSort("Term") </declaration>
                       ) ...
        </declarations>
 
@@ -66,20 +62,12 @@ module DRIVER-COQ
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol CoqIdentToSymbol(IDC)(CoqBindersToSorts(BINDERCs)) : CoqTermToSort(ID) </declaration>
+                     => <declaration> symbol CoqIdentToSymbol(IDC)(.Sorts) : StringToSort("Term") </declaration>
                         <declaration> axiom \type(CoqIdentToSymbol(IDC)(.Patterns), CoqTermToPattern(TERMC))  </declaration>
                       ) ...
        </declarations>
 
-  syntax Sorts ::= CoqBindersToSorts(CoqBinders) [function]
-  rule CoqBindersToSorts(.CoqBinders) => .Sorts
-  rule CoqBindersToSorts(NAME:CoqName BINDERs) => StringToSort("Term"), CoqBindersToSorts(BINDERs)
-  rule CoqBindersToSorts((NAMES : TYPE) BINDERs) => CoqNamesToSorts(NAMES) ++Sorts CoqBindersToSorts(BINDERs)
-
-  syntax Sorts ::= CoqNamesToSorts(CoqNames) [function]
-  rule CoqNamesToSorts(.CoqNames) => .Sorts
-  rule CoqNamesToSorts(NAME:CoqName NAMEs) => StringToSort("Term"), CoqNamesToSorts(NAMEs)
-
+// Converting Term to Pattern
   syntax Pattern ::= CoqTermToPattern(CoqTerm) [function]
   rule CoqTermToPattern(UN:UpperName) => CoqIdentToSymbol(UN)
   rule CoqTermToPattern(LN:LowerName) => CoqIdentToSymbol(LN)
@@ -127,7 +115,7 @@ module DRIVER-COQ
   rule CoqPatternToPatterns(ID:CoqQualID) => CoqIdentToSymbol(ID), .Patterns
   rule CoqPatternToPatterns(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID) ++Patterns CoqPatternToPatterns(P)
 
-  // Get binders from MultPattern
+// Get binders from MultPattern
   syntax Patterns ::= CoqMultPatternToBinders(CoqMultPattern) [function]
   syntax Patterns ::= CoqPatternToBinders(CoqMultPattern) [function]
   rule CoqMultPatternToBinders(ID:CoqQualID) => .Patterns

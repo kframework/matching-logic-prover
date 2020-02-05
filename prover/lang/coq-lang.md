@@ -27,11 +27,7 @@ module COQ
 // Seralize to String:
   syntax String ::= CoqNameToString(CoqName) [function, functional, hook(STRING.token2string)]
 
-// Converting between Sorts:
-  syntax Sort ::= CoqTermToSort(CoqTerm) [function]
-  rule CoqTermToSort(SORT:UpperName) => StringToSort("Term")
-  rule CoqTermToSort(SORT:LowerName) => StringToSort("Term")
-
+// Sort conversions
   syntax Symbol ::= CoqIdentToSymbol(CoqIdent) [function]
   rule CoqIdentToSymbol(IDENT:UpperName) => IDENT
   rule CoqIdentToSymbol(IDENT:LowerName) => IDENT
@@ -41,6 +37,15 @@ module COQ
 
   syntax VariableName ::= CoqNameToVariableName(CoqName) [function]
   rule CoqNameToVariableName(NAME) => StringToVariableName(CoqNameToString(NAME))
+
+  syntax Sorts ::= CoqBindersToSorts(CoqBinders) [function]
+  rule CoqBindersToSorts(.CoqBinders) => .Sorts
+  rule CoqBindersToSorts(NAME:CoqName BINDERs) => StringToSort("Term"), CoqBindersToSorts(BINDERs)
+  rule CoqBindersToSorts((NAMES : TYPE) BINDERs) => CoqNamesToSorts(NAMES) ++Sorts CoqBindersToSorts(BINDERs)
+
+  syntax Sorts ::= CoqNamesToSorts(CoqNames) [function]
+  rule CoqNamesToSorts(.CoqNames) => .Sorts
+  rule CoqNamesToSorts(NAME:CoqName NAMEs) => StringToSort("Term"), CoqNamesToSorts(NAMEs)
 
 // Terms
   syntax CoqTerm ::= "fun" CoqBinders "=>" CoqTerm
