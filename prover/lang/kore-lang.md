@@ -430,31 +430,50 @@ and values, passed to K's substitute.
 Substitution: Substitute term or variable
 
 ```k
-  syntax Pattern ::= subst(Pattern, Pattern, Pattern)    [function, klabel(subst)]
-  rule subst(T,T,V) => V // We allow substitution over arbitary patterns
-  rule subst(X:Variable,Y,V) => X requires X =/=K Y
-  rule subst(I:Int, X, V) => I
-  rule subst(\top(),_,_)=> \top()
-  rule subst(\bottom(),_,_) => \bottom()
-  rule subst(\equals(ARG1, ARG2):Pattern, X, V)
-    => \equals(subst(ARG1, X, V), subst(ARG2, X, V)):Pattern
-  rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
-  rule subst(\and(ARG):Pattern, X, V) => \and(ARG[X/V]):Pattern
-  rule subst(\or(ARG):Pattern, X, V) => \or(ARG[X/V]):Pattern
-  rule subst(\implies(LHS, RHS):Pattern, X, V)
-    => \implies(subst(LHS, X, V), subst(RHS, X, V)):Pattern
-  rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
-  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V)
+  // capture-avoiding substitution
+  syntax Pattern ::= casubst(Pattern, Pattern, Pattern)    [function]
 
-  rule subst(S:Symbol, X, V) => S
+  rule casubst(P, V, S) => #subst(true, P, V, S)
+
+  // non-capture-avoiding substitution
+  syntax Pattern ::= subst(Pattern, Pattern, Pattern)    [function, klabel(subst)]
+
+  rule subst(P, V, S) => #subst(false, P, V, S)
+
+  syntax Pattern ::= #subst(Bool, Pattern, Pattern, Pattern)    [function]
+
+  rule #subst(_, T,T,V) => V // We allow substitution over arbitary patterns
+  rule #subst(_, X:Variable,Y,V) => X requires X =/=K Y
+  rule #subst(_, I:Int, X, V) => I
+  rule #subst(_, \top(),_,_)=> \top()
+  rule #subst(_, \bottom(),_,_) => \bottom()
+  rule #subst(CA, \equals(ARG1, ARG2):Pattern, X, V)
+    => \equals(#subst(CA, ARG1, X, V), #subst(CA, ARG2, X, V)):Pattern
+  rule #subst(CA, \not(ARG):Pattern, X, V) => \not(#subst(CA, ARG, X, V)):Pattern
+  rule #subst(CA, \and(ARG):Pattern, X, V) => \and(ARG[CA, X/V]):Pattern
+  rule #subst(CA, \or(ARG):Pattern, X, V) => \or(ARG[CA, X/V]):Pattern
+  rule #subst(CA, \implies(LHS, RHS):Pattern, X, V)
+    => \implies(#subst(CA, LHS, X, V), #subst(CA, RHS, X, V)):Pattern
+  rule #subst(CA:Bool, \forall { E } C, X, V)
+    => #if CA andBool X in E
+       #then \forall { E } C
+       #else \forall { E } #subst(CA, C, X, V)
+       #fi
+  rule #subst(CA, \exists { E } C, X, V)
+    => #if CA andBool X in E
+       #then \exists { E } C
+       #else \exists { E } #subst(CA, C, X, V)
+       #fi
+
+  rule #subst(_, S:Symbol, X, V) => S
     requires S =/=K X
-  rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
+  rule #subst(CA, S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[CA, X/V])
     requires T =/=K X
 
-  rule subst(implicationContext(CTX, RHS), X, V)
-    => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
+  rule #subst(CA, implicationContext(CTX, RHS), X, V)
+    => implicationContext(#subst(CA,CTX,X,V), #subst(CA,RHS,X,V)):Pattern
 
-  rule subst(R,_,_) => R [owise]
+  rule #subst(_, R,_,_) => R [owise]
 
   syntax Pair ::= pair(Patterns, Patterns)
   syntax Pair ::= unzip(Map) [function]
@@ -491,9 +510,14 @@ Substitution: Substitute term or variable
 
   rule substPatternsMap(.Patterns, SUBST) => .Patterns
 
+
+  // the Bool param: avoid capture
+  syntax Patterns ::= Patterns "[" Bool "," Pattern "/" Pattern "]" [function]
   syntax Patterns ::= Patterns "[" Pattern "/" Pattern "]" [function]
-  rule (BP, BPs)[X/V] => subst(BP,X,V), (BPs[X/V])
-  rule .Patterns[X/V] => .Patterns
+
+  rule Ps[X/V] => Ps[false, X/V]
+  rule (BP, BPs)[CA, X/V] => #subst(CA,BP,X,V), (BPs[CA, X/V])
+  rule .Patterns[_, X/V] => .Patterns
 ```
 
 Alpha renaming: Rename all bound variables. Free variables are left unchanged.
