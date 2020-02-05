@@ -1,0 +1,126 @@
+//---------------------------------------------------------
+// Specification of a transition system
+
+sort State
+symbol st(Int) : State
+axiom functional(st)
+axiom st_injective:
+    \forall {N1{Int}, N2{Int}}
+        \implies(
+            \equals(st(N1{Int}), st(N2{Int})),
+            \equals(N1{Int}, N2{Int})
+        )
+
+axiom State_ctors:
+    \forall {S{State}}
+        \implies(\and(), \exists {N{Int}} \and(
+            \equals(S, st(N{Int}))
+        ))
+
+symbol isInitial(State) : Bool
+axiom functional(isInitial)
+
+axiom \forall { S{State} } \iff-lfp(
+    isInitial(S{State}),
+    \or( \exists { } \and(\equals(S{State},st(0)))))
+
+
+symbol isNext(State, State) : Bool
+axiom functional(isNext)
+
+// TODO change to equals, remove exists
+axiom \forall {S1{State}, S2{State}} \iff-lfp(
+    isNext(S1{State}, S2{State}),
+    \or(
+        // st(0) -> st(1)
+        \exists{} \and(
+            \equals(S1{State}, st(0)),
+            \equals(S2{State}, st(1))
+        ),
+
+        // st(1) -> st(1)
+        \exists{} \and(
+            \equals(S1{State}, st(1)),
+            \equals(S2{State}, st(1))
+        ),
+
+        // st(0) -> st(2)
+        \exists{} \and(
+            \equals(S1{State}, st(0)),
+            \equals(S2{State}, st(2))
+        ),
+
+        // st(2) -> st(2)
+        \exists{} \and(
+            \equals(S1{State}, st(2)),
+            \equals(S2{State}, st(2))
+        )
+
+    )
+)
+
+
+claim isInitial(st(0))
+strategy normalize //. right-unfold . smt-cvc4
+
+claim \not(isInitial(st(1)))
+strategy normalize
+/*
+    . right-unfold
+    . normalize
+    . use-axiom(st_injective)
+    . smt-cvc4
+*/
+
+//---------------------------------------------------------
+// Generating runs
+
+// Also, we do not have Nat, we have only Int.
+sort Nat
+// I would like to say:
+// forall x:Int. x \in [[Nat] iff x >= 0
+
+sort PairNatState
+// in AML, pairNatState is a constant symbol,
+// but in the prover we need this:
+symbol pairNatState(Nat, State) : PairNatState
+// \exists n:Nat \subseteq [[ pairNatState ]]
+axiom functional(pairNatState)
+
+
+
+sort Run
+// a partial function
+symbol get(Run,Int) : State
+axiom functional(get)
+
+/
+// TODO
+// each run starts at an initial state
+claim run-starts-in-init:
+	\forall {R{Run}} isInitial(get(R{Run}, 0))
+strategy noop
+
+// TODO
+// exists some run starting in st(0)
+claim exists-some-run: \exists { R{Run} } \equals(get(R{Run},0), st(0))
+strategy noop
+
+/* TODO: context
+
+(Goal) ( ext r = \exists n:Nat. pair(n, st(0)) ) -> ( \forall n:Nat. (\exists y:State. y and pair(n, y) \in (ext R)) = st(0) )
+(.) ( ext r = \exists n:Nat. pair(n, st(0)) ) -> (\exists y:State. y and pair(n, y) \in (ext R)) = st(0)
+(..) (\exists y:State. y and pair(n, y) \in (ext R)) = st(0) assuming axiom ( ext r = \exists n:Nat. pair(n, st(0)) )
+(..1) (\exists y:State. y and pair(n, y) \in (ext R)) ⊆ st(0)
+(..2) st(0) ⊆ (\exists y:State. y and pair(n, y) \in (ext R))
+(..1.) (y and pair(n, y) \in (ext R)) ⊆ st(0)
+(..1..) pair(n,y) \in (ext R) -> (y = st(0))
+(..1...) pair(n,y) \in (\exists n':Nat. pair(n', st(0))) -> (y = st(0))
+(..1....) (\exists n':Nat . pair(n,y) \in pair(n',st(0))) -> (y = st(0))
+(..1.....) (\exists n':Nat . pair(n,y) = pair(n',st(0))) -> (y = st(0))
+(..1......) (\exists n':Nat . n=n' /\ y=st(0)) -> (y = st(0)) // done
+(..2.) pair(n,st(0)) -> (ext R)
+(..2..) pair(n,st(0)) -> \exists n'. pair(n', st(0))
+(..2...) pair(n,st(0)) -> pair(n,st(0)) // done
+
+*/
