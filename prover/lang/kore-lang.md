@@ -425,25 +425,35 @@ and values, passed to K's substitute.
   syntax Int ::= getLength(Patterns) [function]
   rule getLength(.Patterns) => 0
   rule getLength(P, Ps) => 1 +Int getLength(Ps)
+
+  syntax Set ::= PatternsToVariableNameSet(Patterns) [function]
+  rule PatternsToVariableNameSet(.Patterns) => .Set
+  rule PatternsToVariableNameSet(N{_}, Ps)
+       => SetItem(N) PatternsToVariableNameSet(Ps)
+
 ```
 
 Substitution: Substitute term or variable
 
 ```k
+  syntax PatternOrVarName ::= Pattern | VariableName
+
   // capture-avoiding substitution
-  syntax Pattern ::= casubst(Pattern, Pattern, Pattern)    [function]
+  syntax Pattern ::= casubst(Pattern, PatternOrVarName, Pattern)    [function]
 
   rule casubst(P, V, S) => #subst(true, P, V, S)
 
   // non-capture-avoiding substitution
-  syntax Pattern ::= subst(Pattern, Pattern, Pattern)    [function, klabel(subst)]
+  syntax Pattern ::= subst(Pattern, PatternOrVarName, Pattern)    [function, klabel(subst)]
 
   rule subst(P, V, S) => #subst(false, P, V, S)
 
-  syntax Pattern ::= #subst(Bool, Pattern, Pattern, Pattern)    [function]
+  syntax Pattern ::= #subst(Bool, Pattern, PatternOrVarName, Pattern)    [function]
 
   rule #subst(_, T,T,V) => V // We allow substitution over arbitary patterns
-  rule #subst(_, X:Variable,Y,V) => X requires X =/=K Y
+  rule #subst(_, X{_}, X:VariableName, V) => V
+  rule #subst(_, X{S}, Y:VariableName, V) => X{S} requires X =/=K Y
+  rule #subst(_, X:Variable,Y:Variable,V) => X requires X =/=K Y
   rule #subst(_, I:Int, X, V) => I
   rule #subst(_, \top(),_,_)=> \top()
   rule #subst(_, \bottom(),_,_) => \bottom()
@@ -455,12 +465,14 @@ Substitution: Substitute term or variable
   rule #subst(CA, \implies(LHS, RHS):Pattern, X, V)
     => \implies(#subst(CA, LHS, X, V), #subst(CA, RHS, X, V)):Pattern
   rule #subst(CA:Bool, \forall { E } C, X, V)
-    => #if CA andBool X in E
+    => #if CA andBool (
+         X in E orBool X in PatternsToVariableNameSet(E))
        #then \forall { E } C
        #else \forall { E } #subst(CA, C, X, V)
        #fi
   rule #subst(CA, \exists { E } C, X, V)
-    => #if CA andBool X in E
+    => #if CA andBool (
+         X in E orBool X in PatternsToVariableNameSet(E))
        #then \exists { E } C
        #else \exists { E } #subst(CA, C, X, V)
        #fi
