@@ -55,6 +55,7 @@ module STRATEGY-APPLY-EQUATION
   syntax Bool ::=
     "apply-equation.checkShape" "(" Pattern ")" [function]
 
+  rule apply-equation.checkShape(\iff-lfp(_, _)) => true
   rule apply-equation.checkShape(\equals(_, _)) => true
   rule apply-equation.checkShape(\forall{_} P)
        => apply-equation.checkShape(P)
@@ -89,6 +90,8 @@ module STRATEGY-APPLY-EQUATION
   ::= "apply-equation.getLeft" "(" Pattern ")" [function]
     | "apply-equation.getRight" "(" Pattern ")" [function]
 
+  rule apply-equation.getLeft(\iff-lfp(L,_)) => L
+  rule apply-equation.getRight(\iff-lfp(_,R)) => R
   rule apply-equation.getLeft(\equals(L,_)) => L
   rule apply-equation.getRight(\equals(_,R)) => R
   rule apply-equation.getLeft(\forall{_} P)
