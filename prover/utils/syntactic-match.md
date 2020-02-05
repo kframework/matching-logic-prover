@@ -65,6 +65,15 @@ module SYNTACTIC-MATCH-RULES
     => #matchFailure("Integers do not match")
     requires N =/=Int M
 
+  // Non-matching ints
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  _:Int, _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #matchFailure("Not an integer")
+    requires notBool isInt(T)
+
   // Non-matching constructors
   rule #syntacticMatch( terms:     S1:Symbol(_), _
                       , patterns:  S2:Symbol(_), _
