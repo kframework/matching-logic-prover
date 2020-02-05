@@ -67,6 +67,7 @@ endmodule
 
 module DRIVER-BASE
   imports DRIVER-BASE-COMMON
+  imports STRATEGY-DUPLICATE
   imports STRATEGY-INTROS
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
