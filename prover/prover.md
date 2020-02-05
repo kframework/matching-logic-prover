@@ -15,6 +15,7 @@ requires "strategies/reflexivity.k"
 requires "strategies/replace-evar-with-func-constant.k"
 requires "strategies/unfolding.k"
 requires "utils/heatcool.k"
+requires "utils/load-named.k"
 requires "utils/syntactic-match.k"
 requires "utils/visitor.k"
 ```

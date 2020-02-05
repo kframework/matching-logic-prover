@@ -81,6 +81,7 @@ module DRIVER-BASE
   imports VISITOR
   imports PATTERN-LENGTH
   imports HEATCOOL-RULES
+  imports LOAD-NAMED-RULES
 
   rule <k> .CommandLine => .K ... </k>
 endmodule

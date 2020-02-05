@@ -17,23 +17,11 @@ module STRATEGY-APPLY-EQUATION
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
   imports HEATCOOL-SYNTAX
+  imports LOAD-NAMED-SYNTAX
 
   rule <strategy> (.K => loadNamed(Name))
                ~> apply-equation D Name at _ by[_] ...
        </strategy>
-
-  syntax KItem ::= loadNamed(AxiomOrClaimName)
-  rule <strategy> loadNamed(Name) => P ...</strategy>
-       <goal>
-         ...
-         <id> Name </id>
-         <claim> P </claim>
-         <strategy> success </strategy>
-         ...
-       </goal>
-
-  rule <strategy> loadNamed(Name) => P ...</strategy>
-       <declaration> axiom Name : P </declaration>
 
   rule <strategy> (P:Pattern ~> apply-equation D _ at Idx by[Ss])
                => #apply-equation1
