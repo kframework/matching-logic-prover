@@ -1,3 +1,10 @@
+/*
+  TODOs
+  - natural numbers
+  - subseteq and membership
+
+*/
+
 //---------------------------------------------------------
 // Specification of a transition system
 
@@ -78,15 +85,41 @@ strategy normalize
 // Also, we do not have Nat, we have only Int.
 sort Nat
 // I would like to say:
-// forall x:Int. x \in [[Nat] iff x >= 0
+// forall x:Int. x \in [[Nat]] iff x >= 0
+
+axiom nat-1: \forall{N{Nat}} \exists{I{Int}} \equals{N{Nat}, I{Int}}
+axiom nat-2: \forall{X{Int}} \implies(
+  gte(X{Int}, 0),
+  \exists{N{Nat}} \equals(X{Int}, N{Nat})
+)
+
 
 sort PairNatState
 // in AML, pairNatState is a constant symbol,
 // but in the prover we need this:
 symbol pairNatState(Nat, State) : PairNatState
-// \exists n:Nat \subseteq [[ pairNatState ]]
+// (\exists n:Nat s:State. pairNatState(n,s)) \subseteq [[ pairNatState ]]
 axiom functional(pairNatState)
+// [[pairNatState] \subseteq (\exists n:Nat s:State. pairNatState(n,s))
+axiom PairNatState-ctors:
+  \forall{P{PairNatState}}
+  \exists{N{Nat},S{State}}
+  \equals(P{PairNatState}, pairNatState(N{Nat}, S{State}))
 
+axiom pairNatState-injective:
+  \forall{N1{Nat},S1{State},N2{Nat},S2{state}}
+  \implies(
+    \equals(
+      pairNatState(N1{Nat},S1{State}),
+      pairNatState(N2{Nat},S2{State})
+    ),
+    \and(
+      \equals(N1{Nat},N2{Nat}),
+      \equals(S1{State},S2{State})
+    )
+  )
+
+// X ⊆ ⟦s⟧ → ∃α: 2^s . ext α = X
 
 
 sort Run
