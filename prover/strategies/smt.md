@@ -40,14 +40,6 @@ module ML-TO-SMTLIB2
     => DeclarationsToSMTLIB(GId, Ds)
     requires notBool isFunctional(GId, S)
 
-  syntax Bool ::= isFunctional(GoalId, Symbol) [function]
-  rule [[ isFunctional(_, S) => true ]]
-       <declaration> axiom _: functional(S) </declaration>
-  rule [[ isFunctional(GId, S) => true ]]
-       <id> GId </id>
-       <local-decl> axiom _: functional(S) </local-decl>
-  rule isFunctional(_, S) => false [owise]
-
   syntax SMTLIB2TermList ::= SMTLIB2SortedVarListToSMTLIB2TermList(SMTLIB2SortedVarList) [function]
   rule SMTLIB2SortedVarListToSMTLIB2TermList(.SMTLIB2SortedVarList) => .SMTLIB2TermList
   rule SMTLIB2SortedVarListToSMTLIB2TermList((V _) Vs) => V SMTLIB2SortedVarListToSMTLIB2TermList(Vs)

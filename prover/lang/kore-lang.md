@@ -260,6 +260,14 @@ module KORE-HELPERS
 ```
 
 ```k
+  syntax Bool ::= isFunctional(GoalId, Symbol) [function]
+  rule [[ isFunctional(_, S) => true ]]
+       <declaration> axiom _: functional(S) </declaration>
+  rule [[ isFunctional(GId, S) => true ]]
+       <id> GId </id>
+       <local-decl> axiom _: functional(S) </local-decl>
+  rule isFunctional(_, S) => false [owise]
+
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
   rule getReturnSort( _ { S } ) => S
