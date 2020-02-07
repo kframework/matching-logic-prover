@@ -5,6 +5,7 @@ requires "drivers/kore-driver.k"
 requires "drivers/base.k"
 requires "strategies/apply-equation.k"
 requires "strategies/core.k"
+requires "strategies/duplicate.k"
 requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -15,6 +16,7 @@ requires "strategies/reflexivity.k"
 requires "strategies/replace-evar-with-func-constant.k"
 requires "strategies/unfolding.k"
 requires "utils/heatcool.k"
+requires "utils/load-named.k"
 requires "utils/syntactic-match.k"
 requires "utils/visitor.k"
 ```
@@ -60,6 +62,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "at" Int "by" "[" Strategies "]"
                     | "intros" AxiomName
                     | "replace-evar-with-func-constant" Variables
+                    | "duplicate" AxiomOrClaimName "as" AxiomName
 
   syntax RewriteDirection ::= "->" | "<-"
 

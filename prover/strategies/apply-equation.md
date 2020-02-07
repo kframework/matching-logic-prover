@@ -1,25 +1,30 @@
+# apply-equation
+
+```
+Gamma contains H: \forall X1 PHI1 ->
+                  \forall X2 PHI2 -> ... -> \forall Xn . L = R
+Gamma |- PHI1[Theta1]
+Gamma |- PHI1[Theta1][Theta2]
+...
+Gamma |- PHIn[Theta1]...[Thetan]
+Gamma |- C[R[Theta1]...[Thetan]]
+where P matches L with substitution Theta1 ... Thetan
+--------------------------------------------------------------------
+Gamma |- C[P]
+```
+
+TODO: split this into multiple simpler strategies
+
 ```k
 module STRATEGY-APPLY-EQUATION
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
   imports HEATCOOL-SYNTAX
+  imports LOAD-NAMED-SYNTAX
 
   rule <strategy> (.K => loadNamed(Name))
                ~> apply-equation D Name at _ by[_] ...
        </strategy>
-
-  syntax KItem ::= loadNamed(AxiomOrClaimName)
-  rule <strategy> loadNamed(Name) => P ...</strategy>
-       <goal>
-         ...
-         <id> Name </id>
-         <claim> P </claim>
-         <strategy> success </strategy>
-         ...
-       </goal>
-
-  rule <strategy> loadNamed(Name) => P ...</strategy>
-       <declaration> axiom Name : P </declaration>
 
   rule <strategy> (P:Pattern ~> apply-equation D _ at Idx by[Ss])
                => #apply-equation1
@@ -41,6 +46,7 @@ module STRATEGY-APPLY-EQUATION
   syntax Bool ::=
     "apply-equation.checkShape" "(" Pattern ")" [function]
 
+  rule apply-equation.checkShape(\iff-lfp(_, _)) => true
   rule apply-equation.checkShape(\equals(_, _)) => true
   rule apply-equation.checkShape(\forall{_} P)
        => apply-equation.checkShape(P)
@@ -75,6 +81,8 @@ module STRATEGY-APPLY-EQUATION
   ::= "apply-equation.getLeft" "(" Pattern ")" [function]
     | "apply-equation.getRight" "(" Pattern ")" [function]
 
+  rule apply-equation.getLeft(\iff-lfp(L,_)) => L
+  rule apply-equation.getRight(\iff-lfp(_,R)) => R
   rule apply-equation.getLeft(\equals(L,_)) => L
   rule apply-equation.getRight(\equals(_,R)) => R
   rule apply-equation.getLeft(\forall{_} P)

@@ -1,0 +1,12 @@
+symbol X() : Int
+symbol X0() : Int
+symbol X1(Int) : Int
+symbol X2(Int, Int) : Int
+
+claim \implies(gte(X{Int}, 2), gte(X{Int}, 1))
+strategy
+  // replaces X{Int} with X3()
+  replace-evar-with-func-constant X{Int}
+. smt-cvc4
+
+

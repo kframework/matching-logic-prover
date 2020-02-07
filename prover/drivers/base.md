@@ -67,6 +67,7 @@ endmodule
 
 module DRIVER-BASE
   imports DRIVER-BASE-COMMON
+  imports STRATEGY-DUPLICATE
   imports STRATEGY-INTROS
   imports STRATEGY-SMT
   imports STRATEGY-SEARCH-BOUND
@@ -81,6 +82,7 @@ module DRIVER-BASE
   imports VISITOR
   imports PATTERN-LENGTH
   imports HEATCOOL-RULES
+  imports LOAD-NAMED-RULES
 
   rule <k> .CommandLine => .K ... </k>
 endmodule

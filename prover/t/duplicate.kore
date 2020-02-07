@@ -1,0 +1,6 @@
+symbol f() : Int
+axiom f-is-3 : \equals(f(), 3)
+claim \equals(3, f())
+strategy duplicate f-is-3 as H
+       . apply-equation -> H at 0 by []
+       . reflexivity
