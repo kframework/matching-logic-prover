@@ -1,4 +1,5 @@
 # apply-equation
+
 ```
 Gamma contains H: \forall X1 PHI1 ->
                   \forall X2 PHI2 -> ... -> \forall Xn . L = R
@@ -11,6 +12,8 @@ where P matches L with substitution Theta1 ... Thetan
 --------------------------------------------------------------------
 Gamma |- C[P]
 ```
+
+TODO: split this into multiple simpler strategies
 
 ```k
 module STRATEGY-APPLY-EQUATION

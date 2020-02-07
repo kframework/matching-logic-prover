@@ -2,12 +2,11 @@
 
 This strategy is useful in combination with strategies that modify
 the proof context.
-```
 
+```
 Gamma, Phi, Phi |- Psi
 -----------------
 Gamma, Phi |- Psi
-
 ```
 
 ```k
