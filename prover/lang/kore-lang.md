@@ -203,6 +203,7 @@ module KORE-HELPERS
   imports STRING
   imports PROVER-CONFIGURATION
   imports PROVER-CORE-SYNTAX
+  imports VISITOR-SYNTAX
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
@@ -772,6 +773,29 @@ Simplifications
   rule hasImplicationContextPs(P, Ps)
     => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
 
+  syntax Bool ::= hasNonFunctionalSymbol(GoalId, Pattern) [function]
+
+  rule hasNonFunctionalSymbol(GId, P)
+    => #hasNonFunctionalSymbolR(
+         visitTopDown(#hasNonFunctionalSymbolV(GId, false), P)
+       )
+
+  syntax Bool ::= #hasNonFunctionalSymbolR(VisitorResult) [function]
+  rule #hasNonFunctionalSymbolR(
+         visitorResult(#hasNonFunctionalSymbolV(_, B), _)) => B
+
+  syntax Visitor ::= #hasNonFunctionalSymbolV(GoalId, Bool)
+
+  rule visit(#hasNonFunctionalSymbolV(GId, B), S:Symbol(_) #as P)
+       => visitorResult(
+            #hasNonFunctionalSymbolV(
+              GId, B orBool notBool isFunctional(GId, S)
+            ),
+            P
+          )
+
+  rule visit(#hasNonFunctionalSymbolV(...) #as V, P)
+       => visitorResult(V, P) [owise]
 
   syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
   syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]
