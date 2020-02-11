@@ -1,3 +1,9 @@
+```
+Gamma, Phi(t) |- G where functional(t)
+---------------------
+Gamma, forall x. Phi(x) |- G
+```
+
 ```k
 module STRATEGY-INSTANTIATE-UNIVERSALS
   imports PROVER-CORE
@@ -47,7 +53,7 @@ module STRATEGY-INSTANTIATE-UNIVERSALS
          ...
        </strategy>
        <id> GId </id>
-       requires notBool isSurelyFunctional(GId, T)
+       requires notBool isFunctional(GId, T)
 
   rule <strategy>
          instantiate-universal V with T in H
@@ -58,7 +64,7 @@ module STRATEGY-INSTANTIATE-UNIVERSALS
        </local-decl>
        <id> GId </id>
        requires varIsInTopUnivQual(V, getReturnSort(T), Phi)
-             andBool isSurelyFunctional(GId, T)
+             andBool isFunctional(GId, T)
 
   syntax Pattern ::= #instantiateUniv(Pattern, VariableName, Pattern) [function]
 

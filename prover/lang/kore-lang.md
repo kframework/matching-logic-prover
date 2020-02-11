@@ -260,33 +260,29 @@ module KORE-HELPERS
 ```
 
 ```k
-  syntax Bool ::= isFunctional(GoalId, Symbol) [function]
+  syntax Bool ::= isFunctional(GoalId, Pattern) [function]
 
   rule isFunctional(_, plus #Or minus #Or select #Or union
          #Or singleton #Or emptyset) => true
 
   rule [[ isFunctional(_, S) => true ]]
        <declaration> axiom _: functional(S) </declaration>
+
   rule [[ isFunctional(GId, S) => true ]]
        <id> GId </id>
        <local-decl> axiom _: functional(S) </local-decl>
-  rule isFunctional(_, S) => false [owise]
 
-  syntax Bool ::= isSurelyFunctional(GoalId, Pattern) [function]
-  rule isSurelyFunctional(GId, P)
-    => areSurelyFunctional(GId, P, .Patterns)
+  rule isFunctional(_, _:Int) => true
+  rule isFunctional(_, _{_}) => true
+  rule isFunctional(GId, R(ARGS))
+       => isFunctional(GId, R) andBool areFunctional(GId, ARGS)
+  rule isFunctional(_,_) => false [owise]
 
-  syntax Bool ::= areSurelyFunctional(GoalId, Patterns) [function]
+  syntax Bool ::= areFunctional(GoalId, Patterns) [function]
 
-  rule areSurelyFunctional(_, .Patterns) => true
-  rule areSurelyFunctional(GId, I:Int, Ps)
-    => areSurelyFunctional(GId, Ps)
-  rule areSurelyFunctional(GId, V{S}, Ps)
-    => areSurelyFunctional(GId, Ps)
-  rule areSurelyFunctional(GId, R ( ARGS ), Ps)
-    => isFunctional(GId, R) andBool
-       areSurelyFunctional(GId, ARGS ++Patterns Ps)
-  rule areSurelyFunctional(_, _) => false [owise]
+  rule areFunctional(_, .Patterns) => true
+  rule areFunctional(GId, P, Ps)
+       => isFunctional(GId, P) andBool areFunctional(GId, Ps)
 
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
