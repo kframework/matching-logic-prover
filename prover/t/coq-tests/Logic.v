@@ -5,7 +5,7 @@ Inductive False : Prop := .
 
 Inductive nat : Prop :=
     Z : nat
-  | S : nat -> nat .
+  | S : (forall (x : nat), nat) .
 
 Definition not := fun (A: Prop) => (forall (x : A), False) .
 

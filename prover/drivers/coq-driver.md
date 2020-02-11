@@ -43,9 +43,9 @@ module DRIVER-COQ
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol CoqIdentToSymbol(ID)(.Sorts) : StringToSort("Term") </declaration>
-                        <declaration> axiom \equals(CoqIdentToSymbol(ID), CoqTermToPattern(TERM)) </declaration>
+                        <declaration> axiom getFreshGlobalAxiomName() : \equals(CoqIdentToSymbol(ID), CoqTermToPattern(TERM)) </declaration>
                       ) ...
-       </declarations>       
+       </declarations>
 
 // Translate inductive cases
   rule <k> Inductive ID BINDERs : TERM := .CoqIndCases .
@@ -63,7 +63,7 @@ module DRIVER-COQ
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol CoqIdentToSymbol(IDC)(.Sorts) : StringToSort("Term") </declaration>
-                        <declaration> axiom \type(CoqIdentToSymbol(IDC)(.Patterns), CoqTermToPattern(TERMC))  </declaration>
+                        <declaration> axiom getFreshGlobalAxiomName() : \type(CoqIdentToSymbol(IDC)(.Patterns), CoqTermToPattern(TERMC))  </declaration>
                       ) ...
        </declarations>
 

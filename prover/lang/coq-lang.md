@@ -38,11 +38,6 @@ module COQ
   syntax VariableName ::= CoqNameToVariableName(CoqName) [function]
   rule CoqNameToVariableName(NAME) => StringToVariableName(CoqNameToString(NAME))
 
-  syntax Sorts ::= CoqBindersToSorts(CoqBinders) [function]
-  rule CoqBindersToSorts(.CoqBinders) => .Sorts
-  rule CoqBindersToSorts(NAME:CoqName BINDERs) => StringToSort("Term"), CoqBindersToSorts(BINDERs)
-  rule CoqBindersToSorts((NAMES : TYPE) BINDERs) => CoqNamesToSorts(NAMES) ++Sorts CoqBindersToSorts(BINDERs)
-
   syntax Sorts ::= CoqNamesToSorts(CoqNames) [function]
   rule CoqNamesToSorts(.CoqNames) => .Sorts
   rule CoqNamesToSorts(NAME:CoqName NAMEs) => StringToSort("Term"), CoqNamesToSorts(NAMEs)
