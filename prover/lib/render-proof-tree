@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+from anytree import NodeMixin, Node, RenderTree
+from collections import namedtuple
+import textwrap
+import fileinput
+import re
+
+
+class Goal(NodeMixin):
+    def __init__(self, id, parent_id):
+        self.id   = id
+        self.name = id 
+        self.parent_id = parent_id
+        self.claim = None
+
+nodes = {}
+roots = []
+
+for line in fileinput.input():
+    match = re.search(' *active: \w*, id: (\w*\d*), parent: (\.|\w*\d*)', line)
+    if not match is None:
+        id        = match.group(1)
+        parent    = match.group(2)
+        node      = Goal(id, parent)
+        nodes[id] = node
+        if parent == '.': roots += [node]
+    match = re.search('implies', line)
+    if not match is None:
+        node.claim = line
+
+for id, node in nodes.items():
+    if node in roots: continue
+    node.parent = nodes[node.parent_id]
+
+for pre, fill, node in RenderTree(roots[0]):
+    print(pre, 'id: ', node.id, 'x')
+    #  if not node.claim is None:
+    #      print(('\n' + fill).join(textwrap.wrap('claim: ' + node.claim)))
+
