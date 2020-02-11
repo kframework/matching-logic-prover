@@ -95,15 +95,44 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
                 <strategy> goalStrat(ID) => RStrat ... </strategy>
                 ...
          </goal>
-         ( <goal> <id> ID </id>
-                  <active> true:Bool </active>
-                  <parent> PID </parent>
-                  <strategy> RStrat:TerminalStrategy </strategy>
-                  ...
-           </goal> => .Bag
-         )
+         <goal> <id> ID </id>
+                <active> true:Bool => false </active>
+                <parent> PID </parent>
+                <strategy> (.K => #reap?) ~> RStrat:TerminalStrategy </strategy>
+                ...
+         </goal>
          ...
        </prover>
+
+  syntax KItem ::= "#reap?" // if goal failed prune goal and children
+  rule <strategy> (#reap? => #reap) ~> fail    </strategy>
+  rule <strategy> (#reap? => .K   ) ~> success </strategy>
+
+  syntax KItem ::= "#reap"  // (always) prune goal and children
+  rule <goal>
+         <id> PID </id>
+         <strategy> #reap ~> RStrat:TerminalStrategy </strategy>
+         ...
+       </goal>
+       <goal>
+         <parent> PID </parent>
+         <strategy> (.K => #reap) ~> Strat:Strategy </strategy>
+         ...
+       </goal>
+  rule <prover>
+         <goal>
+           <id> ID </id>
+           <strategy> #reap ~> Strat:Strategy </strategy>
+           ...
+         </goal> => .Bag
+         ...
+      </prover>
+    requires notBool hasChildren(ID)
+
+  syntax Bool ::= hasChildren(GoalId) [function]
+  rule [[ hasChildren(ID) => true ]]
+       <parent> ID </parent>
+  rule hasChildren(ID) => false [owise]
 ```
 
 Proving a goal may involve proving other subgoals:
