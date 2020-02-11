@@ -63,10 +63,11 @@ cooled back into the sequence strategy.
 
 ```k
   syntax ResultStrategy ::= "#hole"
-  rule <strategy> S1 . S2 => S1 ~> #hole . S2 ... </strategy>
+  rule <strategy> S1 . S2 => S1 ~> #hole . S2 </strategy>
     requires notBool(isResultStrategy(S1))
      andBool notBool(isSequenceStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole . S2 => S1 . S2 ... </strategy>
+  rule <claim> GOAL:Pattern </claim>
+       <strategy> S1:ResultStrategy ~> #hole . S2 => subgoal(GOAL, S1 . S2) </strategy>
 ```
 
 The `noop` (no operation) strategy is the unit for sequential composition:
