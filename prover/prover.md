@@ -6,6 +6,7 @@ requires "drivers/base.k"
 requires "strategies/apply-equation.k"
 requires "strategies/core.k"
 requires "strategies/duplicate.k"
+requires "strategies/instantiate-universals.k"
 requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -63,11 +64,16 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "intros" AxiomName
                     | "replace-evar-with-func-constant" Variables
                     | "duplicate" AxiomOrClaimName "as" AxiomName
+                    | "instantiate-universals" "("
+                        "in:" AxiomName ","
+                        "vars:" VariableNames ","
+                        "with:" Patterns ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
   syntax Strategies ::= List{Strategy, ","}                        [klabel(Strategies)]
   syntax Variables ::= List{Variable, ","}                 [klabel(Variables)]
+  syntax VariableNames ::= List{VariableName, ","}                 [klabel(VariableNames)]
 
 
   syntax KTFilter ::= head(Symbol)
