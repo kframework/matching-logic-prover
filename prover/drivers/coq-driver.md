@@ -85,7 +85,7 @@ module DRIVER-COQ
             CoqTermToPattern(match Ts with EQs end)
             ), .Patterns))
   rule CoqTermToPattern(TM:CoqTerm ARG) => CoqTermToPattern(TM)(CoqArgToPatterns(ARG))
-  rule CoqTermToPattern(fix ID BINDERs := TM) => \mu { CoqNameToVariableName(ID) {{ StringToSort("Term") }} } CoqTermToPattern(fun BINDERs => TM)
+  rule CoqTermToPattern(fix ID BINDERs := TM) => \mu { # CoqNameToVariableName(ID) } CoqTermToPattern(fun BINDERs => TM)
   rule CoqTermToPattern(@ QID:CoqQualID TM:CoqTerm) => CoqIdentToSymbol(QID)(CoqTermToPattern(TM))
 
   syntax Patterns ::= CoqArgToPatterns(CoqArg) [function]

@@ -138,7 +138,7 @@ only in this scenario*.
 
 ```k
   syntax Variable    ::= VariableName  "{" Sort "}"  [klabel(sortedVariable)]
-  syntax SetVariable ::= VariableName "{{" Sort "}}" [klabel(sortedSetVariable)]
+  syntax SetVariable ::= "#" VariableName [klabel(setVariable)]
   syntax Pattern ::= Int
                    | Variable
                    | SetVariable
