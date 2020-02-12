@@ -13,6 +13,7 @@ requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
 requires "strategies/search-bound.k"
+requires "strategies/simple-sort-check.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/reflexivity.k"
@@ -22,6 +23,7 @@ requires "utils/error.k"
 requires "utils/instantiate-assumptions.k"
 requires "utils/heatcool.k"
 requires "utils/load-named.k"
+requires "utils/sort-checking.k"
 requires "utils/syntactic-match.k"
 requires "utils/visitor.k"
 ```
@@ -80,6 +82,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                               "," Strategy ")"
                     | "inst-exists" "(" Variable "," Pattern
                                     "," Strategy ")"
+                    | "simple-sort-check"
 
   syntax RewriteDirection ::= "->" | "<-"
 
