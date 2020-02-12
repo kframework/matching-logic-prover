@@ -6,6 +6,7 @@ module TOKENS
   // Lexical
   syntax UpperName
   syntax LowerName ::= CheckSATResult
+  syntax SharpName
   syntax ColonName
   syntax PipeQID
   syntax Decimal
@@ -115,6 +116,8 @@ module TOKENS-SYNTAX
   imports TOKENS
   syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
   syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
+  syntax SharpName ::= r"#[A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
+
   syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
   syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
                    | "2.0" [token]
@@ -136,8 +139,10 @@ only in this scenario*.
 
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
+  syntax SetVariable ::= SharpName [klabel(setVariable)]
   syntax Pattern ::= Int
                    | Variable
+                   | SetVariable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
 
