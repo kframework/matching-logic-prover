@@ -169,6 +169,7 @@ only in this scenario*.
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
 
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
+                             | "symbol" Symbol
   syntax SortDeclaration ::= "sort" Sort
   syntax AxiomName ::= LowerName | UpperName
   syntax ClaimName ::= LowerName | UpperName

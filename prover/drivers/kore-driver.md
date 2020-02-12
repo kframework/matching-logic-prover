@@ -41,6 +41,12 @@ Add various standard Kore declarations to the configuration directly:
          ...
        </declarations>
 
+  rule <k> ((symbol _)  #as DECL:Declaration) => .K ... </k>
+       <declarations>
+         (.Bag => <declaration> DECL </declaration>)
+         ...
+       </declarations>
+
   rule <k> (sort _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
