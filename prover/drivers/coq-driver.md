@@ -36,8 +36,8 @@ module DRIVER-COQ
        </declarations>
 
 // Add symbol (of sort Term) and equality axiom corresponding to each definition
-  rule Definition ID BINDERs : TYPE := TERM . => Definition ID := TERM .
-  rule <k> Definition ID := TERM .
+  rule Definition ID BINDERs : TYPE1 := TERM hasType TYPE2 . => Definition ID := TERM hasType TYPE2 .
+  rule <k> Definition ID := TERM hasType TYPE .
         => .K
            ...
        </k>
@@ -46,6 +46,22 @@ module DRIVER-COQ
                         <declaration> axiom getFreshGlobalAxiomName() : \equals(CoqIdentToSymbol(ID), CoqTermToPattern(TERM)) </declaration>
                       ) ...
        </declarations>
+       <goals>
+         ( .Bag =>
+           <goal>
+             <id> !N:ClaimName </id>
+             <active> true:Bool </active>
+             <parent> .K </parent>
+             <claim> \type(CoqIdentToSymbol(ID), CoqTermToPattern(TYPE)) </claim>
+             <strategy> type-check </strategy>
+             <expected> success </expected>
+             <local-context> .Bag </local-context>
+             <trace> .K </trace>
+           </goal>
+         )
+         ...
+       </goals>
+
 
 // Translate inductive cases
   rule <k> Inductive ID BINDERs : TERM := .CoqIndCases .
@@ -71,6 +87,7 @@ module DRIVER-COQ
   syntax Pattern ::= CoqTermToPattern(CoqTerm) [function]
   rule CoqTermToPattern(UN:UpperName) => CoqIdentToSymbol(UN)
   rule CoqTermToPattern(LN:LowerName) => CoqIdentToSymbol(LN)
+  rule CoqTermToPattern(#token("Prop", "CoqSort")) => StringToSort("Term")
   rule CoqTermToPattern(fun BINDERs => TERM) => \lambda { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(forall BINDERs, TERM) => \forall { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(match Ts with .CoqEquations end) => \bottom()

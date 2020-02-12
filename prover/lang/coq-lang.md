@@ -19,10 +19,10 @@ module COQ
   syntax CoqNames ::= List{CoqName, ""} [klabel(CoqNames)]
 
 // Sorts
-  syntax CoqSort ::= "SProp"
-                   | "Prop"
-                   | "Set"
-                   | "Type"
+  syntax CoqSort ::= "SProp" [token]
+                   | "Prop"  [token]
+                   | "Set"   [token]
+                   | "Type"  [token]
 
 // Seralize to String:
   syntax String ::= CoqNameToString(CoqName) [function, functional, hook(STRING.token2string)]
@@ -101,8 +101,8 @@ module COQ
                        | CoqInductive
   //                   | CoqCoInductive
   syntax CoqSentences ::= List{CoqSentence, ""} [klabel(CoqSentences), format(%1%n%2 %3)]
-  syntax CoqDefinition ::= "Definition" CoqIdent ":=" CoqTerm "."
-                         | "Definition" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "."
+  syntax CoqDefinition ::= "Definition" CoqIdent ":=" CoqTerm "hasType" CoqTerm "."
+                         | "Definition" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "hasType" CoqTerm "."
 
   syntax CoqInductive ::= "Inductive" CoqIndBody "."
   syntax CoqIndBody ::= CoqIdent CoqBinders ":" CoqTerm ":=" CoqIndCases
