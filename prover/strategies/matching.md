@@ -613,13 +613,6 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 
     rule <strategy> frame(.Patterns) => noop ... </strategy>
 
-    syntax Patterns ::= filterPredicates(Patterns) [function]
-    rule filterPredicates(P, Ps) => P, filterPredicates(Ps)
-      requires isPredicatePattern(P)
-    rule filterPredicates(P, Ps) => filterPredicates(Ps)
-      requires notBool isPredicatePattern(P)
-    rule filterPredicates(.Patterns) => .Patterns
-
     syntax Patterns ::= filterClausesInvolvingVariable(Variable, Patterns) [function]
     rule filterClausesInvolvingVariable(V, (P, Ps))
       => P, filterClausesInvolvingVariable(V, Ps)
