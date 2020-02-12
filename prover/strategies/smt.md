@@ -206,7 +206,7 @@ module STRATEGY-SMT
                   fi
                   ...
        </strategy>
-       <trace> .K => smt-z3 ... </trace>
+       <trace> .K => smt-z3 ~> (Z3Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ... </trace>
 
   rule <claim> GOAL </claim>
        <strategy> smt-z3 => fail </strategy>
@@ -220,7 +220,7 @@ module STRATEGY-SMT
                   fi
                   ...
        </strategy>
-       <trace> .K => smt-cvc4 ... </trace>
+       <trace> .K => smt-cvc4 ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId)) ... </trace>
      requires isPredicatePattern(GOAL)
 
 // If the constraints are unsatisfiable, the entire term is unsatisfiable
@@ -233,7 +233,7 @@ module STRATEGY-SMT
                   fi
                   ...
        </strategy>
-       <trace> .K => check-lhs-constraint-unsat ... </trace>
+       <trace> .K => check-lhs-constraint-unsat ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId)) ... </trace>
      requires isPredicatePattern(\and(LCONSTRAINTS))
 
 ```
