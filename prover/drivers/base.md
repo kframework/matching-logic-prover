@@ -79,11 +79,13 @@ module DRIVER-BASE
   imports STRATEGY-UNFOLDING
   imports STRATEGY-KNASTER-TARSKI
   imports STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
+  imports STRATEGY-SIMPLE-SORT-CHECK
   imports SYNTACTIC-MATCH-RULES
   imports VISITOR
   imports PATTERN-LENGTH
   imports HEATCOOL-RULES
   imports LOAD-NAMED-RULES
+  imports SORT-CHECKING-RULES
 
   rule <k> .CommandLine => .K ... </k>
 endmodule

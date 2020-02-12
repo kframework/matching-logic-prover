@@ -1,0 +1,7 @@
+```k
+module STRATEGY-SIMPLE-SORT-CHECK
+  imports PROVER-CORE
+  imports STRATEGIES-EXPORTED-SYNTAX
+
+endmodule
+```
