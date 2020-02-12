@@ -148,7 +148,6 @@ Proving a goal may involve proving other subgoals:
                <strategy> SUBSTRAT </strategy>
                <claim> SUBGOAL </claim>
                <local-context> LC </local-context>
-               <trace> TRACE </trace>
                ...
              </goal>
          )
@@ -157,7 +156,6 @@ Proving a goal may involve proving other subgoals:
            <active> true => false </active>
            <strategy> subgoal(SUBGOAL, SUBSTRAT) => goalStrat(!ID:Int) ... </strategy>
            <local-context> LC::Bag </local-context>
-           <trace> TRACE </trace>
            ...
          </goal>
          ...
