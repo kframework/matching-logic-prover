@@ -142,6 +142,8 @@ module SYNTACTIC-MATCH-RULES
      andBool getReturnSort(T) =/=K getReturnSort(P)
 
   // free variable: extend substitution
+  // TODO restrict to functional terms
+  // TODO add support for set variables
   rule #syntacticMatch( terms:     T, Ts => Ts
                       , patterns:  P:Variable, Ps
                         => substPatternsMap(Ps, P |-> T)
