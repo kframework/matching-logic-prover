@@ -7,13 +7,13 @@ Inductive nat : Prop :=
     Z : nat
   | S : (forall (x : nat), nat) .
 
-Definition not := fun (A: Prop) => (forall (x : A), False) hasType (forall (x : Prop), Prop) .
+Definition not := fun (A: Prop) => (forall (x : A), False) (* hasType (forall (x : Prop), Prop) *) .
 
 Definition iff (A B : Prop) : Prop :=
-  (and (forall (x : A), B)) (forall (y : B), A) hasType (forall (x : Prop), (forall (y : Prop), Prop)) .
+  (and (forall (x : A), B)) (forall (y : B), A) (* hasType (forall (x : Prop), (forall (y : Prop), Prop)) *) .
 
 Definition IF_then_else (P Q R : Prop) : Prop :=
-  (or (and P Q)) (and (not P) R) hasType (forall (x : Prop), (forall (y : Prop), (forall (z : Prop), Prop))) .
+  (or (and P Q)) (and (not P) R) (* hasType (forall (x : Prop), (forall (y : Prop), (forall (z : Prop), Prop))) *) .
 
 Inductive ex1 (A : Type) (P : forall (x : A), Prop) : Prop :=
   ex_intro1 : forall (x : A), forall (y : (P x)), ex1 A P .
@@ -32,7 +32,7 @@ Definition AndComm :=
     match H with
       conj H0 H1 => conj H1 H0
     end
-  hasType (forall (A B : Prop), (forall (c : and A B), and B A)) .
+  (* hasType (forall (A B : Prop), (forall (c : and A B), and B A)) *) .
 
 // Inductive and (A B : Prop) : Prop :=
 //   conj : forall (x : A), forall (y : B), and A B .
