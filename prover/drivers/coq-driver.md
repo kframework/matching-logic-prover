@@ -52,8 +52,8 @@ module DRIVER-COQ
              <id> !N:ClaimName </id>
              <active> true:Bool </active>
              <parent> .K </parent>
-             <claim> \type(CoqIdentToSymbol(ID), CoqTermToPattern(TYPE)) </claim>
              <strategy> type-check </strategy>
+             <claim> \type(CoqIdentToSymbol(ID), CoqTermToPattern(TYPE)) </claim>
              <expected> success </expected>
              <local-context> .Bag </local-context>
              <trace> .K </trace>
@@ -89,7 +89,7 @@ module DRIVER-COQ
   rule CoqTermToPattern(LN:LowerName) => CoqIdentToSymbol(LN)
   rule CoqTermToPattern(#token("Prop", "CoqSort")) => StringToSort("Term")
   rule CoqTermToPattern(fun BINDERs => TERM) => \lambda { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
-  rule CoqTermToPattern(forall BINDERs, TERM) => \forall { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
+  rule CoqTermToPattern(forall BINDERs, TERM) => \pi { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(match Ts with .CoqEquations end) => \bottom()
   rule CoqTermToPattern(match Ts with (MP:CoqMultPattern => TM:CoqTerm) | EQs end) =>
        \or( #flattenOrs(
