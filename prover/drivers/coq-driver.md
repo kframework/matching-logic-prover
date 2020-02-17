@@ -52,8 +52,8 @@ module DRIVER-COQ
              <id> !N:ClaimName </id>
              <active> true:Bool </active>
              <parent> .K </parent>
-             <strategy> type-check </strategy>
              <claim> \type(CoqIdentToSymbol(ID), CoqTermToPattern(TYPE)) </claim>
+             <strategy> typecheck </strategy>
              <expected> success </expected>
              <local-context> .Bag </local-context>
              <trace> .K </trace>

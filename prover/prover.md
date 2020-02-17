@@ -70,7 +70,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "in:" AxiomName ","
                         "vars:" VariableNames ","
                         "with:" Patterns ")"
-                    | "type-check"
+                    | "typecheck"
 
   syntax RewriteDirection ::= "->" | "<-"
 
