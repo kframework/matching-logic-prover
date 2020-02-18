@@ -21,6 +21,7 @@ module STRATEGY-APPLY-EQUATION
   imports STRATEGIES-EXPORTED-SYNTAX
   imports HEATCOOL-SYNTAX
   imports LOAD-NAMED-SYNTAX
+  imports INSTANTIATE-ASSUMPTIONS-SYNTAX
 
   rule <strategy> (.K => loadNamed(Name))
                ~> apply-equation D Name at _ by[_] ...
@@ -133,7 +134,6 @@ module STRATEGY-APPLY-EQUATION
                    "," "by:" Strategies
                    ")"
 
-  // TODO subgoals from implications
   rule <strategy>
          #apply-equation3
          ( hypothesis: P
@@ -141,7 +141,7 @@ module STRATEGY-APPLY-EQUATION
          , to: R
          , by: Ss
          )
-         => generateSubgoals(P, Subst)
+         => instantiateAssumptions(Subst, P)
          ~> createSubgoalsWithStrategies(strats: Ss, result: success)
        ...</strategy>
        <claim>
@@ -152,65 +152,15 @@ module STRATEGY-APPLY-EQUATION
                    "(" "strats:" Strategies
                    "," "result:" Strategy
                    ")"
-                 | generateSubgoals(Pattern, Map)
-                 | subgoalsGenerated(Map, Patterns)
-```
 
-Subgoal generation: we start with the conclusion and substitution
-from the heatResult, go from the bottom up, use the substitution
-to instantiate left sides of implications, and at every \forall
-we remove the bound variables from the substitution.
-This way we do not apply-equation free variables whose name coincides
-with bound ones.
-
-```k
-
-  rule <strategy> generateSubgoals(\equals(_,_), Subst)
-               => subgoalsGenerated(Subst, .Patterns)
-       ...</strategy>
-
-  rule <strategy> (.K => generateSubgoals(R, Subst))
-               ~> generateSubgoals(\implies(L, R), Subst)
-       ...</strategy>
-
-  rule <strategy> (subgoalsGenerated(Subst, Ps)
-               ~> generateSubgoals(\implies(L, _), _))
-               => subgoalsGenerated(
-                    Subst,
-                   substMap(L, Subst) ++Patterns Ps
-                  )
-       ...</strategy>
-
-
-  rule <strategy> (.K => generateSubgoals(P, Subst))
-               ~> generateSubgoals(\forall{Vars} P, Subst)
-       ...</strategy>
-
-  rule <strategy> (subgoalsGenerated(Subst, Ps)
-               ~> generateSubgoals(\forall{Vars} _, _))
-               => #if PatternsToSet(Vars) <=Set keys(Subst)
-                  #then
-                    subgoalsGenerated(
-                      removeAll(Subst, PatternsToSet(Vars)),
-                      Ps
-                    )
-                  #else
-                    apply-equation.error("Unable to find an instance for variables: ",
-                      PatternsToSet(Vars) -Set keys(Subst)
-                    )
-                  #fi
-       ...</strategy>
-
-  syntax KItem ::= "apply-equation.error" "(" String "," Set ")"
-
-  rule <strategy> (subgoalsGenerated(.Map, .Patterns)
+  rule <strategy> (ok(.Patterns, .Map)
                ~> createSubgoalsWithStrategies
                   ( strats: .Strategies
                   , result: R))
                => R
        ...</strategy>
 
-  rule <strategy> subgoalsGenerated(.Map, P,Ps => Ps)
+  rule <strategy> ok(P,Ps => Ps, .Map)
                ~> createSubgoalsWithStrategies
                   ( strats: (S, Ss) => Ss
                   , result: R => R & subgoal(P, S))
