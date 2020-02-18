@@ -1,0 +1,17 @@
+sort Nat
+
+symbol a
+axiom \typeof(a, Nat)
+
+symbol plus_2
+axiom
+  \implies(
+    \typeof(#X, Nat),
+    \implies(
+      \typeof(#Y, Nat),
+      \typeof(plus_2(#X, #Y), Nat)
+    )
+  )
+
+claim \typeof(plus_2(a, plus_2(a, a)), Nat)
+strategy simple-sort-check
