@@ -35,16 +35,16 @@ module INSTANTIATE-ASSUMPTIONS-RULES
 
   rule #unrollImplicationChain(\forall{Vars} P, Ps)
     => #unrollImplicationChain((P, \forall{Vars} P, Ps))
-```
 
+```
 Subgoal generation: we start with the conclusion and substitution,
 go from the bottom up, use the substitution
 to instantiate left sides of implications, and at every \forall
 we remove the bound variables from the substitution.
 This way we do not instantiate free variables whose name coincides
 with bound ones.
-
 ```k
+
   syntax InstantiateAssumptionsResult
     ::= #instantiateAssumptions1(Map, Patterns) [function]
       | #instantiateAssumptions2(Patterns, Map, Patterns) [function]

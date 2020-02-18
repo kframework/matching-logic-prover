@@ -148,6 +148,7 @@ module STRATEGY-APPLY-EQUATION
                    ")"
 
   rule <strategy> (#instantiateAssumptionsResult(.Patterns, .Map)
+
                ~> createSubgoalsWithStrategies
                   ( strats: .Strategies
                   , result: R))
