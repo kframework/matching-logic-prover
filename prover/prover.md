@@ -5,6 +5,7 @@ requires "drivers/kore-driver.k"
 requires "drivers/base.k"
 requires "strategies/apply.k"
 requires "strategies/apply-equation.k"
+requires "strategies/backwards-search.k"
 requires "strategies/core.k"
 requires "strategies/duplicate.k"
 requires "strategies/instantiate-universals.k"
@@ -19,6 +20,7 @@ requires "strategies/smt.k"
 requires "strategies/reflexivity.k"
 requires "strategies/replace-evar-with-func-constant.k"
 requires "strategies/unfolding.k"
+requires "utils/backwards-search.k"
 requires "utils/error.k"
 requires "utils/instantiate-assumptions.k"
 requires "utils/heatcool.k"
@@ -83,6 +85,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "inst-exists" "(" Variable "," Pattern
                                     "," Strategy ")"
                     | "simple-sort-check"
+                    | "backwards-search" Int
 
   syntax RewriteDirection ::= "->" | "<-"
 

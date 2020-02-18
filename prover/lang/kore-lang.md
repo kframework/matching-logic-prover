@@ -935,6 +935,39 @@ assume a pattern of the form:
             Prefix
           #fi
 
+  syntax Patterns ::= collectAxioms(GoalId) [function]
+                    | #collectAxioms(Declarations) [function]
+
+  rule collectAxioms(GId)
+    => #collectAxioms(collectDeclarations(GId))
+
+  rule #collectAxioms(.Declarations) => .Patterns
+
+  rule #collectAxioms((axiom _ : P) Ds)
+       => P, #collectAxioms(Ds)
+
+  rule #collectAxioms(_ Ds)
+       => #collectAxioms(Ds) [owise]
+
+  syntax Patterns ::= collectProvenClaims() [function]
+                    | #collectProvenClaims(Patterns) [function]
+
+  rule collectProvenClaims() => #collectProvenClaims(.Patterns)
+
+  // do not add claims with only numeric id, because those are just
+  // intermediate claims
+  rule [[ #collectProvenClaims(Ps) => #collectProvenClaims(P, Ps) ]]
+    <id> Name </id>
+    <claim> P </claim>
+    <strategy> success </strategy>
+    requires notBool (P in Ps) andBool isAxiomOrClaimName(Name)
+
+  rule #collectProvenClaims(Ps) => Ps [owise]
+
+  syntax Patterns ::= collectAssumptions(GoalId) [function]
+  rule collectAssumptions(GId)
+    => collectAxioms(GId) ++Patterns collectProvenClaims()
+
   syntax Set ::= collectGlobalAxiomNames() [function]
                | collectLocalAxiomNames(GoalId) [function]
                | #declarationsToAxiomNames(Declarations) [function]
