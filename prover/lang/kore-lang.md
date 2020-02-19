@@ -842,6 +842,17 @@ Simplifications
   rule D inDecls D Ds => true
   rule D inDecls D' Ds => D inDecls Ds
     requires D =/=K D'
+```
+Functions `getUniversallyQuantifiedVariables` and `getConclusion`
+assume a pattern of the form:
+  `\forall{Vs1} A1 -> \forall{Vs2} A2 -> ... -> C`
+```k
+  syntax Patterns ::= getUniversallyQuantifiedVariables(Pattern) [function]
+  rule getUniversallyQuantifiedVariables(_) => .Patterns [owise]
+  rule getUniversallyQuantifiedVariables(\implies(_, P))
+       => getUniversallyQuantifiedVariables(P)
+  rule getUniversallyQuantifiedVariables(\forall{Vs} P)
+       => Vs ++Patterns getUniversallyQuantifiedVariables(P)
 
   syntax Pattern ::= getConclusion(Pattern) [function]
 
