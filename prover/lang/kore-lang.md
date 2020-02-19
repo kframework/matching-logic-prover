@@ -211,6 +211,7 @@ module KORE-HELPERS
   imports STRING
   imports PROVER-CONFIGURATION
   imports PROVER-CORE-SYNTAX
+  imports VISITOR-SYNTAX
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
@@ -854,6 +855,30 @@ assume a pattern of the form:
   rule getConclusion(\implies(_,P))
        => getConclusion(P)
   rule getConclusion(P) => P [owise]
+
+  // <public>
+  syntax Patterns ::= getSetVariables(Pattern) [function]
+  // </public>
+  // <private>
+  syntax Patterns ::= getSetVariablesVisitorResult(VisitorResult) [function]
+  syntax Visitor ::= getSetVariablesVisitor(Patterns)
+  rule getSetVariables(P)
+    => getSetVariablesVisitorResult(
+         visitTopDown(
+           getSetVariablesVisitor(.Patterns),
+           P
+         )
+       )
+
+  rule getSetVariablesVisitorResult(
+         visitorResult(getSetVariablesVisitor(Ps), _))
+    => Ps
+
+  rule visit(getSetVariablesVisitor(Ps), P) => visitorResult(getSetVariablesVisitor(P, Ps), P) requires         isSetVariable(P)
+  rule visit(getSetVariablesVisitor(Ps), P) => visitorResult(getSetVariablesVisitor(   Ps), P) requires notBool isSetVariable(P)
+
+
+  // </private>
 
   syntax String ::= getFreshName(String, Set) [function]
                   | getFreshNameNonum(String, Set) [function]
