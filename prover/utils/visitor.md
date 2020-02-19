@@ -35,7 +35,12 @@ module VISITOR
 
   syntax VisitorResult ::= #visitTopDown(VisitorResult) [function]
 
-  rule #visitTopDown(visitorResult(_,_:Int) #as VR) => VR
+  // base case
+  rule #visitTopDown(visitorResult(_,P) #as VR) => VR
+       requires isInt(P)
+         orBool isVariable(P)
+         orBool isSetVariable(P)
+         orBool isSymbol(P)
 
   // \equals(_, _)
   rule #visitTopDown(visitorResult(V,\equals(P1, P2)))
