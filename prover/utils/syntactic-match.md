@@ -387,6 +387,33 @@ module SYNTACTIC-MATCH-RULES
                       removeAll(RESULT, PatternsToSet(PVARS)), SUBST)
        )
 
+  // \typeof(_,_) matched
+  rule #syntacticMatch( terms:     \typeof(T, S), Ts
+                               => T  ++Patterns Ts
+                      , patterns:  \typeof(P, S), Ps
+                               => P ++Patterns Ps
+                      , variables: _
+                      , subst:     _
+                      )
+
+  // \typeof(_,_) missmatched - different sorts
+  rule #syntacticMatch( terms:     \typeof(_, S1), _
+                      , patterns:  \typeof(_, S2), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #matchFailure("\\typeof(_,_) sorts do not match")
+    requires S1 =/=K S2
+
+
+  // \typeof(_,_) mismatched
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  \typeof(...), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #matchFailure("\\typeof(_,_) does not match")
+    requires \typeof(...) :/=K T
 
 
 
