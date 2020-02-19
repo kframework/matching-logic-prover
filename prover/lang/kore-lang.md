@@ -849,6 +849,13 @@ Simplifications
   rule D inDecls D' Ds => D inDecls Ds
     requires D =/=K D'
 
+  syntax Pattern ::= getConclusion(Pattern) [function]
+
+  rule getConclusion(\forall{_} P)
+       => getConclusion(P)
+  rule getConclusion(\implies(_,P))
+       => getConclusion(P)
+  rule getConclusion(P) => P [owise]
 
   syntax String ::= getFreshName(String, Set) [function]
                   | getFreshNameNonum(String, Set) [function]

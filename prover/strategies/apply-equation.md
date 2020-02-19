@@ -80,20 +80,19 @@ module STRATEGY-APPLY-EQUATION
 
   syntax Pattern
   ::= "apply-equation.getLeft" "(" Pattern ")" [function]
+    | "#apply-equation.getLeft" "(" Pattern ")" [function]
     | "apply-equation.getRight" "(" Pattern ")" [function]
+    | "#apply-equation.getRight" "(" Pattern ")" [function]
 
-  rule apply-equation.getLeft(\iff-lfp(L,_)) => L
-  rule apply-equation.getRight(\iff-lfp(_,R)) => R
-  rule apply-equation.getLeft(\equals(L,_)) => L
-  rule apply-equation.getRight(\equals(_,R)) => R
-  rule apply-equation.getLeft(\forall{_} P)
-       => apply-equation.getLeft(P)
-  rule apply-equation.getRight(\forall{_} P)
-       => apply-equation.getRight(P)
-  rule apply-equation.getLeft(\implies(_,P))
-       => apply-equation.getLeft(P)
-  rule apply-equation.getRight(\implies(_,P))
-       => apply-equation.getRight(P)
+  rule apply-equation.getLeft(P)
+    => #apply-equation.getLeft(getConclusion(P))
+  rule apply-equation.getRight(P)
+    => #apply-equation.getRight(getConclusion(P))
+
+  rule #apply-equation.getLeft(\iff-lfp(L,_)) => L
+  rule #apply-equation.getRight(\iff-lfp(_,R)) => R
+  rule #apply-equation.getLeft(\equals(L,_)) => L
+  rule #apply-equation.getRight(\equals(_,R)) => R
 
   syntax KItem ::= "#apply-equation2"
                    "(" "from:" Pattern
