@@ -4,8 +4,7 @@ module VISITOR-SORTS
   syntax Pattern
 
   syntax Visitor
-  syntax VisitorError
-  syntax VisitorResult ::= VisitorError
+  syntax VisitorResult
 
 endmodule
 
@@ -22,8 +21,6 @@ module VISITOR-SYNTAX
   syntax VisitorResult ::= visit(Visitor, Pattern) [function]
                          | visitorResult(Visitor, Pattern)
 
-  syntax VisitorError ::= visitorNotImplemented()
-
 endmodule
 ```
 
@@ -32,9 +29,6 @@ module VISITOR
   imports VISITOR-SYNTAX
   imports KORE
   imports KORE-HELPERS
-
-  // default implementation
-  rule visit(_, _) => visitorNotImplemented() [owise]
 
   rule visitTopDown(V, P)
     => #visitTopDown(visit(V, P))
