@@ -102,12 +102,6 @@ module STRATEGY-APPLY-EQUATION
                    "," "by:" Strategies
                    ")"
 
-  syntax Patterns ::= getMatchingVariables(Pattern) [function]
-  rule getMatchingVariables(\equals(_,_)) => .Patterns
-  rule getMatchingVariables(\implies(_, P)) => getMatchingVariables(P)
-  rule getMatchingVariables(\forall{Vs} P)
-       => Vs ++Patterns getMatchingVariables(P)
-
   rule <strategy>
         #apply-equation2(from: L, to: R, hypothesis: H, at: Idx, by: Ss)
          =>
@@ -116,7 +110,7 @@ module STRATEGY-APPLY-EQUATION
         , heatResult: heat
                       ( term: T
                       , pattern: L
-                      , variables: getMatchingVariables(H)
+                      , variables: getUniversallyQuantifiedVariables(H)
                       , index: Idx
                       )
         , to: R
