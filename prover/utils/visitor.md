@@ -173,6 +173,22 @@ module VISITOR
   // \hole()
   rule #visitTopDown(visitorResult(_,\hole()) #as VR) => VR
 
+  // \iff-lfp(_, _)
+  rule #visitTopDown(visitorResult(V,\iff-lfp(P1, P2)))
+    => #visitTopDownIffLfp1(visitTopDown(V, P1), P2)
+
+  syntax VisitorResult
+         ::= #visitTopDownIffLfp1(VisitorResult, Pattern) [function]
+
+  rule #visitTopDownIffLfp1(visitorResult(V, P1), P2)
+    => #visitTopDownIffLfp2(P1, visitTopDown(V, P2))
+
+  syntax VisitorResult
+         ::= #visitTopDownIffLfp2(Pattern, VisitorResult) [function]
+  rule #visitTopDownIffLfp2(P1, visitorResult(V, P2))
+    => visitorResult(V, \iff-lfp(P1, P2))
+
+
 
 ```
 
