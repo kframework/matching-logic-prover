@@ -36,8 +36,7 @@ module DRIVER-COQ
        </declarations>
 
 // Add symbol (of sort Term) and equality axiom corresponding to each definition
-  rule Definition ID BINDERs : TYPE1 := TERM (* hasType TYPE2 *) . => Definition ID := TERM (* hasType TYPE2 *) .
-  rule <k> Definition ID := TERM (* hasType TYPE *) .
+  rule <k> Definition ID : TYPE := TERM .
         => .K
            ...
        </k>

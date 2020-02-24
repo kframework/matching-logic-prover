@@ -101,8 +101,8 @@ module COQ
                        | CoqInductive
   //                   | CoqCoInductive
   syntax CoqSentences ::= List{CoqSentence, ""} [klabel(CoqSentences), format(%1%n%2 %3)]
-  syntax CoqDefinition ::= "Definition" CoqIdent ":=" CoqTerm "(*" "hasType" CoqTerm "*)" "."
-                         | "Definition" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "(*" "hasType" CoqTerm "*)" "."
+  syntax CoqDefinition ::= "Definition" CoqIdent ":" CoqTerm ":=" CoqTerm "."
+//                         | "Definition" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "."
 
   syntax CoqInductive ::= "Inductive" CoqIndBody "."
   syntax CoqIndBody ::= CoqIdent CoqBinders ":" CoqTerm ":=" CoqIndCases
