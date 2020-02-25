@@ -432,6 +432,10 @@ and values, passed to K's substitute.
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
   rule freshVariableName(I:Int) => String2VariableName("F" +String Int2String(I))
 
+  syntax SetVariable ::= String2SetVariable(String) [function, functional, hook(STRING.string2token)]
+  syntax SetVariable ::= freshSetVariable(Int) [freshGenerator, function, functional]
+  rule freshSetVariable(I:Int) => String2SetVariable("#F" +String Int2String(I))
+
   syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
   rule makeFreshSubstitution(V { SORT }, REST)
     => V:VariableName { SORT } |-> !V1:VariableName { SORT }
@@ -441,6 +445,10 @@ and values, passed to K's substitute.
 
   syntax Patterns ::= makeFreshVariables(Patterns) [function]
   rule makeFreshVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makeFreshVariables(REST)
+	requires isVariable(P)
+  rule makeFreshVariables(P, REST) => !V1:SetVariable, makeFreshVariables(REST)
+	requires isSetVariable(P)
+
   rule makeFreshVariables(.Patterns) => .Patterns
 ```
 
