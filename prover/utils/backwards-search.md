@@ -18,10 +18,14 @@ endmodule
 module BACKWARDS-SEARCH-RULES
   imports KORE-HELPERS
   imports INT
+  imports SYNTACTIC-MATCH-SYNTAX
+  imports INSTANTIATE-ASSUMPTIONS-SYNTAX
   imports BACKWARDS-SEARCH-SYNTAX
 
-  rule isBuiltinAxiom(\typeof(_:Int, S:Symbol)) => true
-       requires SymbolToString(S) ==String "Int"
+  rule isBuiltinAxiom(\typeof(_:Int, Int)) => true
+
+  rule backwardsSearch(depth: D, goals: Gs, axioms: As)
+    => #backwardsSearch(depth: D, goals: Gs, axioms: As, allAxioms: As)
 
   syntax Bool ::= "#backwardsSearch"
                   "(" "depth:" Int
@@ -70,6 +74,59 @@ module BACKWARDS-SEARCH-RULES
                   "," "allAxioms:" Patterns
                   ")" [function]
 
+  rule #backwardsSearch.tryAxiom
+       ( depth: N, goal: G, axiom: A, goals: Gs, allAxioms: AAs)
+    => #backwardsSearch.tryAxiom1(
+         mr: syntacticMatch(
+           terms: G, .Patterns,
+           patterns: getConclusion(A), .Patterns,
+           variables: getUniversallyQuantifiedVariables(A)
+                      ++Patterns getSetVars(A)
+         ),
+         depth: N, axiom: A, goals: Gs, allAxioms: AAs
+       )
+
+  syntax Bool ::= "#backwardsSearch.tryAxiom1"
+                  "(" "mr:" MatchResult
+                  "," "depth:" Int
+                  "," "axiom:" Pattern
+                  "," "goals:" Patterns
+                  "," "allAxioms:" Patterns
+                  ")" [function]
+
+  rule #backwardsSearch.tryAxiom1(
+         mr: #matchFailure(_),
+         depth:_, axiom:_, goals:_, allAxioms:_
+       ) => false
+
+
+  rule #backwardsSearch.tryAxiom1(
+         mr: #matchResult(subst: Subst),
+         depth: N, axiom: Ax, goals: Gs, allAxioms: AAs
+       ) => #backwardsSearch.tryAxiom2(
+         assumptions: instantiateAssumptions(Subst, Ax),
+         depth: N, goals: Gs, allAxioms: AAs
+       )
+
+  syntax Bool ::= "#backwardsSearch.tryAxiom2"
+                  "(" "assumptions:" InstantiateAssumptionsResult
+                  "," "depth:" Int
+                  "," "goals:" Patterns
+                  "," "allAxioms:" Patterns
+                  ")" [function]
+
+  rule #backwardsSearch.tryAxiom2(
+         assumptions: error(_), depth: _, goals: _, allAxioms: _
+       ) => false
+
+  rule #backwardsSearch.tryAxiom2(
+         assumptions: ok(Ps, _), depth: N, goals: Gs, allAxioms: AAs
+       ) => #backwardsSearch(
+              depth: N -Int 1,
+              goals: Ps ++Patterns Gs,
+              axioms: AAs,
+              allAxioms: AAs
+            )
 
 endmodule
 ```
