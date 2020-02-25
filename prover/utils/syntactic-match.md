@@ -94,6 +94,13 @@ module SYNTACTIC-MATCH-RULES
     => #error("Constructors do not match")
     requires notBool isApplication(T)
 
+  rule #syntacticMatch( terms:     S:Symbol, Ts => Ts
+                      , patterns:  S:Symbol, Ps => Ps
+                      , variables: _
+                      , subst:     _
+                      )
+    requires S =/=K sep
+
   // Constructors match: Recurse over arguments
   rule #syntacticMatch( terms:     S:Symbol(T_ARGs), Ts
                             => T_ARGs ++Patterns Ts
