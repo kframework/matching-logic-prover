@@ -497,6 +497,8 @@ Substitution: Substitute term or variable
   rule #subst(_, I:Int, X, V) => I
   rule #subst(_, \top(),_,_)=> \top()
   rule #subst(_, \bottom(),_,_) => \bottom()
+  rule #subst(CA, \typeof(T, S), X, V)
+       => \typeof(#subst(CA, T, X, V), S)
   rule #subst(CA, \equals(ARG1, ARG2):Pattern, X, V)
     => \equals(#subst(CA, ARG1, X, V), #subst(CA, ARG2, X, V)):Pattern
   rule #subst(CA, \not(ARG):Pattern, X, V) => \not(#subst(CA, ARG, X, V)):Pattern
