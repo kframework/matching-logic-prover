@@ -485,6 +485,7 @@ Substitution: Substitute term or variable
   rule #subst(_, X{_}, X:VariableName, V) => V
   rule #subst(_, X{S}, Y:VariableName, V) => X{S} requires X =/=K Y
   rule #subst(_, X:Variable,Y:Variable,V) => X requires X =/=K Y
+  rule #subst(_, X:SetVariable,Y:SetVariable,V) => X requires X =/=K Y
   rule #subst(_, I:Int, X, V) => I
   rule #subst(_, \top(),_,_)=> \top()
   rule #subst(_, \bottom(),_,_) => \bottom()
