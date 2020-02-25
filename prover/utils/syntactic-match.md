@@ -122,6 +122,14 @@ module SYNTACTIC-MATCH-RULES
                       )
     requires notBool P in Vs
 
+  // ground variable: identical
+  rule #syntacticMatch( terms:     P:SetVariable, Ts => Ts
+                      , patterns:  P:SetVariable, Ps => Ps
+                      , variables: Vs
+                      , subst:     _
+                      )
+    requires notBool P in Vs
+
   // ground variable: non-identical
   rule #syntacticMatch( terms:     T, _
                       , patterns:  P:Variable, _
@@ -132,6 +140,16 @@ module SYNTACTIC-MATCH-RULES
     requires T =/=K P
      andBool notBool P in Vs
      
+  // ground variable: non-identical
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  P:SetVariable, _
+                      , variables: Vs
+                      , subst:     _
+                      )
+    => #error( "No valid substitution" )
+    requires T =/=K P
+     andBool notBool P in Vs
+
   // free variable: different sorts
   rule #syntacticMatch( terms:     T, _
                       , patterns:  P:Variable, _
@@ -145,7 +163,6 @@ module SYNTACTIC-MATCH-RULES
 
   // free variable: extend substitution
   // TODO restrict to functional terms
-  // TODO add support for set variables
   rule #syntacticMatch( terms:     T, Ts => Ts
                       , patterns:  P:Variable, Ps
                         => substPatternsMap(Ps, P |-> T)
@@ -156,6 +173,14 @@ module SYNTACTIC-MATCH-RULES
      andBool P in Vs
      andBool getReturnSort(T) ==K getReturnSort(P)
 
+  rule #syntacticMatch( terms:     T, Ts => Ts
+                      , patterns:  P:SetVariable, Ps
+                        => substPatternsMap(Ps, P |-> T)
+                      , variables: Vs
+                      , subst:     SUBST => ((P |-> T) SUBST)
+                      )
+    requires T =/=K P
+     andBool P in Vs
 
   // A lot of repetetive code below.
   // This could be reduced if we had a generic support
