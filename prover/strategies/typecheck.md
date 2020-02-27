@@ -14,14 +14,19 @@ module STRATEGY-TYPECHECK
     <claim> \type(TYPE, TYPE) </claim>
     <strategy> typecheck => success ... </strategy>
 
+  // axiom: (Term, Term, Term)
+  rule
+    <claim> \type(\pi { VARs } TYPE, #token("Term", "UpperName")) </claim>
+    <strategy> typecheck => success ... </strategy>
+
   // lambda
   rule
-    <claim> \type(\lambda { VARs } TERM, \pi { VARs } TYPE) => \type(TERM, TYPE) </claim>
+    <claim> \type(\lambda { VARs1 } TERM, \pi { VARs2 } TYPE) => \type(TERM, TYPE) </claim>
     <strategy> typecheck ... </strategy>
 
   // application
   rule
-    <claim> \type(TERM1 ( TERM2 ), TYPE) => \type(TERM1, \pi { !X:VariableName { StringToSort("Term") } } TYPE) </claim>
+    <claim> \type(TERM1 ( TERM2 ), TYPE) => \type(TERM1, \pi { !X:VariableName { #token("Term", "UpperName") } } TYPE) </claim>
     <strategy> typecheck ... </strategy>
 
 endmodule

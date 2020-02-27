@@ -7,14 +7,14 @@
 //     Z : nat
 //   | S : (forall (x : nat), nat) .
 
-Definition not : (forall (x : Prop), Prop) b :=
+Definition not : (forall (x : Prop), Prop) :=
   fun (A: Prop) => (forall (x : A), False) .
 
-// Definition iff : (forall (x : Prop), (forall (y : Prop), Prop)) :=
-//   (and (forall (x : A), B)) (forall (y : B), A) .
+Definition iff : (forall (x : Prop), (forall (y : Prop), Prop)) :=
+  (and (forall (x : A), B)) (forall (y : B), A) .
 
-// Definition IF_then_else : (forall (x : Prop), (forall (y : Prop), (forall (z : Prop), Prop))) :=
-//   (or (and P Q)) (and (not P) R) .
+Definition IF_then_else : (forall (x : Prop), (forall (y : Prop), (forall (z : Prop), Prop))) :=
+  (or (and P Q)) (and (not P) R) .
 
 // Inductive ex1 (A : Type) (P : forall (x : A), Prop) : Prop :=
 //   ex_intro1 : forall (x : A), forall (y : (P x)), ex1 A P .
@@ -28,12 +28,12 @@ Definition not : (forall (x : Prop), Prop) b :=
 // Inductive ex4 (A : Type) (P : forall (x : A), Prop) : Prop :=
 //   ex_intro4 : forall (x : A), forall (y : (P x)), @ ex4 A P .
 
-// Definition AndComm : (forall (A B : Prop), (forall (c : and A B), and B A)) :=
-//   fun (A B : Prop) (H : and A B) =>
-//     match H with
-//       conj H0 H1 => conj H1 H0
-//     end
-//   .
+Definition AndComm : (forall (A B : Prop), (forall (c : and A B), and B A)) :=
+  fun (A B : Prop) (H : and A B) =>
+    match H with
+      conj H0 H1 => conj H1 H0
+    end
+  .
 
 // // Inductive and (A B : Prop) : Prop :=
 // //   conj : forall (x : A), forall (y : B), and A B .

@@ -31,7 +31,7 @@ module DRIVER-COQ
 // Add sort "Term" to declarations
   rule <k> CS:CoqSentence CSs:CoqSentences => CS ~> CSs ... </k>
        <declarations> ( .Bag
-                     => <declaration> sort StringToSort("Term") </declaration>
+                     => <declaration> sort #token("Term", "UpperName") </declaration>
                       ) ...
        </declarations>
 
@@ -41,7 +41,7 @@ module DRIVER-COQ
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol CoqIdentToSymbol(ID)(.Sorts) : StringToSort("Term") </declaration>
+                     => <declaration> symbol CoqIdentToSymbol(ID)(.Sorts) : #token("Term", "UpperName") </declaration>
                         <declaration> axiom getFreshGlobalAxiomName() : \equals(CoqIdentToSymbol(ID), CoqTermToPattern(TERM)) </declaration>
                       ) ...
        </declarations>
@@ -68,7 +68,7 @@ module DRIVER-COQ
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol CoqIdentToSymbol(ID)(.Sorts) : StringToSort("Term") </declaration>
+                     => <declaration> symbol CoqIdentToSymbol(ID)(.Sorts) : #token("Term", "UpperName") </declaration>
                       ) ...
        </declarations>
 
@@ -77,7 +77,7 @@ module DRIVER-COQ
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol CoqIdentToSymbol(IDC)(.Sorts) : StringToSort("Term") </declaration>
+                     => <declaration> symbol CoqIdentToSymbol(IDC)(.Sorts) : #token("Term", "UpperName") </declaration>
                         <declaration> axiom getFreshGlobalAxiomName() : \type(CoqIdentToSymbol(IDC)(.Patterns), CoqTermToPattern(TERMC))  </declaration>
                       ) ...
        </declarations>
@@ -86,7 +86,7 @@ module DRIVER-COQ
   syntax Pattern ::= CoqTermToPattern(CoqTerm) [function]
   rule CoqTermToPattern(UN:UpperName) => CoqIdentToSymbol(UN)
   rule CoqTermToPattern(LN:LowerName) => CoqIdentToSymbol(LN)
-  rule CoqTermToPattern(#token("Prop", "CoqSort")) => StringToSort("Term")
+  rule CoqTermToPattern(#token("Prop", "CoqSort")) => #token("Term", "UpperName")
   rule CoqTermToPattern(fun BINDERs => TERM) => \lambda { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(forall BINDERs, TERM) => \pi { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(match Ts with .CoqEquations end) => \bottom()
@@ -145,9 +145,9 @@ module DRIVER-COQ
        CoqBinderToPatterns(BINDER) ++Patterns CoqBindersToPatterns(BINDERs)
 
   syntax Patterns ::= CoqBinderToPatterns(CoqBinder) [function]
-  rule CoqBinderToPatterns(NAME:CoqName) => CoqNameToVariableName(NAME) { StringToSort("Term") }
+  rule CoqBinderToPatterns(NAME:CoqName) => CoqNameToVariableName(NAME) { #token("Term", "UpperName") }
   rule CoqBinderToPatterns((.CoqNames : TYPE:CoqTerm)) => .Patterns
-  rule CoqBinderToPatterns(((NAME:CoqName NAMES:CoqNames) : TYPE:CoqTerm)) => CoqNameToVariableName(NAME) { StringToSort("Term") }, CoqBinderToPatterns((NAMES : TYPE))
+  rule CoqBinderToPatterns(((NAME:CoqName NAMES:CoqNames) : TYPE:CoqTerm)) => CoqNameToVariableName(NAME) { #token("Term", "UpperName") }, CoqBinderToPatterns((NAMES : TYPE))
 ```
 
 ```k
