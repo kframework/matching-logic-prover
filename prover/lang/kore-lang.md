@@ -312,6 +312,11 @@ module KORE-HELPERS
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
 
+  syntax Bool ::= isSortOf(Pattern, Sort) [function]
+
+  // TODO implement using backwards-search
+  rule isSortOf(P, S) => getReturnSort(P) ==K S
+
   syntax Bool ::= isUnfoldable(Symbol) [function]
   rule [[ isUnfoldable(S:Symbol) => true ]]
        <declaration> axiom _ : \forall {_} \iff-lfp(S(_), _) </declaration>
@@ -726,10 +731,10 @@ Simplifications
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
   rule isPredicatePattern(S:Symbol(ARGS)) => true
-    requires getReturnSort(S(ARGS)) ==K Bool
+    requires isSortOf(S(ARGS), Bool)
 
   rule isPredicatePattern(S:Symbol(ARGS)) => false
-    requires getReturnSort(S(ARGS)) ==K Heap
+    requires isSortOf(S(ARGS), Heap)
   rule isPredicatePattern(emp(.Patterns)) => false
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
@@ -747,7 +752,7 @@ Simplifications
   rule isSpatialPattern(\and(_)) => false
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
-    requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
+    requires S =/=K sep andBool isSortOf(S(ARGS), Heap)
   rule isSpatialPattern(#hole) => true
 
   // TODO: Perhaps normalization should get rid of this?
@@ -771,6 +776,7 @@ Simplifications
   rule isApplication(_) => false
     [owise]
 
+  // FIXME duplicate of getLength
   syntax Int ::= lengthPatterns(Patterns) [function]
   rule lengthPatterns(.Patterns) => 0
   rule lengthPatterns(P, Ps) => 1 +Int lengthPatterns(Ps)
