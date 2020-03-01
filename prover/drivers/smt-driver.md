@@ -181,7 +181,7 @@ module DRIVER-SMT
                                                  , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)))
                                                  )
                         </declaration>
-                        <declaration> axiom !N:AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
+                        <declaration> axiom !N':AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
                       ) ...
        </declarations>
 
