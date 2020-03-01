@@ -309,11 +309,11 @@ module DRIVER-SMT
 
   // If S2 calls another symbol S1 that returns a heap, then S2 is spatial
   rule #containsSpatial(S1(Ps), S2) => true
-    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(S1(Ps)) ==K Heap
+    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool isSortOf(S1(Ps), Heap)
 
   // If S2 calls another symbol S1 that does not return a heap, then recurse on the arguments of S1
   rule #containsSpatial(S1(Ps), S2) => #containsSpatialPatterns(Ps, S2)
-    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(S1(Ps)) =/=K Heap
+    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool notBool isSortOf(S1(Ps), Heap)
 
   rule #containsSpatialPatterns(.Patterns, _) => false
   rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
