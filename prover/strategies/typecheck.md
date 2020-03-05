@@ -15,6 +15,7 @@ module STRATEGY-TYPECHECK
     <strategy> typecheck => success ... </strategy>
 
   // axiom: (Term, Term, Term)
+  // TODO: use Term as constant
   rule
     <claim> \type(\pi { VARs } TYPE, #token("Term", "UpperName")) </claim>
     <strategy> typecheck => success ... </strategy>
