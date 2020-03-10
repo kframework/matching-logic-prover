@@ -1,26 +1,12 @@
-$(
-    The Metalevel of Matching Logic, i.e., Matching Logic Proof Checker.
+$(  
+    #############################
+    Matching Logic Proof Checker.
+    #############################
 $)
 
-$(
-    Part 1: Primitive Patterns and Metalevel Assertions.
-$)
+$c \ex \bot \imp \ex \mu ( ) $.
 
-$( ML primitive syntax of patterns $)
-$c \bot $.    $( the bottom pattern $)
-$c \imp $.    $( the implication pattern ( \imp P Q ) $)
-$c \app $.    $( the application pattern ( \app P Q ) $)
-$c \exists $. $( the exists quantifier ( \exists x P ) $)
-$c \mu $.     $( the mu fixpoint binder ( \mu X P ) $)
-$c ( $.       $( left parenthesis $)
-$c ) $.       $( right parenthesis $)
-
-$( ML metalevel assertions about pattern structures $)
-$c #wf $.     $( wellformedness token $)
-$c #var $.    $( variable token $)
-$c #symb $.   $( symbols token $)
-$c #evar $.   $( element variables token $)
-$c #svar $.   $( set variables token $)
+$c #qp #p #v #ev #sv #sb $.
 
 $c |- $.      $( the provability token $)
 
