@@ -1,0 +1,27 @@
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{notation}[definition]{Notation}
+
+\newcommand{\CoqTerm}{\textnormal{\textit{Term}}\xspace}
+\newcommand{\CoqSort}{\textnormal{\textit{Sort}}\xspace}
+
+\newcommand{\SProp}{\mathsf{SProp}}
+\newcommand{\Prop}{\mathsf{Prop}}
+\newcommand{\Set}{\mathsf{Set}}
+\newcommand{\Type}{\mathsf{Type}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\V}{V}
+\newcommand{\C}{C}
+\newcommand{\cln}{{\,:\,}}
+\newcommand{\scln}{\mathbin{;}}
+\newcommand{\dcln}{\mathbin{::}}
+\newcommand{\FV}{\mathrm{FV}}
+\newcommand{\sbs}[3]{#1 [ #2 / #3 ]}
+
+\newcommand{\cfa}[3]{\forall #1 \cln #2 , #3}
+\newcommand{\clm}[3]{\lambda #1 \cln #2 . #3}
+\newcommand{\cpp}[2]{(#1 \, #2)}
+\newcommand{\clt}[4]{\textsf{let} \, #1 \coloneqq #2 \cln #3 \,\textsf{in}\, #4}
+
+\newcommand{\lasm}[2]{#1 \cln #2}
+\newcommand{\ldef}[3]{#1 \coloneqq #2 \cln #3}

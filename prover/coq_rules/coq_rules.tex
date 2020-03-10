@@ -1,0 +1,110 @@
+\documentclass{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{xspace}
+
+\input{newcommands}
+
+\title{All Coq Rules in One Place}
+\author{Xiaohong Chen}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document summarizes all the proof rules of the Coq proof assistant,
+as listed in 
+\url{https://coq.inria.fr/distrib/current/refman/language/cic.html}.
+\end{abstract}
+
+\section{Syntax}
+
+Let us fix a countably infinite set $\V$ of \emph{variables}, denoted 
+$x,y,\dots$. 
+Let us fix a countably infinite set $\C$ of \emph{constants}, denoted
+$c,d,\dots$.
+
+\begin{definition}
+We define the set \CoqTerm to be the smallest set that satisfies the following 
+conditions:
+\begin{enumerate}
+\item $\SProp,\Prop,\Set \in \CoqTerm$; $\Type(i) \in \CoqTerm$ for every $i 
+\in \NN$. 
+\item $\V \subseteq \CoqTerm$.
+\item $\C \subseteq \CoqTerm$.
+\item If $x \in \V$ and $T,U \in \CoqTerm$, 
+      then $\cfa{x}{T}{U} \in \CoqTerm$.
+\item If $x \in \V$ and $T,u \in \CoqTerm$,
+      then $\clm{x}{T}{u} \in \CoqTerm$.
+\item If $t,u \in \CoqTerm$,
+      then $\cpp{t}{u} \in \CoqTerm$, called \emph{application}.
+\item If $x \in \V$ and $t,T,u \in \CoqTerm$,
+      then $\clt{x}{t}{T}{u} \in \CoqTerm$.
+\end{enumerate}
+where $\cfa{x}{T}{U}$ binds $x$ to $U$
+and $\clm{x}{T}{u}$ binds $x$ to $u$.
+We use $\FV(T) \subseteq \V$ to denote the set of free variables in $T \in 
+\CoqTerm$. 
+For $T,U \in \CoqTerm$ and $x \in \V$, 
+we use $\sbs{T}{U}{x}$ to denote the result of substituting $U$ for $x$ in $T$,
+where $\alpha$-renaming happens implicitly to prevent variable capture.
+\end{definition}
+
+\begin{definition}
+We define the set 
+$\CoqSort = \{\SProp,\Prop,\Set\} \cup \{\Type(i) \mid i \in \NN\}$.
+Note that $\CoqSort \subseteq \CoqTerm$. 
+Elements in $\CoqSort$ are called \emph{sorts} and denoted as $s$,
+possibly with subscripts.
+\end{definition}
+
+\begin{definition}
+A \emph{local assumption} is written $\lasm{x}{T}$, where $x \in \V$ and $T \in 
+\CoqTerm$. 
+A \emph{local definition} is written $\ldef{x}{u}{T}$,
+where $x \in \V$ and $u,T \in \CoqTerm$.
+In both cases, we call $x$ the \emph{declared variable}. 
+A \emph{local context} is an ordered list of local assumptions and local 
+definitions, such that the declared variables are all distinct. 
+We use $\Gamma$, possibly with subscripts, to denote local contexts. 
+\end{definition}
+
+\begin{notation}
+We use the notation $[\lasm{x}{T} \scln \ldef{y}{u}{U} \scln \lasm{z}{V}]$
+to denote the local context that consists of
+the local assumption $\lasm{x}{T}$,
+the local definition $\ldef{y}{u}{U}$
+and the local assumption $\lasm{z}{V}$,
+with the implicit requirement that $x,y,z$ are all distinct.
+The empty local context is written as $[]$. 
+Let $\Gamma$ be a local context. 
+We write $x \in \Gamma$ to mean that $x$ is declared in $\Gamma$.
+We write $(\lasm{x}{T}) \in \Gamma$ to mean that the local assumption
+$\lasm{x}{T}$ is in $\Gamma$, or that
+the local definition $\ldef{x}{u}{T}$ is in $\Gamma$ for some $u \in \CoqTerm$.
+We write $(\ldef{x}{u}{T}) \in \Gamma$ to mean that
+the local definition $\ldef{x}{u}{T}$ is in $\Gamma$.
+We write $\Gamma \dcln ( \lasm{x}{T} )$ to denote the local context
+that enriches $\Gamma$ with $\lasm{x}{T}$, with the implicit requirement that 
+$x \not\in \Gamma$.
+Similarly, we write 
+$\Gamma \dcln ( \ldef{x}{u}{T} )$ to denote the local context
+that enriches $\Gamma$ with $\ldef{x}{u}{T}$, with the implicit requirement 
+that $x \not\in \Gamma$.
+We write $\Gamma_1 \scln \Gamma_2$ to mean the local context
+obtained by concatenating $\Gamma_1$ and $\Gamma_2$, with the implicit 
+requirement that all variables declared in $\Gamma_2$ are not declared in 
+$\Gamma_1$. 
+\end{notation}
+
+\begin{definition}
+Global context \dots
+\end{definition}
+
+\section{Coq Typing Rules}
+
+\end{document}
