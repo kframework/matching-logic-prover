@@ -102,7 +102,48 @@ $\Gamma_1$.
 \end{notation}
 
 \begin{definition}
-Global context \dots
+A \emph{global assumption} is written $(\gasm{x}{T})$, where $c \in \C$ and $T \in 
+\CoqTerm$. 
+A \emph{global definition} is written $\gldef{c}{u}{T}$,
+where $c \in \C$ and $u,T \in \CoqTerm$.
+In both cases, we call $c$ the \emph{declared constant}. 
+A \emph{global environment} is an ordered list of global assumptions and global
+definitions.
+We use $E$, possibly with subscripts, to denote global environments.
+\end{definition}
+
+\begin{notation}
+We use the notation $\gasm{c_1}{T} \scln \gldef{c_2}{u}{U} \scln \gasm{c_3}{V}$
+to denote the local context that consists of
+the global assumption $\gasm{c_1}{T}$,
+the global definition $\gldef{c_2}{u}{U}$
+and the global assumption $\gasm{c_3}{V}$.
+The empty global context is written as $[]$. % TODO: is this right?
+Let $E$ be a local context. 
+We write $c \in E$ to mean that $c$ is declared in $E$.
+We write $(\gasm{c}{T}) \in E$ to mean that the global assumption
+$\gasm{c}{T}$ is in $E$, or that
+the global definition $\gldef{c}{u}{T}$ is in $E$ for some $u \in \CoqTerm$.
+We write $(\gldef{c}{u}{T}) \in E$ to mean that
+the global definition $\gldef{c}{u}{T}$ is in $E$.
+We write $E \scln \gasm{c}{T}$ to denote the global context
+that enriches $E$ with $\gasm{c}{T}$.
+Similarly, we write 
+$E \scln \gldef{c}{u}{T}$ to denote the global context
+that enriches $E$ with $( \gldef{c}{u}{T} )$.
+\end{notation}
+
+\begin{notation}
+We write $E[\Gamma] \proves \lasm{u}{T}$ to mean that $u$ is well-typed with
+type $T$ in global environment $E$ and local environment $\Gamma$.
+We write $\wf(E)[\Gamma]$ to mean that the global environment $E$ is well-formed
+and $\Gamma$ is a valid local context in $E$.
+\end{notation}
+
+\begin{definition}
+A term $u$ is \emph{well-typed} in a global environment $E$ if there is a
+local environment $\Gamma$ and type $T$ such that
+$E[\Gamma] \proves \lasm{u}{T}$ is derivable with the rules below.
 \end{definition}
 
 \section{Coq Typing Rules}
