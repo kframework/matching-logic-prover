@@ -396,6 +396,8 @@ module KORE-HELPERS
   rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
     => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
        -Patterns #hole, .Patterns
+  rule getFreeVariables(\typeof(P, _))
+    => getFreeVariables(P)
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
@@ -605,6 +607,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(I:Int) => I
   rule alphaRename(implicationContext(P, Qs))
     => implicationContext(alphaRename(P), alphaRename(Qs))
+  rule alphaRename(\typeof(P, S)) => \typeof(alphaRename(P), S)
 
   rule alphaRenamePs(.Patterns) => .Patterns
   rule alphaRenamePs(P, Ps) => alphaRename(P), alphaRenamePs(Ps)
@@ -739,6 +742,7 @@ Simplifications
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(implicationContext(\and(sep(_),_),_)) => false
+  rule isPredicatePattern(\typeof(_,_)) => true
   rule isPredicatePattern(implicationContext(_,_)) => true
     [owise]
 
@@ -801,6 +805,8 @@ Simplifications
   rule hasImplicationContextPs(.Patterns) => false
   rule hasImplicationContextPs(P, Ps)
     => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
+  rule hasImplicationContext(\typeof(P, _))
+    => hasImplicationContext(P)
 
 
   syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
