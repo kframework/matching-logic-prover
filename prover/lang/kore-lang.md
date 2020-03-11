@@ -764,6 +764,7 @@ Simplifications
   rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
   rule isPredicatePattern(\implies(P1, P2)) => isPredicatePattern(P1) andBool isPredicatePattern(P2)
   rule isPredicatePattern(#hole) => false
+  rule isPredicatePattern(V:VariableName { Heap }) => false
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
   rule isPredicatePattern(S:Symbol(ARGS)) => true
@@ -791,6 +792,7 @@ Simplifications
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
   rule isSpatialPattern(#hole) => true
+  rule isSpatialPattern(V:VariableName { Heap }) => true
 
   // TODO: Perhaps normalization should get rid of this?
   rule isSpatialPattern(\exists{_} implicationContext(\and(sep(_),_),_)) => true
