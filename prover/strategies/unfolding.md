@@ -131,30 +131,6 @@ implicatations. The resulting goals are equivalent to the initial goal.
        </k>
 ```
 
-### Footprint Analysis
-
-```
-    REST -> \exists d, H. H * xi |-> d
-    -----------------------------------
-         xi |-> _ * REST -> RHS
-```
-
-If the left hand side contains a pointer xi |-> _ and a recursive definition, it
-is sufficient to prove that the left hand side *without* xi |-> _ implies that
-there is a d such that that xi |-> d. If this proof succeeds, then with
-instantiate-separation-logic-axioms, we have xi pointing to two different
-things, so the LHS becomes unsat.
-
-```k
-  rule <strategy> footprint-analysis => noop ... </strategy>
-       <k> \implies(\and(sep(pto(X, Y), REST), LCONSTRAINT), RHS)
-            => \implies( \and(sep(REST), LCONSTRAINT),
-                         \exists { !D:VariableName { getReturnSort(Y) }, !H:VariableName { Heap } }
-                           \and(sep(!H { Heap }, pto(X, !D:VariableName { getReturnSort(Y) })))
-                       )
-       </k>
-```
-
 ### Right Unfold
 
 Unfold the predicates on the Right hand side into a disjunction of implications.
