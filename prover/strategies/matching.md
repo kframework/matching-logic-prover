@@ -591,13 +591,36 @@ instantiate-separation-logic-axioms, we have xi pointing to two different
 things, so the LHS becomes unsat.
 
 ```k
-  rule <strategy> footprint-analysis => noop ... </strategy>
-       <k> \implies(\and(sep(pto(X, Y), REST), LCONSTRAINT), RHS)
+  syntax Strategy ::= "footprint-analysis" "(" Pattern ")"
+
+  rule <k> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS) </k>
+       <strategy> footprint-analysis
+               => with-each-match( #match( terms:     LSPATIAL
+                                         , pattern:   pto(!X:VariableName { LOC }, !Y:VariableName { DATA })
+                                         , variables: !X { LOC }, !Y { DATA }
+                                         )
+                                 , footprint-analysis( pto(!X { LOC }, !Y { DATA }) )
+                                 )
+                  ...
+       </strategy>
+       <declaration> axiom _: heap(LOC, DATA) </declaration>
+
+// TODO: figure out why rule gets stuck when requires clause is uncommented
+  rule <k> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS)
             => \implies( \and(sep(REST), LCONSTRAINT),
-                         \exists { !D:VariableName { getReturnSort(Y) }, !H:VariableName { Heap } }
-                           \and(sep(!H { Heap }, pto(X, !D:VariableName { getReturnSort(Y) })))
+                         \exists { !D:VariableName { DATA }, !H:VariableName { Heap } }
+                           \and(sep(!H { Heap }, pto(XMATCH, !D:VariableName { DATA })))
                        )
        </k>
+       <strategy> #matchResult( subst: X { LOC }  |-> XMATCH
+                                       Y { DATA } |-> YMATCH
+                              , rest: REST
+                              )
+               ~> footprint-analysis( pto(X { LOC }, Y { DATA }) )
+               => noop
+                  ...
+       </strategy>
+//     requires LSPATIAL -Patterns REST ==K pto(XMATCH, YMATCH)
 ```
 
 ```k
