@@ -161,6 +161,9 @@ only in this scenario*.
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
+                   | "\\in" "(" Pattern "," Pattern ")"          [klabel(in)]
+                   | "\\subseteq" "(" Pattern "," Pattern ")"    [klabel(subseteq)]
+
                    // sugar for commonly needed axioms
                    | "\\typeof" "(" Pattern "," Sort ")"
                    | "functional" "(" Symbol ")"
