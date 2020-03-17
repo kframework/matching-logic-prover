@@ -1,0 +1,29 @@
+sort Nat
+
+symbol a
+axiom \typeof(a, Nat)
+
+symbol plus_2
+axiom
+  \implies(
+    \typeof(#X, Nat),
+    \implies(
+      \typeof(#Y, Nat),
+      \typeof(plus_2(#X, #Y), Nat)
+    )
+  )
+
+// Those two are commented out because otherwise
+// the third search would use them as lemmas
+
+/*
+claim \typeof(a, Nat)
+strategy backwards-search 1
+
+claim \typeof(plus_2(a, a), Nat)
+strategy backwards-search 2
+*/
+
+claim \typeof(plus_2(a, plus_2(a, a)), Nat)
+strategy backwards-search 3
+

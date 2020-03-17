@@ -1,12 +1,13 @@
 ```k
 module BACKWARDS-SEARCH-SYNTAX
   imports INT-SYNTAX
+  imports LIST
 
   syntax Pattern
   syntax Patterns
 
   syntax Bool ::= "backwardsSearch"
-                  "(" "depth:" Int
+                  "(" "depths:" List
                   "," "goals:" Patterns
                   "," "axioms:" Patterns
                   ")" [function]
@@ -24,26 +25,26 @@ module BACKWARDS-SEARCH-RULES
 
   rule isBuiltinAxiom(\typeof(_:Int, Int)) => true
 
-  rule backwardsSearch(depth: D, goals: Gs, axioms: As)
-    => #backwardsSearch(depth: D, goals: Gs, axioms: As, allAxioms: As)
+  rule backwardsSearch(depths: Ds, goals: Gs, axioms: As)
+    => #backwardsSearch(depths: Ds, goals: Gs, axioms: As, allAxioms: As)
 
   syntax Bool ::= "#backwardsSearch"
-                  "(" "depth:" Int
+                  "(" "depths:" List
                   "," "goals:" Patterns
                   "," "axioms:" Patterns
                   "," "allAxioms:" Patterns
                   ")" [function]
 
   rule #backwardsSearch
-       ( depth: 0, goals: G,Gs, axioms: _, allAxioms: _)
+       ( depths: ListItem(0) _, goals: G,Gs, axioms: _, allAxioms: _)
        => false
 
   rule #backwardsSearch
-       ( depth: _, goals: G,Gs, axioms: .Patterns, allAxioms: _)
+       ( depths: _, goals: G,Gs, axioms: .Patterns, allAxioms: _)
        => false
 
   rule #backwardsSearch
-       ( depth: _, goals: .Patterns, axioms: _, allAxioms: _)
+       ( depths: _, goals: .Patterns, axioms: _, allAxioms: _)
        => true
 
   // match G against the conclusion of A.
@@ -55,19 +56,19 @@ module BACKWARDS-SEARCH-RULES
   // #backwardsSearch(N, G,Gs, As, AAs)
 
   rule #backwardsSearch
-       ( depth: N, goals: G,Gs, axioms: A, As, allAxioms: AAs)
+       ( depths: ListItem(N) Ds, goals: G,Gs, axioms: A, As, allAxioms: AAs)
        => #if #backwardsSearch.tryAxiom
-              (depth: N, goal: G, axiom: A, goals: Gs, allAxioms: AAs)
+              (depths: ListItem(N) Ds, goal: G, axiom: A, goals: Gs, allAxioms: AAs)
           #then
             true
           #else
             #backwardsSearch
-            (depth: N, goals: G,Gs, axioms: As, allAxioms: AAs)
+            (depths: ListItem(N) Ds, goals: G,Gs, axioms: As, allAxioms: AAs)
           #fi
        requires N >Int 0
 
   syntax Bool ::= "#backwardsSearch.tryAxiom"
-                  "(" "depth:" Int
+                  "(" "depths:" List
                   "," "goal:" Pattern
                   "," "axiom:" Pattern
                   "," "goals:" Patterns
@@ -75,7 +76,7 @@ module BACKWARDS-SEARCH-RULES
                   ")" [function]
 
   rule #backwardsSearch.tryAxiom
-       ( depth: N, goal: G, axiom: A, goals: Gs, allAxioms: AAs)
+       ( depths: Ds, goal: G, axiom: A, goals: Gs, allAxioms: AAs)
     => #backwardsSearch.tryAxiom1(
          mr: syntacticMatch(
            terms: G, .Patterns,
@@ -83,12 +84,12 @@ module BACKWARDS-SEARCH-RULES
            variables: getUniversallyQuantifiedVariables(A)
                       ++Patterns getSetVars(A)
          ),
-         depth: N, axiom: A, goals: Gs, allAxioms: AAs
+         depths: Ds, axiom: A, goals: Gs, allAxioms: AAs
        )
 
   syntax Bool ::= "#backwardsSearch.tryAxiom1"
                   "(" "mr:" MatchResult
-                  "," "depth:" Int
+                  "," "depths:" List
                   "," "axiom:" Pattern
                   "," "goals:" Patterns
                   "," "allAxioms:" Patterns
@@ -96,33 +97,38 @@ module BACKWARDS-SEARCH-RULES
 
   rule #backwardsSearch.tryAxiom1(
          mr: #matchFailure(_),
-         depth:_, axiom:_, goals:_, allAxioms:_
+         depths:_, axiom:_, goals:_, allAxioms:_
        ) => false
 
 
   rule #backwardsSearch.tryAxiom1(
          mr: #matchResult(subst: Subst),
-         depth: N, axiom: Ax, goals: Gs, allAxioms: AAs
+         depths: Ds, axiom: Ax, goals: Gs, allAxioms: AAs
        ) => #backwardsSearch.tryAxiom2(
          assumptions: instantiateAssumptions(Subst, Ax),
-         depth: N, goals: Gs, allAxioms: AAs
+         depths: Ds, goals: Gs, allAxioms: AAs
        )
 
   syntax Bool ::= "#backwardsSearch.tryAxiom2"
                   "(" "assumptions:" InstantiateAssumptionsResult
-                  "," "depth:" Int
+                  "," "depths:" List
                   "," "goals:" Patterns
                   "," "allAxioms:" Patterns
                   ")" [function]
 
   rule #backwardsSearch.tryAxiom2(
-         assumptions: error(_), depth: _, goals: _, allAxioms: _
+         assumptions: error(_), depths: _, goals: _, allAxioms: _
        ) => false
 
+  syntax List ::= repeatElement(KItem, Int) [function]
+  rule repeatElement(_, 0) => .List
+  rule repeatElement(X, N) => ListItem(X) repeatElement(X, N -Int 1)
+       requires N >=Int 1
+
   rule #backwardsSearch.tryAxiom2(
-         assumptions: ok(Ps, _), depth: N, goals: Gs, allAxioms: AAs
+         assumptions: ok(Ps, _), depths: ListItem(N) Ds, goals: Gs, allAxioms: AAs
        ) => #backwardsSearch(
-              depth: N -Int 1,
+              depths: repeatElement(N -Int 1, getLength(Ps)) Ds,
               goals: Ps ++Patterns Gs,
               axioms: AAs,
               allAxioms: AAs

@@ -6,7 +6,7 @@ module STRATEGY-BACKWARDS-SEARCH
 
   rule <strategy> backwards-search Depth
                => #if backwardsSearch
-                      ( depth: Depth
+                      ( depths: ListItem(Depth)
                       , goals: P, .Patterns
                       , axioms: collectAssumptions(GId)
                       )
