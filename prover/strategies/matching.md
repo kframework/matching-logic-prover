@@ -56,21 +56,23 @@ module MATCHING-FUNCTIONAL
 Work around OCaml not producing reasonable error messages:
 
 ```k
+  syntax MatchResult ::= MatchStuck
+  syntax MatchStuck ::= "#matchStuck" "(" K ")"
   syntax KItem ::= "\\n" [format(%n)]
-  rule #matchAssocComm(terms: T
-                      , pattern: P   
+  rule #matchAssocComm( terms: T
+                      , pattern: P
                       , variables: Vs
                       , results: MRs 
                       , subst: SUBST
                       , rest: REST
                       )
-    => #error( "AC" 
-            ~> "terms:" ~> T
-            ~> "pattern:" ~> P
-            ~> "variables:" ~> Vs
-            ~> "subst:" ~> SUBST
-            ~> "rest:" ~> REST
-            ~> "MRs:" ~> MRs )
+    => #matchStuck( "AC" 
+                 ~> "terms:" ~> T
+                 ~> "pattern:" ~> P
+                 ~> "variables:" ~> Vs
+                 ~> "subst:" ~> SUBST
+                 ~> "rest:" ~> REST
+                 ~> "MRs:" ~> MRs )
      , .MatchResults
     [owise]
 ```
