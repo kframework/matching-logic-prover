@@ -624,6 +624,40 @@ things, so the LHS becomes unsat.
 //     requires LSPATIAL -Patterns REST ==K pto(XMATCH, YMATCH)
 ```
 
+### Nullity Analysis
+
+```
+    LHS -> xi =/= nil       LHS /\ xi =/= nil -> RHS
+    ------------------------------------------------
+                       LHS -> RHS
+```
+
+```k
+  rule <k> \implies( \and(sep(LSPATIAL), LCONSTRAINT), RHS)
+            => \implies( \and( sep(LSPATIAL),
+                               \forall { .Patterns }
+                                        \implies( \and( \not(\equals( #token("Vy_emp", "UpperName") { #token("RefDll_t", "UpperName") }
+                                                              , parameterizedSymbol(nil, #token("RefDll_t", "UpperName"))(.Patterns)
+                                                              )
+                                                            )
+                                                      )
+                                                , \not(\equals( #token("Vy_emp", "UpperName") { #token("RefDll_t", "UpperName") }
+                                                              , parameterizedSymbol(nil, #token("RefDll_t", "UpperName"))(.Patterns)
+                                                              )
+                                                      )
+                                                )
+                                   , LCONSTRAINT
+                             )
+                       , RHS
+                       )
+       </k>
+       <strategy> nullity-analysis(STRAT)
+               => kt-solve-implications(STRAT)
+                  ...
+       </strategy>
+       <declaration> axiom _: heap(LOC, DATA) </declaration>
+```
+
 ```k
     rule <claim> \implies( \and(sep( LSPATIAL ) , _ )
                          , \exists {_}

@@ -61,7 +61,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "spatial-patterns-equal"
                     | "match" | "match-pto"
                     | "frame"
-                    | "footprint-analysis"
+                    | "footprint-analysis" | "nullity-analysis" "(" Strategy ")"
                     | "unfold-mut-recs"
                     | "apply-equation"
                         RewriteDirection AxiomOrClaimName
