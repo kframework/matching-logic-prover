@@ -161,7 +161,7 @@ only in this scenario*.
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
-                   | "\\in" "(" Pattern "," Pattern ")"          [klabel(in)]
+                   | "\\member" "(" Pattern "," Pattern ")"          [klabel(member)]
                    | "\\subseteq" "(" Pattern "," Pattern ")"    [klabel(subseteq)]
 
                    // sugar for commonly needed axioms
