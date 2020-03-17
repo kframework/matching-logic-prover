@@ -315,7 +315,6 @@ the unmatched part of the term:
                       , rest:      REST
                       )
     requires intersectSet(keys(SUBST_INNER), keys(SUBST)) ==K .Set
-     andBool notBool P in Vs
 ```
 
 Failures are propagated:
