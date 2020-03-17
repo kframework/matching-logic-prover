@@ -568,6 +568,14 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
       requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
        andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
 
+    rule <claim> \implies( \and(sep(LSPATIAL), LCONSTRAINT)
+                         , RHS
+                         )
+              => \implies(\and(LCONSTRAINT), RHS)
+         </claim>
+         <k> spatial-patterns-match => noop ... </k>
+       requires isPredicatePattern(RHS)
+
     rule <claim> \implies(               \and(sep(LSPATIAL), _)
                          , \exists{ Vs } \and(sep(RSPATIAL), _)
                          )

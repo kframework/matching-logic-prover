@@ -59,6 +59,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "instantiate-universals-with-ground-terms"
                     | "instantiate-separation-logic-axioms"
                     | "spatial-patterns-equal"
+                    | "spatial-patterns-match"
                     | "match" | "match-pto"
                     | "frame"
                     | "footprint-analysis" | "nullity-analysis" "(" Strategy ")"
