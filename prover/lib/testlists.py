@@ -167,8 +167,8 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
                  "   ) ."
                 ),                    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-5.smt2'])
              , (tst_22_strategy,      0,  0, '10m', ['t/SL-COMP18/bench/qf_shid_entl/22.tst.smt2'])
-             , ('footprint-analysis . kt . ',
-                                      1,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2'])
+             , ('footprint-analysis . ',
+                                      2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 
