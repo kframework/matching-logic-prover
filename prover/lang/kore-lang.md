@@ -386,6 +386,10 @@ module KORE-HELPERS
   rule getFreeVariables(\iff-lfp(LHS, RHS), .Patterns) => getFreeVariables(LHS, RHS, .Patterns)
   rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
   rule getFreeVariables(\or(Ps),  .Patterns) => getFreeVariables(Ps)
+  rule getFreeVariables(\member(P1, P2))
+    => getFreeVariables(P1) ++Patterns getFreeVariables(P2)
+  rule getFreeVariables(\subseteq(P1, P2))
+    => getFreeVariables(P1) ++Patterns getFreeVariables(P2)
 
   rule getFreeVariables(\exists { Vs } P,  .Patterns)
     => getFreeVariables(P, .Patterns) -Patterns Vs
@@ -597,6 +601,8 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(\and(Ps)) => \and(alphaRenamePs(Ps))
   rule alphaRename(\or(Ps)) => \or(alphaRenamePs(Ps))
   rule alphaRename(\implies(L,R)) => \implies(alphaRename(L), alphaRename(R))
+  rule alphaRename(\member(P1, P2)) => \member(alphaRename(P1), alphaRename(P2))
+  rule alphaRename(\subseteq(P1, P2)) => \subseteq(alphaRename(P1), alphaRename(P2))
   rule alphaRename(S:Symbol(ARGs)) => S(alphaRenamePs(ARGs))
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V
