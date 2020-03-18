@@ -357,34 +357,32 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
+  syntax Strategy ::= "substitute-equals-for-equals" "(" Map ")"
   rule <claim> \implies(\and(LHS), _) </claim>
        <k> substitute-equals-for-equals
-               => (makeEqualitySubstitution(LHS) ~> substitute-equals-for-equals)
-                  ...
+        => substitute-equals-for-equals(makeEqualitySubstitution(LHS))
+           ...
        </k>
 
-  rule <k> (SUBST:Map ~> substitute-equals-for-equals)
-               => noop
-                  ...
+  rule <k> substitute-equals-for-equals(.Map)
+        => noop
+           ...
        </k>
-    requires SUBST ==K .Map
 
-  rule <claim> \implies( \and(LHS => removeTrivialEqualities(substPatternsMap(LHS, SUBST)))
-                       , \exists { _ }
-                         ( \and(RHS => removeTrivialEqualities(substPatternsMap(RHS, SUBST))) )
-                       )
+  rule <claim> \implies( LHS, \exists{Vs} RHS )
+            => \implies( subst(LHS, X, T), \exists{Vs} subst(RHS, X, T) )
        </claim>
-       <k> (SUBST:Map ~> substitute-equals-for-equals)
-               => substitute-equals-for-equals
-                  ...
+       <k> substitute-equals-for-equals((X |-> T):Map)
+        => substitute-equals-for-equals
+           ...
        </k>
-    requires SUBST =/=K .Map
 
   syntax Map ::= makeEqualitySubstitution(Patterns) [function]
   rule makeEqualitySubstitution(.Patterns) => .Map
   rule makeEqualitySubstitution(\equals(X:Variable, T), Ps) => (X |-> T) .Map
+    requires X =/=K T
   rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
-    requires notBool(isVariable(T))
+    requires notBool(isVariable(T)) andBool X =/=K T
   rule makeEqualitySubstitution((P, Ps:Patterns)) => makeEqualitySubstitution(Ps) [owise]
 
   syntax Patterns ::= removeTrivialEqualities(Patterns) [function]
@@ -392,7 +390,6 @@ Lift `\or`s on the left hand sides of implications
   rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
   rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
 ```
-
 
 ### Universal generalization
 
