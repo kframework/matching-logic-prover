@@ -566,18 +566,16 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 >      (alpha -> beta) /\ gamma -> psi
 
 ```k
-  rule <claim> \implies( \and(\forall { .Patterns } \implies(LHS, RHS), REST:Patterns)
-                  => \and(REST)
-                   , _
-                   )
+  rule <claim> \implies( \and(\forall { Us } \implies(LHS, RHS), REST:Patterns), RHS2 )
+            => \implies( \and(REST), RHS2 )
        </claim>
        <k> kt-solve-implications( STRAT)
-               => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), LHS), STRAT)
-                                        , \and(LHS, RHS)
-                                        )
-                  . kt-solve-implications(STRAT)
-                  )
-                  ...
+        => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), \exists { Us } LHS), STRAT)
+                                 , \and(LHS, RHS)
+                                 )
+           . kt-solve-implications(STRAT)
+           )
+           ...
        </k>
 
   syntax Patterns ::= removeImplications(Patterns) [function]

@@ -635,26 +635,22 @@ things, so the LHS becomes unsat.
 ### Nullity Analysis
 
 ```
-    LHS -> xi =/= nil       LHS /\ xi =/= nil -> RHS
-    ------------------------------------------------
-                       LHS -> RHS
-```
+    LHS -> \exists d, H. H * xi |-> d      LHS /\ xi =/= nil -> RHS
+    ---------------------------------------------------------------
+                               LHS -> RHS
+``
 
 ```k
-  rule <claim> \implies( \and(sep(LSPATIAL), LCONSTRAINT), RHS)
-            => \implies( \and( sep(LSPATIAL),
-                               \forall { .Patterns }
-                                        \implies( \and( \not(\equals( #token("Vy_emp", "UpperName") { #token("RefDll_t", "UpperName") }
-                                                              , parameterizedSymbol(nil, #token("RefDll_t", "UpperName"))(.Patterns)
-                                                              )
-                                                            )
-                                                      )
-                                                , \not(\equals( #token("Vy_emp", "UpperName") { #token("RefDll_t", "UpperName") }
-                                                              , parameterizedSymbol(nil, #token("RefDll_t", "UpperName"))(.Patterns)
-                                                              )
-                                                      )
-                                                )
-                                   , LCONSTRAINT
+  rule <claim> \implies( \and( sep(LSPATIAL), LCONSTRAINT), RHS)
+            => \implies( \and( \forall { !D:VariableName { DATA }, !H:VariableName { Heap } }
+                               \implies( \and(sep(!H { Heap }, pto(#token("Vy_emp", "VariableName") { LOC }, !D:VariableName { DATA })))
+                                       , \not(\equals( #token("Vy_emp", "VariableName") { LOC }
+                                                     , parameterizedSymbol(nil, LOC)(.Patterns)
+                                                     )
+                                             )
+                                       )
+                             , sep(LSPATIAL)
+                             , LCONSTRAINT
                              )
                        , RHS
                        )
