@@ -1,0 +1,12 @@
+symbol foo() : Bool
+symbol goo() : Bool
+symbol bar() : Bool
+
+axiom foo_holds: foo()
+axiom go_holds: goo()
+axiom foo_and_goo_implies_bar:
+  \implies(foo(), \implies(goo(), bar()))
+
+claim bar()
+strategy
+       apply(foo_and_goo_implies_bar, fail)

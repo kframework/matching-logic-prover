@@ -3,6 +3,7 @@ requires "lang/kore-lang.k"
 requires "drivers/smt-driver.k"
 requires "drivers/kore-driver.k"
 requires "drivers/base.k"
+requires "strategies/apply.k"
 requires "strategies/apply-equation.k"
 requires "strategies/core.k"
 requires "strategies/duplicate.k"
@@ -69,6 +70,8 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "in:" AxiomName ","
                         "vars:" VariableNames ","
                         "with:" Patterns ")"
+                    | "apply" "(" AxiomOrClaimName
+                              "," Strategy ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
