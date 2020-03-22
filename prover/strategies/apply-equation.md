@@ -135,7 +135,7 @@ module STRATEGY-APPLY-EQUATION
          , by: Ss
          )
          => instantiateAssumptions(Subst, P)
-         ~> createSubgoalsWithStrategies(strats: Ss, result: success)
+         ~> createSubgoalsWithStrategies(strats: Ss, result: noop)
        ...</strategy>
        <claim>
          _ => cool(heated: Heated, term: substMap(R, Subst))
