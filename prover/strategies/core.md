@@ -25,7 +25,7 @@ module PROVER-CORE-SYNTAX
                           | TerminalStrategy
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
-  syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs"
+  syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs" | "and-split-rhs"
   syntax Strategy ::= "prune" "(" Patterns ")"
 
   syntax Strategy ::= Strategy "{" Int "}"
@@ -213,6 +213,9 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```k
   rule <claim> \or(GOALS) </claim>
        <k> or-split => #orSplit(GOALS) ... </k>
+  rule <claim> GOALS </claim>
+       <k> or-split => noop ... </k>
+     requires notBool isDisjunction(GOALS)
 
   syntax Strategy ::= "#orSplit" "(" Patterns ")" [function]
   rule #orSplit(.Patterns) => fail
@@ -263,6 +266,24 @@ Internal strategy used to implement `or-split` and `and-split`.
   rule #andSplit(.Patterns) => noop
   rule #andSplit(P:Pattern, .Patterns) => replace-goal(P)
   rule #andSplit(P:Pattern, Ps) => replace-goal(P) & #andSplit(Ps) [owise]
+```
+
+`and-split-rhs`: conjunctions on the RHS, singular implication:
+
+```
+    \implies(LHS, \exists{Vs} GOAL-1)    ...    \implies(LHS, \exists{Vs} GOAL-N)
+    -----------------------------------------------------------------------------
+             \implies(LHS, \exists{Vs} \and(GOAL-1, ..., GOAL-N))
+```
+
+```k
+  rule <claim> \implies(LHS, \exists{Vs} \and(GOALS)) </claim>
+       <k> and-split-rhs => #andSplitImplication(LHS, Vs, GOALS) ... </k>
+
+  syntax Strategy ::= "#andSplitImplication" "(" Pattern "," Patterns "," Patterns ")" [function]
+  rule #andSplitImplication(P, Vs, .Patterns) => noop
+  rule #andSplitImplication(P1, Vs, (P2, .Patterns)) => replace-goal(\implies(P1, \exists{Vs} \and(P2, .Patterns)))
+  rule #andSplitImplication(P1, Vs, (P2, Ps)) => replace-goal(\implies(P1, \exists{Vs} \and(P2, .Patterns))) & #andSplitImplication(P1, Vs, Ps) [owise]
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:
