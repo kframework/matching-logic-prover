@@ -193,6 +193,26 @@ module SYNTACTIC-MATCH-RULES
     => #matchFailure("\\not(_) does not match")
     requires \not(...) :/=K T
 
+  // \functionalPattern(_) matched
+  rule #syntacticMatch( terms:     \functionalPattern(T), Ts
+                               => T ++Patterns Ts
+                      , patterns:   \functionalPattern(P), Ps
+                               => P ++Patterns Ps
+                      , variables: _
+                      , subst:     _
+                      )
+
+  // \functionalPattern(_) mismatched
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  \functionalPattern(_), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #matchFailure("\\functionalPattern(_) does not match")
+    requires \functionalPattern(...) :/=K T
+
+
+
   // \and(...) matched
   rule #syntacticMatch( terms:     \and(T_ARGS), Ts
                                => T_ARGS ++Patterns Ts
