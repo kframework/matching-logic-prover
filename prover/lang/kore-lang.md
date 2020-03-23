@@ -167,6 +167,7 @@ only in this scenario*.
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
                    | "\\hole" "(" ")" [klabel(Phole)]
+                   | "\\functionalPattern" "(" Pattern ")"
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
@@ -346,6 +347,8 @@ module KORE-HELPERS
     => getGroundTerms(P, VARs) ++Patterns getGroundTerms(\or(Ps), VARs)
   rule getGroundTerms(\not(P), VARs)
     => getGroundTerms(P, VARs)
+  rule getGroundTerms(\functionalPattern(P), VARs)
+    => getGroundTerms(P, VARs)
   rule getGroundTerms(S:Symbol(ARGS:Patterns) #as APPLY, VARs)
     => APPLY , getGroundTerms(\and(ARGS))
     requires VARs -Patterns getFreeVariables(ARGS) ==K VARs
@@ -378,6 +381,7 @@ module KORE-HELPERS
   rule getFreeVariables(\bottom(), .Patterns) => .Patterns
   rule getFreeVariables(\equals(P1, P2), .Patterns) => getFreeVariables(P1, P2, .Patterns)
   rule getFreeVariables(\not(P), .Patterns) => getFreeVariables(P, .Patterns)
+  rule getFreeVariables(\functionalPattern(P), .Patterns) => getFreeVariables(P, .Patterns)
 
   rule getFreeVariables(\implies(LHS, RHS), .Patterns) => getFreeVariables(LHS, RHS, .Patterns)
   rule getFreeVariables(\iff-lfp(LHS, RHS), .Patterns) => getFreeVariables(LHS, RHS, .Patterns)
@@ -509,6 +513,7 @@ Substitution: Substitute term or variable
   rule #subst(CA, \equals(ARG1, ARG2):Pattern, X, V)
     => \equals(#subst(CA, ARG1, X, V), #subst(CA, ARG2, X, V)):Pattern
   rule #subst(CA, \not(ARG):Pattern, X, V) => \not(#subst(CA, ARG, X, V)):Pattern
+  rule #subst(CA, \functionalPattern(ARG):Pattern, X, V) => \functionalPattern(#subst(CA, ARG, X, V)):Pattern
   rule #subst(CA, \and(ARG):Pattern, X, V) => \and(ARG[CA, X/V]):Pattern
   rule #subst(CA, \or(ARG):Pattern, X, V) => \or(ARG[CA, X/V]):Pattern
   rule #subst(CA, \implies(LHS, RHS):Pattern, X, V)
@@ -591,6 +596,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
     => #fun(RENAMING => \exists { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
   rule alphaRename(\equals(L, R)) => \equals(alphaRename(L), alphaRename(R))
   rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
+  rule alphaRename(\functionalPattern(Ps)) => \functionalPattern(alphaRename(Ps))
   rule alphaRename(\and(Ps)) => \and(alphaRenamePs(Ps))
   rule alphaRename(\or(Ps)) => \or(alphaRenamePs(Ps))
   rule alphaRename(\implies(L,R)) => \implies(alphaRename(L), alphaRename(R))
@@ -717,6 +723,7 @@ Simplifications
   syntax Bool ::= isPredicatePattern(Pattern) [function]
   rule isPredicatePattern(\equals(_, _)) => true
   rule isPredicatePattern(\not(P)) => isPredicatePattern(P)
+  rule isPredicatePattern(\functionalPattern(_)) => true
   rule isPredicatePattern(\and(.Patterns)) => true
   rule isPredicatePattern(\and(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\and(Ps))
   rule isPredicatePattern(\or(.Patterns)) => true
@@ -790,6 +797,7 @@ Simplifications
   rule hasImplicationContext(\and(Ps)) => hasImplicationContextPs(Ps)
   rule hasImplicationContext(\or(Ps)) => hasImplicationContextPs(Ps)
   rule hasImplicationContext(\not(P)) => hasImplicationContext(P)
+  rule hasImplicationContext(\functionalPattern(P)) => hasImplicationContext(P)
   rule hasImplicationContext(\exists{ _ } P ) => hasImplicationContext(P)
   rule hasImplicationContext(\forall{ _ } P ) => hasImplicationContext(P)
   rule hasImplicationContext(implicationContext(_, _)) => true

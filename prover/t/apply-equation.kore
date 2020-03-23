@@ -15,4 +15,6 @@ strategy reflexivity
 //claim \equals(f(0,1), 1)
 claim \equals(f(0,1),f(3,f(0,1)))
 strategy apply-equation -> f_X_Y at 2 by [smt-cvc4, smt-cvc4]
+       . apply-equation -> f_X_Y at 1 by [smt-cvc4, smt-cvc4]
+       . apply-equation -> f_X_Y at 0 by [smt-cvc4, smt-cvc4]
        . reflexivity

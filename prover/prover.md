@@ -3,11 +3,13 @@ requires "lang/kore-lang.k"
 requires "drivers/smt-driver.k"
 requires "drivers/kore-driver.k"
 requires "drivers/base.k"
+requires "strategies/apply.k"
 requires "strategies/apply-equation.k"
 requires "strategies/backwards-search.k"
 requires "strategies/core.k"
 requires "strategies/duplicate.k"
 requires "strategies/instantiate-universals.k"
+requires "strategies/inst-exists.k"
 requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -75,6 +77,10 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "with:" Patterns ")"
                     | "simple-sort-check"
                     | "backwards-search" Int
+                    | "apply" "(" AxiomOrClaimName
+                              "," Strategy ")"
+                    | "inst-exists" "(" Variable "," Pattern
+                                    "," Strategy ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
