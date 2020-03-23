@@ -26,8 +26,12 @@ module STRATEGY-INST-EXISTS
     => \implies(L, instExists(R, V, T))
 
   rule instExists(\exists {Vs} P, V, T)
+    => subst(P, V, T)
+       requires V in Vs andBool ((Vs -Patterns V) ==K .Patterns)
+
+  rule instExists(\exists {Vs} P, V, T)
     => \exists {Vs -Patterns V} subst(P, V, T)
-       requires V in Vs
+       requires V in Vs andBool notBool ((Vs -Patterns V) ==K .Patterns)
 
 endmodule
 ```
