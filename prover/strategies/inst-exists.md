@@ -17,12 +17,16 @@ module STRATEGY-INST-EXISTS
          => subgoal(\functionalPattern(T), Strat) & noop
        ...</strategy>
        <claim>
-         \implies(
-           _,
-          (\exists {Vs} P) =>
-          (\exists {Vs -Patterns V} casubst(P, V, T))
-         )
+         P => instExists(P, V, T)
        </claim>
+
+  syntax Pattern ::= instExists(Pattern, Variable, Pattern) [function]
+
+  rule instExists(\implies(L, R), V, T)
+    => \implies(L, instExists(R, V, T))
+
+  rule instExists(\exists {Vs} P, V, T)
+    => \exists {Vs -Patterns V} casubst(P, V, T)
        requires V in Vs
 
 endmodule
