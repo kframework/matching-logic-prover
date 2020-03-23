@@ -1,7 +1,15 @@
 # apply
 
 ```
+Gamma contains H: \forall X1 PHI1 ->
+                  \forall X2 PHI2 -> ... -> \forall Xn . P
+Gamma |- PHI1[Theta1]
+Gamma |- PHI1[Theta1][Theta2]
+...
+Gamma |- PHIn[Theta1]...[Thetan]
+where P matches Q with substitution Theta1 ... Thetan
 --------------------------------------------------------------------
+Gamma |- Q
 
 ```
 
