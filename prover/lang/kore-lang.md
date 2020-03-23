@@ -705,6 +705,8 @@ Simplifications
   // \and is assoc
   rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
 
+  rule #dnfPs(\and(\not(\and(Ps1)), Ps2), REST) => #dnfPs(\and(\or(#not(Ps1)), Ps2), REST)
+
   rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
     requires isBaseConjunction(Ps)
   rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
@@ -742,6 +744,7 @@ Simplifications
   rule isBasePattern(\exists{Vs}_) => false
   rule isBasePattern(\not(P)) => isBasePattern(P)
   rule isBasePattern(sep(ARGS)) => isBaseConjunction(ARGS)
+  rule isBasePattern(V:Variable) => true
 
   syntax Bool ::= isBaseConjunction(Patterns) [function]
   rule isBaseConjunction(.Patterns) => true
