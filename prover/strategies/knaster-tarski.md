@@ -34,6 +34,8 @@ for guessing an instantiation of the inductive hypothesis.
     => getKTUnfoldables(REST)
   rule getKTUnfoldables(\and(Ps), REST)
     => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
+  rule getKTUnfoldables(\or(Ps), REST)
+    => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
   rule getKTUnfoldables(sep(Ps), REST)
     => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
   rule getKTUnfoldables(\implies(LHS, RHS), REST)
@@ -471,21 +473,6 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
        <k> kt-collapse ... </k>
     requires isPredicatePattern(CTXCONSTRAINT)
      andBool CTXCONSTRAINT in LHS
-
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and( sep(_)
-                                                            , ( CTXCONSTRAINT, CTXCONSTRAINTs )
-                                                            ) , _)
-                                  , LSPATIAL
-                                  )
-                            , LHS:Patterns
-                            )
-                       , RHS:Pattern
-                       )
-       </claim>
-       <k> kt-collapse => fail ... </k>
-    requires isPredicatePattern(CTXCONSTRAINT)
-     andBool notBool (CTXCONSTRAINT in LHS)
 ```
 
 ### Unfolding within the implication context
