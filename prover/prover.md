@@ -8,6 +8,7 @@ requires "strategies/apply-equation.k"
 requires "strategies/core.k"
 requires "strategies/duplicate.k"
 requires "strategies/instantiate-universals.k"
+requires "strategies/inst-exists.k"
 requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -72,6 +73,8 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "with:" Patterns ")"
                     | "apply" "(" AxiomOrClaimName
                               "," Strategy ")"
+                    | "inst-exists" "(" Variable "," Pattern
+                                    "," Strategy ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
