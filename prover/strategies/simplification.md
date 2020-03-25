@@ -171,7 +171,7 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #getNewVariablesPs(Patterns, Patterns) [function]
   rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
-  rule #getNewVariables(\not(P), Vs) => #getNewVariablesPs(P, Vs)
+  rule #getNewVariables(\not(P), Vs) => #getNewVariables(P, Vs)
   rule #getNewVariables(sep(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(S(ARGs), Ps)
     => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
