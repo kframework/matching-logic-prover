@@ -75,7 +75,7 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= ktForEachLRP(Patterns)
-  rule <k> ktForEachLRP(.Patterns) => noop ... </k>
+  rule <k> ktForEachLRP(.Patterns) => fail ... </k>
   rule <k> ( ktForEachLRP((LRP, LRPs))
                  => ( remove-lhs-existential . normalize . or-split-rhs . lift-constraints
                     . kt-wrap(LRP) . kt-forall-intro
