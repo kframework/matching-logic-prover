@@ -473,6 +473,21 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
        <k> kt-collapse ... </k>
     requires isPredicatePattern(CTXCONSTRAINT)
      andBool CTXCONSTRAINT in LHS
+
+  rule <claim> \implies(\and( sep ( \forall { .Patterns }
+                                    implicationContext( \and( sep(_)
+                                                            , ( CTXCONSTRAINT, CTXCONSTRAINTs )
+                                                            ) , _)
+                                  , LSPATIAL
+                                  )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <k> kt-collapse => wait ... </k>
+    requires isPredicatePattern(CTXCONSTRAINT)
+     andBool notBool (CTXCONSTRAINT in LHS)
 ```
 
 ### Unfolding within the implication context
