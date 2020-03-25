@@ -211,6 +211,31 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #createEqualitiesVar((VLHS, VsLHS), VRHS) => \equals(VRHS, VLHS), #createEqualitiesVar(VsLHS, VRHS)
 ```
 
+abstracting nil
+
+on the LHS, replace all occurrences of nil with a fresh variable
+
+```k
+  rule <k> \implies(LHS, RHS) => \implies(#abstractNil(LHS), RHS) </k>
+       <strategy> abstract-nil => noop
+              ...
+       </strategy>
+
+  syntax Pattern ::= #abstractNil(Pattern) [function]
+  syntax Patterns ::= #abstractNilPs(Patterns) [function]
+  rule #abstractNil(\and(Ps)) => \and(#abstractNilPs(Ps))
+  rule #abstractNil(\or(Ps)) => \and(#abstractNilPs(Ps))
+  rule #abstractNil(\not(P)) => #abstractNil(P)
+  rule #abstractNil(sep(Ps)) => sep(#abstractNilPs(Ps))
+  // rule [[ #abstractNil(parameterizedSymbol(nil, LOC)) => !V:VariableName { LOC } ]]
+  //   <declaration> heap(LOC, DATA) </declaration>
+  rule #abstractNil(S:Symbol(ARGs)) => S(ARGs)
+    [owise]
+  rule #abstractNil(\equals(L, R)) => \equals(L, R)
+  rule #abstractNilPs(.Patterns) => .Patterns
+  rule #abstractNilPs(P, Ps) => #abstractNil(P), #abstractNilPs(Ps)
+```
+
 ### lift-constraints
 
 Bring predicate constraints to the top of a term.

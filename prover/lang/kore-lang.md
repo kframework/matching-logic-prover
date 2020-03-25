@@ -220,8 +220,9 @@ module KORE-HELPERS
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
 
-  syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
+  syntax Symbol ::= parameterizedSymbol(Symbol, Sort)
   rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))
+    [macro]
 
   syntax Bool ::= Pattern "in" Patterns [function]
   rule P in (P,  P1s) => true
