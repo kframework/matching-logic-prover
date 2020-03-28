@@ -71,6 +71,10 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "in:" AxiomName ","
                         "vars:" VariableNames ","
                         "with:" Patterns ")"
+                    // Proves the current goal using the conclusion
+                    // of the axiom or claim given as the first arg.
+                    // Uses the strategy given in second argument
+                    // to discharge the axiom's premises.
                     | "apply" "(" AxiomOrClaimName
                               "," Strategy ")"
                     | "inst-exists" "(" Variable "," Pattern

@@ -78,6 +78,7 @@ module STRATEGY-APPLY-EQUATION
        </strategy>
        requires apply-equation.checkShape(H)
 
+  // Gets LHS or RHS of a conclusion that is an equality.
   syntax Pattern
   ::= "apply-equation.getLeft" "(" Pattern ")" [function]
     | "#apply-equation.getLeft" "(" Pattern ")" [function]

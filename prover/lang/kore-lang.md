@@ -161,6 +161,7 @@ only in this scenario*.
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
                    | "\\hole" "(" ")" [klabel(Phole)]
+                   // \functionalPattern(Phi) means \exists x. Phi=x
                    | "\\functionalPattern" "(" Pattern ")"
 
   rule \top()    => \and(.Patterns) [anywhere]
