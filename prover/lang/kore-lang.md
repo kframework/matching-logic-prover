@@ -297,6 +297,9 @@ module KORE-HELPERS
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
   rule getReturnSort( _ { S } ) => S
+  rule getReturnSort(\exists{_} P) => getReturnSort(P)
+  rule getReturnSort(\and((P, Ps))) => getReturnSort(P)
+       requires sameSortOrPredicate(getReturnSort(P), Ps)
   rule getReturnSort( plus ( ARGS ) ) => Int
   rule getReturnSort( minus ( ARGS ) ) => Int
   rule getReturnSort( select ( ARGS ) ) => Int
@@ -311,6 +314,20 @@ module KORE-HELPERS
   rule getReturnSort( isMember ( _ ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
+
+  syntax Bool ::= sameSortOrPredicate(Sort, Patterns) [function]
+
+  rule sameSortOrPredicate(_, .Patterns) => true
+  // we use nested ifs to implement short-circuiting Or.
+  rule sameSortOrPredicate(S, (P, Ps))
+    => #if isPredicatePattern(P)
+       #then sameSortOrPredicate(S, Ps)
+       #else
+         #if isSortOf(P, S)
+         #then sameSortOrPredicate(S, Ps)
+         #else false
+         #fi
+       #fi
 
   syntax Bool ::= isSortOf(Pattern, Sort) [function]
 
