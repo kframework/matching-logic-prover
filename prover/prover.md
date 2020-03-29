@@ -81,6 +81,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                               "," Strategy ")"
                     | "inst-exists" "(" Variable "," Pattern
                                     "," Strategy ")"
+                    | "universal-generalization"
 
   syntax RewriteDirection ::= "->" | "<-"
 

@@ -391,6 +391,23 @@ Lift `\or`s on the left hand sides of implications
   rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
 ```
 
+
+### Universal generalization
+
+```
+     P(x)
+    ----------------------
+    \forall x. P(x)
+```
+
+```k
+
+  rule <claim> \forall{_} P => P </claim>
+       <strategy> universal-generalization => noop ...</strategy>
+
+```
+
+
 ```k
 endmodule
 ```
