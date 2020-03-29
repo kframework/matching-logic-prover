@@ -151,6 +151,36 @@ module VISITOR
   rule #visitTopDownImpl2(P1, visitorResult(V, P2))
     => visitorResult(V, \implies(P1, P2))
 
+  // \member(_, _)
+  rule #visitTopDown(visitorResult(V,\member(P1, P2)))
+    => #visitTopDownMember1(visitTopDown(V, P1), P2)
+
+  syntax VisitorResult
+         ::= #visitTopDownMember1(VisitorResult, Pattern) [function]
+
+  rule #visitTopDownMember1(visitorResult(V, P1), P2)
+    => #visitTopDownMember2(P1, visitTopDown(V, P2))
+
+  syntax VisitorResult
+         ::= #visitTopDownMember2(Pattern, VisitorResult) [function]
+  rule #visitTopDownMember2(P1, visitorResult(V, P2))
+    => visitorResult(V, \member(P1, P2))
+
+  // \subseteq(_, _)
+  rule #visitTopDown(visitorResult(V,\subseteq(P1, P2)))
+    => #visitTopDownMember1(visitTopDown(V, P1), P2)
+
+  syntax VisitorResult
+         ::= #visitTopDownSubseteq1(VisitorResult, Pattern) [function]
+
+  rule #visitTopDownSubseteq1(visitorResult(V, P1), P2)
+    => #visitTopDownSubseteq2(P1, visitTopDown(V, P2))
+
+  syntax VisitorResult
+         ::= #visitTopDownSubseteq2(Pattern, VisitorResult) [function]
+  rule #visitTopDownSubseteq2(P1, visitorResult(V, P2))
+    => visitorResult(V, \subseteq(P1, P2))
+
   // \exists{_}_
   syntax VisitorResult
          ::= #visitTopDownExists(Patterns, VisitorResult) [function]
