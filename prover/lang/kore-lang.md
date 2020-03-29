@@ -314,6 +314,8 @@ module KORE-HELPERS
   rule getReturnSort( isMember ( _ ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
+  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
+       <local-decl> symbol R ( _ ) : S </local-decl>
 
   syntax Bool ::= sameSortOrPredicate(Sort, Patterns) [function]
 
