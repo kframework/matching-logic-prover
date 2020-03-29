@@ -86,6 +86,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                                     "," Strategy ")"
                     | "simple-sort-check"
                     | "backwards-search" Int
+                    | "universal-generalization"
 
   syntax RewriteDirection ::= "->" | "<-"
 
