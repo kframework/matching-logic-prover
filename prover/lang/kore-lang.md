@@ -296,6 +296,9 @@ module KORE-HELPERS
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
   rule getReturnSort( _ { S } ) => S
+  rule getReturnSort(\exists{_} P) => getReturnSort(P)
+  rule getReturnSort(\and((P, Ps))) => getReturnSort(P)
+       requires sameSortOrPredicate(getReturnSort(P), Ps)
   rule getReturnSort( plus ( ARGS ) ) => Int
   rule getReturnSort( minus ( ARGS ) ) => Int
   rule getReturnSort( select ( ARGS ) ) => Int
@@ -310,6 +313,31 @@ module KORE-HELPERS
   rule getReturnSort( isMember ( _ ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
+
+  syntax Bool ::= sameSortOrPredicate(Sort, Patterns) [function]
+
+  rule sameSortOrPredicate(_, .Patterns) => true
+
+  rule sameSortOrPredicate(S, (P, Ps))
+    => sameSortOrPredicate(S, Ps)
+       requires isPredicatePattern(P)
+
+  // We basically implement short-circuiting Or to prevent
+  // calling getReturnSort on predicate patterns.
+
+  rule sameSortOrPredicate(S, (P, Ps))
+    => #sameSortOrPredicate(S, (P, Ps))
+       requires notBool isPredicatePattern(P)
+
+  syntax Bool ::= #sameSortOrPredicate(Sort, Patterns) [function]
+
+  rule #sameSortOrPredicate(S, (P, Ps))
+    => sameSortOrPredicate(S, Ps)
+       requires getReturnSort(P) ==K S
+
+  rule #sameSortOrPredicate(S, (P, Ps))
+    => false
+       requires getReturnSort(P) =/=K S
 
   syntax Bool ::= isUnfoldable(Symbol) [function]
   rule [[ isUnfoldable(S:Symbol) => true ]]
