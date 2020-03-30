@@ -47,7 +47,7 @@ module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
 
   rule <strategy> #rewfc2(N{S}, Sym) => .K ...</strategy>
        <id> GId </id>
-       <claim> P => subst(P, N{S}, Sym(.Patterns)) </claim>
+       <claim> P => casubst(P, N{S}, Sym(.Patterns)) </claim>
        <local-context> (.Bag =>
          <local-decl> symbol Sym(.Sorts) : S </local-decl>
          <local-decl>
