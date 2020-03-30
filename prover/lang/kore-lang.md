@@ -544,6 +544,10 @@ Substitution: Substitute term or variable
   rule #subst(CA, \or(ARG):Pattern, X, V) => \or(ARG[CA, X/V]):Pattern
   rule #subst(CA, \implies(LHS, RHS):Pattern, X, V)
     => \implies(#subst(CA, LHS, X, V), #subst(CA, RHS, X, V)):Pattern
+  rule #subst(CA, \member(LHS, RHS):Pattern, X, V)
+    => \member(#subst(CA, LHS, X, V), #subst(CA, RHS, X, V))
+  rule #subst(CA, \subseteq(LHS, RHS):Pattern, X, V)
+    => \subseteq(#subst(CA, LHS, X, V), #subst(CA, RHS, X, V))
   rule #subst(CA:Bool, \forall { E } C, X, V)
     => #if CA andBool (
          X in E orBool X in PatternsToVariableNameSet(E))
