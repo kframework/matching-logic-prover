@@ -220,7 +220,7 @@ for guessing an instantiation of the inductive hypothesis.
     requires S =/=K RP
      andBool S =/=K sep
  rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, RHS)
-   => alphaRename(substMap(alphaRename(RHS), zip(ARGS, BODY_ARGS)))
+   => \and(RP(BODY_ARGS), alphaRename(substMap(alphaRename(RHS), zip(ARGS, BODY_ARGS))))
 
   rule substituteBRPs(\top(), RP, Vs, RHS) => \top()
   rule substituteBRPs(\bottom(), RP, Vs, RHS) => \bottom()
@@ -457,37 +457,37 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
 TODO: This is pretty adhoc: Remove constraints in the context that are already in the LHS
 
 ```k
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and( sep(_)
-                                                            , ( CTXCONSTRAINT, CTXCONSTRAINTs
-                                                             => CTXCONSTRAINTs
-                                                              )
-                                                            ) , _)
+  // TODO: the rule below should be able to subsume the above ad-hoc rule
+  rule <strategy> \implies(\and( sep ( \forall { .Patterns }
+                                    \and( PRED_BEFORE_SUBST
+                                        , implicationContext( \and( sep(CTXLSPATIAL)
+                                                                  , ( CTXLCONSTRAINTS )
+                                                                  )
+                                                            , CTXRHS
+                                                            )
+                                        )
                                   , LSPATIAL
                                   )
                             , LHS:Patterns
                             )
                        , RHS:Pattern
                        )
-       </claim>
-       <k> kt-collapse ... </k>
-    requires isPredicatePattern(CTXCONSTRAINT)
-     andBool CTXCONSTRAINT in LHS
-
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and( sep(_)
-                                                            , ( CTXCONSTRAINT, CTXCONSTRAINTs )
-                                                            ) , _)
-                                  , LSPATIAL
-                                  )
-                            , LHS:Patterns
-                            )
-                       , RHS:Pattern
-                       )
-       </claim>
-       <k> kt-collapse => wait ... </k>
-    requires isPredicatePattern(CTXCONSTRAINT)
-     andBool notBool (CTXCONSTRAINT in LHS)
+             => \and( \implies( \or(#dnfPs( \and(sep(PRED_BEFORE_SUBST, LSPATIAL), \not(\and(CTXLCONSTRAINTS)), LHS))), RHS )
+                    , \implies( \and( sep ( \forall { .Patterns } implicationContext(\and(sep(CTXLSPATIAL)), CTXRHS)
+                                          , LSPATIAL
+                                          )
+                                    , LHS
+                                    )
+                              , RHS
+                              )
+                    )
+       </strategy>
+       <k> kt-collapse
+               => and-split . or-split . lift-or . and-split . normalize . or-split-rhs
+                . lift-constraints . substitute-equals-for-equals
+                  ...
+       </k>
+    requires CTXLCONSTRAINTS =/=K .Patterns
 ```
 
 ### Unfolding within the implication context
