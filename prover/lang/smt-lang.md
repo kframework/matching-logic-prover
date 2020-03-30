@@ -103,6 +103,7 @@ module SMTLIB2-HELPERS
   imports K-IO
   imports SMTLIB2
   imports PROVER-CORE-SYNTAX
+  imports KORE-HELPERS
 
   syntax SMTLIB2AttributeValue ::=  CheckSATResult
   syntax CheckSATResult ::= "error" "(" K ")"
@@ -116,7 +117,6 @@ module SMTLIB2-HELPERS
 
 // Converting between Sorts:
 
-  syntax VariableName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
 

@@ -1,0 +1,30 @@
+<prover>
+  <k>
+    .CoqSentences
+  </k>
+  <exit-code>
+    1
+  </exit-code>
+  <goals>
+    .GoalCellSet
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \equals ( nat_ind , \lambda { P { Term } , f { Term } , f0 { Term } , .Patterns } \mu { F {{ Term }} , .Patterns } \lambda { n { Term } , .Patterns } \or ( \exists { .Patterns } \and ( \equals ( n , Z ) , f , .Patterns ) , \exists { n0 , .Patterns } \and ( \equals ( n , S ( n0 , .Patterns ) ) , f0 ( n0 , F , n0 , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom \type ( S ( .Patterns ) , \forall { x { Term } , .Patterns } nat )
+    </declaration> <declaration>
+      axiom \type ( Z ( .Patterns ) , nat )
+    </declaration> <declaration>
+      sort Term
+    </declaration> <declaration>
+      symbol S ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol Z ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol nat ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol nat_ind ( .Sorts ) : Term
+    </declaration>
+  </declarations>
+</prover>

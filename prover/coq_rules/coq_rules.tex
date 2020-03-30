@@ -1,0 +1,308 @@
+\documentclass{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{mathtools}
+\usepackage{prftree}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{xspace}
+
+\input{newcommands}
+
+\title{All Coq Rules in One Place}
+\author{Xiaohong Chen \and Lucas Pe{\~{n}}a}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document summarizes all the proof rules of the Coq proof assistant,
+as listed in 
+\url{https://coq.inria.fr/distrib/current/refman/language/cic.html}.
+\end{abstract}
+
+\section{Syntax}
+
+Let us fix a countably infinite set $\V$ of \emph{variables}, denoted 
+$x,y,\dots$. 
+Let us fix a countably infinite set $\C$ of \emph{constants}, denoted
+$c,d,\dots$.
+
+\begin{definition}
+We define the set \CoqTerm to be the smallest set that satisfies the following 
+conditions:
+\begin{enumerate}
+\item $\SProp,\Prop,\Set \in \CoqTerm$; $\Type(i) \in \CoqTerm$ for every $i 
+\in \NNp$. 
+\item $\V \subseteq \CoqTerm$.
+\item $\C \subseteq \CoqTerm$.
+\item If $x \in \V$ and $T,U \in \CoqTerm$, 
+      then $\cfa{x}{T}{U} \in \CoqTerm$.
+\item If $x \in \V$ and $T,u \in \CoqTerm$,
+      then $\clm{x}{T}{u} \in \CoqTerm$.
+\item If $t,u \in \CoqTerm$,
+      then $\cpp{t}{u} \in \CoqTerm$, called \emph{application}.
+\item If $x \in \V$ and $t,T,u \in \CoqTerm$,
+      then $\clt{x}{t}{T}{u} \in \CoqTerm$.
+\end{enumerate}
+where $\cfa{x}{T}{U}$ binds $x$ to $U$
+and $\clm{x}{T}{u}$ binds $x$ to $u$.
+We use $\FV(T) \subseteq \V$ to denote the set of free variables in $T \in 
+\CoqTerm$. 
+For $T,U \in \CoqTerm$ and $x \in \V$, 
+we use $\sbs{T}{U}{x}$ to denote the result of substituting $U$ for $x$ in $T$,
+where $\alpha$-renaming happens implicitly to prevent variable capture.
+\end{definition}
+
+\begin{definition}
+We define the set 
+$\CoqSort = \{\SProp,\Prop,\Set\} \cup \{\Type(i) \mid i \in \NN\}$.
+Note that $\CoqSort \subseteq \CoqTerm$. 
+Elements in $\CoqSort$ are called \emph{sorts} and denoted as $s$,
+possibly with subscripts.
+\end{definition}
+
+\begin{definition}
+A \emph{local assumption} is written $\lasm{x}{T}$, where $x \in \V$ and $T \in 
+\CoqTerm$. 
+A \emph{local definition} is written $\ldef{x}{u}{T}$,
+where $x \in \V$ and $u,T \in \CoqTerm$.
+In both cases, we call $x$ the \emph{declared variable}. 
+A \emph{local context} is an ordered list of local assumptions and local 
+definitions, such that the declared variables are all distinct. 
+We use $\Gamma$, possibly with subscripts, to denote local contexts. 
+\end{definition}
+
+\begin{notation}\label{not:ldcl}
+We use the notation $[\lasm{x}{T} \scln \ldef{y}{u}{U} \scln \lasm{z}{V}]$
+to denote the local context that consists of
+the local assumption $\lasm{x}{T}$,
+the local definition $\ldef{y}{u}{U}$
+and the local assumption $\lasm{z}{V}$,
+with the implicit requirement that $x,y,z$ are all distinct.
+The empty local context is written as $[]$. 
+Let $\Gamma$ be a local context. 
+We write $x \in \Gamma$ to mean that $x$ is declared in $\Gamma$.
+We write $(\lasm{x}{T}) \in \Gamma$ to mean that the local assumption
+$\lasm{x}{T}$ is in $\Gamma$, or that
+the local definition $\ldef{x}{u}{T}$ is in $\Gamma$ for some $u \in \CoqTerm$.
+We write $(\ldef{x}{u}{T}) \in \Gamma$ to mean that
+the local definition $\ldef{x}{u}{T}$ is in $\Gamma$.
+We write $\Gamma \dcln ( \lasm{x}{T} )$ to denote the local context
+that enriches $\Gamma$ with $\lasm{x}{T}$, with the implicit requirement that 
+$x \not\in \Gamma$.
+Similarly, we write 
+$\Gamma \dcln ( \ldef{x}{u}{T} )$ to denote the local context
+that enriches $\Gamma$ with $\ldef{x}{u}{T}$, with the implicit requirement 
+that $x \not\in \Gamma$.
+We write $\Gamma_1 \scln \Gamma_2$ to mean the local context
+obtained by concatenating $\Gamma_1$ and $\Gamma_2$, with the implicit 
+requirement that all variables declared in $\Gamma_2$ are not declared in 
+$\Gamma_1$. 
+\end{notation}
+
+\begin{definition}
+A \emph{global assumption} is written $(\gasm{c}{T})$,
+with the parentheses, where $c \in \C$ and $T \in 
+\CoqTerm$. 
+A \emph{global definition} is written $\gldef{c}{u}{T}$,
+where $c \in \C$ and $u,T \in \CoqTerm$.
+In both cases, we call $c$ the \emph{declared constant}. 
+A \emph{global environment} is an ordered list of global assumptions and global
+definitions, and also \emph{declarations of inductive objects}, which are 
+defined later. 
+We use $E$, possibly with subscripts, to denote global environments.
+\end{definition}
+
+\begin{notation}
+We use the notation $\gasm{c_1}{T} \scln \gldef{c_2}{u}{U} \scln \gasm{c_3}{V}$
+to denote the local context that consists of
+the global assumption $\gasm{c_1}{T}$,
+the global definition $\gldef{c_2}{u}{U}$
+and the global assumption $\gasm{c_3}{V}$.
+The empty global context is written as $[]$. % TODO: is this right?
+Let $E$ be a local context. 
+We write $c \in E$ to mean that $c$ is declared in $E$.
+We write $(\gasm{c}{T}) \in E$ to mean that the global assumption
+$\gasm{c}{T}$ is in $E$, or that
+the global definition $\gldef{c}{u}{T}$ is in $E$ for some $u \in \CoqTerm$.
+We write $(\gldef{c}{u}{T}) \in E$ to mean that
+the global definition $\gldef{c}{u}{T}$ is in $E$.
+We write $E \scln \gasm{c}{T}$ to denote the global context
+that enriches $E$ with $\gasm{c}{T}$.
+Similarly, we write 
+$E \scln \gldef{c}{u}{T}$ to denote the global context
+that enriches $E$ with $( \gldef{c}{u}{T} )$.
+\end{notation}
+
+\begin{notation}
+We write $E[\Gamma] \proves \lasm{u}{T}$ to mean that $u$ is \emph{well-typed} 
+with type $T$ in global environment $E$ and local environment $\Gamma$.
+We write $\wf(E)[\Gamma]$ to mean that the global environment $E$ is 
+\emph{well-formed}
+and $\Gamma$ is a \emph{valid local context} in $E$.
+\end{notation}
+
+\begin{definition}
+A term $u$ is \emph{well-typed} in a global environment $E$ if there is a
+local context $\Gamma$ and type $T$ such that
+$E[\Gamma] \proves \lasm{u}{T}$ is derivable with the rules below.
+\end{definition}
+
+\section{Coq Rules}
+
+In this section we list all Coq rules. 
+A \emph{rule} consists of a set of \emph{premises} and one \emph{conclusion},
+separated by a horizontal bar.
+For readability, we put \emph{side conditions} alongside the premises.
+Side conditions are typed in $\sd{\text{green}}$, to distinguish
+from the premises.
+
+
+\subsection{Basic Typing Rules}
+
+There are 18 basic typing rules, as shown below. 
+
+
+\begin{center}
+\bgroup
+\def\arraystretch{4}
+\begin{longtable}{llp{5cm}}
+\textbf{Names} & \textbf{Rules} & \textbf{Comments} \\\hline
+\prule{W-Empty}&
+$\prftree{\cdot}{\wf([])[]}$ &
+The empty global environment is well-formed, and the empty local context is a 
+valid local context in the empty global environment.\\
+\prule{W-Local-Assum}&
+$\prftree{E[\Gamma]\vdash T \cln s}
+{\sd{s \in S}}
+{\sd{x \not\in \Gamma}}
+{\wf(E)[\Gamma \dcln (x \cln T)]}$&
+The side condition $x \not\in \Gamma$ needs not to be specified because 
+it is implicit
+in the notation $\Gamma \dcln (x \cln T)$; see Notation~\ref{not:ldcl}.\\
+\prule{W-Local-Def}&
+$\prftree{E[\Gamma]\vdash t \cln T}
+{\sd{x \not\in \Gamma}}
+{\wf(E)[\Gamma \dcln (\ldef{x}{t}{T})]}$&
+The side condition $x \not\in \Gamma$ needs not to be specified because 
+it is implicitly implied 
+by the notation $\Gamma \dcln (\ldef{x}{t}{T})$; see Notation~\ref{not:ldcl}.\\
+\prule{W-Global-Assum}&
+$
+\prftree
+{E[]\vdash T \cln s}
+{\sd{s \in S}}
+{\sd{c \not\in E}}
+{\wf(E ; c \cln T)[]}
+$ & \\
+\prule{W-Global-Def} &
+$
+\prftree
+{E[]\vdash t \cln T}
+{\sd{c \not\in E}}
+{\wf(E ; \gldef{c}{t}{T})[]}
+$ & \\
+\prule{Ax-SProp} &
+$
+\prftree{\wf(E)[\Gamma]}
+{E[\Gamma] \vdash \SProp \cln \Type(1)}
+$ &\\
+\prule{Ax-Prop} &
+$
+\prftree{\wf(E)[\Gamma]}
+{E[\Gamma] \vdash \Prop \cln \Type(1)}
+$ &\\
+\prule{Ax-Set} &
+$
+\prftree{\wf(E)[\Gamma]}
+{E[\Gamma] \vdash \Set \cln \Type(1)}
+$ &\\
+\prule{Ax-Type} &
+$
+\prftree{\wf(E)[\Gamma]}
+{E[\Gamma] \vdash \Type(i) \cln \Type(i+1)}
+$ & Here, $i \in \NNp$ is any positive natural number. \\
+\prule{Var} &
+\multicolumn{2}{l}{
+$
+\prftree{\wf(E)[\Gamma]}
+{\sd{\text{$(\lasm{x}{T} \in \Gamma)$, or $(\ldef{x}{t}{T}) \in \Gamma$ for 
+some $t \in \CoqTerm$}}}
+{E[\Gamma] \vdash x \cln T}
+$} \\
+\prule{Const} &
+\multicolumn{2}{l}{
+$
+\prftree{\wf(E)[\Gamma]}
+{\sd{\text{$(\lasm{c}{T} \in E)$, or $(\ldef{c}{t}{T}) \in E$ for 
+some $t \in \CoqTerm$}}}
+{E[\Gamma] \vdash c \cln T}
+$} \\
+\prule{Prod-SProp} &
+$
+\prftree
+{E[\Gamma] \vdash T \cln s}
+{\sd{s \in S}}
+{E[\Gamma \dcln (x \cln T)] \vdash U \cln \SProp}
+{E[\Gamma]\vdash \cfa{x}{T}{U} \cln \SProp}
+$ &\\
+\prule{Prod-Prop} &
+$
+\prftree
+{E[\Gamma] \vdash T \cln s}
+{\sd{s \in S}}
+{E[\Gamma \dcln (x \cln T)] \vdash U \cln \Prop}
+{E[\Gamma]\vdash \cfa{x}{T}{U} \cln \Prop}
+$ &\\
+\prule{Prod-Set} &
+\multicolumn{2}{l}{
+$
+\prftree
+{E[\Gamma] \vdash T \cln s}
+{\sd{s \in \{\SProp,\Prop,\Set\}}}
+{E[\Gamma \dcln (x \cln T)] \vdash U \cln \Set}
+{E[\Gamma]\vdash \cfa{x}{T}{U} \cln \Set}
+$
+} \\
+\prule{Prod-Type} &
+\multicolumn{2}{l}{
+$
+\prftree
+{E[\Gamma] \vdash T \cln s}
+{\sd{s \in \{\SProp,\Type(i)\}}}
+{E[\Gamma \dcln (x \cln T)] \vdash U \cln \Type(i)}
+{E[\Gamma]\vdash \cfa{x}{T}{U} \cln \Type(i)}
+$
+} \\
+\prule{Lam} &
+$
+\prftree
+{E[\Gamma] \vdash \cfa{x}{T}{U} \cln s}
+{\sd{s \in S}}
+{E[\Gamma \dcln (x \cln T)] \vdash t \cln U}
+{E[\Gamma] \vdash \clm{x}{T}{t} \cln \cfa{x}{T}{U}}
+$ &\\
+\prule{App} &
+$
+\prftree
+{E[\Gamma] \vdash t \cln \cfa{x}{U}{T}}
+{E[\Gamma] \vdash u \cln U}
+{E[\Gamma] \vdash (t \, u) \cln T[u/x]}
+$ &\\
+\prule{Let} &
+$\prftree
+{E[\Gamma] \vdash t \cln T}
+{E[\Gamma \dcln (\ldef{x}{t}{T})] \vdash u \cln U}
+{E[\Gamma] \vdash \clt{x}{t}{T}{u} \cln U[t/x]}
+$
+\end{longtable}
+\egroup
+\end{center}
+
+\subsection{Conversion Rules}
+
+\end{document}

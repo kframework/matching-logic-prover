@@ -1,5 +1,7 @@
 ```k
 requires "lang/kore-lang.k"
+requires "lang/coq-lang.k"
+requires "drivers/coq-driver.k"
 requires "drivers/smt-driver.k"
 requires "drivers/kore-driver.k"
 requires "drivers/base.k"
@@ -11,6 +13,7 @@ requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
 requires "strategies/search-bound.k"
+requires "strategies/typecheck.k"
 requires "strategies/simplification.k"
 requires "strategies/smt.k"
 requires "strategies/reflexivity.k"
@@ -68,6 +71,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "in:" AxiomName ","
                         "vars:" VariableNames ","
                         "with:" Patterns ")"
+                    | "typecheck"
 
   syntax RewriteDirection ::= "->" | "<-"
 

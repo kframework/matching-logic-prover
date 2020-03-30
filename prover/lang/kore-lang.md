@@ -9,6 +9,7 @@ module TOKENS
   syntax ColonName
   syntax PipeQID
   syntax Decimal
+  syntax Underscore
 
   // Abstract
   syntax Symbol ::= UpperName | LowerName
@@ -118,6 +119,7 @@ module TOKENS-SYNTAX
   syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
   syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
                    | "2.0" [token]
+  syntax Underscore ::= "_" [token]
 endmodule
 
 module KORE
@@ -135,11 +137,13 @@ is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
 
 ```k
-  syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
+  syntax Variable    ::= VariableName  "{" Sort "}"  [klabel(sortedVariable)]
+  syntax SetVariable ::= "#" VariableName [klabel(setVariable)]
   syntax Pattern ::= Int
                    | Variable
+                   | SetVariable
                    | Symbol
-                   | Symbol "(" Patterns ")"                    [klabel(apply)]
+                   | Pattern "(" Patterns ")"                   [klabel(apply)]
 
                    | "\\top"    "(" ")"                         [klabel(top)]
                    | "\\bottom" "(" ")"                         [klabel(bottom)]
@@ -153,6 +157,9 @@ only in this scenario*.
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
+                   | "\\mu" "{" Patterns "}" Pattern            [klabel(mu)]
+                   | "\\nu" "{" Patterns "}" Pattern            [klabel(nu)]
+
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
@@ -161,6 +168,11 @@ only in this scenario*.
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
                    | "\\hole" "(" ")" [klabel(Phole)]
+
+                   // for Coq translation
+                   | "\\lambda" "{" Patterns "}" Pattern        [klabel(lambda)]
+                   | "\\pi"     "{" Patterns "}" Pattern        [klabel(pi)]
+                   | "\\type" "(" Pattern "," Pattern ")"       [klabel(type)]
 
   rule \top()    => \and(.Patterns) [anywhere]
   rule \bottom() => \or(.Patterns) [anywhere]
@@ -207,6 +219,9 @@ module KORE-HELPERS
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
   syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
+  syntax UpperName ::= StringToSort(String) [function, functional, hook(STRING.string2token)]
+
+  syntax VariableName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
 
   syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
   rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))

@@ -19,6 +19,12 @@ KDefinition( proj
            , krun_flags = '--interpret'
            )
 KDefinition( proj
+           , alias = 'prover-coq'
+           , backend = 'ocaml'
+           , directory = proj.builddir('defn/prover-coq')
+           , krun_flags = '--interpret'
+           )
+KDefinition( proj
            , alias = 'test-driver'
            , backend = 'llvm'
            , directory = proj.builddir('defn/test-driver')

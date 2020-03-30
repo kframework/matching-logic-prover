@@ -1,0 +1,84 @@
+<prover>
+  <k>
+    .CoqSentences
+  </k>
+  <exit-code>
+    1
+  </exit-code>
+  <goals>
+    .GoalCellSet
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \equals ( AndComm , \lambda { A { Term } , B { Term } , H { Term } , .Patterns } \or ( \exists { H0 , H1 , .Patterns } \and ( \equals ( H , conj ( H0 , H1 , .Patterns ) ) , conj ( H1 , H0 , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom \equals ( IF_then_else , or ( and , P , Q , .Patterns ) ( and , not , P , R , .Patterns ) )
+    </declaration> <declaration>
+      axiom \equals ( iff , and ( \forall { x { Term } , .Patterns } B , .Patterns ) ( \forall { y { Term } , .Patterns } A , .Patterns ) )
+    </declaration> <declaration>
+      axiom \equals ( not , \lambda { A { Term } , .Patterns } \forall { x { Term } , .Patterns } False )
+    </declaration> <declaration>
+      axiom \type ( I ( .Patterns ) , True )
+    </declaration> <declaration>
+      axiom \type ( S ( .Patterns ) , nat ( - , > , nat , .Patterns ) )
+    </declaration> <declaration>
+      axiom \type ( Z ( .Patterns ) , nat )
+    </declaration> <declaration>
+      axiom \type ( conj ( .Patterns ) , \forall { x { Term } , .Patterns } \forall { y { Term } , .Patterns } ( and ( A , B , .Patterns ) ) )
+    </declaration> <declaration>
+      axiom \type ( ex_intro1 ( .Patterns ) , \forall { x { Term } , .Patterns } \forall { y { Term } , .Patterns } ( ex1 ( A , P , .Patterns ) ) )
+    </declaration> <declaration>
+      axiom \type ( ex_intro2 ( .Patterns ) , \forall { x { Term } , .Patterns } \forall { y { Term } , .Patterns } ( ex2 ( P , .Patterns ) ) )
+    </declaration> <declaration>
+      axiom \type ( ex_intro4 ( .Patterns ) , \forall { x { Term } , .Patterns } \forall { y { Term } , .Patterns } ( ex4 ( A , .Patterns ) ( P , .Patterns ) ) )
+    </declaration> <declaration>
+      axiom \type ( or_introl ( .Patterns ) , \forall { x { Term } , .Patterns } ( or ( A , B , .Patterns ) ) )
+    </declaration> <declaration>
+      axiom \type ( or_intror ( .Patterns ) , \forall { y { Term } , .Patterns } ( or ( A , B , .Patterns ) ) )
+    </declaration> <declaration>
+      sort Term
+    </declaration> <declaration>
+      symbol AndComm ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol False ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol I ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol IF_then_else ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol S ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol True ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol Z ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol and ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol conj ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol ex1 ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol ex2 ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol ex4 ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol ex_intro1 ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol ex_intro2 ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol ex_intro4 ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol iff ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol nat ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol not ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol or ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol or_introl ( .Sorts ) : Term
+    </declaration> <declaration>
+      symbol or_intror ( .Sorts ) : Term
+    </declaration>
+  </declarations>
+</prover>
