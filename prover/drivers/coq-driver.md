@@ -103,6 +103,10 @@ module DRIVER-COQ
   rule CoqTermToPattern(TM:CoqTerm ARG) => CoqTermToPattern(TM)(CoqArgToPatterns(ARG))
   rule CoqTermToPattern(fix ID BINDERs := TM) => \mu { # CoqNameToVariableName(ID) } CoqTermToPattern(fun BINDERs => TM)
   rule CoqTermToPattern(@ QID:CoqQualID TM:CoqTerm) => CoqIdentToSymbol(QID)(CoqTermToPattern(TM))
+  // TODO: incorporate qualfied name
+  rule CoqTermToPattern(QID:CoqQualID . ID:CoqIdent) => CoqIdentToSymbol(ID)
+  // TODO: do we need to do anything with the type here?
+  rule CoqTermToPattern((TM:CoqTerm : TY:CoqType):CoqTerm) => CoqTermToPattern(TM)
 
   syntax Patterns ::= CoqArgToPatterns(CoqArg) [function]
   rule CoqArgToPatterns(ARG1 ARG2) => CoqArgToPatterns(ARG1) ++Patterns CoqArgToPatterns(ARG2)

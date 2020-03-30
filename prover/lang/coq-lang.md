@@ -14,6 +14,7 @@ module COQ
   syntax CoqIdent ::= LowerName
                     | UpperName
   syntax CoqQualID ::= CoqIdent
+                     | CoqQualID "." CoqIdent
   syntax CoqName ::= CoqIdent
                    | Underscore
   syntax CoqNames ::= List{CoqName, ""} [klabel(CoqNames)]
@@ -50,6 +51,7 @@ module COQ
                    | "let" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "in" CoqTerm
                    | "@" CoqQualID CoqTerm
                    | "match" CoqMatchItems "with" CoqEquations "end"
+                   | CoqTerm ":" CoqTerm
                    > CoqTerm CoqArg [right]
                    | CoqQualID
                    | CoqSort
