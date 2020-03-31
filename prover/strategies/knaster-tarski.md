@@ -79,7 +79,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule <k> ( ktForEachLRP((LRP, LRPs))
                  => ( remove-lhs-existential . normalize . or-split-rhs . lift-constraints
                     . kt-wrap(LRP) . kt-forall-intro
-                    . kt-unfold . lift-or . and-split . remove-lhs-existential
+                    . kt-unfold . remove-lhs-existential
                     . kt-unwrap
                     . simplify . normalize . or-split-rhs. lift-constraints. kt-collapse
                     )
@@ -196,20 +196,39 @@ for guessing an instantiation of the inductive hypothesis.
 // unfold+lfp
 
 ```k
-  syntax Strategy ::= "kt-unfold"
-  rule <claim> \implies( LRP(ARGS) #as LHS
-                  => substituteBRPs(unfold(LHS), LRP, ARGS, RHS)
-                   , RHS
-                   )
+  syntax Strategy ::= "kt-unfold" | "kt-unfold" "(" Pattern ")"
+  rule <claim> \implies(LHS, RHS) </claim>
+       <k> kt-unfold => kt-unfold(unfold(LHS)) ... </k>
+  rule <claim> \implies(LRP(ARGS) #as LHS, RHS)
+            => \implies(UNFOLDED_LHS, RHS)
        </claim>
-       <k> kt-unfold => noop ... </k>
+       <k> kt-unfold(UNFOLDED_LHS)
+               => lift-or . and-split
+                . kt-subst(filterByConstructor(getUnfoldables(UNFOLDED_LHS), LRP), ARGS)
+                  ...
+       </k>
     requires removeDuplicates(ARGS) ==K ARGS
      andBool isUnfoldable(LRP)
-  rule <claim> \implies(LRP(ARGS), RHS)
-       </claim>
+  rule <claim> \implies(LRP(ARGS), RHS) </claim>
        <k> kt-unfold => fail ... </k>
     requires removeDuplicates(ARGS) =/=K ARGS
      andBool isUnfoldable(LRP)
+
+  // in LHS, substitute LRP(x') with \and(LRP(x'), RHS[x |-> x'])
+  syntax Strategy ::= "kt-subst" "(" Patterns "," Patterns ")"
+  rule <claim> \implies(LHS, RHS)
+            => \implies( subst( LHS
+                              , LRP(UNFOLDED_ARGs)
+                              , \and(LRP(UNFOLDED_ARGs), substMap(RHS, zip(ARGs, UNFOLDED_ARGs)))
+                              )
+                       , RHS
+                       )
+       </claim>
+       <k> kt-subst((LRP:Symbol(UNFOLDED_ARGs), RECs), ARGs)
+               => kt-subst(RECs, ARGs)
+                  ...
+       </k>
+  rule <k> kt-subst(.Patterns, ARGs) => noop ... </k>
 
                              // unfolded fixed point, HEAD, LRP variables, RHS
   syntax Pattern ::= substituteBRPs(Pattern,  Symbol, Patterns, Pattern) [function]
@@ -220,7 +239,7 @@ for guessing an instantiation of the inductive hypothesis.
     requires S =/=K RP
      andBool S =/=K sep
  rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, RHS)
-   => \and(RP(BODY_ARGS), alphaRename(substMap(alphaRename(RHS), zip(ARGS, BODY_ARGS))))
+   => alphaRename(substMap(alphaRename(RHS), zip(ARGS, BODY_ARGS)))
 
   rule substituteBRPs(\top(), RP, Vs, RHS) => \top()
   rule substituteBRPs(\bottom(), RP, Vs, RHS) => \bottom()

@@ -216,10 +216,10 @@ abstracting nil
 on the LHS, replace all occurrences of nil with a fresh variable
 
 ```k
-  rule <k> \implies(LHS, RHS) => \implies(#abstractNil(LHS), RHS) </k>
-       <strategy> abstract-nil => noop
+  rule <claim> \implies(LHS, RHS) => \implies(#abstractNil(LHS), RHS) </claim>
+       <k> abstract-nil => noop
               ...
-       </strategy>
+       </k>
 
   syntax Pattern ::= #abstractNil(Pattern) [function]
   syntax Patterns ::= #abstractNilPs(Patterns) [function]
