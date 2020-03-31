@@ -251,7 +251,7 @@ Bring predicate constraints to the top of a term.
   rule #liftConstraints(P) =>     P  requires isPredicatePattern(P)
   rule #liftConstraints(S) => sep(S) requires isSpatialPattern(S)
 
-  rule #liftConstraints(sep(\and(.Patterns), REST)) => #liftConstraints(sep(REST))
+  // rule #liftConstraints(sep(\and(.Patterns), REST)) => #liftConstraints(sep(REST))
 
   rule #liftConstraints(sep(\and(P, Ps:Patterns), REST:Patterns))
     => #liftConstraints(\and(sep(\and(Ps), REST), P, .Patterns))
@@ -282,6 +282,42 @@ Bring predicate constraints to the top of a term.
   rule #liftConstraints(\and(P, Ps))
     => #liftConstraints(\and(Ps ++Patterns P))
   requires isPredicatePattern(P) andBool notBool isPredicatePattern(\and(P, Ps))
+
+
+//   // updated lift constraints
+//   rule #liftConstraints(\and(sep(\and(AND_INNER_Ps), SEP_Ps), AND_OUTER_Ps))
+//     => #liftConstraints( \and( sep( \and(AND_INNER_Ps -Patterns getPredicatePatterns(AND_INNER_Ps))
+//                                   , SEP_Ps
+//                                   )
+//                              , AND_OUTER_Ps ++Patterns getPredicatePatterns(AND_INNER_Ps)
+//                              )
+//                        )
+//     requires getPredicatePatterns(AND_INNER_Ps) =/=K .Patterns
+
+//   rule #liftConstraints(\and(sep(\and(SEP_PATTERN, .Patterns), SEP_Ps), AND_OUTER_Ps))
+//     => #liftConstraints(\and(sep(SEP_PATTERN, SEP_Ps), AND_OUTER_Ps))
+//     requires isSpatialPattern(SEP_PATTERN)
+
+//   rule #liftConstraints(P) => P
+//     requires isConstrainedTerm(P)
+
+//   syntax Bool ::= isConstrainedTerm(Pattern) [function]
+//   rule isConstrainedTerm(\and(sep(SPATIAL), CONSTRAINT)) => true
+//     requires (isSpatialPattern(sep(SPATIAL)) orBool isConstrainedTerm(SPATIAL))
+//      andBool isPredicatePattern(CONSTRAINT)
+//   rule isConstrainedTerm(_) => false
+//     [owise]
+
+// test cases:
+// \and(.Patterns) => \and(.Patterns)
+// \and(sep(\and(.Patterns))) => \and(.Patterns)
+// alternatively: first 2 cases both go to \and(sep(\and(.Patterns)))
+// \and( dll(..), pto(..) ) => \and( sep( dll ), sep( pto ) )
+// alternatively: above remains unchanged
+// \and(sep(\and(\and(H1, P1), \and(H2, P2))))
+// => \and(sep(H1), sep(H2), P1, P2)
+// \and(sep(\and(H1, H2, x=y), H3), H4, w=z)
+// => \and(sep(H1, H3), sep(H2, H3), sep(H4), x=y, w=z)
 ```
 
 ### lift-or
