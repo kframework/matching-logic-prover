@@ -5,7 +5,7 @@ module STRATEGY-SIMPLE-SORT-CHECK
   imports SORT-CHECKING-SYNTAX
 
   rule <strategy> simple-sort-check
-               => #if simpleSortCheck(P, S, collectAssumptions(GId))
+               => #if simpleSortCheck(GId, P, S, collectAssumptions(GId))
                   #then success #else fail #fi
                   ...
        </strategy>

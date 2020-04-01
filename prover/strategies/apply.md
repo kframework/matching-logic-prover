@@ -44,8 +44,9 @@ module STRATEGY-APPLY
 
   rule <strategy>
          #apply1(A, #matchResult(subst: Subst), Strat)
-         => #apply2(instantiateAssumptions(Subst, A), Strat, success)
+         => #apply2(instantiateAssumptions(GId, Subst, A), Strat, success)
        ...</strategy>
+       <id> GId </id>
 
   rule <strategy>
          #apply1(_, #matchFailure(_), _) => fail

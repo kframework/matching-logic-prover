@@ -3,10 +3,11 @@ module INSTANTIATE-ASSUMPTIONS-SYNTAX
   imports MAP
   syntax Pattern
   syntax Patterns
+  syntax GoalId
 
   syntax InstantiateAssumptionsResult
     ::= ok(Patterns, Map) | error(K)
-      | instantiateAssumptions(Map, Pattern) [function]
+      | instantiateAssumptions(GoalId, Map, Pattern) [function]
 
 endmodule
 
@@ -43,37 +44,41 @@ with bound ones.
 
 ```k
   syntax InstantiateAssumptionsResult
-    ::= #instantiateAssumptions1(Map, Patterns) [function]
-      | #instantiateAssumptions2(Patterns, Map, Patterns) [function]
+    ::= #instantiateAssumptions1(GoalId, Map, Patterns) [function]
+      | #instantiateAssumptions2(GoalId, Patterns, Map, Patterns) [function]
 
-  rule instantiateAssumptions(Subst, P)
-    => #instantiateAssumptions1(Subst, unfoldInsideOut(P))
+  rule instantiateAssumptions(GId, Subst, P)
+    => #instantiateAssumptions1(GId, Subst, unfoldInsideOut(P))
 
-  rule #instantiateAssumptions1(Subst, Conclusion, Assumptions)
-    => #instantiateAssumptions2(.Patterns, Subst, Assumptions)
+  rule #instantiateAssumptions1(GId, Subst, Conclusion, Assumptions)
+    => #instantiateAssumptions2(GId, .Patterns, Subst, Assumptions)
 
   rule #instantiateAssumptions2(
-         Instantiated::Patterns, Subst::Map, .Patterns)
+         GId, Instantiated::Patterns, Subst::Map, .Patterns)
        => ok(Instantiated, Subst)
 
   rule #instantiateAssumptions2(
+         GId,
          Instantiated::Patterns,
          Subst::Map,
          \implies(L, _), Ps
        ) => #instantiateAssumptions2 (
+         GId,
          substMap(L, Subst) ++Patterns Instantiated,
          Subst,
          Ps
        )
 
   rule #instantiateAssumptions2(
+         GId,
          Instantiated::Patterns,
          Subst::Map,
          \forall{Vars} _, Ps
        ) => #if PatternsToSet(Vars) <=Set keys(Subst)
             #then
               #instantiateAssumptions2(
-                Instantiated,
+                GId,
+                functionalObligations(GId, Subst, Vars) ++Patterns Instantiated,
                 removeAll(Subst, PatternsToSet(Vars)),
                 Ps
               )
@@ -81,6 +86,22 @@ with bound ones.
               error("Unable to find an instance for variables: "
                     ~> PatternsToSet(Vars) -Set keys(Subst))
             #fi
+
+
+  syntax Patterns ::= functionalObligations(GoalId, Map, Patterns) [function]
+
+  rule functionalObligations(_, _, .Patterns) => .Patterns
+
+  rule functionalObligations(GId, Subst, _:SetVariable, Ps)
+    => functionalObligations(GId, Subst, Ps)
+
+  rule functionalObligations(GId, Subst, V{S}, Ps)
+    => #if isFunctional(GId, {Subst[V{S}]}:>Pattern)
+       #then functionalObligations(GId, Subst, Ps)
+       #else \functionalPattern({Subst[V{S}]}:>Pattern),
+             functionalObligations(GId, Subst, Ps)
+       #fi
+
 
 
 

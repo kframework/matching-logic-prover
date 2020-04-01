@@ -134,12 +134,13 @@ module STRATEGY-APPLY-EQUATION
          , to: R
          , by: Ss
          )
-         => instantiateAssumptions(Subst, P)
+         => instantiateAssumptions(GId, Subst, P)
          ~> createSubgoalsWithStrategies(strats: Ss, result: noop)
        ...</strategy>
        <claim>
          _ => cool(heated: Heated, term: substMap(R, Subst))
        </claim>
+       <id> GId </id>
 
   syntax KItem ::= "createSubgoalsWithStrategies"
                    "(" "strats:" Strategies
