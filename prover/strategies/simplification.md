@@ -241,84 +241,74 @@ on the LHS, replace all occurrences of nil with a fresh variable
 Bring predicate constraints to the top of a term.
 
 ```k
-  rule <claim> \implies(\and(Ps) => #flattenAnd(#liftConstraints(\and(Ps)))
-                       , \exists { _ } (\and(Rs) => #flattenAnd(#liftConstraints(\and(Rs))))
+  rule <claim> \implies(\and(Ps) => #flattenAnd(#liftConstraints(#flattenAnd(\and(Ps))))
+                       , \exists { _ } (\and(Rs) => #flattenAnd(#liftConstraints(#flattenAnd(\and(Rs)))))
                        )
        </claim>
        <k> lift-constraints => noop ... </k>
 
   syntax Pattern ::= #liftConstraints(Pattern) [function]
-  rule #liftConstraints(P) =>     P  requires isPredicatePattern(P)
-  rule #liftConstraints(S) => sep(S) requires isSpatialPattern(S)
-
-  // rule #liftConstraints(sep(\and(.Patterns), REST)) => #liftConstraints(sep(REST))
-
-  rule #liftConstraints(sep(\and(P, Ps:Patterns), REST:Patterns))
-    => #liftConstraints(\and(sep(\and(Ps), REST), P, .Patterns))
+  syntax Patterns ::= #liftConstraintsPs(Patterns) [function]
+  rule #liftConstraints(\and(Ps)) => \and(#liftConstraintsPs(Ps))
+  rule #liftConstraintsPs(.Patterns) => .Patterns
+  rule #liftConstraintsPs(sep(\and(.Patterns), .Patterns), REST) => #liftConstraintsPs(REST)
+  rule #liftConstraintsPs(P, REST) => #liftConstraintsPs(REST) ++Patterns P
     requires isPredicatePattern(P)
-  rule #liftConstraints(sep(\and(P, Ps), REST))
-    => #liftConstraints(sep(\and(Ps), P, REST))
+  rule #liftConstraintsPs(P, REST) => sep(P), #liftConstraintsPs(REST)
     requires isSpatialPattern(P)
-  rule #liftConstraints(sep(\and(P, Ps), REST))
-    => #liftConstraints(sep(\and(#flattenAnds(#liftConstraints(P), Ps)), REST))
-    requires notBool isPredicatePattern(P) andBool notBool isSpatialPattern(P)
+  rule #liftConstraintsPs(\and(Ps), REST) => #liftConstraintsPs(Ps ++Patterns REST)
+    requires notBool isPredicatePattern(\and(Ps))
+  // note the rule below assumes we hever have a pure predicate pattern inside a sep
+  rule #liftConstraintsPs(sep((P, Ps) #as SEPs), REST)
+    => #liftConstraintsPs( sep(            (SEPs -Patterns #getSpatialPatterns(SEPs))
+                                ++Patterns #getSpatialPatterns(SEPs)
+                              )
+                         , REST
+                         )
+    requires isSpatialPattern(P) andBool #getSpatialPatterns(SEPs) =/=K SEPs
+  rule #liftConstraintsPs(sep(\and(Ps), REST_SEP), REST)
+    => #liftConstraintsPs( sep( \and(Ps -Patterns #getPredicatePatterns(Ps))
+                              , REST_SEP
+                              )
+                         , REST
+                         )
+       ++Patterns #getPredicatePatterns(Ps)
+    requires #getPredicatePatterns(Ps) =/=K .Patterns
+  rule #liftConstraintsPs(sep(\and(P, .Patterns), REST_SEP), REST)
+    => #liftConstraintsPs(sep(P, REST_SEP), REST)
+    requires isSpatialPattern(P)
+  rule #liftConstraintsPs(sep(\and(P, Ps), REST_SEP), REST)
+    => #liftConstraintsPs(sep(P, REST_SEP), sep(\and(Ps), REST_SEP), REST)
+    requires #getPredicatePatterns(P, Ps) ==K .Patterns
+     andBool isSpatialPattern(P)
+     andBool Ps =/=K .Patterns
+  rule #liftConstraintsPs(sep(\and(P, Ps), REST_SEP), REST)
+    => #liftConstraintsPs(sep(\and(#liftConstraintsPs(P, Ps)), REST_SEP), REST)
+    requires #getPredicatePatterns(P, Ps) ==K .Patterns
+     andBool notBool isSpatialPattern(P)
 
-  // Rotate
-  rule #liftConstraints(sep(S, Ps))
-    => #liftConstraints(sep(Ps ++Patterns S))
-    requires isSpatialPattern(S) andBool notBool isSpatialPattern(sep(S, Ps))
+  syntax Patterns ::= #getPredicatePatterns(Patterns) [function]
+  syntax Patterns ::= #getSpatialPatterns(Patterns) [function]
+  rule #getPredicatePatterns(.Patterns) => .Patterns
+  rule #getPredicatePatterns(P, Ps) => P, #getPredicatePatterns(Ps)
+    requires isPredicatePattern(P)
+  rule #getPredicatePatterns(P, Ps) => #getPredicatePatterns(Ps)
+    requires notBool isPredicatePattern(P)
+  rule #getSpatialPatterns(.Patterns) => .Patterns
+  rule #getSpatialPatterns(P, Ps) => P, #getSpatialPatterns(Ps)
+    requires isSpatialPattern(P)
+  rule #getSpatialPatterns(P, Ps) => #getSpatialPatterns(Ps)
+    requires notBool isSpatialPattern(P)
 
-  rule #liftConstraints(\and(sep(Ss), Ps))
-    => #liftConstraints(\and(#flattenAnds(#liftConstraints(sep(Ss)), .Patterns) ++Patterns Ps))
-    requires notBool isSpatialPattern(sep(Ss))
-
-  rule #liftConstraints(\and(S, Ps))
-    => \and(sep(S), #flattenAnds(#liftConstraints(\and(Ps)), .Patterns))
-    requires isSpatialPattern(S)
-
-  rule #liftConstraints(\and(\and(Ps), REST))
-    => #liftConstraints(\and(Ps ++Patterns REST))
-
-  rule #liftConstraints(\and(P, Ps))
-    => #liftConstraints(\and(Ps ++Patterns P))
-  requires isPredicatePattern(P) andBool notBool isPredicatePattern(\and(P, Ps))
-
-
-//   // updated lift constraints
-//   rule #liftConstraints(\and(sep(\and(AND_INNER_Ps), SEP_Ps), AND_OUTER_Ps))
-//     => #liftConstraints( \and( sep( \and(AND_INNER_Ps -Patterns getPredicatePatterns(AND_INNER_Ps))
-//                                   , SEP_Ps
-//                                   )
-//                              , AND_OUTER_Ps ++Patterns getPredicatePatterns(AND_INNER_Ps)
-//                              )
-//                        )
-//     requires getPredicatePatterns(AND_INNER_Ps) =/=K .Patterns
-
-//   rule #liftConstraints(\and(sep(\and(SEP_PATTERN, .Patterns), SEP_Ps), AND_OUTER_Ps))
-//     => #liftConstraints(\and(sep(SEP_PATTERN, SEP_Ps), AND_OUTER_Ps))
-//     requires isSpatialPattern(SEP_PATTERN)
-
-//   rule #liftConstraints(P) => P
-//     requires isConstrainedTerm(P)
-
-//   syntax Bool ::= isConstrainedTerm(Pattern) [function]
-//   rule isConstrainedTerm(\and(sep(SPATIAL), CONSTRAINT)) => true
-//     requires (isSpatialPattern(sep(SPATIAL)) orBool isConstrainedTerm(SPATIAL))
-//      andBool isPredicatePattern(CONSTRAINT)
-//   rule isConstrainedTerm(_) => false
-//     [owise]
-
-// test cases:
-// \and(.Patterns) => \and(.Patterns)
-// \and(sep(\and(.Patterns))) => \and(.Patterns)
-// alternatively: first 2 cases both go to \and(sep(\and(.Patterns)))
-// \and( dll(..), pto(..) ) => \and( sep( dll ), sep( pto ) )
-// alternatively: above remains unchanged
-// \and(sep(\and(\and(H1, P1), \and(H2, P2))))
-// => \and(sep(H1), sep(H2), P1, P2)
-// \and(sep(\and(H1, H2, x=y), H3), H4, w=z)
-// => \and(sep(H1, H3), sep(H2, H3), sep(H4), x=y, w=z)
-```
+  // test cases:
+  // \and(.Patterns) => \and(.Patterns)
+  // \and(sep(\and(.Patterns))) => \and(.Patterns)
+  // \and( dll(..), pto(..) ) => \and( sep( dll ), sep( pto ) )
+  // \and(sep(\and(H1, P1, H2, P2)))
+  // => \and(sep(H1), sep(H2), P1, P2)
+  // \and(sep(\and(H1, H2, x=y), H3), H4, w=z)
+  // => \and(sep(H1, H3), sep(H2, H3), sep(H4), x=y, w=z)
+  ```
 
 ### lift-or
 
