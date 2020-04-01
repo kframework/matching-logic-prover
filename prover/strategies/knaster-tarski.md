@@ -219,7 +219,9 @@ for guessing an instantiation of the inductive hypothesis.
   rule <claim> \implies(LHS, RHS)
             => \implies( subst( LHS
                               , LRP(UNFOLDED_ARGs)
-                              , \and(LRP(UNFOLDED_ARGs), substMap(RHS, zip(ARGs, UNFOLDED_ARGs)))
+                              , \and( LRP(UNFOLDED_ARGs)
+                                    , substMap(alphaRename(RHS), zip(ARGs, UNFOLDED_ARGs))
+                                    )
                               )
                        , RHS
                        )
