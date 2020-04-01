@@ -24,7 +24,8 @@ module STRATEGY-BACKWARDS-SEARCH
 
   rule <strategy> backwards-search Depth
                => #if backwardsSearch
-                      ( depths: ListItem(Depth)
+                      ( goalid: GId
+                      , depths: ListItem(Depth)
                       , goals: P, .Patterns
                       , axioms: collectAssumptions(GId)
                       )

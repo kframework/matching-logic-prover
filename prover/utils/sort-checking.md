@@ -20,7 +20,7 @@ module SORT-CHECKING-SYNTAX
   syntax Patterns
 
   // 3rd parameter: axioms
-  syntax Bool ::= simpleSortCheck(Pattern, Sort, Patterns) [function]
+  syntax Bool ::= simpleSortCheck(GoalId, Pattern, Sort, Patterns) [function]
 
 endmodule
 
@@ -30,8 +30,9 @@ module SORT-CHECKING-RULES
   imports BACKWARDS-SEARCH-SYNTAX
   imports INT
 
-  rule simpleSortCheck(P, S, Axioms)
+  rule simpleSortCheck(GId, P, S, Axioms)
     => backwardsSearch(
+         goalid: GId,
          depths: ListItem(patternDepth(P)),
          goals: \typeof(P, S), .Patterns,
          axioms: Axioms
