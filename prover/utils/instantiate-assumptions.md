@@ -17,21 +17,21 @@ module INSTANTIATE-ASSUMPTIONS-RULES
 
   // transforms '\forall x. (P -> (Q -> R))'
   // into: 'R, Q -> R, P -> (Q -> R), \forall x. P -> (Q -> R)'
-  syntax Patterns ::= unfoldInsideOut(Pattern) [function]
-                    | #unfoldInsideOut(Patterns) [function]
+  syntax Patterns ::= unrollImplicationChain(Pattern) [function]
+                    | #unrollImplicationChain(Patterns) [function]
 
-  rule unfoldInsideOut(P)
-    => #unfoldInsideOut(P, .Patterns)
+  rule unrollImplicationChain(P)
+    => #unrollImplicationChain(P, .Patterns)
 
-  rule #unfoldInsideOut(P, Ps) => P, Ps
+  rule #unrollImplicationChain(P, Ps) => P, Ps
        requires \implies(_,_) :/=K P
         andBool \forall{_}_ :/=K P
 
-  rule #unfoldInsideOut(\implies(L, R), Ps)
-    => #unfoldInsideOut(R, \implies(L, R), Ps)
+  rule #unrollImplicationChain(\implies(L, R), Ps)
+    => #unrollImplicationChain(R, \implies(L, R), Ps)
 
-  rule #unfoldInsideOut(\forall{Vars} P, Ps)
-    => #unfoldInsideOut(P, \forall{Vars} P, Ps)
+  rule #unrollImplicationChain(\forall{Vars} P, Ps)
+    => #unrollImplicationChain(P, \forall{Vars} P, Ps)
 ```
 
 Subgoal generation: we start with the conclusion and substitution,
@@ -47,7 +47,7 @@ with bound ones.
       | #instantiateAssumptions2(Patterns, Map, Patterns) [function]
 
   rule instantiateAssumptions(Subst, P)
-    => #instantiateAssumptions1(Subst, unfoldInsideOut(P))
+    => #instantiateAssumptions1(Subst, unrollImplicationChain(P))
 
   rule #instantiateAssumptions1(Subst, Conclusion, Assumptions)
     => #instantiateAssumptions2(.Patterns, Subst, Assumptions)
