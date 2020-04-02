@@ -31,10 +31,10 @@ module INSTANTIATE-ASSUMPTIONS-RULES
         andBool \forall{_}_ :/=K P
 
   rule #unrollImplicationChain(\implies(L, R), Ps)
-    => #unrollImplicationChain(R, \implies(L, R), Ps)
+    => #unrollImplicationChain((R, \implies(L, R), Ps))
 
   rule #unrollImplicationChain(\forall{Vars} P, Ps)
-    => #unrollImplicationChain(P, \forall{Vars} P, Ps)
+    => #unrollImplicationChain((P, \forall{Vars} P, Ps))
 ```
 
 Subgoal generation: we start with the conclusion and substitution,
