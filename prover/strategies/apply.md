@@ -48,7 +48,7 @@ module STRATEGY-APPLY
        ...</strategy>
 
   rule <strategy>
-         #apply1(_, #matchFailure(_), _) => fail
+         #apply1(_, #error(_), _) => fail
        ...</strategy>
 
   syntax KItem ::= #apply2(

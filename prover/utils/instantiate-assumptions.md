@@ -1,12 +1,14 @@
 ```k
 module INSTANTIATE-ASSUMPTIONS-SYNTAX
   imports MAP
+  imports ERROR
+
   syntax Pattern
   syntax Patterns
 
   syntax InstantiateAssumptionsResult
     ::= #instantiateAssumptionsResult(Patterns, Map)
-      | error(K)
+      | Error
       | instantiateAssumptions(Map, Pattern) [function]
 
 endmodule
@@ -79,7 +81,7 @@ with bound ones.
                 Ps
               )
             #else
-              error("Unable to find an instance for variables: "
+              #error("Unable to find an instance for variables: "
                     ~> PatternsToSet(Vars) -Set keys(Subst))
             #fi
 

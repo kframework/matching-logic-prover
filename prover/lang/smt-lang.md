@@ -103,9 +103,10 @@ module SMTLIB2-HELPERS
   imports K-IO
   imports SMTLIB2
   imports PROVER-CORE-SYNTAX
+  imports ERROR
 
   syntax SMTLIB2AttributeValue ::=  CheckSATResult
-  syntax CheckSATResult ::= "error" "(" K ")"
+  syntax CheckSATResult ::= Error
 
 // Concatenation:
 
@@ -237,13 +238,13 @@ module SMTLIB2-HELPERS
     => CheckSAT.doSystem(Q, C, FN, #close(FD))
   rule CheckSAT.doSystem(Q, C, FN, .K) => CheckSAT.parseResult(#system(C +String FN))
 
-  rule CheckSAT.doWrite(_, C, E:IOError) => error(E)
+  rule CheckSAT.doWrite(_, C, E:IOError) => #error(E)
 
   syntax CheckSATResult ::= "CheckSAT.parseResult" "(" KItem ")" [function]
   rule CheckSAT.parseResult(#systemResult(0, "sat\n", STDERR))     => sat
   rule CheckSAT.parseResult(#systemResult(0, "unsat\n", STDERR))   => unsat
   rule CheckSAT.parseResult(#systemResult(0, "unknown\n", STDERR)) => unknown
-  rule CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))      => error(#systemResult(I, STDOUT, STDERR))
+  rule CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))      => #error(#systemResult(I, STDOUT, STDERR))
     requires I =/=Int 0
 endmodule
 

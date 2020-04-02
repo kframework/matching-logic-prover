@@ -133,7 +133,7 @@ module HEATCOOL-RULES
          variables: Vars,
          index: N,
          term: T,
-         matchResult: #matchFailure(_)
+         matchResult: #error(_)
        ) => visitorResult(
               heatVisitor(
                 pattern: P,
