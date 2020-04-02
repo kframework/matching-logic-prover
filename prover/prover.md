@@ -3,10 +3,12 @@ requires "lang/kore-lang.k"
 requires "drivers/smt-driver.k"
 requires "drivers/kore-driver.k"
 requires "drivers/base.k"
+requires "strategies/apply.k"
 requires "strategies/apply-equation.k"
 requires "strategies/core.k"
 requires "strategies/duplicate.k"
 requires "strategies/instantiate-universals.k"
+requires "strategies/inst-exists.k"
 requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -16,6 +18,8 @@ requires "strategies/smt.k"
 requires "strategies/reflexivity.k"
 requires "strategies/replace-evar-with-func-constant.k"
 requires "strategies/unfolding.k"
+requires "utils/error.k"
+requires "utils/instantiate-assumptions.k"
 requires "utils/heatcool.k"
 requires "utils/load-named.k"
 requires "utils/syntactic-match.k"
@@ -68,6 +72,14 @@ module STRATEGIES-EXPORTED-SYNTAX
                         "in:" AxiomName ","
                         "vars:" VariableNames ","
                         "with:" Patterns ")"
+                    // Proves the current goal using the conclusion
+                    // of the axiom or claim given as the first arg.
+                    // Uses the strategy given in second argument
+                    // to discharge the axiom's premises.
+                    | "apply" "(" AxiomOrClaimName
+                              "," Strategy ")"
+                    | "inst-exists" "(" Variable "," Pattern
+                                    "," Strategy ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 

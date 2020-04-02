@@ -2,14 +2,11 @@
 module MATCHING-COMMON
   imports MAP
   imports KORE-HELPERS
-  syntax MatchFailure
-  syntax MatchResult ::= MatchFailure
+  imports ERROR
 
   syntax MatchResult ::= "#matchResult" "(" "subst:" Map "," "rest:" Patterns ")" [format(%1%2%i%n%3%i%n%4%d%n%5%i%6%n%7%d%d%8)]
-                       | MatchFailure
+                       | Error
                        | "#matchResult" "(" "subst:" Map ")"
-  syntax MatchFailure ::= "#matchFailure" "(" String ")"
-
 endmodule
 
 module MATCHING-FUNCTIONAL
@@ -40,7 +37,7 @@ module MATCHING-FUNCTIONAL
   rule .MatchResults ++MatchResults MR2s => MR2s
 
   rule #match( terms: T, pattern: P, variables: Vs )
-    => #filterMatchFailures( #matchAssocComm( terms: T
+    => #filterErrors( #matchAssocComm( terms: T
                                             , pattern: P
                                             , variables: Vs
                                             , results: .MatchResults
@@ -49,17 +46,16 @@ module MATCHING-FUNCTIONAL
                                             )
                            )
 
-  syntax MatchResults ::= #filterMatchFailures(MatchResults) [function]
-  rule #filterMatchFailures(MF:MatchFailure , MRs) => #filterMatchFailures(MRs)
-  rule #filterMatchFailures(MF              , MRs) => MF , #filterMatchFailures(MRs)
-    requires notBool isMatchFailure(MF)
-  rule #filterMatchFailures(.MatchResults) => .MatchResults
+  syntax MatchResults ::= #filterErrors(MatchResults) [function]
+  rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
+  rule #filterErrors(MR       , MRs) => MR , #filterErrors(MRs)
+    requires notBool isError(MR)
+  rule #filterErrors(.MatchResults) => .MatchResults
 ```
 
 Work around OCaml not producing reasonable error messages:
 
 ```k
-  syntax MatchFailure ::= "#matchStuck" "(" K ")"
   syntax KItem ::= "\\n" [format(%n)]
   rule #matchAssocComm(terms: T
                       , pattern: P   
@@ -68,7 +64,7 @@ Work around OCaml not producing reasonable error messages:
                       , subst: SUBST
                       , rest: REST
                       )
-    => #matchStuck( "AC" 
+    => #error( "AC" 
             ~> "terms:" ~> T
             ~> "pattern:" ~> P
             ~> "variables:" ~> Vs
@@ -97,7 +93,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   , rest:      REST
                   )
-    => #matchFailure("Mismatch in length of arguments"), .MatchResults
+    => #error("Mismatch in length of arguments"), .MatchResults
     requires (Ts ==K .Patterns orBool Ps ==K .Patterns)
      andBool notBool (Ts ==K .Patterns andBool Ps ==K .Patterns)
 
@@ -108,7 +104,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   , rest:      REST
                   )
-    => #matchFailure("Constructors do not match"), .MatchResults
+    => #error("Constructors do not match"), .MatchResults
     requires S1 =/=K S2
 
   // Non-matching constructors
@@ -118,7 +114,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   , rest:      REST
                   )
-    => #matchFailure("Constructors do not match"), .MatchResults
+    => #error("Constructors do not match"), .MatchResults
     requires notBool isApplication(T)
 
   // Constructors match: Recurse over arguments
@@ -139,7 +135,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   , rest:      REST
                   )
-    => #matchFailure("Variable does not match"), .MatchResults
+    => #error("Variable does not match"), .MatchResults
     requires T =/=K P
      andBool notBool P in Vs
 
@@ -159,7 +155,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     _
                   , rest:      REST
                   )
-    => #matchFailure( "No valid substitution" ), .MatchResults
+    => #error( "No valid substitution" ), .MatchResults
     requires T =/=K P
      andBool notBool P in Vs
      
@@ -170,7 +166,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     _
                   , rest:      REST
                   )
-    => #matchFailure("Variable sort does not match term"), .MatchResults
+    => #error("Variable sort does not match term"), .MatchResults
     requires T =/=K P
      andBool P in Vs
      andBool getReturnSort(T) =/=K getReturnSort(P)
@@ -198,7 +194,7 @@ Recurse over assoc-comm `sep`:
                       , subst:     SUBST
                       , rest:      REST
                       )
-    => #matchFailure( "Pattern larger than term" ), .MatchResults
+    => #error( "Pattern larger than term" ), .MatchResults
 
 // Base case: emp matches all heaps
   rule #matchAssocComm( terms:     Ts
@@ -304,11 +300,11 @@ Failures are propagated:
   rule #matchAssocComm( terms:     Ts
                       , pattern:   P
                       , variables: Vs
-                      , results:   MF:MatchFailure, .MatchResults
+                      , results:   E:Error, .MatchResults
                       , subst:     SUBST
                       , rest:      REST
                       )
-     => MF, .MatchResults
+     => E, .MatchResults
 ```
 
 If the nested call returns a disjunction of solutions, we distribute the disjunction:

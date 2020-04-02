@@ -9,6 +9,7 @@ module DRIVER-KORE
   imports DRIVER-BASE
   imports PROVER-CORE
   imports K-IO
+  imports K-REFLECTION
 ```
 
 Handle each `Declaration` sequentially:

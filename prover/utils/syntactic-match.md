@@ -1,12 +1,14 @@
 ```k
 module SYNTACTIC-MATCH-SYNTAX
   imports MATCHING-COMMON
+  imports ERROR
 
   syntax MatchResult ::= "syntacticMatch"
                          "(" "terms:"     Patterns
                          "," "patterns:"  Patterns
                          "," "variables:" Patterns
                          ")" [function]
+                       | Error
 
 endmodule
 
@@ -45,7 +47,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: Vs
                       , subst:     SUBST
                       )
-    => #matchFailure("Mismatch in length of arguments")
+    => #error("Mismatch in length of arguments")
     requires (Ts ==K .Patterns orBool Ps ==K .Patterns)
      andBool notBool (Ts ==K .Patterns andBool Ps ==K .Patterns)
 
@@ -62,7 +64,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("Integers do not match")
+    => #error("Integers do not match")
     requires N =/=Int M
 
   // Non-matching ints
@@ -71,7 +73,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("Not an integer")
+    => #error("Not an integer")
     requires notBool isInt(T)
 
   // Non-matching constructors
@@ -80,7 +82,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("Constructors do not match")
+    => #error("Constructors do not match")
     requires S1 =/=K S2
 
   // Non-matching constructors
@@ -89,7 +91,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("Constructors do not match")
+    => #error("Constructors do not match")
     requires notBool isApplication(T)
 
   // Constructors match: Recurse over arguments
@@ -108,7 +110,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: Vs
                       , subst:     _
                       )
-    => #matchFailure("Variable does not match")
+    => #error("Variable does not match")
     requires T =/=K P
      andBool notBool P in Vs
 
@@ -126,7 +128,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: Vs
                       , subst:     _
                       )
-    => #matchFailure( "No valid substitution" )
+    => #error( "No valid substitution" )
     requires T =/=K P
      andBool notBool P in Vs
      
@@ -136,7 +138,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: Vs
                       , subst:     _
                       )
-    => #matchFailure("Variable sort does not match term")
+    => #error("Variable sort does not match term")
     requires T =/=K P
      andBool P in Vs
      andBool getReturnSort(T) =/=K getReturnSort(P)
@@ -172,7 +174,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("\\equals(_,_) does not match")
+    => #error("\\equals(_,_) does not match")
     requires \equals(...) :/=K T
 
   // \not(_) matched
@@ -190,8 +192,28 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("\\not(_) does not match")
+    => #error("\\not(_) does not match")
     requires \not(...) :/=K T
+
+  // \functionalPattern(_) matched
+  rule #syntacticMatch( terms:     \functionalPattern(T), Ts
+                               => T ++Patterns Ts
+                      , patterns:   \functionalPattern(P), Ps
+                               => P ++Patterns Ps
+                      , variables: _
+                      , subst:     _
+                      )
+
+  // \functionalPattern(_) mismatched
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  \functionalPattern(_), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #error("\\functionalPattern(_) does not match")
+    requires \functionalPattern(...) :/=K T
+
+
 
   // \and(...) matched
   rule #syntacticMatch( terms:     \and(T_ARGS), Ts
@@ -208,7 +230,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("\\and(...) does not match")
+    => #error("\\and(...) does not match")
     requires \and(...) :/=K T
 
   // \or(...) matched
@@ -226,7 +248,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("\\or(...) does not match")
+    => #error("\\or(...) does not match")
     requires \or(...) :/=K T
 
   // \implies(_,_) matched
@@ -244,7 +266,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("\\implies(_,_) does not match")
+    => #error("\\implies(_,_) does not match")
     requires \implies(...) :/=K T
 
   // \exists{_}_ matched
@@ -271,7 +293,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("\\exists{_}_ does not match")
+    => #error("\\exists{_}_ does not match")
     requires \exists{_}_ :/=K T
 
   // \forall{_}_ matched
@@ -298,7 +320,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: _
                       , subst:     _
                       )
-    => #matchFailure("\\forall{_}_ does not match")
+    => #error("\\forall{_}_ does not match")
     requires \forall{_}_ :/=K T
 
   syntax MatchResult ::= "syntacticMatchForallExists"
@@ -362,8 +384,8 @@ module SYNTACTIC-MATCH-RULES
        , subst:        _
        , thenTerms:    _
        , thenPatterns: _
-       , matchResult:  #matchFailure(S)
-       ) => #matchFailure(
+       , matchResult:  #error(S)
+       ) => #error(
           "Failure matching forall/exists: " +String S)
 
   rule #syntacticMatchForallExists
