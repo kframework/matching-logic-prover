@@ -56,12 +56,13 @@ module STRATEGY-APPLY
                      Strategy, Strategy)
 
   rule <strategy>
-         #apply2(ok(.Patterns, .Map), _, Result) => Result
+         #apply2(#instantiateAssumptionsResult(.Patterns, .Map), _, Result)
+         => Result
        ...</strategy>
 
   rule <strategy>
          #apply2(
-           ok(P, Ps => Ps, .Map),
+           #instantiateAssumptionsResult(P, Ps => Ps, .Map),
            Strat,
            Result => Result & subgoal(P, Strat)
          )

@@ -5,7 +5,8 @@ module INSTANTIATE-ASSUMPTIONS-SYNTAX
   syntax Patterns
 
   syntax InstantiateAssumptionsResult
-    ::= ok(Patterns, Map) | error(K)
+    ::= #instantiateAssumptionsResult(Patterns, Map)
+      | error(K)
       | instantiateAssumptions(Map, Pattern) [function]
 
 endmodule
@@ -54,7 +55,7 @@ with bound ones.
 
   rule #instantiateAssumptions2(
          Instantiated::Patterns, Subst::Map, .Patterns)
-       => ok(Instantiated, Subst)
+       => #instantiateAssumptionsResult(Instantiated, Subst)
 
   rule #instantiateAssumptions2(
          Instantiated::Patterns,

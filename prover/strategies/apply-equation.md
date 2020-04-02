@@ -147,14 +147,14 @@ module STRATEGY-APPLY-EQUATION
                    "," "result:" Strategy
                    ")"
 
-  rule <strategy> (ok(.Patterns, .Map)
+  rule <strategy> (#instantiateAssumptionsResult(.Patterns, .Map)
                ~> createSubgoalsWithStrategies
                   ( strats: .Strategies
                   , result: R))
                => R
        ...</strategy>
 
-  rule <strategy> ok(P,Ps => Ps, .Map)
+  rule <strategy> #instantiateAssumptionsResult(P,Ps => Ps, .Map)
                ~> createSubgoalsWithStrategies
                   ( strats: (S, Ss) => Ss
                   , result: R => R & subgoal(P, S))
