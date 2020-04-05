@@ -364,7 +364,7 @@ module SYNTACTIC-MATCH-RULES
             )
 
 
-  // \exists{_}_ mismatched
+  // \forall{_}_ mismatched
   rule #syntacticMatch( terms:     T, _
                       , patterns:  \forall{_} _, _
                       , variables: _
