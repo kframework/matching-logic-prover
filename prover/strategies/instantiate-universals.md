@@ -71,7 +71,7 @@ module STRATEGY-INSTANTIATE-UNIVERSALS
   rule #instantiateUniv(\forall{Vs} Phi, V, P)
        => stripEmptyForall(
             #if V in PatternsToVariableNameSet(Vs)
-            #then \forall{#removeVar(Vs, V)} casubst(Phi, V, P)
+            #then \forall{#removeVar(Vs, V)} subst(Phi, V, P)
             #else \forall{Vs} #instantiateUniv(Phi, V, P)
             #fi
           )

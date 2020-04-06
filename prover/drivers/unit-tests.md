@@ -5,6 +5,7 @@ requires "prover.k"
 requires "t/unit/smt.k"
 requires "t/unit/match-assoc.k"
 requires "t/unit/match-assoc-comm.k"
+requires "t/unit/subst.k"
 ```
 
 ```k
@@ -12,6 +13,7 @@ module DRIVER-UNIT-TEST
   imports TEST-CHECKSAT
   imports TEST-MATCH-ASSOC
   imports TEST-MATCH-ASSOC-COMM
+  imports TEST-SUBST
 endmodule
 ```
 

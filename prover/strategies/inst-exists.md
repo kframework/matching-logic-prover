@@ -26,7 +26,7 @@ module STRATEGY-INST-EXISTS
     => \implies(L, instExists(R, V, T))
 
   rule instExists(\exists {Vs} P, V, T)
-    => \exists {Vs -Patterns V} casubst(P, V, T)
+    => \exists {Vs -Patterns V} subst(P, V, T)
        requires V in Vs
 
 endmodule
