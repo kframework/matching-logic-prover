@@ -479,14 +479,12 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 
 ```k
   // TODO: the rule below should be able to subsume the above ad-hoc rule
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    \and( PRED_BEFORE_SUBST
-                                        , implicationContext( \and( sep(CTXLSPATIAL)
-                                                                  , ( CTXLCONSTRAINTs )
-                                                                  )
-                                                            , CTXRHS
-                                                            )
-                                        )
+  rule <claim> \implies( \and( sep ( \forall { .Patterns } 
+                                     implicationContext( \and( sep(CTXLSPATIAL)
+                                                             , CTXLCONSTRAINTs
+                                                             )
+                                                       , CTXRHS
+                                                       )
                                   , LSPATIAL
                                   )
                             , LHS:Patterns
