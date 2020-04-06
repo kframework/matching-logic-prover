@@ -482,7 +482,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
   rule <claim> \implies(\and( sep ( \forall { .Patterns }
                                     \and( PRED_BEFORE_SUBST
                                         , implicationContext( \and( sep(CTXLSPATIAL)
-                                                                  , ( CTXLCONSTRAINTS )
+                                                                  , ( CTXLCONSTRAINTs )
                                                                   )
                                                             , CTXRHS
                                                             )
@@ -493,23 +493,50 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
                             )
                        , RHS:Pattern
                        )
-             => \and( \implies( \or(#dnfPs( \and(sep(PRED_BEFORE_SUBST, LSPATIAL), \not(\and(CTXLCONSTRAINTS)), LHS))), RHS )
-                    , \implies( \and( sep ( \forall { .Patterns } implicationContext(\and(sep(CTXLSPATIAL)), CTXRHS)
-                                          , LSPATIAL
-                                          )
-                                    , LHS
-                                    )
-                              , RHS
-                              )
-                    )
        </claim>
        <k> kt-collapse
-               => and-split . or-split . lift-or . and-split . normalize . or-split-rhs
-                . lift-constraints . substitute-equals-for-equals
+               => resolve(\and(CTXLCONSTRAINTs))
                   ...
        </k>
-    requires CTXLCONSTRAINTS =/=K .Patterns
+    requires CTXLCONSTRAINTs =/=K .Patterns
 ```
+
+```k         
+    syntax Strategy ::= "kt-collapse-unsat"
+    rule <claim> \implies( \and( sep ( ( implicationContext(_, _) => !H:VariableName { Heap } )
+                                     , LSPATIAL
+                                     )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <k> kt-collapse-unsat => noop ... </k>
+
+    syntax Strategy ::= "kt-collapse-valid"
+```
+
+### Resolve
+
+```
+    PHI /\ P -> PSI        PHI /\ not(P) -> PSI
+    -------------------------------------------    resolve(P)
+                      PHI -> PSI
+```
+
+```k
+    syntax Strategy ::= "resolve" "(" Pattern ")"
+    rule <claim> \implies(\and(LHS), RHS) </claim>
+         <k> ( resolve(P) ~> #hole . REST )
+          => subgoal( \implies(\or(#dnfPs(\and(LHS ++Patterns \not(P)))), RHS)
+                    , kt-collapse-unsat . lift-or . and-split . REST
+                    )
+           & subgoal( \implies(\and(#flattenAnds(LHS ++Patterns P)), RHS)
+                    , kt-collapse-valid . REST
+                    )
+         </k>
+```
+
 
 ### Unfolding within the implication context
 

@@ -689,11 +689,17 @@ Simplifications
   rule #dnfPs(\not(P), Ps) => \and(\not(P)), #dnfPs(Ps)
     requires isBasePattern(P)
   rule #dnfPs(\exists{Vs} P, Ps) => #exists(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
+  rule #dnfPs(\forall{Vs} P, Ps) => #forall(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
 
   syntax Patterns ::= #exists(Patterns, Patterns) [function]
   rule #exists(.Patterns, _) => .Patterns
   rule #exists((\and(Ps1), Ps2), Vs) => \exists{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #exists(Ps2, Vs)
   rule #exists((\exists{Es} P, Ps2), Vs) => \exists{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #exists(Ps2, Vs)
+  
+  syntax Patterns ::= #forall(Patterns, Patterns) [function]
+  rule #forall(.Patterns, _) => .Patterns
+  rule #forall((\and(Ps1), Ps2), Vs) => \forall{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #forall(Ps2, Vs)
+  rule #forall((\forall{Es} P, Ps2), Vs) => \forall{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #forall(Ps2, Vs)
 
   rule #dnfPs(\not(\and(Ps)), REST) => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
   rule #dnfPs(\not(\or(Ps)), REST)  => #dnfPs(\and(#not(Ps)), REST)
@@ -739,13 +745,15 @@ Simplifications
   syntax Bool ::= isBasePattern(Pattern) [function]
   rule isBasePattern(S:Symbol(ARGS)) => true
     [owise]
+  rule isBasePattern(V:Variable) => true
   rule isBasePattern(\equals(L, R)) => true
   rule isBasePattern(\and(_)) => false
   rule isBasePattern(\or(_)) => false
-  rule isBasePattern(\exists{Vs}_) => false
-  rule isBasePattern(\not(P)) => isBasePattern(P)
   rule isBasePattern(sep(ARGS)) => isBaseConjunction(ARGS)
-  rule isBasePattern(V:Variable) => true
+  rule isBasePattern(\not(P)) => isBasePattern(P)
+  rule isBasePattern(\exists{Vs}_) => false
+  rule isBasePattern(\forall{Vs}_) => false
+  rule isBasePattern(implicationContext(_, _)) => true
 
   syntax Bool ::= isBaseConjunction(Patterns) [function]
   rule isBaseConjunction(.Patterns) => true
