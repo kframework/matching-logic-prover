@@ -5,6 +5,8 @@ module STRATEGY-SIMPLIFICATION
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
+  imports SYNTACTIC-MATCH-SYNTAX
+
 ```
 
 ### remove-lhs-existential
@@ -404,6 +406,194 @@ Lift `\or`s on the left hand sides of implications
 
   rule <claim> \forall{_} P => P </claim>
        <strategy> universal-generalization => noop ...</strategy>
+
+```
+
+### Propagate exists
+
+```k
+  rule <claim> P
+            => propagateExistsThroughApplicationVisitorResult(
+                 visitTopDown(
+                   propagateExistsThroughApplicationVisitor(N),
+                   P
+                 )
+               )
+      </claim>
+       <strategy> propagate-exists-through-application N
+               => noop
+       ...</strategy>
+
+  syntax Visitor ::= propagateExistsThroughApplicationVisitor(Int)
+
+  syntax Pattern ::= propagateExistsThroughApplicationVisitorResult(VisitorResult) [function]
+
+  rule propagateExistsThroughApplicationVisitorResult(visitorResult(_, P)) => P
+
+  rule visit(propagateExistsThroughApplicationVisitor(N) #as V, P)
+       => #if isApplication(P) andBool N >=Int 0
+          #then propagateExistsThroughApplication(N, P)
+          #else visitorResult(V, P) #fi
+
+  syntax VisitorResult ::= propagateExistsThroughApplication(Int, Pattern) [function]
+                         | #propagateExistsThroughApplication(Patterns, Int, Symbol, Patterns) [function]
+
+  rule propagateExistsThroughApplication(N, S::Symbol(Ps::Patterns))
+    => #propagateExistsThroughApplication(.Patterns, N, S, Ps)
+
+  rule #propagateExistsThroughApplication(Ps1, N, S, (P, Ps2))
+    => #propagateExistsThroughApplication((Ps1 ++Patterns P, .Patterns), N, S, Ps2)
+    requires ((\exists{_} _) :/=K P) orBool ((\exists{.Patterns} _) :=K P)
+
+  rule #propagateExistsThroughApplication(Ps1, N, S, (\exists{V, Vs} P, Ps2))
+    => #propagateExistsThroughApplication(Ps1 ++Patterns (\exists{V, Vs} P, .Patterns), N -Int 1, S, Ps2)
+    requires N >=Int 1
+
+  rule #propagateExistsThroughApplication(Ps1, 0, S, (\exists{V, Vs} P, Ps2))
+    => visitorResult(
+         propagateExistsThroughApplicationVisitor(-1),
+         \exists{V} S(Ps1 ++Patterns (#\exists{Vs} P, .Patterns) ++Patterns Ps2)
+       )
+
+  rule #propagateExistsThroughApplication(Ps, N, S, .Patterns)
+    => visitorResult(
+         propagateExistsThroughApplicationVisitor(N),
+         S(Ps)
+       )
+
+```
+
+### Propagate predicate
+
+```k
+  rule <claim> T
+            => pptaVisitorResult(
+                 visitTopDown(
+                   pptaVisitor(P, N),
+                   T
+                 )
+               )
+      </claim>
+       <strategy> propagate-predicate-through-application(P, N)
+               => noop
+       ...</strategy>
+
+
+  syntax Visitor ::= pptaVisitor(Pattern, Int)
+
+  syntax Pattern ::= pptaVisitorResult(VisitorResult) [function]
+
+  rule pptaVisitorResult(visitorResult(_, P)) => P
+
+  rule visit(pptaVisitor(P, N) #as V, T)
+       => #if isApplication(T) andBool N >=Int 0
+          #then ppta(P, N, T)
+          #else visitorResult(V, T) #fi
+
+  syntax VisitorResult ::= ppta(Pattern, Int, Pattern) [function]
+                         | "#ppta1" "(" "processedArgs:" Patterns
+                                    "," "pattern:" Pattern
+                                    "," "index:" Int
+                                    "," "symbol:" Symbol
+                                    "," "remainingArgs:" Patterns
+                                    ")" [function]
+                         | "#ppta2" "(" "processedArgs:" Patterns
+                                    "," "result:" KItem
+                                    "," "currArg:" Pattern
+                                    "," "pattern:" Pattern
+                                    "," "symbol:" Symbol
+                                    "," "remainingArgs:" Patterns
+                                    ")" [function]
+
+
+  rule ppta(P, N, S::Symbol(As::Patterns))
+    => #ppta1( processedArgs: .Patterns
+             , pattern: P
+             , index: N
+             , symbol: S
+             , remainingArgs: As
+             )
+
+  rule #ppta1( processedArgs: As1
+             , pattern: P
+             , index: N
+             , symbol: S
+             , remainingArgs: .Patterns
+             )
+       => visitorResult(pptaVisitor(P, N), S(As1))
+
+  rule #ppta1( processedArgs: As1
+             , pattern: P
+             , index: N
+             , symbol: S
+             , remainingArgs: (A, As2)
+             )
+    => #ppta2( processedArgs: As1
+             , result: pptaProcessArg(N, P, A)
+             , currArg: A
+             , pattern: P
+             , symbol: S
+             , remainingArgs: As2
+             )
+
+  rule #ppta2( processedArgs: As1
+             , result: pptaNoMatch(N)
+             , currArg: A
+             , pattern: P
+             , symbol: S
+             , remainingArgs: As2
+             )
+    => #ppta1( processedArgs: As1 ++Patterns (A, .Patterns)
+             , pattern: P
+             , index: N
+             , symbol: S
+             , remainingArgs: As2
+             )
+
+  rule #ppta2( processedArgs: As1
+             , result: pptaMatch(pred: P', newArg: A')
+             , currArg: _
+             , pattern: P
+             , symbol: S
+             , remainingArgs: As2
+             )
+    => visitorResult(
+         pptaVisitor(P, -1),
+         \and(P', S(As1 ++Patterns (A', .Patterns) ++Patterns As2))
+       )
+
+  syntax KItem ::= pptaNoMatch(Int)
+                 | "pptaMatch" "(" "pred:" Pattern "," "newArg:" Pattern ")"
+                 | pptaProcessArg(Int, Pattern, Pattern) [function]
+                 | #pptaProcessArg(Int, Pattern, Patterns, Patterns) [function]
+
+  rule pptaProcessArg(N, P, T)
+    => pptaNoMatch(N)
+       requires \and(_) :/=K T
+
+  rule pptaProcessArg(N, P, \and(Ps))
+    => #pptaProcessArg(N, P, .Patterns, Ps)
+
+  rule #pptaProcessArg(N, P, Ps1, .Patterns)
+    => pptaNoMatch(N)
+
+  rule #pptaProcessArg(N, P, Ps1, (P', Ps2))
+    => #if #matchResult(subst: _) :=K syntacticMatch(
+                           terms: (P', .Patterns)
+                         , patterns: (P, .Patterns)
+                         , variables: getUniversallyQuantifiedVariables(P)
+                                      ++Patterns getSetVars(P)
+                         )
+          andBool isPredicatePattern(P')
+       #then
+         #if N ==Int 0 #then
+           pptaMatch(pred: P', newArg: \and(Ps1 ++Patterns Ps2))
+         #else
+           #pptaProcessArg(N -Int 1, P, Ps1 ++Patterns (P', .Patterns), Ps2)
+         #fi
+       #else
+         #pptaProcessArg(N, P, Ps1 ++Patterns (P', .Patterns), Ps2)
+       #fi
 
 ```
 

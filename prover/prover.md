@@ -87,6 +87,8 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "simple-sort-check"
                     | "backwards-search" Int
                     | "universal-generalization"
+                    | "propagate-exists-through-application" Int
+                    | "propagate-predicate-through-application" "(" Pattern "," Int ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
