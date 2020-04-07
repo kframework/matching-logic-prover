@@ -137,33 +137,16 @@ for guessing an instantiation of the inductive hypothesis.
 >
 > where `C'[psi(x)] ≡ \exists #hole . #hole /\ ⌊C[#hole] -> psi(x)⌋`
 
-## kt-wrap (FOL)
+## kt-wrap
 
 ```k
   syntax Strategy ::= "kt-wrap" "(" Pattern ")"
-  rule <claim> \implies(\and(LHS:Patterns), RHS)
-        => \implies(LRP, implicationContext(\and(#hole, (LHS -Patterns LRP)), RHS))
+  rule <claim> \implies(LHS, RHS)
+            => \implies(LRP, implicationContext(subst(LHS, LRP, #hole), RHS))
        </claim>
        <k> kt-wrap(LRP) => noop ... </k>
        <trace> .K => kt-wrap(LRP)  ... </trace>
-    requires LRP in LHS
-     andBool isPredicatePattern(\and(LHS))
-```
-
-## kt-wrap (SL)
-
-```k
-  rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT:Patterns), RHS)
-            => \implies(LRP, implicationContext(\and( sep(#hole, (LSPATIAL -Patterns LRP))
-                                                    , LCONSTRAINT
-                                                    )
-                                               , RHS)
-                       )
-       </claim>
-       <k> kt-wrap(LRP) => noop ... </k>
-       <trace> .K => kt-wrap(LRP)  ... </trace>
-    requires LRP in LSPATIAL
-     andBool isSpatialPattern(sep(LSPATIAL))
+    requires #hole in getFreeVariables(subst(LHS, LRP, #hole))
 ```
 
 >   phi(x) -> \forall y. psi(x, y)
@@ -349,7 +332,7 @@ Move #holes to the front
        </claim>
        <k> kt-collapse ... </k>
     requires P =/=K #hole:Pattern
-     andBool #hole in Ps
+     andBool #hole in getFreeVariables(Ps)
 ```
 
 #### Collapsing contexts (FOL)

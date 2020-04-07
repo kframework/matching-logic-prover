@@ -79,22 +79,13 @@ module STRATEGY-UNFOLDING
                   ...
        </k>
 
-  rule <claim> \implies(\and(LHS), RHS)
-        => \implies(\and((LHS -Patterns (LRP, .Patterns)) ++Patterns BODY), RHS)
+// TODO: left-unfold should take a context as a parameter as well in the future
+  rule <claim> \implies(LHS, RHS)
+            => \implies(subst(LHS, LRP, \and(BODY)), RHS)
        </claim>
        <k> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </k>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
-       requires LRP in LHS
-
-  rule <claim> \implies( \and( sep( (LHS => ((LHS -Patterns (LRP, .Patterns)) ++Patterns \and(BODY))) )
-                             , _
-                             )
-                       , RHS
-                       )
-       </claim>
-       <k> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </k>
-       <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
-       requires LRP in LHS
+    requires #hole in getFreeVariables(subst(LHS, LRP, #hole))
 ```
 
 ### Left Unfold Nth
