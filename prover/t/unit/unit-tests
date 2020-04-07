@@ -1,0 +1,5 @@
+suite "CheckSAT.Z3"
+suite "CheckSAT.CVC4"
+suite "assoc-matching"
+suite "assoc-matching-comm"
+.Declarations
