@@ -1,0 +1,7 @@
+symbol foo(Int, Int) : Int
+
+axiom a: foo(foo(1, \exists{X{Int}} X{Int}), \exists{X{Int}} foo(X{Int}, 3))
+
+claim foo(foo(1, \exists{X{Int}} X{Int}), foo(\exists{X{Int}} X{Int}, 3))
+strategy propagate-exists-through-application 1
+       . apply(a, fail)

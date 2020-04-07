@@ -778,6 +778,9 @@ Simplifications
   rule hasImplicationContext(\typeof(P, _))
     => hasImplicationContext(P)
 
+  syntax Pattern ::= "#\\exists" "{" Patterns "}" Pattern [function]
+  rule #\exists{.Patterns} P => P
+  rule #\exists{V, Vs} P => \exists{V, Vs} P
 
   syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
   syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]
