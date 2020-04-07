@@ -166,6 +166,6 @@ proj.alias('unit-tests'
                                    .variable('flags', '-cCOMMANDLINE=.CommandLine')
                        )
             ]
-          )
+          ).default()
 
 if __name__ == "__main__": proj.main()
