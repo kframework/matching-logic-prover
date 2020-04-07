@@ -134,10 +134,7 @@ secondary_tests('shid_entl_unsat_tests',       't/test-lists/shid_entl.unsat')
 # Unit Tests
 # ----------
 
-unit_tests_sources = [ 't/unit/smt'
-                     , 't/unit/match-assoc'
-                     , 't/unit/match-assoc-comm'
-                     ]
+unit_tests_sources = glob('t/unit/*.k')
 test_driver = proj.definition( alias = 'test-driver'
                              , backend = 'ocaml'
                              , main = 'drivers/unit-tests.md'

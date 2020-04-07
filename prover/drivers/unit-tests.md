@@ -2,9 +2,9 @@ This file contains infrastructure for writing tests for K functions.
 
 ```k
 requires "prover.k"
-requires "t/unit/smt"
-requires "t/unit/match-assoc"
-requires "t/unit/match-assoc-comm"
+requires "t/unit/smt.k"
+requires "t/unit/match-assoc.k"
+requires "t/unit/match-assoc-comm.k"
 ```
 
 ```k
