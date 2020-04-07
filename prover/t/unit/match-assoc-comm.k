@@ -133,4 +133,39 @@ module TEST-MATCH-ASSOC-COMM
                               )
              )
        .Declarations
+
+  // Matching on a symbolic heap
+  rule test("assoc-matching-comm", 9)
+    => assert( #matchResult( subst: H0 { Heap } |-> pto ( X1 { Loc } , Y1 { Data } )
+                                    W  { Loc }  |-> X2 { Loc }
+                                    Z  { Data } |-> Y2 { Data }
+                           , rest:  .Patterns
+                           )
+             , #matchResult( subst: H0 { Heap } |-> pto ( X2 { Loc } , Y2 { Data } )
+                                    W  { Loc }  |-> X1 { Loc }
+                                    Z  { Data } |-> Y1 { Data }
+                           , rest:  .Patterns
+                           )
+             , #matchResult( subst: H0 { Heap } |-> sep ( .Patterns )
+                                    W  { Loc }  |-> X1 { Loc }
+                                    Z  { Data } |-> Y1 { Data }
+                           , rest:  pto ( X2 { Loc } , Y2 { Data } )
+                           )
+             , #matchResult( subst: H0 { Heap } |-> sep ( .Patterns )
+                                    W  { Loc }  |-> X1 { Loc }
+                                    Z  { Data } |-> Y1 { Data }
+                           , rest:  pto ( X1 { Loc } , Y1 { Data } )
+                           )
+             , .MatchResults
+            == #matchAssocComm( terms:     pto ( X1 { Loc } , Y1 { Data } )
+                                         , pto ( X2 { Loc } , Y2 { Data } )
+                              , pattern:   H0 { Heap }
+                                         , pto ( W { Loc } , Z { Data } )
+                              , variables: H0 { Heap }, W { Loc }, Z { Data }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
 endmodule
