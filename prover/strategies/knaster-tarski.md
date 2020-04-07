@@ -501,13 +501,20 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 
 ```k         
     syntax Strategy ::= "kt-collapse-unsat"
-    rule <claim> \implies( \and( sep ( ( implicationContext(_, _) => !H:VariableName { Heap } )
+    rule <claim> \implies( \and( sep ( \forall { .Patterns } implicationContext(_, _)
                                      , LSPATIAL
                                      )
-                            , LHS:Patterns
-                            )
+                               , LHS:Patterns
+                               )
                        , RHS:Pattern
                        )
+             => \implies( \or(#dnfPs( \and( sep(!H:VariableName { Heap }, LSPATIAL)
+                                          , LHS:Patterns
+                                          )
+                                    )
+                             )
+                        , RHS:Pattern
+                        )
        </claim>
        <k> kt-collapse-unsat => noop ... </k>
 
@@ -526,7 +533,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
     syntax Strategy ::= "resolve" "(" Pattern ")"
     rule <claim> \implies(\and(LHS), RHS) </claim>
          <k> ( resolve(P) ~> #hole . REST )
-          => subgoal( \implies(\or(#dnfPs(\and(LHS ++Patterns \not(P)))), RHS)
+          => subgoal( \implies(\and(LHS ++Patterns \not(P)), RHS)
                     , kt-collapse-unsat . lift-or . and-split . REST
                     )
            & subgoal( \implies(\and(#flattenAnds(LHS ++Patterns P)), RHS)
