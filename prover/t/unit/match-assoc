@@ -1,98 +1,122 @@
-//assert( #matchFailure("AlphaRenaming not done")
-//     == #matchAssoc( terms:     pto( Z { Loc }, Y { Data })
-//                   , pattern:   pto( Z { Loc }, W { Data })
-//                   , variables: Z { Loc }, W { Data }
-//                   , subst:     .Map
-//                   )
-//      )
-//
+module TEST-MATCH-ASSOC
+  imports UNIT-TEST
 
-// Assoc Matching
-// ==============
+  syntax LowerName ::= "c"    [token]
+                     | "d"    [token]
+  syntax UpperName ::= "Data" [token]
+                     | "Loc"  [token]
+                     | "W"    [token]
+                     | "X"    [token]
+                     | "Y"    [token]
+                     | "Z"    [token]
 
-assert( #matchFailure("Variable does not match")
-     == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
-                   , pattern:   pto( Z { Loc }, W { Data })
-                   , variables: W { Data }
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
-assert( #matchFailure("Constructors do not match")
-     == #matchAssoc( terms:     c( X { Loc }, Y { Data })
-                   , pattern:   d( Z { Loc }, W { Data })
-                   , variables: Z { Loc }, W { Data }
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
-assert( #matchFailure( "Mismatch in length of arguments" )
-     == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
-                   , pattern:   
-                   , variables:
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
-assert( #matchFailure( "Mismatch in length of arguments" )
-     == #matchAssoc( terms:     c(X { Loc }, Y { Data })
-                   , pattern:   c(X { Loc }, Y { Data }, Y { Data })
-                   , variables:
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
-// Base Case: Empty patterns
-assert( #matchResult( subst: .Map
-                    , rest:
-                    )
-     == #matchAssoc( terms:     
-                   , pattern:   
-                   , variables: Z { Loc }, W { Data }
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
-// Basic Matching
-assert( #matchResult( subst: Z { Loc }  |-> X { Loc }
-                             W { Data } |-> Y { Data }
-                    , rest:
-                    )
-     == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
-                   , pattern:   pto( Z { Loc }, W { Data })
-                   , variables: Z { Loc }, W { Data }
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
-// Match multiple occurances of a variable
-assert( #matchResult( subst: Z { Loc }  |-> X { Loc }
-                             W { Data } |-> Y { Data }
-                    , rest:
-                    )
-     == #matchAssoc( terms:     c( X { Loc }, Y { Data }), d( X { Loc }, Y { Data })
-                   , pattern:   c( Z { Loc }, W { Data }), d( Z { Loc }, W { Data })
-                   , variables: Z { Loc }, W { Data }
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
-// Matching multiple occurances to different values does not work
-assert( #matchFailure( "Variable does not match" )
-     == #matchAssoc( terms:     c( X { Loc }, Y { Data }), c( X { Loc }, Y { Data })
-                   , pattern:   c( Z { Loc }, W { Data }), c( Y { Loc }, W { Data })
-                   , variables: Z { Loc }, W { Data }
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
+  rule test("assoc-matching", 1)
+    => assert( #error("No valid substitution"), .MatchResults
+            == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
+                          , pattern:   pto( Z { Loc }, W { Data })
+                          , variables: W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+  rule test("assoc-matching", 2)
+    => assert( #error("Constructors do not match"), .MatchResults
+            == #matchAssoc( terms:     c( X { Loc }, Y { Data })
+                          , pattern:   d( Z { Loc }, W { Data })
+                          , variables: Z { Loc }, W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+  rule test("assoc-matching", 3)
+    => assert( #error( "Mismatch in length of arguments" ), .MatchResults
+            == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
+                          , pattern:   .Patterns
+                          , variables: .Patterns
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+  rule test("assoc-matching", 4)
+    => assert( #error( "Mismatch in length of arguments" ), .MatchResults
+            == #matchAssoc( terms:     c(X { Loc }, Y { Data })
+                          , pattern:   c(X { Loc }, Y { Data }, Y { Data })
+                          , variables: .Patterns
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+  // Base Case: Empty patterns
+  rule test("assoc-matching", 5)
+    => assert( #matchResult( subst:    .Map
+                           , rest:     .Patterns
+                           )
+             , .MatchResults
+            == #matchAssoc( terms:     .Patterns
+                          , pattern:   .Patterns
+                          , variables: Z { Loc }, W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+  // Basic Matching
+  rule test("assoc-matching", 6)
+    => assert( #matchResult( subst:    Z { Loc }  |-> X { Loc }
+                                       W { Data } |-> Y { Data }
+                           , rest:     .Patterns
+                           )
+             , .MatchResults
+            == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
+                          , pattern:   pto( Z { Loc }, W { Data })
+                          , variables: Z { Loc }, W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+  // Match multiple occurances of a variable
+  rule test("assoc-matching", 7)
+    => assert( #matchResult( subst:    Z { Loc }  |-> X { Loc }
+                                       W { Data } |-> Y { Data }
+                           , rest:     .Patterns
+                           )
+             , .MatchResults
+            == #matchAssoc( terms:     c( X { Loc }, Y { Data }), d( X { Loc }, Y { Data })
+                          , pattern:   c( Z { Loc }, W { Data }), d( Z { Loc }, W { Data })
+                          , variables: Z { Loc }, W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+  // Matching multiple occurances to different values does not work
+  rule test("assoc-matching", 8)
+    => assert( #error( "No valid substitution" )
+             , .MatchResults
+            == #matchAssoc( terms:     c( X { Loc }, Y { Data }), c( X { Loc }, Y { Data })
+                          , pattern:   c( Z { Loc }, W { Data }), c( Y { Loc }, W { Data })
+                          , variables: Z { Loc }, W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
 
-// Match constructor against variable
-assert( #matchFailure("Constructor does not match term")
-     == #matchAssoc( terms:     X { Loc }, Y { Data }
-                   , pattern:   c( Z { Loc }, W { Data }), c( Y { Loc }, W { Data })
-                   , variables: Z { Loc }, W { Data }
-                   , subst:     .Map
-                   , rest:
-                   )
-      )
+  // Match constructor against variable
+  rule test("assoc-matching", 9)
+    => assert( #error("Constructors do not match")
+             , .MatchResults
+            == #matchAssoc( terms:     X { Loc }, Y { Data }
+                          , pattern:   c( Z { Loc }, W { Data }), c( Y { Loc }, W { Data })
+                          , variables: Z { Loc }, W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+endmodule

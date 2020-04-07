@@ -1,95 +1,135 @@
-assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
-     == #matchAssocComm( terms:     pto( Z { Loc }, W { Data })
-                       , pattern: 
-                       , variables:
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
-assert( #matchResult( subst: Z { Loc } |-> X { Loc } 
-                             W { Data } |-> Y { Data }
-                    , rest:
-                    )
-     == #matchAssocComm( terms:     pto( X { Loc }, Y { Data })
-                       , pattern:   pto( Z { Loc }, W { Data })
-                       , variables: Z { Loc }, W { Data }
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
+module TEST-MATCH-ASSOC-COMM
+  imports UNIT-TEST
 
-assert( #matchFailure("Pattern larger than term")
-     == #matchAssocComm( terms:     
-                       , pattern:   pto( Z { Loc }, W { Data })
-                       , variables: Z { Loc }, W { Data }
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
-assert( #matchResult( subst: .Map , rest: )
-     == #matchAssocComm( terms:
-                       , pattern:
-                       , variables:
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
-assert( #matchResult( subst: Z1 { Loc }  |-> X1 { Loc }
-                             W1 { Data } |-> Y1 { Data }
-                    , rest: pto( X2 { Loc }, Y2 { Data })
-                    )
-      , #matchResult( subst: Z1 { Loc }  |-> X2 { Loc }
-                             W1 { Data } |-> Y2 { Data }
-                    , rest: pto( X1 { Loc }, Y1 { Data })
-                    )
-     == #matchAssocComm( terms:     pto( X1 { Loc }, Y1 { Data })
-                                  , pto( X2 { Loc }, Y2 { Data })
-                       , pattern:   pto( Z1 { Loc }, W1 { Data })
-                       , variables: Z1 { Loc }, W1 { Data }
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
-assert( #matchFailure ( "Variable does not match" )
-      , #matchFailure ( "Variable does not match" )
-     == #matchAssocComm( terms:    pto( X1 { Loc }, Y1 { Loc })
-                                 , pto( X2 { Loc }, Y2 { Loc })
-                       , pattern:  pto( X { Loc }, Y { Loc })
-                                 , pto( Y { Loc }, Z { Loc })
-                       , variables: X { Loc }, Y { Loc }, Z { Loc }
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
+  syntax LowerName ::= "c"    [token]
+                     | "d"    [token]
+  syntax UpperName ::= "Data" [token]
+                     | "Loc"  [token]
+                     | "W"    [token] | "W1"    [token] | "W2"    [token]
+                     | "X"    [token] | "X1"    [token] | "X2"    [token]
+                     | "Y"    [token] | "Y1"    [token] | "Y2"    [token]
+                     | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
 
-assert( #matchFailure ( "Variable does not match" ) 
-      , #matchResult( subst: F8 { RefGTyp } |-> Vy { RefGTyp }
-                    , rest:
-                    )
-     == #matchAssocComm( terms:      pto ( Vy { RefGTyp } , c_GTyp ( Vz { RefGTyp }) )
-                                   , pto ( Vx { RefGTyp } , c_GTyp ( Vy { RefGTyp }) )
-                       , pattern:    pto ( Vx { RefGTyp } , c_GTyp ( F8 { RefGTyp }) )
-                                   , pto ( F8 { RefGTyp } , c_GTyp ( Vz { RefGTyp }) )
-                       , variables: F8 { RefGTyp }
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
+  rule test("assoc-matching-comm", 1)
+    => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
+             , .MatchResults
+            == #matchAssocComm( terms:     pto( Z { Loc }, W { Data })
+                              , pattern:   .Patterns
+                              , variables: .Patterns
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+              )
+       .Declarations
 
-// No match, since sorts are different
-assert( #matchFailure("Variable sort does not match term")
-     == #matchAssocComm( terms:     pto ( Vf { A } , c_GTyp ( Vg { A }) )
-                       , pattern:   pto ( Bx { B } , c_GTyp ( By { B }) )
-                       , variables: Bx { B }, By { B }
-                       , results:
-                       , subst:     .Map
-                       , rest:
-                       )
-      )
+  rule test("assoc-matching-comm", 2)
+    => assert( #matchResult( subst:         Z { Loc } |-> X { Loc } 
+                                            W { Data } |-> Y { Data }
+                           , rest:          .Patterns
+                           )
+             , .MatchResults
+            == #matchAssocComm( terms:     pto( X { Loc }, Y { Data })
+                              , pattern:   pto( Z { Loc }, W { Data })
+                              , variables: Z { Loc }, W { Data }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+  rule test("assoc-matching-comm", 3)
+    => assert( #error("Pattern larger than term")
+             , .MatchResults
+            == #matchAssocComm( terms:     .Patterns
+                              , pattern:   pto( Z { Loc }, W { Data })
+                              , variables: Z { Loc }, W { Data }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+
+  rule test("assoc-matching-comm", 4)
+    => assert( #matchResult( subst: .Map , rest: .Patterns )
+             , .MatchResults
+            == #matchAssocComm( terms:     .Patterns
+                              , pattern:   .Patterns
+                              , variables: .Patterns
+                              , results:  .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+
+  rule test("assoc-matching-comm", 5)
+    => assert( #matchResult( subst: Z1 { Loc }  |-> X1 { Loc }
+                                    W1 { Data } |-> Y1 { Data }
+                           , rest: pto( X2 { Loc }, Y2 { Data })
+                           )
+             , #matchResult( subst: Z1 { Loc }  |-> X2 { Loc }
+                                    W1 { Data } |-> Y2 { Data }
+                           , rest: pto( X1 { Loc }, Y1 { Data })
+                           )
+             , .MatchResults
+            == #matchAssocComm( terms:     pto( X1 { Loc }, Y1 { Data })
+                                         , pto( X2 { Loc }, Y2 { Data })
+                              , pattern:   pto( Z1 { Loc }, W1 { Data })
+                              , variables: Z1 { Loc }, W1 { Data }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+
+  rule test("assoc-matching-comm", 6)
+    => assert( #error( "No valid substitution" )
+             , #error( "No valid substitution" )
+             , .MatchResults
+            == #matchAssocComm( terms:     pto( X1 { Loc }, Y1 { Loc })
+                                        ,  pto( X2 { Loc }, Y2 { Loc })
+                              , pattern:   pto( X { Loc }, Y { Loc })
+                                        ,  pto( Y { Loc }, Z { Loc })
+                              , variables: X { Loc }, Y { Loc }, Z { Loc }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+
+  rule test("assoc-matching-comm", 7)
+    => assert( #error( "No valid substitution" ) 
+             , #matchResult( subst:        W { Loc } |-> Y { Loc }
+                           , rest:         .Patterns
+                           )
+             , .MatchResults
+            == #matchAssocComm( terms:      pto ( Y { Loc } , c(Z { Loc }) )
+                                          , pto ( X { Loc } , c(Y { Loc }) )
+                              , pattern:    pto ( X { Loc } , c(W { Loc }) )
+                                          , pto ( W { Loc } , c(Z { Loc }) )
+                              , variables: W { Loc }
+                              , results:  .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+    
+  // No match, since sorts are different
+  rule test("assoc-matching-comm", 8)
+    => assert( #error("Variable sort does not match term")
+             , .MatchResults
+            == #matchAssocComm( terms:     pto ( W { X1 } , c(X { X1 }) )
+                              , pattern:   pto ( Y { X2 } , c(Z { X2 }) )
+                              , variables: Y { X2 }, Z { X2 }
+                              , results:  .MatchResults
+                              , subst:    .Map
+                              , rest:     .Patterns
+                              )
+             )
+       .Declarations
+endmodule
