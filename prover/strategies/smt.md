@@ -224,18 +224,16 @@ module STRATEGY-SMT
      requires isPredicatePattern(GOAL)
 
 // If the constraints are unsatisfiable, the entire term is unsatisfiable
-  rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
+  rule <claim> \implies(\and(LHS), _) </claim>
        <id> GId </id>
        <k> check-lhs-constraint-unsat
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat
+               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(getPredicatePatterns(LHS)), collectDeclarations(GId))) ==K unsat
                   then success
                   else noop
                   fi
                   ...
        </k>
        <trace> .K => check-lhs-constraint-unsat ... </trace>
-     requires isPredicatePattern(\and(LCONSTRAINTS))
-
 ```
 
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.

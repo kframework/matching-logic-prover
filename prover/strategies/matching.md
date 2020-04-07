@@ -36,15 +36,24 @@ module MATCHING-FUNCTIONAL
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
+  rule #match( terms: \and(sep(H), Hs), pattern: P, variables: Vs )
+    =>                #match( terms: H,        pattern: P, variables: Vs )
+       ++MatchResults #match( terms: \and(Hs), pattern: P, variables: Vs )
+    requires Hs =/=K .Patterns
+
+  rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
+    => #match( terms: H,                       pattern: P, variables: Vs )
+
   rule #match( terms: T, pattern: P, variables: Vs )
     => #filterErrors( #matchAssocComm( terms: T
-                                            , pattern: P
-                                            , variables: Vs
-                                            , results: .MatchResults
-                                            , subst: .Map
-                                            , rest: .Patterns
-                                            )
-                           )
+                                     , pattern: P
+                                     , variables: Vs
+                                     , results: .MatchResults
+                                     , subst: .Map
+                                     , rest: .Patterns
+                                     )
+                    )
+    requires isSpatialPattern(sep(T))
 
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
@@ -506,32 +515,35 @@ Instantiate heap axioms:
     rule gatherHeapAxioms(AXs) => AXs [owise]
 
     rule <k> instantiate-separation-logic-axioms(heap(LOC, DATA), AXs)
-                 => instantiate-separation-logic-axioms(AXs)
-                  . instantiate-axiom( \forall { !L { LOC }, !D {DATA} }
-                                       \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
-                                               , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
-                                               )
-                                     )
-                  . instantiate-axiom( \forall { !L1 { LOC }, !D1 {DATA}, !L2 { LOC }, !D2 { DATA } }
-                                       \implies( \and(sep(pto(!L1 { LOC }, !D1 { DATA }), pto(!L2 { LOC }, !D2 { DATA })) )
-                                               , \not(\equals( !L1 { LOC }, !L2 { LOC }) )
-                                               )
-                                     )
-                    ...
+          => instantiate-separation-logic-axioms(AXs)
+           . instantiate-axiom( \forall { !L { LOC }, !D {DATA} }
+                                \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
+                                        , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
+                                        )
+                              )
+           . instantiate-axiom( \forall { !L1 { LOC }, !D1 {DATA}, !L2 { LOC }, !D2 { DATA } }
+                                \implies( \and(sep(pto(!L1 { LOC }, !D1 { DATA }), pto(!L2 { LOC }, !D2 { DATA })) )
+                                        , \not(\equals( !L1 { LOC }, !L2 { LOC }) )
+                                        )
+                              )
+             ...
          </k>
     rule <k> instantiate-separation-logic-axioms(.Patterns) => noop ... </k>
+
+    // TODO: gather and instnatiate axiom:
+    // - sep(X |-> Y, _) /\ sep(X |-> Z, _) => Y == Z
 ```
 
 Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 
 ```k
-    rule <claim> \implies(\and((sep(LSPATIAL)), LCONSTRAINT), RHS) </claim>
+    rule <claim> \implies(\and(LHS), RHS) </claim>
          <k> instantiate-axiom(\forall { Vs }
                                       \implies( \and(sep(AXIOM_LSPATIAL))
                                               , AXIOM_RHS
                                               )
                                      ) #as STRAT
-                 => ( #match( terms: LSPATIAL
+                 => ( #match( terms: \and(getSpatialPatterns(LHS))
                             , pattern:  AXIOM_LSPATIAL
                             , variables: Vs
                             )
@@ -541,9 +553,8 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
          </k>
        requires isSpatialPattern(sep(AXIOM_LSPATIAL))
 
-    rule <claim> \implies(\and((sep(_) #as LSPATIAL), (LCONSTRAINT => substMap(AXIOM_RHS, SUBST), LCONSTRAINT))
-                         , RHS
-                         )
+    rule <claim> \implies(\and(LHS), RHS)
+              => \implies(\and(substMap(AXIOM_RHS, SUBST), LHS), RHS)
          </claim>
          <k> ( #matchResult( subst: SUBST, rest: _ ) , MRs
                    ~> instantiate-axiom(\forall { Vs }

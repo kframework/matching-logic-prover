@@ -333,6 +333,16 @@ Move #holes to the front
        <k> kt-collapse ... </k>
     requires P =/=K #hole:Pattern
      andBool #hole in getFreeVariables(Ps)
+
+  rule <claim> \implies(\and(sep(\forall { _ }
+                         implicationContext( \and( (sep(P, Ps) => sep(Ps ++Patterns P))
+                                                 , _)
+                                           , _)
+                        ,_ ), _), _)
+       </claim>
+       <k> kt-collapse ... </k>
+    requires P =/=K #hole:Pattern
+     andBool #hole in getFreeVariables(Ps)
 ```
 
 #### Collapsing contexts (FOL)
@@ -502,6 +512,18 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
        <k> kt-collapse-unsat => noop ... </k>
 
     syntax Strategy ::= "kt-collapse-valid"
+   rule <claim> \implies(\and( sep ( \forall { .Patterns }
+                                     implicationContext( \and(CTXLHS => CTXLHS -Patterns getPredicatePatterns(LHS))
+                                                       , _
+                                                       )
+                                   , LSPATIAL
+                                   )
+                             , LHS:Patterns
+                             )
+                        , RHS:Pattern
+                        )
+        </claim>
+        <k> kt-collapse-valid => kt-collapse ... </k>
 ```
 
 ### Resolve

@@ -814,6 +814,19 @@ Simplifications
   rule isSpatialPattern(\forall{_} implicationContext(_,_)) => false
     [owise]
 
+  syntax Patterns ::= getSpatialPatterns(Patterns) [function]
+  rule getSpatialPatterns(.Patterns) => .Patterns
+  rule getSpatialPatterns(P, Ps) => P, getSpatialPatterns(Ps)
+    requires isSpatialPattern(P)
+  rule getSpatialPatterns(P, Ps) => getSpatialPatterns(Ps)
+    requires notBool isSpatialPattern(P)
+
+  syntax Patterns ::= getPredicatePatterns(Patterns) [function]
+  rule getPredicatePatterns(.Patterns) => .Patterns
+  rule getPredicatePatterns(P, Ps) => P, getPredicatePatterns(Ps)
+    requires isPredicatePattern(P)
+  rule getPredicatePatterns(P, Ps) => getPredicatePatterns(Ps)
+    requires notBool isPredicatePattern(P)
 ```
 
 ```k
