@@ -22,6 +22,8 @@ module STRATEGY-APPLY-EQUATION
   imports HEATCOOL-SYNTAX
   imports LOAD-NAMED-SYNTAX
   imports INSTANTIATE-ASSUMPTIONS-SYNTAX
+  imports VISITOR-SYNTAX
+  imports SYNTACTIC-MATCH-SYNTAX
 
   rule <strategy> (.K => loadNamed(Name))
                ~> apply-equation D Name at _ by[_] ...
@@ -160,6 +162,114 @@ module STRATEGY-APPLY-EQUATION
                   ( strats: (S, Ss) => Ss
                   , result: R => R & subgoal(P, S))
        ...</strategy>
+
+```
+### Apply equation in context
+```k
+
+  rule <strategy> apply-equation(eq: \equals(_,_) #as Eq, idx: Idx, direction: D, at: At)
+               => noop
+       ...</strategy>
+       <claim> C
+            => visitorResult.getPattern(
+                 visitTopDown(
+                   applyEquationInContextVisitor(aeicParams(
+                     eq: Eq, idx: Idx, direction: D, at: At
+                   )),
+                   C
+                 )
+               )
+       </claim>
+
+  syntax KItem ::= "aeicParams" "(" "eq:" Pattern
+                                "," "idx:" Int
+                                "," "direction:" RewriteDirection
+                                "," "at:" Int
+                                ")"
+
+  syntax Int ::= "aeicParams.getIndex" "(" KItem ")" [function]
+  rule aeicParams.getIndex(aeicParams(eq: _, idx: Idx, direction: _, at: _))
+    => Idx
+
+  syntax Visitor ::= applyEquationInContextVisitor(KItem)
+
+  syntax Pattern ::= applyEquationInContextVisitorResult(VisitorResult) [function]
+
+  rule visit(applyEquationInContextVisitor(Params) #as V, P)
+    => visitorResult(V, P)
+       requires \and(_) :/=K P orBool (aeicParams.getIndex(Params) <Int 0)
+
+  rule visit(applyEquationInContextVisitor(Params), \and(Ps))
+    => applyEquationInContextAnd(Params, .Patterns, Ps)
+       requires aeicParams.getIndex(Params) >=Int 0
+
+  syntax VisitorResult ::= applyEquationInContextAnd(KItem, Patterns, Patterns) [function]
+
+  rule applyEquationInContextAnd(Params, Ps, .Patterns)
+    => visitorResult(applyEquationInContextVisitor(Params), \and(Ps))
+
+  rule applyEquationInContextAnd(
+         aeicParams(eq: Eq, idx: Idx, direction: D, at: At) #as Params,
+         Ps1, (P, Ps2))
+    => #if #matchResult(subst: _) :=K syntacticMatch(
+            terms: (P, .Patterns),
+            patterns: (Eq, .Patterns),
+            variables: getUniversallyQuantifiedVariables(Eq)
+                       ++Patterns getSetVariables(Eq)
+            )
+      #then
+        #if Idx ==Int 0
+        #then
+          applyEquationInContextAnd2(
+            Params,
+            heat(
+              term: \and(Ps1 ++Patterns Ps2),
+              pattern:
+                 #if D==K -> #then
+                   apply-equation.getLeft(P)
+                 #else
+                   apply-equation.getRight(P)
+                 #fi,
+              variables: .Patterns,
+              index: At
+            ),
+            #if D==K -> #then
+              apply-equation.getRight(P)
+            #else
+              apply-equation.getLeft(P)
+            #fi,
+            getLength(Ps1), P
+          )
+        #else
+          applyEquationInContextAnd(
+            aeicParams(eq: Eq, idx: Idx -Int 1, direction: D, at: At),
+            Ps1 ++Patterns (P, .Patterns), Ps2)
+        #fi
+      #else
+        applyEquationInContextAnd(Params, Ps1 ++Patterns (P, .Patterns), Ps2)
+      #fi
+
+
+  syntax VisitorResult ::= applyEquationInContextAnd2(KItem, HeatResult, Pattern, Int, Pattern) [function]
+
+  rule applyEquationInContextAnd2(
+         aeicParams(eq: Eq, idx: _, direction: D, at: At),
+         heatResult(Heated, _),
+         Right,
+         Prefix,
+         P
+       )
+    => visitorResult(
+         // The only important argument is that idx: -1.
+         applyEquationInContextVisitor(aeicParams(eq: Eq, idx: -1, direction: D, at: At)),
+         insertToAnd(Prefix, P, cool(heated: Heated, term: Right))
+     )
+
+  syntax Pattern ::= insertToAnd(Int, Pattern, Pattern) [function]
+
+  rule insertToAnd(N, P, \and(Ps))
+    => \and(insertToPatterns(N, P, Ps))
+
 
 endmodule
 ```
