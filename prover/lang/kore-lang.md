@@ -472,6 +472,12 @@ and values, passed to K's substitute.
   rule getLength(.Patterns) => 0
   rule getLength(P, Ps) => 1 +Int getLength(Ps)
 
+  syntax Patterns ::= insertToPatterns(Int, Pattern, Patterns) [function]
+  rule insertToPatterns(0, P, Ps) => (P, Ps)
+  rule insertToPatterns(N, P, (P', Ps))
+    => (P', insertToPatterns(N -Int 1, P, Ps))
+    requires N >=Int 1
+
   syntax Set ::= PatternsToVariableNameSet(Patterns) [function]
   rule PatternsToVariableNameSet(.Patterns) => .Set
   rule PatternsToVariableNameSet(N{_}, Ps)

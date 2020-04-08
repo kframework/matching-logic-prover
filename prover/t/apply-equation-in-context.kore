@@ -1,0 +1,7 @@
+symbol foo(Int, Int) : Int
+
+axiom a: \exists{X{Int}} foo(\and(X{Int}, \equals(X{Int}, 3), 2, \equals(X{Int}, 2)))
+
+claim \exists{X{Int}} foo(\and(X{Int}, \equals(X{Int}, 3), X{Int}, \equals(X{Int}, 2)))
+strategy apply-equation(eq: \equals(X{Int}, #Y), idx: 1, direction: ->, at: 2)
+       . apply(a, fail)
