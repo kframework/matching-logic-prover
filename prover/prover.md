@@ -69,6 +69,12 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "apply-equation"
                         RewriteDirection AxiomOrClaimName
                         "at" Int "by" "[" Strategies "]"
+                    | "apply-equation"
+                      "(" "eq:" Pattern
+                      "," "idx:" Int
+                      "," "direction:" RewriteDirection
+                      "," "at:" Int
+                      ")"
                     | "intros" AxiomName
                     | "replace-evar-with-func-constant" Variables
                     | "duplicate" AxiomOrClaimName "as" AxiomName
