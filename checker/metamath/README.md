@@ -1,11 +1,11 @@
-# The Metalevel of Applicative Matching Logic (AML)
+# Matching Logic Proof Checker
 
 # Instructions
 
 1. Download and install `metamath` from http://us.metamath.org/#downloads. 
 2. In the current directory, run `metamath`.
-3. In metamath prompt `MM>`, run `read aml.mm` to load the AML definition to `metamath`.
-4. After loading the definition, run `verify proof *` to verify all the proofs.
+3. After the prompt `MM>`, type `read ml.mm` to load the definition.
+4. After loading the definition, type `verify proof *` to verify all the proofs.
 5. Run `exit` to exit `metamath`.
 
 # FAQ
