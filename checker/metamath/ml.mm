@@ -203,7 +203,6 @@ ${
     nfm_2   $a #NoFreeOccurrence xX ( \ex Y ph ) $.
 $}
 
-
 $(
     #NestedInApplicationOnly xX ph
       means xX is nested only in application in ph.
@@ -433,8 +432,12 @@ $(
     END OF PROOF CHECKER
 $)
 
+$(
+    SOME EXAMPLES
+$)
+
 $( 
-    EXAMPLES 1
+    EXAMPLE 1
 $)
 
 iid $p |- ( \imp ph ph ) $=
@@ -447,9 +450,11 @@ $(
 $)
 
 ${
-    tr.1 $e |- ( \imp ph1 ph3 ) $.
-    tr.2 $e |- ( \imp ph3 ph2 ) $.
-    tr   $p |- ( \imp ph1 ph2 ) $= ? $.
+    mp2.1 $e |- ph1 $.
+    mp2.2 $e |- ph2 $.
+    mp2.3 $e |- ( \imp ph1 ( \imp ph2 ph3 ) ) $.
+    mp2 $p |- ph3 $=
+      vph3 vph2 mp2.2 vph2 vph3 wi vph1 mp2.1 mp2.3 pr-mp pr-mp $.
 $}
 
 $(
@@ -459,3 +464,76 @@ $)
 $c \neg $.
 wneg   $a #Pattern ( \neg ph ) $.
 df-neg $a #Equal ( \neg ph ) ( \imp ph \bot ) $.
+
+${
+    nnneg.1 $e #NoPositiveOccurrence xX ph $.
+    nnneg   $p #NoNegativeOccurrence xX ( \neg ph ) $=
+      vph wneg vph wb wi vxX vph df-neg vph wb vxX nnneg.1 vxX nnb nni eqnn $.
+$}
+${
+    npneg.1 $e #NoNegativeOccurrence xX ph $.
+    npneg   $p #NoPositiveOccurrence xX ( \neg ph ) $=
+      vph wneg vph wb wi vxX vph df-neg vph wb vxX npneg.1 vxX npb npi eqnp $.
+$}
+${
+    nfneg.1 $e #NoFreeOccurrence xX ph $.
+    nfneg   $p #NoFreeOccurrence xX ( \neg ph ) $=
+      vph wneg vph wb wi vxX vph df-neg vph wb vxX nfneg.1 vxX nfb nfi eqnf $.
+$}
+${
+    sbneg.1 $e #Substitution ph2 ph1 ph xX $.
+    sbneg   $p #Substitution ( \neg ph2 ) ( \neg ph1 ) ph xX $=
+      vph2 wneg vph2 wb wi vph1 wneg vph vph1 wb wi vph vxX vph1 df-neg vph eq
+      vph2 df-neg vph vph2 wb vph1 wb vxX sbneg.1 vph vxX sbb sbi eqsb $.
+$}
+
+dn $p |- ( \imp ( \neg ( \neg ph ) ) ph ) $=
+  vph wneg wneg vph wi vph wneg wb wi vph wi vph wneg wneg vph vph wneg wb wi
+  vph vph wneg df-neg vph eq eqi vph wneg wb wi vph wi vph wb wi wb wi vph wi
+  vph wneg wb wi vph vph wb wi wb wi vph vph wneg wb vph wb wi wb vph df-neg wb
+  eq eqi vph eq eqi vph pr-3 eqp eqp $.
+
+$(
+    EXAMPLE 4
+$)
+
+$c \fa $.
+wfa   $a #Pattern ( \fa x ph ) $.
+df-fa $a #Equal ( \fa x ph ) ( \neg ( \ex x ( \neg ph ) ) ) $.
+
+${
+    nnfa.1 $e #NoNegativeOccurrence xX ph $.
+    nnfa   $p #NoNegativeOccurrence xX ( \fa x ph ) $=
+      vph vx wfa vph wneg vx we wneg vxX vph vx df-fa vph wneg vx we vxX vph
+      wneg vx vxX vph vxX nnfa.1 npneg npe nnneg eqnn $.
+$}
+${
+    npfa.1 $e #NoPositiveOccurrence xX ph $.
+    npfa   $p #NoPositiveOccurrence xX ( \fa x ph ) $=
+      vph vx wfa vph wneg vx we wneg vxX vph vx df-fa vph wneg vx we vxX vph
+      wneg vx vxX vph vxX npfa.1 nnneg nne npneg eqnp $.
+$}
+nffa_1 $p #NoFreeOccurrence x ( \fa x ph ) $=
+  vph vx wfa vph wneg vx we wneg vx vev vph vx df-fa vph wneg vx we vx vev vph
+  wneg vx nfe_1 nfneg eqnf $.
+${
+    $d xX x $.
+    nffa_2.1 $e #NoFreeOccurrence xX ph $.
+    nffa_2   $p #NoFreeOccurrence xX ( \fa x ph ) $=
+      vph vx wfa vph wneg vx we wneg vxX vph vx df-fa vph wneg vx we vxX vph
+      wneg vx vxX vph vxX nffa_2.1 nfneg nfe_2 nfneg eqnf $.
+$}
+sbfa_1 $p #Substitution ( \fa x ps ) ( \fa x ps ) ph x $=
+  vps vx wfa vps wneg vx we wneg vps vx wfa vph vps wneg vx we wneg vph vx vev
+  vps vx df-fa vph eq vps vx df-fa vph vps wneg vx we vps wneg vx we vx vev vph
+  vps wneg vx sbe_1 sbneg eqsb $.
+${
+    $d x xX $. $d z ph $.
+    sbfa_2.1 $e #Substitution ph1 ps z x $.    $( ph1 = ps[z/x] $)
+    sbfa_2.2 $e #Substitution ph2 ph1 ph xX $. $( ph2 = ph1[ph/xX] $)
+    sbfa_2   $p #Substitution ( \fa z ph2 ) ( \fa x ps ) ph xX $=
+      vph2 vz wfa vph2 wneg vz we wneg vps vx wfa vph vps wneg vx we wneg vph
+      vxX vps vx df-fa vph eq vph2 vz df-fa vph vps wneg vx we vph2 wneg vz we
+      vxX vph vps wneg vph1 wneg vph2 wneg vx vz vxX vz wev vps vph1 vx vev
+      sbfa_2.1 sbneg vph vph1 vph2 vxX sbfa_2.2 sbneg sbe_2 sbneg eqsb $.
+$}
