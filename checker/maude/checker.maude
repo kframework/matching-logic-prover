@@ -449,7 +449,7 @@ ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) Rl ;
 
  eq Pi |- (N) (#subst (IdR) (IdY) (IQ) (IdX)) (SubstVariable) ;
   = (IdY) is-var-in Pi
-    and ( (IdY == IdX and IdR == IQ) or (IdY =/= IdX) ) .
+    and ( (IdY == IdX and IdR == IQ) or (IdY =/= IdX and IdR == IdY) ) .
 
  eq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstBot) ;
   = IP == 0 and IdR == 0 .
