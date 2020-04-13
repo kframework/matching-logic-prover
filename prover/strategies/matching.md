@@ -500,7 +500,7 @@ Instantiate existentials using matching on the spatial part of goals:
 Instantiate heap axioms:
 
 ```k
-    syntax Strategy ::= "instantiate-axiom" "(" Pattern ")"
+    syntax Strategy ::= "instantiate-heap-axiom" "(" Pattern ")"
                       | "instantiate-separation-logic-axioms" "(" Patterns ")"
     rule <k> instantiate-separation-logic-axioms
                  => instantiate-separation-logic-axioms(gatherHeapAxioms(.Patterns))
@@ -516,33 +516,30 @@ Instantiate heap axioms:
 
     rule <k> instantiate-separation-logic-axioms(heap(LOC, DATA), AXs)
           => instantiate-separation-logic-axioms(AXs)
-           . instantiate-axiom( \forall { !L { LOC }, !D {DATA} }
-                                \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
-                                        , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
-                                        )
-                              )
-           . instantiate-axiom( \forall { !L1 { LOC }, !D1 {DATA}, !L2 { LOC }, !D2 { DATA } }
-                                \implies( \and(sep(pto(!L1 { LOC }, !D1 { DATA }), pto(!L2 { LOC }, !D2 { DATA })) )
-                                        , \not(\equals( !L1 { LOC }, !L2 { LOC }) )
-                                        )
-                              )
-             ...
+           . instantiate-heap-axiom( \forall { !L { LOC }, !D {DATA} }
+                                     \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
+                                             , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
+                                             )
+                                   )
+           . instantiate-heap-axiom( \forall { !L1 { LOC }, !D1 { DATA }, !L2 { LOC }, !D2 { DATA } }
+                                     \implies( \and(sep(pto(!L1 { LOC }, !D1 { DATA }), pto(!L2 { LOC }, !D2 { DATA })) )
+                                             , \not(\equals( !L1 { LOC }, !L2 { LOC }) )
+                                             )
+                                   )
+                    ...
          </k>
     rule <k> instantiate-separation-logic-axioms(.Patterns) => noop ... </k>
-
-    // TODO: gather and instnatiate axiom:
-    // - sep(X |-> Y, _) /\ sep(X |-> Z, _) => Y == Z
 ```
 
 Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 
 ```k
     rule <claim> \implies(\and(LHS), RHS) </claim>
-         <k> instantiate-axiom(\forall { Vs }
-                                      \implies( \and(sep(AXIOM_LSPATIAL))
-                                              , AXIOM_RHS
-                                              )
-                                     ) #as STRAT
+         <k> instantiate-heap-axiom(\forall { Vs }
+                                           \implies( \and(sep(AXIOM_LSPATIAL))
+                                                   , AXIOM_RHS
+                                                   )
+                                          ) #as STRAT
                  => ( #match( terms: \and(getSpatialPatterns(LHS))
                             , pattern:  AXIOM_LSPATIAL
                             , variables: Vs
@@ -557,11 +554,11 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
               => \implies(\and(substMap(AXIOM_RHS, SUBST), LHS), RHS)
          </claim>
          <k> ( #matchResult( subst: SUBST, rest: _ ) , MRs
-                   ~> instantiate-axiom(\forall { Vs }
-                                        \implies( _
-                                                , AXIOM_RHS
-                                                )
-                                       ) #as STRAT
+                   ~> instantiate-heap-axiom(\forall { Vs }
+                                             \implies( _
+                                                     , AXIOM_RHS
+                                                     )
+                                            ) #as STRAT
                     )
                  => ( MRs ~> STRAT:Strategy )
                     ...
@@ -569,6 +566,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
       requires isPredicatePattern(AXIOM_RHS)
 
     rule <k> (.MatchResults ~> instantiate-axiom(_)) => noop ... </k>
+    rule <k> (.MatchResults ~> instantiate-heap-axiom(_)) => noop ... </k>
 
     rule <claim> \implies(               \and(sep(LSPATIAL), LCONSTRAINT)
                          , \exists{ Vs } \and(sep(RSPATIAL), RCONSTRAINT)
