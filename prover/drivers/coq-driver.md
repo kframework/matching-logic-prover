@@ -89,7 +89,10 @@ module DRIVER-COQ
   rule CoqTermToPattern(#token("Prop", "CoqSort")) => #token("Term", "UpperName")
   rule CoqTermToPattern(fun BINDERs => TERM) => \lambda { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
   rule CoqTermToPattern(forall BINDERs, TERM) => \pi { CoqBindersToPatterns(BINDERs) } CoqTermToPattern(TERM)
+  rule CoqTermToPattern(match Ts return P with EQs end) => CoqTermToPattern(match Ts with EQs end)
   rule CoqTermToPattern(match Ts with .CoqEquations end) => \bottom()
+  rule CoqTermToPattern(match Ts with (| MP:CoqMultPattern => TM:CoqTerm) | EQs end)
+    => CoqTermToPattern(match Ts with (MP:CoqMultPattern => TM:CoqTerm) | EQs end)
   rule CoqTermToPattern(match Ts with (MP:CoqMultPattern => TM:CoqTerm) | EQs end) =>
        \or( #flattenOrs(
          \or( \exists { CoqMultPatternToBinders(MP) }
@@ -106,7 +109,7 @@ module DRIVER-COQ
   // TODO: incorporate qualfied name
   rule CoqTermToPattern(QID:CoqQualID . ID:CoqIdent) => CoqIdentToSymbol(ID)
   // TODO: do we need to do anything with the type here?
-  rule CoqTermToPattern((TM:CoqTerm : TY:CoqType):CoqTerm) => CoqTermToPattern(TM)
+  rule CoqTermToPattern((TM:CoqTerm : TY:CoqTerm):CoqTerm) => CoqTermToPattern(TM)
 
   syntax Patterns ::= CoqArgToPatterns(CoqArg) [function]
   rule CoqArgToPatterns(ARG1 ARG2) => CoqArgToPatterns(ARG1) ++Patterns CoqArgToPatterns(ARG2)
@@ -131,9 +134,11 @@ module DRIVER-COQ
   rule CoqMultPatternToPatterns(MP, MPs) => CoqPatternToPattern(MP), CoqMultPatternToPatterns(MPs)
 
   rule CoqPatternToPattern(ID:CoqQualID) => CoqIdentToSymbol(ID)
+  syntax Symbol ::= #stuck() [function]
   rule CoqPatternToPattern(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID)(CoqPatternToPatterns(P))
   rule CoqPatternToPatterns(ID:CoqQualID) => CoqIdentToSymbol(ID), .Patterns
   rule CoqPatternToPatterns(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID) ++Patterns CoqPatternToPatterns(P)
+  rule CoqPatternToPatterns(U:Underscore P:CoqPattern) => !S:Symbol ++Patterns CoqPatternToPatterns(P)
 
 // Get binders from MultPattern
   syntax Patterns ::= CoqMultPatternToBinders(CoqMultPattern) [function]
@@ -142,6 +147,7 @@ module DRIVER-COQ
   rule CoqMultPatternToBinders(ID:CoqQualID P:CoqPattern) => CoqPatternToBinders(P)
   rule CoqPatternToBinders(ID:CoqQualID) => CoqIdentToSymbol(ID), .Patterns
   rule CoqPatternToBinders(ID:CoqQualID P:CoqPattern) => CoqIdentToSymbol(ID), CoqPatternToBinders(P)
+  rule CoqPatternToBinders(U:Underscore P:CoqPattern) => !S:Symbol, CoqPatternToBinders(P)
 
   syntax Patterns ::= CoqBindersToPatterns(CoqBinders) [function]
   rule CoqBindersToPatterns(.CoqBinders) => .Patterns

@@ -15,6 +15,7 @@ module COQ
                     | UpperName
   syntax CoqQualID ::= CoqIdent
                      | CoqQualID "." CoqIdent
+                     | Underscore
   syntax CoqName ::= CoqIdent
                    | Underscore
   syntax CoqNames ::= List{CoqName, ""} [klabel(CoqNames)]
@@ -22,7 +23,7 @@ module COQ
 // Sorts
   syntax CoqSort ::= "SProp" [token]
                    | "Prop"  [token]
-                   | "Set"   [token]
+                   // | "Set"   [token]
                    | "Type"  [token]
 
 // Seralize to String:
@@ -51,6 +52,7 @@ module COQ
                    | "let" CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm "in" CoqTerm
                    | "@" CoqQualID CoqTerm
                    | "match" CoqMatchItems "with" CoqEquations "end"
+                   | "match" CoqMatchItems CoqReturnType "with" CoqEquations "end"
                    | CoqTerm ":" CoqTerm
                    > CoqTerm CoqArg [right]
                    | CoqQualID
@@ -71,19 +73,25 @@ module COQ
 
   syntax CoqFixBody ::= CoqIdent CoqBinders ":=" CoqTerm
                       | CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm
+                      | CoqIdent CoqBinders CoqAnnotation ":" CoqTerm ":=" CoqTerm
   syntax CoqFixBodyList ::= List{CoqFixBody, "with"}
   syntax CoqFixBodies ::= CoqFixBody
                         | CoqFixBody CoqFixBodyList "for" CoqIdent
+  syntax CoqAnnotation ::= "{" "struct" CoqIdent "}"
 
-  syntax CoqCofixBody ::= CoqIdent CoqBinders ":=" CoqTerm
+  syntax CoqCofixBody ::= CoqIdent CoqBinders ":" CoqTerm ":=" CoqTerm
   syntax CoqCofixBodyList ::= List{CoqCofixBody, "with"}
   syntax CoqCofixBodies ::= CoqCofixBody
                           | CoqCofixBody CoqCofixBodyList "for" CoqIdent
 
   syntax CoqMatchItem ::= CoqTerm
+                        | CoqTerm "as" CoqName
   syntax CoqMatchItems ::= List{CoqMatchItem, ","} [klabel(CoqMatchItems)]
 
+  syntax CoqReturnType ::= "return" CoqTerm
+
   syntax CoqEquation ::= CoqMultPattern "=>" CoqTerm
+                       | "|" CoqMultPattern "=>" CoqTerm
   syntax CoqEquations ::= List{CoqEquation, "|"} [klabel(CoqEquations)]
 
   syntax CoqPattern ::= CoqQualID CoqPattern
@@ -92,7 +100,7 @@ module COQ
                       | CoqPattern "as" CoqIdent
                       | CoqPattern "%" CoqIdent
                       | CoqQualID
-                      | Underscore
+                      | Underscore [prefer]
                       | Int
 
   syntax CoqMultPattern ::= List{CoqPattern, ","} [klabel(CoqMultPattern)]

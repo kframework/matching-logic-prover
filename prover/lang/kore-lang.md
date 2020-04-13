@@ -449,6 +449,10 @@ and values, passed to K's substitute.
   syntax Patterns ::= makeFreshVariables(Patterns) [function]
   rule makeFreshVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makeFreshVariables(REST)
   rule makeFreshVariables(.Patterns) => .Patterns
+
+  syntax Symbol ::= String2Symbol(String) [function, functional, hook(STRING.string2token)]
+  syntax Symbol ::= freshSymbol(Int) [freshGenerator, function, functional]
+  rule freshSymbol(I:Int) => String2Symbol("F" +String Int2String(I))
 ```
 
 ```k
