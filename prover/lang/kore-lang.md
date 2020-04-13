@@ -167,6 +167,7 @@ only in this scenario*.
                    // sugar for commonly needed axioms
                    | "\\typeof" "(" Pattern "," Sort ")"
                    | "functional" "(" Symbol ")"
+                   | "constructor" "(" Symbol ")"
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
                    | "\\hole" "(" ")" [klabel(Phole)]
@@ -296,6 +297,10 @@ module KORE-HELPERS
   rule areFunctional(_, .Patterns) => true
   rule areFunctional(GId, P, Ps)
        => isFunctional(GId, P) andBool areFunctional(GId, Ps)
+
+  syntax Bool ::= isConstructor(Pattern) [function]
+  rule [[ isConstructor(S) => true ]]
+       <declaration> axiom _: constructor(S) </declaration>
 
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int

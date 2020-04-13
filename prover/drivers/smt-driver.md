@@ -140,7 +140,7 @@ module DRIVER-SMT
                      => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
                         <declaration> symbol parameterizedSymbol(nil, SMTLIB2SortToSort(LOC)) ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
                         <declaration> axiom !N:AxiomName : heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
-                        <declaration> axiom !N:AxiomName : functional(parameterizedSymbol(nil, SMTLIB2SortToSort(LOC))) </declaration>
+                        <declaration> axiom !M:AxiomName : functional(parameterizedSymbol(nil, SMTLIB2SortToSort(LOC))) </declaration>
                       ) ...
        </declarations>
 
@@ -159,6 +159,7 @@ module DRIVER-SMT
                      => <declaration> sort SMTLIB2SortToSort(SORT1) </declaration>
                         <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SortToSort(SORT1) </declaration>
                         <declaration> axiom !N:AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
+                        <declaration> axiom !M:AxiomName : constructor(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
                       ) ...
        </declarations>
 
