@@ -502,9 +502,10 @@ Instantiate heap axioms:
 ```k
     syntax Strategy ::= "instantiate-heap-axiom" "(" Pattern ")"
                       | "instantiate-separation-logic-axioms" "(" Patterns ")"
+                      | "pto-is-injective" "(" Patterns ")"
     rule <k> instantiate-separation-logic-axioms
-                 => instantiate-separation-logic-axioms(gatherHeapAxioms(.Patterns))
-                    ...
+          => instantiate-separation-logic-axioms(gatherHeapAxioms(.Patterns))
+             ...
          </k>
          <declaration> axiom _: heap(LOC, DATA) </declaration>
 
@@ -565,8 +566,67 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
          </k>
       requires isPredicatePattern(AXIOM_RHS)
 
-    rule <k> (.MatchResults ~> instantiate-axiom(_)) => noop ... </k>
     rule <k> (.MatchResults ~> instantiate-heap-axiom(_)) => noop ... </k>
+
+    syntax Patterns ::= getLocations(Pattern)    [function]
+    syntax Patterns ::= getLocationsPs(Patterns) [function]
+    rule getLocationsPs(.Patterns) => .Patterns
+    rule getLocationsPs(P, Ps) => getLocations(P) ++Patterns getLocationsPs(Ps)
+    rule getLocations(V:Variable) => .Patterns
+    rule getLocations(pto(X, Y)) => X, .Patterns
+    rule getLocations(S:Symbol(_)) => .Patterns
+      requires S =/=K pto andBool S =/=K sep
+    rule getLocations(\and(Ps)) => getLocationsPs(Ps)
+    rule getLocations(sep(Ps)) => getLocationsPs(Ps)
+    rule getLocations(\or(Ps)) => getLocationsPs(Ps)
+    rule getLocations(P) => .Patterns
+      requires isPredicatePattern(P)
+
+    rule <claim> \implies(LHS, RHS) </claim>
+         <k> pto-is-injective => pto-is-injective(getLocations(LHS)) ... </k>
+
+    rule <k> pto-is-injective(.Patterns) => noop ... </k>
+
+    // TODO: this should become unification
+    rule <claim> \implies(\and(sep(SPATIAL1), sep(SPATIAL2), LHS), RHS) </claim>
+         <k> pto-is-injective(L { LOC }, LOCs)
+                 => #match( terms:     SPATIAL1
+                          , pattern:   pto(L { LOC }, !D1 { DATA })
+                          , variables: !D1 { DATA }
+                          )
+                 ~> #match( terms:     SPATIAL2
+                          , pattern:   pto(L { LOC }, !D2 { DATA })
+                          , variables: !D2 { DATA }
+                          )
+                 ~> pto-is-injective(L { LOC }, LOCs)
+                    ...
+         </k>
+         <declaration> axiom _: heap(LOC, DATA) </declaration>
+
+    rule <claim> \implies(\and(LHS)                                                               , RHS)
+              => \implies(\and(LHS ++Patterns #destructEquality((D1, .Patterns), (D2, .Patterns))), RHS)
+         </claim>
+         <k> #matchResult( subst: V1 |-> D1, rest: _ ), .MatchResults
+                 ~> #matchResult( subst: V2 |-> D2, rest: _ ), .MatchResults
+                 ~> pto-is-injective(L { LOC }, LOCs)
+                 => pto-is-injective(LOCs)
+                    ...
+         </k>
+
+    syntax Patterns ::= #destructEquality(Patterns, Patterns) [function]
+    rule #destructEquality(.Patterns, .Patterns) => .Patterns
+    rule #destructEquality((P1, Ps1), (P2, Ps2))
+      => \equals(P1, P2), #destructEquality(Ps1, Ps2)
+      requires S:Symbol(_) :/=K P1
+    rule #destructEquality((P1, Ps1), (P2, Ps2))
+      => \equals(P1, P2), #destructEquality(Ps1, Ps2)
+      requires S:Symbol(_) :/=K P2
+    rule #destructEquality((S:Symbol(ARGs1), Ps1), (S:Symbol(ARGs2), Ps2))
+      => #destructEquality(ARGs1, ARGs2) ++Patterns #destructEquality(Ps1, Ps2)
+      requires isConstructor(S)
+    rule #destructEquality((S1:Symbol(ARGs1), Ps1), (S2:Symbol(ARGs2), Ps2))
+      => \equals(S1(ARGs1), S2(ARGs2)), #destructEquality(Ps1, Ps2)
+      requires S1 =/=K S2 orBool notBool isConstructor(S1)
 
     rule <claim> \implies(               \and(sep(LSPATIAL), LCONSTRAINT)
                          , \exists{ Vs } \and(sep(RSPATIAL), RCONSTRAINT)
