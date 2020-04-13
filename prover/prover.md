@@ -45,7 +45,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "lift-constraints"
                     | "direct-proof"
-                    | "check-lhs-constraint-unsat"
+                    | "check-lhs-constraint-unsat" | "check-lhs-constraint-unsat-debug"
                     | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")" | "right-unfold" "(" Symbol ")"

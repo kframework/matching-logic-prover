@@ -234,6 +234,15 @@ module STRATEGY-SMT
                   ...
        </k>
        <trace> .K => check-lhs-constraint-unsat ... </trace>
+
+// If the constraints are unsatisfiable, the entire term is unsatisfiable
+  rule <k> \implies(\and(LHS), _) </k>
+       <id> GId </id>
+       <strategy> check-lhs-constraint-unsat-debug
+               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(getPredicatePatterns(LHS)), collectDeclarations(GId)))
+                  ...
+       </strategy>
+       <trace> .K => check-lhs-constraint-unsat-debug ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(getPredicatePatterns(LHS)), collectDeclarations(GId)) ... </trace>
 ```
 
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
