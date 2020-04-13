@@ -502,7 +502,7 @@ ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstMuBinding) ;
  if (\mu (IdX) (IP')) := Pi[IP] .
 
 ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) 
-              (SubstExBody (IdZ)         ---- fresh var Z
+              (SubstMuBody (IdZ)         ---- fresh var Z
                            (IdNF)        ---- proved claim (#nf Z Q)
                            (ISubst1)    ---- proved claim for R1=P1[Z/Y]
                            (ISubst2)) ; ---- proved claim for R2=R1[Q/X]
@@ -729,7 +729,7 @@ ceq Pi |- (N) (M) (PropagationOrL) ;
 ---- desugar to primitive form
 ---- R ((P -> \bot) -> Q)
 ----   -> ((RP -> \bot) -> RQ)
-ceq Pi |- (N) (M) (PropagationOrL) ;
+ceq Pi |- (N) (M) (PropagationOrR) ;
   = true
  if (\imp (IdLHS) (IdRHS)) := Pi[M]
  /\ (\app (IdR) (IdLHS1)) := Pi[IdLHS]    ---- IdLHS1: (P -> \bot) -> Q
@@ -751,7 +751,7 @@ ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
  /\ (#nf (IdX) (IQ)) := Pi[IdNF] .
 
 ---- (PropagationExR)  Q (\ex X . P) -> \ex X . (Q P) requires (#nf X Q)
-ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
+ceq Pi |- (N) (M) (PropagationExR (IdNF)) ;
   = true 
  if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: Q (\ex X . P), IdRHS: \ex X . (Q P)
  /\ (\app (IQ) (IdLHS1)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
