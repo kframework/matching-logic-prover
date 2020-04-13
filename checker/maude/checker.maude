@@ -502,7 +502,7 @@ ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstMuBinding) ;
  if (\mu (IdX) (IP')) := Pi[IP] .
 
 ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) 
-              (SubstExBody (IdZ)         ---- fresh var Z
+              (SubstMuBody (IdZ)         ---- fresh var Z
                            (IdNF)        ---- proved claim (#nf Z Q)
                            (ISubst1)    ---- proved claim for R1=P1[Z/Y]
                            (ISubst2)) ; ---- proved claim for R2=R1[Q/X]
