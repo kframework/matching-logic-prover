@@ -10,7 +10,7 @@ module TEST-MATCH-ASSOC
                      | "Y"    [token]
                      | "Z"    [token]
 
-  rule test("assoc-matching", 1)
+  rule test("match-assoc", 1)
     => assert( #error("No valid substitution"), .MatchResults
             == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
                           , pattern:   pto( Z { Loc }, W { Data })
@@ -20,7 +20,7 @@ module TEST-MATCH-ASSOC
                           )
              )
        .Declarations
-  rule test("assoc-matching", 2)
+  rule test("match-assoc", 2)
     => assert( #error("Constructors do not match"), .MatchResults
             == #matchAssoc( terms:     c( X { Loc }, Y { Data })
                           , pattern:   d( Z { Loc }, W { Data })
@@ -30,7 +30,7 @@ module TEST-MATCH-ASSOC
                           )
              )
        .Declarations
-  rule test("assoc-matching", 3)
+  rule test("match-assoc", 3)
     => assert( #error( "Mismatch in length of arguments" ), .MatchResults
             == #matchAssoc( terms:     pto( X { Loc }, Y { Data })
                           , pattern:   .Patterns
@@ -40,7 +40,7 @@ module TEST-MATCH-ASSOC
                           )
              )
        .Declarations
-  rule test("assoc-matching", 4)
+  rule test("match-assoc", 4)
     => assert( #error( "Mismatch in length of arguments" ), .MatchResults
             == #matchAssoc( terms:     c(X { Loc }, Y { Data })
                           , pattern:   c(X { Loc }, Y { Data }, Y { Data })
@@ -51,7 +51,7 @@ module TEST-MATCH-ASSOC
              )
        .Declarations
   // Base Case: Empty patterns
-  rule test("assoc-matching", 5)
+  rule test("match-assoc", 5)
     => assert( #matchResult( subst:    .Map
                            , rest:     .Patterns
                            )
@@ -65,7 +65,7 @@ module TEST-MATCH-ASSOC
              )
        .Declarations
   // Basic Matching
-  rule test("assoc-matching", 6)
+  rule test("match-assoc", 6)
     => assert( #matchResult( subst:    Z { Loc }  |-> X { Loc }
                                        W { Data } |-> Y { Data }
                            , rest:     .Patterns
@@ -80,7 +80,7 @@ module TEST-MATCH-ASSOC
              )
        .Declarations
   // Match multiple occurances of a variable
-  rule test("assoc-matching", 7)
+  rule test("match-assoc", 7)
     => assert( #matchResult( subst:    Z { Loc }  |-> X { Loc }
                                        W { Data } |-> Y { Data }
                            , rest:     .Patterns
@@ -95,7 +95,7 @@ module TEST-MATCH-ASSOC
              )
        .Declarations
   // Matching multiple occurances to different values does not work
-  rule test("assoc-matching", 8)
+  rule test("match-assoc", 8)
     => assert( #error( "No valid substitution" )
              , .MatchResults
             == #matchAssoc( terms:     c( X { Loc }, Y { Data }), c( X { Loc }, Y { Data })
@@ -108,7 +108,7 @@ module TEST-MATCH-ASSOC
        .Declarations
 
   // Match constructor against variable
-  rule test("assoc-matching", 9)
+  rule test("match-assoc", 9)
     => assert( #error("Constructors do not match")
              , .MatchResults
             == #matchAssoc( terms:     X { Loc }, Y { Data }
