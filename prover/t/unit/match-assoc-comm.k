@@ -6,9 +6,10 @@ module TEST-MATCH-ASSOC-COMM
   syntax UpperName ::= "Data" [token]
                      | "Loc"  [token]
                      | "W"    [token] | "W1"    [token] | "W2"    [token]
-                     | "X"    [token] | "X1"    [token] | "X2"    [token]
-                     | "Y"    [token] | "Y1"    [token] | "Y2"    [token]
+                     | "X0"   [token] | "X1"    [token] | "X2"    [token]
+                     | "Y0"   [token] | "Y1"    [token] | "Y2"    [token]
                      | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
+                     | "H0"   [token]
 
   rule test("match-assoc-comm", 1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
@@ -24,12 +25,12 @@ module TEST-MATCH-ASSOC-COMM
        .Declarations
 
   rule test("match-assoc-comm", 2)
-    => assert( #matchResult( subst:         Z { Loc } |-> X { Loc } 
-                                            W { Data } |-> Y { Data }
+    => assert( #matchResult( subst:         Z { Loc }  |-> X0 { Loc } 
+                                            W { Data } |-> Y0 { Data }
                            , rest:          .Patterns
                            )
              , .MatchResults
-            == #matchAssocComm( terms:     pto( X { Loc }, Y { Data })
+            == #matchAssocComm( terms:     pto( X0 { Loc }, Y0 { Data })
                               , pattern:   pto( Z { Loc }, W { Data })
                               , variables: Z { Loc }, W { Data }
                               , results:   .MatchResults
@@ -91,9 +92,9 @@ module TEST-MATCH-ASSOC-COMM
              , .MatchResults
             == #matchAssocComm( terms:     pto( X1 { Loc }, Y1 { Loc })
                                         ,  pto( X2 { Loc }, Y2 { Loc })
-                              , pattern:   pto( X { Loc }, Y { Loc })
-                                        ,  pto( Y { Loc }, Z { Loc })
-                              , variables: X { Loc }, Y { Loc }, Z { Loc }
+                              , pattern:   pto( X0 { Loc }, Y0 { Loc })
+                                        ,  pto( Y0 { Loc }, Z { Loc })
+                              , variables: X0 { Loc }, Y0 { Loc }, Z { Loc }
                               , results:   .MatchResults
                               , subst:     .Map
                               , rest:      .Patterns
@@ -103,14 +104,14 @@ module TEST-MATCH-ASSOC-COMM
 
   rule test("match-assoc-comm", 7)
     => assert( #error( "No valid substitution" ) 
-             , #matchResult( subst:        W { Loc } |-> Y { Loc }
+             , #matchResult( subst:        W { Loc } |-> Y0 { Loc }
                            , rest:         .Patterns
                            )
              , .MatchResults
-            == #matchAssocComm( terms:      pto ( Y { Loc } , c(Z { Loc }) )
-                                          , pto ( X { Loc } , c(Y { Loc }) )
-                              , pattern:    pto ( X { Loc } , c(W { Loc }) )
-                                          , pto ( W { Loc } , c(Z { Loc }) )
+            == #matchAssocComm( terms:      pto ( Y0 { Loc } , c(Z  { Loc }) )
+                                          , pto ( X0 { Loc } , c(Y0 { Loc }) )
+                              , pattern:    pto ( X0 { Loc } , c(W  { Loc }) )
+                                          , pto ( W  { Loc } , c(Z  { Loc }) )
                               , variables: W { Loc }
                               , results:  .MatchResults
                               , subst:     .Map
@@ -123,9 +124,9 @@ module TEST-MATCH-ASSOC-COMM
   rule test("match-assoc-comm", 8)
     => assert( #error("Variable sort does not match term")
              , .MatchResults
-            == #matchAssocComm( terms:     pto ( W { X1 } , c(X { X1 }) )
-                              , pattern:   pto ( Y { X2 } , c(Z { X2 }) )
-                              , variables: Y { X2 }, Z { X2 }
+            == #matchAssocComm( terms:     pto ( W  { X1 } , c(X0 { X1 }) )
+                              , pattern:   pto ( Y0 { X2 } , c(Z  { X2 }) )
+                              , variables: Y0 { X2 }, Z { X2 }
                               , results:  .MatchResults
                               , subst:    .Map
                               , rest:     .Patterns
