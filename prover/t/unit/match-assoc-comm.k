@@ -1,15 +1,15 @@
 module TEST-MATCH-ASSOC-COMM
   imports UNIT-TEST
 
-  syntax LowerName ::= "c"    [token]
-                     | "d"    [token]
-  syntax UpperName ::= "Data" [token]
-                     | "Loc"  [token]
-                     | "W"    [token] | "W1"    [token] | "W2"    [token]
-                     | "X0"   [token] | "X1"    [token] | "X2"    [token]
-                     | "Y0"   [token] | "Y1"    [token] | "Y2"    [token]
-                     | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
-                     | "H0"   [token]
+  syntax LowerName ::= "c"     [token] | "d"     [token]
+                     | "heap1" [token] | "heap2" [token]
+  syntax UpperName ::= "Data"  [token]
+                     | "Loc"   [token]
+                     | "W"     [token] | "W0"    [token] | "W1"    [token] | "W2"    [token]
+                     | "X0"    [token] | "X1"    [token] | "X2"    [token]
+                     | "Y0"    [token] | "Y1"    [token] | "Y2"    [token]
+                     | "Z"     [token] | "Z1"    [token] | "Z2"    [token]
+                     | "H0"    [token] | "H1"    [token]
 
   rule test("match-assoc-comm", 1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
@@ -133,6 +133,39 @@ module TEST-MATCH-ASSOC-COMM
                               )
              )
        .Declarations
+
+  // Matching within a conjunction of multiple seps
+  // rule test("match-assoc-comm", 7)
+  //   => assert( #error( "No valid substitution" ) 
+  //            , #matchResult( subst:        X0 { Loc }  |-> W0 { Loc }
+  //                                          Y0 { Loc }  |-> Z0 { Loc }
+  //                                          X1 { Loc }  |-> W1 { Loc }
+  //                                          Y1 { Loc }  |-> Z1 { Loc }
+  //                                          H0 { Heap } |-> heap1
+  //                                          H1 { Heap } |-> heap2
+  //                          , rest:         .Patterns
+  //                          )
+  //            , #matchResult( subst:        X0 { Loc }  |-> W1 { Loc }
+  //                                          Y0 { Loc }  |-> Z1 { Loc }
+  //                                          X1 { Loc }  |-> W0 { Loc }
+  //                                          Y1 { Loc }  |-> Z0 { Loc }
+  //                                          H0 { Heap } |-> heap2
+  //                                          H1 { Heap } |-> heap1
+  //                          , rest:         .Patterns
+  //                          )
+  //            , .MatchResults
+  //           == #matchAssocComm( terms:     \and( sep( pto ( W0 { Loc } , Z0 { Data } ), heap1 )
+  //                                              , sep( pto ( W1 { Loc } , Z1 { Data } ), heap2 )
+  //                             , pattern:   \and( sep( pto ( X0 { Loc } , Y0 { Data } ), H0 { Heap } )
+  //                                              , sep( pto ( X1 { Loc } , Y1 { Data } ), H1 { Heap } )
+  //                             , variables: X0 { Loc }, Y0 { DATA }, H0 { Heap }
+  //                                        , X1 { Loc }, Y1 { DATA }, H1 { Heap }
+  //                             , results:  .MatchResults
+  //                             , subst:     .Map
+  //                             , rest:      .Patterns
+  //                             )
+  //            )
+  //      .Declarations
 
   // Matching on a symbolic heap
   rule test("assoc-matching-comm", 9)
