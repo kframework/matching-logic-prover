@@ -587,7 +587,7 @@ Lift `\or`s on the left hand sides of implications
           andBool isPredicatePattern(P')
        #then
          #if N ==Int 0 #then
-           pptaMatch(pred: P', newArg: \and(Ps1 ++Patterns Ps2))
+           pptaMatch(pred: P', newArg: #\and(Ps1 ++Patterns Ps2))
          #else
            #pptaProcessArg(N -Int 1, P, Ps1 ++Patterns (P', .Patterns), Ps2)
          #fi
