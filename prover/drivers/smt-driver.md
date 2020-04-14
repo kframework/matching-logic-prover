@@ -318,18 +318,18 @@ module DRIVER-SMT
   rule #containsSpatialPatterns(.Patterns, _) => false
   rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
 
-  rule <k> #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
-        ~> (check-sat)
-        => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
-           ...
-       </k>
-       <goals>
+  rule <goals>
+         <k> #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
+          ~> (check-sat)
+          => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
+             ...
+         </k>
          ( .Bag =>
            <goal>
              <id> !N:ClaimName </id>
              <active> true:Bool </active>
              <parent> .K </parent>
-             <claim> \implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps)))) </claim>
+             <k> \implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps)))) </k>
              <strategy> STRAT </strategy>
              <expected> EXPECTED </expected>
              <local-context> .Bag </local-context>

@@ -11,7 +11,7 @@ module STRATEGY-INTROS
   imports KORE-HELPERS
 
   rule <strategy> intros Name => noop ...</strategy>
-       <claim> \implies(H, G) => G </claim>
+       <k> \implies(H, G) => G </k>
        <local-context> (.Bag =>
          <local-decl> axiom Name : H </local-decl>
          ) ...

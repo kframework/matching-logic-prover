@@ -16,9 +16,9 @@ module STRATEGY-INST-EXISTS
          inst-exists(V, T, Strat)
          => subgoal(\functionalPattern(T), Strat) & noop
        ...</strategy>
-       <claim>
+       <k>
          P => instExists(P, V, T)
-       </claim>
+       </k>
 
   syntax Pattern ::= instExists(Pattern, Variable, Pattern) [function]
 

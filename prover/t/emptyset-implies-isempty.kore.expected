@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( \equals ( S { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( S { SetInt } , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>

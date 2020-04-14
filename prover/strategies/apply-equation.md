@@ -119,7 +119,7 @@ module STRATEGY-APPLY-EQUATION
         )
         ...
       </strategy>
-      <claim> T </claim>
+      <k> T </k>
 
   syntax KItem ::= "#apply-equation3"
                    "(" "hypothesis:" Pattern
@@ -138,9 +138,9 @@ module STRATEGY-APPLY-EQUATION
          => instantiateAssumptions(Subst, P)
          ~> createSubgoalsWithStrategies(strats: Ss, result: noop)
        ...</strategy>
-       <claim>
+       <k>
          _ => cool(heated: Heated, term: substMap(R, Subst))
-       </claim>
+       </k>
 
   syntax KItem ::= "createSubgoalsWithStrategies"
                    "(" "strats:" Strategies

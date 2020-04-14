@@ -198,7 +198,7 @@ module STRATEGY-SMT
   imports STRATEGIES-EXPORTED-SYNTAX
   imports ML-TO-SMTLIB2
 
-  rule <claim> GOAL </claim>
+  rule <k> GOAL </k>
        <strategy> smt-z3
                => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ==K unsat
                   then success
@@ -208,10 +208,10 @@ module STRATEGY-SMT
        </strategy>
        <trace> .K => smt-z3 ... </trace>
 
-  rule <claim> GOAL </claim>
+  rule <k> GOAL </k>
        <strategy> smt-z3 => fail </strategy>
 
-  rule <claim> GOAL </claim>
+  rule <k> GOAL </k>
        <id> GId </id>
        <strategy> smt-cvc4
                => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))) ==K unsat
@@ -224,7 +224,7 @@ module STRATEGY-SMT
      requires isPredicatePattern(GOAL)
 
 // If the constraints are unsatisfiable, the entire term is unsatisfiable
-  rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
+  rule <k> \implies(\and(sep(_), LCONSTRAINTS), _) </k>
        <id> GId </id>
        <strategy> check-lhs-constraint-unsat
                => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat
@@ -241,7 +241,7 @@ module STRATEGY-SMT
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
 
 ```k
-  rule <claim> GOAL </claim>
+  rule <k> GOAL </k>
        <strategy> smt
                => #fun( CVC4RESULT
                      => if CVC4RESULT ==K unsat
@@ -259,7 +259,7 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
 ```
 
 ```k
-  rule <claim> GOAL </claim>
+  rule <k> GOAL </k>
        <id> GId </id>
        <strategy> smt-debug
                => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))):CheckSATResult
@@ -288,12 +288,12 @@ module SMTLIB2-TEST-DRIVER
   imports Z3
   imports CVC4
 
-  configuration <claim> $PGM:Pattern </claim>
+  configuration <k> $PGM:Pattern </k>
                 <smt> .K </smt>
                 <z3> .K </z3>
                 <cvc4> .K </cvc4>
 
-  rule <claim> IMPL </claim>
+  rule <k> IMPL </k>
        <smt> .K => ML2SMTLIB(\not(IMPL)) </smt>
   rule <smt> SCRIPT:SMTLIB2Script </smt>
        <z3> .K => Z3CheckSAT(Z3Prelude ++SMTLIB2Script SCRIPT) </z3>

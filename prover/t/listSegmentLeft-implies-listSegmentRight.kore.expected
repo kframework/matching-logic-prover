@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( listSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , .Patterns ) , \and ( listSegmentRight ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>

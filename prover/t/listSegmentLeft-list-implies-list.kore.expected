@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( listSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , list ( H { ArrayIntInt } , Y { Int } , G { SetInt } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , .Patterns ) , \and ( list ( H { ArrayIntInt } , X { Int } , K { SetInt } , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>

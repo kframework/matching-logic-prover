@@ -67,18 +67,18 @@ in the subgoal and the claim of the named goal remains intact.
            ...
        </k>
 
-  rule <k> claim NAME : PATTERN
-           strategy STRAT
-        => .K
-           ...
-       </k>
-       <goals>
+  rule <goals>
+         <k> claim NAME : PATTERN
+             strategy STRAT
+          => .K
+             ...
+         </k>
          ( .Bag =>
            <goal>
              <id> NAME </id>
              <active> true:Bool </active>
              <parent> .K </parent>
-             <claim> PATTERN </claim>
+             <k> PATTERN </k>
              <strategy> subgoal(PATTERN, STRAT) </strategy>
              <expected> success </expected>
              <local-context> .Bag </local-context>

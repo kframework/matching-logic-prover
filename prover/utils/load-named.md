@@ -14,7 +14,7 @@ module LOAD-NAMED-RULES
        <goal>
          ...
          <id> Name </id>
-         <claim> P </claim>
+         <k> P </k>
          <strategy> success </strategy>
          ...
        </goal>
