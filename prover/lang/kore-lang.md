@@ -462,6 +462,7 @@ and values, passed to K's substitute.
 ```
 
 Capture-free substitution: Substitute term or variable.
+-------------------------------------------------------
 
 TODO: This allows us to substitute arbitary terms (and not just variables) for
 terms. This is very non-standard. This is currently needed because the various
@@ -471,7 +472,6 @@ where the term being unfolded has been replace by `#hole`.
 ```k
   syntax PatternOrVarName ::= Pattern | VariableName
   syntax Pattern ::= subst(Pattern, PatternOrVarName, Pattern)    [function, klabel(subst)]
-
   rule subst(T,T,V) => V // We allow substitution over arbitary patterns
   rule subst(X{_}, X:VariableName, V) => V
   rule subst(X{S}, Y:VariableName, V) => X{S} requires X =/=K Y
@@ -499,22 +499,8 @@ where the term being unfolded has been replace by `#hole`.
     requires S =/=K X
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
     requires T =/=K X
-
   rule subst(implicationContext(CTX, RHS), X, V)
     => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
-
-  syntax Pair ::= pair(Patterns, Patterns)
-  syntax Pair ::= unzip(Map) [function]
-  rule unzip(.Map) => pair(.Patterns, .Patterns)
-  rule unzip((L |-> R) REST) => concatenatePair(pair((L, .Patterns), (R, .Patterns)), unzip(REST))
-
-  syntax Patterns ::= fst(Pair) [function]
-  syntax Patterns ::= snd(Pair) [function]
-  rule fst(pair(L, R)) => L
-  rule snd(pair(L, R)) => R
-
-  syntax Pair ::= concatenatePair(Pair, Pair) [function]
-  rule concatenatePair(pair(L1, R1), pair(L2, R2)) => pair(L1 ++Patterns L2, R1 ++Patterns R2)
 
   syntax Pattern ::= Pattern "[" Map "]"    [function, klabel(substMap)]
   syntax Pattern ::= substMap(Pattern, Map) [function, klabel(substMap)]
@@ -535,14 +521,24 @@ where the term being unfolded has been replace by `#hole`.
   syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
   rule substPatternsMap((BP, BPs), SUBST)
     => substUnsafe(BP, SUBST), substPatternsMap(BPs, SUBST)
-
   rule substPatternsMap(.Patterns, SUBST) => .Patterns
 
-  // the Bool param: avoid capture
   syntax Patterns ::= Patterns "[" Pattern "/" Pattern "]" [function]
-
   rule (BP, BPs)[X/V] => subst(BP,X,V), (BPs[X/V])
   rule .Patterns[X/V] => .Patterns
+
+  syntax Pair ::= pair(Patterns, Patterns)
+  syntax Pair ::= unzip(Map) [function]
+  rule unzip(.Map) => pair(.Patterns, .Patterns)
+  rule unzip((L |-> R) REST) => concatenatePair(pair((L, .Patterns), (R, .Patterns)), unzip(REST))
+
+  syntax Patterns ::= fst(Pair) [function]
+  syntax Patterns ::= snd(Pair) [function]
+  rule fst(pair(L, R)) => L
+  rule snd(pair(L, R)) => R
+
+  syntax Pair ::= concatenatePair(Pair, Pair) [function]
+  rule concatenatePair(pair(L1, R1), pair(L2, R2)) => pair(L1 ++Patterns L2, R1 ++Patterns R2)
 ```
 
 Alpha renaming: Rename all bound variables. Free variables are left unchanged.
