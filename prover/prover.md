@@ -89,6 +89,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "universal-generalization"
                     | "propagate-exists-through-application" Int
                     | "propagate-predicate-through-application" "(" Pattern "," Int ")"
+                    | "propagate-conjunct-through-exists" "(" Int "," Int ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 

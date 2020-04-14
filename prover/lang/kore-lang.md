@@ -498,6 +498,19 @@ and values, passed to K's substitute.
   rule getLength(.Patterns) => 0
   rule getLength(P, Ps) => 1 +Int getLength(Ps)
 
+  syntax Pattern ::= getLast(Patterns) [function]
+  rule getLast(Ps) => getMember(getLength(Ps) -Int 1, Ps)
+
+  syntax Patterns ::= takeFirst(Int, Patterns) [function]
+  rule takeFirst(0, _) => .Patterns
+  rule takeFirst(N, (P, Ps)) => P, takeFirst(N -Int 1, Ps)
+    requires N >Int 0
+
+  syntax Patterns ::= skipFirst(Int, Patterns) [function]
+  rule skipFirst(0, Ps) => Ps
+  rule skipFirst(N, (P, Ps)) => skipFirst(N -Int 1, Ps)
+    requires N >Int 0
+
   syntax Patterns ::= insertToPatterns(Int, Pattern, Patterns) [function]
   rule insertToPatterns(0, P, Ps) => (P, Ps)
   rule insertToPatterns(N, P, (P', Ps))
@@ -819,6 +832,10 @@ Simplifications
   syntax Pattern ::= "#\\exists" "{" Patterns "}" Pattern [function]
   rule #\exists{.Patterns} P => P
   rule #\exists{V, Vs} P => \exists{V, Vs} P
+
+  syntax Pattern ::= "#\\and" "(" Patterns ")" [function]
+  rule #\and(P, .Patterns) => P
+  rule #\and(Ps) => \and(Ps) [owise]
 
   syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
   syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]

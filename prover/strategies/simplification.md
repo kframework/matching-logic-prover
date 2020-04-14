@@ -596,7 +596,67 @@ Lift `\or`s on the left hand sides of implications
        #fi
 
 ```
+### Propagate conjunct through exists
 
+```k
+
+  rule <claim> T
+            => visitorResult.getPattern(
+                 visitTopDown(
+                   pcteVisitor(N, M),
+                   T
+                 )
+               )
+       </claim>
+       <strategy>
+         propagate-conjunct-through-exists(N, M) => noop
+       ...</strategy>
+
+  syntax Visitor ::= pcteVisitor(Int, Int)
+
+  rule visit(pcteVisitor(_,_) #as V, P)
+    => visitorResult(V, P)
+    requires \exists{_} _ :/=K P
+
+  rule visit(pcteVisitor(_,_) #as V, (\exists{_} P') #as P)
+    => visitorResult(V, P)
+    requires \and(_) :/=K P'
+
+  rule visit(pcteVisitor(N, M) #as V, (\exists{Vs} \and(Ps)) #as P)
+    => #if N <Int 0 #then
+         visitorResult(V, P)
+       #else #if N >Int 0 #then
+         visitorResult(pcteVisitor(N -Int 1, M), P)
+       #else // N ==Int 0
+         pcte1(M, Vs, Ps)
+       #fi #fi
+
+  syntax VisitorResult ::= pcte1(Int, Patterns, Patterns) [function]
+
+  rule pcte1(M, Vs, Ps)
+    => pcte2(idx: M,
+             vars: Vs,
+             ps1: takeFirst(M, Ps),
+             pattern: getMember(M, Ps),
+             ps2: skipFirst(M +Int 1, Ps) )
+    requires getLength(Ps) >Int M
+
+  syntax VisitorResult ::= "pcte2" "(" "idx:" Int
+                                   "," "vars:" Patterns
+                                   "," "ps1:" Patterns
+                                   "," "pattern:" Pattern
+                                   "," "ps2:" Patterns
+                                   ")" [function]
+
+  rule pcte2(idx: M, vars: Vs, ps1: Ps1, pattern: P, ps2: Ps2)
+    => visitorResult(
+         pcteVisitor(-1, M),
+         #\exists{takeFirst(getLength(Vs) -Int 1, Vs)}
+         \and(P, \exists{getLast(Vs), .Patterns} #\and(Ps1 ++Patterns Ps2), .Patterns)
+       )
+    requires notBool (getLast(Vs) in getFreeVariables(P))
+
+```
 
 ```k
 endmodule
