@@ -483,8 +483,8 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(\equals(ARG1, ARG2):Pattern, X, V)
     => \equals(subst(ARG1, X, V), subst(ARG2, X, V)):Pattern
   rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
-  rule subst(\and(ARG):Pattern, X, V) => \and(ARG[X/V]):Pattern
-  rule subst(\or(ARG):Pattern, X, V) => \or(ARG[X/V]):Pattern
+  rule subst(\and(ARG):Pattern, X, V) => \and(substPatternsMap(ARG, X |-> V)):Pattern
+  rule subst(\or(ARG):Pattern, X, V)  => \or(substPatternsMap(ARG, X |-> V)):Pattern
   rule subst(\implies(LHS, RHS):Pattern, X, V)
     => \implies(subst(LHS, X, V), subst(RHS, X, V)):Pattern
   rule subst(\forall { E } C, X, V) => \forall { E } C
@@ -497,7 +497,8 @@ where the term being unfolded has been replace by `#hole`.
     requires notBool( X in E orBool X in PatternsToVariableNameSet(E) )
   rule subst(S:Symbol, X, V) => S
     requires S =/=K X
-  rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V) => S(ARGS[X/V])
+  rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V)
+    => S(substPatternsMap(ARGS, X |-> V))
     requires T =/=K X
   rule subst(implicationContext(CTX, RHS), X, V)
     => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
@@ -522,10 +523,6 @@ where the term being unfolded has been replace by `#hole`.
   rule substPatternsMap((BP, BPs), SUBST)
     => substUnsafe(BP, SUBST), substPatternsMap(BPs, SUBST)
   rule substPatternsMap(.Patterns, SUBST) => .Patterns
-
-  syntax Patterns ::= Patterns "[" Pattern "/" Pattern "]" [function]
-  rule (BP, BPs)[X/V] => subst(BP,X,V), (BPs[X/V])
-  rule .Patterns[X/V] => .Patterns
 
   syntax Pair ::= pair(Patterns, Patterns)
   syntax Pair ::= unzip(Map) [function]
