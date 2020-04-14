@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( .Patterns ) , \and ( \or ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>

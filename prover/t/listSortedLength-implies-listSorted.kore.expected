@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( listSortedLength ( H { ArrayIntInt } , X { Int } , K { SetInt } , MIN { Int } , Length { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( listSorted ( H { ArrayIntInt } , X { Int } , K { SetInt } , MIN { Int } , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>
