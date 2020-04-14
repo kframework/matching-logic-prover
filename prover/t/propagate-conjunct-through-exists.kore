@@ -1,0 +1,5 @@
+axiom a: \or(\exists{A{Int}} \and(A{Int}), \exists{X{Int}} \and(gte(X{Int}, 2), \exists{Y{Int}} gte(Y{Int}, 1)))
+
+claim \or(\exists{A{Int}} \and(A{Int}), \exists{X{Int},Y{Int}} \and(gte(Y{Int}, 1), gte(X{Int}, 2)))
+strategy propagate-conjunct-through-exists(1, 1)
+       . apply(a, fail)
