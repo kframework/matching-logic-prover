@@ -66,34 +66,11 @@ in the subgoal and the claim of the named goal remains intact.
         => claim getFreshClaimName() : PATTERN strategy STRAT
            ...
        </k>
-
-  rule <goals>
-         <k> claim NAME : PATTERN
-             strategy STRAT
-          => .K
-             ...
-         </k>
-         ( .Bag =>
-           <goal>
-             <id> NAME </id>
-             <active> true:Bool </active>
-             <parent> .K </parent>
-             <k> PATTERN </k>
-             <strategy> subgoal(PATTERN, STRAT) </strategy>
-             <expected> success </expected>
-             <local-context> .Bag </local-context>
-             <trace> .K </trace>
-           </goal>
-         )
-         ...
-       </goals>
-```
-
-```k
-  rule <id> _:ClaimName </id>
-       <expected> S:TerminalStrategy </expected>
-       <strategy> S </strategy>
-       <exit-code> 1 => 0 </exit-code>
+  rule <k> claim NAME : PATTERN
+           strategy STRAT
+        => subgoal(NAME, PATTERN, subgoal(PATTERN, STRAT))
+           ...
+       </k>
 ```
 
 ```k
