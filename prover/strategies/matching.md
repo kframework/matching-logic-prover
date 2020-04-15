@@ -519,7 +519,7 @@ Instantiate heap axioms:
           => instantiate-separation-logic-axioms(AXs)
            . instantiate-heap-axiom( \forall { !L { LOC }, !D {DATA} }
                                      \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
-                                             , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
+                                             , \not(\equals(nil(.Patterns), !L { LOC }))
                                              )
                                    )
            . instantiate-heap-axiom( \forall { !L1 { LOC }, !D1 { DATA }, !L2 { LOC }, !D2 { DATA } }
@@ -527,7 +527,7 @@ Instantiate heap axioms:
                                              , \not(\equals( !L1 { LOC }, !L2 { LOC }) )
                                              )
                                    )
-                    ...
+             ...
          </k>
     rule <k> instantiate-separation-logic-axioms(.Patterns) => noop ... </k>
 ```
@@ -712,9 +712,9 @@ things, so the LHS becomes unsat.
 ```k
   rule <claim> \implies( \and( sep(LSPATIAL), LCONSTRAINT), RHS)
             => \implies( \and( \forall { !D:VariableName { DATA }, !H:VariableName { Heap } }
-                               \implies( \and(sep(!H { Heap }, pto(#token("Vy_emp", "VariableName") { LOC }, !D:VariableName { DATA })))
+                               \implies( \and(sep(pto(#token("Vy_emp", "VariableName") { LOC }, !D:VariableName { DATA }), !H { Heap }))
                                        , \not(\equals( #token("Vy_emp", "VariableName") { LOC }
-                                                     , parameterizedSymbol(nil, LOC)(.Patterns)
+                                                     , nil(.Patterns)
                                                      )
                                              )
                                        )
