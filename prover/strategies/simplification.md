@@ -223,15 +223,19 @@ on the LHS, replace all occurrences of nil with a fresh variable
 
   syntax Pattern ::= #abstractNil(Pattern) [function]
   syntax Patterns ::= #abstractNilPs(Patterns) [function]
+  rule #abstractNil(V { SORT }) => V { SORT }
   rule #abstractNil(\and(Ps)) => \and(#abstractNilPs(Ps))
-  rule #abstractNil(\or(Ps)) => \and(#abstractNilPs(Ps))
-  rule #abstractNil(\not(P)) => #abstractNil(P)
+  rule #abstractNil(\or(Ps)) => \or(#abstractNilPs(Ps))
+  rule #abstractNil(\not(P)) => \not(#abstractNil(P))
   rule #abstractNil(sep(Ps)) => sep(#abstractNilPs(Ps))
-  // rule [[ #abstractNil(parameterizedSymbol(nil, LOC)) => !V:VariableName { LOC } ]]
+  // rule [[ #abstractNil(parameterizedSymbol(nil, LOC)(.Patterns)) => !V:VariableName { LOC } ]]
   //   <declaration> heap(LOC, DATA) </declaration>
-  rule #abstractNil(S:Symbol(ARGs)) => S(ARGs)
-    [owise]
-  rule #abstractNil(\equals(L, R)) => \equals(L, R)
+  rule [[ #abstractNil(S:Symbol(.Patterns)) => !V:VariableName { LOC } ]]
+    <declaration> heap(LOC, DATA) </declaration>
+    requires S ==K parameterizedSymbol(nil, LOC)
+  // rule #abstractNil(S:Symbol(ARGs)) => S(#abstractNilPs(ARGs))
+  //   [owise]
+  rule #abstractNil(\equals(L, R)) => \equals(#abstractNil(L), #abstractNil(R))
   rule #abstractNilPs(.Patterns) => .Patterns
   rule #abstractNilPs(P, Ps) => #abstractNil(P), #abstractNilPs(Ps)
 ```
