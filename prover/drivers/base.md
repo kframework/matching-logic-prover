@@ -87,6 +87,16 @@ module DRIVER-BASE
   imports LOAD-NAMED-RULES
 
   rule <k> .CommandLine => .K ... </k>
+
+  rule <goals>
+         <goal>
+           <id> .K </id>
+           <expected> .K </expected>
+           <strategy> .K </strategy>
+           ...
+         </goal>
+       </goals>
+       <exit-code> 1 => 0 </exit-code>
 endmodule
 
 module DRIVER-BASE-SYNTAX

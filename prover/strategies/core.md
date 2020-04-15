@@ -109,10 +109,13 @@ Proving a goal may involve proving other subgoals:
 
 ```k
   syntax Strategy ::= "subgoal" "(" Pattern "," Strategy ")"
+  rule <strategy> subgoal(GOAL, STRAT) => subgoal(!ID:Int, GOAL, STRAT) ... </strategy>
+
+  syntax Strategy ::= "subgoal" "(" GoalId "," Pattern "," Strategy ")"
   rule <prover>
          ( .Bag =>
              <goal>
-               <id> !ID:Int </id>
+               <id> ID:Int </id>
                <active> true </active>
                <parent> PARENT </parent>
                <strategy> SUBSTRAT </strategy>
@@ -125,7 +128,7 @@ Proving a goal may involve proving other subgoals:
          <goal>
            <id> PARENT </id>
            <active> true => false </active>
-           <strategy> subgoal(SUBGOAL, SUBSTRAT) => goalStrat(!ID:Int) ... </strategy>
+           <strategy> subgoal(ID, SUBGOAL, SUBSTRAT) => goalStrat(ID:Int) ... </strategy>
            <local-context> LC::Bag </local-context>
            <trace> TRACE </trace>
            ...
