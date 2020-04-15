@@ -287,20 +287,17 @@ Currently, the entire REST is constrained to a single heap variable
 TODO: other corner cases probably
 
 ```k
-  rule #matchAssocComm( terms:     T, Ts
-                      , pattern:   H:Variable, Ps
+  rule #matchAssocComm( terms:     Ts
+                      , pattern:   H:Variable, .Patterns
                       , variables: Vs
                       , results:   .MatchResults
                       , subst:     SUBST
-                      , rest:      REST
-                      )
-    => #matchAssocComm( terms:     T, Ts
-                      , pattern:   Ps
-                      , variables: Vs
-                      , results:   .MatchResults
-                      , subst:     SUBST H |-> sep(REST)
                       , rest:      .Patterns
                       )
+    => #matchResult( subst: SUBST H |-> sep(Ts)
+                   , rest: .Patterns
+                   )
+     , .MatchResults
     requires H in Vs
 ```
 
