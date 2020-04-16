@@ -684,7 +684,7 @@ things, so the LHS becomes unsat.
   rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS)
             => \implies( \and(sep(REST), LCONSTRAINT),
                          \exists { !D:VariableName { DATA }, !H:VariableName { Heap } }
-                           \and(sep(!H { Heap }, pto(XMATCH, !D:VariableName { DATA })))
+                           \and(sep(pto(XMATCH, !D:VariableName { DATA }), !H { Heap }))
                        )
        </claim>
        <k> #matchResult( subst: X { LOC }  |-> XMATCH
