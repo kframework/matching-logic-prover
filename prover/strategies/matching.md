@@ -701,7 +701,7 @@ things, so the LHS becomes unsat.
 ### Nullity Analysis
 
 ```
-    LHS -> \exists d, H. H * xi |-> d      LHS /\ xi =/= nil -> RHS
+    LHS -> \exists d, H. xi |-> d * H      LHS /\ xi =/= nil -> RHS
     ---------------------------------------------------------------
                                LHS -> RHS
 ``

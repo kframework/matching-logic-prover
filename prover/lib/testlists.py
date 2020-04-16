@@ -61,6 +61,30 @@ tst_22_strategy = """
     ) .
 """.replace('\n',' ')
 
+dll_vc07_strategy = """
+    normalize . or-split-rhs
+  . lift-constraints . instantiate-existentials
+  . substitute-equals-for-equals
+  . nullity-analysis
+    ( abstract-nil
+    . kt
+    . ( ( left-unfold-Nth(0)
+        . normalize . or-split-rhs
+        . lift-constraints . instantiate-existentials
+        . instantiate-separation-logic-axioms
+        . substitute-equals-for-equals
+        . check-lhs-constraint-unsat
+        . lift-constraints
+        . match
+        . spatial-patterns-equal
+        . spatial-patterns-match
+        . smt-cvc4
+        )
+      | ( search-sl(kt-bound: 1, unfold-bound: 0) )
+      )
+    ) .
+""".replace('\n',' ')
+
     #         prefix   KT  RU timeout tests
 test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , ('unfold-mut-recs . ',    5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
@@ -169,6 +193,7 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , (tst_22_strategy,      0,  0, '10m', ['t/SL-COMP18/bench/qf_shid_entl/22.tst.smt2'])
              , ('footprint-analysis . ',
                                       2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2'])
+             , (dll_vc07_strategy,    2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 

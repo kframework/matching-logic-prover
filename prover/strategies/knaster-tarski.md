@@ -626,12 +626,12 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 >      (alpha -> beta) /\ gamma -> psi
 
 ```k
-  rule <claim> \implies( \and(\forall { Us } \implies(LHS, RHS), REST:Patterns), RHS2 )
-            => \implies( \and(REST), RHS2 )
+  rule <claim> \implies( \and(\forall { Us } \implies(LIMPLIES, RIMPLIES), LHS), RHS )
+            => \implies( \and(LHS), RHS )
        </claim>
-       <k> kt-solve-implications( STRAT)
-        => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(REST)), \exists { Us } LHS), STRAT)
-                                 , \and(LHS, RHS)
+       <k> kt-solve-implications( STRAT )
+        => ( kt-solve-implication( subgoal(\implies(\and(removeImplications(LHS)), \exists { Us } LIMPLIES), STRAT)
+                                 , RIMPLIES
                                  )
            . kt-solve-implications(STRAT)
            )
@@ -675,14 +675,19 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
 ```k
   syntax Strategy ::= "kt-solve-implication" "(" Strategy "," Pattern ")"
   rule <k> kt-solve-implication(S, RHS)
-               => S ~> kt-solve-implication(#hole, RHS)
-                  ...
+        => S ~> kt-solve-implication(#hole, RHS)
+           ...
        </k>
     requires notBool isTerminalStrategy(S)
     
   rule <k> T:TerminalStrategy ~> kt-solve-implication(#hole, RHS)
                => kt-solve-implication(T, RHS)
                   ...
+       </k>
+  rule <k> kt-solve-implication(fail, RHS) => noop ... </k>
+  rule <k> kt-solve-implication(success, CONC) => noop ... </k>
+       <k> \implies(\and(LHS), RHS)
+            => \implies(\and(CONC, LHS), RHS)
        </k>
   rule <k> kt-solve-implication(fail, RHS) => noop ... </k>
   rule <k> kt-solve-implication(success, CONC) => noop ... </k>
