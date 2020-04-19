@@ -1062,6 +1062,12 @@ assume a pattern of the form:
        => StringToSymbol(
             getFreshNameNonum(Base, collectSymbolsS(GId)))
 
+  syntax Patterns ::= filterVariablesBySort(Patterns, Sort) [function]
+  rule filterVariablesBySort(.Patterns, _) => .Patterns
+  rule filterVariablesBySort(((_ { S } #as V), Vs), S)
+    => V, filterVariablesBySort(Vs, S)
+  rule filterVariablesBySort((V, Vs), S)
+    => filterVariablesBySort(Vs, S) [owise]
 ```
 
 ```k

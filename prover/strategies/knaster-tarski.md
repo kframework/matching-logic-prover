@@ -594,13 +594,6 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
   rule substituteWithEach(P, V, (I, Is))
     => subst(P, V, I), substituteWithEach(P, V, Is)
 
-  syntax Patterns ::= filterVariablesBySort(Patterns, Sort) [function]
-  rule filterVariablesBySort(.Patterns, _) => .Patterns
-  rule filterVariablesBySort(((_ { S } #as V), Vs), S)
-    => V, filterVariablesBySort(Vs, S)
-  rule filterVariablesBySort((V, Vs), S)
-    => filterVariablesBySort(Vs, S) [owise]
-
   // TODO: Move to "normalize" strategy
   rule <claim> \implies(\and(\and(Ps1), Ps2), RHS)
         => \implies(\and(Ps1 ++Patterns Ps2), RHS)
