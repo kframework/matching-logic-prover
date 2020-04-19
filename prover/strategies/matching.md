@@ -650,8 +650,8 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
          <k> spatial-patterns-match ... </k>
        requires isPredicatePattern(RHS)
 
-    rule <k> \implies(LHS, RHS) </k>
-         <strategy> spatial-patterns-match => noop ... </strategy>
+    rule <claim> \implies(LHS, RHS) </claim>
+         <k> spatial-patterns-match => noop ... </k>
        requires isPredicatePattern(LHS)
         andBool isPredicatePattern(RHS)
 ```
@@ -709,13 +709,26 @@ things, so the LHS becomes unsat.
     LHS -> \exists d, H. xi |-> d * H      LHS /\ xi =/= nil -> RHS
     ---------------------------------------------------------------
                                LHS -> RHS
-``
+```
 
 ```k
+
+  syntax Strategy ::= "nullity-analysis" "(" Patterns "," Strategy ")"
+
+  rule <claim> \implies(LHS, RHS) </claim>
+       <k> nullity-analysis(S)
+        => nullity-analysis(filterVariablesBySort(getFreeVariables(LHS), LOC), S)
+           ...
+       </k>
+       <declaration> axiom _: heap(LOC, DATA) </declaration>
+
+  rule <claim> \implies(LHS, RHS) </claim>
+       <k> nullity-analysis(.Patterns, S) => fail ... </k>
+
   rule <claim> \implies( \and( sep(LSPATIAL), LCONSTRAINT), RHS)
             => \implies( \and( \forall { !D:VariableName { DATA }, !H:VariableName { Heap } }
-                               \implies( \and(sep(pto(#token("Vy_emp", "VariableName") { LOC }, !D:VariableName { DATA }), !H { Heap }))
-                                       , \not(\equals( #token("Vy_emp", "VariableName") { LOC }
+                               \implies( \and(sep(pto(V, !D:VariableName { DATA }), !H { Heap }))
+                                       , \not(\equals( V
                                                      , nil(.Patterns)
                                                      )
                                              )
@@ -726,9 +739,10 @@ things, so the LHS becomes unsat.
                        , RHS
                        )
        </claim>
-       <k> nullity-analysis(STRAT)
-               => kt-solve-implications(STRAT)
-                  ...
+       <k> nullity-analysis((V, Vs), S)
+        => kt-solve-implications(S)
+         | nullity-analysis(Vs, S)
+           ...
        </k>
        <declaration> axiom _: heap(LOC, DATA) </declaration>
 ```
