@@ -104,7 +104,8 @@ module DRIVER-COQ
             CoqTermToPattern(match Ts with EQs end)
             ), .Patterns))
   rule CoqTermToPattern(TM:CoqTerm ARG) => CoqTermToPattern(TM)(CoqArgToPatterns(ARG))
-  rule CoqTermToPattern(fix ID BINDERs := TM) => \mu { # CoqNameToVariableName(ID) } CoqTermToPattern(fun BINDERs => TM)
+  rule CoqTermToPattern(fix ID BINDERs ANN:CoqAnnotation : TY := TM) => CoqTermToPattern(fix ID BINDERs : TY := TM)
+  rule CoqTermToPattern(fix ID BINDERs : TY := TM) => \mu { # CoqNameToVariableName(ID) } CoqTermToPattern(fun BINDERs => TM)
   rule CoqTermToPattern(@ QID:CoqQualID TM:CoqTerm) => CoqIdentToSymbol(QID)(CoqTermToPattern(TM))
   // TODO: incorporate qualfied name
   rule CoqTermToPattern(QID:CoqQualID . ID:CoqIdent) => CoqIdentToSymbol(ID)
@@ -122,6 +123,8 @@ module DRIVER-COQ
   rule CoqMatchItemsToPatterns(MI:CoqMatchItem, MIs) => CoqMatchItemToPattern(MI), .Patterns
 
   rule CoqMatchItemToPattern(MI:CoqTerm) => CoqTermToPattern(MI)
+  // TODO: is this right?
+  rule CoqMatchItemToPattern(MI:CoqTerm as N:CoqName) => CoqTermToPattern(MI)
 
   syntax Patterns ::= #equals(Patterns, Patterns) [function]
   rule #equals(.Patterns, .Patterns) => .Patterns
