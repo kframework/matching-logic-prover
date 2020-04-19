@@ -194,6 +194,9 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , ('footprint-analysis . ',
                                       2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2'])
              , (dll_vc07_strategy,    2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2'])
+             , ('footprint-analysis . abstract-nil . ',
+                                      2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc11.smt2'])
+
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 
