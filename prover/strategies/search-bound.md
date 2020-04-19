@@ -26,7 +26,7 @@ module STRATEGY-SEARCH-BOUND
                 . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
                     . ( right-unfold-all(bound: UNFOLDBOUND) )
                     . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                    . match . spatial-patterns-equal . smt-cvc4
+                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                     )
                   | ( kt . search-sl(kt-bound: KTBOUND -Int 1, unfold-bound: UNFOLDBOUND) )
                   )
@@ -41,7 +41,7 @@ module STRATEGY-SEARCH-BOUND
                 . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
                     . ( right-unfold { UNFOLDBOUND } )
                     . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                    . match . spatial-patterns-equal . smt-cvc4
+                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                     )
                   | ( kt . alternate-search-sl(kt-bound: KTBOUND -Int 1, unfold-bound: UNFOLDBOUND) )
                   )
@@ -56,7 +56,7 @@ module STRATEGY-SEARCH-BOUND
                 . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
                     . ( right-unfold-all(bound: UNFOLDBOUND) )
                     . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                    . match . spatial-patterns-equal . smt-cvc4
+                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                     )
                   | ( kt-unf . kt-unfold-search-sl(kt-bound: KTBOUND -Int 1, unfold-bound: UNFOLDBOUND) )
                   )
