@@ -309,7 +309,7 @@ Bring predicate constraints to the top of a term.
   // => \and(sep(H1), sep(H2), P1, P2)
   // \and(sep(\and(H1, H2, x=y), H3), H4, w=z)
   // => \and(sep(H1, H3), sep(H2, H3), sep(H4), x=y, w=z)
-  ```
+```
 
 ### lift-or
 
