@@ -64,6 +64,7 @@ cooled back into the sequence strategy.
 ```k
   syntax ResultStrategy ::= "#hole"
   rule <strategy> S1 . S2 => S1 ~> #hole . S2 </strategy>
+       <trace> _ => S1 </trace>
     requires notBool(isResultStrategy(S1))
      andBool notBool(isSequenceStrategy(S1))
   rule <claim> GOAL:Pattern </claim>
