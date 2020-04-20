@@ -68,6 +68,8 @@ cooled back into the sequence strategy.
     requires notBool(isResultStrategy(S1))
      andBool notBool(isSequenceStrategy(S1))
   rule <claim> GOAL:Pattern </claim>
+       <strategy> S1:SequenceStrategy ~> #hole . S2 => S1 . S2 </strategy>
+  rule <claim> GOAL:Pattern </claim>
        <strategy> S1:ResultStrategy ~> #hole . S2 => subgoal(GOAL, S1 . S2) </strategy>
 ```
 
