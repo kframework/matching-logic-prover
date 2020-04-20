@@ -89,18 +89,16 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
 ```k
   syntax Strategy ::= goalStrat(GoalId)
   rule <prover>
-         <goal> <id> PID </id>
-                <active> _ => true </active>
-                <strategy> goalStrat(ID) => RStrat ... </strategy>
-                ...
-         </goal>
          ( <goal> <id> ID </id>
-                  <active> true:Bool </active>
                   <parent> PID </parent>
                   <strategy> RStrat:TerminalStrategy </strategy>
                   ...
            </goal> => .Bag
          )
+         <goal> <id> PID </id>
+                <strategy> goalStrat(ID) => RStrat ... </strategy>
+                ...
+         </goal>
          ...
        </prover>
 ```
@@ -116,7 +114,6 @@ Proving a goal may involve proving other subgoals:
          ( .Bag =>
              <goal>
                <id> ID:Int </id>
-               <active> true </active>
                <parent> PARENT </parent>
                <strategy> SUBSTRAT </strategy>
                <k> SUBGOAL </k>
@@ -127,7 +124,6 @@ Proving a goal may involve proving other subgoals:
          )
          <goal>
            <id> PARENT </id>
-           <active> true => false </active>
            <strategy> subgoal(ID, SUBGOAL, SUBSTRAT) => goalStrat(ID:Int) ... </strategy>
            <local-context> LC::Bag </local-context>
            <trace> TRACE </trace>
