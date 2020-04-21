@@ -1,46 +1,14 @@
 language: java
-dist: bionic
-addons:
-  apt:
-    update: true
-    packages:
-      - autoconf
-      - aspcud
-      - clang-8
-      - curl
-      - cvc4
-      - flex
-      - gcc
-      - libboost-all-dev
-      - libffi-dev
-      - libjemalloc-dev
-      - libmpfr-dev
-      - libtool
-      - lld-8
-      - llvm-8-tools
-      - make
-      - maven
-      - ninja-build
-      - ocaml
-      - opam
-      - openjdk-8-jdk
-      - pandoc
-      - pkg-config
-      - python3
-      - time
-      - zlib1g-dev
-      - z3
+services:
+  docker
 git:
-    depth: 3
+  depth: 3
 jobs:
-    include:
-        - stage: build smt
-          script:
-          - "cd prover && travis_wait 10     ./build -v prover-smt"
-        - stage: build kore
-          script:
-          - "cd prover && travis_wait 10     ./build -v prover-kore"
-        - stage: test
-          script:
-          - "cd prover && travis_wait 10     ./build -v unit-tests"
-          - "cd prover && travis_wait 60    ./build -v smoke-tests"
+  include:
+    - stage: Build Docker Image
+      script:
+      - "docker build --tag matching-logic-prover ."
+    - stage: test
+      script:
+      - "docker run --rm matching-logic-prover ./build -v unit-tests"
+      - "docker run --rm matching-logic-prover ./build -v smoke-tests"
