@@ -36,11 +36,11 @@ jobs:
     include:
         - stage: build smt
           script:
-          - "cd prover && travis_wait 3     ./build prover-smt"
+          - "cd prover && travis_wait 3     ./build -v prover-smt"
         - stage: build kore
           script:
-          - "cd prover && travis_wait 3     ./build prover-kore"
+          - "cd prover && travis_wait 3     ./build -v prover-kore"
         - stage: test
           script:
-          - "cd prover && travis_wait 5     ./build unit-tests"
-          - "cd prover && travis_wait 60    ./build smoke-tests"
+          - "cd prover && travis_wait 5     ./build -v unit-tests"
+          - "cd prover && travis_wait 60    ./build -v smoke-tests"
