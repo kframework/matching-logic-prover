@@ -496,6 +496,7 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_)=> \top()
   rule subst(\bottom(),_,_) => \bottom()
+  rule subst(\typeof(T, S), X, V) => \typeof(subst(T, X, V), S)
   rule subst(\equals(ARG1, ARG2):Pattern, X, V)
     => \equals(subst(ARG1, X, V), subst(ARG2, X, V)):Pattern
   rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
