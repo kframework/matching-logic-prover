@@ -34,5 +34,10 @@ git:
     depth: 3
 jobs:
     include:
-        - stage: build and test
-          script: "cd prover && travis_wait 60 ./build smoke-tests unit-tests"
+        - stage: build
+          script:
+          - "cd prover && travis_wait 3     ./build prover-kore prover-smt"
+        - stage: test
+          script:
+          - "cd prover && travis_wait 5     ./build unit-tests"
+          - "cd prover && travis_wait 60    ./build smoke-tests"
