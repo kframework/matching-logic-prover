@@ -413,7 +413,7 @@ context has no constraints.
      requires UNIVs =/=K .Patterns
       andBool UNIVs -Patterns fst(unzip(SUBST)) ==K .Patterns
 
-  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => .Patterns }
+  rule <claim> \implies(\and( ( sep ( \forall { UNIVs }
                                       ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
                                       )
                                     , LSPATIAL
