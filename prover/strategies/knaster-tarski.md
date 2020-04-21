@@ -501,7 +501,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
                                )
                        , RHS:Pattern
                        )
-             => \implies( \or(#dnfPs( \and( sep(!H:VariableName { Heap }, LSPATIAL)
+             => \implies( \or(#dnfPs( \and( sep(LSPATIAL ++Patterns !H:VariableName { Heap })
                                           , LHS:Patterns
                                           )
                                     )
