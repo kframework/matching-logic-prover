@@ -128,17 +128,6 @@ Recurse over assoc-only constructors (including `pto`):
                   )
     requires S =/=K sep
 
-  // ground variable: mismatched
-  rule #matchAssoc( terms:     T, Ts
-                  , pattern:   P:Variable, Ps
-                  , variables: Vs
-                  , subst:     SUBST
-                  , rest:      REST
-                  )
-    => #error("Variable does not match"), .MatchResults
-    requires T =/=K P
-     andBool notBool P in Vs
-
   // ground variable: identical
   rule #matchAssoc( terms:     P:Variable, Ts => Ts
                   , pattern:   P:Variable, Ps => Ps
