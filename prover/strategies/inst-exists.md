@@ -20,7 +20,8 @@ module STRATEGY-INST-EXISTS
          P => instExists(P, V, T)
        </claim>
 
-  syntax Pattern ::= instExists(Pattern, Variable, Pattern) [function]
+                             /* pattern, variable, instantiation */ 
+  syntax Pattern ::= instExists(Pattern, Pattern, Pattern) [function]
 
   rule instExists(\implies(L, R), V, T)
     => \implies(L, instExists(R, V, T))

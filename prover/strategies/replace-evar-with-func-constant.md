@@ -15,27 +15,21 @@ module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
        ...</strategy> 
 
   rule <strategy>
-         replace-evar-with-func-constant .Variables
-         => #rewfc(PatternsToVariables(getFreeVariables(P, .Patterns)))
+         replace-evar-with-func-constant .Patterns
+         => #rewfc(getFreeVariables(P, .Patterns))
        ...</strategy>
        <claim> P </claim>
 
-  syntax Variables ::= PatternsToVariables(Patterns) [function]
-  rule PatternsToVariables(.Patterns) => .Variables
-  rule PatternsToVariables(V{S}, Vs) => V{S}, PatternsToVariables(Vs)
-  rule PatternsToVariables(_, Vs) => PatternsToVariables(Vs) [owise]
+  syntax KItem ::= #rewfc(Patterns)
 
-
-  syntax KItem ::= #rewfc(Variables)
-
-  rule <strategy> #rewfc(.Variables) => noop ...</strategy>
+  rule <strategy> #rewfc(.Patterns) => noop ...</strategy>
 
   rule <strategy> (.K => #rewfc1(V))
                ~> #rewfc(V,Vs => Vs)
        ...</strategy>
 
-  syntax KItem ::= #rewfc1(Variable)
-                 | #rewfc2(Variable, Symbol)
+  syntax KItem ::= #rewfc1(Pattern)
+                 | #rewfc2(Pattern, Symbol)
 
   rule <strategy> #rewfc1(N{S} #as V)
                => #rewfc2(V, getFreshSymbol(

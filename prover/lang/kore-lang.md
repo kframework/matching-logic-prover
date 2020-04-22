@@ -135,9 +135,9 @@ is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
 
 ```k
-  syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
+  syntax Pattern ::= Pattern "{" Sort "}"
   syntax Pattern ::= Int
-                   | Variable
+                   | VariableName
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
 
@@ -184,7 +184,7 @@ only in this scenario*.
   syntax Declarations ::= Declaration Declarations
   syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
 
-  syntax Variable ::= "#hole"
+  syntax Pattern ::= "#hole"
 
   // Sugar for `\exists #hole . #hole /\ floor(Arg1 -> Arg2)
   syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
@@ -314,8 +314,9 @@ module KORE-HELPERS
   syntax Patterns ::= getGroundTerms(Pattern, Patterns) [function, klabel(getGroundTermsAux)]
   rule getGroundTerms(S:Symbol, VARs) => S, .Patterns
   rule getGroundTerms(I:Int, VARs) => I, .Patterns
-  rule getGroundTerms(X:Variable, VARs) => X, .Patterns requires notBool X in VARs
-  rule getGroundTerms(X:Variable, VARs) =>    .Patterns requires         X in VARs
+  rule getGroundTerms(P { _ }, VARs) => getGroundTerms(P, VARs), .Patterns
+  rule getGroundTerms(X:VariableName, VARs) => X, .Patterns requires notBool X in VARs
+  rule getGroundTerms(X:VariableName, VARs) =>    .Patterns requires         X in VARs
 
   rule getGroundTerms(\implies(LHS, RHS), VARs)
     => getGroundTerms(LHS, VARs) ++Patterns getGroundTerms(RHS, VARs)

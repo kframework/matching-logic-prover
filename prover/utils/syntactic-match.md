@@ -106,7 +106,7 @@ module SYNTACTIC-MATCH-RULES
 
   // ground variable: mismatched
   rule #syntacticMatch( terms:     T, _
-                      , patterns:  P:Variable, _
+                      , patterns:  (_:VariableName { _ } #as P), _
                       , variables: Vs
                       , subst:     _
                       )
@@ -115,8 +115,8 @@ module SYNTACTIC-MATCH-RULES
      andBool notBool P in Vs
 
   // ground variable: identical
-  rule #syntacticMatch( terms:     P:Variable, Ts => Ts
-                      , patterns:  P:Variable, Ps => Ps
+  rule #syntacticMatch( terms:     (_:VariableName { _ } #as P), Ts => Ts
+                      , patterns:  (_:VariableName { _ } #as P), Ps => Ps
                       , variables: Vs
                       , subst:     _
                       )
@@ -124,7 +124,7 @@ module SYNTACTIC-MATCH-RULES
 
   // ground variable: non-identical
   rule #syntacticMatch( terms:     T, _
-                      , patterns:  P:Variable, _
+                      , patterns:  (_:VariableName { _ } #as P), _
                       , variables: Vs
                       , subst:     _
                       )
@@ -134,7 +134,7 @@ module SYNTACTIC-MATCH-RULES
      
   // free variable: different sorts
   rule #syntacticMatch( terms:     T, _
-                      , patterns:  P:Variable, _
+                      , patterns:  (_:VariableName { _ } #as P), _
                       , variables: Vs
                       , subst:     _
                       )
@@ -145,7 +145,7 @@ module SYNTACTIC-MATCH-RULES
 
   // free variable: extend substitution
   rule #syntacticMatch( terms:     T, Ts => Ts
-                      , patterns:  P:Variable, Ps
+                      , patterns:  (_:VariableName { _ } #as P), Ps
                         => substPatternsMap(Ps, P |-> T)
                       , variables: Vs
                       , subst:     SUBST => ((P |-> T) SUBST)

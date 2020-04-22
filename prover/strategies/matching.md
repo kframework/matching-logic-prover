@@ -130,7 +130,7 @@ Recurse over assoc-only constructors (including `pto`):
 
   // ground variable: mismatched
   rule #matchAssoc( terms:     T, Ts
-                  , pattern:   P:Variable, Ps
+                  , pattern:   (_:VariableName { _ } #as V), Ps
                   , variables: Vs
                   , subst:     SUBST
                   , rest:      REST
@@ -140,8 +140,8 @@ Recurse over assoc-only constructors (including `pto`):
      andBool notBool P in Vs
 
   // ground variable: identical
-  rule #matchAssoc( terms:     P:Variable, Ts => Ts
-                  , pattern:   P:Variable, Ps => Ps
+  rule #matchAssoc( terms:     (_:VariableName { _ } #as V), Ts => Ts
+                  , pattern:   (_:VariableName { _ } #as V), Ps => Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
@@ -150,7 +150,7 @@ Recurse over assoc-only constructors (including `pto`):
 
   // ground variable: non-identical
   rule #matchAssoc( terms:     T, Ts
-                  , pattern:   P:Variable, Ps
+                  , pattern:   (_:VariableName { _ } #as V), Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
@@ -161,7 +161,7 @@ Recurse over assoc-only constructors (including `pto`):
      
   // free variable: different sorts
   rule #matchAssoc( terms:     T         , Ts
-                  , pattern:   P:Variable, Ps
+                  , pattern:   (_:VariableName { _ } #as V), Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
@@ -173,7 +173,7 @@ Recurse over assoc-only constructors (including `pto`):
 
   // free variable: extend substitution
   rule #matchAssoc( terms:     T         , Ts => Ts
-                  , pattern:   P:Variable, Ps => substPatternsMap(Ps, P |-> T)
+                  , pattern:   (_:VariableName { _ } #as V), Ps => substPatternsMap(Ps, P |-> T)
                   , variables: Vs
                   , subst:     SUBST => ((P |-> T) SUBST)
                   , rest:      REST
@@ -616,7 +616,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
       requires notBool isPredicatePattern(P)
     rule filterPredicates(.Patterns) => .Patterns
 
-    syntax Patterns ::= filterClausesInvolvingVariable(Variable, Patterns) [function]
+    syntax Patterns ::= filterClausesInvolvingVariable(VariableName, Patterns) [function]
     rule filterClausesInvolvingVariable(V, (P, Ps))
       => P, filterClausesInvolvingVariable(V, Ps)
       requires V in getFreeVariables(P)

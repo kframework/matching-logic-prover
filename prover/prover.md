@@ -66,7 +66,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                         RewriteDirection AxiomOrClaimName
                         "at" Int "by" "[" Strategies "]"
                     | "intros" AxiomName
-                    | "replace-evar-with-func-constant" Variables
+                    | "replace-evar-with-func-constant" Patterns
                     | "duplicate" AxiomOrClaimName "as" AxiomName
                     | "instantiate-universals" "("
                         "in:" AxiomName ","
@@ -78,15 +78,12 @@ module STRATEGIES-EXPORTED-SYNTAX
                     // to discharge the axiom's premises.
                     | "apply" "(" AxiomOrClaimName
                               "," Strategy ")"
-                    | "inst-exists" "(" Variable "," Pattern
-                                    "," Strategy ")"
+                    | "inst-exists" "(" Pattern "," Pattern "," Strategy ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
   syntax Strategies ::= List{Strategy, ","}                        [klabel(Strategies)]
-  syntax Variables ::= List{Variable, ","}                 [klabel(Variables)]
   syntax VariableNames ::= List{VariableName, ","}                 [klabel(VariableNames)]
-
 
   syntax KTFilter ::= head(Symbol)
                     | index(Int)

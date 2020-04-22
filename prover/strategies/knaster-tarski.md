@@ -529,7 +529,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 
 
 ```k
-  syntax Patterns ::= substituteWithEach(Pattern, Variable, Patterns) [function]
+  syntax Patterns ::= substituteWithEach(Pattern, Pattern, Patterns) [function]
   rule substituteWithEach(_, _, .Patterns) => .Patterns
   rule substituteWithEach(P, V, (I, Is))
     => subst(P, V, I), substituteWithEach(P, V, Is)
@@ -641,7 +641,7 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                   ...
        </strategy>
 
-  rule <strategy> instantiate-universals-with-ground-terms( (\forall { (_ { S } #as V:Variable), UNIVs:Patterns } P:Pattern , REST_FORALLs)
+  rule <strategy> instantiate-universals-with-ground-terms( (\forall { (_ { S } #as V:Pattern), UNIVs:Patterns } P:Pattern , REST_FORALLs)
                                 => (substituteWithEach(\forall { UNIVs } P, V, filterBySort(GROUND_TERMS, S)) ++Patterns REST_FORALLs)
                                  , GROUND_TERMS
                                  )

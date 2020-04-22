@@ -124,16 +124,17 @@ LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
   rule #purifyPs(P, Ps) => #purify(P), #purifyPs(Ps)
 
   syntax Patterns ::= makePureVariables(Patterns) [function]
-  rule makePureVariables(V:Variable, REST) => V, makePureVariables(REST)
+  rule makePureVariables(_:VariableName { S } #as V, REST)
+    => V, makePureVariables(REST)
   rule makePureVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makePureVariables(REST)
-    requires notBool isVariable(P)
+    requires P :/=K _:VariableName { S }
   rule makePureVariables(.Patterns) => .Patterns
 
   syntax Patterns ::= #getNonVariables(Patterns) [function]
   rule #getNonVariables(.Patterns) => .Patterns
-  rule #getNonVariables(V:Variable, Ps) => #getNonVariables(Ps)
+  rule #getNonVariables(V:VariableName {_}, Ps) => #getNonVariables(Ps)
   rule #getNonVariables(P, Ps) => P, #getNonVariables(Ps)
-    requires notBool isVariable(P)
+    requires P :=K _:VariableName { S }
 
   syntax Patterns ::= #makeEqualities(Patterns, Patterns) [function]
   rule #makeEqualities(.Patterns, .Patterns) => .Patterns
@@ -198,7 +199,7 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #replaceNewVariables(Patterns, Patterns) [function]
   rule #replaceNewVariables((V1:Variable, Ps), Vs) => V1, #replaceNewVariables(Ps, Vs)
   rule #replaceNewVariables((P, Ps), (V, Vs)) => V, #replaceNewVariables(Ps, Vs)
-    requires notBool isVariable(P)
+    requires _:VariableName { _ } :/=K P
   rule #replaceNewVariables(.Patterns, _) => .Patterns
 
   syntax Patterns ::= #createEqualities(Patterns, Patterns) [function]
