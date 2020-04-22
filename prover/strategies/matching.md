@@ -288,6 +288,16 @@ TODO: other corner cases probably
 
 ```k
   rule #matchAssocComm( terms:     Ts
+                      , pattern:   (H:Variable, P, Ps)
+                                => ((P, Ps) ++Patterns H)
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      , rest:      .Patterns
+                      )
+    requires notBool isVariable(P)
+
+  rule #matchAssocComm( terms:     Ts
                       , pattern:   H:Variable, .Patterns
                       , variables: Vs
                       , results:   .MatchResults
