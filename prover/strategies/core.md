@@ -63,10 +63,14 @@ cooled back into the sequence strategy.
 
 ```k
   syntax ResultStrategy ::= "#hole"
-  rule <strategy> S1 . S2 => S1 ~> #hole . S2 ... </strategy>
+  rule <strategy> S1 . S2 => S1 ~> #hole . S2 </strategy>
+       <trace> _ => S1 </trace>
     requires notBool(isResultStrategy(S1))
      andBool notBool(isSequenceStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole . S2 => S1 . S2 ... </strategy>
+  rule <claim> GOAL:Pattern </claim>
+       <strategy> S1:SequenceStrategy ~> #hole . S2 => S1 . S2 </strategy>
+  rule <claim> GOAL:Pattern </claim>
+       <strategy> S1:ResultStrategy ~> #hole . S2 => subgoal(GOAL, S1 . S2) </strategy>
 ```
 
 The `noop` (no operation) strategy is the unit for sequential composition:
@@ -94,15 +98,44 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
                 <strategy> goalStrat(ID) => RStrat ... </strategy>
                 ...
          </goal>
-         ( <goal> <id> ID </id>
-                  <active> true:Bool </active>
-                  <parent> PID </parent>
-                  <strategy> RStrat:TerminalStrategy </strategy>
-                  ...
-           </goal> => .Bag
-         )
+         <goal> <id> ID </id>
+                <active> true:Bool => false </active>
+                <parent> PID </parent>
+                <strategy> (.K => #reap?) ~> RStrat:TerminalStrategy </strategy>
+                ...
+         </goal>
          ...
        </prover>
+
+  syntax KItem ::= "#reap?" // if goal failed prune goal and children
+  rule <strategy> (#reap? => #reap) ~> fail    </strategy>
+  rule <strategy> (#reap? => .K   ) ~> success </strategy>
+
+  syntax KItem ::= "#reap"  // (always) prune goal and children
+  rule <goal>
+         <id> PID </id>
+         <strategy> #reap ~> RStrat:TerminalStrategy </strategy>
+         ...
+       </goal>
+       <goal>
+         <parent> PID </parent>
+         <strategy> (.K => #reap) ~> Strat:Strategy </strategy>
+         ...
+       </goal>
+  rule <prover>
+         <goal>
+           <id> ID </id>
+           <strategy> #reap ~> Strat:Strategy </strategy>
+           ...
+         </goal> => .Bag
+         ...
+      </prover>
+    requires notBool hasChildren(ID)
+
+  syntax Bool ::= hasChildren(GoalId) [function]
+  rule [[ hasChildren(ID) => true ]]
+       <parent> ID </parent>
+  rule hasChildren(ID) => false [owise]
 ```
 
 Proving a goal may involve proving other subgoals:
@@ -118,7 +151,6 @@ Proving a goal may involve proving other subgoals:
                <strategy> SUBSTRAT </strategy>
                <claim> SUBGOAL </claim>
                <local-context> LC </local-context>
-               <trace> TRACE </trace>
                ...
              </goal>
          )
@@ -127,7 +159,6 @@ Proving a goal may involve proving other subgoals:
            <active> true => false </active>
            <strategy> subgoal(SUBGOAL, SUBSTRAT) => goalStrat(!ID:Int) ... </strategy>
            <local-context> LC::Bag </local-context>
-           <trace> TRACE </trace>
            ...
          </goal>
          ...
