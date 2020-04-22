@@ -393,7 +393,7 @@ context has no constraints.
 ```
 
 ```k
-  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => .Patterns }
+  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => UNIVs -Patterns fst(unzip(SUBST)) }
                                       ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
                                      => substMap(CTX, SUBST)
                                       )
@@ -406,72 +406,21 @@ context has no constraints.
                        )
        </claim>
        <k> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
-               => kt-collapse
+               => kt-collapse-resolve
                   ...
        </k>
      requires UNIVs =/=K .Patterns
-      andBool UNIVs -Patterns fst(unzip(SUBST)) ==K .Patterns
-
-  rule <claim> \implies(\and( ( sep ( \forall { UNIVs }
-                                      ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
-                                      )
-                                    , LSPATIAL
-                                    )
-                              )
-                            , LHS:Patterns
-                            )
-                       , RHS:Pattern
-                       )
-       </claim>
-       <k> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
-               => fail
-                  ...
-       </k>
-     requires UNIVs =/=K .Patterns
-      andBool UNIVs -Patterns fst(unzip(SUBST)) =/=K .Patterns
 ```
 
-Finally, we use matching on the no universal quantifiers case to collapse the context.
+       1.  LHS * ?H   /\ not(LCTXCONSTR)   -> RHS
+       2a. LHS        /\ LCTXCONSTR        -> \exists X . LCTX
+       2b. LHS * RCTX /\ LCTXCONSTR        -> RHS
+------------------------------------------------------------------------------ Where X does not occur in RCTX or LCTXCONSTR
+     LHS * \forall X. \ic(LCTX /\ LCTXCONSTR, RCTX) /\ LCONSTRAINTS -> RHS
 
 ```k
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
-                                  , LSPATIAL
-                                  )
-                            , LHS:Patterns
-                            )
-                       , RHS:Pattern
-                       )
-       </claim>
-       <k> kt-collapse
-               => with-each-match( #match(terms: LSPATIAL, pattern: CTXLHS, variables: .Patterns)
-                                 , kt-collapse
-                                 )
-                  ...
-       </k>
-
-  rule <claim> \implies( \and( ( sep ( \forall { .Patterns }
-                                       implicationContext( \and(sep(_)) , CTXRHS)
-                                     , LSPATIAL
-                                     )
-                              => sep(substMap(CTXRHS, SUBST) ++Patterns REST)
-                               )
-                               , LHS:Patterns
-                             )
-                       , RHS:Pattern
-                       )
-       </claim>
-       <k> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
-               => kt-collapse
-                  ...
-       </k>
-```
-
-TODO: This is pretty adhoc: Remove constraints in the context that are already in the LHS
-
-```k
-  // TODO: the rule below should be able to subsume the above ad-hoc rule
-  rule <claim> \implies( \and( sep ( \forall { .Patterns } 
+  syntax Strategy ::= "kt-collapse-resolve"
+  rule <claim> \implies( \and( sep ( \forall { UNIVs }
                                      implicationContext( \and( sep(CTXLSPATIAL)
                                                              , CTXLCONSTRAINTs
                                                              )
@@ -484,16 +433,17 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
                        , RHS:Pattern
                        )
        </claim>
-       <k> kt-collapse
-               => resolve(\and(CTXLCONSTRAINTs))
-                  ...
+       <k> kt-collapse-resolve
+        => resolve(\and(getPredicatePatterns(CTXLCONSTRAINTs)))
+           ...
        </k>
     requires CTXLCONSTRAINTs =/=K .Patterns
+     andBool getFreeVariables(getPredicatePatterns(CTXLCONSTRAINTs)) intersect UNIVs ==K .Patterns
 ```
 
 ```k         
     syntax Strategy ::= "kt-collapse-unsat"
-    rule <claim> \implies( \and( sep ( \forall { .Patterns } implicationContext(_, _)
+    rule <claim> \implies( \and( sep ( \forall { UNIVs } implicationContext(_, _)
                                      , LSPATIAL
                                      )
                                , LHS:Patterns
@@ -511,18 +461,30 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
        <k> kt-collapse-unsat => noop ... </k>
 
     syntax Strategy ::= "kt-collapse-valid"
-   rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                     implicationContext( \and(CTXLHS => CTXLHS -Patterns getPredicatePatterns(LHS))
-                                                       , _
-                                                       )
-                                   , LSPATIAL
-                                   )
-                             , LHS:Patterns
-                             )
-                        , RHS:Pattern
-                        )
-        </claim>
-        <k> kt-collapse-valid => kt-collapse ... </k>
+    rule <claim> \implies(\and( sep ( \forall { UNIVs }
+                                      implicationContext( LCTX
+                                                        , RCTX
+                                                        )
+                                    , LSPATIAL
+                                    )
+                              , LHS:Patterns
+                              )
+                         , RHS:Pattern
+                         )
+         </claim>
+         <k> ( kt-collapse-valid ~> #hole . REST )
+                 => subgoal( \implies( \and(sep(LSPATIAL), LHS)
+                                     , \exists { UNIVs ++Patterns #hole { Heap } } LCTX
+                                     )
+                           , REST
+                           )
+                  & subgoal( \implies( \and(sep(RCTX, LSPATIAL), LHS)
+                                     , RHS
+                                     )
+                           , REST
+                           )
+         </k>
+      requires getFreeVariables(RCTX) intersect UNIVs ==K .Patterns
 ```
 
 ### Resolve
