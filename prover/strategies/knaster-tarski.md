@@ -142,11 +142,10 @@ for guessing an instantiation of the inductive hypothesis.
 ```k
   syntax Strategy ::= "kt-wrap" "(" Pattern ")"
   rule <claim> \implies(LHS, RHS)
-            => \implies(LRP, implicationContext(subst(LHS, LRP, #hole), RHS))
+            => \implies(LRP, implicationContext(subst(LHS, LRP, #hole { getReturnSort(LRP) } ), RHS))
        </claim>
        <k> kt-wrap(LRP) => noop ... </k>
-       <trace> .K => kt-wrap(LRP)  ... </trace>
-    requires #hole in getFreeVariables(subst(LHS, LRP, #hole))
+    requires #hole { getReturnSort(LRP) } in getFreeVariables(subst(LHS, LRP, #hole { getReturnSort(LRP) }))
 ```
 
 >   phi(x) -> \forall y. psi(x, y)
@@ -321,8 +320,8 @@ Move #holes to the front
                         , _), _)
        </claim>
        <k> kt-collapse ... </k>
-    requires P =/=K #hole:Pattern
-     andBool #hole in Ps
+    requires P =/=K #hole { Bool }
+     andBool #hole { Bool } in Ps
 
   rule <claim> \implies(\and(sep(\forall { _ }
                          implicationContext( \and(P, Ps)
@@ -331,8 +330,8 @@ Move #holes to the front
                         ,_ ), _), _)
        </claim>
        <k> kt-collapse ... </k>
-    requires P =/=K #hole:Pattern
-     andBool #hole in getFreeVariables(Ps)
+    requires P =/=K #hole { Heap }
+     andBool #hole { Heap } in getFreeVariables(Ps)
 
   rule <claim> \implies(\and(sep(\forall { _ }
                          implicationContext( \and( (sep(P, Ps) => sep(Ps ++Patterns P))
@@ -341,8 +340,8 @@ Move #holes to the front
                         ,_ ), _), _)
        </claim>
        <k> kt-collapse ... </k>
-    requires P =/=K #hole:Pattern
-     andBool #hole in getFreeVariables(Ps)
+    requires P =/=K #hole { Heap }
+     andBool #hole { Heap } in getFreeVariables(Ps)
 ```
 
 #### Collapsing contexts (FOL)
@@ -352,7 +351,7 @@ solver using `kt-solve-implications`
 
 ```k
   rule <claim> \implies(\and( \forall { UNIVs }
-                              ( implicationContext( \and(#hole, CTXLHS:Patterns)
+                              ( implicationContext( \and(#hole { Bool }, CTXLHS:Patterns)
                                                   , CTXRHS:Pattern
                                                   )
                              => \implies(\and(CTXLHS), CTXRHS)
@@ -376,7 +375,7 @@ context has no constraints.
 
 ```k
   rule <claim> \implies(\and( sep ( \forall { UNIVs }
-                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns), CTXLCONSTRAINTS) , _)
+                                    implicationContext( \and(sep(#hole { Heap }, CTXLHS:Patterns), CTXLCONSTRAINTS) , _)
                                   , LSPATIAL
                                   )
                             , LHS:Patterns
@@ -556,7 +555,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 
 ```k
   rule <claim> \implies(\and( sep ( \forall { UNIVs }
-                                    implicationContext( \and( sep( #hole
+                                    implicationContext( \and( sep( #hole { Heap }
                                                                  , CTXLHS:Patterns
                                                                  )
                                                             , CTXLCONSTRAINTS
@@ -574,7 +573,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
      requires UNIVs =/=K .Patterns
 
   rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
+                                    implicationContext( \and(sep(#hole { Heap }, CTXLHS:Patterns)) , _)
                                   , LSPATIAL
                                   )
                             , LHS:Patterns

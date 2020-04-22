@@ -85,7 +85,7 @@ module STRATEGY-UNFOLDING
        </claim>
        <k> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </k>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
-    requires #hole in getFreeVariables(subst(LHS, LRP, #hole))
+    requires #hole { getReturnSort(LRP) } in getFreeVariables(subst(LHS, LRP, #hole { getReturnSort(LRP) }))
 ```
 
 ### Left Unfold Nth
@@ -226,20 +226,20 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
     requires notBool hasImplicationContext(LHS)
 
   syntax Pattern ::= #moveHoleToFront(Pattern) [function]
-  rule #moveHoleToFront(\and(sep(#hole, REST_SEP), REST_AND)) => \and(sep(#hole, REST_SEP), REST_AND)
+  rule #moveHoleToFront(\and(sep(#hole { Heap }, REST_SEP), REST_AND)) => \and(sep(#hole { Heap }, REST_SEP), REST_AND)
   rule #moveHoleToFront(\and(sep(P, REST_SEP), REST_AND)) => #moveHoleToFront(\and(sep(REST_SEP ++Patterns P), REST_AND))
-    requires P =/=K #hole:Variable
+    requires P =/=K #hole { Heap }
 
   // right unfolding within an implication context
   rule <claim> \implies(\and( sep ( \forall { UNIVs => UNIVs ++Patterns E2 }
-                                    implicationContext( ( \and( sep( #hole
+                                    implicationContext( ( \and( sep( #hole { Heap }
                                                                    , CTXLHS
                                                                    )
                                                               , CTXLCONSTRAINTS
                                                               )
                                                         )
                                                        => #moveHoleToFront(#flattenAnd(
-                                                            #liftConstraints( \and( sep( #hole
+                                                            #liftConstraints( \and( sep( #hole { Heap }
                                                                                        , substPatternsMap(CTXLHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
                                                                                        )
                                                                                   , CTXLCONSTRAINTS

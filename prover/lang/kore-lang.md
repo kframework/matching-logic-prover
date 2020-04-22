@@ -194,7 +194,7 @@ only in this scenario*.
   syntax Declarations ::= Declaration Declarations
   syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
 
-  syntax Variable ::= "#hole"
+  syntax VariableName ::= "#hole"
 
   // Sugar for `\exists #hole . #hole /\ floor(Arg1 -> Arg2)
   syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
@@ -428,7 +428,7 @@ module KORE-HELPERS
     => getFreeVariables(P, .Patterns) -Patterns Vs
   rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
     => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
-       -Patterns #hole, .Patterns
+       -Patterns #hole { Heap }, #hole { Bool }
   rule getFreeVariables(\typeof(P, _))
     => getFreeVariables(P)
 
@@ -776,7 +776,8 @@ Simplifications
   rule isPredicatePattern(\or(.Patterns)) => true
   rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
   rule isPredicatePattern(\implies(P1, P2)) => isPredicatePattern(P1) andBool isPredicatePattern(P2)
-  rule isPredicatePattern(#hole) => false
+  rule isPredicatePattern(#hole { Bool }) => true
+  rule isPredicatePattern(#hole { Heap }) => false
   rule isPredicatePattern(V:VariableName { Heap }) => false
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
@@ -804,7 +805,8 @@ Simplifications
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
-  rule isSpatialPattern(#hole) => true
+  rule isSpatialPattern(#hole { Bool }) => false
+  rule isSpatialPattern(#hole { Heap }) => true
   rule isSpatialPattern(V:VariableName { Heap }) => true
 
   // TODO: Perhaps normalization should get rid of this?
