@@ -661,10 +661,11 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
          <k> spatial-patterns-equal => fail ... </k>
       requires getSpatialPatterns(L) ==K .Patterns
 
-    rule <claim> \implies(LHS, RHS) </claim>
+    rule <claim> \implies(\and(LHS), RHS)
+              => \implies(\and(LHS -Patterns getSpatialPatterns(LHS)), RHS)
+         </claim>
          <k> spatial-patterns-match => noop ... </k>
-       requires isPredicatePattern(LHS)
-        andBool isPredicatePattern(RHS)
+       requires isPredicatePattern(RHS)
 ```
 
 ### Footprint Analysis
