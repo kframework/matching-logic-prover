@@ -6,4 +6,6 @@ suite "match-assoc-comm"
 
 suite "subst"
 
+suite "syntactic-match"
+
 .Declarations
