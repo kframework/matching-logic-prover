@@ -634,12 +634,17 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
       => \equals(S1(ARGs1), S2(ARGs2)), #destructEquality(Ps1, Ps2)
       requires S1 =/=K S2 orBool notBool isConstructor(S1)
 
+    rule <claim> \implies(LHS, \exists { Vs } RHS)
+         </claim>
+         <k> spatial-patterns-equal => noop ... </k>
+      requires isPredicatePattern(RHS)
+
     rule <claim> \implies(               \and(sep(LSPATIAL), LHS)
                          , \exists{ Vs } \and(sep(RSPATIAL), RHS)
                          )
               => \implies(\and(LHS), \exists { Vs } \and(RHS))
          </claim>
-         <k> spatial-patterns-equal => noop ... </k>
+         <k> spatial-patterns-equal ... </k>
       requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
        andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
 
