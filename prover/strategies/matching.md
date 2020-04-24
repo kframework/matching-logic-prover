@@ -652,7 +652,10 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                          )
               => \implies(\and(LHS), \exists { Vs } \and(RHS))
          </claim>
-         <k> spatial-patterns-equal ... </k>
+         <k>                    spatial-patterns-equal
+          => lift-constraints . spatial-patterns-equal
+             ...
+         </k>
       requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
        andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
 
