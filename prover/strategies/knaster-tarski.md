@@ -413,7 +413,7 @@ context has no constraints.
 ```
 
        1.  LHS * ?H   /\ not(LCTXCONSTR)   -> RHS
-       2a. LHS        /\ LCTXCONSTR        -> \exists X . LCTX
+       2a. LHS * ?H   /\ LCTXCONSTR        -> \exists X . LCTX
        2b. LHS * RCTX /\ LCTXCONSTR        -> RHS
 ------------------------------------------------------------------------------ Where X does not occur in RCTX or LCTXCONSTR
      LHS * \forall X. \ic(LCTX /\ LCTXCONSTR, RCTX) /\ LCONSTRAINTS -> RHS
@@ -441,7 +441,8 @@ context has no constraints.
      andBool getFreeVariables(getPredicatePatterns(CTXLCONSTRAINTs)) intersect UNIVs ==K .Patterns
 ```
 
-```k         
+```k
+    // 1 in rule above
     syntax Strategy ::= "kt-collapse-unsat"
     rule <claim> \implies( \and( sep ( \forall { UNIVs } implicationContext(_, _)
                                      , LSPATIAL
@@ -460,6 +461,7 @@ context has no constraints.
        </claim>
        <k> kt-collapse-unsat => noop ... </k>
 
+    // 2a and 2b in rule above
     syntax Strategy ::= "kt-collapse-valid"
     rule <claim> \implies(\and( sep ( \forall { UNIVs }
                                       implicationContext( LCTX
@@ -473,7 +475,7 @@ context has no constraints.
                          )
          </claim>
          <k> ( kt-collapse-valid ~> #hole . REST )
-                 => subgoal( \implies( \and(sep(LSPATIAL), LHS)
+                 => subgoal( \implies( \and(sep(LSPATIAL ++Patterns !H:VariableName { Heap }), LHS)
                                      , \exists { UNIVs ++Patterns #hole { Heap } } LCTX
                                      )
                            , REST
