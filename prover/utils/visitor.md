@@ -35,7 +35,12 @@ module VISITOR
 
   syntax VisitorResult ::= #visitTopDown(VisitorResult) [function]
 
-  rule #visitTopDown(visitorResult(_,_:Int) #as VR) => VR
+  // base case
+  rule #visitTopDown(visitorResult(_,P) #as VR) => VR
+       requires isInt(P)
+         orBool isVariable(P)
+         orBool isSetVariable(P)
+         orBool isSymbol(P)
 
   // \equals(_, _)
   rule #visitTopDown(visitorResult(V,\equals(P1, P2)))
@@ -182,7 +187,15 @@ module VISITOR
   rule #visitTopDownIffLfp2(P1, visitorResult(V, P2))
     => visitorResult(V, \iff-lfp(P1, P2))
 
+  // \typeof(_, _)
+  rule #visitTopDown(visitorResult(V,\typeof(P1, S)))
+    => #visitTopDownTypeof1(visitTopDown(V, P1), S)
 
+  syntax VisitorResult
+         ::= #visitTopDownTypeof1(VisitorResult, Sort) [function]
+
+  rule #visitTopDownTypeof1(visitorResult(V, P1), S)
+    => visitorResult(V, \typeof(P1, S))
 
 ```
 

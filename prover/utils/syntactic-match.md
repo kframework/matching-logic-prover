@@ -145,6 +145,14 @@ module SYNTACTIC-MATCH-RULES
                       )
     requires notBool P in Vs
 
+  // ground variable: identical
+  rule #syntacticMatch( terms:     P:SetVariable, Ts => Ts
+                      , patterns:  P:SetVariable, Ps => Ps
+                      , variables: Vs
+                      , subst:     _
+                      )
+    requires notBool P in Vs
+
   // ground variable: non-identical
   rule #syntacticMatch( terms:     T, _
                       , patterns:  P:Variable, _
@@ -155,6 +163,16 @@ module SYNTACTIC-MATCH-RULES
     requires T =/=K P
      andBool notBool P in Vs
      
+  // ground variable: non-identical
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  P:SetVariable, _
+                      , variables: Vs
+                      , subst:     _
+                      )
+    => #error( "No valid substitution" )
+    requires T =/=K P
+     andBool notBool P in Vs
+
   // free variable: different sorts
   rule #syntacticMatch( terms:     T, _
                       , patterns:  P:Variable, _
@@ -177,6 +195,15 @@ module SYNTACTIC-MATCH-RULES
      andBool P in Vs
      andBool getReturnSort(T) ==K getReturnSort(P)
 
+  // set variable: extend substitution
+  rule #syntacticMatch( terms:     T, Ts => Ts
+                      , patterns:  P:SetVariable, Ps
+                        => substPatternsMap(Ps, P |-> T)
+                      , variables: Vs
+                      , subst:     SUBST => ((P |-> T) SUBST)
+                      )
+    requires T =/=K P
+     andBool P in Vs
 
   // A lot of repetetive code below.
   // This could be reduced if we had a generic support
@@ -430,6 +457,33 @@ module SYNTACTIC-MATCH-RULES
                       removeAll(RESULT, PatternsToSet(PVARS)), SUBST)
        )
 
+  // \typeof(_,_) matched
+  rule #syntacticMatch( terms:     \typeof(T, S), Ts
+                               => T  ++Patterns Ts
+                      , patterns:  \typeof(P, S), Ps
+                               => P ++Patterns Ps
+                      , variables: _
+                      , subst:     _
+                      )
+
+  // \typeof(_,_) missmatched - different sorts
+  rule #syntacticMatch( terms:     \typeof(_, S1), _
+                      , patterns:  \typeof(_, S2), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #error("\\typeof(_,_) sorts do not match")
+    requires S1 =/=K S2
+
+
+  // \typeof(_,_) mismatched
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  \typeof(...), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #error("\\typeof(_,_) does not match")
+    requires \typeof(...) :/=K T
 
 
 

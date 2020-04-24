@@ -6,6 +6,7 @@ module TOKENS
   // Lexical
   syntax UpperName
   syntax LowerName ::= CheckSATResult
+  syntax SharpName
   syntax ColonName
   syntax PipeQID
   syntax Decimal
@@ -115,6 +116,8 @@ module TOKENS-SYNTAX
   imports TOKENS
   syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
   syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
+  syntax SharpName ::= r"#[A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
+
   syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
   syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
                    | "2.0" [token]
@@ -136,8 +139,10 @@ only in this scenario*.
 
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
+  syntax SetVariable ::= SharpName [klabel(setVariable)]
   syntax Pattern ::= Int
                    | Variable
+                   | SetVariable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
 
@@ -157,6 +162,7 @@ only in this scenario*.
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
                    // sugar for commonly needed axioms
+                   | "\\typeof" "(" Pattern "," Sort ")"
                    | "functional" "(" Symbol ")"
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
@@ -205,6 +211,7 @@ module KORE-HELPERS
   imports STRING
   imports PROVER-CONFIGURATION
   imports PROVER-CORE-SYNTAX
+  imports VISITOR-SYNTAX
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
@@ -383,6 +390,8 @@ module KORE-HELPERS
   rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
     => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
        -Patterns #hole, .Patterns
+  rule getFreeVariables(\typeof(P, _))
+    => getFreeVariables(P)
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
@@ -429,6 +438,10 @@ and values, passed to K's substitute.
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
   rule freshVariableName(I:Int) => String2VariableName("F" +String Int2String(I))
 
+  syntax SetVariable ::= String2SetVariable(String) [function, functional, hook(STRING.string2token)]
+  syntax SetVariable ::= freshSetVariable(Int) [freshGenerator, function, functional]
+  rule freshSetVariable(I:Int) => String2SetVariable("#F" +String Int2String(I))
+
   syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
   rule makeFreshSubstitution(V { SORT }, REST)
     => V:VariableName { SORT } |-> !V1:VariableName { SORT }
@@ -438,6 +451,10 @@ and values, passed to K's substitute.
 
   syntax Patterns ::= makeFreshVariables(Patterns) [function]
   rule makeFreshVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makeFreshVariables(REST)
+	requires isVariable(P)
+  rule makeFreshVariables(P, REST) => !V1:SetVariable, makeFreshVariables(REST)
+	requires isSetVariable(P)
+
   rule makeFreshVariables(.Patterns) => .Patterns
 ```
 
@@ -476,10 +493,12 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(X{_}, X:VariableName, V) => V
   rule subst(X{S}, Y:VariableName, V) => X{S} requires X =/=K Y
   rule subst(X:Variable,Y:Variable,V) => X    requires X =/=K Y
+  rule subst(X:SetVariable,Y:SetVariable,V) => X requires X =/=K Y
   rule subst(X:Variable,P:Pattern, V) => X    requires notBool(isVariable(P) orBool isVariableName(P))
   rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_)=> \top()
   rule subst(\bottom(),_,_) => \bottom()
+  rule subst(\typeof(T, S), X, V) => \typeof(subst(T, X, V), S)
   rule subst(\equals(ARG1, ARG2):Pattern, X, V)
     => \equals(subst(ARG1, X, V), subst(ARG2, X, V)):Pattern
   rule subst(\not(ARG):Pattern, X, V) => \not(subst(ARG, X, V)):Pattern
@@ -559,6 +578,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(I:Int) => I
   rule alphaRename(implicationContext(P, Qs))
     => implicationContext(alphaRename(P), alphaRename(Qs))
+  rule alphaRename(\typeof(P, S)) => \typeof(alphaRename(P), S)
 
   rule alphaRenamePs(.Patterns) => .Patterns
   rule alphaRenamePs(P, Ps) => alphaRename(P), alphaRenamePs(Ps)
@@ -693,6 +713,7 @@ Simplifications
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(implicationContext(\and(sep(_),_),_)) => false
+  rule isPredicatePattern(\typeof(_,_)) => true
   rule isPredicatePattern(implicationContext(_,_)) => true
     [owise]
 
@@ -754,6 +775,8 @@ Simplifications
   rule hasImplicationContextPs(.Patterns) => false
   rule hasImplicationContextPs(P, Ps)
     => hasImplicationContext(P) orBool hasImplicationContextPs(Ps)
+  rule hasImplicationContext(\typeof(P, _))
+    => hasImplicationContext(P)
 
 
   syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
@@ -848,6 +871,30 @@ assume a pattern of the form:
   rule getConclusion(\implies(_,P))
        => getConclusion(P)
   rule getConclusion(P) => P [owise]
+
+  // <public>
+  syntax Patterns ::= getSetVariables(Pattern) [function]
+  // </public>
+  // <private>
+  syntax Patterns ::= getSetVariablesVisitorResult(VisitorResult) [function]
+  syntax Visitor ::= getSetVariablesVisitor(Patterns)
+  rule getSetVariables(P)
+    => getSetVariablesVisitorResult(
+         visitTopDown(
+           getSetVariablesVisitor(.Patterns),
+           P
+         )
+       )
+
+  rule getSetVariablesVisitorResult(
+         visitorResult(getSetVariablesVisitor(Ps), _))
+    => Ps
+
+  rule visit(getSetVariablesVisitor(Ps), P) => visitorResult(getSetVariablesVisitor(P, Ps), P) requires         isSetVariable(P)
+  rule visit(getSetVariablesVisitor(Ps), P) => visitorResult(getSetVariablesVisitor(   Ps), P) requires notBool isSetVariable(P)
+
+
+  // </private>
 
   syntax String ::= getFreshName(String, Set) [function]
                   | getFreshNameNonum(String, Set) [function]
