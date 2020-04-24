@@ -165,6 +165,19 @@ module STRATEGY-APPLY-EQUATION
 
 ```
 ### Apply equation in context
+
+The strategy `apply-equation(eq: \equals(A,B) #as Eq, idx: Idx, direction: D, at: At)`
+rewrites a subpattern of the shape `A=B /\ ... /\ A /\ ...`
+to `A=B /\ ... /\ B /\ ...`. The parameter `Idx` determines
+which instance of the equality syntactically matching `\equals(A,B)` is used;
+the parameter `At` specifies the instance of `A` that is to be rewritten to B.
+
+```
+Gamma |- C[... /\ A=B /\ ... /\ B /\ ... ]
+------------------------------------------
+Gamma |- C[... /\ A=B /\ ... /\ A /\ ... ]
+```
+
 ```k
 
   rule <strategy> apply-equation(eq: \equals(_,_) #as Eq, idx: Idx, direction: D, at: At)

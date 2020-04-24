@@ -411,6 +411,17 @@ Lift `\or`s on the left hand sides of implications
 
 ### Propagate exists
 
+The strategy `propagate-exists-through-application N` finds the Nth existential
+quantifier that is used as an argument of an application, and propagates it outside
+the application. For example, the formula `f(\exists X. Phi)` gets rewritten
+to `\exists X. f(Phi)`.
+
+```
+Gamma |- C[\exists X. C_\sigma[Phi]]
+------------------------------------
+Gamma |- C[C_\sigma[\exists X. Phi]]
+```
+
 ```k
   rule <claim> P
             => propagateExistsThroughApplicationVisitorResult(
@@ -464,6 +475,21 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ### Propagate predicate
+
+`propagate-predicate-through-application(P, N)` rewrites a subpattern of the form
+`f(Pred /\ Phi)` to `Pred /\ f(Phi)`, given that `Pred` is a predicate.
+The subpattern is chosen such that `Pred` is the `N`th (counting from 0) instance of the pattern `P`
+that is immediately surrounded by `\and(...)` and symbol application.
+For instance, if N=3 and P=\equals(#A, #B), then the formula
+`f(A=B /\ Phi1, C=D) \/ f(Phi2 /\ E=F, G=H)` gets rewritten to
+`f(A=B /\ Phi1, C=D) \/ (E=F /\ f(Phi2, G=H))` (assuming that Phi1 and Phi2 are not equalities).
+
+```
+
+Gamma |- C[P /\ C_\sigma[Phi]]
+------------------------------ where P is a predicate pattern
+Gamma |- C[C_\sigma[P /\ Phi]]
+```
 
 ```k
   rule <claim> T
@@ -597,6 +623,18 @@ Lift `\or`s on the left hand sides of implications
 
 ```
 ### Propagate conjunct through exists
+
+In its simplest form, `propagate-conjunct-through-exists(0,0)`
+rewrites the pattern `\exists X. (Pi /\ Psi)` to `Pi /\ exists X. Psi`,
+assuming that `Pi` does not contain free `X`. In the general form,
+`propagate-conjunct-through-exists(N, M)` will operate on the M-th conjunct
+of the N-th instance of the pattern `\exists {_} \and(...)`.
+
+```
+Gamma |- C[Pi /\ \exists X. Psi]
+-------------------------------- where X not free in Pi
+Gamma |- C[\exists X. Pi /\ Psi]
+```
 
 ```k
 
