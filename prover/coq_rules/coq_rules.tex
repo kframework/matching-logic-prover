@@ -313,7 +313,7 @@ In this section, we define what it means for two Coq programs to be
 \begin{longtable}{llp{5cm}}
 \textbf{Names} & \textbf{Rules} & \textbf{Comments} \\\hline
 \prule{Beta}&
-$\prftree{E[\Gamma] \vdash ((\clm{x}{T}{t}) u) \red{\beta} \sbs{t}{x}{u}}$&
+$\prftree{E[\Gamma] \vdash ((\clm{x}{T}{t}) u) \red_{\beta} \sbs{t}{x}{u}}$&
 We say that $\sbs{t}{x}{u}$ is the \emph{$\beta$-contraction} of
 $((\clm{x}{T}{t}) u)$, and that $((\clm{x}{T}{t}) u)$ is the
 \emph{$\beta$-expansion} of $\sbs{t}{x}{u}$ \\
@@ -323,20 +323,20 @@ $\iota$-reduction rules to be defined later \\
 $\prftree
 {\wf(E)[\Gamma]}
 {(\ldef{x}{t}{T}) \in \Gamma}
-{E[\Gamma] \vdash x \red{\Delta} t}$&
+{E[\Gamma] \vdash x \red_{\Delta} t}$&
 Reducing variable defined in local context \\
 \prule{Delta-Local}&
 $\prftree
 {\wf(E)[\Gamma]}
 {(\gldef{c}{t}{T}) \in E}
-{E[\Gamma] \vdash c \red{\delta} t}$&
+{E[\Gamma] \vdash c \red_{\delta} t}$&
 Reducing constant defined in global context \\
 \prule{Zeta}&
 $\prftree
 {\wf(E)[\Gamma]}
 {E[\Gamma] \vdash \lasm{u}{U}}
 {E[\Gamma \dcln (\ldef{x}{u}{U})] \vdash \lasm{t}{T}}
-{E[\Gamma] \vdash \clt{x}{u}{U}{t} \red{\zeta} \sbs{t}{x}{x}}$&
+{E[\Gamma] \vdash \clt{x}{u}{U}{t} \red_{\zeta} \sbs{t}{x}{x}}$&
 Remove local definitions occurring in terms \\
 \end{longtable}
 \egroup
@@ -345,5 +345,27 @@ In addition to the above convertibility rules, we also allow identifying a term
 $t$ of type $\cfa{x}{t}{U}$ with its \emph{$\eta$-expansion} $\clm{x}{T}{(t x)}$
 for $x$ fresh in $t$. Note \emph{$\eta$-reduction} is deliberately not defined
 (TODO: show example?).
+
+\begin{notation}
+We write $E[\Gamma] \vdash t \red u$ for the contextual closure of the rules
+defined above. That is, $t$ reduces to $u$ with global environment $E$ and local
+context $\Gamma$ with one of the previous reductions $\beta, \Delta, \delta,
+\iota,$ or $\zeta$.
+\end{notation}
+
+\begin{definition}
+Two terms are called \emph{irrelevant} if they share a common type of a strict
+proposition $\gasm{A}{\SProp}$. Irrelevant terms can be identified.
+\end{definition}
+
+\begin{definition}
+Two terms $t_1, t_2$ are called \emph{$\beta\delta\iota\zeta\eta$-convertible}, or
+\emph{convertible}, or \emph{equivalent} in global environment $E$ and local
+context $\Gamma$ iff there exists $t_1, t_2$ such that
+\[ E[\Gamma] \vdash t_1 \red \ldots \red u_1 \text{  and  } E[\Gamma] \vdash t_2 \red \ldots \red u_2  \]
+and either $u_1$ and $u_2$ are identical up irrelevant subterms, or they are
+convertible up to $\eta$-exxpansion. We denote this as
+$E[\Gamma] \vdash t_1 =_{\beta\delta\iota\zeta\eta} t_2$
+\end{definition}
 
 \end{document}
