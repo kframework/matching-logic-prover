@@ -437,8 +437,7 @@ context has no constraints.
         => resolve(\and(getPredicatePatterns(CTXLCONSTRAINTs)))
            ...
        </k>
-    requires CTXLCONSTRAINTs =/=K .Patterns
-     andBool getFreeVariables(getPredicatePatterns(CTXLCONSTRAINTs)) intersect UNIVs ==K .Patterns
+    requires getFreeVariables(getPredicatePatterns(CTXLCONSTRAINTs)) intersect UNIVs ==K .Patterns
 ```
 
 ```k
