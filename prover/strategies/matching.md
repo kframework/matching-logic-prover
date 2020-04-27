@@ -44,6 +44,9 @@ module MATCHING-FUNCTIONAL
   rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
     => #match( terms: H,                       pattern: P, variables: Vs )
 
+  rule #match( terms: \and(.Patterns),         pattern: P, variables: Vs )
+    => .MatchResults
+
   rule #match( terms: T, pattern: P, variables: Vs )
     => #filterErrors( #matchAssocComm( terms: T
                                      , pattern: P
