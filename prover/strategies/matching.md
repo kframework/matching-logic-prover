@@ -801,7 +801,7 @@ things, so the LHS becomes unsat.
                            , normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                            . ( noop | left-unfold-Nth(0) | left-unfold-Nth(1) | left-unfold-Nth(2) )
                            . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                           . instantiate-separation-logic-axioms . subsume-spatial . (smt-cvc4)
+                           . instantiate-separation-logic-axioms . spatial-patterns-match . (smt-cvc4)
                            )
                  ~> frame(pto(LOC, VAL))
                  ~> frame(Ps)
