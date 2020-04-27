@@ -41,7 +41,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "alternate-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "kt-unfold-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "remove-lhs-existential" | "normalize" | "lift-or"
-                    | "purify" | "abstract" | "abstract-nil"
+                    | "purify" | "abstract" | "abstract-Nth" "(" Int ")" | "abstract-nil"
                     | "simplify" | "instantiate-existentials" | "substitute-equals-for-equals"
                     | "lift-constraints"
                     | "direct-proof"

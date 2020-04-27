@@ -85,6 +85,51 @@ dll_vc07_strategy = """
     ) .
 """.replace('\n',' ')
 
+dll_vc17_strategy = """
+    normalize . or-split-rhs
+  . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+  . abstract-Nth(0)
+  . normalize . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . kt
+  . ( ( right-unfold-Nth(0,1) . right-unfold-Nth(0,1) . right-unfold-Nth(0,0)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . instantiate-separation-logic-axioms
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+      )
+    | ( kt
+      . ( ( normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . instantiate-separation-logic-axioms
+          . normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . check-lhs-constraint-unsat
+          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+          )
+        | ( normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . right-unfold-Nth(0,1) . right-unfold-Nth(0,1)
+          . right-unfold-Nth(0,1) . right-unfold-Nth(0,0)
+          . normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+          )
+        | ( normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . ( left-unfold-Nth(0) | left-unfold-Nth(1) )
+          . normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . instantiate-separation-logic-axioms
+          . check-lhs-constraint-unsat
+          )
+        )
+      )
+    ) .
+""".replace('\n',' ')
+
     #         prefix   KT  RU timeout tests
 test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , ('unfold-mut-recs . ',    5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
@@ -196,7 +241,7 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , (dll_vc07_strategy,    2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2'])
              , ('footprint-analysis . abstract-nil . ',
                                       2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc11.smt2'])
-
+             , (dll_vc17_strategy,    2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc17.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 

@@ -150,37 +150,61 @@ obligation of the form R(T, Vs) => R(T', Vs') becomes
 R(V, Vs) => exists V', R(V', Vs') and V = V'
 
 ```k
-  rule <claim> \implies(LHS, RHS) </claim>
+  syntax Strategy ::= "abstract-vars" "(" Patterns "," Patterns ")"
+  rule <claim> \implies(LHS, \exists{_} RHS) </claim>
        <k> abstract
-               => #getNewVariables(LHS, .Patterns)
-               ~> #getNewVariables(RHS, .Patterns)
-               ~> abstract
-              ...
+        => abstract-vars(#getNewVariablesForNil(LHS), #getNewVariablesForNil(RHS))
+           ...
        </k>
 
-  rule <claim> \implies(LHS, \and(\or(RHS)))
-            => \implies( #abstract(LHS, VsLHS)
+  rule <claim> \implies(LHS, \exists{_} RHS) </claim>
+       <k> abstract-Nth(M)
+        => abstract-vars(#makeNils(#getNewVariablesForNil(LHS), M), #getNewVariablesForNil(RHS))
+           ...
+       </k>
+
+  syntax Patterns ::= #makeNils(Patterns, Int) [function]
+  rule #makeNils(.Patterns, _) => .Patterns
+  rule #makeNils((V, Vs), 0) => V, #makeNils(Vs, -1)
+  rule #makeNils((V, Vs), I) => nil(.Patterns), #makeNils(Vs, I -Int 1)
+    requires I =/=Int 0
+
+  rule <claim> \implies(LHS, \exists{_} \and(RHS))
+            => \implies( \and(#abstract(LHS, VsLHS))
                        , \exists{ VsRHS } \and( #dnf(\or(\and(#createEqualities(VsLHS, VsRHS))))
                                                 , #abstract(RHS, VsRHS)
                                                 )
                        )
        </claim>
-       <k> (VsLHS:Patterns ~> VsRHS:Patterns ~> abstract) => noop ... </k>
+       <k> abstract-vars(VsLHS, VsRHS)
+        => normalize . or-split-rhs . lift-constraints
+         . instantiate-separation-logic-axioms
+         . create-disequalities(VsLHS)
+           ...
+       </k>
 
-  syntax Patterns ::= #getNewVariables(Pattern, Patterns) [function]
-  syntax Patterns ::= #getNewVariablesPs(Patterns, Patterns) [function]
-  rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
-  rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
-  rule #getNewVariables(\not(P), Vs) => #getNewVariables(P, Vs)
-  rule #getNewVariables(sep(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
-  rule #getNewVariables(S(ARGs), Ps)
-    => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
-    requires isUnfoldable(S)
-  rule #getNewVariables(pto(_), Ps) => Ps
-  rule #getNewVariables(\equals(_, _), Ps) => Ps
+  syntax Strategy ::= "create-disequalities" "(" Patterns ")"
+  rule <claim> \implies(\and(LHS), RHS)
+            => \implies(\and(LHS ++Patterns #createDisequalities(\and(LHS), VsLHS)), RHS)
+       </claim>
+       <k> create-disequalities(VsLHS) => noop ... </k>
 
-  rule #getNewVariablesPs(.Patterns, _) => .Patterns
-  rule #getNewVariablesPs((P, Ps), Vs) => #getNewVariables(P, Vs) ++Patterns #getNewVariablesPs(Ps, Vs)
+  syntax Patterns ::= #getNewVariablesForNil(Pattern) [function]
+  syntax Patterns ::= #getNewVariablesForNilPs(Patterns) [function]
+  rule #getNewVariablesForNil(\and(Ps)) => #getNewVariablesForNilPs(Ps)
+  rule #getNewVariablesForNil(\or(Ps)) => #getNewVariablesForNilPs(Ps)
+  rule #getNewVariablesForNil(\not(P)) => #getNewVariablesForNil(P)
+  rule #getNewVariablesForNil(sep(Ps)) => #getNewVariablesForNilPs(Ps)
+  rule #getNewVariablesForNil(S:Symbol(ARGs)) => #getNewVariablesForNilPs(ARGs)
+    requires S =/=K nil
+     andBool S =/=K sep
+  rule #getNewVariablesForNil(\equals(L, R)) => .Patterns
+  rule #getNewVariablesForNil(V:Variable) => .Patterns
+  rule [[ #getNewVariablesForNil(nil(.Patterns)) => !V:VariableName { LOC }, .Patterns ]]
+    <declaration> axiom _: heap(LOC, DATA) </declaration>
+
+  rule #getNewVariablesForNilPs(.Patterns) => .Patterns
+  rule #getNewVariablesForNilPs(P, Ps) => #getNewVariablesForNil(P) ++Patterns #getNewVariablesForNilPs(Ps)
 
   syntax Pattern ::= #abstract(Pattern, Patterns) [function]
   syntax Patterns ::= #abstractPs(Patterns, Patterns) [function]
@@ -188,14 +212,57 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #abstract(\or(Ps), Vs) => \or(#abstractPs(Ps, Vs))
   rule #abstract(\not(P), Vs) => \not(#abstract(P, Vs))
   rule #abstract(sep(Ps), Vs) => sep(#abstractPs(Ps, Vs))
-  rule #abstract(S(ARGs), Vs)
-    => S(#replaceNewVariables(ARGs, Vs))
-    requires isUnfoldable(S)
-  rule #abstract(pto(ARGs), Vs) => pto(ARGs)
-  rule #abstract(\equals(L, R), Vs) => \equals(L, R)
+  rule #abstract(S:Symbol(ARGs), Vs) => S(#abstractArgs(ARGs, Vs))
+    requires S =/=K nil
+     andBool S =/=K sep
+  rule #abstract(V:Variable, Vs) => V
+  rule #abstract(nil(.Patterns), (V, Vs)) => V
+  rule #abstract(\equals(L, R), Vs)
+    => \equals( #abstract(L, Vs)
+              , #abstract(R, #chopPs(Vs, #countNils(L)))
+              )
+
+  syntax Patterns ::= #abstractArgs(Patterns, Patterns) [function]
+  rule #abstractArgs(.Patterns, Vs) => .Patterns
+  rule #abstractArgs((V:Variable, Ps), Vs) => V, #abstractArgs(Ps, Vs)
+  rule #abstractArgs((nil(.Patterns), Ps), (V, Vs)) => V, #abstractArgs(Ps, Vs)
+  rule #abstractArgs((S:Symbol(ARGs), Ps), Vs)
+    => (S(#abstractArgs(ARGs, Vs)), .Patterns) ++Patterns #abstractArgs(Ps, #chopPs(Vs, #countNils(ARGs)))
+    requires S =/=K nil
+
+  syntax Int ::= #countNils(Patterns) [function]
+  rule #countNils(.Patterns) => 0
+  rule #countNils(nil(.Patterns), Ps) => 1 +Int #countNils(Ps)
+  rule #countNils(S:Symbol(ARGs), Ps) => #countNils(ARGs)
+    requires S =/=K nil
+  rule #countNils(V:Variable, Ps) => #countNils(Ps)
+  rule #countNils(\not(P), Ps) => #countNils(P, Ps)
+  rule #countNils(\equals(L, R), Ps) => #countNils(L) +Int #countNils(R) +Int #countNils(Ps)
+
+  syntax Patterns ::= #chopPs(Patterns, Int) [function]
+  rule #chopPs(Ps, M) => Ps
+    requires M <=Int 0
+  rule #chopPs(.Patterns, M) => .Patterns
+  rule #chopPs((P, Ps), M) => #chopPs(Ps, M -Int 1)
+    requires M >Int 0
 
   rule #abstractPs(.Patterns, _) => .Patterns
-  rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs), #abstractPs(Ps, Vs)
+  rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs) ++Patterns #abstractPs(Ps, #chopPs(Vs, #countNils(P)))
+
+  // syntax Pattern ::= #abstractNth(Pattern, Patterns, Int) [function]
+  // syntax Patterns ::= #abstractNthPs(Patterns, Patterns) [function]
+  // rule #abstractNth(\and(Ps), Vs) => \and(#abstractNthPs(Ps, Vs))
+  // rule #abstractNth(\or(Ps), Vs) => \or(#abstractNthPs(Ps, Vs))
+  // rule #abstractNth(\not(P), Vs) => \not(#abstractNth(P, Vs))
+  // rule #abstractNth(sep(Ps), Vs) => sep(#abstractNthPs(Ps, Vs))
+  // rule #abstractNth(S(ARGs), Vs) =>
+  //   => S(#replaceNewVariables(ARGs, Vs))
+  //   requires isUnfoldable(S)
+  // rule #abstractNth(pto(ARGs), Vs) => pto(ARGs)
+  // rule #abstractNth(\equals(L, R), Vs) => \equals(L, R)
+
+  // rule #abstractNthPs(.Patterns, _) => .Patterns
+  // rule #abstractNthPs((P, Ps), Vs) => #abstractNth(P, Vs), #abstractNthPs(Ps, Vs)
 
   syntax Patterns ::= #replaceNewVariables(Patterns, Patterns) [function]
   rule #replaceNewVariables((V1:Variable, Ps), Vs) => V1, #replaceNewVariables(Ps, Vs)
@@ -209,6 +276,24 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #createEqualities(VsLHS, (VRHS, VsRHS)) => \or(#createEqualitiesVar(VsLHS, VRHS)), #createEqualities(VsLHS, VsRHS)
   rule #createEqualitiesVar(.Patterns, VRHS) => .Patterns
   rule #createEqualitiesVar((VLHS, VsLHS), VRHS) => \equals(VRHS, VLHS), #createEqualitiesVar(VsLHS, VRHS)
+
+  syntax Patterns ::= #createDisequalities(Pattern, Patterns) [function]
+  syntax Patterns ::= #createDisequalitiesPs(Patterns, Patterns) [function]
+  rule #createDisequalities(\and(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
+  rule #createDisequalities(\or(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
+  rule #createDisequalities(sep(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
+  rule #createDisequalities(S:Symbol(ARGs), Vs) => .Patterns
+  rule #createDisequalities(\not(\equals(nil(.Patterns), V:Variable)), Vs) => #makeDisequalities(V, Vs)
+  rule #createDisequalities(\not(\equals(V:Variable, nil(.Patterns))), Vs) => #makeDisequalities(V, Vs)
+  rule #createDisequalities(\not(P), Vs) => .Patterns
+    [owise]
+
+  rule #createDisequalitiesPs(.Patterns, _) => .Patterns
+  rule #createDisequalitiesPs((P, Ps), Vs) => #createDisequalities(P, Vs) ++Patterns #createDisequalitiesPs(Ps, Vs)
+
+  syntax Patterns ::= #makeDisequalities(Variable, Patterns) [function]
+  rule #makeDisequalities(V, .Patterns) => .Patterns
+  rule #makeDisequalities(V1, (V2, Vs)) => \not(\equals(V1, V2)), #makeDisequalities(V1, Vs)
 ```
 
 abstracting nil
