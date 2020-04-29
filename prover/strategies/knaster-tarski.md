@@ -389,7 +389,6 @@ context has no constraints.
                                  )
                   ...
        </k>
-     requires UNIVs =/=K .Patterns
 ```
 
 ```k
@@ -409,7 +408,6 @@ context has no constraints.
                => kt-collapse-resolve
                   ...
        </k>
-     requires UNIVs =/=K .Patterns
 ```
 
        1.  LHS * ?H   /\ not(LCTXCONSTR)   -> RHS
