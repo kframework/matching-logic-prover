@@ -166,7 +166,7 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #makeNils(Patterns, Int) [function]
   rule #makeNils(.Patterns, _) => .Patterns
   rule #makeNils((V, Vs), 0) => V, #makeNils(Vs, -1)
-  rule #makeNils((V, Vs), I) => nil(.Patterns), #makeNils(Vs, I -Int 1)
+  rule #makeNils((V, Vs), I) => nil { getReturnSort(V) }(.Patterns), #makeNils(Vs, I -Int 1)
     requires I =/=Int 0
 
   rule <claim> \implies(LHS, \exists{_} \and(RHS))
@@ -196,12 +196,11 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #getNewVariablesForNil(\not(P)) => #getNewVariablesForNil(P)
   rule #getNewVariablesForNil(sep(Ps)) => #getNewVariablesForNilPs(Ps)
   rule #getNewVariablesForNil(S:Symbol(ARGs)) => #getNewVariablesForNilPs(ARGs)
-    requires S =/=K nil
+    requires nil { _ } :/=K S
      andBool S =/=K sep
   rule #getNewVariablesForNil(\equals(L, R)) => .Patterns
   rule #getNewVariablesForNil(V:Variable) => .Patterns
-  rule [[ #getNewVariablesForNil(nil(.Patterns)) => !V:VariableName { LOC }, .Patterns ]]
-    <declaration> axiom _: heap(LOC, DATA) </declaration>
+  rule #getNewVariablesForNil(nil { LOC }(.Patterns)) => !V:VariableName { LOC }, .Patterns
 
   rule #getNewVariablesForNilPs(.Patterns) => .Patterns
   rule #getNewVariablesForNilPs(P, Ps) => #getNewVariablesForNil(P) ++Patterns #getNewVariablesForNilPs(Ps)
@@ -213,10 +212,10 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #abstract(\not(P), Vs) => \not(#abstract(P, Vs))
   rule #abstract(sep(Ps), Vs) => sep(#abstractPs(Ps, Vs))
   rule #abstract(S:Symbol(ARGs), Vs) => S(#abstractArgs(ARGs, Vs))
-    requires S =/=K nil
+    requires nil { _ } :/=K S
      andBool S =/=K sep
   rule #abstract(V:Variable, Vs) => V
-  rule #abstract(nil(.Patterns), (V, Vs)) => V
+  rule #abstract(nil{_}(.Patterns), (V, Vs)) => V
   rule #abstract(\equals(L, R), Vs)
     => \equals( #abstract(L, Vs)
               , #abstract(R, #chopPs(Vs, #countNils(L)))
@@ -225,16 +224,16 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   syntax Patterns ::= #abstractArgs(Patterns, Patterns) [function]
   rule #abstractArgs(.Patterns, Vs) => .Patterns
   rule #abstractArgs((V:Variable, Ps), Vs) => V, #abstractArgs(Ps, Vs)
-  rule #abstractArgs((nil(.Patterns), Ps), (V, Vs)) => V, #abstractArgs(Ps, Vs)
+  rule #abstractArgs((nil{_}(.Patterns), Ps), (V, Vs)) => V, #abstractArgs(Ps, Vs)
   rule #abstractArgs((S:Symbol(ARGs), Ps), Vs)
     => (S(#abstractArgs(ARGs, Vs)), .Patterns) ++Patterns #abstractArgs(Ps, #chopPs(Vs, #countNils(ARGs)))
-    requires S =/=K nil
+    requires nil { _ } :/=K S
 
   syntax Int ::= #countNils(Patterns) [function]
   rule #countNils(.Patterns) => 0
-  rule #countNils(nil(.Patterns), Ps) => 1 +Int #countNils(Ps)
+  rule #countNils(nil{_}(.Patterns), Ps) => 1 +Int #countNils(Ps)
   rule #countNils(S:Symbol(ARGs), Ps) => #countNils(ARGs)
-    requires S =/=K nil
+    requires nil { _ } :/=K S
   rule #countNils(V:Variable, Ps) => #countNils(Ps)
   rule #countNils(\not(P), Ps) => #countNils(P, Ps)
   rule #countNils(\equals(L, R), Ps) => #countNils(L) +Int #countNils(R) +Int #countNils(Ps)
@@ -283,8 +282,8 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #createDisequalities(\or(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
   rule #createDisequalities(sep(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
   rule #createDisequalities(S:Symbol(ARGs), Vs) => .Patterns
-  rule #createDisequalities(\not(\equals(nil(.Patterns), V:Variable)), Vs) => #makeDisequalities(V, Vs)
-  rule #createDisequalities(\not(\equals(V:Variable, nil(.Patterns))), Vs) => #makeDisequalities(V, Vs)
+  rule #createDisequalities(\not(\equals(nil{_}(.Patterns), V:Variable)), Vs) => #makeDisequalities(V, Vs)
+  rule #createDisequalities(\not(\equals(V:Variable, nil{_}(.Patterns))), Vs) => #makeDisequalities(V, Vs)
   rule #createDisequalities(\not(P), Vs) => .Patterns
     [owise]
 
@@ -313,10 +312,9 @@ on the LHS, replace all occurrences of nil with a fresh variable
   rule #abstractNil(\or(Ps)) => \or(#abstractNilPs(Ps))
   rule #abstractNil(\not(P)) => \not(#abstractNil(P))
   rule #abstractNil(sep(Ps)) => sep(#abstractNilPs(Ps))
-  rule [[ #abstractNil(nil(.Patterns)) => !V:VariableName { LOC } ]]
-    <declaration> axiom _: heap(LOC, DATA) </declaration>
+  rule #abstractNil(nil { LOC }(.Patterns)) => !V:VariableName { LOC }
   rule #abstractNil(S:Symbol(ARGs)) => S(#abstractNilPs(ARGs))
-    requires S =/=K nil
+    requires nil { _ } :/=K S
   rule #abstractNil(\equals(L, R)) => \equals(#abstractNil(L), #abstractNil(R))
   rule #abstractNilPs(.Patterns) => .Patterns
   rule #abstractNilPs(P, Ps) => #abstractNil(P), #abstractNilPs(Ps)

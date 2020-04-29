@@ -138,9 +138,9 @@ module DRIVER-SMT
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
-                        <declaration> symbol nil(.Sorts) : SMTLIB2SortToSort(LOC) </declaration>
+                        <declaration> symbol nil { SMTLIB2SortToSort(LOC) } (.Sorts) : SMTLIB2SortToSort(LOC) </declaration>
                         <declaration> axiom !N:AxiomName : heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
-                        <declaration> axiom !M:AxiomName : functional(nil) </declaration>
+                        <declaration> axiom !M:AxiomName : functional(nil { SMTLIB2SortToSort(LOC) }) </declaration>
                       ) ...
        </declarations>
 
@@ -435,7 +435,7 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern(I:Int, _) => I
   rule SMTLIB2TermToPattern(#token("true", "LowerName"), _) => \top()
   rule SMTLIB2TermToPattern(#token("false", "LowerName"), _) => \bottom()
-  rule SMTLIB2TermToPattern((as nil SORT), _) => nil(.Patterns)
+  rule SMTLIB2TermToPattern((as nil SORT), _) => nil { SMTLIB2SortToSort(SORT) } (.Patterns)
   rule SMTLIB2TermToPattern((underscore emp _ _), _) => emp(.Patterns)
 
   rule SMTLIB2TermToPattern((ID Ts), Vs) => SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2TermListToPatterns(Ts, Vs))

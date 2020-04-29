@@ -53,6 +53,7 @@ module TOKENS
                      | "sep" [token]
                      | "nil" [token]
                      | "emp" [token]
+  syntax Symbol ::= "nil" "{" Sort "}"
 
   // Arith
   syntax LowerName ::= "plus"          [token]
@@ -219,6 +220,7 @@ module KORE-HELPERS
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
+  rule SymbolToString(nil { SORT }) => SymbolToString(nil) +String "_" +String SortToString(SORT)
   syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
 
   syntax Bool ::= Pattern "in" Patterns [function]
@@ -316,6 +318,7 @@ module KORE-HELPERS
   rule getReturnSort( lte ( ARGS ) ) => Bool
   rule getReturnSort( gte ( ARGS ) ) => Bool
   rule getReturnSort( isMember ( _ ) ) => Bool
+  rule getReturnSort( nil { SORT } ( _ ) ) => SORT
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]

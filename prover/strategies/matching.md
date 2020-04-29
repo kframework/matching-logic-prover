@@ -536,7 +536,7 @@ Instantiate heap axioms:
           => instantiate-separation-logic-axioms(AXs)
            . instantiate-heap-axiom( \forall { !L { LOC }, !D {DATA} }
                                      \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
-                                             , \not(\equals(nil(.Patterns), !L { LOC }))
+                                             , \not(\equals(nil { LOC }(.Patterns), !L { LOC }))
                                              )
                                    )
            . instantiate-heap-axiom( \forall { !L1 { LOC }, !D1 { DATA }, !L2 { LOC }, !D2 { DATA } }
@@ -760,7 +760,7 @@ things, so the LHS becomes unsat.
             => \implies( \and( \forall { !D:VariableName { DATA }, !H:VariableName { Heap } }
                                \implies( \and(sep(pto(V, !D:VariableName { DATA }), !H { Heap }))
                                        , \not(\equals( V
-                                                     , nil(.Patterns)
+                                                     , nil { LOC }(.Patterns)
                                                      )
                                              )
                                        )
