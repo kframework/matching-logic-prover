@@ -318,24 +318,21 @@ module DRIVER-SMT
   rule #containsSpatialPatterns(.Patterns, _) => false
   rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
 
-  rule <k> #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
-        ~> (check-sat)
-        => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
-           ...
-       </k>
-       <goals>
-         ( .Bag =>
-           <goal>
-             <id> !N:ClaimName </id>
-             <active> true:Bool </active>
-             <parent> .K </parent>
-             <claim> \implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps)))) </claim>
-             <strategy> STRAT </strategy>
-             <expected> EXPECTED </expected>
-             <local-context> .Bag </local-context>
-             <trace> .K </trace>
-           </goal>
-         )
+  syntax KItem ::= "expect" TerminalStrategy
+  rule <strategy> S ~> expect S => .K ... </strategy>
+  
+  rule <goals>
+         <k> #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
+          ~> (check-sat)
+          => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
+             ...
+         </k>
+         <strategy> .K
+                 => subgoal(\implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps))))
+                           , STRAT
+                           )
+                 ~> expect EXPECTED
+         </strategy>
          ...
        </goals>
    requires notBool PATTERN ==K  \exists { .Patterns } \and ( .Patterns )

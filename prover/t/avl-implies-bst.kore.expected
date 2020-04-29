@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( avl ( H { ArrayIntInt } , X { Int } , F { SetInt } , MIN { Int } , MAX { Int } , Height { Int } , Balance { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( bst ( H { ArrayIntInt } , X { Int } , F { SetInt } , MIN { Int } , MAX { Int } , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>

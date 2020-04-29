@@ -18,7 +18,7 @@ module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
          replace-evar-with-func-constant .Variables
          => #rewfc(PatternsToVariables(getFreeVariables(P, .Patterns)))
        ...</strategy>
-       <claim> P </claim>
+       <k> P </k>
 
   syntax Variables ::= PatternsToVariables(Patterns) [function]
   rule PatternsToVariables(.Patterns) => .Variables
@@ -42,12 +42,12 @@ module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
                                GId, VariableName2String(N)))
        ...</strategy>
        <id> GId </id>
-       <claim> P </claim>
+       <k> P </k>
        requires V in getFreeVariables(P, .Patterns)
 
   rule <strategy> #rewfc2(N{S}, Sym) => .K ...</strategy>
        <id> GId </id>
-       <claim> P => subst(P, N{S}, Sym(.Patterns)) </claim>
+       <k> P => subst(P, N{S}, Sym(.Patterns)) </k>
        <local-context> (.Bag =>
          <local-decl> symbol Sym(.Sorts) : S </local-decl>
          <local-decl>
@@ -58,7 +58,7 @@ module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
 
   rule <strategy> #rewfc1(V) => "No such free variable"
        ...</strategy>
-       <claim> P </claim>
+       <k> P </k>
        requires notBool (V in getFreeVariables(P, .Patterns))
 
 endmodule
