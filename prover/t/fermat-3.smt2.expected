@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( \equals ( plus ( mult ( Vx { Int } , mult ( Vx { Int } , Vx { Int } , .Patterns ) , .Patterns ) , mult ( Vy { Int } , mult ( Vy { Int } , Vy { Int } , .Patterns ) , .Patterns ) , .Patterns ) , mult ( Vz { Int } , mult ( Vz { Int } , Vz { Int } , .Patterns ) , .Patterns ) ) , gt ( Vz { Int } , 0 , .Patterns ) , gt ( Vy { Int } , 0 , .Patterns ) , gt ( Vx { Int } , 0 , .Patterns ) , .Patterns ) , \and ( \or ( .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         fail
       </strategy>

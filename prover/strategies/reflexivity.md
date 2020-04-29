@@ -5,10 +5,10 @@ module STRATEGY-REFLEXIVITY
   imports STRATEGIES-EXPORTED-SYNTAX
 
   rule <strategy> reflexivity => success ...</strategy>
-       <claim> \equals(P, P) </claim>
+       <k> \equals(P, P) </k>
 
   rule <strategy> reflexivity => fail ...</strategy>
-       <claim> \equals(P, Q) </claim>
+       <k> \equals(P, Q) </k>
        requires P =/=K Q
 
 

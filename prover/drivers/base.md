@@ -3,7 +3,7 @@ Configuration
 
 The configuration consists of a assoc-commutative bag of goals. Only goals
 marked `<active>` are executed to control the non-determinism in the system. The
-`<claim>` cell contains the Matching Logic Pattern for which we are searching for a
+`<k>` cell contains the Matching Logic Pattern for which we are searching for a
 proof. The `<strategy>` cell contains an imperative language that controls which
 (high-level) proof rules are used to complete the goal. The `<trace>` cell
 stores a log of the strategies used in the search of a proof and other debug
@@ -21,20 +21,18 @@ module PROVER-CONFIGURATION
 
   configuration
       <prover>
-        <k> $COMMANDLINE:CommandLine ~> $PGM:Pgm </k>
         <exit-code exit=""> 1 </exit-code>
         <goals>
           <goal multiplicity="*" type="Set" format="%1%i%n%2, %3, %4%n%5%n%6%n%7%n%8%n%d%9">
             <active format="active: %2"> true:Bool </active>
             <id format="id: %2"> .K </id>
             <parent format="parent: %2"> .K </parent>
-            <claim> .K </claim>
+            <k> $COMMANDLINE:CommandLine ~> $PGM:Pgm </k>
             <strategy> .K </strategy>
             <expected> .K </expected>
             <local-context>
               <local-decl multiplicity="*" type="Set">  .K </local-decl>
             </local-context>
-
             <trace> .K </trace>
           </goal>
         </goals>
@@ -89,6 +87,16 @@ module DRIVER-BASE
   imports LOAD-NAMED-RULES
 
   rule <k> .CommandLine => .K ... </k>
+
+  rule <goals>
+         <goal>
+           <id> .K </id>
+           <expected> .K </expected>
+           <strategy> .K </strategy>
+           ...
+         </goal>
+       </goals>
+       <exit-code> 1 => 0 </exit-code>
 endmodule
 
 module DRIVER-BASE-SYNTAX

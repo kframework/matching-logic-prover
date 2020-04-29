@@ -109,14 +109,17 @@ Proving a goal may involve proving other subgoals:
 
 ```k
   syntax Strategy ::= "subgoal" "(" Pattern "," Strategy ")"
+  rule <strategy> subgoal(GOAL, STRAT) => subgoal(!ID:Int, GOAL, STRAT) ... </strategy>
+
+  syntax Strategy ::= "subgoal" "(" GoalId "," Pattern "," Strategy ")"
   rule <prover>
          ( .Bag =>
              <goal>
-               <id> !ID:Int </id>
+               <id> ID:Int </id>
                <active> true </active>
                <parent> PARENT </parent>
                <strategy> SUBSTRAT </strategy>
-               <claim> SUBGOAL </claim>
+               <k> SUBGOAL </k>
                <local-context> LC </local-context>
                <trace> TRACE </trace>
                ...
@@ -125,7 +128,7 @@ Proving a goal may involve proving other subgoals:
          <goal>
            <id> PARENT </id>
            <active> true => false </active>
-           <strategy> subgoal(SUBGOAL, SUBSTRAT) => goalStrat(!ID:Int) ... </strategy>
+           <strategy> subgoal(ID, SUBGOAL, SUBSTRAT) => goalStrat(ID:Int) ... </strategy>
            <local-context> LC::Bag </local-context>
            <trace> TRACE </trace>
            ...
@@ -151,7 +154,7 @@ all succeed, it succeeds:
   rule <prover>
          <goal>
            <strategy> ((S1 & S2) => subgoal(GOAL, S1) ~> #hole & S2) </strategy>
-           <claim> GOAL:Pattern </claim>
+           <k> GOAL:Pattern </k>
            ...
          </goal>
          ...
@@ -177,7 +180,7 @@ approach succeeds:
   rule <prover>
          <goal>
            <strategy> ((S1 | S2) => subgoal(GOAL, S1) ~> #hole | S2 ) </strategy>
-           <claim> GOAL:Pattern </claim>
+           <k> GOAL:Pattern </k>
            ...
          </goal>
          ...
@@ -199,7 +202,7 @@ Internal strategy used to implement `or-split` and `and-split`.
 
 ```k
   syntax Strategy ::= "replace-goal" "(" Pattern ")"
-  rule <claim> _ => NEWGOAL </claim>
+  rule <k> _ => NEWGOAL </k>
        <strategy> replace-goal(NEWGOAL) => noop ... </strategy>
 ```
 
@@ -212,7 +215,7 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <claim> \or(GOALS) </claim>
+  rule <k> \or(GOALS) </k>
        <strategy> or-split => #orSplit(GOALS) ... </strategy>
 
   syntax Strategy ::= "#orSplit" "(" Patterns ")" [function]
@@ -230,16 +233,16 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <claim> \implies(LHS, \exists { Vs } \and(\or(RHSs), REST)) </claim>
+  rule <k> \implies(LHS, \exists { Vs } \and(\or(RHSs), REST)) </k>
        <strategy> or-split-rhs => #orSplitImplication(LHS, Vs, RHSs, REST) ... </strategy>
 
-  rule <claim> \implies(LHS, \exists { Vs } \and(RHSs, REST)) </claim>
+  rule <k> \implies(LHS, \exists { Vs } \and(RHSs, REST)) </k>
        <strategy> or-split-rhs => noop ... </strategy>
     requires notBool isDisjunction(RHSs)
-  rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+  rule <k> \implies(LHS, \exists { Vs } \and(.Patterns)) </k>
        <strategy> or-split-rhs => noop ... </strategy>
 
-  rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+  rule <k> \implies(LHS, \exists { Vs } \and(.Patterns)) </k>
        <strategy> or-split-rhs => noop ... </strategy>
 
   syntax Strategy ::= "#orSplitImplication" "(" Pattern "," Patterns "," Patterns "," Patterns ")" [function]
@@ -257,7 +260,7 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <claim> \and(GOALS) </claim>
+  rule <k> \and(GOALS) </k>
        <strategy> and-split => #andSplit(GOALS) ... </strategy>
 
   syntax Strategy ::= "#andSplit" "(" Patterns ")" [function]
