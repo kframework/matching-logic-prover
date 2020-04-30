@@ -23,6 +23,7 @@ module STRATEGY-SEARCH-BOUND
   rule <k> search-sl(kt-bound: KTBOUND, unfold-bound: UNFOLDBOUND)
                => normalize . or-split-rhs
                 . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                . check-lhs-constraint-unsat
                 . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
                     . ( right-unfold-all(bound: UNFOLDBOUND) )
                     . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
