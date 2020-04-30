@@ -152,6 +152,31 @@ nll_vc03_strategy = """
   . match-pto .
 """.replace('\n', ' ')
 
+nll_vc04_strategy = """
+    normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . frame
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(0,0)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals .
+""".replace('\n', ' ')
+
     #         prefix   KT  RU timeout tests
 test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , ('unfold-mut-recs . ',    5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
@@ -265,6 +290,7 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
                                       2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc11.smt2'])
              , (dll_vc17_strategy,    2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc17.smt2'])
              , (nll_vc03_strategy,    2,  3, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc03.smt2'])
+             , (nll_vc04_strategy,    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc04.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 
