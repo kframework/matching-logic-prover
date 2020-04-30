@@ -477,9 +477,33 @@ Lift `\or`s on the left hand sides of implications
        </claim>
        <k> (INSTANTIATION => .) ~> instantiate-existentials ... </k>
      requires INSTANTIATION =/=K .Patterns
-
   rule <k> (.Patterns ~> instantiate-existentials) => noop ... </k>
+```
 
+We define a similar strategy for quantified implication contexts:
+
+```k
+  rule <claim> \implies( \and(sep(\forall { Vs } implicationContext(\and(LCTX), RCTX), _),  LHS) , _ ) </claim>
+       <k> (. => getAtomForcingInstantiation(LCTX, Vs))
+        ~> instantiate-existentials-implication-context
+           ...
+       </k>
+  rule <claim> \implies( \and( sep( \forall { Vs } implicationContext(\and(LCTX), RCTX), LSPATIAL), LHS) , RHS )
+            => \implies( \and( sep( \forall { Vs -Patterns getFreeVariables(INSTANTIATION) }
+                                    implicationContext(\and(LCTX -Patterns INSTANTIATION), RCTX)
+                                  , LSPATIAL
+                                  )
+                             , (LHS ++Patterns INSTANTIATION)
+                             )
+                       , RHS
+                       )
+       </claim>
+       <k> (INSTANTIATION => .) ~> instantiate-existentials-implication-context ... </k>
+     requires INSTANTIATION =/=K .Patterns
+  rule <k> (.Patterns ~> instantiate-existentials-implication-context) => noop ... </k>
+```
+
+```k
   syntax Patterns ::= getAtomForcingInstantiation(Patterns, Patterns) [function]
   rule getAtomForcingInstantiation((\equals(X:Variable, P), Ps), EXISTENTIALS)
     => \equals(X:Variable, P), .Patterns
