@@ -282,6 +282,7 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #createDisequalities(\or(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
   rule #createDisequalities(sep(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
   rule #createDisequalities(S:Symbol(ARGs), Vs) => .Patterns
+  rule #createDisequalities(\equals(_, _), Vs) => .Patterns
   rule #createDisequalities(\not(\equals(nil{_}(.Patterns), V:Variable)), Vs) => #makeDisequalities(V, Vs)
   rule #createDisequalities(\not(\equals(V:Variable, nil{_}(.Patterns))), Vs) => #makeDisequalities(V, Vs)
   rule #createDisequalities(\not(P), Vs) => .Patterns
