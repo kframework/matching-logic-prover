@@ -81,7 +81,13 @@ for guessing an instantiation of the inductive hypothesis.
                     . kt-wrap(LRP) . kt-forall-intro
                     . kt-unfold . remove-lhs-existential
                     . kt-unwrap
-                    . simplify . normalize . or-split-rhs. lift-constraints. kt-collapse
+                    . simplify . normalize . or-split-rhs. lift-constraints
+                    . ( with-each-implication-context( simplify . normalize . or-split-rhs. lift-constraints
+                                                     . remove-lhs-existential
+                                                     . normalize-implication-context
+                                                     . kt-collapse
+                                                     )
+                      )
                     )
                     | ktForEachLRP(LRPs)
                   )
@@ -118,11 +124,22 @@ for guessing an instantiation of the inductive hypothesis.
   rule <k> ( ktUnfForEachLRP((LRP, LRPs))
                  => ( remove-lhs-existential . normalize . or-split-rhs . lift-constraints
                     . kt-wrap(LRP) . kt-forall-intro
-                    . kt-unfold . lift-or . and-split . remove-lhs-existential
+                    . kt-unfold . remove-lhs-existential
                     . kt-unwrap
                     . simplify . normalize . or-split-rhs. lift-constraints
-                    . ( ( kt-collapse )
-                      | ( imp-ctx-unfold . kt-collapse )
+                    . ( with-each-implication-context( ( normalize-implication-context
+                                                       . kt-collapse
+                                                       . remove-lhs-existential
+                                                       . lift-constraints
+                                                       )
+                                                     | ( normalize-implication-context
+                                                       . imp-ctx-unfold
+                                                       . instantiate-existentials-implication-context
+                                                       . kt-collapse
+                                                       . remove-lhs-existential
+                                                       . lift-constraints
+                                                       )
+                                                     )
                       )
                     )
                     | ktUnfForEachLRP(LRPs)
@@ -257,34 +274,39 @@ for guessing an instantiation of the inductive hypothesis.
 ```
 
 
-### `kt-collapse`
+### `with-each-implication-context`
 
 ```k
-  syntax Strategy ::= "kt-collapse"
+  syntax Strategy ::= "with-each-implication-context" "(" Strategy ")"
 ```
 
 If there are no implication contexts to collapse, we are done:
 
 ```k
   rule <claim> GOAL </claim>
-       <k> kt-collapse => noop ... </k>
+       <k> with-each-implication-context(S) => noop ... </k>
     requires notBool(hasImplicationContext(GOAL))
 
   rule <claim> GOAL </claim>
-       <k> imp-ctx-unfold => noop ... </k>
-    requires notBool(hasImplicationContext(GOAL))
+       <k> with-each-implication-context(S) => S . with-each-implication-context(S) ... </k>
+    requires hasImplicationContext(GOAL)
 ```
 
-#### Normalizing terms
+### `normlize-implication-context`
 
-Bring terms containing the implication context to the front:
+This strategy exercises various commutativity axioms and brings an
+`implicationContext` and its `#hole` to the first leaf position of the formula.
+
+```k
+  syntax Strategy ::= "normalize-implication-context"
+```
 
 ```k
   // FOL case
   rule <claim> \implies(\and(P, Ps) #as LHS, RHS)
             => \implies(\and(Ps ++Patterns P), RHS)
        </claim>
-       <k> kt-collapse ... </k>
+       <k> normalize-implication-context ... </k>
     requires notBool hasImplicationContext(P)
      andBool hasImplicationContext(LHS)
 ```
@@ -294,7 +316,7 @@ Bring terms containing the implication context to the front:
   rule <claim> \implies(\and((sep(S, Ss) #as LSPATIAL), Ps), RHS)
             => \implies(\and(sep(Ss ++Patterns S), Ps), RHS)
        </claim>
-       <k> kt-collapse ... </k>
+       <k> normalize-implication-context ... </k>
     requires notBool hasImplicationContext(S)
      andBool hasImplicationContext(LSPATIAL)
 
@@ -319,7 +341,7 @@ Move #holes to the front
                                            , _)
                         , _), _)
        </claim>
-       <k> kt-collapse ... </k>
+       <k> normalize-implication-context ... </k>
     requires P =/=K #hole { Bool }
      andBool #hole { Bool } in Ps
 
@@ -329,9 +351,9 @@ Move #holes to the front
                                            , _)
                         ,_ ), _), _)
        </claim>
-       <k> kt-collapse ... </k>
-    requires P =/=K #hole { Heap }
-     andBool #hole { Heap } in getFreeVariables(Ps)
+       <k> normalize-implication-context ... </k>
+    requires notBool(#hole { Heap } in getFreeVariables(P))
+     andBool         #hole { Heap } in getFreeVariables(Ps)
 
   rule <claim> \implies(\and(sep(\forall { _ }
                          implicationContext( \and( (sep(P, Ps) => sep(Ps ++Patterns P))
@@ -339,9 +361,23 @@ Move #holes to the front
                                            , _)
                         ,_ ), _), _)
        </claim>
-       <k> kt-collapse ... </k>
+       <k> normalize-implication-context ... </k>
     requires P =/=K #hole { Heap }
      andBool #hole { Heap } in getFreeVariables(Ps)
+```
+
+```k
+  rule <k> \implies(\and( \forall { UNIVs } implicationContext( \and(#hole { Bool }, _) , _ ) , _ ) , _ ) </k>
+       <strategy> normalize-implication-context => noop ... </strategy>
+  rule <k> \implies(\and( sep(\forall { UNIVs } implicationContext( \and(sep(#hole { Heap }, _), _) , _ ) , _ ), _ ), _ ) </k>
+       <strategy> normalize-implication-context => noop ... </strategy>
+```
+
+### `kt-collapse`
+
+
+```k
+  syntax Strategy ::= "kt-collapse"
 ```
 
 #### Collapsing contexts (FOL)
@@ -393,7 +429,7 @@ context has no constraints.
 
 ```k
   rule <claim> \implies(\and( ( sep ( \forall { UNIVs => UNIVs -Patterns fst(unzip(SUBST)) }
-                                      ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
+                                      ( implicationContext( \and(sep(_), CTXLHS), CTXRHS ) #as CTX
                                      => substMap(CTX, SUBST)
                                       )
                                     , LSPATIAL
@@ -405,54 +441,130 @@ context has no constraints.
                        )
        </claim>
        <k> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
-               => kt-collapse-resolve
+        => case-analysis( \and(getPredicatePatterns(CTXLHS))
+                        , lift-or . and-split . normalize-implication-context . kt-collapse-no-match
+                        , kt-collapse-matched(rest: REST)
+                        )
                   ...
        </k>
 ```
 
-       1.  LHS * ?H   /\ not(LCTXCONSTR)   -> RHS
-       2a. LHS * ?H   /\ LCTXCONSTR        -> \exists X . LCTX
-       2b. LHS * RCTX /\ LCTXCONSTR        -> RHS
------------------------------------------------------------------------------- Where X does not occur in RCTX or LCTXCONSTR
-     LHS * \forall X. \ic(LCTX /\ LCTXCONSTR, RCTX) /\ LCONSTRAINTS -> RHS
+If we do match, we must then prove three separate subgoals:
+
+1. If the constraints on the LHS of the implication context do not hold, prove RHS
+2. If the constraints on the LHS of the implication context *do* hold
+    a. prove that we can collapse the context. Even though we have already matched
+       this is *not* redundant. Since LCTX may have multiple conjuncted heaps,
+       and matching only proves that we satisfy one, but not all of them.
+    b. using the collapsed context we are able to prove the RHS
+
+```
+1.  LHS[?H]      /\ not(LCTXCONSTR) -> RHS
+2a. LHS[#hole]   /\ LCTXCONSTR      -> \exists X . REST[LCTX[#hole]]
+2b. REST[RCTX]   /\ LCTXCONSTR      -> RHS
+--------------------------------------------------------------------------- Where X does not occur in RCTX or LCTXCONSTR
+    LHS[\forall X. \ic(LCTX[#hole], RCTX)] -> RHS
+```
+
+In the context of the heuristics we implement, this becomes the following, where
+REST is obtained via matching:
+
+```
+2a. LSPATIAL[#hole] /\ LHS           -> \exists UNIVs . REST[CTXLSPATIAL[#hole] /\ CTXLHS_REST]
+2b. REST[CTXRHS] /\ LHS -> RHS
+---------------------------------------------------------------------------
+    sep(LSPATIAL[\forall X. \ic(CTXLSPATIAL[#hole] /\ CTXLHS_REST, CTXRHS)]) /\ LHS -> RHS
+```
 
 ```k
-  syntax Strategy ::= "kt-collapse-resolve"
-  rule <claim> \implies( \and( sep ( \forall { UNIVs }
-                                     implicationContext( \and( sep(CTXLSPATIAL)
-                                                             , CTXLCONSTRAINTs
-                                                             )
-                                                       , CTXRHS
-                                                       )
-                                  , LSPATIAL
-                                  )
+  syntax Strategy ::= "kt-collapse-matched" "(" "rest:" Patterns ")"
+  rule <claim> \implies(\and( ( sep ( ( \forall { UNIVs }
+                                        implicationContext( ( \and( sep(#hole { Heap }, _)
+                                                                  , CTXLHS_REST)
+                                                              #as CTXLHS
+                                                            )
+                                                          , CTXRHS)
+                                      )
+                                    , LSPATIAL
+                                    )
+                              )
                             , LHS:Patterns
                             )
                        , RHS:Pattern
                        )
        </claim>
-       <k> kt-collapse-resolve
-        => resolve(\and(getPredicatePatterns(CTXLCONSTRAINTs)))
+       <k> kt-collapse-matched(rest: REST)
+        => replace-goal( \implies( \and(sep(#hole { Heap }, LSPATIAL), LHS)
+                                 , \exists { UNIVs } \and(sep(CTXLHS, REST))
+                                 )
+                       )
+         & replace-goal( \implies( \and(sep(CTXRHS ++Patterns REST), LHS)
+                                 , RHS
+                                 )
+                       )
            ...
        </k>
-    requires getFreeVariables(getPredicatePatterns(CTXLCONSTRAINTs)) intersect UNIVs ==K .Patterns
 ```
 
 ```k
-    // 1 in rule above
+  syntax Strategy ::= "kt-collapse-no-match"
+  rule <claim> \implies(\and( ( sep ( ( ( \forall { UNIVs }
+                                          implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS )
+                                        )
+                                     => !H { Heap }
+                                      )
+                                    , LSPATIAL
+                                    )
+                              )
+                            , LHS:Patterns
+                            )
+                       , RHS:Pattern
+                       )
+       </claim>
+       <k> kt-collapse-no-match => noop
+                  ...
+       </k>
+```
+
+### Case analysis
+
+```
+    PHI /\ P -> PSI        PHI /\ not(P) -> PSI
+    -------------------------------------------    case-analsysis(P)
+                      PHI -> PSI
+```
+
+```k
+    syntax Strategy ::= "case-analysis" "(" Pattern "," negative: Strategy "," positive: Strategy ")"
+    rule <claim> \implies(\and(LHS), RHS) </claim>
+         <k> ( case-analysis(P, NEG, POS) ~> #hole . REST )
+          => subgoal( \implies(\and(\not(P), LHS ), RHS)
+                    , NEG . REST
+                    )
+           & subgoal( \implies(\and(#flattenAnds(LHS ++Patterns P)), RHS)
+                    , POS . REST
+                    )
+         </k>
+    rule <k> case-analysis(_, _, _)
+                 ~> ( (#hole . S1 ~> #hole . S2)
+                   => #hole . S1 . S2
+                    )
+                    ...
+         </k>
+```
+
+```k
     syntax Strategy ::= "kt-collapse-unsat"
     rule <claim> \implies( \and( sep ( \forall { UNIVs } implicationContext(_, _)
                                      , LSPATIAL
                                      )
                                , LHS:Patterns
                                )
-                       , RHS:Pattern
-                       )
-             => \implies( \or(#dnfPs( \and( sep(LSPATIAL ++Patterns !H:VariableName { Heap })
-                                          , LHS:Patterns
-                                          )
-                                    )
-                             )
+                         , RHS:Pattern
+                         )
+             => \implies( \and( sep(LSPATIAL ++Patterns !H:VariableName { Heap }, .Patterns)
+                              , LHS:Patterns
+                              )
                         , RHS:Pattern
                         )
        </claim>
@@ -461,9 +573,7 @@ context has no constraints.
     // 2a and 2b in rule above
     syntax Strategy ::= "kt-collapse-valid"
     rule <claim> \implies(\and( sep ( \forall { UNIVs }
-                                      implicationContext( LCTX
-                                                        , RCTX
-                                                        )
+                                      implicationContext( LCTX , RCTX )
                                     , LSPATIAL
                                     )
                               , LHS:Patterns
@@ -485,28 +595,6 @@ context has no constraints.
          </k>
       requires getFreeVariables(RCTX) intersect UNIVs ==K .Patterns
 ```
-
-### Resolve
-
-```
-    PHI /\ P -> PSI        PHI /\ not(P) -> PSI
-    -------------------------------------------    resolve(P)
-                      PHI -> PSI
-```
-
-```k
-    syntax Strategy ::= "resolve" "(" Pattern ")"
-    rule <claim> \implies(\and(LHS), RHS) </claim>
-         <k> ( resolve(P) ~> #hole . REST )
-          => subgoal( \implies(\and(LHS ++Patterns \not(P)), RHS)
-                    , kt-collapse-unsat . lift-or . and-split . REST
-                    )
-           & subgoal( \implies(\and(#flattenAnds(LHS ++Patterns P)), RHS)
-                    , kt-collapse-valid . REST
-                    )
-         </k>
-```
-
 
 ### Unfolding within the implication context
 
@@ -632,10 +720,10 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
            ...
        </k>
     requires notBool isTerminalStrategy(S)
-    
+
   rule <k> T:TerminalStrategy ~> kt-solve-implication(#hole, RHS)
-               => kt-solve-implication(T, RHS)
-                  ...
+        => kt-solve-implication(T, RHS)
+           ...
        </k>
   rule <k> kt-solve-implication(fail, RHS) => noop ... </k>
   rule <k> kt-solve-implication(success, CONC) => noop ... </k>
