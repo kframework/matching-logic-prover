@@ -405,6 +405,18 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
+  rule <claim> \implies(\and(\not(\and(Ps)), LHS), RHS)
+            => \implies(\and(\or(#not(Ps)), LHS), RHS) 
+       </claim>
+       <k> lift-or ... </k>
+  rule <claim> \implies(\and(\or(Ps), LHS), RHS)
+            => \implies(\or(#liftOr-in-And(Ps, LHS)), RHS)
+       </claim>
+       <k> lift-or ... </k>
+  syntax Patterns ::= "#liftOr-in-And" "(" Patterns "," Patterns ")" [function]
+  rule #liftOr-in-And(.Patterns, LHS) => .Patterns
+  rule #liftOr-in-And((P, Ps), LHS) => \and(P, LHS), #liftOr-in-And(Ps, LHS)
+
   rule <claim> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </claim>
        <k> lift-or => noop ... </k>
 
