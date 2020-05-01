@@ -7,6 +7,7 @@ requires "t/unit/match-assoc.k"
 requires "t/unit/match-assoc-comm.k"
 requires "t/unit/subst.k"
 requires "t/unit/syntactic-match.k"
+requires "t/unit/visitor.k"
 ```
 
 ```k
@@ -16,6 +17,7 @@ module DRIVER-UNIT-TEST
   imports TEST-MATCH-ASSOC-COMM
   imports TEST-SUBST
   imports TEST-SYNTACTIC-MATCH
+  imports TEST-VISITOR
 endmodule
 ```
 
