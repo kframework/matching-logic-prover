@@ -402,12 +402,41 @@ solver using `kt-solve-implications`
 
 #### Collapsing contexts (SL)
 
-In the separation logic case, we must use matching.
+In the separation logic case, we must use matching to collapse the implication context..
 
-First, we use matching to instantiate the quantifiers of the implication context.
+First, we use match to instantiate the quantifiers of the implication context.
 Then we apply the substitution to the context, including the constraints.
-Next, duplicate constraints are removed using the ad-hoc rule below until the implication
-context has no constraints.
+
+If matching fails, we replace the implication context with a symbolic heap and
+continue (`kt-collapse-no-match`). This allows the proof to proceed even if
+we cannot infer any additional information about that part of the heap.
+
+If we do match, we perform a `case-analsysis` over the constraints on the left-hand-side
+of the implication context.
+
+1. Assuming the constraints on the LHS of the implication context do not hold, prove RHS.
+   While we still use the `kt-collapse-no-match` strategy, we are have addition information:
+   that the negation of the constraints in the context left hand side hold.
+
+2. Assuming the constraints on the LHS of the implication context *do* hold
+    a. prove that we can collapse the context. Even though we have already matched
+       this is *not* redundant. Since LCTX may have multiple conjuncted heaps,
+       and matching only proves that we satisfy one, but not all of them.
+    b. using the collapsed context we are able to prove the RHS
+
+Note that in this sense we take advantage of implication contexts being more general
+than the magic wand. The magic wand does not let you directly represent patterns of
+the form `( [] * a ) /\ b -o  psi`. i.e. patterns where the context is a conjunction
+of heaps.
+
+```
+1.  LHS[?H]      /\ not(LCTXCONSTR) -> RHS
+2a. LHS[#hole]   /\ LCTXCONSTR      -> \exists X . REST[LCTX[#hole]]
+2b. REST[RCTX]   /\ LCTXCONSTR      -> RHS
+--------------------------------------------------------------------------- Where X does not occur in RCTX or LCTXCONSTR
+    LHS[\forall X. \ic(LCTX[#hole], RCTX)] -> RHS
+```
+
 
 ```k
   rule <claim> \implies(\and( sep ( \forall { UNIVs }
@@ -447,23 +476,6 @@ context has no constraints.
                         )
                   ...
        </k>
-```
-
-If we do match, we must then prove three separate subgoals:
-
-1. If the constraints on the LHS of the implication context do not hold, prove RHS
-2. If the constraints on the LHS of the implication context *do* hold
-    a. prove that we can collapse the context. Even though we have already matched
-       this is *not* redundant. Since LCTX may have multiple conjuncted heaps,
-       and matching only proves that we satisfy one, but not all of them.
-    b. using the collapsed context we are able to prove the RHS
-
-```
-1.  LHS[?H]      /\ not(LCTXCONSTR) -> RHS
-2a. LHS[#hole]   /\ LCTXCONSTR      -> \exists X . REST[LCTX[#hole]]
-2b. REST[RCTX]   /\ LCTXCONSTR      -> RHS
---------------------------------------------------------------------------- Where X does not occur in RCTX or LCTXCONSTR
-    LHS[\forall X. \ic(LCTX[#hole], RCTX)] -> RHS
 ```
 
 In the context of the heuristics we implement, this becomes the following, where
