@@ -832,6 +832,7 @@ things, so the LHS becomes unsat.
       requires notBool S ==K pto
 
     rule <k> frame(.Patterns) => noop ... </k>
+    rule <k> frame(#hole { Heap }, _) => fail ... </k>
 
     syntax Patterns ::= filterClausesInvolvingVariable(Variable, Patterns) [function]
     rule filterClausesInvolvingVariable(V, (P, Ps))
