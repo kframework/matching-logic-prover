@@ -656,42 +656,57 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
     rule #destructEquality((S1:Symbol(ARGs1), Ps1), (S2:Symbol(ARGs2), Ps2))
       => \equals(S1(ARGs1), S2(ARGs2)), #destructEquality(Ps1, Ps2)
       requires S1 =/=K S2 orBool notBool isConstructor(S1)
+```
 
-    rule <claim> \implies(LHS, \exists { Vs } RHS)
-         </claim>
+If the RHS has no spatial part, then there is nothing to do:
+
+```k
+    rule <claim> \implies(LHS, \exists { Vs } RHS) </claim>
          <k> spatial-patterns-equal => noop ... </k>
       requires isPredicatePattern(RHS)
+```
 
-    rule <claim> \implies(               \and(sep(LSPATIAL), LHS)
-                         , \exists{ Vs } \and(sep(RSPATIAL), RHS)
-                         )
-              => \implies(\and(LHS), \exists { Vs } \and(RHS))
-         </claim>
-         <k>                    spatial-patterns-equal
-          => lift-constraints . spatial-patterns-equal
-             ...
-         </k>
-      requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
-       andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
+If there is some remaining spatial part, bring it to the front:
 
-    rule <claim> \implies(               \and(sep(LSPATIAL), LHS)
-                         , \exists{ Vs } \and(sep(RSPATIAL), RHS)
-                         )
-              => \implies(               \and(LHS ++Patterns sep(LSPATIAL))
-                         , \exists{ Vs } \and(sep(RSPATIAL), RHS)
-                         )
+```k
+    rule <claim> \implies(LHS, \exists { Vs } \and(P, RHS))
+              => \implies(LHS, \exists { Vs } \and(RHS ++Patterns P))
          </claim>
          <k> spatial-patterns-equal ... </k>
-      requires LSPATIAL -Patterns RSPATIAL =/=K .Patterns
-        orBool RSPATIAL -Patterns LSPATIAL =/=K .Patterns
+      requires isPredicatePattern(P)
+       andBool notBool isPredicatePattern(\and(RHS))
+```
 
-    rule <claim> \implies(               \and(L, LHS)
-                         , \exists{ Vs } \and(sep(RSPATIAL), RHS)
-                         )
+Remove any spatial pattern on the RHS that matches a spatial pattern on the LHS:
+
+```k
+    rule <claim> \implies(\and(LHS), \exists{Vs} \and(sep(RSPATIAL), RHS)) </claim>
+         <k> spatial-patterns-equal
+          => with-each-match( #match( terms: \and(getSpatialPatterns(LHS))
+                                    , pattern: RSPATIAL
+                                    , variables: .Patterns
+                                    )
+                            , spatial-patterns-equal
+                            )
+             ...
+         </k>
+    rule <claim> \implies(LHS, \exists{ Vs } \and(sep(RSPATIAL), RHS))
+              => \implies(LHS, \exists{ Vs } \and(RHS))
          </claim>
-         <k> spatial-patterns-equal => fail ... </k>
-      requires getSpatialPatterns(L) ==K .Patterns
+         <k> #matchResult(subst: .Map , rest: .Patterns)
+          ~> spatial-patterns-equal
+          => spatial-patterns-equal
+             ...
+         </k>
 
+    rule <k> #matchResult(subst: .Map , rest: P, Ps)
+          ~> spatial-patterns-equal
+          => fail
+             ...
+         </k>
+```
+
+```k
     rule <claim> \implies(\and(LHS), RHS)
               => \implies(\and(LHS -Patterns getSpatialPatterns(LHS)), RHS)
          </claim>
