@@ -62,7 +62,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "instantiate-separation-logic-axioms" | "pto-is-injective"
                     | "spatial-patterns-equal"
                     | "spatial-patterns-match"
-                    | "match" | "match-pto"
+                    | "match" | "match-debug" | "match-pto"
                     | "frame"
                     | "footprint-analysis" | "nullity-analysis" "(" Strategy ")"
                     | "unfold-mut-recs"
