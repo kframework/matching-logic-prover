@@ -445,6 +445,17 @@ module KORE-HELPERS
     => .Patterns
 ```
 
+```k
+  syntax Patterns ::= getImplicationContexts(Patterns) [function]
+  rule getImplicationContexts(\forall {Vs} implicationContext(LCTX, RCTX), Ps)
+    => \forall {Vs} implicationContext(LCTX, RCTX), getImplicationContexts(Ps)
+  rule getImplicationContexts(S:Symbol(ARGs), Ps)
+    => getImplicationContexts(Ps)
+  rule getImplicationContexts(V:Variable, Ps)
+    => getImplicationContexts(Ps)
+  rule getImplicationContexts(.Patterns)  => .Patterns
+```
+
 Filters a list of patterns, returning the ones that are applications of the symbol:
 
 ```k

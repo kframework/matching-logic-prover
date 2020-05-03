@@ -283,6 +283,7 @@ for guessing an instantiation of the inductive hypothesis.
 If there are no implication contexts to collapse, we are done:
 
 ```k
+<<<<<<< HEAD
   rule <claim> GOAL </claim>
        <k> with-each-implication-context(S) => noop ... </k>
     requires notBool(hasImplicationContext(GOAL))
@@ -290,6 +291,21 @@ If there are no implication contexts to collapse, we are done:
   rule <claim> GOAL </claim>
        <k> with-each-implication-context(S) => S . with-each-implication-context(S) ... </k>
     requires hasImplicationContext(GOAL)
+||||||| parent of 134f05a3... kt: Number of fixes for:
+  rule <k> GOAL </k>
+       <strategy> with-each-implication-context(S) => noop ... </strategy>
+    requires notBool(hasImplicationContext(GOAL))
+  rule <k> GOAL </k>
+       <strategy> with-each-implication-context(S) => S . with-each-implication-context(S) ... </strategy>
+    requires hasImplicationContext(GOAL)
+=======
+  rule <k> \implies(LHS, RHS) </k>
+       <strategy> with-each-implication-context(S) => noop ... </strategy>
+    requires notBool(hasImplicationContext(LHS))
+  rule <k> \implies(LHS, RHS) </k>
+       <strategy> with-each-implication-context(S) => S . with-each-implication-context(S) ... </strategy>
+    requires hasImplicationContext(LHS)
+>>>>>>> 134f05a3... kt: Number of fixes for:
 ```
 
 ### `normlize-implication-context`
@@ -451,21 +467,22 @@ of heaps.
        <k> kt-collapse
                => with-each-match( #match(terms: LSPATIAL, pattern: CTXLHS, variables: UNIVs)
                                  , kt-collapse
+                                 , kt-collapse-no-match
                                  )
                   ...
        </k>
 ```
 
 ```k
-  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => UNIVs -Patterns fst(unzip(SUBST)) }
-                                      ( implicationContext( \and(sep(_), CTXLHS), CTXRHS ) #as CTX
-                                     => substMap(CTX, SUBST)
-                                      )
-                                    , LSPATIAL
-                                    )
-                              )
-                            , LHS:Patterns
-                            )
+  rule <claim> \implies( \and( ( sep ( \forall { UNIVs => UNIVs -Patterns fst(unzip(SUBST)) }
+                                       ( implicationContext( \and(sep(_), CTXLHS), CTXRHS ) #as CTX
+                                      => substMap(CTX, SUBST)
+                                       )
+                                     , LSPATIAL
+                                     )
+                               )
+                             , LHS:Patterns
+                             )
                        , RHS:Pattern
                        )
        </claim>
@@ -491,7 +508,7 @@ REST is obtained via matching:
 ```k
   syntax Strategy ::= "kt-collapse-matched" "(" "rest:" Patterns ")"
   rule <claim> \implies(\and( ( sep ( ( \forall { UNIVs }
-                                        implicationContext( ( \and( sep(#hole { Heap }, _)
+                                        implicationContext( ( \and( sep(#hole { Heap }, CTXLSPATIAL)
                                                                   , CTXLHS_REST)
                                                               #as CTXLHS
                                                             )
@@ -506,8 +523,15 @@ REST is obtained via matching:
                        )
        </claim>
        <k> kt-collapse-matched(rest: REST)
-        => replace-goal( \implies( \and(sep(#hole { Heap }, LSPATIAL), LHS)
-                                 , \exists { UNIVs } \and(sep(CTXLHS, REST))
+        => replace-goal( \implies( \and(sep(!HOLE { Heap }
+                                           , (LSPATIAL -Patterns getImplicationContexts(LSPATIAL)))
+                                       , LHS)
+                                 , \exists { UNIVs }
+                                   \and( sep(( subst(CTXLHS, #hole { Heap }, !HOLE { Heap })
+                                             , REST
+                                             ) -Patterns getImplicationContexts(REST)
+                                             )
+                                       )
                                  )
                        )
          & replace-goal( \implies( \and(sep(CTXRHS ++Patterns REST), LHS)
@@ -516,6 +540,7 @@ REST is obtained via matching:
                        )
            ...
        </k>
+    requires getImplicationContexts(LSPATIAL) ==K getImplicationContexts(CTXLSPATIAL ++Patterns REST)
 ```
 
 ```k
