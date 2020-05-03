@@ -308,6 +308,7 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , (nll_vc04_strategy,    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc04.smt2'])
              , (nll_vc08_10_strategy, 2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc08.smt2'])
              , (nll_vc08_10_strategy, 2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc10.smt2'])
+             , ('', 3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tseg_join_tree_entail_tseg.sb.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 
