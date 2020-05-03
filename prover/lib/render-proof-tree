@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+
+usage = \
+"""Prints the proof tree and either the active goal, or the specified goal.
+
+Usage:
+
+    lib/render-proof-tree <filename> [goal_id]
+"""
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../ext/k/k-distribution/target/release/k/lib/'))
+import pyk
+
+from anytree import NodeMixin, Node, RenderTree
+from collections import namedtuple
+import textwrap
+import fileinput
+import re
+
+
+# Parse args
+# ----------
+ 
+if len(sys.argv) < 2 or len(sys.argv) > 3: print(usage); exit(1)
+input_file = sys.argv[1]
+selected_id = None
+if len(sys.argv) == 3: selected_id = sys.argv[2]
+
+class Goal(NodeMixin):
+    def __init__(self, id, parent_id, active):
+        self.id   = id
+        self.name = id 
+        self.parent_id = parent_id
+        self.active = active
+        self.claim = None
+        self.trace = None
+        self.strategy = None
+
+# Parse K output
+# --------------
+
+nodes = {}
+roots = []
+next_line_is_claim = False
+next_line_is_trace = False
+next_line_is_strategy = False
+
+with open(input_file) as f:
+  for line in f:
+    match = re.search(' *active: (\w*), id: (\w*\d*), parent: (\.|\w*\d*)', line)
+    if match is not None:
+        active    = match.group(1) == 'true'
+        id        = match.group(2)
+        parent    = match.group(3)
+        node      = Goal(id, parent, active)
+        nodes[id] = node
+        if parent == '.': roots += [node]
+    if next_line_is_claim: node.claim = line.strip(); next_line_is_claim = False
+    next_line_is_claim = re.search('<claim>', line) is not None
+    if next_line_is_trace: node.trace = line.strip(); next_line_is_trace = False
+    next_line_is_trace = re.search('<trace>', line) is not None
+    if next_line_is_strategy: node.strategy = line.strip(); next_line_is_strategy = False
+    next_line_is_strategy = re.search('<strategy>', line) is not None
+
+# Build proof tree
+# ----------------
+
+for id, node in nodes.items():
+    if node in roots: continue
+    node.parent = nodes[node.parent_id]
+
+# Print proof tree
+# ----------------
+
+def is_node_selected(node):
+    if selected_id is None: return node.active
+    return node.id == selected_id
+
+term_normal ='\033[0m'
+term_bold   ='\033[1m'
+term_reverse ='\033[7m'
+for pre, fill, node in RenderTree(roots[0]):
+    if is_node_selected(node):
+        pre += term_reverse
+    print( pre, 'id: ', node.id, ','
+              , 'trace:', node.trace.split('(')[0]
+         , term_normal
+         )
+
+for pre, fill, node in RenderTree(roots[0]):
+    if is_node_selected(node):
+        print('id:', node.id)
+        print('claim:', node.claim)
+        print('strategy:', node.strategy)
