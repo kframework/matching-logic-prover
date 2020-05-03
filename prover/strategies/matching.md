@@ -464,8 +464,9 @@ Instantiate existentials using matching on the spatial part of goals:
        <k> match => fail ... </k>
     requires isPredicatePattern(LHS)
      andBool isSpatialPattern(RSPATIAL)
+
   rule <claim> \implies(\and(LSPATIAL, LHS), \exists { Vs } RHS) </claim>
-       <k> match => fail ... </k>
+       <k> match => noop ... </k>
     requires isPredicatePattern(RHS)
      andBool isSpatialPattern(LSPATIAL)
 
