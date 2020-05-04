@@ -141,6 +141,7 @@ module DRIVER-SMT
                         <declaration> symbol nil { SMTLIB2SortToSort(LOC) } (.Sorts) : SMTLIB2SortToSort(LOC) </declaration>
                         <declaration> axiom !N:AxiomName : heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
                         <declaration> axiom !M:AxiomName : functional(nil { SMTLIB2SortToSort(LOC) }) </declaration>
+                        <declaration> axiom !P:AxiomName : constructor(nil { SMTLIB2SortToSort(LOC) }) </declaration>
                       ) ...
        </declarations>
 
