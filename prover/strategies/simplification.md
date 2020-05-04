@@ -865,7 +865,7 @@ Gamma |- C[\exists X. Pi /\ Psi]
 
 ```
 
-### Substitute Equals for equals
+### Remove constraints
 
 ```
       PHI /\ C => PSI
