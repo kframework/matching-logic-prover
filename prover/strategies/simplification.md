@@ -865,6 +865,21 @@ Gamma |- C[\exists X. Pi /\ Psi]
 
 ```
 
+### Substitute Equals for equals
+
+```
+      PHI /\ C => PSI
+     -----------------  where C is a predicate pattern
+         PHI -> PSI
+```
+
+```k
+  rule <claim> \implies(\and(LHS), RHS)
+            => \implies(\and(LHS -Patterns getPredicatePatterns(LHS)), RHS)
+       </claim>
+       <k> remove-constraints => noop ... </k>
+```
+
 ```k
 endmodule
 ```
