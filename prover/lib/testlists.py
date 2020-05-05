@@ -211,6 +211,37 @@ lsegex4_slk_1_strategy = """
     ) .
 """.replace('\n', ' ')
 
+skl3_vc10_strategy = """
+    normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . kt
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . ( ( right-unfold-Nth(0, 1)
+      . right-unfold-Nth(0, 1) . right-unfold-Nth(0, 1) . right-unfold-Nth(0, 0)
+      . right-unfold-Nth(0, 1)
+      . right-unfold-Nth(0, 1) . right-unfold-Nth(0, 0)
+      . right-unfold-Nth(0, 0)
+      . right-unfold-Nth(0, 0)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . instantiate-separation-logic-axioms
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+      )
+    | ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+    | ( right-unfold-Nth(0, 1)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . instantiate-separation-logic-axioms
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+      )
+    ) .
+""".replace('\n', ' ')
+
     #         prefix   KT  RU timeout tests
 test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , ('unfold-mut-recs . ',    5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
@@ -329,6 +360,7 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , (nll_vc08_10_strategy, 2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc10.smt2'])
              , ('', 3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tseg_join_tree_entail_tseg.sb.smt2'])
              , (lsegex4_slk_1_strategy, 2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/lsegex4_slk-1.smt2'])
+             , (skl3_vc10_strategy,   2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/skl3-vc10.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 
