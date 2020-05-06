@@ -60,7 +60,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
                     | "instantiate-separation-logic-axioms" | "pto-is-injective"
-                    | "spatial-patterns-equal"
+                    | "spatial-patterns-equal" | "patterns-equal"
                     | "spatial-patterns-match"
                     | "match" | "match-debug" | "match-pto"
                     | "frame"

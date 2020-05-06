@@ -349,6 +349,8 @@ Bring predicate constraints to the top of a term.
     requires isPredicatePattern(P)
   rule #liftConstraintsPs(P, REST) => sep(P), #liftConstraintsPs(REST)
     requires isSpatialPattern(P)
+  rule #liftConstraintsPs(V:SetVariable, REST) => V, #liftConstraintsPs(REST)
+  rule #liftConstraintsPs(\mu X . P, REST) => \mu X . P, #liftConstraintsPs(REST)
   rule #liftConstraintsPs(\and(Ps), REST) => #liftConstraintsPs(Ps ++Patterns REST)
     requires notBool isPredicatePattern(\and(Ps))
   // note the rule below assumes we hever have a pure predicate pattern inside a sep

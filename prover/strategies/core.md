@@ -26,6 +26,7 @@ module PROVER-CORE-SYNTAX
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
   syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs" | "and-split-rhs"
+  syntax Strategy ::= "rhs-top"
   syntax Strategy ::= "prune" "(" Patterns ")"
 
   syntax Strategy ::= Strategy "{" Int "}"
@@ -284,6 +285,13 @@ Internal strategy used to implement `or-split` and `and-split`.
   rule #andSplitImplication(P, Vs, .Patterns) => noop
   rule #andSplitImplication(P1, Vs, (P2, .Patterns)) => replace-goal(\implies(P1, \exists{Vs} \and(P2, .Patterns)))
   rule #andSplitImplication(P1, Vs, (P2, Ps)) => replace-goal(\implies(P1, \exists{Vs} \and(P2, .Patterns))) & #andSplitImplication(P1, Vs, Ps) [owise]
+```
+
+`rhs-top` evaluates to success if the right hand side is top
+
+```k
+  rule <k> \implies(LHS, \exists{.Patterns} \and(.Patterns)) </k>
+       <strategy> rhs-top => success ... </strategy>
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:

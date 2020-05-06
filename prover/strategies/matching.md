@@ -56,7 +56,6 @@ module MATCHING-FUNCTIONAL
                                      , rest: .Patterns
                                      )
                     )
-    requires isSpatialPattern(sep(T))
 
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
@@ -144,7 +143,15 @@ Recurse over assoc-only constructors (including `pto`):
 
   // ground variable: identical
   rule #matchAssoc( terms:     P:Variable, Ts => Ts
-                  , pattern:   P:Variable, Ps => Ps
+                  , pattern:   P, Ps => Ps
+                  , variables: Vs
+                  , subst:     _
+                  , rest:      REST
+                  )
+    requires notBool P in Vs
+
+  rule #matchAssoc( terms:     P:SetVariable, Ts => Ts
+                  , pattern:   P, Ps => Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
@@ -161,7 +168,18 @@ Recurse over assoc-only constructors (including `pto`):
     => #error( "No valid substitution" ), .MatchResults
     requires T =/=K P
      andBool notBool P in Vs
-     
+
+  // ground variable: non-identical
+  rule #matchAssoc( terms:     T, Ts
+                  , pattern:   P:SetVariable, Ps
+                  , variables: Vs
+                  , subst:     _
+                  , rest:      REST
+                  )
+    => #error( "No valid substitution" ), .MatchResults
+    requires T =/=K P
+     andBool notBool P in Vs
+
   // free variable: different sorts
   rule #matchAssoc( terms:     T         , Ts
                   , pattern:   P:Variable, Ps
@@ -656,6 +674,42 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
     rule #destructEquality((S1:Symbol(ARGs1), Ps1), (S2:Symbol(ARGs2), Ps2))
       => \equals(S1(ARGs1), S2(ARGs2)), #destructEquality(Ps1, Ps2)
       requires S1 =/=K S2 orBool notBool isConstructor(S1)
+```
+
+If the RHS is empty, we have nothing to do
+
+```k
+    rule <k> \implies(LHS, \exists { Vs } \and(.Patterns)) </k>
+         <strategy> patterns-equal => noop ... </strategy>
+```
+
+Remove any patterns on the RHS that match a pattern on the LHS:
+
+```k
+    rule <k> \implies(\and(LHS), \exists{Vs} \and(RHS, REST)) </k>
+         <strategy> patterns-equal
+                 => with-each-match( #match( terms: LHS
+                                           , pattern: RHS
+                                           , variables: .Patterns
+                                           )
+                                   , patterns-equal
+                                   )
+                    ...
+         </strategy>
+    rule <k> \implies(LHS, \exists{ Vs } \and(RHS, REST))
+              => \implies(LHS, \exists{ Vs } \and(REST))
+         </k>
+         <strategy> #matchResult(subst: .Map , rest: .Patterns)
+                 ~> patterns-equal
+                 => patterns-equal
+                    ...
+         </strategy>
+
+    rule <strategy> #matchResult(subst: .Map , rest: P, Ps)
+                 ~> patterns-equal
+                 => fail
+                    ...
+         </strategy>
 ```
 
 If the RHS has no spatial part, then there is nothing to do:

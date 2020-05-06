@@ -357,6 +357,8 @@ module KORE-HELPERS
   rule getReturnSort(\and(.Patterns)) => TopSort
   rule getReturnSort(_:SetVariable) => TopSort
 
+  rule getReturnSort(\exists{Vs} P) => getReturnSort(P)
+
   syntax Sort ::= "TopSort"         [token]
                 | "BottomSort"      [token]
 
@@ -430,6 +432,7 @@ module KORE-HELPERS
 
   rule getFreeVariables(N:Int, .Patterns) => .Patterns
   rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
+  rule getFreeVariables(X:SetVariable, .Patterns) => X, .Patterns
   rule getFreeVariables(S:Symbol, .Patterns) => .Patterns
   rule getFreeVariables(S:Symbol(ARGS) , .Patterns) => getFreeVariables(ARGS)
 
@@ -452,11 +455,19 @@ module KORE-HELPERS
     => getFreeVariables(P, .Patterns) -Patterns Vs
   rule getFreeVariables(\forall { Vs } P,  .Patterns)
     => getFreeVariables(P, .Patterns) -Patterns Vs
+  rule getFreeVariables(\mu X . P,         .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns (X, .Patterns)
+
   rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
     => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
-       -Patterns #hole { Heap }, #hole { Bool }
+       -Patterns #hole { Heap }, #hole { Bool }, #hole { TopSort }
   rule getFreeVariables(\typeof(P, _))
     => getFreeVariables(P)
+
+  syntax Patterns ::= filterSetVariables(Patterns) [function]
+  rule filterSetVariables(.Patterns) => .Patterns
+  rule filterSetVariables(V:Variable, Vs) => V, filterSetVariables(Vs)
+  rule filterSetVariables(X:SetVariable, Vs) => filterSetVariables(Vs)
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
@@ -665,6 +676,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
     => #fun(RENAMING => \forall { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
   rule alphaRename(\exists { Fs:Patterns } P:Pattern)
     => #fun(RENAMING => \exists { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
+  rule alphaRename(\mu X . P:Pattern) => \mu !X . alphaRename(subst(P, X, !X))
   rule alphaRename(\equals(L, R)) => \equals(alphaRename(L), alphaRename(R))
   rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
   rule alphaRename(\functionalPattern(Ps)) => \functionalPattern(alphaRename(Ps))
@@ -676,6 +688,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(S:Symbol(ARGs)) => S(alphaRenamePs(ARGs))
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V
+  rule alphaRename(X:SetVariable) => X
   rule alphaRename(I:Int) => I
   rule alphaRename(implicationContext(P, Qs))
     => implicationContext(alphaRename(P), alphaRename(Qs))
@@ -816,16 +829,18 @@ Simplifications
   rule isPredicatePattern(#hole { Bool }) => true
   rule isPredicatePattern(#hole { Heap }) => false
   rule isPredicatePattern(V:VariableName { Heap }) => false
+  rule isPredicatePattern(V:SetVariable) => false
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
   rule isPredicatePattern(S:Symbol(ARGS)) => true
-    requires getReturnSort(S(ARGS)) ==K Bool
+    requires getReturnSort(S(ARGS)) =/=K Heap
 
   rule isPredicatePattern(S:Symbol(ARGS)) => false
     requires getReturnSort(S(ARGS)) ==K Heap
   rule isPredicatePattern(emp(.Patterns)) => false
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
+  rule isPredicatePattern(\mu X . P) => false
   rule isPredicatePattern(implicationContext(\and(sep(_),_),_)) => false
   rule isPredicatePattern(\typeof(_,_)) => true
   rule isPredicatePattern(implicationContext(_,_)) => true
@@ -845,6 +860,8 @@ Simplifications
   rule isSpatialPattern(#hole { Bool }) => false
   rule isSpatialPattern(#hole { Heap }) => true
   rule isSpatialPattern(V:VariableName { Heap }) => true
+  rule isSpatialPattern(V:SetVariable) => false
+  rule isSpatialPattern(\mu X . P) => false
 
   // TODO: Perhaps normalization should get rid of this?
   rule isSpatialPattern(\exists{_} implicationContext(\and(sep(_),_),_)) => true
@@ -887,6 +904,7 @@ Simplifications
   syntax Bool ::= hasImplicationContext(Pattern)  [function]
   syntax Bool ::= hasImplicationContextPs(Patterns)  [function]
   rule hasImplicationContext(X:Variable) => false
+  rule hasImplicationContext(X:SetVariable) => false
   rule hasImplicationContext(X:Int) => false
   rule hasImplicationContext(S:Symbol) => false
   rule hasImplicationContext(\implies(LHS, RHS))
