@@ -58,13 +58,21 @@ Normalize:
  - All \ands are flattened
 
 ```k
-
   rule <claim> P::Pattern => \and(P) </claim>
        <k> normalize ... </k>
-       requires \and(...) :/=K P andBool \implies(...) :/=K P
+    requires \and(...) :/=K P andBool \implies(...) :/=K P
 
   rule <claim> \and(P) => \implies(\and(.Patterns), \and(P)) </claim>
        <k> normalize ... </k>
+       
+  rule <claim> \implies(LHS, RHS) => \implies(LHS, \and(RHS)) </claim>
+       <k> normalize ... </k>
+    requires \and(...) :/=K RHS
+     andBool \exists { _ } \and(_) :/=K RHS
+
+  rule <claim> \implies(LHS, RHS) => \implies(\and(LHS), RHS) </claim>
+       <k> normalize ... </k>
+    requires \and(...) :/=K LHS
 
   rule <claim> \implies(LHS, \and(RHS))
         => \implies(LHS, \exists { .Patterns } \and(RHS))
