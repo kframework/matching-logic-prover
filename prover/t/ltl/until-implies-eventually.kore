@@ -1,4 +1,4 @@
-symbol next(State) : State
+symbol next(TopSort) : TopSort
 
 // there is always a next state
 axiom inf: next(\top())
@@ -7,8 +7,8 @@ axiom inf: next(\top())
 axiom lin: \implies(next(#X), \not(next(\not(#X))))
 
 // phi1 U phi2 => []phi2
-claim \implies( \mu #X . \or(PHI2, \and(PHI1, next(#X)))
-              , \mu #X . \or(PHI2, next(#X))
+claim \implies( \mu #X . \or(#PHI2, \and(#PHI1, next(#X)))
+              , \mu #X . \or(#PHI2, next(#X))
               )
 
 /*

@@ -350,6 +350,28 @@ module KORE-HELPERS
     => false
        requires getReturnSort(P) =/=K S
 
+  rule getReturnSort(\mu _ . Phi) => getReturnSort(Phi)
+  rule getReturnSort(\or(P, Ps)) => unionSort(getReturnSort(P), getReturnSort(\or(Ps)))
+  rule getReturnSort(\or(.Patterns)) => BottomSort
+  rule getReturnSort(\and(P, Ps)) => intersectSort(getReturnSort(P), getReturnSort(\and(Ps)))
+  rule getReturnSort(\and(.Patterns)) => TopSort
+  rule getReturnSort(_:SetVariable) => TopSort
+
+  syntax Sort ::= "TopSort"         [token]
+                | "BottomSort"      [token]
+
+  syntax Sort ::= unionSort(Sort, Sort) [function]
+  rule unionSort(TopSort, S) => TopSort
+  rule unionSort(S, TopSort) => TopSort
+  rule unionSort(BottomSort, S) => S
+  rule unionSort(S, BottomSort) => S
+
+  syntax Sort ::= intersectSort(Sort, Sort) [function]
+  rule intersectSort(TopSort, S) => S
+  rule intersectSort(S, TopSort) => S
+  rule intersectSort(BottomSort, S) => BottomSort
+  rule intersectSort(S, BottomSort) => BottomSort
+
   syntax Bool ::= isUnfoldable(Symbol) [function]
   rule [[ isUnfoldable(S:Symbol) => true ]]
        <declaration> axiom _ : \forall {_} \iff-lfp(S(_), _) </declaration>
