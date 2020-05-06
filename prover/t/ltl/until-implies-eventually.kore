@@ -1,0 +1,40 @@
+symbol next(State) : State
+
+// there is always a next state
+axiom inf: next(\top())
+
+// one-path next implies all-path next
+axiom lin: \implies(next(#X), \not(next(\not(#X))))
+
+// phi1 U phi2 => []phi2
+claim \implies( \mu #X . \or(PHI2, \and(PHI1, next(#X)))
+              , \mu #X . \or(PHI2, next(#X))
+              )
+
+/*
+kt:   \implies( \or(PHI2, \and(PHI1, next(\mu #Y . \or(PHI2, next(#Y))))
+              , \mu #X . \or(PHI2, next(#X))
+              )
+
+lift-or, and-spplit
+(1)   \implies( PHI2 , \mu #X . \or(PHI2, next(#X)) )
+right-unfold-Nth(0, 0)
+      \implies( PHI2 , PHI2 )
+phi-implies-phi
+      success
+
+(2)   \implies( next(\mu #Y . \or(PHI2, next(#Y)))
+              , \mu #X . \or(PHI2, next(#X))
+              )
+right-unfold-Nth(0, 1)
+      \implies( next(\mu #Y . \or(PHI2, next(#Y)))
+              , next(\mu #X . \or(PHI2, next(#X)))
+              )
+"alpha-rename"
+      \implies( next(\mu #Y . \or(PHI2, next(#Y)))
+              , next(\mu #Y . \or(PHI2, next(#Y)))
+              )
+phi-implies-phi
+*/
+
+strategy normalize . kt
