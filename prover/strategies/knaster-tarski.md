@@ -77,21 +77,20 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= ktForEachLRP(Patterns)
   rule <k> ktForEachLRP(.Patterns) => fail ... </k>
   rule <k> ( ktForEachLRP((LRP, LRPs))
-                 => ( remove-lhs-existential . normalize . or-split-rhs . lift-constraints
-                    . kt-wrap(LRP) . kt-forall-intro
-                    . kt-unfold . remove-lhs-existential
-                    . kt-unwrap
-                    . simplify . normalize . or-split-rhs. lift-constraints
-                    . ( with-each-implication-context( simplify . normalize . or-split-rhs. lift-constraints
-                                                     . remove-lhs-existential
-                                                     . normalize-implication-context
-                                                     . kt-collapse
-                                                     )
-                      )
-                    )
-                    | ktForEachLRP(LRPs)
-                  )
-                 ~> REST
+        => ( kt-wrap(LRP) . kt-forall-intro
+           . kt-unfold . remove-lhs-existential
+           . kt-unwrap
+           . simplify . normalize . or-split-rhs. lift-constraints
+           . ( with-each-implication-context( simplify . normalize . or-split-rhs. lift-constraints
+                                            . remove-lhs-existential
+                                            . normalize-implication-context
+                                            . kt-collapse
+                                            )
+             )
+           )
+           | ktForEachLRP(LRPs)
+         )
+        ~> REST
        </k>
 ```
 
