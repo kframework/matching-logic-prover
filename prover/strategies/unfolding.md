@@ -12,6 +12,7 @@ module STRATEGY-UNFOLDING
   rule [[ unfold(S:Symbol(ARGs)) => {("ifflfp axiom has free variables!" ~> S ~> (getFreeVariables(DEF) -Patterns Vs))}:>Pattern ]]
        <declaration> axiom _: \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
     requires getFreeVariables(DEF) -Patterns Vs =/=K .Patterns
+  rule unfold(\mu X . P) => subst(P, X, alphaRename(\mu X . P))
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
   rule [[ getSymbolDeclaration(S) => DECL ]]
@@ -30,6 +31,8 @@ module STRATEGY-UNFOLDING
     => R(ARGS), (getUnfoldables(ARGS)
        ++Patterns getUnfoldables(REST))
     requires isUnfoldable(R)
+  rule getUnfoldables(\mu X . P, REST)
+    => \mu X . P, getUnfoldables(REST)
   rule getUnfoldables(S:Symbol, REST)
     => getUnfoldables(REST)
     requires notBool isUnfoldable(S)

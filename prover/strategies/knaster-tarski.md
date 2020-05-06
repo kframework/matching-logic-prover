@@ -79,20 +79,20 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= ktForEachLRP(Patterns)
   rule <k> ktForEachLRP(.Patterns) => fail ... </k>
   rule <k> ( ktForEachLRP((LRP, LRPs))
-        => ( kt-wrap(LRP) . kt-forall-intro
-           . kt-unfold . remove-lhs-existential
-           . kt-unwrap
-           . simplify . normalize . or-split-rhs. lift-constraints
-           . ( with-each-implication-context( simplify . normalize . or-split-rhs. lift-constraints
-                                            . remove-lhs-existential
-                                            . normalize-implication-context
-                                            . kt-collapse
-                                            )
-             )
-           )
-           | ktForEachLRP(LRPs)
-         )
-        ~> REST
+                 => ( kt-wrap(LRP) . kt-forall-intro
+                    . kt-unfold . remove-lhs-existential
+                    . kt-unwrap
+                    . simplify . normalize . or-split-rhs . lift-constraints
+                    . ( with-each-implication-context( simplify . normalize . or-split-rhs. lift-constraints
+                                                     . remove-lhs-existential
+                                                     . normalize-implication-context
+                                                     . kt-collapse
+                                                     )
+                      )
+                    )
+                    | ktForEachLRP(LRPs)
+                  )
+                 ~> REST
        </k>
 ```
 
@@ -174,7 +174,9 @@ for guessing an instantiation of the inductive hypothesis.
   syntax Strategy ::= "kt-forall-intro"
   rule <claim> \implies(LHS, RHS) #as GOAL
         => \implies( LHS
-                   , \forall { getUniversalVariables(GOAL) -Patterns getFreeVariables(LHS, .Patterns) }
+                   , \forall { filterSetVariables(getUniversalVariables(GOAL))
+                     -Patterns getFreeVariables(LHS, .Patterns)
+                             }
                              RHS
                    )
        </claim>
@@ -192,13 +194,28 @@ for guessing an instantiation of the inductive hypothesis.
     requires getFreeVariables(LHS) -Patterns Vs ==K getFreeVariables(LHS)
 ```
 
+## `kt-unfold`
 
-// unfold+lfp
+### `kt-unfold` for `\mu`
+
+```k
+  // TODO: combine with other kt-unfold rules
+  rule <k> \implies(\mu X . P, RHS)
+        => \implies(subst(P, X, alphaRename(RHS)), RHS)
+       </k>
+       <k> kt-unfold
+               => lift-or . and-split
+                  ...
+       </k>
+```
+
+### `kt-unfold` for `\iff-lfp`
 
 ```k
   syntax Strategy ::= "kt-unfold" | "kt-unfold" "(" Pattern ")"
-  rule <claim> \implies(LHS, RHS) </claim>
+  rule <claim> \implies(LRP:Symbol(ARGS) #as LHS, RHS) </claim>
        <k> kt-unfold => kt-unfold(unfold(LHS)) ... </k>
+    requires isUnfoldable(LRP)
   rule <claim> \implies(LRP(ARGS) #as LHS, RHS)
             => \implies(UNFOLDED_LHS, RHS)
        </claim>
@@ -342,8 +359,8 @@ Move #holes to the front
                         , _), _)
        </claim>
        <k> normalize-implication-context ... </k>
-    requires P =/=K #hole { Bool }
-     andBool #hole { Bool } in Ps
+    requires (P =/=K #hole { Bool } orBool P =/=K #hole { TopSort })
+     andBool (#hole { Bool } in Ps orBool #hole { TopSort } in Ps)
 
   rule <claim> \implies(\and(sep(\forall { _ }
                          implicationContext( \and(P, Ps)
@@ -367,7 +384,7 @@ Move #holes to the front
 ```
 
 ```k
-  rule <claim> \implies(\and( \forall { UNIVs } implicationContext( \and(#hole { Bool }, _) , _ ) , _ ) , _ ) </claim>
+  rule <claim> \implies(\and( \forall { UNIVs } implicationContext( \and(#hole { SORT }, _) , _ ) , _ ) , _ ) </claim>
        <k> normalize-implication-context => noop ... </k>
   rule <claim> \implies(\and( sep(\forall { UNIVs } implicationContext( \and(sep(#hole { Heap }, _), _) , _ ) , _ ), _ ), _ ) </claim>
        <k> normalize-implication-context => noop ... </k>

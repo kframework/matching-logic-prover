@@ -7,8 +7,8 @@ axiom inf: next(\top())
 axiom lin: \implies(next(#X), \not(next(\not(#X))))
 
 // phi1 U phi2 => []phi2
-claim \implies( \mu #X . \or(#PHI2, \and(#PHI1, next(#X)))
-              , \mu #X . \or(#PHI2, next(#X))
+claim \implies( \mu #X . \or(\exists { } \and(#PHI2), \exists { } \and(#PHI1, next(#X)))
+              , \mu #X . \or(\exists { } \and(#PHI2), \exists { } \and(next(#X)))
               )
 
 /*
@@ -37,4 +37,4 @@ right-unfold-Nth(0, 1)
 phi-implies-phi
 */
 
-strategy normalize . kt
+strategy normalize . kt . right-unfold-Nth(0, 0) . normalize . patterns-equal . rhs-top
