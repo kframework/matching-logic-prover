@@ -19,6 +19,8 @@ for guessing an instantiation of the inductive hypothesis.
   rule getKTUnfoldables(R(ARGS), REST)
     => R(ARGS), getKTUnfoldables(REST)
     requires isUnfoldable(R)
+  rule getKTUnfoldables(\mu X . Phi, REST)
+    => \mu X . Phi, getKTUnfoldables(REST)
   rule getKTUnfoldables(S:Symbol, REST)
     => getKTUnfoldables(REST)
     requires notBool isUnfoldable(S)

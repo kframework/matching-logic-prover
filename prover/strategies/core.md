@@ -110,7 +110,7 @@ Proving a goal may involve proving other subgoals:
   rule <k> subgoal(GOAL, STRAT) => subgoal(!ID:Int, GOAL, STRAT) ... </k>
 
   syntax Strategy ::= "subgoal" "(" GoalId "," Pattern "," Strategy ")"
-  rule <prover>
+  rule <goals>
          ( .Bag =>
              <goal>
                <id> ID </id>
@@ -130,7 +130,7 @@ Proving a goal may involve proving other subgoals:
            ...
          </goal>
          ...
-       </prover>
+       </goals>
 ```
 
 Sometimes, we may need to combine the proofs of two subgoals to construct a proof
