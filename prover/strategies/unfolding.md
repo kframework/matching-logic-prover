@@ -279,7 +279,7 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
                     | "right-unfold-Nth-oneBody"  "(" Int "," Int "," Pattern "," Pattern ")"
 
   rule <k> right-unfold-Nth (M,N) => fail ... </k>
-  requires (M <Int 0) orBool (N <Int 0)
+    requires (M <Int 0) orBool (N <Int 0)
 
   rule <k> right-unfold-Nth (M,N)
                => right-unfold-Nth-eachRRP(M, N, getUnfoldables(RHS))
