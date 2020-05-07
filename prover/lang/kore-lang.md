@@ -141,11 +141,14 @@ only in this scenario*.
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
   syntax SetVariable ::= SharpName [klabel(setVariable)]
+  syntax Context ::= VariableName "[" Pattern "]" [klabel(context)]
   syntax Pattern ::= Int
                    | Variable
                    | SetVariable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
+
+                   | Context
 
                    | "\\top"    "(" ")"                         [klabel(top)]
                    | "\\bottom" "(" ")"                         [klabel(bottom)]
@@ -359,8 +362,8 @@ module KORE-HELPERS
 
   rule getReturnSort(\exists{Vs} P) => getReturnSort(P)
 
-  syntax Sort ::= "TopSort"         [token]
-                | "BottomSort"      [token]
+  syntax UpperName ::= "TopSort"         [token]
+                     | "BottomSort"      [token]
 
   syntax Sort ::= unionSort(Sort, Sort) [function]
   rule unionSort(TopSort, S) => TopSort
@@ -833,10 +836,10 @@ Simplifications
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
   rule isPredicatePattern(S:Symbol(ARGS)) => true
-    requires getReturnSort(S(ARGS)) =/=K Heap
+    requires getReturnSort(S(ARGS)) ==K Bool
 
   rule isPredicatePattern(S:Symbol(ARGS)) => false
-    requires getReturnSort(S(ARGS)) ==K Heap
+    requires getReturnSort(S(ARGS)) =/=K Bool
   rule isPredicatePattern(emp(.Patterns)) => false
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
@@ -857,6 +860,8 @@ Simplifications
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
+  rule isSpatialPattern(S:Symbol(ARGS)) => false
+    requires getReturnSort(S(ARGS)) =/=K Heap
   rule isSpatialPattern(#hole { Bool }) => false
   rule isSpatialPattern(#hole { Heap }) => true
   rule isSpatialPattern(V:VariableName { Heap }) => true
@@ -918,6 +923,7 @@ Simplifications
   rule hasImplicationContext(\functionalPattern(P)) => hasImplicationContext(P)
   rule hasImplicationContext(\exists{ _ } P ) => hasImplicationContext(P)
   rule hasImplicationContext(\forall{ _ } P ) => hasImplicationContext(P)
+  rule hasImplicationContext(\mu X . P) => hasImplicationContext(P)
   rule hasImplicationContext(implicationContext(_, _)) => true
   rule hasImplicationContextPs(.Patterns) => false
   rule hasImplicationContextPs(P, Ps)

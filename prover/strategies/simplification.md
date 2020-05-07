@@ -342,6 +342,8 @@ Bring predicate constraints to the top of a term.
 
   syntax Pattern ::= #liftConstraints(Pattern) [function]
   syntax Patterns ::= #liftConstraintsPs(Patterns) [function]
+  // rule #liftConstraints(S:Symbol(\and(P1, P2, Ps), ARGs)) => #liftConstraints(\and(S(P1, ARGs), S(\and(P2, Ps), ARGs)))
+  // rule #liftConstraints(S:Symbol(\and(P, .Patterns), ARGs)) => #liftConstraints(\and(S(P, ARGs)))
   rule #liftConstraints(\and(Ps)) => \and(#liftConstraintsPs(Ps))
   rule #liftConstraintsPs(.Patterns) => .Patterns
   rule #liftConstraintsPs(sep(\and(.Patterns), .Patterns), REST) => #liftConstraintsPs(REST)
