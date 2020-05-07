@@ -384,7 +384,9 @@ Move #holes to the front
 ```
 
 ```k
-  rule <claim> \implies(\and( \forall { UNIVs } implicationContext( \and(#hole { SORT }, _) , _ ) , _ ) , _ ) </claim>
+  rule <claim> \implies(\and( \forall { UNIVs } implicationContext( \and(#hole { Bool }, _) , _ ) , _ ) , _ ) </claim>
+       <k> normalize-implication-context => noop ... </k>
+  rule <claim> \implies(\and( S:Symbol(\forall { UNIVs } implicationContext( \and(#hole { TopSort }, _) , _ )) , _ ) , _ ) </claim>
        <k> normalize-implication-context => noop ... </k>
   rule <claim> \implies(\and( sep(\forall { UNIVs } implicationContext( \and(sep(#hole { Heap }, _), _) , _ ) , _ ), _ ), _ ) </claim>
        <k> normalize-implication-context => noop ... </k>
@@ -492,6 +494,50 @@ of heaps.
                         , lift-or . and-split . normalize-implication-context . kt-collapse-no-match
                         , kt-collapse-matched(rest: REST)
                         )
+                  ...
+       </k>
+```
+
+```k
+  syntax UpperName ::= "#rest" [token]
+  rule <claim> \implies( \and( S:Symbol ( \forall { UNIVs }
+                                      implicationContext(\and(CTXLHS), CTXRHS)
+                                    )
+                         , LHS:Patterns
+                         )
+                   , RHS:Pattern
+                   )
+       </claim>
+       <k> kt-collapse
+               => with-each-match( #matchAssoc( terms:     S( #hole { TopSort } )
+                                              , pattern:   #rest[CTXLHS]
+                                              , variables: #rest { TopSort }
+                                              , subst:     .Map
+                                              , rest:      .Patterns
+                                              )
+                                 , kt-collapse
+                                 , kt-collapse-no-match
+                                 )
+                  ...
+       </k>
+```
+
+```k
+  rule <claim> \implies( \and( S:Symbol ( \forall { .Patterns }
+                                      implicationContext( \and(_), CTXRHS )
+                                    )
+                         , LHS:Patterns
+                         )
+                   , RHS:Pattern
+                   )
+         => \implies( \and( subst({SUBST[#rest { TopSort }]}:>Pattern, #hole { TopSort }, CTXRHS)
+                          , LHS
+                          )
+                    , RHS
+                    )
+       </claim>
+       <k> ( #matchResult(subst: SUBST, rest: .Patterns) ~> kt-collapse )
+               => noop
                   ...
        </k>
 ```

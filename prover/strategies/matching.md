@@ -91,6 +91,19 @@ Work around OCaml not producing reasonable error messages:
 Recurse over assoc-only constructors (including `pto`):
 
 ```k
+  // TODO: matching over context patterns
+  rule #matchAssoc( terms:     S:Symbol(T), .Patterns
+                  , pattern:   V[T], .Patterns
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+    => #matchResult( subst: SUBST V { getReturnSort(S(T)) } |-> S( #hole { getReturnSort(T) })
+                   , rest: .Patterns
+                   )
+     , .MatchResults
+    requires V { getReturnSort(S(T)) } in Vs
+
   // Base case
   rule #matchAssoc( terms:     .Patterns
                   , pattern:   .Patterns
@@ -679,15 +692,15 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 If the RHS is empty, we have nothing to do
 
 ```k
-    rule <k> \implies(LHS, \exists { Vs } \and(.Patterns)) </k>
-         <strategy> patterns-equal => noop ... </strategy>
+    rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+         <k> patterns-equal => noop ... </k>
 ```
 
 Remove any patterns on the RHS that match a pattern on the LHS:
 
 ```k
-    rule <k> \implies(\and(LHS), \exists{Vs} \and(RHS, REST)) </k>
-         <strategy> patterns-equal
+    rule <claim> \implies(\and(LHS), \exists{Vs} \and(RHS, REST)) </claim>
+         <k> patterns-equal
                  => with-each-match( #match( terms: LHS
                                            , pattern: RHS
                                            , variables: .Patterns
@@ -695,21 +708,21 @@ Remove any patterns on the RHS that match a pattern on the LHS:
                                    , patterns-equal
                                    )
                     ...
-         </strategy>
-    rule <k> \implies(LHS, \exists{ Vs } \and(RHS, REST))
-              => \implies(LHS, \exists{ Vs } \and(REST))
          </k>
-         <strategy> #matchResult(subst: .Map , rest: .Patterns)
+    rule <claim> \implies(LHS, \exists{ Vs } \and(RHS, REST))
+              => \implies(LHS, \exists{ Vs } \and(REST))
+         </claim>
+         <k> #matchResult(subst: .Map , rest: .Patterns)
                  ~> patterns-equal
                  => patterns-equal
                     ...
-         </strategy>
+         </k>
 
-    rule <strategy> #matchResult(subst: .Map , rest: P, Ps)
-                 ~> patterns-equal
-                 => fail
-                    ...
-         </strategy>
+    rule <k> #matchResult(subst: .Map , rest: P, Ps)
+          ~> patterns-equal
+          => fail
+             ...
+         </k>
 ```
 
 If the RHS has no spatial part, then there is nothing to do:

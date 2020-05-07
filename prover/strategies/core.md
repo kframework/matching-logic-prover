@@ -290,8 +290,8 @@ Internal strategy used to implement `or-split` and `and-split`.
 `rhs-top` evaluates to success if the right hand side is top
 
 ```k
-  rule <k> \implies(LHS, \exists{.Patterns} \and(.Patterns)) </k>
-       <strategy> rhs-top => success ... </strategy>
+  rule <claim> \implies(LHS, \exists{.Patterns} \and(.Patterns)) </claim>
+       <k> rhs-top => success ... </k>
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:
