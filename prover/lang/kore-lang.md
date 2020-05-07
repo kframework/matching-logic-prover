@@ -133,7 +133,7 @@ module KORE
   syntax Ints ::= List{Int, ","}
 ```
 
-We allow two "variaties" of variables: the first, identified by a String, is for
+We allow two "varieties" of variables: the first, identified by a String, is for
 use in defining claims; the second, identified by a String and an Int subscript
 is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
