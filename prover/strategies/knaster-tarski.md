@@ -458,7 +458,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 
 ```k
   // TODO: the rule below should be able to subsume the above ad-hoc rule
-  rule <strategy> \implies(\and( sep ( \forall { .Patterns }
+  rule <claim> \implies(\and( sep ( \forall { .Patterns }
                                     \and( PRED_BEFORE_SUBST
                                         , implicationContext( \and( sep(CTXLSPATIAL)
                                                                   , ( CTXLCONSTRAINTS )
@@ -481,7 +481,7 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
                               , RHS
                               )
                     )
-       </strategy>
+       </claim>
        <k> kt-collapse
                => and-split . or-split . lift-or . and-split . normalize . or-split-rhs
                 . lift-constraints . substitute-equals-for-equals
