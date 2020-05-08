@@ -103,6 +103,37 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
        </prover>
 ```
 
+The `goalUp(GoalId)` strategy moves the waiting goal in the list
+above the finished goal it is waiting for. This is used by the
+Kore driver to ensure that the toplevel 'goal' that is used
+to generate other goals stays on top of the list of proved goals,
+so that it can generate some more goals. We need to keep the proven
+goals so that they can be used to prove other goals.
+```k
+  syntax Strategy ::= goalUp(GoalId)
+  rule <prover>
+         (.Bag =>
+           <goal> <id> PID </id>
+                  <strategy> S </strategy>
+                  B
+           </goal>
+         )
+         ( <goal> <id> ID </id>
+                  <parent> PID </parent>
+                  <strategy> RStrat:TerminalStrategy </strategy>
+                  ...
+           </goal>
+         )
+         (
+         <goal> <id> PID </id>
+                <strategy> goalUp(ID) ~> S </strategy>
+                B:Bag
+         </goal> => .Bag
+         )
+         ...
+       </prover>
+```
+
 Proving a goal may involve proving other subgoals:
 
 ```k
@@ -110,10 +141,12 @@ Proving a goal may involve proving other subgoals:
   rule <strategy> subgoal(GOAL, STRAT) => subgoal(!ID:Int, GOAL, STRAT) ... </strategy>
 
   syntax Strategy ::= "subgoal" "(" GoalId "," Pattern "," Strategy ")"
+  syntax Strategy ::= "subgoalNowait" "(" GoalId "," Pattern "," Strategy ")"
+
   rule <prover>
          ( .Bag =>
              <goal>
-               <id> ID:Int </id>
+               <id> ID </id>
                <parent> PARENT </parent>
                <strategy> SUBSTRAT </strategy>
                <k> SUBGOAL </k>
@@ -124,13 +157,18 @@ Proving a goal may involve proving other subgoals:
          )
          <goal>
            <id> PARENT </id>
-           <strategy> subgoal(ID, SUBGOAL, SUBSTRAT) => goalStrat(ID:Int) ... </strategy>
+           <strategy> subgoalNowait(ID, SUBGOAL, SUBSTRAT) => .K ... </strategy>
            <local-context> LC::Bag </local-context>
            <trace> TRACE </trace>
            ...
          </goal>
          ...
        </prover>
+
+  rule <strategy> subgoal(ID, SUBGOAL, SUBSTRAT)
+               => subgoalNowait(ID, SUBGOAL, SUBSTRAT)
+               ~> goalStrat(ID)
+       ...</strategy>
 ```
 
 Sometimes, we may need to combine the proofs of two subgoals to construct a proof

@@ -68,9 +68,13 @@ in the subgoal and the claim of the named goal remains intact.
        </k>
   rule <k> claim NAME : PATTERN
            strategy STRAT
-        => subgoal(NAME, PATTERN, subgoal(PATTERN, STRAT))
+        => .K
            ...
        </k>
+       <strategy> .K
+               => subgoalNowait(NAME, PATTERN, subgoal(PATTERN, STRAT))
+               ~> goalUp(NAME)
+       </strategy>
 ```
 
 ```k
