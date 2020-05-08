@@ -367,10 +367,10 @@ Move #holes to the front
 ```
 
 ```k
-  rule <k> \implies(\and( \forall { UNIVs } implicationContext( \and(#hole { Bool }, _) , _ ) , _ ) , _ ) </k>
-       <strategy> normalize-implication-context => noop ... </strategy>
-  rule <k> \implies(\and( sep(\forall { UNIVs } implicationContext( \and(sep(#hole { Heap }, _), _) , _ ) , _ ), _ ), _ ) </k>
-       <strategy> normalize-implication-context => noop ... </strategy>
+  rule <claim> \implies(\and( \forall { UNIVs } implicationContext( \and(#hole { Bool }, _) , _ ) , _ ) , _ ) </claim>
+       <k> normalize-implication-context => noop ... </k>
+  rule <claim> \implies(\and( sep(\forall { UNIVs } implicationContext( \and(sep(#hole { Heap }, _), _) , _ ) , _ ), _ ), _ ) </claim>
+       <k> normalize-implication-context => noop ... </k>
 ```
 
 ### `kt-collapse`
