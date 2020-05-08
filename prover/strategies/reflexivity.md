@@ -4,11 +4,11 @@ module STRATEGY-REFLEXIVITY
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
 
-  rule <strategy> reflexivity => success ...</strategy>
-       <k> \equals(P, P) </k>
+  rule <k> reflexivity => success ...</k>
+       <claim> \equals(P, P) </claim>
 
-  rule <strategy> reflexivity => fail ...</strategy>
-       <k> \equals(P, Q) </k>
+  rule <k> reflexivity => fail ...</k>
+       <claim> \equals(P, Q) </claim>
        requires P =/=K Q
 
 

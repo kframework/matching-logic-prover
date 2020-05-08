@@ -10,17 +10,17 @@ module STRATEGY-INSTANTIATE-UNIVERSALS
   imports KORE-HELPERS
   imports STRATEGIES-EXPORTED-SYNTAX
 
-  rule <strategy>
+  rule <k>
          instantiate-universals(in: _, vars: .VariableNames,
            with: .Patterns) => noop ...
-       </strategy>
+       </k>
 
-  rule <strategy>
+  rule <k>
          instantiate-universals(in: H, vars: (V, Vs), with: (T, Ts))
          => instantiate-universal V with T in H
          ~> instantiate-universals(in: H, vars: Vs, with: Ts)
          ...
-       </strategy>
+       </k>
 
   syntax Bool ::= varIsInTopUnivQual(VariableName, Sort, Pattern) [function]
 
@@ -37,28 +37,28 @@ module STRATEGY-INSTANTIATE-UNIVERSALS
   syntax KItem ::= "instantiate-universal" VariableName
                       "with" Pattern "in" AxiomName
 
-  rule <strategy>
+  rule <k>
          (.K => "Error: variable " ~> V ~> " is either not universally quantified in toplevel or has a sort other than " ~> getReturnSort(T))
          ~> instantiate-universal V with T in H
          ...
-       </strategy>
+       </k>
        <local-decl>
          axiom H : Phi
        </local-decl>
        requires notBool varIsInTopUnivQual(V, getReturnSort(T), Phi)
 
-  rule <strategy>
+  rule <k>
          (.K => "The term " ~> T ~> "is not known to be functional.")
          ~> instantiate-universal _ with T in H
          ...
-       </strategy>
+       </k>
        <id> GId </id>
        requires notBool isFunctional(GId, T)
 
-  rule <strategy>
+  rule <k>
          instantiate-universal V with T in H
          => .K ...
-       </strategy>
+       </k>
        <local-decl>
          axiom H : (Phi => #instantiateUniv(Phi, V, T))
        </local-decl>

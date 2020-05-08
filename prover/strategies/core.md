@@ -54,7 +54,7 @@ module PROVER-CORE
 `Strategy`s can be sequentially composed via the `.` operator.
 
 ```k
-  rule <strategy> (S . T) . U => S . (T . U) ... </strategy>
+  rule <k> (S . T) . U => S . (T . U) ... </k>
 ```
 
 Since strategies do not live in the K cell, we must manually heat and cool.
@@ -63,23 +63,23 @@ cooled back into the sequence strategy.
 
 ```k
   syntax ResultStrategy ::= "#hole"
-  rule <strategy> S1 . S2 => S1 ~> #hole . S2 ... </strategy>
+  rule <k> S1 . S2 => S1 ~> #hole . S2 ... </k>
     requires notBool(isResultStrategy(S1))
      andBool notBool(isSequenceStrategy(S1))
-  rule <strategy> S1:ResultStrategy ~> #hole . S2 => S1 . S2 ... </strategy>
+  rule <k> S1:ResultStrategy ~> #hole . S2 => S1 . S2 ... </k>
 ```
 
 The `noop` (no operation) strategy is the unit for sequential composition:
 
 ```k
-  rule <strategy> noop . T => T ... </strategy>
+  rule <k> noop . T => T ... </k>
 ```
 
 The `success` and `fail` strategy indicate that a goal has been successfully
 proved, or that constructing a proof has failed.
 
 ```k
-  rule <strategy> T:TerminalStrategy . S => T ... </strategy>
+  rule <k> T:TerminalStrategy . S => T ... </k>
 ```
 
 The `goalStrat(GoalId)` strategy is used to establish a reference to the result of
@@ -91,12 +91,12 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
   rule <prover>
          ( <goal> <id> ID </id>
                   <parent> PID </parent>
-                  <strategy> RStrat:TerminalStrategy </strategy>
+                  <k> RStrat:TerminalStrategy </k>
                   ...
            </goal> => .Bag
          )
          <goal> <id> PID </id>
-                <strategy> goalStrat(ID) => RStrat ... </strategy>
+                <k> goalStrat(ID) => RStrat ... </k>
                 ...
          </goal>
          ...
@@ -107,16 +107,16 @@ Proving a goal may involve proving other subgoals:
 
 ```k
   syntax Strategy ::= "subgoal" "(" Pattern "," Strategy ")"
-  rule <strategy> subgoal(GOAL, STRAT) => subgoal(!ID:Int, GOAL, STRAT) ... </strategy>
+  rule <k> subgoal(GOAL, STRAT) => subgoal(!ID:Int, GOAL, STRAT) ... </k>
 
   syntax Strategy ::= "subgoal" "(" GoalId "," Pattern "," Strategy ")"
   rule <prover>
          ( .Bag =>
              <goal>
-               <id> ID:Int </id>
+               <id> ID </id>
                <parent> PARENT </parent>
-               <strategy> SUBSTRAT </strategy>
-               <k> SUBGOAL </k>
+               <k> SUBSTRAT </k>
+               <claim> SUBGOAL </claim>
                <local-context> LC </local-context>
                <trace> TRACE </trace>
                ...
@@ -124,7 +124,7 @@ Proving a goal may involve proving other subgoals:
          )
          <goal>
            <id> PARENT </id>
-           <strategy> subgoal(ID, SUBGOAL, SUBSTRAT) => goalStrat(ID:Int) ... </strategy>
+           <k> subgoal(ID, SUBGOAL, SUBSTRAT) => goalStrat(ID) ... </k>
            <local-context> LC::Bag </local-context>
            <trace> TRACE </trace>
            ...
@@ -138,19 +138,19 @@ of the main goal. The `&` strategy generates subgoals for each child strategy, a
 all succeed, it succeeds:
 
 ```k
-  rule <strategy> S & fail => fail ... </strategy>
-  rule <strategy> fail & S => fail ... </strategy>
-  rule <strategy> S & success => S ... </strategy>
-  rule <strategy> success & S => S ... </strategy>
-  rule <strategy> (S1 & S2) . S3 => (S1 . S3) & (S2 . S3) ... </strategy>
-  rule <strategy> T:TerminalStrategy ~>  #hole & S2
+  rule <k> S & fail => fail ... </k>
+  rule <k> fail & S => fail ... </k>
+  rule <k> S & success => S ... </k>
+  rule <k> success & S => S ... </k>
+  rule <k> (S1 & S2) . S3 => (S1 . S3) & (S2 . S3) ... </k>
+  rule <k> T:TerminalStrategy ~>  #hole & S2
                => T & S2
                   ...
-       </strategy>
+       </k>
   rule <prover>
          <goal>
-           <strategy> ((S1 & S2) => subgoal(GOAL, S1) ~> #hole & S2) </strategy>
-           <k> GOAL:Pattern </k>
+           <k> ((S1 & S2) => subgoal(GOAL, S1) ~> #hole & S2) </k>
+           <claim> GOAL:Pattern </claim>
            ...
          </goal>
          ...
@@ -164,19 +164,19 @@ The `|` strategy lets us try these different approaches, and succeeds if any one
 approach succeeds:
 
 ```k
-  rule <strategy> S | fail => S ... </strategy>
-  rule <strategy> fail | S => S ... </strategy>
-  rule <strategy> S | success => success ... </strategy>
-  rule <strategy> success | S => success ... </strategy>
-  rule <strategy> (S1 | S2) . S3 => (S1 . S3) | (S2 . S3) ... </strategy>
-  rule <strategy> T:TerminalStrategy ~>  #hole | S2
+  rule <k> S | fail => S ... </k>
+  rule <k> fail | S => S ... </k>
+  rule <k> S | success => success ... </k>
+  rule <k> success | S => success ... </k>
+  rule <k> (S1 | S2) . S3 => (S1 . S3) | (S2 . S3) ... </k>
+  rule <k> T:TerminalStrategy ~>  #hole | S2
                => T | S2
                   ...
-       </strategy>
+       </k>
   rule <prover>
          <goal>
-           <strategy> ((S1 | S2) => subgoal(GOAL, S1) ~> #hole | S2 ) </strategy>
-           <k> GOAL:Pattern </k>
+           <k> ((S1 | S2) => subgoal(GOAL, S1) ~> #hole | S2 ) </k>
+           <claim> GOAL:Pattern </claim>
            ...
          </goal>
          ...
@@ -188,9 +188,9 @@ approach succeeds:
 The S { N } construct allows us to repeat a strategy S N times
 
 ```k
-  rule <strategy> S { M } => noop ... </strategy>
+  rule <k> S { M } => noop ... </k>
     requires M <=Int 0
-  rule <strategy> S { M } => S . (S { M -Int 1 }) ... </strategy>
+  rule <k> S { M } => S . (S { M -Int 1 }) ... </k>
     requires M >Int 0
 ```
 
@@ -198,8 +198,8 @@ Internal strategy used to implement `or-split` and `and-split`.
 
 ```k
   syntax Strategy ::= "replace-goal" "(" Pattern ")"
-  rule <k> _ => NEWGOAL </k>
-       <strategy> replace-goal(NEWGOAL) => noop ... </strategy>
+  rule <claim> _ => NEWGOAL </claim>
+       <k> replace-goal(NEWGOAL) => noop ... </k>
 ```
 
 `or-split`: disjunction of implications:
@@ -211,8 +211,8 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <k> \or(GOALS) </k>
-       <strategy> or-split => #orSplit(GOALS) ... </strategy>
+  rule <claim> \or(GOALS) </claim>
+       <k> or-split => #orSplit(GOALS) ... </k>
 
   syntax Strategy ::= "#orSplit" "(" Patterns ")" [function]
   rule #orSplit(.Patterns) => fail
@@ -229,17 +229,17 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <k> \implies(LHS, \exists { Vs } \and(\or(RHSs), REST)) </k>
-       <strategy> or-split-rhs => #orSplitImplication(LHS, Vs, RHSs, REST) ... </strategy>
+  rule <claim> \implies(LHS, \exists { Vs } \and(\or(RHSs), REST)) </claim>
+       <k> or-split-rhs => #orSplitImplication(LHS, Vs, RHSs, REST) ... </k>
 
-  rule <k> \implies(LHS, \exists { Vs } \and(RHSs, REST)) </k>
-       <strategy> or-split-rhs => noop ... </strategy>
+  rule <claim> \implies(LHS, \exists { Vs } \and(RHSs, REST)) </claim>
+       <k> or-split-rhs => noop ... </k>
     requires notBool isDisjunction(RHSs)
-  rule <k> \implies(LHS, \exists { Vs } \and(.Patterns)) </k>
-       <strategy> or-split-rhs => noop ... </strategy>
+  rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+       <k> or-split-rhs => noop ... </k>
 
-  rule <k> \implies(LHS, \exists { Vs } \and(.Patterns)) </k>
-       <strategy> or-split-rhs => noop ... </strategy>
+  rule <claim> \implies(LHS, \exists { Vs } \and(.Patterns)) </claim>
+       <k> or-split-rhs => noop ... </k>
 
   syntax Strategy ::= "#orSplitImplication" "(" Pattern "," Patterns "," Patterns "," Patterns ")" [function]
   rule #orSplitImplication(P, Vs, .Patterns, REST) => replace-goal(\implies(P, \exists{Vs} \and(\or(.Patterns))))
@@ -256,8 +256,8 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```
 
 ```k
-  rule <k> \and(GOALS) </k>
-       <strategy> and-split => #andSplit(GOALS) ... </strategy>
+  rule <claim> \and(GOALS) </claim>
+       <k> and-split => #andSplit(GOALS) ... </k>
 
   syntax Strategy ::= "#andSplit" "(" Patterns ")" [function]
   rule #andSplit(.Patterns) => noop
@@ -278,10 +278,10 @@ is in that list.
 
 ```k
   rule <id> ID </id>
-       <strategy> prune(PRUNE_IDs:Patterns) => fail ... </strategy>
+       <k> prune(PRUNE_IDs:Patterns) => fail ... </k>
     requires ID in PRUNE_IDs
   rule <id> ID </id>
-       <strategy> prune(PRUNE_IDs:Patterns) => noop ... </strategy>
+       <k> prune(PRUNE_IDs:Patterns) => noop ... </k>
     requires notBool(ID in PRUNE_IDs)
 ```
 

@@ -198,41 +198,41 @@ module STRATEGY-SMT
   imports STRATEGIES-EXPORTED-SYNTAX
   imports ML-TO-SMTLIB2
 
-  rule <k> GOAL </k>
-       <strategy> smt-z3
+  rule <claim> GOAL </claim>
+       <k> smt-z3
                => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ==K unsat
                   then success
                   else fail
                   fi
                   ...
-       </strategy>
+       </k>
        <trace> .K => smt-z3 ... </trace>
 
-  rule <k> GOAL </k>
-       <strategy> smt-z3 => fail </strategy>
+  rule <claim> GOAL </claim>
+       <k> smt-z3 => fail </k>
 
-  rule <k> GOAL </k>
+  rule <claim> GOAL </claim>
        <id> GId </id>
-       <strategy> smt-cvc4
+       <k> smt-cvc4
                => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))) ==K unsat
                   then success
                   else fail
                   fi
                   ...
-       </strategy>
+       </k>
        <trace> .K => smt-cvc4 ... </trace>
      requires isPredicatePattern(GOAL)
 
 // If the constraints are unsatisfiable, the entire term is unsatisfiable
-  rule <k> \implies(\and(sep(_), LCONSTRAINTS), _) </k>
+  rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
        <id> GId </id>
-       <strategy> check-lhs-constraint-unsat
+       <k> check-lhs-constraint-unsat
                => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat
                   then success
                   else noop
                   fi
                   ...
-       </strategy>
+       </k>
        <trace> .K => check-lhs-constraint-unsat ... </trace>
      requires isPredicatePattern(\and(LCONSTRAINTS))
 
@@ -241,8 +241,8 @@ module STRATEGY-SMT
 We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
 
 ```k
-  rule <k> GOAL </k>
-       <strategy> smt
+  rule <claim> GOAL </claim>
+       <k> smt
                => #fun( CVC4RESULT
                      => if CVC4RESULT ==K unsat
                         then success
@@ -254,17 +254,17 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                         fi
                       ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))):CheckSATResult)
                   ...
-       </strategy>
+       </k>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
 ```
 
 ```k
-  rule <k> GOAL </k>
+  rule <claim> GOAL </claim>
        <id> GId </id>
-       <strategy> smt-debug
+       <k> smt-debug
                => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))):CheckSATResult
                   ...
-       </strategy>
+       </k>
        <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId)) ... </trace>
      requires isPredicatePattern(GOAL)
 ```
@@ -288,12 +288,12 @@ module SMTLIB2-TEST-DRIVER
   imports Z3
   imports CVC4
 
-  configuration <k> $PGM:Pattern </k>
+  configuration <claim> $PGM:Pattern </claim>
                 <smt> .K </smt>
                 <z3> .K </z3>
                 <cvc4> .K </cvc4>
 
-  rule <k> IMPL </k>
+  rule <claim> IMPL </claim>
        <smt> .K => ML2SMTLIB(\not(IMPL)) </smt>
   rule <smt> SCRIPT:SMTLIB2Script </smt>
        <z3> .K => Z3CheckSAT(Z3Prelude ++SMTLIB2Script SCRIPT) </z3>

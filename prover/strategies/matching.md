@@ -341,34 +341,34 @@ The `with-each-match` strategy
 
 ```k
   syntax Strategy ::= "with-each-match" "(" MatchResults "," Strategy ")"
-  rule <strategy> with-each-match( MRs, S )
+  rule <k> with-each-match( MRs, S )
                => with-each-match( MRs, S, fail )
                   ...
-       </strategy>
+       </k>
   syntax Strategy ::= "with-each-match" "(" MatchResults "," Strategy "," Strategy ")"
-  rule <strategy> with-each-match( (MR, MRs), SUCCESS , FAILURE )
+  rule <k> with-each-match( (MR, MRs), SUCCESS , FAILURE )
                => with-each-match(MR,  SUCCESS, FAILURE)
                 | with-each-match(MRs, SUCCESS, FAILURE)
                   ...
-       </strategy>
+       </k>
     requires MRs =/=K .MatchResults
 
-  rule <strategy> with-each-match( (MR, .MatchResults), SUCCESS, FAILURE )
+  rule <k> with-each-match( (MR, .MatchResults), SUCCESS, FAILURE )
                => MR ~> SUCCESS
                   ...
-       </strategy>
+       </k>
        
-  rule <strategy> with-each-match( .MatchResults, SUCCESS, FAILURE )
+  rule <k> with-each-match( .MatchResults, SUCCESS, FAILURE )
                => FAILURE
                   ...
-       </strategy>
+       </k>
 ```
 
 Instantiate existentials using matching on the spatial part of goals:
 
 ```k
-  rule <k> \implies(\and(sep(LSPATIAL), LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </k>
-       <strategy> match
+  rule <claim> \implies(\and(sep(LSPATIAL), LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
+       <k> match
                => with-each-match(#match( terms: LSPATIAL
                                         , pattern: RSPATIAL
                                         , variables: Vs
@@ -376,51 +376,51 @@ Instantiate existentials using matching on the spatial part of goals:
                                  , match
                                  )
                   ...
-       </strategy>
+       </k>
     requires isSpatialPattern(sep(LSPATIAL))
      andBool isSpatialPattern(sep(RSPATIAL))
-  rule <k> \implies( \and( LSPATIAL, LHS)
+  rule <claim> \implies( \and( LSPATIAL, LHS)
                        ,  \exists { Vs } \and( RHS )
                        => \exists { Vs -Patterns fst(unzip(SUBST)) } substMap(\and(RHS), SUBST)
                        )
-       </k>
-       <strategy> ( #matchResult(subst: SUBST, rest: .Patterns) ~> match )
+       </claim>
+       <k> ( #matchResult(subst: SUBST, rest: .Patterns) ~> match )
                => noop
                   ...
-       </strategy>
+       </k>
 
-  rule <k> \implies(LHS, \exists { Vs } \and(RSPATIAL, RHS)) </k>
-       <strategy> match => fail ... </strategy>
+  rule <claim> \implies(LHS, \exists { Vs } \and(RSPATIAL, RHS)) </claim>
+       <k> match => fail ... </k>
     requires isPredicatePattern(LHS)
      andBool isSpatialPattern(RSPATIAL)
-  rule <k> \implies(\and(LSPATIAL, LHS), \exists { Vs } RHS) </k>
-       <strategy> match => fail ... </strategy>
+  rule <claim> \implies(\and(LSPATIAL, LHS), \exists { Vs } RHS) </claim>
+       <k> match => fail ... </k>
     requires isPredicatePattern(RHS)
      andBool isSpatialPattern(LSPATIAL)
 
-  rule <strategy> ( #matchResult(subst: _, rest: REST) ~> match )
+  rule <k> ( #matchResult(subst: _, rest: REST) ~> match )
                => fail
                   ...
-       </strategy>
+       </k>
      requires REST =/=K .Patterns
 ```
 
 ```k
   syntax Strategy ::= "match-pto" "(" Patterns ")"
-  rule <k> \implies( \and(sep(LSPATIAL), LHS)
+  rule <claim> \implies( \and(sep(LSPATIAL), LHS)
                        , \exists { Vs } \and(sep(RSPATIAL), RHS)
                        )
-       </k>
-       <strategy> match-pto => match-pto(getPartiallyInstantiatedPtos(RSPATIAL, Vs)) ... </strategy>
-  rule <strategy> match-pto(.Patterns)
+       </claim>
+       <k> match-pto => match-pto(getPartiallyInstantiatedPtos(RSPATIAL, Vs)) ... </k>
+  rule <k> match-pto(.Patterns)
                => noop
                   ...
-       </strategy>
-
-  rule <k> \implies( \and(sep(LSPATIAL), LHS:Patterns)
-                       , \exists { Vs } \and(sep(RSPATIAL), RHS:Patterns))
        </k>
-       <strategy> match-pto(P, Ps:Patterns)
+
+  rule <claim> \implies( \and(sep(LSPATIAL), LHS:Patterns)
+                       , \exists { Vs } \and(sep(RSPATIAL), RHS:Patterns))
+       </claim>
+       <k> match-pto(P, Ps:Patterns)
                => with-each-match(
                     #match( terms: LSPATIAL:Patterns
                                          , pattern: P
@@ -431,18 +431,18 @@ Instantiate existentials using matching on the spatial part of goals:
                                  )
                 . match-pto(Ps:Patterns)
                   ...
-       </strategy>
-  rule <k> \implies( _
+       </k>
+  rule <claim> \implies( _
                        ,  (\exists { Vs } \and( RHS ))
                        => ( \exists { Vs -Patterns fst(unzip(SUBST)) }
                             substMap(\and(RHS), SUBST)
                           )
                        )
-       </k>
-       <strategy> ( #matchResult(subst: SUBST, rest: _) ~> match-pto )
+       </claim>
+       <k> ( #matchResult(subst: SUBST, rest: _) ~> match-pto )
                => noop
                   ...
-       </strategy>
+       </k>
 
   syntax Patterns ::= getPartiallyInstantiatedPtos(Patterns, Patterns) [function]
   rule getPartiallyInstantiatedPtos((pto(L, R), Ps), Vs)
@@ -459,10 +459,10 @@ Instantiate heap axioms:
 ```k
     syntax Strategy ::= "instantiate-axiom" "(" Pattern ")"
                       | "instantiate-separation-logic-axioms" "(" Patterns ")"
-    rule <strategy> instantiate-separation-logic-axioms
+    rule <k> instantiate-separation-logic-axioms
                  => instantiate-separation-logic-axioms(gatherHeapAxioms(.Patterns))
                     ...
-         </strategy>
+         </k>
          <declaration> axiom _: heap(LOC, DATA) </declaration>
 
     syntax Patterns ::= gatherHeapAxioms(Patterns) [function]
@@ -471,7 +471,7 @@ Instantiate heap axioms:
       requires notBool(heap(LOC, DATA) in AXs)
     rule gatherHeapAxioms(AXs) => AXs [owise]
 
-    rule <strategy> instantiate-separation-logic-axioms(heap(LOC, DATA), AXs)
+    rule <k> instantiate-separation-logic-axioms(heap(LOC, DATA), AXs)
                  => instantiate-separation-logic-axioms(AXs)
                   . instantiate-axiom( \forall { !L { LOC }, !D {DATA} }
                                        \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
@@ -484,15 +484,15 @@ Instantiate heap axioms:
                                                )
                                      )
                     ...
-         </strategy>
-    rule <strategy> instantiate-separation-logic-axioms(.Patterns) => noop ... </strategy>
+         </k>
+    rule <k> instantiate-separation-logic-axioms(.Patterns) => noop ... </k>
 ```
 
 Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 
 ```k
-    rule <k> \implies(\and((sep(LSPATIAL)), LCONSTRAINT), RHS) </k>
-         <strategy> instantiate-axiom(\forall { Vs }
+    rule <claim> \implies(\and((sep(LSPATIAL)), LCONSTRAINT), RHS) </claim>
+         <k> instantiate-axiom(\forall { Vs }
                                       \implies( \and(sep(AXIOM_LSPATIAL))
                                               , AXIOM_RHS
                                               )
@@ -504,14 +504,14 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                    ~> STRAT:Strategy
                     )
                     ...
-         </strategy>
+         </k>
        requires isSpatialPattern(sep(AXIOM_LSPATIAL))
 
-    rule <k> \implies(\and((sep(_) #as LSPATIAL), (LCONSTRAINT => substMap(AXIOM_RHS, SUBST), LCONSTRAINT))
+    rule <claim> \implies(\and((sep(_) #as LSPATIAL), (LCONSTRAINT => substMap(AXIOM_RHS, SUBST), LCONSTRAINT))
                          , RHS
                          )
-         </k>
-         <strategy> ( #matchResult( subst: SUBST, rest: _ ) , MRs
+         </claim>
+         <k> ( #matchResult( subst: SUBST, rest: _ ) , MRs
                    ~> instantiate-axiom(\forall { Vs }
                                         \implies( _
                                                 , AXIOM_RHS
@@ -520,46 +520,46 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                     )
                  => ( MRs ~> STRAT:Strategy )
                     ...
-         </strategy>
+         </k>
       requires isPredicatePattern(AXIOM_RHS)
 
-    rule <strategy> (.MatchResults ~> instantiate-axiom(_)) => noop ... </strategy>
+    rule <k> (.MatchResults ~> instantiate-axiom(_)) => noop ... </k>
 
-    rule <k> \implies(               \and(sep(LSPATIAL), LCONSTRAINT)
+    rule <claim> \implies(               \and(sep(LSPATIAL), LCONSTRAINT)
                          , \exists{ Vs } \and(sep(RSPATIAL), RCONSTRAINT)
                          )
               => \implies(\and(LCONSTRAINT), \exists { Vs } \and(RCONSTRAINT))
-         </k>
-         <strategy> spatial-patterns-equal => noop ... </strategy>
+         </claim>
+         <k> spatial-patterns-equal => noop ... </k>
       requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
        andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
 
-    rule <k> \implies(               \and(sep(LSPATIAL), _)
+    rule <claim> \implies(               \and(sep(LSPATIAL), _)
                          , \exists{ Vs } \and(sep(RSPATIAL), _)
                          )
-         </k>
-         <strategy> spatial-patterns-equal => fail ... </strategy>
+         </claim>
+         <k> spatial-patterns-equal => fail ... </k>
       requires LSPATIAL -Patterns RSPATIAL =/=K .Patterns
         orBool RSPATIAL -Patterns LSPATIAL =/=K .Patterns
 ```
 
 ```k
-    rule <k> \implies( \and(sep( LSPATIAL ) , _ )
+    rule <claim> \implies( \and(sep( LSPATIAL ) , _ )
                          , \exists {_}
                            \and(sep( RSPATIAL ) , _ )
                          )
-         </k>
-         <strategy> frame => frame(LSPATIAL intersect RSPATIAL) ... </strategy>
+         </claim>
+         <k> frame => frame(LSPATIAL intersect RSPATIAL) ... </k>
 ```
 
 ```k
     syntax Strategy ::= "frame" "(" Patterns ")"
-    rule <k> \implies( LHS
+    rule <claim> \implies( LHS
                          , \exists { .Patterns }
                            \and( sep(_),  RCONSTRAINTs )
                          )
-         </k>
-         <strategy> frame(pto(LOC, VAL), Ps)
+         </claim>
+         <k> frame(pto(LOC, VAL), Ps)
                  => subgoal( \implies( LHS
                                      , \and(filterClausesInvolvingVariable(LOC, RCONSTRAINTs))
                                      )
@@ -571,32 +571,32 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                  ~> frame(pto(LOC, VAL))
                  ~> frame(Ps)
                     ...
-         </strategy>
+         </k>
 
-    rule <k> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
+    rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
                          , \exists { .Patterns }
                            \and( (sep(RSPATIAL => RSPATIAL -Patterns P)) , (RCONSTRAINTs => RCONSTRAINTs -Patterns filterClausesInvolvingVariable(LOC, RCONSTRAINTs)) )
                          )
-         </k>
-         <strategy> success
+         </claim>
+         <k> success
                  ~> frame((pto(LOC, VAL) #as P), .Patterns)
                  => .K
                     ...
-         </strategy>
+         </k>
       requires P in LSPATIAL
        andBool P in RSPATIAL
 
-    rule <k> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
+    rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
                          , \exists { .Patterns }
                            \and( (sep(RSPATIAL => RSPATIAL -Patterns P)) , RCONSTRAINTs )
                          )
-         </k>
-         <strategy> frame((S:Symbol(_) #as P), Ps)  => frame(Ps)
+         </claim>
+         <k> frame((S:Symbol(_) #as P), Ps)  => frame(Ps)
                     ...
-         </strategy>
+         </k>
       requires notBool S ==K pto
 
-    rule <strategy> frame(.Patterns) => noop ... </strategy>
+    rule <k> frame(.Patterns) => noop ... </k>
 
     syntax Patterns ::= filterClausesInvolvingVariable(Variable, Patterns) [function]
     rule filterClausesInvolvingVariable(V, (P, Ps))
@@ -609,15 +609,15 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
       => .Patterns
 
     syntax Strategy ::= "subsume-spatial"
-    rule <k> \implies( \and( sep(LSPATIAL:Patterns) , LCONSTRAINTs:Patterns)
+    rule <claim> \implies( \and( sep(LSPATIAL:Patterns) , LCONSTRAINTs:Patterns)
                         => \and(                 LCONSTRAINTs:Patterns)
                          , \exists { Vs:Patterns }
                            \and( RHS:Patterns )
                          )
-         </k>
-         <strategy> subsume-spatial => noop
+         </claim>
+         <k> subsume-spatial => noop
                     ...
-         </strategy>
+         </k>
       requires isPredicatePattern(\and(RHS))
 ```
 

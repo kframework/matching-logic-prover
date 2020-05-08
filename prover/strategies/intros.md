@@ -10,8 +10,8 @@ module STRATEGY-INTROS
   imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
 
-  rule <strategy> intros Name => noop ...</strategy>
-       <k> \implies(H, G) => G </k>
+  rule <k> intros Name => noop ...</k>
+       <claim> \implies(H, G) => G </claim>
        <local-context> (.Bag =>
          <local-decl> axiom Name : H </local-decl>
          ) ...

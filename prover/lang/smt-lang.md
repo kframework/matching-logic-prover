@@ -244,6 +244,7 @@ module SMTLIB2-HELPERS
   rule CheckSAT.parseResult(#systemResult(0, "sat\n", STDERR))     => sat
   rule CheckSAT.parseResult(#systemResult(0, "unsat\n", STDERR))   => unsat
   rule CheckSAT.parseResult(#systemResult(0, "unknown\n", STDERR)) => unknown
+  rule CheckSAT.parseResult(#systemResult(0, "timeout\n", STDERR)) => unknown
   rule CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))      => #error(#systemResult(I, STDOUT, STDERR))
     requires I =/=Int 0
 endmodule
