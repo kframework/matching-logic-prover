@@ -797,13 +797,13 @@ Simplifications
   rule hasImplicationContext(\typeof(P, _))
     => hasImplicationContext(P)
 
-  syntax Pattern ::= "#\\exists" "{" Patterns "}" Pattern [function]
-  rule #\exists{.Patterns} P => P
-  rule #\exists{V, Vs} P => \exists{V, Vs} P
+  syntax Pattern ::= "maybeExists" "{" Patterns "}" Pattern [function]
+  rule maybeExists{.Patterns} P => P
+  rule maybeExists{V, Vs} P => \exists{V, Vs} P
 
-  syntax Pattern ::= "#\\and" "(" Patterns ")" [function]
-  rule #\and(P, .Patterns) => P
-  rule #\and(Ps) => \and(Ps) [owise]
+  syntax Pattern ::= "maybeAnd" "(" Patterns ")" [function]
+  rule maybeAnd(P, .Patterns) => P
+  rule maybeAnd(Ps) => \and(Ps) [owise]
 
   syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
   syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]

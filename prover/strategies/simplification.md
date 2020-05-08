@@ -463,7 +463,7 @@ Gamma |- C[C_\sigma[\exists X. Phi]]
   rule #propagateExistsThroughApplication(Ps1, 0, S, (\exists{V, Vs} P, Ps2))
     => visitorResult(
          propagateExistsThroughApplicationVisitor(-1),
-         \exists{V} S(Ps1 ++Patterns (#\exists{Vs} P, .Patterns) ++Patterns Ps2)
+         \exists{V} S(Ps1 ++Patterns (maybeExists{Vs} P, .Patterns) ++Patterns Ps2)
        )
 
   rule #propagateExistsThroughApplication(Ps, N, S, .Patterns)
@@ -613,7 +613,7 @@ Gamma |- C[C_\sigma[P /\ Phi]]
           andBool isPredicatePattern(P')
        #then
          #if N ==Int 0 #then
-           pptaMatch(pred: P', newArg: #\and(Ps1 ++Patterns Ps2))
+           pptaMatch(pred: P', newArg: maybeAnd(Ps1 ++Patterns Ps2))
          #else
            #pptaProcessArg(N -Int 1, P, Ps1 ++Patterns (P', .Patterns), Ps2)
          #fi
@@ -689,8 +689,8 @@ Gamma |- C[\exists X. Pi /\ Psi]
   rule pcte2(idx: M, vars: Vs, ps1: Ps1, pattern: P, ps2: Ps2)
     => visitorResult(
          pcteVisitor(-1, M),
-         #\exists{takeFirst(getLength(Vs) -Int 1, Vs)}
-         \and(P, \exists{getLast(Vs), .Patterns} #\and(Ps1 ++Patterns Ps2), .Patterns)
+         maybeExists{takeFirst(getLength(Vs) -Int 1, Vs)}
+         \and(P, \exists{getLast(Vs), .Patterns} maybeAnd(Ps1 ++Patterns Ps2), .Patterns)
        )
     requires notBool (getLast(Vs) in getFreeVariables(P))
 
