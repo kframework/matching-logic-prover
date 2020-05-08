@@ -161,6 +161,9 @@ only in this scenario*.
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
+                   | "\\member" "(" Pattern "," Pattern ")"     [klabel(member)]
+                   | "\\subseteq" "(" Pattern "," Pattern ")"   [klabel(subseteq)]
+
                    // sugar for commonly needed axioms
                    | "\\typeof" "(" Pattern "," Sort ")"
                    | "functional" "(" Symbol ")"
@@ -296,6 +299,9 @@ module KORE-HELPERS
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
   rule getReturnSort( _ { S } ) => S
+  rule getReturnSort(\exists{_} P) => getReturnSort(P)
+  rule getReturnSort(\and((P, Ps))) => getReturnSort(P)
+       requires sameSortOrPredicate(getReturnSort(P), Ps)
   rule getReturnSort( plus ( ARGS ) ) => Int
   rule getReturnSort( minus ( ARGS ) ) => Int
   rule getReturnSort( select ( ARGS ) ) => Int
@@ -310,6 +316,33 @@ module KORE-HELPERS
   rule getReturnSort( isMember ( _ ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
+  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
+       <local-decl> symbol R ( _ ) : S </local-decl>
+
+  syntax Bool ::= sameSortOrPredicate(Sort, Patterns) [function]
+
+  rule sameSortOrPredicate(_, .Patterns) => true
+
+  rule sameSortOrPredicate(S, (P, Ps))
+    => sameSortOrPredicate(S, Ps)
+       requires isPredicatePattern(P)
+
+  // We basically implement short-circuiting Or to prevent
+  // calling getReturnSort on predicate patterns.
+
+  rule sameSortOrPredicate(S, (P, Ps))
+    => #sameSortOrPredicate(S, (P, Ps))
+       requires notBool isPredicatePattern(P)
+
+  syntax Bool ::= #sameSortOrPredicate(Sort, Patterns) [function]
+
+  rule #sameSortOrPredicate(S, (P, Ps))
+    => sameSortOrPredicate(S, Ps)
+       requires getReturnSort(P) ==K S
+
+  rule #sameSortOrPredicate(S, (P, Ps))
+    => false
+       requires getReturnSort(P) =/=K S
 
   syntax Bool ::= isUnfoldable(Symbol) [function]
   rule [[ isUnfoldable(S:Symbol) => true ]]
@@ -382,6 +415,10 @@ module KORE-HELPERS
   rule getFreeVariables(\iff-lfp(LHS, RHS), .Patterns) => getFreeVariables(LHS, RHS, .Patterns)
   rule getFreeVariables(\and(Ps), .Patterns) => getFreeVariables(Ps)
   rule getFreeVariables(\or(Ps),  .Patterns) => getFreeVariables(Ps)
+  rule getFreeVariables(\member(P1, P2))
+    => getFreeVariables(P1) ++Patterns getFreeVariables(P2)
+  rule getFreeVariables(\subseteq(P1, P2))
+    => getFreeVariables(P1) ++Patterns getFreeVariables(P2)
 
   rule getFreeVariables(\exists { Vs } P,  .Patterns)
     => getFreeVariables(P, .Patterns) -Patterns Vs
@@ -525,6 +562,10 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(\or(ARG):Pattern, X, V)  => \or(substPatternsMap(ARG, X |-> V)):Pattern
   rule subst(\implies(LHS, RHS):Pattern, X, V)
     => \implies(subst(LHS, X, V), subst(RHS, X, V)):Pattern
+  rule subst(\member(LHS, RHS):Pattern, X, V)
+    => \member(subst(LHS, X, V), subst(RHS, X, V))
+  rule subst(\subseteq(LHS, RHS):Pattern, X, V)
+    => \subseteq(subst(LHS, X, V), subst(RHS, X, V))
   rule subst(\forall { E } C, X, V) => \forall { E } C
     requires X in E orBool X in PatternsToVariableNameSet(E)
   rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
@@ -591,6 +632,8 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(\and(Ps)) => \and(alphaRenamePs(Ps))
   rule alphaRename(\or(Ps)) => \or(alphaRenamePs(Ps))
   rule alphaRename(\implies(L,R)) => \implies(alphaRename(L), alphaRename(R))
+  rule alphaRename(\member(P1, P2)) => \member(alphaRename(P1), alphaRename(P2))
+  rule alphaRename(\subseteq(P1, P2)) => \subseteq(alphaRename(P1), alphaRename(P2))
   rule alphaRename(S:Symbol(ARGs)) => S(alphaRenamePs(ARGs))
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V

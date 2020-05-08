@@ -8,4 +8,6 @@ suite "subst"
 
 suite "syntactic-match"
 
+suite "visitor"
+
 .Declarations
