@@ -180,8 +180,7 @@ module SYNTACTIC-MATCH-RULES
                       , subst:     _
                       )
     => #error("Variable sort does not match term")
-    requires T =/=K P
-     andBool P in Vs
+    requires P in Vs
      andBool getReturnSort(T) =/=K getReturnSort(P)
 
   // free variable: extend substitution
@@ -191,8 +190,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: Vs
                       , subst:     SUBST => ((P |-> T) SUBST)
                       )
-    requires T =/=K P
-     andBool P in Vs
+    requires P in Vs
      andBool getReturnSort(T) ==K getReturnSort(P)
 
   // set variable: extend substitution
@@ -202,8 +200,7 @@ module SYNTACTIC-MATCH-RULES
                       , variables: Vs
                       , subst:     SUBST => ((P |-> T) SUBST)
                       )
-    requires T =/=K P
-     andBool P in Vs
+    requires P in Vs
 
   // A lot of repetetive code below.
   // This could be reduced if we had a generic support
@@ -364,7 +361,7 @@ module SYNTACTIC-MATCH-RULES
             )
 
 
-  // \exists{_}_ mismatched
+  // \forall{_}_ mismatched
   rule #syntacticMatch( terms:     T, _
                       , patterns:  \forall{_} _, _
                       , variables: _

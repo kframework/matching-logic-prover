@@ -21,6 +21,8 @@ module VISITOR-SYNTAX
   syntax VisitorResult ::= visit(Visitor, Pattern) [function]
                          | visitorResult(Visitor, Pattern)
 
+  syntax Pattern ::= "visitorResult.getPattern" "(" VisitorResult ")" [function]
+
 endmodule
 ```
 
@@ -196,6 +198,8 @@ module VISITOR
 
   rule #visitTopDownTypeof1(visitorResult(V, P1), S)
     => visitorResult(V, \typeof(P1, S))
+
+  rule visitorResult.getPattern(visitorResult(_, P)) => P
 
 ```
 

@@ -22,6 +22,8 @@ module STRATEGY-APPLY-EQUATION
   imports HEATCOOL-SYNTAX
   imports LOAD-NAMED-SYNTAX
   imports INSTANTIATE-ASSUMPTIONS-SYNTAX
+  imports VISITOR-SYNTAX
+  imports SYNTACTIC-MATCH-SYNTAX
 
   rule <strategy> (.K => loadNamed(Name))
                ~> apply-equation D Name at _ by[_] ...
@@ -135,12 +137,13 @@ module STRATEGY-APPLY-EQUATION
          , to: R
          , by: Ss
          )
-         => instantiateAssumptions(Subst, P)
+         => instantiateAssumptions(GId, Subst, P)
          ~> createSubgoalsWithStrategies(strats: Ss, result: noop)
        ...</strategy>
        <k>
          _ => cool(heated: Heated, term: substMap(R, Subst))
        </k>
+       <id> GId </id>
 
   syntax KItem ::= "createSubgoalsWithStrategies"
                    "(" "strats:" Strategies
@@ -159,6 +162,155 @@ module STRATEGY-APPLY-EQUATION
                   ( strats: (S, Ss) => Ss
                   , result: R => R & subgoal(P, S))
        ...</strategy>
+
+```
+### Apply equation in context
+
+The strategy `apply-equation(eq: \equals(A,B) #as Eq, idx: Idx, direction: D, at: At)`
+rewrites a subpattern of the shape `A=B /\ ... /\ A /\ ...`
+to `A=B /\ ... /\ B /\ ...`. The parameter `Idx` determines
+which instance of the equality syntactically matching `\equals(A,B)` is used;
+the parameter `At` specifies the instance of `A` that is to be rewritten to B.
+
+```
+Gamma |- C[... /\ A=B /\ ... /\ B /\ ... ]
+------------------------------------------
+Gamma |- C[... /\ A=B /\ ... /\ A /\ ... ]
+```
+
+```k
+
+  rule <strategy> apply-equation(eq: \equals(_,_) #as Eq, idx: Idx, direction: D, at: At)
+               => noop
+       ...</strategy>
+       <k> C
+            => visitorResult.getPattern(
+                 visitTopDown(
+                   applyEquationInContextVisitor(aeicParams(
+                     eq: Eq, idx: Idx, direction: D, at: At
+                   )),
+                   C
+                 )
+               )
+       </k>
+
+  syntax KItem ::= "aeicParams" "(" "eq:" Pattern
+                                "," "idx:" Int
+                                "," "direction:" RewriteDirection
+                                "," "at:" Int
+                                ")"
+
+  syntax Int ::= "aeicParams.getIndex" "(" KItem ")" [function]
+  rule aeicParams.getIndex(aeicParams(eq: _, idx: Idx, direction: _, at: _))
+    => Idx
+
+  syntax Visitor ::= applyEquationInContextVisitor(KItem)
+
+  syntax Pattern ::= applyEquationInContextVisitorResult(VisitorResult) [function]
+
+  rule visit(applyEquationInContextVisitor(Params) #as V, P)
+    => visitorResult(V, P)
+       requires \and(_) :/=K P orBool (aeicParams.getIndex(Params) <Int 0)
+
+  rule visit(applyEquationInContextVisitor(Params), \and(Ps))
+    => applyEquationInContextAnd(Params, .Patterns, Ps)
+       requires aeicParams.getIndex(Params) >=Int 0
+
+  syntax VisitorResult ::= applyEquationInContextAnd(KItem, Patterns, Patterns) [function]
+
+  rule applyEquationInContextAnd(Params, Ps, .Patterns)
+    => visitorResult(applyEquationInContextVisitor(Params), \and(Ps))
+
+  rule applyEquationInContextAnd(
+         aeicParams(eq: Eq, idx: Idx, direction: D, at: At) #as Params,
+         Ps1, (P, Ps2))
+    => applyEquationInContextAnd1(
+         Params,
+         syntacticMatch(
+           terms: (P, .Patterns),
+           patterns: (Eq, .Patterns),
+           variables: getUniversallyQuantifiedVariables(Eq)
+                      ++Patterns getSetVariables(Eq)
+         ),
+         Ps1, P, Ps2
+       )
+
+  syntax VisitorResult ::= applyEquationInContextAnd1(
+                             KItem,
+                             MatchResult,
+                             Patterns,
+                             Pattern,
+                             Patterns) [function]
+
+  rule applyEquationInContextAnd1(Params, #error(_), Ps1, P, Ps2)
+    => applyEquationInContextAnd(Params, Ps1 ++Patterns (P, .Patterns), Ps2)
+
+  rule applyEquationInContextAnd1(
+         aeicParams(eq: Eq, idx: Idx, direction: D, at: At) #as Params,
+         #matchResult(subst: _),
+         Ps1, P, Ps2
+       )
+    => applyEquationInContextAnd(
+         aeicParams(eq: Eq, idx: Idx -Int 1, direction: D, at: At),
+         Ps1 ++Patterns (P, .Patterns),
+         Ps2
+       )
+    requires Idx =/=Int 0
+
+  rule applyEquationInContextAnd1(
+         aeicParams(eq: Eq, idx: 0, direction: ->, at: At) #as Params,
+         #matchResult(subst: _),
+         Ps1, P, Ps2
+       )
+    => applyEquationInContextAnd2(
+         Params,
+         heat(
+           term:      \and(Ps1 ++Patterns Ps2),
+           pattern:   apply-equation.getLeft(P),
+           variables: .Patterns,
+           index:     At
+         ),
+         apply-equation.getRight(P),
+         getLength(Ps1), P
+       )
+
+  rule applyEquationInContextAnd1(
+         aeicParams(eq: Eq, idx: 0, direction: <-, at: At) #as Params,
+         #matchResult(subst: _),
+         Ps1, P, Ps2
+       )
+    => applyEquationInContextAnd2(
+         Params,
+         heat(
+           term:      \and(Ps1 ++Patterns Ps2),
+           pattern:   apply-equation.getRight(P),
+           variables: .Patterns,
+           index:     At
+         ),
+         apply-equation.getLeft(P),
+         getLength(Ps1), P
+       )
+
+  syntax VisitorResult ::= applyEquationInContextAnd2(KItem, HeatResult, Pattern, Int, Pattern) [function]
+
+  rule applyEquationInContextAnd2(
+         aeicParams(eq: Eq, idx: _, direction: D, at: At),
+         heatResult(Heated, _),
+         Right,
+         Prefix,
+         P
+       )
+    => visitorResult(
+         // The only important argument is that idx: -1.
+         applyEquationInContextVisitor(aeicParams(eq: Eq, idx: -1, direction: D, at: At)),
+         insertToAnd(Prefix, P, cool(heated: Heated, term: Right))
+     )
+
+  syntax Pattern ::= insertToAnd(Int, Pattern, Pattern) [function]
+
+  rule insertToAnd(N, P, \and(Ps))
+    => \and(insertToPatterns(N, P, Ps))
+
 
 endmodule
 ```

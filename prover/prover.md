@@ -65,6 +65,12 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "apply-equation"
                         RewriteDirection AxiomOrClaimName
                         "at" Int "by" "[" Strategies "]"
+                    | "apply-equation"
+                      "(" "eq:" Pattern
+                      "," "idx:" Int
+                      "," "direction:" RewriteDirection
+                      "," "at:" Int
+                      ")"
                     | "intros" AxiomName
                     | "replace-evar-with-func-constant" Variables
                     | "duplicate" AxiomOrClaimName "as" AxiomName
@@ -80,6 +86,10 @@ module STRATEGIES-EXPORTED-SYNTAX
                               "," Strategy ")"
                     | "inst-exists" "(" Variable "," Pattern
                                     "," Strategy ")"
+                    | "universal-generalization"
+                    | "propagate-exists-through-application" Int
+                    | "propagate-predicate-through-application" "(" Pattern "," Int ")"
+                    | "propagate-conjunct-through-exists" "(" Int "," Int ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
