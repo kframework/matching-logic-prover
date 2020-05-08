@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( isDiv4Pos ( Vx { Int } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( isEvenPos ( Vx { Int } , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>

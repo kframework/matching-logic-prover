@@ -37,7 +37,7 @@ module STRATEGY-APPLY
                Strat
              )
          ...</strategy>
-         <claim> G </claim>
+         <k> G </k>
 
 
   syntax KItem ::= #apply1(Pattern, MatchResult, Strategy)

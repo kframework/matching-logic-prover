@@ -8,9 +8,9 @@
   <goals>
     <goal>
       active: true, id: root, parent: .
-      <claim>
+      <k>
         \implies ( \and ( sep ( List ( Vx { RefGTyp } , Vy { RefGTyp } , .Patterns ) , pto ( Vy { RefGTyp } , c_GTyp ( Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( sep ( List ( Vx { RefGTyp } , Vz { RefGTyp } , .Patterns ) , .Patterns ) , .Patterns ) )
-      </claim>
+      </k>
       <strategy>
         success
       </strategy>

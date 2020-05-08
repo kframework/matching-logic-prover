@@ -18,7 +18,7 @@ module STRATEGY-SIMPLIFICATION
 ```
 
 ```k
-  rule <claim> \implies(LHS => #lhsRemoveExistentials(LHS), RHS) </claim>
+  rule <k> \implies(LHS => #lhsRemoveExistentials(LHS), RHS) </k>
        <strategy> remove-lhs-existential => noop ... </strategy>
 
   syntax Pattern  ::= #lhsRemoveExistentials(Pattern)    [function]
@@ -59,26 +59,26 @@ Normalize:
 
 ```k
 
-  rule <claim> P::Pattern => \and(P) </claim>
+  rule <k> P::Pattern => \and(P) </k>
        <strategy> normalize ... </strategy>
        requires \and(...) :/=K P andBool \implies(...) :/=K P
 
-  rule <claim> \and(P) => \implies(\and(.Patterns), \and(P)) </claim>
+  rule <k> \and(P) => \implies(\and(.Patterns), \and(P)) </k>
        <strategy> normalize ... </strategy>
 
-  rule <claim> \implies(LHS, \and(RHS))
+  rule <k> \implies(LHS, \and(RHS))
         => \implies(LHS, \exists { .Patterns } \and(RHS))
-       </claim>
+       </k>
        <strategy> normalize ... </strategy>
 
-  rule <claim> \implies(\and(LHS), \exists { Es } \and(RHS))
+  rule <k> \implies(\and(LHS), \exists { Es } \and(RHS))
         => \implies( \and(#normalizePs(#flattenAnds(#lhsRemoveExistentialsPs(LHS))))
                    , \exists { Es } \and(#normalizePs(#flattenAnds(RHS)))
                    )
-       </claim>
+       </k>
        <strategy> normalize => noop ... </strategy>
 
-  rule <claim> \not(_) #as P => #normalize(P) </claim>
+  rule <k> \not(_) #as P => #normalize(P) </k>
        <strategy> normalize => noop ... </strategy>
 
   syntax Pattern ::= #normalize(Pattern) [function]
@@ -106,7 +106,7 @@ Normalize:
 LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
 
 ```k
-  rule <claim> \implies(LHS => #purify(LHS), RHS) ... </claim>
+  rule <k> \implies(LHS => #purify(LHS), RHS) ... </k>
        <strategy> purify => noop ... </strategy>
 
   syntax Pattern ::= #purify(Pattern) [function]
@@ -150,7 +150,7 @@ obligation of the form R(T, Vs) => R(T', Vs') becomes
 R(V, Vs) => exists V', R(V', Vs') and V = V'
 
 ```k
-  rule <claim> \implies(LHS, RHS) </claim>
+  rule <k> \implies(LHS, RHS) </k>
        <strategy> abstract
                => #getNewVariables(LHS, .Patterns)
                ~> #getNewVariables(RHS, .Patterns)
@@ -158,13 +158,13 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
               ...
        </strategy>
 
-  rule <claim> \implies(LHS, \and(\or(RHS)))
+  rule <k> \implies(LHS, \and(\or(RHS)))
             => \implies( #abstract(LHS, VsLHS)
                        , \exists{ VsRHS } \and( #dnf(\or(\and(#createEqualities(VsLHS, VsRHS))))
                                                 , #abstract(RHS, VsRHS)
                                                 )
                        )
-       </claim>
+       </k>
        <strategy> (VsLHS:Patterns ~> VsRHS:Patterns ~> abstract) => noop ... </strategy>
 
   syntax Patterns ::= #getNewVariables(Pattern, Patterns) [function]
@@ -216,10 +216,10 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
 Bring predicate constraints to the top of a term.
 
 ```k
-  rule <claim> \implies(\and(Ps) => #flattenAnd(#liftConstraints(\and(Ps)))
+  rule <k> \implies(\and(Ps) => #flattenAnd(#liftConstraints(\and(Ps)))
                        , \exists { _ } (\and(Rs) => #flattenAnd(#liftConstraints(\and(Rs))))
                        )
-       </claim>
+       </k>
        <strategy> lift-constraints => noop ... </strategy>
 
   syntax Pattern ::= #liftConstraints(Pattern) [function]
@@ -270,7 +270,7 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
-  rule <claim> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </claim>
+  rule <k> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </k>
        <strategy> lift-or => noop ... </strategy>
 
   syntax Patterns ::= "#liftOr" "(" Patterns "," Pattern ")" [function]
@@ -285,7 +285,7 @@ Lift `\or`s on the left hand sides of implications
 > (\forall .Patterns . phi(x, y)) -> psi(y)
 
 ```k
-  rule <claim> \implies(\forall { .Patterns } \and(LHS) => \and(LHS), RHS) </claim>
+  rule <k> \implies(\forall { .Patterns } \and(LHS) => \and(LHS), RHS) </k>
        <strategy> simplify ... </strategy>
 ```
 
@@ -294,7 +294,7 @@ Lift `\or`s on the left hand sides of implications
 > \exists X . phi(x, y) -> psi(y)
 
 ```k
-  rule <claim> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </claim>
+  rule <k> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </k>
        <strategy> simplify ... </strategy>
 ```
 
@@ -303,7 +303,7 @@ Lift `\or`s on the left hand sides of implications
 > LHS /\ phi -> RHS /\ phi
 
 ```k
-  rule <claim> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </claim>
+  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </k>
        <strategy> simplify => noop ... </strategy>
 ```
 
@@ -316,18 +316,18 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
-  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL </claim>
+  rule <k> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL </k>
        <strategy> (. => getAtomForcingInstantiation(RHS, getExistentialVariables(GOAL)))
                ~> instantiate-existentials
                   ...
        </strategy>
 
-  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) )
+  rule <k> \implies( \and(LHS) , \exists { EXIST } \and(RHS) )
             => \implies( \and(LHS ++Patterns INSTANTIATION)
                        , \exists { EXIST -Patterns getFreeVariables(INSTANTIATION) }
                          \and(RHS -Patterns INSTANTIATION)
                        )
-       </claim>
+       </k>
        <strategy> (INSTANTIATION => .) ~> instantiate-existentials ... </strategy>
      requires INSTANTIATION =/=K .Patterns
 
@@ -357,7 +357,7 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
-  rule <claim> \implies(\and(LHS), _) </claim>
+  rule <k> \implies(\and(LHS), _) </k>
        <strategy> substitute-equals-for-equals
                => (makeEqualitySubstitution(LHS) ~> substitute-equals-for-equals)
                   ...
@@ -369,11 +369,11 @@ Lift `\or`s on the left hand sides of implications
        </strategy>
     requires SUBST ==K .Map
 
-  rule <claim> \implies( \and(LHS => removeTrivialEqualities(substPatternsMap(LHS, SUBST)))
+  rule <k> \implies( \and(LHS => removeTrivialEqualities(substPatternsMap(LHS, SUBST)))
                        , \exists { _ }
                          ( \and(RHS => removeTrivialEqualities(substPatternsMap(RHS, SUBST))) )
                        )
-       </claim>
+       </k>
        <strategy> (SUBST:Map ~> substitute-equals-for-equals)
                => substitute-equals-for-equals
                   ...

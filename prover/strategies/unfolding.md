@@ -79,19 +79,19 @@ module STRATEGY-UNFOLDING
                   ...
        </strategy>
 
-  rule <claim> \implies(\and(LHS), RHS)
+  rule <k> \implies(\and(LHS), RHS)
         => \implies(\and((LHS -Patterns (LRP, .Patterns)) ++Patterns BODY), RHS)
-       </claim>
+       </k>
        <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
        requires LRP in LHS
 
-  rule <claim> \implies( \and( sep( (LHS => ((LHS -Patterns (LRP, .Patterns)) ++Patterns \and(BODY))) )
+  rule <k> \implies( \and( sep( (LHS => ((LHS -Patterns (LRP, .Patterns)) ++Patterns \and(BODY))) )
                              , _
                              )
                        , RHS
                        )
-       </claim>
+       </k>
        <strategy> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </strategy>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
        requires LRP in LHS
@@ -111,7 +111,7 @@ implicatations. The resulting goals are equivalent to the initial goal.
                => left-unfold-Nth-eachLRP(M, getUnfoldables(LHS))
                   ...
        </strategy>
-       <claim> \implies(\and(LHS), RHS) </claim>
+       <k> \implies(\and(LHS), RHS) </k>
 
   rule <strategy> left-unfold-Nth-eachLRP(M, PS)
                => fail
@@ -146,12 +146,12 @@ Note that the resulting goals is stonger than the initial goal (i.e.
                => right-unfold-eachRRP( filterByConstructor(getUnfoldables(RHS), SYMBOL) )
                   ...
        </strategy>
-       <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
+       <k> \implies(LHS, \exists { _ } \and(RHS)) </k>
   rule <strategy> right-unfold
                => right-unfold-eachRRP(getUnfoldables(RHS))
                   ...
        </strategy>
-       <claim> \implies(LHS, \exists { _ } \and(RHS)) </claim>
+       <k> \implies(LHS, \exists { _ } \and(RHS)) </k>
   rule <strategy> right-unfold-all(bound: N)
                => right-unfold-all(symbols: getRecursiveSymbols(.Patterns), bound: N)
                   ...
@@ -222,10 +222,10 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
 
 ```k
   // TODO: -Patterns does not work here. We need to substitute RRP with BODY
-  rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
+  rule <k> \implies(LHS, \exists { E1 } \and(RHS))
         => \implies(LHS, \exists { E1 ++Patterns E2 }
                          \and(substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns))))) ...
-       </claim>
+       </k>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
        <trace> .K
             => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY))
@@ -240,7 +240,7 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
     requires P =/=K #hole:Variable
 
   // right unfolding within an implication context
-  rule <claim> \implies(\and( sep ( \forall { UNIVs => UNIVs ++Patterns E2 }
+  rule <k> \implies(\and( sep ( \forall { UNIVs => UNIVs ++Patterns E2 }
                                     implicationContext( ( \and( sep( #hole
                                                                    , CTXLHS
                                                                    )
@@ -263,7 +263,7 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
                             )
                        , RHS:Pattern
                        )
-       </claim>
+       </k>
        <strategy> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </strategy>
        <trace> .K
             => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY))
@@ -291,7 +291,7 @@ or `N` is out of range, `right-unfold(M,N) => fail`.
                => right-unfold-Nth-eachRRP(M, N, getUnfoldables(RHS))
                   ...
        </strategy>
-       <claim> \implies(LHS,\exists {_ } \and(RHS)) </claim>
+       <k> \implies(LHS,\exists {_ } \and(RHS)) </k>
 
   rule <strategy> right-unfold-Nth-eachRRP(M, N, RRPs) => fail ... </strategy>
     requires getLength(RRPs) <=Int M
