@@ -183,7 +183,7 @@ Gamma |- C[... /\ A=B /\ ... /\ A /\ ... ]
   rule <strategy> apply-equation(eq: \equals(_,_) #as Eq, idx: Idx, direction: D, at: At)
                => noop
        ...</strategy>
-       <claim> C
+       <k> C
             => visitorResult.getPattern(
                  visitTopDown(
                    applyEquationInContextVisitor(aeicParams(
@@ -192,7 +192,7 @@ Gamma |- C[... /\ A=B /\ ... /\ A /\ ... ]
                    C
                  )
                )
-       </claim>
+       </k>
 
   syntax KItem ::= "aeicParams" "(" "eq:" Pattern
                                 "," "idx:" Int

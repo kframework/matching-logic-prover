@@ -404,7 +404,7 @@ Lift `\or`s on the left hand sides of implications
 
 ```k
 
-  rule <claim> \forall{_} P => P </claim>
+  rule <k> \forall{_} P => P </k>
        <strategy> universal-generalization => noop ...</strategy>
 
 ```
@@ -423,14 +423,14 @@ Gamma |- C[C_\sigma[\exists X. Phi]]
 ```
 
 ```k
-  rule <claim> P
+  rule <k> P
             => propagateExistsThroughApplicationVisitorResult(
                  visitTopDown(
                    propagateExistsThroughApplicationVisitor(N),
                    P
                  )
                )
-      </claim>
+      </k>
        <strategy> propagate-exists-through-application N
                => noop
        ...</strategy>
@@ -492,14 +492,14 @@ Gamma |- C[C_\sigma[P /\ Phi]]
 ```
 
 ```k
-  rule <claim> T
+  rule <k> T
             => pptaVisitorResult(
                  visitTopDown(
                    pptaVisitor(P, N),
                    T
                  )
                )
-      </claim>
+      </k>
        <strategy> propagate-predicate-through-application(P, N)
                => noop
        ...</strategy>
@@ -638,14 +638,14 @@ Gamma |- C[\exists X. Pi /\ Psi]
 
 ```k
 
-  rule <claim> T
+  rule <k> T
             => visitorResult.getPattern(
                  visitTopDown(
                    pcteVisitor(N, M),
                    T
                  )
                )
-       </claim>
+       </k>
        <strategy>
          propagate-conjunct-through-exists(N, M) => noop
        ...</strategy>
