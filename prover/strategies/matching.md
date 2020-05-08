@@ -594,8 +594,8 @@ things, so the LHS becomes unsat.
 ```k
   syntax Strategy ::= "footprint-analysis" "(" Pattern ")"
 
-  rule <k> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS) </k>
-       <strategy> footprint-analysis
+  rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS) </claim>
+       <k> footprint-analysis
                => with-each-match( #match( terms:     LSPATIAL
                                          , pattern:   pto(!X:VariableName { LOC }, !Y:VariableName { DATA })
                                          , variables: !X { LOC }, !Y { DATA }
@@ -603,24 +603,24 @@ things, so the LHS becomes unsat.
                                  , footprint-analysis( pto(!X { LOC }, !Y { DATA }) )
                                  )
                   ...
-       </strategy>
+       </k>
        <declaration> axiom _: heap(LOC, DATA) </declaration>
 
 // TODO: figure out why rule gets stuck when requires clause is uncommented
-  rule <k> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS)
+  rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS)
             => \implies( \and(sep(REST), LCONSTRAINT),
                          \exists { !D:VariableName { DATA }, !H:VariableName { Heap } }
                            \and(sep(!H { Heap }, pto(XMATCH, !D:VariableName { DATA })))
                        )
-       </k>
-       <strategy> #matchResult( subst: X { LOC }  |-> XMATCH
+       </claim>
+       <k> #matchResult( subst: X { LOC }  |-> XMATCH
                                        Y { DATA } |-> YMATCH
                               , rest: REST
                               )
                ~> footprint-analysis( pto(X { LOC }, Y { DATA }) )
                => noop
                   ...
-       </strategy>
+       </k>
 //     requires LSPATIAL -Patterns REST ==K pto(XMATCH, YMATCH)
 ```
 
@@ -633,7 +633,7 @@ things, so the LHS becomes unsat.
 ```
 
 ```k
-  rule <k> \implies( \and(sep(LSPATIAL), LCONSTRAINT), RHS)
+  rule <claim> \implies( \and(sep(LSPATIAL), LCONSTRAINT), RHS)
             => \implies( \and( sep(LSPATIAL),
                                \forall { .Patterns }
                                         \implies( \and( \not(\equals( #token("Vy_emp", "UpperName") { #token("RefDll_t", "UpperName") }
@@ -650,11 +650,11 @@ things, so the LHS becomes unsat.
                              )
                        , RHS
                        )
-       </k>
-       <strategy> nullity-analysis(STRAT)
+       </claim>
+       <k> nullity-analysis(STRAT)
                => kt-solve-implications(STRAT)
                   ...
-       </strategy>
+       </k>
        <declaration> axiom _: heap(LOC, DATA) </declaration>
 ```
 
