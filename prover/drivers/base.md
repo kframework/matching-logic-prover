@@ -23,7 +23,7 @@ module PROVER-CONFIGURATION
       <prover>
         <exit-code exit=""> 1 </exit-code>
         <goals>
-          <goal multiplicity="*" type="List" format="%1%i%n%2, %3%n%4%n%5n%6%n%7%n%d%8">
+          <goal multiplicity="*" type="List" format="%1%i%n%2, %3%n%4%n%5%n%6%n%7%n%d%8">
             <id format="id: %2"> .K </id>
             <parent format="parent: %2"> .K </parent>
             <claim> \and(.Patterns) </claim> // TODO: make this optional instead?
