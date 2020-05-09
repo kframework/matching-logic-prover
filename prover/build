@@ -131,10 +131,11 @@ secondary_tests('qf_shidlia_entl_unsat_tests', 't/test-lists/qf_shidlia_entl.uns
 secondary_tests('qf_shlid_entl_unsat_tests',   't/test-lists/qf_shlid_entl.unsat')
 secondary_tests('shid_entl_unsat_tests',       't/test-lists/shid_entl.unsat')
 
+# TODO: Why are smt tests `-krun` and kore tests `-run`?
 def test_path(name, type):
-    return ".build/t/%s.prover-%s-krun" % (name, type)
+    return ".build/t/%s.%s" % (name, type)
 def sl_comp_test_path(name):
-    return test_path("SL-COMP18/bench/qf_shid_entl/%s" % name, 'smt')
+    return test_path("SL-COMP18/bench/qf_shid_entl/%s" % name, 'prover-smt-krun')
 
 proj.alias('smoke-tests', list(map( sl_comp_test_path, [ 
            "02.tst.smt2"                         , # RList trans 
@@ -150,7 +151,7 @@ proj.alias('smoke-tests', list(map( sl_comp_test_path, [
            "ls_nonrec_entail_ls_05.sb.smt2"      , # 4 variable transitivity: ls_nonrec(x,x1) * ... * ls_nonrec(x4,x5) -> ls(x,x5)  - needs large number of kts and unfolding
            "ls_lsrev_concat_entail_ls_1.sb.smt2" , # need unfolding within implication context
           ])) +
-          [ test_path('t/listSegmentLeft-implies-listSegmentRight.kore', 'kore')
+          [ test_path('listSegmentLeft-implies-listSegmentRight.kore', 'prover-kore-run')
           ]
           )
 
