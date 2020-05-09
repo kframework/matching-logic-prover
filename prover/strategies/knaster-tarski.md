@@ -283,29 +283,12 @@ for guessing an instantiation of the inductive hypothesis.
 If there are no implication contexts to collapse, we are done:
 
 ```k
-<<<<<<< HEAD
-  rule <claim> GOAL </claim>
+  rule <claim> \implies(LHS, RHS) </claim>
        <k> with-each-implication-context(S) => noop ... </k>
-    requires notBool(hasImplicationContext(GOAL))
-
-  rule <claim> GOAL </claim>
-       <k> with-each-implication-context(S) => S . with-each-implication-context(S) ... </k>
-    requires hasImplicationContext(GOAL)
-||||||| parent of 134f05a3... kt: Number of fixes for:
-  rule <k> GOAL </k>
-       <strategy> with-each-implication-context(S) => noop ... </strategy>
-    requires notBool(hasImplicationContext(GOAL))
-  rule <k> GOAL </k>
-       <strategy> with-each-implication-context(S) => S . with-each-implication-context(S) ... </strategy>
-    requires hasImplicationContext(GOAL)
-=======
-  rule <k> \implies(LHS, RHS) </k>
-       <strategy> with-each-implication-context(S) => noop ... </strategy>
     requires notBool(hasImplicationContext(LHS))
-  rule <k> \implies(LHS, RHS) </k>
-       <strategy> with-each-implication-context(S) => S . with-each-implication-context(S) ... </strategy>
+  rule <claim> \implies(LHS, RHS) </claim>
+       <k> with-each-implication-context(S) => S . with-each-implication-context(S) ... </k>
     requires hasImplicationContext(LHS)
->>>>>>> 134f05a3... kt: Number of fixes for:
 ```
 
 ### `normlize-implication-context`
