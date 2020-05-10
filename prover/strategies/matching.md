@@ -56,7 +56,8 @@ module MATCHING-FUNCTIONAL
                                      , rest: .Patterns
                                      )
                     )
-    requires isSpatialPattern(sep(T))
+    [owise]
+    // requires isSpatialPattern(sep(T))
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
   rule #filterErrors(MR       , MRs) => MR , #filterErrors(MRs)
@@ -168,6 +169,16 @@ Recurse over assoc-only constructors (including `pto`):
                             => T_ARGs ++Patterns Ts
                   , pattern:   \or(P_ARGs), Ps
                             => P_ARGs ++Patterns Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // Recursive over disjunction
+  rule #matchAssoc( terms:     \exists { .Patterns } T, Ts
+                            => T, Ts
+                  , pattern:   \exists { .Patterns } P, Ps
+                            => P, Ps
                   , variables: Vs
                   , subst:     SUBST
                   , rest:      REST

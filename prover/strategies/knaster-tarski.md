@@ -200,9 +200,9 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   // TODO: combine with other kt-unfold rules
-  rule <k> \implies(\mu X . P, RHS)
+  rule <claim> \implies(\mu X . P, RHS)
         => \implies(subst(P, X, alphaRename(RHS)), RHS)
-       </k>
+       </claim>
        <k> kt-unfold
                => lift-or . and-split
                   ...
