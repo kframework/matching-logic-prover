@@ -79,10 +79,10 @@ Normalize:
        </claim>
        <k> normalize ... </k>
 
-  rule <claim> \implies(\and(LHS), \exists { Es } \and(RHS))
-        => \implies( \and(#normalizePs(#flattenAnds(#lhsRemoveExistentialsPs(LHS))))
-                   , \exists { Es } \and(#normalizePs(#flattenAnds(RHS)))
-                   )
+  rule <claim> \implies(LHS, \exists { Es } RHS)
+            => \implies( #normalize(#dnf(#lhsRemoveExistentials(LHS)))
+                       , \exists { Es } #normalize(#dnf(RHS))
+                       )
        </claim>
        <k> normalize => noop ... </k>
 
@@ -90,23 +90,8 @@ Normalize:
        <k> normalize => noop ... </k>
 
   syntax Pattern ::= #normalize(Pattern) [function]
-  syntax Patterns ::= #normalizePs(Patterns) [function]
-
-  rule #normalizePs(.Patterns) => .Patterns
-  rule #normalizePs(P, Ps) => #normalize(P), #normalizePs(Ps)
-
-  // TODO: normalize on LHS and RHS?
-  rule #normalize(\implies(LHS, RHS))
-    => \forall { .Patterns } \implies(LHS, RHS)
-  rule #normalize(\exists{.Patterns} P)
-    => #normalize(P)
-
-  rule #normalize(\not(\exists{Vs} P)) => \forall{Vs} #normalize(\not(P))
-  rule #normalize(\not(\and(Ps))) => #normalize(\or(#not(Ps)))
-  rule #normalize(\not(\not(P))) => #normalize(P)
-  rule #normalize(\or(Ps)) => \or(#normalizePs(Ps))
-  rule #normalize(P) => P
-    [owise]
+  rule #normalize(\or(P, .Patterns)) => P
+  rule #normalize(\or(Ps)) => \or(Ps) requires Ps =/=K .Patterns
 ```
 
 ### purify
@@ -334,8 +319,8 @@ on the LHS, replace all occurrences of nil with a fresh variable
 Bring predicate constraints to the top of a term.
 
 ```k
-  rule <claim> \implies(\and(Ps) => #flattenAnd(#liftConstraints(#flattenAnd(\and(Ps))))
-                       , \exists { _ } (\and(Rs) => #flattenAnd(#liftConstraints(#flattenAnd(\and(Rs)))))
+  rule <claim> \implies(\and(Ps) => #flattenAssoc(#liftConstraints(#flattenAssoc(\and(Ps))))
+                       , \exists { _ } (\and(Rs) => #flattenAssoc(#liftConstraints(#flattenAssoc(\and(Rs)))))
                        )
        </claim>
        <k> lift-constraints => noop ... </k>

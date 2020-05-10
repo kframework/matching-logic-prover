@@ -241,7 +241,7 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
                                                               , CTXLCONSTRAINTS
                                                               )
                                                         )
-                                                       => #moveHoleToFront(#flattenAnd(
+                                                       => #moveHoleToFront(#flattenAssoc(
                                                             #liftConstraints( \and( sep( #hole { Heap }
                                                                                        , substPatternsMap(CTXLHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
                                                                                        )

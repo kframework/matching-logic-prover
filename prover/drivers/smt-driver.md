@@ -403,13 +403,9 @@ Clear the `<k>` cell once we are done:
   rule #removeExistentialsPatterns(P, Ps) => #removeExistentials(P) ++Patterns #removeExistentialsPatterns(Ps)
   rule #removeExistentialsPatterns(.Patterns) => .Patterns
 
-  syntax Pattern ::= #normalizeQFree(Pattern) [function]
-                   | #normalizeDefinition(Pattern) [function]
+  syntax Pattern ::= #normalizeDefinition(Pattern) [function]
                    | #pushExistentialsDisjunction(Pattern) [function]
-  rule #normalizeDefinition(P) => #pushExistentialsDisjunction(\exists { #getExistentialVariables(P) } #normalizeQFree(#removeExistentials(P)))
-  rule #normalizeQFree(\or(Ps)) => \or(#flattenOrs(#dnfPs(Ps)))
-  rule #normalizeQFree(P) => #normalizeQFree(\or(P, .Patterns))
-    [owise]
+  rule #normalizeDefinition(P) => #pushExistentialsDisjunction(\exists { #getExistentialVariables(P) } #dnf(#removeExistentials(P)))
   rule #pushExistentialsDisjunction(\exists{Vs} \or(Ps)) => \or(#exists(Ps, Vs))
 
   syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]

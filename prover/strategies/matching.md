@@ -480,7 +480,7 @@ Instantiate existentials using matching on the spatial part of goals:
   rule <claim> \implies( \and( LSPATIAL, LHS)
                        ,  \exists { Vs } \and(sep(RSPATIAL), RHS)
                        => \exists { Vs -Patterns fst(unzip(SUBST)) }
-                          #flattenAnd(substMap( \and(getSpatialPatterns(RHS) ++Patterns (sep(RSPATIAL), (RHS -Patterns getSpatialPatterns(RHS))))
+                          #flattenAssoc(substMap( \and(getSpatialPatterns(RHS) ++Patterns (sep(RSPATIAL), (RHS -Patterns getSpatialPatterns(RHS))))
                                               , SUBST
                                               )
                                      )

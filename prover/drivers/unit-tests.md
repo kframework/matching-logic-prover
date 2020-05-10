@@ -8,11 +8,13 @@ requires "t/unit/match-assoc-comm.k"
 requires "t/unit/subst.k"
 requires "t/unit/syntactic-match.k"
 requires "t/unit/visitor.k"
+requires "t/unit/dnf.k"
 ```
 
 ```k
 module DRIVER-UNIT-TEST
   imports TEST-CHECKSAT
+  imports TEST-DNF
   imports TEST-MATCH-ASSOC
   imports TEST-MATCH-ASSOC-COMM
   imports TEST-SUBST
