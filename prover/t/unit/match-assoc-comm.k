@@ -277,16 +277,13 @@ module TEST-MATCH-ASSOC-COMM
 
   rule test("match-assoc-comm", 13)
     => assert( #error( "???" ), .MatchResults
-            == #matchAssocComm( terms:     \and(sep( pto ( Y0 { Loc } , c ( Z { Loc }))
-                                                   , pto ( X0 { Loc } , c ( Y0 { Loc }))
-                                               )   )
-                              , pattern:   pto ( X0 { Loc } , c ( W0 { Loc }))
-                                         , pto ( W0 { Loc } , c ( Z { Loc }))
-                              , variables: W0 { Loc }
-                              , results:   .MatchResults
-                              , subst:     .Map
-                              , rest:      .Patterns
-                              )
+            == #match( terms:     \and(sep( pto ( Y0 { Loc } , c ( Z { Loc }))
+                                          , pto ( X0 { Loc } , c ( Y0 { Loc }))
+                                      )   )
+                     , pattern:   pto ( X0 { Loc } , c ( W0 { Loc }))
+                                , pto ( W0 { Loc } , c ( Z { Loc }))
+                     , variables: W0 { Loc }
+                     )
              )
        .Declarations
 endmodule
