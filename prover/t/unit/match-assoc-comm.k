@@ -10,6 +10,8 @@ module TEST-MATCH-ASSOC-COMM
                      | "Y0"    [token] | "Y1"    [token] | "Y2"    [token]
                      | "Z"     [token] | "Z1"    [token] | "Z2"    [token]
                      | "H0"    [token] | "H1"    [token]
+  syntax SharpName ::= "#X0"   [token] | "#X1"   [token]
+                     | "#PHI1" [token]
 
   rule test("match-assoc-comm", 1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
@@ -285,5 +287,19 @@ module TEST-MATCH-ASSOC-COMM
                      , variables: W0 { Loc }
                      )
              )
+       .Declarations
+
+  // matching on mu terms with different binders
+  rule test("match-assoc-comm", 13)
+    => assert( #matchResult( subst: .Map , rest: .Patterns )
+             , .MatchResults
+            == #matchAssocComm( terms:     \mu #X0 . \and(#X0, #PHI1)
+                              , pattern:   \mu #X1 . \and(#X1, #PHI1)
+                              , variables: .Patterns
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+              )
        .Declarations
 endmodule

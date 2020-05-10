@@ -152,7 +152,37 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   , rest:      REST
                   )
-    requires S =/=K sep
+
+  // Recursive over conjunction
+  rule #matchAssoc( terms:     \and(T_ARGs), Ts
+                            => T_ARGs ++Patterns Ts
+                  , pattern:   \and(P_ARGs), Ps
+                            => P_ARGs ++Patterns Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // Recursive over disjunction
+  rule #matchAssoc( terms:     \or(T_ARGs), Ts
+                            => T_ARGs ++Patterns Ts
+                  , pattern:   \or(P_ARGs), Ps
+                            => P_ARGs ++Patterns Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // Both term and pattern are a mu:
+  // Recurse over pattern with same fresh variable for each mu term
+  rule #matchAssoc( terms:     (\mu X . T), Ts
+                            => subst(T, X, !F:SetVariable), Ts
+                  , pattern:   (\mu Y . P), Ps
+                            => subst(P, Y, !F), Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
 
   // ground variable: identical
   rule #matchAssoc( terms:     P:Variable, Ts => Ts
