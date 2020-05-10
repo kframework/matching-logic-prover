@@ -187,10 +187,10 @@ module DRIVER-SMT
                       ) ...
        </declarations>
 
-  syntax K ::= #rest(SMTLIB2FunctionDecList, SMTLIB2TermList)
+  syntax K ::= #mutualRecUnfold(SMTLIB2FunctionDecList, SMTLIB2TermList)
 
   rule <k> _:GoalBuilder
-        ~> ( #rest(_, _)
+        ~> ( #mutualRecUnfold(_, _)
           ~> (define-funs-rec ( .SMTLIB2FunctionDecList ) ( .SMTLIB2TermList ) )
           => .K
            )
@@ -198,7 +198,7 @@ module DRIVER-SMT
        </k>
 
   rule <k> #goal( goal: _, strategy: unfold-mut-recs . REST_STRAT, expected: _ )
-        ~> (.K => #rest(FDs, BODIEs))
+        ~> (.K => #mutualRecUnfold(FDs, BODIEs))
         ~> (define-funs-rec ( FDs ) ( BODIEs ) )
            ...
        </k>
@@ -228,7 +228,7 @@ module DRIVER-SMT
     [owise]
 
   rule <k> _:GoalBuilder
-        ~> #rest(FDALLs, BODYALLs)
+        ~> #mutualRecUnfold(FDALLs, BODYALLs)
         ~> ( (define-funs-rec ( (ID (ARGs) RET) FDs ) ( BODY BODIEs ) )
           => unfoldMR( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
                      , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs))
@@ -254,7 +254,7 @@ module DRIVER-SMT
        ), #gatherRest(FDs, BODIEs)
 
   syntax K ::= unfoldMR(Pattern, Pattern, PatternTupleList)
-  rule <k> _:GoalBuilder ~> #rest(_, _)
+  rule <k> _:GoalBuilder ~> #mutualRecUnfold(_, _)
         ~> ( unfoldMR(ID:Symbol(ARGs), BODY, .PatternTupleList)
           => .K
            )
@@ -269,14 +269,14 @@ module DRIVER-SMT
                       ) ...
        </declarations>
 
-  rule <k> _:GoalBuilder ~> #rest(_, _)
+  rule <k> _:GoalBuilder ~> #mutualRecUnfold(_, _)
         ~> ( unfoldMR(ID:Symbol(ARGs1), BODY1, ((ID:Symbol(ARGs2), BODY2), REST))
           => unfoldMR(ID:Symbol(ARGs1), BODY1, REST)
            )
            ...
        </k>
 
-  rule <k> _:GoalBuilder ~> #rest(_, _)
+  rule <k> _:GoalBuilder ~> #mutualRecUnfold(_, _)
         ~> ( unfoldMR(ID1:Symbol(ARGs1), BODY1, ((ID2:Symbol(ARGs2), BODY2), REST))
           => unfoldMR(ID1:Symbol(ARGs1), substituteBRPs(BODY1, ID2, ARGs2, BODY2), REST)
            )
