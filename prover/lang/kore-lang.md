@@ -791,10 +791,8 @@ single symbol applied to multiple arguments.
 
 ```k
   syntax Pattern ::= #liftOr(Pattern) [function]
-  rule #liftOr(V:Variable) => \or(V)
+  rule #liftOr(P) => \or(P) requires isDnfAtom(P)
   rule #liftOr(\not(P)) => \or(\not(P))
-  rule #liftOr(\equals(L, R)) => \equals(L, R)
-  rule #liftOr(S:Symbol) => \or(S)
   rule #liftOr(S:Symbol(Args))
     => \or(#liftOr_distribute( context: S(.Patterns)
                              , processed: .Patterns
