@@ -17,7 +17,7 @@ module PROVER-CONFIGURATION
   syntax Pgm
   syntax Strategy
   syntax CommandLine
-  syntax GoalId ::= ClaimName | Int
+  syntax GoalId ::= AxiomName | Int
 
   configuration
       <prover>
@@ -83,7 +83,6 @@ module DRIVER-BASE
   imports VISITOR
   imports PATTERN-LENGTH
   imports HEATCOOL-RULES
-  imports LOAD-NAMED-RULES
 
   rule <k> .CommandLine => .K ... </k>
 

@@ -13,7 +13,6 @@ Gamma, Phi |- Psi
 module STRATEGY-DUPLICATE
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
-  imports LOAD-NAMED-SYNTAX
 
   rule <k> duplicate H as H'
                => loadNamed(H) ~> #nameAs(H')

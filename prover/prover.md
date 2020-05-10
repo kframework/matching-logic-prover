@@ -21,7 +21,6 @@ requires "strategies/unfolding.k"
 requires "utils/error.k"
 requires "utils/instantiate-assumptions.k"
 requires "utils/heatcool.k"
-requires "utils/load-named.k"
 requires "utils/syntactic-match.k"
 requires "utils/visitor.k"
 ```
@@ -63,7 +62,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "frame"
                     | "unfold-mut-recs"
                     | "apply-equation"
-                        RewriteDirection AxiomOrClaimName
+                        RewriteDirection AxiomName
                         "at" Int "by" "[" Strategies "]"
                     | "apply-equation"
                       "(" "eq:" Pattern
@@ -73,7 +72,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                       ")"
                     | "intros" AxiomName
                     | "replace-evar-with-func-constant" Variables
-                    | "duplicate" AxiomOrClaimName "as" AxiomName
+                    | "duplicate" AxiomName "as" AxiomName
                     | "instantiate-universals" "("
                         "in:" AxiomName ","
                         "vars:" VariableNames ","
@@ -82,7 +81,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     // of the axiom or claim given as the first arg.
                     // Uses the strategy given in second argument
                     // to discharge the axiom's premises.
-                    | "apply" "(" AxiomOrClaimName
+                    | "apply" "(" AxiomName
                               "," Strategy ")"
                     | "inst-exists" "(" Variable "," Pattern
                                     "," Strategy ")"
