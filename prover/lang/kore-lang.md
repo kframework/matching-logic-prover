@@ -762,10 +762,12 @@ single symbol applied to multiple arguments.
 
   syntax Bool ::= isDnfAtom(Pattern) [function]
   rule isDnfAtom(V:Variable) => true
+  rule isDnfAtom(X:SetVariable) => true
   rule isDnfAtom(S:Symbol) => true
   rule isDnfAtom(\equals(L, R)) => true
   rule isDnfAtom(\exists{Vs}_) => true
   rule isDnfAtom(\forall{Vs}_) => true
+  rule isDnfAtom(\mu X . _) => true
   rule isDnfAtom(implicationContext(_, _)) => true
   rule isDnfAtom(\and(_)) => false
   rule isDnfAtom(\or(_)) => false
@@ -775,18 +777,7 @@ single symbol applied to multiple arguments.
 
 ```k
   syntax Pattern ::= #dnf(Pattern) [function]
-  rule #dnf(P) => #flattenAssoc(#liftOr(#nnf(\or(\and(P)))))
-
-//  syntax Pattern ::= #dnf_addTopLevelConjunction(Pattern) [function]
-//  rule #dnf_addTopLevelConjunction(\or(Ps))
-//    => \or(#dnf_addTopLevelConjunctionInner(Ps))
-//
-//  syntax Patterns ::= #dnf_addTopLevelConjunctionInner(Patterns) [function]
-//  rule #dnf_addTopLevelConjunctionInner(\and(P), Ps)
-//    => \and(P), #dnf_addTopLevelConjunctionInner(Ps)
-//  rule #dnf_addTopLevelConjunctionInner(P, Ps)
-//    => \and(P), #dnf_addTopLevelConjunctionInner(Ps)
-//    requires notBool(
+  rule #dnf(P) => #flattenAssoc(#liftOr(#liftAnd(#nnf(\or(\and(P))))))
 ```
 
 ```k
@@ -822,8 +813,8 @@ single symbol applied to multiple arguments.
                          , or: #flattenAssoc(#liftOr(P))
                          , remaining: Ps
                          )
-  rule #liftOr_distribute(context: S:Symbol(.Patterns), processed: Processed, remaining: .Patterns) => S(Processed)
-  rule #liftOr_distribute(context: \and(.Patterns), processed: Processed, remaining: .Patterns) => \and(Processed)
+  rule #liftOr_distribute(context: S:Symbol(.Patterns), processed: Processed, remaining: .Patterns) => S(Processed), .Patterns
+  rule #liftOr_distribute(context: \and(.Patterns), processed: Processed, remaining: .Patterns) => \and(Processed), .Patterns
 
   syntax Patterns ::= "#liftOr_distribute" "(" "context:"   Pattern
                                            "," "processed:" Patterns
@@ -849,6 +840,81 @@ single symbol applied to multiple arguments.
                          , or: \or(.Patterns)
                          , remaining: Remaining
                          )
+    => .Patterns 
+```
+
+```k
+  syntax Pattern ::= #liftAnd(Pattern) [function]
+  rule #liftAnd(P) => \and(P) requires isDnfAtom(P)
+  rule #liftAnd(\not(P)) => \and(\not(P))
+  rule #liftAnd(S:Symbol(Args))
+    => \and(#liftAnd_distribute( context: S(.Patterns)
+                               , processed: .Patterns
+                               , remaining: Args
+           )                   )
+  rule #liftAnd(\or(Args))
+    => \and(#liftAnd_distribute( context: \or(.Patterns)
+                               , processed: .Patterns
+                               , remaining: Args
+           )                   )
+  rule #liftAnd(\and(Args)) => \and(#liftAndPs(Args))
+
+  syntax Patterns ::= #liftAndPs(Patterns) [function]
+  rule #liftAndPs(.Patterns) => .Patterns
+  rule #liftAndPs(P, Ps) => #liftAnd(P), #liftAndPs(Ps)
+
+  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"   Pattern
+                                            "," "processed:" Patterns
+                                            "," "remaining:" Patterns
+                                            ")" [function]
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , remaining: P, Ps
+                          )
+    => #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: #flattenAssoc(#liftAnd(P))
+                          , remaining: Ps
+                          )
+    requires #flattenAssoc(#liftAnd(P)) =/=K \and(.Patterns)
+
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , remaining: P, Ps
+                          )
+    => #liftAnd_distribute( context: Context
+                          , processed: Processed ++Patterns \and(.Patterns)
+                          , remaining: Ps
+                          )
+    requires #flattenAssoc(#liftAnd(P)) ==K \and(.Patterns)
+
+  rule #liftAnd_distribute(context: S:Symbol(.Patterns), processed: Processed, remaining: .Patterns) => S(Processed), .Patterns
+  rule #liftAnd_distribute(context: \or(.Patterns), processed: Processed, remaining: .Patterns) => \or(Processed), .Patterns
+
+  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"   Pattern
+                                            "," "processed:" Patterns
+                                            "," "and:"       Pattern
+                                            "," "remaining:" Patterns
+                                            ")" [function]
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: \and(And, Ands)
+                          , remaining: Remaining
+                          )
+    => #liftAnd_distribute( context: Context
+                          , processed: Processed ++Patterns And
+                          , remaining: Remaining
+                          ) ++Patterns
+       #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: \and(Ands)
+                          , remaining: Remaining
+                          )
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: \and(.Patterns)
+                          , remaining: Remaining
+                          )
     => .Patterns 
 ```
 
