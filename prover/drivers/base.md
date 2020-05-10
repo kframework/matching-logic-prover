@@ -26,7 +26,7 @@ module PROVER-CONFIGURATION
           <goal multiplicity="*" type="List" format="%1%i%n%2, %3%n%4%n%5%n%6%n%7%n%d%8">
             <id format="id: %2"> .K </id>
             <parent format="parent: %2"> .K </parent>
-            <claim> \and(.Patterns) </claim> // TODO: make this optional instead?
+            <claim> \or(.Patterns) </claim> // TODO: make this optional instead?
             <k> $COMMANDLINE:CommandLine ~> $PGM:Pgm </k>
             <expected> .K </expected>
             <local-context>
