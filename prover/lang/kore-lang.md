@@ -707,43 +707,157 @@ Simplifications
   syntax Patterns ::= #not(Patterns) [function]
   rule #not(.Patterns) => .Patterns
   rule #not(P, Ps) => \not(P), #not(Ps)
+```
 
-  syntax Pattern ::= #flattenAnd(Pattern) [function]
-  rule #flattenAnd(\and(Ps)) => \and(#flattenAnds(Ps))
+`#flattenAssoc` flattens associative binary symbols and connectives to a
+single symbol applied to multiple arguments.
+
+```k
+  syntax Pattern ::= #flattenAssoc(Pattern) [function]
+  rule #flattenAssoc(\and(Ps)) => \and(#flattenAnds(Ps))
+  rule #flattenAssoc(\or(Ps))  => \or(#flattenOrs(Ps))
+  rule #flattenAssoc(sep(Ps))  => sep(#flattenSeps(Ps))
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]
-  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
   rule #flattenAnds(.Patterns) => .Patterns
+  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(\or(Ps1), Ps2) => \or(#flattenOrs(Ps1)), #flattenAnds(Ps2)
+  rule #flattenAnds(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)), #flattenAnds(Ps2)
+  rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
 
   syntax Patterns ::= #flattenSeps(Patterns) [function]
+  rule #flattenSeps(.Patterns) => .Patterns
   rule #flattenSeps(emp(.Patterns), Ps2) => #flattenSeps(Ps2)
   rule #flattenSeps(sep(Ps1), Ps2) => #flattenSeps(Ps1) ++Patterns #flattenSeps(Ps2)
+  rule #flattenSeps(\and(Ps1), Ps2) => \and(#flattenAnds(Ps1)), #flattenSeps(Ps2)
+  rule #flattenSeps(\or(Ps1), Ps2) => \or(#flattenOrs(Ps1)), #flattenSeps(Ps2)
   rule #flattenSeps(P, Ps) => P, #flattenSeps(Ps) [owise]
-  rule #flattenSeps(.Patterns) => .Patterns
 
   syntax Patterns ::= #flattenOrs(Patterns) [function]
-  rule #flattenOrs(\or(Ps1), Ps2) => #flattenOrs(Ps1) ++Patterns #flattenOrs(Ps2)
-  rule #flattenOrs(P, Ps) => P ++Patterns #flattenOrs(Ps) [owise]
   rule #flattenOrs(.Patterns) => .Patterns
+  rule #flattenOrs(\or(Ps1), Ps2) => #flattenOrs(Ps1) ++Patterns #flattenOrs(Ps2)
+  rule #flattenOrs(\and(Ps1), Ps2) => \and(#flattenAnds(Ps1)), #flattenOrs(Ps2)
+  rule #flattenOrs(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)), #flattenOrs(Ps2)
+  rule #flattenOrs(P, Ps) => P, #flattenAnds(Ps) [owise]
+```
 
-  // TODO: dnf should be greatly refactored. Normalization along with lift-constraints
-  // should happen likely in the same function, with much fewer ad-hoc rules than we
-  // have below
+`#nnf` converts a formula into Negation Normal Form:
+
+```k
+  syntax Patterns ::= #nnfPs(Patterns) [function]
+  rule #nnfPs(.Patterns) => .Patterns
+  rule #nnfPs(P, Ps) => #nnf(P), #nnfPs(Ps)
+
+  syntax Pattern  ::= #nnf(Pattern) [function]
+  rule #nnf(P) => P requires isDnfAtom(P)
+  rule #nnf(S:Symbol(Args)) => S(#nnfPs(Args))
+  rule #nnf( \or(Ps)) =>  \or(#nnfPs(Ps))
+  rule #nnf(\and(Ps)) => \and(#nnfPs(Ps))
+
+  rule #nnf(\not(P)) => \not(P) requires isDnfAtom(P)
+  rule #nnf(\not(S:Symbol(Args))) => \not(S(#nnfPs(Args)))
+  rule #nnf(\not( \or(Ps))) => \and(#nnfPs(#not(Ps)))
+  rule #nnf(\not(\and(Ps))) => \or(#nnfPs(#not(Ps)))
+  rule #nnf(\not(\not(P))) => #nnf(P)
+
+  syntax Bool ::= isDnfAtom(Pattern) [function]
+  rule isDnfAtom(V:Variable) => true
+  rule isDnfAtom(S:Symbol) => true
+  rule isDnfAtom(\equals(L, R)) => true
+  rule isDnfAtom(\exists{Vs}_) => true
+  rule isDnfAtom(\forall{Vs}_) => true
+  rule isDnfAtom(implicationContext(_, _)) => true
+  rule isDnfAtom(\and(_)) => false
+  rule isDnfAtom(\or(_)) => false
+  rule isDnfAtom(S:Symbol(ARGS)) => false
+  rule isDnfAtom(\not(P)) => false
+```
+
+```k
   syntax Pattern ::= #dnf(Pattern) [function]
-  rule #dnf(\or(Ps)) => \or(#dnfPs(Ps))
+  rule #dnf(P) => #flattenAssoc(#liftOr(#nnf(\or(\and(P)))))
 
-  syntax Patterns ::= #dnfPs(Patterns) [function]
+//  syntax Pattern ::= #dnf_addTopLevelConjunction(Pattern) [function]
+//  rule #dnf_addTopLevelConjunction(\or(Ps))
+//    => \or(#dnf_addTopLevelConjunctionInner(Ps))
+//
+//  syntax Patterns ::= #dnf_addTopLevelConjunctionInner(Patterns) [function]
+//  rule #dnf_addTopLevelConjunctionInner(\and(P), Ps)
+//    => \and(P), #dnf_addTopLevelConjunctionInner(Ps)
+//  rule #dnf_addTopLevelConjunctionInner(P, Ps)
+//    => \and(P), #dnf_addTopLevelConjunctionInner(Ps)
+//    requires notBool(
+```
 
-  rule #dnfPs(.Patterns) => .Patterns
-  rule #dnfPs(\or(Ps), REST) => #dnfPs(Ps ++Patterns REST)
-  rule #dnfPs(P, Ps) => \and(P), #dnfPs(Ps)
-    requires isBasePattern(P)
-  rule #dnfPs(\not(P), Ps) => \and(\not(P)), #dnfPs(Ps)
-    requires isBasePattern(P)
-  rule #dnfPs(\exists{Vs} P, Ps) => #exists(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
-  rule #dnfPs(\forall{Vs} P, Ps) => #forall(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
+```k
+  syntax Pattern ::= #liftOr(Pattern) [function]
+  rule #liftOr(V:Variable) => \or(V)
+  rule #liftOr(\not(P)) => \or(\not(P))
+  rule #liftOr(\equals(L, R)) => \equals(L, R)
+  rule #liftOr(S:Symbol) => \or(S)
+  rule #liftOr(S:Symbol(Args))
+    => \or(#liftOr_distribute( context: S(.Patterns)
+                             , processed: .Patterns
+                             , remaining: Args
+          )                  )
+  rule #liftOr(\and(Args))
+    => \or(#liftOr_distribute( context: \and(.Patterns)
+                             , processed: .Patterns
+                             , remaining: Args
+          )                  )
+  rule #liftOr(\or(Args)) => \or(#liftOrPs(Args))
+
+  syntax Patterns ::= #liftOrPs(Patterns) [function]
+  rule #liftOrPs(.Patterns) => .Patterns
+  rule #liftOrPs(P, Ps) => #liftOr(P), #liftOrPs(Ps)
+
+  syntax Patterns ::= "#liftOr_distribute" "(" "context:"   Pattern
+                                           "," "processed:" Patterns
+                                           "," "remaining:" Patterns
+                                           ")" [function]
+  rule #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , remaining: P, Ps
+                         )
+    => #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: #flattenAssoc(#liftOr(P))
+                         , remaining: Ps
+                         )
+  rule #liftOr_distribute(context: S:Symbol(.Patterns), processed: Processed, remaining: .Patterns) => S(Processed)
+  rule #liftOr_distribute(context: \and(.Patterns), processed: Processed, remaining: .Patterns) => \and(Processed)
+
+  syntax Patterns ::= "#liftOr_distribute" "(" "context:"   Pattern
+                                           "," "processed:" Patterns
+                                           "," "or:"        Pattern
+                                           "," "remaining:" Patterns
+                                           ")" [function]
+  rule #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: \or(Or, Ors)
+                         , remaining: Remaining
+                         )
+    => #liftOr_distribute( context: Context
+                         , processed: Processed ++Patterns Or
+                         , remaining: Remaining
+                         ) ++Patterns
+       #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: \or(Ors)
+                         , remaining: Remaining
+                         )
+  rule #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: \or(.Patterns)
+                         , remaining: Remaining
+                         )
+    => .Patterns 
+```
+
+```k
+// TODO: These aren't sound
+//  rule #dnfPs(\exists{Vs} P, Ps) => #exists(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
+//  rule #dnfPs(\forall{Vs} P, Ps) => #forall(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
 
   syntax Patterns ::= #exists(Patterns, Patterns) [function]
   rule #exists(.Patterns, _) => .Patterns
@@ -754,69 +868,6 @@ Simplifications
   rule #forall(.Patterns, _) => .Patterns
   rule #forall((\and(Ps1), Ps2), Vs) => \forall{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #forall(Ps2, Vs)
   rule #forall((\forall{Es} P, Ps2), Vs) => \forall{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #forall(Ps2, Vs)
-
-  rule #dnfPs(\not(\and(Ps)), REST) => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
-  rule #dnfPs(\not(\or(Ps)), REST)  => #dnfPs(\and(#not(Ps)), REST)
-
-  // Distribute \or over \and
-  rule #dnfPs(\and(\or(P, Ps1), Ps2), REST)
-    => #dnfPs(\and(P, Ps2)) ++Patterns #dnfPs(\and(\or(Ps1), Ps2))
-  rule #dnfPs(\and(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
-
-  // \and is assoc
-  rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
-
-  rule #dnfPs(\and(\not(\and(Ps1)), Ps2), REST) => #dnfPs(\and(\or(#not(Ps1)), Ps2), REST)
-
-  rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
-    requires isBaseConjunction(Ps)
-  rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
-    requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
-  rule #dnfPs(\and(sep(Ps1), Ps2), REST) => #dnfPs(\and(\or(#dnfPs(sep(Ps1), .Patterns)), Ps2), REST)
-    requires notBool isBaseConjunction(Ps1)
-
-  // sep is assoc
-  rule #dnfPs(sep(sep(Ps1), Ps2), REST) => #dnfPs(sep(Ps1 ++Patterns Ps2), REST)
-
-  // sep is commutative
-  rule #dnfPs(sep(P, Ps), REST) => #dnfPs(sep(Ps ++Patterns P), REST)
-    requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
-
-  // borrowing code from lift-constraints
-  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(\and(sep(\and(Ps1), Ps2), P))
-    requires isPredicatePattern(P)
-  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(sep(\and(Ps1), P, Ps2))
-    requires isSpatialPattern(P)
-  rule #dnfPs(sep(\and(.Patterns), Ps), REST) => #dnfPs(sep(Ps), REST)
-
-  syntax Patterns ::= #dnfPsNew(Patterns) [function]
-
-  // Distribute \or over sep
-  rule #dnfPs(sep(\or(P, Ps1), Ps2), REST)
-    => #dnfPs(sep(P, Ps2)) ++Patterns #dnfPs(sep(\or(Ps1), Ps2))
-  rule #dnfPs(sep(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
-
-  syntax Bool ::= isBasePattern(Pattern) [function]
-  rule isBasePattern(S:Symbol(ARGS)) => true
-    [owise]
-  rule isBasePattern(V:Variable) => true
-  rule isBasePattern(\equals(L, R)) => true
-  rule isBasePattern(\and(_)) => false
-  rule isBasePattern(\or(_)) => false
-  rule isBasePattern(sep(ARGS)) => isBaseConjunction(ARGS)
-  rule isBasePattern(\not(P)) => isBasePattern(P)
-  rule isBasePattern(\exists{Vs}_) => false
-  rule isBasePattern(\forall{Vs}_) => false
-  rule isBasePattern(implicationContext(_, _)) => true
-
-  syntax Bool ::= isBaseConjunction(Patterns) [function]
-  rule isBaseConjunction(.Patterns) => true
-  rule isBaseConjunction(\and(P), Ps) => false
-  rule isBaseConjunction(P, Ps) => isBasePattern(P) andBool isBaseConjunction(Ps) [owise]
-
-  syntax Bool ::= isConjunction(Pattern) [function]
-  rule isConjunction(\and(P)) => true
-  rule isConjunction(_) => false [owise]
 ```
 
 ```k
