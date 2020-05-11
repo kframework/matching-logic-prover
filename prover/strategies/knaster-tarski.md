@@ -249,6 +249,12 @@ for guessing an instantiation of the inductive hypothesis.
        </k>
   rule <k> kt-subst(.Patterns, ARGs) => noop ... </k>
 
+  // TODO: combine with other kt-unfold rules
+  rule <claim> \implies(LHS, \nu X . P)
+        => \implies(LHS, subst(P, X, alphaRename(LHS)))
+       </claim>
+       <k> gfp => noop ... </k>
+
                              // unfolded fixed point, HEAD, LRP variables, RHS
   syntax Pattern ::= substituteBRPs(Pattern,  Symbol, Patterns, Pattern) [function]
   rule substituteBRPs(P:Int, RP, Vs, RHS) => P

@@ -13,6 +13,7 @@ module STRATEGY-UNFOLDING
        <declaration> axiom _: \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
     requires getFreeVariables(DEF) -Patterns Vs =/=K .Patterns
   rule unfold(\mu X . P) => subst(P, X, alphaRename(\mu X . P))
+  rule unfold(\nu X . P) => subst(P, X, alphaRename(\nu X . P))
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
   rule [[ getSymbolDeclaration(S) => DECL ]]
@@ -33,6 +34,8 @@ module STRATEGY-UNFOLDING
     requires isUnfoldable(R)
   rule getUnfoldables(\mu X . P, REST)
     => \mu X . P, getUnfoldables(REST)
+  rule getUnfoldables(\nu X . P, REST)
+    => \nu X . P, getUnfoldables(REST)
   rule getUnfoldables(S:Symbol, REST)
     => getUnfoldables(REST)
     requires notBool isUnfoldable(S)
@@ -43,6 +46,8 @@ module STRATEGY-UNFOLDING
   rule getUnfoldables(I:Int, REST)
     => getUnfoldables(REST)
   rule getUnfoldables(V:Variable, REST)
+    => getUnfoldables(REST)
+  rule getUnfoldables(X:SetVariable, REST)
     => getUnfoldables(REST)
   rule getUnfoldables(\not(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
@@ -88,7 +93,7 @@ module STRATEGY-UNFOLDING
        </claim>
        <k> left-unfold-oneBody(LRP, \exists { _ } \and(BODY)) => noop ... </k>
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
-    requires #hole { getReturnSort(LRP) } in getFreeVariables(subst(LHS, LRP, #hole { getReturnSort(LRP) }))
+    requires #hole { TopSort } in getFreeVariables(subst(LHS, LRP, #hole { TopSort }))
 ```
 
 ### Left Unfold Nth

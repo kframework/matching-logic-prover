@@ -56,7 +56,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "right-unfold"      "(" "symbols" ":" Patterns "," "bound" ":" Int ")"
                     | "kt"     | "kt"     "#" KTFilter
                     | "kt-unf" | "kt-unf" "#" KTFilter
-                    | "kt-gfp" | "kt-gfp" "#" KTFilter
+                    | "gfp"
                     | "kt-solve-implications" "(" Strategy ")"
                     | "instantiate-universals-with-ground-terms"
                     | "instantiate-separation-logic-axioms" | "pto-is-injective"
