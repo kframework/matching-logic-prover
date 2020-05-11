@@ -38,5 +38,5 @@ phi-implies-phi
 */
 
 strategy normalize . kt . ( ( right-unfold-Nth(0, 0) . normalize . patterns-equal . rhs-top )
-                          | ( right-unfold-Nth(0, 1) . normalize . lift-constraints . wait . patterns-equal . wait . rhs-top )
+                          | ( right-unfold-Nth(0, 1) . normalize . lift-constraints . patterns-equal . rhs-top )
                           )
