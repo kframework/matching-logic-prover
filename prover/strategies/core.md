@@ -26,7 +26,7 @@ module PROVER-CORE-SYNTAX
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
   syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs" | "and-split-rhs"
-  syntax Strategy ::= "rhs-top"
+  syntax Strategy ::= "rhs-top" | "contradiction"
   syntax Strategy ::= "prune" "(" Patterns ")"
 
   syntax Strategy ::= Strategy "{" Int "}"
@@ -292,6 +292,14 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```k
   rule <claim> \implies(LHS, \exists{.Patterns} \and(.Patterns)) </claim>
        <k> rhs-top => success ... </k>
+```
+
+`contradiction` evaluates to success if the second clause is the negation of the first
+clause in the LHS conjunction
+
+```k
+  rule <claim> \implies(\and(P, \not(P), REST), RHS) </claim>
+       <k> contradiction => success ... </k>
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:

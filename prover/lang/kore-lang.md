@@ -163,6 +163,7 @@ only in this scenario*.
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
                    | "\\mu" SetVariable "." Pattern             [klabel(mu)]
+                   | "\\nu" SetVariable "." Pattern             [klabel(nu)]
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
@@ -354,6 +355,7 @@ module KORE-HELPERS
        requires getReturnSort(P) =/=K S
 
   rule getReturnSort(\mu _ . Phi) => getReturnSort(Phi)
+  rule getReturnSort(\nu _ . Phi) => getReturnSort(Phi)
   rule getReturnSort(\or(P, Ps)) => unionSort(getReturnSort(P), getReturnSort(\or(Ps)))
   rule getReturnSort(\or(.Patterns)) => BottomSort
   rule getReturnSort(\and(P, Ps)) => intersectSort(getReturnSort(P), getReturnSort(\and(Ps)))
@@ -604,6 +606,8 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(X:Variable,Y:Variable,V) => X    requires X =/=K Y
   rule subst(X:SetVariable,Y:SetVariable,V) => X requires X =/=K Y
   rule subst(X:Variable,P:Pattern, V) => X    requires notBool(isVariable(P) orBool isVariableName(P))
+  rule subst(X:SetVariable,P:Pattern, V) => X
+    requires notBool(isSetVariable(P))
   rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_)=> \top()
   rule subst(\bottom(),_,_) => \bottom()
@@ -680,6 +684,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(\exists { Fs:Patterns } P:Pattern)
     => #fun(RENAMING => \exists { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
   rule alphaRename(\mu X . P:Pattern) => \mu !X . alphaRename(subst(P, X, !X))
+  rule alphaRename(\nu X . P:Pattern) => \nu !X . alphaRename(subst(P, X, !X))
   rule alphaRename(\equals(L, R)) => \equals(alphaRename(L), alphaRename(R))
   rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
   rule alphaRename(\functionalPattern(Ps)) => \functionalPattern(alphaRename(Ps))
@@ -753,12 +758,14 @@ single symbol applied to multiple arguments.
   rule #nnf(S:Symbol(Args)) => S(#nnfPs(Args))
   rule #nnf( \or(Ps)) =>  \or(#nnfPs(Ps))
   rule #nnf(\and(Ps)) => \and(#nnfPs(Ps))
+  rule #nnf(\implies(L, R)) => #nnf(\or(\not(L), R))
 
   rule #nnf(\not(P)) => \not(P) requires isDnfAtom(P)
   rule #nnf(\not(S:Symbol(Args))) => \not(S(#nnfPs(Args)))
   rule #nnf(\not( \or(Ps))) => \and(#nnfPs(#not(Ps)))
   rule #nnf(\not(\and(Ps))) => \or(#nnfPs(#not(Ps)))
   rule #nnf(\not(\not(P))) => #nnf(P)
+  rule #nnf(\not(\implies(L, R))) => #nnf(\not(\or(\not(L), R)))
 
   syntax Bool ::= isDnfAtom(Pattern) [function]
   rule isDnfAtom(V:Variable) => true
@@ -768,9 +775,11 @@ single symbol applied to multiple arguments.
   rule isDnfAtom(\exists{Vs}_) => true
   rule isDnfAtom(\forall{Vs}_) => true
   rule isDnfAtom(\mu X . _) => true
+  rule isDnfAtom(\nu X . _) => true
   rule isDnfAtom(implicationContext(_, _)) => true
   rule isDnfAtom(\and(_)) => false
   rule isDnfAtom(\or(_)) => false
+  rule isDnfAtom(\implies(_, _)) => false
   rule isDnfAtom(S:Symbol(ARGS)) => false
   rule isDnfAtom(\not(P)) => false
 ```
