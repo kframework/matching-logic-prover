@@ -1,0 +1,34 @@
+<prover>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      id: ., parent: .
+      <claim>
+        \and ( .Patterns )
+      </claim>
+      <k>
+        .
+      </k>n<expected>
+        .
+      </expected>
+      <local-context>
+        .LocalDeclCellSet
+      </local-context>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom a1 : \equals ( f ( 1 , .Patterns ) , 1 )
+    </declaration> <declaration>
+      axiom a2 : \equals ( f ( f ( 1 , .Patterns ) , .Patterns ) , 1 )
+    </declaration> <declaration>
+      axiom a3 : \equals ( f ( f ( f ( 1 , .Patterns ) , .Patterns ) , .Patterns ) , 1 )
+    </declaration> <declaration>
+      symbol f ( Int , .Sorts ) : Int
+    </declaration>
+  </declarations>
+</prover>

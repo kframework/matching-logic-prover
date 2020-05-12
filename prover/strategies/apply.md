@@ -17,15 +17,14 @@ Gamma |- Q
 module STRATEGY-APPLY
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
-  imports LOAD-NAMED-SYNTAX
   imports SYNTACTIC-MATCH-SYNTAX
   imports INSTANTIATE-ASSUMPTIONS-SYNTAX
 
-  rule <strategy> (.K => loadNamed(Name))
+  rule <k> (.K => loadNamed(Name))
                ~> apply(Name, _) ...
-       </strategy>
+       </k>
 
-    rule <strategy>
+    rule <k>
           (A:Pattern ~> apply(_, Strat))
           => #apply1(
                A,
@@ -36,38 +35,38 @@ module STRATEGY-APPLY
                ),
                Strat
              )
-         ...</strategy>
-         <k> G </k>
+         ...</k>
+         <claim> G </claim>
 
 
   syntax KItem ::= #apply1(Pattern, MatchResult, Strategy)
 
-  rule <strategy>
+  rule <k>
          #apply1(A, #matchResult(subst: Subst), Strat)
          => #apply2(instantiateAssumptions(GId, Subst, A), Strat, success)
-       ...</strategy>
+       ...</k>
        <id> GId </id>
 
-  rule <strategy>
+  rule <k>
          #apply1(_, #error(_), _) => fail
-       ...</strategy>
+       ...</k>
 
   syntax KItem ::= #apply2(
                      InstantiateAssumptionsResult,
                      Strategy, Strategy)
 
-  rule <strategy>
+  rule <k>
          #apply2(#instantiateAssumptionsResult(.Patterns, .Map), _, Result)
          => Result
-       ...</strategy>
+       ...</k>
 
-  rule <strategy>
+  rule <k>
          #apply2(
            #instantiateAssumptionsResult(P, Ps => Ps, .Map),
            Strat,
            Result => Result & subgoal(P, Strat)
          )
-       ...</strategy>
+       ...</k>
 
 endmodule
 ```

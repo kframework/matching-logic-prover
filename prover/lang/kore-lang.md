@@ -182,8 +182,6 @@ only in this scenario*.
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
   syntax AxiomName ::= LowerName | UpperName
-  syntax ClaimName ::= LowerName | UpperName
-  syntax AxiomOrClaimName ::= AxiomName | ClaimName
 
   syntax Declaration ::= "imports" String
                        | "axiom" Pattern
@@ -854,21 +852,15 @@ Simplifications
 
   rule freshAxiomName(I:Int) => StringToAxiomName("ax" +String Int2String(I))
 
-  syntax String ::= ClaimNameToString(ClaimName) [function, hook(STRING.token2string)]
-  syntax ClaimName ::= StringToClaimName(String) [function, functional, hook(STRING.string2token)]
-                     | freshClaimName(Int)       [freshGenerator, function, functional]
-
-  rule freshClaimName(I:Int) => StringToClaimName("cl" +String Int2String(I))
-
   syntax Set ::= collectClaimNames() [function]
                | #collectClaimNames(Set) [function]
 
   rule collectClaimNames() => #collectClaimNames(.Set)
 
   rule [[ #collectClaimNames(Ns)
-          => #collectClaimNames(Ns SetItem(ClaimNameToString(N))) ]]
-       <id> N:ClaimName </id>
-       requires notBool (ClaimNameToString(N) in Ns)
+          => #collectClaimNames(Ns SetItem(AxiomNameToString(N))) ]]
+       <id> N:AxiomName </id>
+       requires notBool (AxiomNameToString(N) in Ns)
 
   rule #collectClaimNames(Ns) => Ns [owise]
 
@@ -1012,10 +1004,6 @@ assume a pattern of the form:
   rule getFreshAxiomName(GId)
        => StringToAxiomName(getFreshName("ax", collectNamed(GId)))
 
-  syntax ClaimName ::= getFreshClaimName() [function]
-  rule getFreshClaimName()
-       => StringToClaimName(getFreshName("cl", collectGlobalNamed()))
-
   syntax Set ::= collectSymbolsS(GoalId) [function]
                | #collectSymbolsS(Declarations) [function]
 
@@ -1033,6 +1021,14 @@ assume a pattern of the form:
   rule getFreshSymbol(GId, Base)
        => StringToSymbol(
             getFreshNameNonum(Base, collectSymbolsS(GId)))
+
+  syntax KItem ::= loadNamed(AxiomName)
+
+  rule <k> loadNamed(Name) => P ...</k>
+       <declaration> axiom Name : P </declaration>
+
+  rule <k> loadNamed(Name) => P ...</k>
+       <local-decl> axiom Name : P </local-decl>
 
 ```
 

@@ -1,0 +1,18 @@
+// Tests that we can reuse proven claims
+
+symbol f(Int) : Int
+
+axiom a1: \equals(f(1), 1)
+
+claim a2: \equals(f(f(1)), 1)
+
+strategy apply-equation -> a1 at 0 by []
+       . apply-equation -> a1 at 0 by []
+       . reflexivity
+
+
+claim a3: \equals(f(f(f(1))), 1)
+strategy apply-equation -> a1 at 0 by []
+       . apply-equation -> a2 at 0 by [] // <- HERE
+       . reflexivity
+

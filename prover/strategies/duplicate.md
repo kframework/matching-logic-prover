@@ -13,16 +13,15 @@ Gamma, Phi |- Psi
 module STRATEGY-DUPLICATE
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
-  imports LOAD-NAMED-SYNTAX
 
-  rule <strategy> duplicate H as H'
+  rule <k> duplicate H as H'
                => loadNamed(H) ~> #nameAs(H')
                ...
-       </strategy>
+       </k>
 
   syntax KItem ::= #nameAs(AxiomName)
 
-  rule <strategy> P ~> #nameAs(H') => noop ...</strategy>
+  rule <k> P ~> #nameAs(H') => noop ...</k>
        <local-context> (.Bag =>
          <local-decl> axiom H' : P </local-decl>
          ) ...

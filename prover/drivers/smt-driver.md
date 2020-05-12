@@ -217,7 +217,7 @@ module DRIVER-SMT
        </k>
     requires notBool #matchesUnfoldMutRecs(STRAT)
 
-  rule <strategy> unfold-mut-recs => noop ... </strategy>
+  rule <k> unfold-mut-recs => noop ... </k>
 
   syntax Bool ::= #matchesUnfoldMutRecs(Strategy) [function]
   rule #matchesUnfoldMutRecs(unfold-mut-recs) => true
@@ -319,23 +319,20 @@ module DRIVER-SMT
   rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
 
   syntax KItem ::= "expect" TerminalStrategy
-  rule <strategy> S ~> expect S => .K ... </strategy>
+  rule <k> S ~> expect S => .K ... </k>
   
-  rule <goals>
-         <k> #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
+  rule <k> ( #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
           ~> (check-sat)
-          => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
-             ...
-         </k>
-         <strategy> .K
-                 => subgoal(\implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps))))
-                           , STRAT
-                           )
-                 ~> expect EXPECTED
-         </strategy>
-         ...
-       </goals>
-   requires notBool PATTERN ==K  \exists { .Patterns } \and ( .Patterns )
+           )
+        => ( subgoal(\implies( \and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps))))
+                    , STRAT
+                    )
+        ~>   #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
+           )
+           ...
+       </k>
+    requires notBool PATTERN ==K  \exists { .Patterns } \and ( .Patterns )
+  rule <k> (success => .K) ~> #goal( goal: _, strategy: _, expected: _) ... </k>
 ```
 
 ```k

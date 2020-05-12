@@ -58,19 +58,22 @@ Add various standard Kore declarations to the configuration directly:
 ```
 
 The `claim` Declaration creates a new `<goal>` cell.
-We create a subgoal, so that all the reasoning happens
-in the subgoal and the claim of the named goal remains intact.
 
 ```k
   rule <k> claim PATTERN strategy STRAT
-        => claim getFreshClaimName() : PATTERN strategy STRAT
+        => claim getFreshGlobalAxiomName() : PATTERN strategy STRAT
            ...
        </k>
   rule <k> claim NAME : PATTERN
            strategy STRAT
-        => subgoal(NAME, PATTERN, subgoal(PATTERN, STRAT))
+        => subgoal(NAME, PATTERN, STRAT)
+        ~> axiom NAME : PATTERN
            ...
        </k>
+
+  // the rule above generates `success ~> axiom _ : _ ~> Declarations`
+  rule <k> (success => .K) ~> D:Declaration ... </k>
+  rule <k> (success => .K) ~> D:Declarations ... </k>
 ```
 
 ```k

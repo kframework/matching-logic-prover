@@ -27,7 +27,7 @@ module UNIT-TEST
   
   syntax Declaration ::= "suite" String
   rule <k> suite(SUITE) => next-test(SUITE, 1) ... </k>
-  
+
   syntax Declaration ::= "next-test" "(" String "," Int ")"
   rule <k> next-test(SUITE, N)
         => test(SUITE, N)
