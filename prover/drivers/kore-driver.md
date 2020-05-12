@@ -71,6 +71,7 @@ in the subgoal and the claim of the named goal remains intact.
         => subgoal(NAME, PATTERN, subgoal(PATTERN, STRAT))
            ...
        </k>
+  rule <k> (success => .K) ~> D:Declarations ... </k>
 ```
 
 ```k

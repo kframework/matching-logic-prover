@@ -12,13 +12,13 @@ module STRATEGY-INST-EXISTS
   imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
 
-  rule <strategy>
+  rule <k>
          inst-exists(V, T, Strat)
          => subgoal(\functionalPattern(T), Strat) & noop
-       ...</strategy>
-       <k>
+       ...</k>
+       <claim>
          P => instExists(P, V, T)
-       </k>
+       </claim>
 
   syntax Pattern ::= instExists(Pattern, Variable, Pattern) [function]
 

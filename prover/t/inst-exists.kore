@@ -1,5 +1,0 @@
-axiom f5: \functionalPattern(5)
-
-claim \exists{I{Int}} gte(I{Int}, 3)
-strategy inst-exists(I{Int}, 5, apply(f5, fail))
-       . smt-cvc4

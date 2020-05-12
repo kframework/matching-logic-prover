@@ -18,8 +18,8 @@ module STRATEGY-SIMPLIFICATION
 ```
 
 ```k
-  rule <k> \implies(LHS => #lhsRemoveExistentials(LHS), RHS) </k>
-       <strategy> remove-lhs-existential => noop ... </strategy>
+  rule <claim> \implies(LHS => #lhsRemoveExistentials(LHS), RHS) </claim>
+       <k> remove-lhs-existential => noop ... </k>
 
   syntax Pattern  ::= #lhsRemoveExistentials(Pattern)    [function]
   syntax Patterns ::= #lhsRemoveExistentialsPs(Patterns) [function]
@@ -58,47 +58,40 @@ Normalize:
  - All \ands are flattened
 
 ```k
+  rule <claim> P::Pattern => \and(P) </claim>
+       <k> normalize ... </k>
+    requires \and(...) :/=K P andBool \implies(...) :/=K P
 
-  rule <k> P::Pattern => \and(P) </k>
-       <strategy> normalize ... </strategy>
-       requires \and(...) :/=K P andBool \implies(...) :/=K P
+  rule <claim> \and(P) => \implies(\and(.Patterns), \and(P)) </claim>
+       <k> normalize ... </k>
+       
+  rule <claim> \implies(LHS, RHS) => \implies(LHS, \and(RHS)) </claim>
+       <k> normalize ... </k>
+    requires \and(...) :/=K RHS
+     andBool \exists { _ } \and(_) :/=K RHS
 
-  rule <k> \and(P) => \implies(\and(.Patterns), \and(P)) </k>
-       <strategy> normalize ... </strategy>
+  rule <claim> \implies(LHS, RHS) => \implies(\and(LHS), RHS) </claim>
+       <k> normalize ... </k>
+    requires \and(...) :/=K LHS
 
-  rule <k> \implies(LHS, \and(RHS))
+  rule <claim> \implies(LHS, \and(RHS))
         => \implies(LHS, \exists { .Patterns } \and(RHS))
-       </k>
-       <strategy> normalize ... </strategy>
+       </claim>
+       <k> normalize ... </k>
 
-  rule <k> \implies(\and(LHS), \exists { Es } \and(RHS))
-        => \implies( \and(#normalizePs(#flattenAnds(#lhsRemoveExistentialsPs(LHS))))
-                   , \exists { Es } \and(#normalizePs(#flattenAnds(RHS)))
-                   )
-       </k>
-       <strategy> normalize => noop ... </strategy>
+  rule <claim> \implies(LHS, \exists { Es } RHS)
+            => \implies( #normalize(#dnf(#lhsRemoveExistentials(LHS)))
+                       , \exists { Es } #normalize(#dnf(RHS))
+                       )
+       </claim>
+       <k> normalize => noop ... </k>
 
-  rule <k> \not(_) #as P => #normalize(P) </k>
-       <strategy> normalize => noop ... </strategy>
+  rule <claim> \not(_) #as P => #normalize(P) </claim>
+       <k> normalize => noop ... </k>
 
   syntax Pattern ::= #normalize(Pattern) [function]
-  syntax Patterns ::= #normalizePs(Patterns) [function]
-
-  rule #normalizePs(.Patterns) => .Patterns
-  rule #normalizePs(P, Ps) => #normalize(P), #normalizePs(Ps)
-
-  // TODO: normalize on LHS and RHS?
-  rule #normalize(\implies(LHS, RHS))
-    => \forall { .Patterns } \implies(LHS, RHS)
-  rule #normalize(\exists{.Patterns} P)
-    => #normalize(P)
-
-  rule #normalize(\not(\exists{Vs} P)) => \forall{Vs} #normalize(\not(P))
-  rule #normalize(\not(\and(Ps))) => #normalize(\or(#not(Ps)))
-  rule #normalize(\not(\not(P))) => #normalize(P)
-  rule #normalize(\or(Ps)) => \or(#normalizePs(Ps))
-  rule #normalize(P) => P
-    [owise]
+  rule #normalize(\or(P, .Patterns)) => P
+  rule #normalize(\or(Ps)) => \or(Ps) requires getLength(Ps) =/=Int 1
 ```
 
 ### purify
@@ -106,8 +99,8 @@ Normalize:
 LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
 
 ```k
-  rule <k> \implies(LHS => #purify(LHS), RHS) ... </k>
-       <strategy> purify => noop ... </strategy>
+  rule <claim> \implies(LHS => #purify(LHS), RHS) </claim>
+       <k> purify => noop ... </k>
 
   syntax Pattern ::= #purify(Pattern) [function]
   syntax Patterns ::= #purifyPs(Patterns) [function]
@@ -150,37 +143,60 @@ obligation of the form R(T, Vs) => R(T', Vs') becomes
 R(V, Vs) => exists V', R(V', Vs') and V = V'
 
 ```k
-  rule <k> \implies(LHS, RHS) </k>
-       <strategy> abstract
-               => #getNewVariables(LHS, .Patterns)
-               ~> #getNewVariables(RHS, .Patterns)
-               ~> abstract
-              ...
-       </strategy>
+  syntax Strategy ::= "abstract-vars" "(" Patterns "," Patterns ")"
+  rule <claim> \implies(LHS, \exists{_} RHS) </claim>
+       <k> abstract
+        => abstract-vars(#getNewVariablesForNil(LHS), #getNewVariablesForNil(RHS))
+           ...
+       </k>
 
-  rule <k> \implies(LHS, \and(\or(RHS)))
-            => \implies( #abstract(LHS, VsLHS)
+  rule <claim> \implies(LHS, \exists{_} RHS) </claim>
+       <k> abstract-Nth(M)
+        => abstract-vars(#makeNils(#getNewVariablesForNil(LHS), M), #getNewVariablesForNil(RHS))
+           ...
+       </k>
+
+  syntax Patterns ::= #makeNils(Patterns, Int) [function]
+  rule #makeNils(.Patterns, _) => .Patterns
+  rule #makeNils((V, Vs), 0) => V, #makeNils(Vs, -1)
+  rule #makeNils((V, Vs), I) => nil { getReturnSort(V) }(.Patterns), #makeNils(Vs, I -Int 1)
+    requires I =/=Int 0
+
+  rule <claim> \implies(LHS, \exists{_} \and(RHS))
+            => \implies( \and(#abstract(LHS, VsLHS))
                        , \exists{ VsRHS } \and( #dnf(\or(\and(#createEqualities(VsLHS, VsRHS))))
                                                 , #abstract(RHS, VsRHS)
                                                 )
                        )
+       </claim>
+       <k> abstract-vars(VsLHS, VsRHS)
+        => normalize . or-split-rhs . lift-constraints
+         . instantiate-separation-logic-axioms
+         . create-disequalities(VsLHS)
+           ...
        </k>
-       <strategy> (VsLHS:Patterns ~> VsRHS:Patterns ~> abstract) => noop ... </strategy>
 
-  syntax Patterns ::= #getNewVariables(Pattern, Patterns) [function]
-  syntax Patterns ::= #getNewVariablesPs(Patterns, Patterns) [function]
-  rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
-  rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
-  rule #getNewVariables(\not(P), Vs) => #getNewVariablesPs(P, Vs)
-  rule #getNewVariables(sep(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
-  rule #getNewVariables(S(ARGs), Ps)
-    => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
-    requires isUnfoldable(S)
-  rule #getNewVariables(pto(_), Ps) => Ps
-  rule #getNewVariables(\equals(_, _), Ps) => Ps
+  syntax Strategy ::= "create-disequalities" "(" Patterns ")"
+  rule <claim> \implies(\and(LHS), RHS)
+            => \implies(\and(LHS ++Patterns #createDisequalities(\and(LHS), VsLHS)), RHS)
+       </claim>
+       <k> create-disequalities(VsLHS) => noop ... </k>
 
-  rule #getNewVariablesPs(.Patterns, _) => .Patterns
-  rule #getNewVariablesPs((P, Ps), Vs) => #getNewVariables(P, Vs) ++Patterns #getNewVariablesPs(Ps, Vs)
+  syntax Patterns ::= #getNewVariablesForNil(Pattern) [function]
+  syntax Patterns ::= #getNewVariablesForNilPs(Patterns) [function]
+  rule #getNewVariablesForNil(\and(Ps)) => #getNewVariablesForNilPs(Ps)
+  rule #getNewVariablesForNil(\or(Ps)) => #getNewVariablesForNilPs(Ps)
+  rule #getNewVariablesForNil(\not(P)) => #getNewVariablesForNil(P)
+  rule #getNewVariablesForNil(sep(Ps)) => #getNewVariablesForNilPs(Ps)
+  rule #getNewVariablesForNil(S:Symbol(ARGs)) => #getNewVariablesForNilPs(ARGs)
+    requires nil { _ } :/=K S
+     andBool S =/=K sep
+  rule #getNewVariablesForNil(\equals(L, R)) => .Patterns
+  rule #getNewVariablesForNil(V:Variable) => .Patterns
+  rule #getNewVariablesForNil(nil { LOC }(.Patterns)) => !V:VariableName { LOC }, .Patterns
+
+  rule #getNewVariablesForNilPs(.Patterns) => .Patterns
+  rule #getNewVariablesForNilPs(P, Ps) => #getNewVariablesForNil(P) ++Patterns #getNewVariablesForNilPs(Ps)
 
   syntax Pattern ::= #abstract(Pattern, Patterns) [function]
   syntax Patterns ::= #abstractPs(Patterns, Patterns) [function]
@@ -188,14 +204,57 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #abstract(\or(Ps), Vs) => \or(#abstractPs(Ps, Vs))
   rule #abstract(\not(P), Vs) => \not(#abstract(P, Vs))
   rule #abstract(sep(Ps), Vs) => sep(#abstractPs(Ps, Vs))
-  rule #abstract(S(ARGs), Vs)
-    => S(#replaceNewVariables(ARGs, Vs))
-    requires isUnfoldable(S)
-  rule #abstract(pto(ARGs), Vs) => pto(ARGs)
-  rule #abstract(\equals(L, R), Vs) => \equals(L, R)
+  rule #abstract(S:Symbol(ARGs), Vs) => S(#abstractArgs(ARGs, Vs))
+    requires nil { _ } :/=K S
+     andBool S =/=K sep
+  rule #abstract(V:Variable, Vs) => V
+  rule #abstract(nil{_}(.Patterns), (V, Vs)) => V
+  rule #abstract(\equals(L, R), Vs)
+    => \equals( #abstract(L, Vs)
+              , #abstract(R, #chopPs(Vs, #countNils(L)))
+              )
+
+  syntax Patterns ::= #abstractArgs(Patterns, Patterns) [function]
+  rule #abstractArgs(.Patterns, Vs) => .Patterns
+  rule #abstractArgs((V:Variable, Ps), Vs) => V, #abstractArgs(Ps, Vs)
+  rule #abstractArgs((nil{_}(.Patterns), Ps), (V, Vs)) => V, #abstractArgs(Ps, Vs)
+  rule #abstractArgs((S:Symbol(ARGs), Ps), Vs)
+    => (S(#abstractArgs(ARGs, Vs)), .Patterns) ++Patterns #abstractArgs(Ps, #chopPs(Vs, #countNils(ARGs)))
+    requires nil { _ } :/=K S
+
+  syntax Int ::= #countNils(Patterns) [function]
+  rule #countNils(.Patterns) => 0
+  rule #countNils(nil{_}(.Patterns), Ps) => 1 +Int #countNils(Ps)
+  rule #countNils(S:Symbol(ARGs), Ps) => #countNils(ARGs)
+    requires nil { _ } :/=K S
+  rule #countNils(V:Variable, Ps) => #countNils(Ps)
+  rule #countNils(\not(P), Ps) => #countNils(P, Ps)
+  rule #countNils(\equals(L, R), Ps) => #countNils(L) +Int #countNils(R) +Int #countNils(Ps)
+
+  syntax Patterns ::= #chopPs(Patterns, Int) [function]
+  rule #chopPs(Ps, M) => Ps
+    requires M <=Int 0
+  rule #chopPs(.Patterns, M) => .Patterns
+  rule #chopPs((P, Ps), M) => #chopPs(Ps, M -Int 1)
+    requires M >Int 0
 
   rule #abstractPs(.Patterns, _) => .Patterns
-  rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs), #abstractPs(Ps, Vs)
+  rule #abstractPs((P, Ps), Vs) => #abstract(P, Vs) ++Patterns #abstractPs(Ps, #chopPs(Vs, #countNils(P)))
+
+  // syntax Pattern ::= #abstractNth(Pattern, Patterns, Int) [function]
+  // syntax Patterns ::= #abstractNthPs(Patterns, Patterns) [function]
+  // rule #abstractNth(\and(Ps), Vs) => \and(#abstractNthPs(Ps, Vs))
+  // rule #abstractNth(\or(Ps), Vs) => \or(#abstractNthPs(Ps, Vs))
+  // rule #abstractNth(\not(P), Vs) => \not(#abstractNth(P, Vs))
+  // rule #abstractNth(sep(Ps), Vs) => sep(#abstractNthPs(Ps, Vs))
+  // rule #abstractNth(S(ARGs), Vs) =>
+  //   => S(#replaceNewVariables(ARGs, Vs))
+  //   requires isUnfoldable(S)
+  // rule #abstractNth(pto(ARGs), Vs) => pto(ARGs)
+  // rule #abstractNth(\equals(L, R), Vs) => \equals(L, R)
+
+  // rule #abstractNthPs(.Patterns, _) => .Patterns
+  // rule #abstractNthPs((P, Ps), Vs) => #abstractNth(P, Vs), #abstractNthPs(Ps, Vs)
 
   syntax Patterns ::= #replaceNewVariables(Patterns, Patterns) [function]
   rule #replaceNewVariables((V1:Variable, Ps), Vs) => V1, #replaceNewVariables(Ps, Vs)
@@ -209,6 +268,50 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #createEqualities(VsLHS, (VRHS, VsRHS)) => \or(#createEqualitiesVar(VsLHS, VRHS)), #createEqualities(VsLHS, VsRHS)
   rule #createEqualitiesVar(.Patterns, VRHS) => .Patterns
   rule #createEqualitiesVar((VLHS, VsLHS), VRHS) => \equals(VRHS, VLHS), #createEqualitiesVar(VsLHS, VRHS)
+
+  syntax Patterns ::= #createDisequalities(Pattern, Patterns) [function]
+  syntax Patterns ::= #createDisequalitiesPs(Patterns, Patterns) [function]
+  rule #createDisequalities(\and(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
+  rule #createDisequalities(\or(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
+  rule #createDisequalities(sep(Ps), Vs) => #createDisequalitiesPs(Ps, Vs)
+  rule #createDisequalities(S:Symbol(ARGs), Vs) => .Patterns
+  rule #createDisequalities(\equals(_, _), Vs) => .Patterns
+  rule #createDisequalities(\not(\equals(nil{_}(.Patterns), V:Variable)), Vs) => #makeDisequalities(V, Vs)
+  rule #createDisequalities(\not(\equals(V:Variable, nil{_}(.Patterns))), Vs) => #makeDisequalities(V, Vs)
+  rule #createDisequalities(\not(P), Vs) => .Patterns
+    [owise]
+
+  rule #createDisequalitiesPs(.Patterns, _) => .Patterns
+  rule #createDisequalitiesPs((P, Ps), Vs) => #createDisequalities(P, Vs) ++Patterns #createDisequalitiesPs(Ps, Vs)
+
+  syntax Patterns ::= #makeDisequalities(Variable, Patterns) [function]
+  rule #makeDisequalities(V, .Patterns) => .Patterns
+  rule #makeDisequalities(V1, (V2, Vs)) => \not(\equals(V1, V2)), #makeDisequalities(V1, Vs)
+```
+
+abstracting nil
+
+on the LHS, replace all occurrences of nil with a fresh variable
+
+```k
+  rule <claim> \implies(LHS, RHS) => \implies(#abstractNil(LHS), RHS) </claim>
+       <k> abstract-nil => noop
+              ...
+       </k>
+
+  syntax Pattern ::= #abstractNil(Pattern) [function]
+  syntax Patterns ::= #abstractNilPs(Patterns) [function]
+  rule #abstractNil(V { SORT }) => V { SORT }
+  rule #abstractNil(\and(Ps)) => \and(#abstractNilPs(Ps))
+  rule #abstractNil(\or(Ps)) => \or(#abstractNilPs(Ps))
+  rule #abstractNil(\not(P)) => \not(#abstractNil(P))
+  rule #abstractNil(sep(Ps)) => sep(#abstractNilPs(Ps))
+  rule #abstractNil(nil { LOC }(.Patterns)) => !V:VariableName { LOC }
+  rule #abstractNil(S:Symbol(ARGs)) => S(#abstractNilPs(ARGs))
+    requires nil { _ } :/=K S
+  rule #abstractNil(\equals(L, R)) => \equals(#abstractNil(L), #abstractNil(R))
+  rule #abstractNilPs(.Patterns) => .Patterns
+  rule #abstractNilPs(P, Ps) => #abstractNil(P), #abstractNilPs(Ps)
 ```
 
 ### lift-constraints
@@ -216,47 +319,80 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
 Bring predicate constraints to the top of a term.
 
 ```k
-  rule <k> \implies(\and(Ps) => #flattenAnd(#liftConstraints(\and(Ps)))
-                       , \exists { _ } (\and(Rs) => #flattenAnd(#liftConstraints(\and(Rs))))
+  rule <claim> \implies(\and(Ps) => #flattenAssoc(#liftConstraints(#flattenAssoc(\and(Ps))))
+                       , \exists { _ } (\and(Rs) => #flattenAssoc(#liftConstraints(#flattenAssoc(\and(Rs)))))
                        )
-       </k>
-       <strategy> lift-constraints => noop ... </strategy>
+       </claim>
+       <k> lift-constraints => noop ... </k>
 
   syntax Pattern ::= #liftConstraints(Pattern) [function]
-  rule #liftConstraints(P) =>     P  requires isPredicatePattern(P)
-  rule #liftConstraints(S) => sep(S) requires isSpatialPattern(S)
-
-  rule #liftConstraints(sep(\and(.Patterns), REST)) => #liftConstraints(sep(REST))
-
-  rule #liftConstraints(sep(\and(P, Ps:Patterns), REST:Patterns))
-    => #liftConstraints(\and(sep(\and(Ps), REST), P, .Patterns))
+  syntax Patterns ::= #liftConstraintsPs(Patterns) [function]
+  // rule #liftConstraints(S:Symbol(\and(P1, P2, Ps), ARGs)) => #liftConstraints(\and(S(P1, ARGs), S(\and(P2, Ps), ARGs)))
+  // rule #liftConstraints(S:Symbol(\and(P, .Patterns), ARGs)) => #liftConstraints(\and(S(P, ARGs)))
+  rule #liftConstraints(\and(Ps)) => \and(#liftConstraintsPs(Ps))
+  rule #liftConstraintsPs(.Patterns) => .Patterns
+  rule #liftConstraintsPs(sep(\and(.Patterns), .Patterns), REST) => #liftConstraintsPs(REST)
+  rule #liftConstraintsPs(P, REST) => #liftConstraintsPs(REST) ++Patterns P
     requires isPredicatePattern(P)
-  rule #liftConstraints(sep(\and(P, Ps), REST))
-    => #liftConstraints(sep(\and(Ps), P, REST))
+  rule #liftConstraintsPs(P, REST) => sep(P), #liftConstraintsPs(REST)
     requires isSpatialPattern(P)
-  rule #liftConstraints(sep(\and(P, Ps), REST))
-    => #liftConstraints(sep(\and(#flattenAnds(#liftConstraints(P), Ps)), REST))
-    requires notBool isPredicatePattern(P) andBool notBool isSpatialPattern(P)
+  rule #liftConstraintsPs(V:SetVariable, REST) => V, #liftConstraintsPs(REST)
+  rule #liftConstraintsPs(\mu X . P, REST) => \mu X . P, #liftConstraintsPs(REST)
+  // TODO: should handle symbols the same as sep
+  rule #liftConstraintsPs(S:Symbol(ARGs), REST) => S(ARGs), #liftConstraintsPs(REST)
+    requires S =/=K sep
+  rule #liftConstraintsPs(\and(Ps), REST) => #liftConstraintsPs(Ps ++Patterns REST)
+    requires notBool isPredicatePattern(\and(Ps))
+  // note the rule below assumes we hever have a pure predicate pattern inside a sep
+  rule #liftConstraintsPs(sep((P, Ps) #as SEPs), REST)
+    => #liftConstraintsPs( sep(            (SEPs -Patterns #getSpatialPatterns(SEPs))
+                                ++Patterns #getSpatialPatterns(SEPs)
+                              )
+                         , REST
+                         )
+    requires isSpatialPattern(P) andBool #getSpatialPatterns(SEPs) =/=K SEPs
+  rule #liftConstraintsPs(sep(\and(Ps), REST_SEP), REST)
+    => #liftConstraintsPs( sep( \and(Ps -Patterns #getPredicatePatterns(Ps))
+                              , REST_SEP
+                              )
+                         , REST
+                         )
+       ++Patterns #getPredicatePatterns(Ps)
+    requires #getPredicatePatterns(Ps) =/=K .Patterns
+  rule #liftConstraintsPs(sep(\and(P, .Patterns), REST_SEP), REST)
+    => #liftConstraintsPs(sep(P, REST_SEP), REST)
+    requires isSpatialPattern(P)
+  rule #liftConstraintsPs(sep(\and(P, Ps), REST_SEP), REST)
+    => #liftConstraintsPs(sep(P, REST_SEP), sep(\and(Ps), REST_SEP), REST)
+    requires #getPredicatePatterns(P, Ps) ==K .Patterns
+     andBool isSpatialPattern(P)
+     andBool Ps =/=K .Patterns
+  rule #liftConstraintsPs(sep(\and(P, Ps), REST_SEP), REST)
+    => #liftConstraintsPs(sep(\and(#liftConstraintsPs(P, Ps)), REST_SEP), REST)
+    requires #getPredicatePatterns(P, Ps) ==K .Patterns
+     andBool notBool isSpatialPattern(P)
 
-  // Rotate
-  rule #liftConstraints(sep(S, Ps))
-    => #liftConstraints(sep(Ps ++Patterns S))
-    requires isSpatialPattern(S) andBool notBool isSpatialPattern(sep(S, Ps))
+  syntax Patterns ::= #getPredicatePatterns(Patterns) [function]
+  syntax Patterns ::= #getSpatialPatterns(Patterns) [function]
+  rule #getPredicatePatterns(.Patterns) => .Patterns
+  rule #getPredicatePatterns(P, Ps) => P, #getPredicatePatterns(Ps)
+    requires isPredicatePattern(P)
+  rule #getPredicatePatterns(P, Ps) => #getPredicatePatterns(Ps)
+    requires notBool isPredicatePattern(P)
+  rule #getSpatialPatterns(.Patterns) => .Patterns
+  rule #getSpatialPatterns(P, Ps) => P, #getSpatialPatterns(Ps)
+    requires isSpatialPattern(P)
+  rule #getSpatialPatterns(P, Ps) => #getSpatialPatterns(Ps)
+    requires notBool isSpatialPattern(P)
 
-  rule #liftConstraints(\and(sep(Ss), Ps))
-    => #liftConstraints(\and(#flattenAnds(#liftConstraints(sep(Ss)), .Patterns) ++Patterns Ps))
-    requires notBool isSpatialPattern(sep(Ss))
-
-  rule #liftConstraints(\and(S, Ps))
-    => \and(sep(S), #flattenAnds(#liftConstraints(\and(Ps)), .Patterns))
-    requires isSpatialPattern(S)
-
-  rule #liftConstraints(\and(\and(Ps), REST))
-    => #liftConstraints(\and(Ps ++Patterns REST))
-
-  rule #liftConstraints(\and(P, Ps))
-    => #liftConstraints(\and(Ps ++Patterns P))
-  requires isPredicatePattern(P) andBool notBool isPredicatePattern(\and(P, Ps))
+  // test cases:
+  // \and(.Patterns) => \and(.Patterns)
+  // \and(sep(\and(.Patterns))) => \and(.Patterns)
+  // \and( dll(..), pto(..) ) => \and( sep( dll ), sep( pto ) )
+  // \and(sep(\and(H1, P1, H2, P2)))
+  // => \and(sep(H1), sep(H2), P1, P2)
+  // \and(sep(\and(H1, H2, x=y), H3), H4, w=z)
+  // => \and(sep(H1, H3), sep(H2, H3), sep(H4), x=y, w=z)
 ```
 
 ### lift-or
@@ -270,8 +406,20 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
-  rule <k> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </k>
-       <strategy> lift-or => noop ... </strategy>
+  rule <claim> \implies(\and(\not(\and(Ps)), LHS), RHS)
+            => \implies(\and(\or(#not(Ps)), LHS), RHS) 
+       </claim>
+       <k> lift-or ... </k>
+  rule <claim> \implies(\and(\or(Ps), LHS), RHS)
+            => \implies(\or(#liftOr-in-And(Ps, LHS)), RHS)
+       </claim>
+       <k> lift-or ... </k>
+  syntax Patterns ::= "#liftOr-in-And" "(" Patterns "," Patterns ")" [function]
+  rule #liftOr-in-And(.Patterns, LHS) => .Patterns
+  rule #liftOr-in-And((P, Ps), LHS) => \and(P, LHS), #liftOr-in-And(Ps, LHS)
+
+  rule <claim> \implies(\or(LHSs), RHS) => \and( #liftOr(LHSs, RHS)) </claim>
+       <k> lift-or => noop ... </k>
 
   syntax Patterns ::= "#liftOr" "(" Patterns "," Pattern ")" [function]
   rule #liftOr(.Patterns, RHS) => .Patterns
@@ -285,8 +433,8 @@ Lift `\or`s on the left hand sides of implications
 > (\forall .Patterns . phi(x, y)) -> psi(y)
 
 ```k
-  rule <k> \implies(\forall { .Patterns } \and(LHS) => \and(LHS), RHS) </k>
-       <strategy> simplify ... </strategy>
+  rule <claim> \implies(\forall { .Patterns } \and(LHS) => \and(LHS), RHS) </claim>
+       <k> simplify ... </k>
 ```
 
 >       phi(x, y) -> psi(y)
@@ -294,8 +442,8 @@ Lift `\or`s on the left hand sides of implications
 > \exists X . phi(x, y) -> psi(y)
 
 ```k
-  rule <k> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </k>
-       <strategy> simplify ... </strategy>
+  rule <claim> \implies(\exists { _ } \and(LHS) => \and(LHS), RHS) </claim>
+       <k> simplify ... </k>
 ```
 
 >    LHS /\ phi -> RHS
@@ -303,8 +451,8 @@ Lift `\or`s on the left hand sides of implications
 > LHS /\ phi -> RHS /\ phi
 
 ```k
-  rule <k> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </k>
-       <strategy> simplify => noop ... </strategy>
+  rule <claim> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </claim>
+       <k> simplify => noop ... </k>
 ```
 
 ### Instantiate Existials
@@ -316,23 +464,47 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
-  rule <k> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL </k>
-       <strategy> (. => getAtomForcingInstantiation(RHS, getExistentialVariables(GOAL)))
+  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) ) #as GOAL </claim>
+       <k> (. => getAtomForcingInstantiation(RHS, getExistentialVariables(GOAL)))
                ~> instantiate-existentials
                   ...
-       </strategy>
+       </k>
 
-  rule <k> \implies( \and(LHS) , \exists { EXIST } \and(RHS) )
+  rule <claim> \implies( \and(LHS) , \exists { EXIST } \and(RHS) )
             => \implies( \and(LHS ++Patterns INSTANTIATION)
                        , \exists { EXIST -Patterns getFreeVariables(INSTANTIATION) }
                          \and(RHS -Patterns INSTANTIATION)
                        )
-       </k>
-       <strategy> (INSTANTIATION => .) ~> instantiate-existentials ... </strategy>
+       </claim>
+       <k> (INSTANTIATION => .) ~> instantiate-existentials ... </k>
      requires INSTANTIATION =/=K .Patterns
+  rule <k> (.Patterns ~> instantiate-existentials) => noop ... </k>
+```
 
-  rule <strategy> (.Patterns ~> instantiate-existentials) => noop ... </strategy>
+We define a similar strategy for quantified implication contexts:
 
+```k
+  rule <claim> \implies( \and(sep(\forall { Vs } implicationContext(\and(LCTX), RCTX), _),  LHS) , _ ) </claim>
+       <k> (. => getAtomForcingInstantiation(LCTX, Vs))
+        ~> instantiate-existentials-implication-context
+           ...
+       </k>
+  rule <claim> \implies( \and( sep( \forall { Vs } implicationContext(\and(LCTX), RCTX), LSPATIAL), LHS) , RHS )
+            => \implies( \and( sep( \forall { Vs -Patterns getFreeVariables(INSTANTIATION) }
+                                    implicationContext(\and(LCTX -Patterns INSTANTIATION), RCTX)
+                                  , LSPATIAL
+                                  )
+                             , (LHS ++Patterns INSTANTIATION)
+                             )
+                       , RHS
+                       )
+       </claim>
+       <k> (INSTANTIATION => .) ~> instantiate-existentials-implication-context ... </k>
+     requires INSTANTIATION =/=K .Patterns
+  rule <k> (.Patterns ~> instantiate-existentials-implication-context) => noop ... </k>
+```
+
+```k
   syntax Patterns ::= getAtomForcingInstantiation(Patterns, Patterns) [function]
   rule getAtomForcingInstantiation((\equals(X:Variable, P), Ps), EXISTENTIALS)
     => \equals(X:Variable, P), .Patterns
@@ -357,34 +529,32 @@ Lift `\or`s on the left hand sides of implications
 ```
 
 ```k
-  rule <k> \implies(\and(LHS), _) </k>
-       <strategy> substitute-equals-for-equals
-               => (makeEqualitySubstitution(LHS) ~> substitute-equals-for-equals)
-                  ...
-       </strategy>
-
-  rule <strategy> (SUBST:Map ~> substitute-equals-for-equals)
-               => noop
-                  ...
-       </strategy>
-    requires SUBST ==K .Map
-
-  rule <k> \implies( \and(LHS => removeTrivialEqualities(substPatternsMap(LHS, SUBST)))
-                       , \exists { _ }
-                         ( \and(RHS => removeTrivialEqualities(substPatternsMap(RHS, SUBST))) )
-                       )
+  syntax Strategy ::= "substitute-equals-for-equals" "(" Map ")"
+  rule <claim> \implies(\and(LHS), _) </claim>
+       <k> substitute-equals-for-equals
+        => substitute-equals-for-equals(makeEqualitySubstitution(LHS))
+           ...
        </k>
-       <strategy> (SUBST:Map ~> substitute-equals-for-equals)
-               => substitute-equals-for-equals
-                  ...
-       </strategy>
-    requires SUBST =/=K .Map
+
+  rule <k> substitute-equals-for-equals(.Map)
+        => noop
+           ...
+       </k>
+
+  rule <claim> \implies( LHS, \exists{Vs} RHS )
+            => \implies( subst(LHS, X, T), \exists{Vs} subst(RHS, X, T) )
+       </claim>
+       <k> substitute-equals-for-equals((X |-> T):Map)
+        => substitute-equals-for-equals
+           ...
+       </k>
 
   syntax Map ::= makeEqualitySubstitution(Patterns) [function]
   rule makeEqualitySubstitution(.Patterns) => .Map
   rule makeEqualitySubstitution(\equals(X:Variable, T), Ps) => (X |-> T) .Map
+    requires X =/=K T
   rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
-    requires notBool(isVariable(T))
+    requires notBool(isVariable(T)) andBool X =/=K T
   rule makeEqualitySubstitution((P, Ps:Patterns)) => makeEqualitySubstitution(Ps) [owise]
 
   syntax Patterns ::= removeTrivialEqualities(Patterns) [function]
@@ -392,7 +562,6 @@ Lift `\or`s on the left hand sides of implications
   rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
   rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
 ```
-
 
 ### Universal generalization
 
@@ -404,8 +573,8 @@ Lift `\or`s on the left hand sides of implications
 
 ```k
 
-  rule <k> \forall{_} P => P </k>
-       <strategy> universal-generalization => noop ...</strategy>
+  rule <claim> \forall{_} P => P </claim>
+       <k> universal-generalization => noop ...</k>
 
 ```
 
@@ -423,17 +592,17 @@ Gamma |- C[C_\sigma[\exists X. Phi]]
 ```
 
 ```k
-  rule <k> P
+  rule <claim> P
             => propagateExistsThroughApplicationVisitorResult(
                  visitTopDown(
                    propagateExistsThroughApplicationVisitor(N),
                    P
                  )
                )
-      </k>
-       <strategy> propagate-exists-through-application N
+      </claim>
+       <k> propagate-exists-through-application N
                => noop
-       ...</strategy>
+       ...</k>
 
   syntax Visitor ::= propagateExistsThroughApplicationVisitor(Int)
 
@@ -492,17 +661,17 @@ Gamma |- C[C_\sigma[P /\ Phi]]
 ```
 
 ```k
-  rule <k> T
+  rule <claim> T
             => pptaVisitorResult(
                  visitTopDown(
                    pptaVisitor(P, N),
                    T
                  )
                )
-      </k>
-       <strategy> propagate-predicate-through-application(P, N)
+      </claim>
+       <k> propagate-predicate-through-application(P, N)
                => noop
-       ...</strategy>
+       ...</k>
 
 
   syntax Visitor ::= pptaVisitor(Pattern, Int)
@@ -638,17 +807,17 @@ Gamma |- C[\exists X. Pi /\ Psi]
 
 ```k
 
-  rule <k> T
+  rule <claim> T
             => visitorResult.getPattern(
                  visitTopDown(
                    pcteVisitor(N, M),
                    T
                  )
                )
-       </k>
-       <strategy>
+       </claim>
+       <k>
          propagate-conjunct-through-exists(N, M) => noop
-       ...</strategy>
+       ...</k>
 
   syntax Visitor ::= pcteVisitor(Int, Int)
 
@@ -694,6 +863,21 @@ Gamma |- C[\exists X. Pi /\ Psi]
        )
     requires notBool (getLast(Vs) in getFreeVariables(P))
 
+```
+
+### Remove constraints
+
+```
+      PHI /\ C => PSI
+     -----------------  where C is a predicate pattern
+         PHI -> PSI
+```
+
+```k
+  rule <claim> \implies(\and(LHS), RHS)
+            => \implies(\and(LHS -Patterns getPredicatePatterns(LHS)), RHS)
+       </claim>
+       <k> remove-constraints => noop ... </k>
 ```
 
 ```k

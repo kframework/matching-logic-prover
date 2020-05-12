@@ -1,0 +1,19 @@
+symbol next(TopSort) : TopSort
+
+// there is always a next state
+axiom inf: next(\top())
+
+// one-path next implies all-path next
+axiom lin: \implies(next(#X), \not(next(\not(#X))))
+
+// IND: phi /\ [](phi -> next(phi)) -> []phi
+claim \implies( \and( #PHI
+                    , \nu #X . \or(\exists { } \and(\implies(#PHI, next(#PHI)), next(#X)))
+                    )
+              , \nu #X . \or(\exists { } \and(#PHI, next(#X)))
+              )
+
+strategy gfp . normalize . left-unfold-Nth(0) . normalize . lift-or . and-split . normalize
+             . ( ( patterns-equal . rhs-top )
+                 | ( contradiction )
+               )

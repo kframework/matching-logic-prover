@@ -110,11 +110,28 @@ module TEST-MATCH-ASSOC
   // Match constructor against variable
   rule test("match-assoc", 9)
     => symbol pto ( Loc, Data ) : Heap
+       symbol c ( Data ) : Data
        assert( #error("Constructors do not match")
              , .MatchResults
             == #matchAssoc( terms:     X0 { Loc }, Y0 { Data }
                           , pattern:   c( Z { Loc }, W { Data }), c( Y0 { Loc }, W { Data })
                           , variables: Z { Loc }, W { Data }
+                          , subst:     .Map
+                          , rest:      .Patterns
+                          )
+             )
+       .Declarations
+
+  // Match multiple occurances of a variable
+  rule test("match-assoc", 10)
+    => symbol c ( Data ) : Data
+       assert( #matchResult( subst:    X0 { Data } |-> c( #hole { Data } )
+                           , rest:     .Patterns
+                           )
+             , .MatchResults
+            == #matchAssoc( terms:     c( W { Data } )
+                          , pattern:   X0[W { Data }]
+                          , variables: X0 { Data }
                           , subst:     .Map
                           , rest:      .Patterns
                           )

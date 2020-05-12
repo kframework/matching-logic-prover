@@ -25,18 +25,18 @@ module STRATEGY-APPLY-EQUATION
   imports VISITOR-SYNTAX
   imports SYNTACTIC-MATCH-SYNTAX
 
-  rule <strategy> (.K => loadNamed(Name))
+  rule <k> (.K => loadNamed(Name))
                ~> apply-equation D Name at _ by[_] ...
-       </strategy>
+       </k>
 
-  rule <strategy> (P:Pattern ~> apply-equation D _ at Idx by[Ss])
+  rule <k> (P:Pattern ~> apply-equation D _ at Idx by[Ss])
                => #apply-equation1
                   ( hypothesis: P
                   , direction: D
                   , at: Idx
                   , by: Ss
                   )
-       ...</strategy>
+       ...</k>
 
 
   syntax KItem ::= "#apply-equation1"
@@ -57,7 +57,7 @@ module STRATEGY-APPLY-EQUATION
        => apply-equation.checkShape(P)
   rule apply-equation.checkShape(_) => false [owise]
 
-  rule <strategy>
+  rule <k>
          #apply-equation1
            ( hypothesis: H, direction: D, at: Idx, by: Strats)
           => 
@@ -77,7 +77,7 @@ module STRATEGY-APPLY-EQUATION
          , by: Strats
          )
        ...
-       </strategy>
+       </k>
        requires apply-equation.checkShape(H)
 
   // Gets LHS or RHS of a conclusion that is an equality.
@@ -105,7 +105,7 @@ module STRATEGY-APPLY-EQUATION
                    "," "by:" Strategies
                    ")"
 
-  rule <strategy>
+  rule <k>
         #apply-equation2(from: L, to: R, hypothesis: H, at: Idx, by: Ss)
          =>
         #apply-equation3
@@ -120,8 +120,8 @@ module STRATEGY-APPLY-EQUATION
         , by: Ss
         )
         ...
-      </strategy>
-      <k> T </k>
+      </k>
+      <claim> T </claim>
 
   syntax KItem ::= "#apply-equation3"
                    "(" "hypothesis:" Pattern
@@ -130,7 +130,7 @@ module STRATEGY-APPLY-EQUATION
                    "," "by:" Strategies
                    ")"
 
-  rule <strategy>
+  rule <k>
          #apply-equation3
          ( hypothesis: P
          , heatResult: heatResult(Heated, Subst)
@@ -139,10 +139,10 @@ module STRATEGY-APPLY-EQUATION
          )
          => instantiateAssumptions(GId, Subst, P)
          ~> createSubgoalsWithStrategies(strats: Ss, result: noop)
-       ...</strategy>
-       <k>
+       ...</k>
+       <claim>
          _ => cool(heated: Heated, term: substMap(R, Subst))
-       </k>
+       </claim>
        <id> GId </id>
 
   syntax KItem ::= "createSubgoalsWithStrategies"
@@ -150,18 +150,18 @@ module STRATEGY-APPLY-EQUATION
                    "," "result:" Strategy
                    ")"
 
-  rule <strategy> (#instantiateAssumptionsResult(.Patterns, .Map)
+  rule <k> (#instantiateAssumptionsResult(.Patterns, .Map)
                ~> createSubgoalsWithStrategies
                   ( strats: .Strategies
                   , result: R))
                => R
-       ...</strategy>
+       ...</k>
 
-  rule <strategy> #instantiateAssumptionsResult(P,Ps => Ps, .Map)
+  rule <k> #instantiateAssumptionsResult(P,Ps => Ps, .Map)
                ~> createSubgoalsWithStrategies
                   ( strats: (S, Ss) => Ss
                   , result: R => R & subgoal(P, S))
-       ...</strategy>
+       ...</k>
 
 ```
 ### Apply equation in context
@@ -180,10 +180,10 @@ Gamma |- C[... /\ A=B /\ ... /\ A /\ ... ]
 
 ```k
 
-  rule <strategy> apply-equation(eq: \equals(_,_) #as Eq, idx: Idx, direction: D, at: At)
+  rule <k> apply-equation(eq: \equals(_,_) #as Eq, idx: Idx, direction: D, at: At)
                => noop
-       ...</strategy>
-       <k> C
+       ...</k>
+       <claim> C
             => visitorResult.getPattern(
                  visitTopDown(
                    applyEquationInContextVisitor(aeicParams(
@@ -192,7 +192,7 @@ Gamma |- C[... /\ A=B /\ ... /\ A /\ ... ]
                    C
                  )
                )
-       </k>
+       </claim>
 
   syntax KItem ::= "aeicParams" "(" "eq:" Pattern
                                 "," "idx:" Int

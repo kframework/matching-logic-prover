@@ -61,6 +61,187 @@ tst_22_strategy = """
     ) .
 """.replace('\n',' ')
 
+dll_vc07_strategy = """
+    normalize . or-split-rhs
+  . lift-constraints . instantiate-existentials
+  . substitute-equals-for-equals
+  . nullity-analysis
+    ( abstract-nil
+    . kt
+    . ( ( left-unfold-Nth(0)
+        . normalize . or-split-rhs
+        . lift-constraints . instantiate-existentials
+        . instantiate-separation-logic-axioms
+        . substitute-equals-for-equals
+        . check-lhs-constraint-unsat
+        . lift-constraints
+        . match
+        . spatial-patterns-equal
+        . spatial-patterns-match
+        . smt-cvc4
+        )
+      | ( search-sl(kt-bound: 1, unfold-bound: 0) )
+      )
+    ) .
+""".replace('\n',' ')
+
+dll_vc17_strategy = """
+    normalize . or-split-rhs
+  . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+  . abstract-Nth(0)
+  . normalize . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . kt
+  . ( ( right-unfold-Nth(0,1) . right-unfold-Nth(0,1) . right-unfold-Nth(0,0)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . instantiate-separation-logic-axioms
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+      )
+    | ( kt
+      . ( ( normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . instantiate-separation-logic-axioms
+          . normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . check-lhs-constraint-unsat
+          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+          )
+        | ( normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . right-unfold-Nth(0,1) . right-unfold-Nth(0,1)
+          . right-unfold-Nth(0,1) . right-unfold-Nth(0,0)
+          . normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+          )
+        | ( normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . ( left-unfold-Nth(0) | left-unfold-Nth(1) )
+          . normalize . or-split-rhs . lift-constraints
+          . instantiate-existentials . substitute-equals-for-equals
+          . instantiate-separation-logic-axioms
+          . check-lhs-constraint-unsat
+          )
+        )
+      )
+    ) .
+""".replace('\n',' ')
+
+nll_vc03_strategy = """
+    normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(1,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(1,0) . right-unfold-Nth(0,1)
+  . right-unfold-Nth(0,1) . right-unfold-Nth(0,0)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto . frame
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto .
+""".replace('\n', ' ')
+
+nll_vc04_strategy = """
+    normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . frame
+  . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . match-pto
+  . right-unfold-Nth(0,0)
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals .
+""".replace('\n', ' ')
+
+nll_vc08_10_strategy = """
+    normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . kt
+  . ( ( right-unfold-Nth(0,1)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . match-pto
+      . frame
+      . search-sl(kt-bound: 2, unfold-bound: 3)
+      )
+    | search-sl(kt-bound: 1, unfold-bound: 0)
+    ) .
+""".replace('\n', ' ')
+
+lsegex4_slk_1_strategy = """
+    normalize . or-split-rhs
+  . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+  . left-unfold-Nth(0)
+  . ( ( normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . check-lhs-constraint-unsat . fail
+      )
+    | ( normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . right-unfold-Nth(0,0)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . remove-constraints
+      . search-sl(kt-bound: 2, unfold-bound: 2)
+      )
+    ) .
+""".replace('\n', ' ')
+
+skl3_vc10_strategy = """
+    normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . kt
+  . normalize . or-split-rhs . lift-constraints
+  . instantiate-existentials . substitute-equals-for-equals
+  . ( ( right-unfold-Nth(0, 1)
+      . right-unfold-Nth(0, 1) . right-unfold-Nth(0, 1) . right-unfold-Nth(0, 0)
+      . right-unfold-Nth(0, 1)
+      . right-unfold-Nth(0, 1) . right-unfold-Nth(0, 0)
+      . right-unfold-Nth(0, 0)
+      . right-unfold-Nth(0, 0)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . instantiate-separation-logic-axioms
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+      )
+    | ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+    | ( right-unfold-Nth(0, 1)
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . instantiate-separation-logic-axioms
+      . normalize . or-split-rhs . lift-constraints
+      . instantiate-existentials . substitute-equals-for-equals
+      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+      )
+    ) .
+""".replace('\n', ' ')
+
     #         prefix   KT  RU timeout tests
 test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , ('unfold-mut-recs . ',    5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
@@ -167,6 +348,19 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
                  "   ) ."
                 ),                    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-5.smt2'])
              , (tst_22_strategy,      0,  0, '10m', ['t/SL-COMP18/bench/qf_shid_entl/22.tst.smt2'])
+             , ('footprint-analysis . ',
+                                      2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2'])
+             , (dll_vc07_strategy,    2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2'])
+             , ('footprint-analysis . abstract-nil . ',
+                                      2,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc11.smt2'])
+             , (dll_vc17_strategy,    2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-vc17.smt2'])
+             , (nll_vc03_strategy,    2,  3, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc03.smt2'])
+             , (nll_vc04_strategy,    2,  6, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc04.smt2'])
+             , (nll_vc08_10_strategy, 2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc08.smt2'])
+             , (nll_vc08_10_strategy, 2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/nll-vc10.smt2'])
+             , ('', 3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tseg_join_tree_entail_tseg.sb.smt2'])
+             , (lsegex4_slk_1_strategy, 2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/lsegex4_slk-1.smt2'])
+             , (skl3_vc10_strategy,   2,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/skl3-vc10.smt2'])
              ]
 qf_shid_entl_unsat_tests = read_list('t/test-lists/qf_shid_entl.unsat')
 

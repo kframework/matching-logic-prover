@@ -10,4 +10,6 @@ suite "syntactic-match"
 
 suite "visitor"
 
+suite "dnf"
+
 .Declarations

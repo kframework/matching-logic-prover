@@ -8,11 +8,13 @@ requires "t/unit/match-assoc-comm.k"
 requires "t/unit/subst.k"
 requires "t/unit/syntactic-match.k"
 requires "t/unit/visitor.k"
+requires "t/unit/dnf.k"
 ```
 
 ```k
 module DRIVER-UNIT-TEST
   imports TEST-CHECKSAT
+  imports TEST-DNF
   imports TEST-MATCH-ASSOC
   imports TEST-MATCH-ASSOC-COMM
   imports TEST-SUBST
@@ -27,7 +29,7 @@ module UNIT-TEST
   
   syntax Declaration ::= "suite" String
   rule <k> suite(SUITE) => next-test(SUITE, 1) ... </k>
-  
+
   syntax Declaration ::= "next-test" "(" String "," Int ")"
   rule <k> next-test(SUITE, N)
         => test(SUITE, N)

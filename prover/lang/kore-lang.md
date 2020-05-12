@@ -53,6 +53,7 @@ module TOKENS
                      | "sep" [token]
                      | "nil" [token]
                      | "emp" [token]
+  syntax Symbol ::= "nil" "{" Sort "}"
 
   // Arith
   syntax LowerName ::= "plus"          [token]
@@ -132,7 +133,7 @@ module KORE
   syntax Ints ::= List{Int, ","}
 ```
 
-We allow two "variaties" of variables: the first, identified by a String, is for
+We allow two "varieties" of variables: the first, identified by a String, is for
 use in defining claims; the second, identified by a String and an Int subscript
 is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
@@ -140,11 +141,14 @@ only in this scenario*.
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
   syntax SetVariable ::= SharpName [klabel(setVariable)]
+  syntax Context ::= VariableName "[" Pattern "]" [klabel(context)]
   syntax Pattern ::= Int
                    | Variable
                    | SetVariable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
+
+                   | Context
 
                    | "\\top"    "(" ")"                         [klabel(top)]
                    | "\\bottom" "(" ")"                         [klabel(bottom)]
@@ -158,6 +162,8 @@ only in this scenario*.
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
+                   | "\\mu" SetVariable "." Pattern             [klabel(mu)]
+                   | "\\nu" SetVariable "." Pattern             [klabel(nu)]
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
@@ -167,6 +173,7 @@ only in this scenario*.
                    // sugar for commonly needed axioms
                    | "\\typeof" "(" Pattern "," Sort ")"
                    | "functional" "(" Symbol ")"
+                   | "constructor" "(" Symbol ")"
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
                    | "\\hole" "(" ")" [klabel(Phole)]
@@ -193,7 +200,7 @@ only in this scenario*.
   syntax Declarations ::= Declaration Declarations
   syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
 
-  syntax Variable ::= "#hole"
+  syntax VariableName ::= "#hole"
 
   // Sugar for `\exists #hole . #hole /\ floor(Arg1 -> Arg2)
   syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
@@ -218,10 +225,8 @@ module KORE-HELPERS
 
   syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
   syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
+  rule SymbolToString(nil { SORT }) => SymbolToString(nil) +String "_" +String SortToString(SORT)
   syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
-
-  syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
-  rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))
 
   syntax Bool ::= Pattern "in" Patterns [function]
   rule P in (P,  P1s) => true
@@ -296,6 +301,10 @@ module KORE-HELPERS
   rule areFunctional(GId, P, Ps)
        => isFunctional(GId, P) andBool areFunctional(GId, Ps)
 
+  syntax Bool ::= isConstructor(Pattern) [function]
+  rule [[ isConstructor(S) => true ]]
+       <declaration> axiom _: constructor(S) </declaration>
+
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
   rule getReturnSort( _ { S } ) => S
@@ -314,6 +323,7 @@ module KORE-HELPERS
   rule getReturnSort( lte ( ARGS ) ) => Bool
   rule getReturnSort( gte ( ARGS ) ) => Bool
   rule getReturnSort( isMember ( _ ) ) => Bool
+  rule getReturnSort( nil { SORT } ( _ ) ) => SORT
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
@@ -343,6 +353,31 @@ module KORE-HELPERS
   rule #sameSortOrPredicate(S, (P, Ps))
     => false
        requires getReturnSort(P) =/=K S
+
+  rule getReturnSort(\mu _ . Phi) => getReturnSort(Phi)
+  rule getReturnSort(\nu _ . Phi) => getReturnSort(Phi)
+  rule getReturnSort(\or(P, Ps)) => unionSort(getReturnSort(P), getReturnSort(\or(Ps)))
+  rule getReturnSort(\or(.Patterns)) => BottomSort
+  rule getReturnSort(\and(P, Ps)) => intersectSort(getReturnSort(P), getReturnSort(\and(Ps)))
+  rule getReturnSort(\and(.Patterns)) => TopSort
+  rule getReturnSort(_:SetVariable) => TopSort
+
+  rule getReturnSort(\exists{Vs} P) => getReturnSort(P)
+
+  syntax UpperName ::= "TopSort"         [token]
+                     | "BottomSort"      [token]
+
+  syntax Sort ::= unionSort(Sort, Sort) [function]
+  rule unionSort(TopSort, S) => TopSort
+  rule unionSort(S, TopSort) => TopSort
+  rule unionSort(BottomSort, S) => S
+  rule unionSort(S, BottomSort) => S
+
+  syntax Sort ::= intersectSort(Sort, Sort) [function]
+  rule intersectSort(TopSort, S) => S
+  rule intersectSort(S, TopSort) => S
+  rule intersectSort(BottomSort, S) => BottomSort
+  rule intersectSort(S, BottomSort) => BottomSort
 
   syntax Bool ::= isUnfoldable(Symbol) [function]
   rule [[ isUnfoldable(S:Symbol) => true ]]
@@ -402,6 +437,7 @@ module KORE-HELPERS
 
   rule getFreeVariables(N:Int, .Patterns) => .Patterns
   rule getFreeVariables(X:Variable, .Patterns) => X, .Patterns
+  rule getFreeVariables(X:SetVariable, .Patterns) => X, .Patterns
   rule getFreeVariables(S:Symbol, .Patterns) => .Patterns
   rule getFreeVariables(S:Symbol(ARGS) , .Patterns) => getFreeVariables(ARGS)
 
@@ -424,11 +460,19 @@ module KORE-HELPERS
     => getFreeVariables(P, .Patterns) -Patterns Vs
   rule getFreeVariables(\forall { Vs } P,  .Patterns)
     => getFreeVariables(P, .Patterns) -Patterns Vs
+  rule getFreeVariables(\mu X . P,         .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns (X, .Patterns)
+
   rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
     => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
-       -Patterns #hole, .Patterns
+       -Patterns #hole { Heap }, #hole { Bool }, #hole { TopSort }
   rule getFreeVariables(\typeof(P, _))
     => getFreeVariables(P)
+
+  syntax Patterns ::= filterSetVariables(Patterns) [function]
+  rule filterSetVariables(.Patterns) => .Patterns
+  rule filterSetVariables(V:Variable, Vs) => V, filterSetVariables(Vs)
+  rule filterSetVariables(X:SetVariable, Vs) => filterSetVariables(Vs)
 
 // TODO: These seem specific to implication. Perhaps they need better names?
   syntax Patterns ::= getUniversalVariables(Pattern) [function]
@@ -438,6 +482,17 @@ module KORE-HELPERS
     => EXISTENTIALS
   rule getExistentialVariables(\implies(\and(LHS), \and(RHS)))
     => .Patterns
+```
+
+```k
+  syntax Patterns ::= getImplicationContexts(Patterns) [function]
+  rule getImplicationContexts(\forall {Vs} implicationContext(LCTX, RCTX), Ps)
+    => \forall {Vs} implicationContext(LCTX, RCTX), getImplicationContexts(Ps)
+  rule getImplicationContexts(S:Symbol(ARGs), Ps)
+    => getImplicationContexts(Ps)
+  rule getImplicationContexts(V:Variable, Ps)
+    => getImplicationContexts(Ps)
+  rule getImplicationContexts(.Patterns)  => .Patterns
 ```
 
 Filters a list of patterns, returning the ones that are applications of the symbol:
@@ -551,6 +606,8 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(X:Variable,Y:Variable,V) => X    requires X =/=K Y
   rule subst(X:SetVariable,Y:SetVariable,V) => X requires X =/=K Y
   rule subst(X:Variable,P:Pattern, V) => X    requires notBool(isVariable(P) orBool isVariableName(P))
+  rule subst(X:SetVariable,P:Pattern, V) => X
+    requires notBool(isSetVariable(P))
   rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_)=> \top()
   rule subst(\bottom(),_,_) => \bottom()
@@ -626,6 +683,8 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
     => #fun(RENAMING => \forall { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
   rule alphaRename(\exists { Fs:Patterns } P:Pattern)
     => #fun(RENAMING => \exists { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
+  rule alphaRename(\mu X . P:Pattern) => \mu !X . alphaRename(subst(P, X, !X))
+  rule alphaRename(\nu X . P:Pattern) => \nu !X . alphaRename(subst(P, X, !X))
   rule alphaRename(\equals(L, R)) => \equals(alphaRename(L), alphaRename(R))
   rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
   rule alphaRename(\functionalPattern(Ps)) => \functionalPattern(alphaRename(Ps))
@@ -637,6 +696,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(S:Symbol(ARGs)) => S(alphaRenamePs(ARGs))
   rule alphaRename(S:Symbol) => S
   rule alphaRename(V:Variable) => V
+  rule alphaRename(X:SetVariable) => X
   rule alphaRename(I:Int) => I
   rule alphaRename(implicationContext(P, Qs))
     => implicationContext(alphaRename(P), alphaRename(Qs))
@@ -652,105 +712,235 @@ Simplifications
   syntax Patterns ::= #not(Patterns) [function]
   rule #not(.Patterns) => .Patterns
   rule #not(P, Ps) => \not(P), #not(Ps)
+```
 
-  syntax Pattern ::= #flattenAnd(Pattern) [function]
-  rule #flattenAnd(\and(Ps)) => \and(#flattenAnds(Ps))
+`#flattenAssoc` flattens associative binary symbols and connectives to a
+single symbol applied to multiple arguments.
+
+```k
+  syntax Pattern ::= #flattenAssoc(Pattern) [function]
+  rule #flattenAssoc(\and(Ps)) => \and(#flattenAnds(Ps))
+  rule #flattenAssoc(\or(Ps))  => \or(#flattenOrs(Ps))
+  rule #flattenAssoc(sep(Ps))  => sep(#flattenSeps(Ps))
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]
-  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
   rule #flattenAnds(.Patterns) => .Patterns
+  rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(\or(Ps1), Ps2) => \or(#flattenOrs(Ps1)), #flattenAnds(Ps2)
+  rule #flattenAnds(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)), #flattenAnds(Ps2)
+  rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
 
   syntax Patterns ::= #flattenSeps(Patterns) [function]
+  rule #flattenSeps(.Patterns) => .Patterns
   rule #flattenSeps(emp(.Patterns), Ps2) => #flattenSeps(Ps2)
   rule #flattenSeps(sep(Ps1), Ps2) => #flattenSeps(Ps1) ++Patterns #flattenSeps(Ps2)
+  rule #flattenSeps(\and(Ps1), Ps2) => \and(#flattenAnds(Ps1)), #flattenSeps(Ps2)
+  rule #flattenSeps(\or(Ps1), Ps2) => \or(#flattenOrs(Ps1)), #flattenSeps(Ps2)
   rule #flattenSeps(P, Ps) => P, #flattenSeps(Ps) [owise]
-  rule #flattenSeps(.Patterns) => .Patterns
 
   syntax Patterns ::= #flattenOrs(Patterns) [function]
-  rule #flattenOrs(\or(Ps1), Ps2) => #flattenOrs(Ps1) ++Patterns #flattenOrs(Ps2)
-  rule #flattenOrs(P, Ps) => P ++Patterns #flattenOrs(Ps) [owise]
   rule #flattenOrs(.Patterns) => .Patterns
+  rule #flattenOrs(\or(Ps1), Ps2) => #flattenOrs(Ps1) ++Patterns #flattenOrs(Ps2)
+  rule #flattenOrs(\and(Ps1), Ps2) => \and(#flattenAnds(Ps1)), #flattenOrs(Ps2)
+  rule #flattenOrs(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)), #flattenOrs(Ps2)
+  rule #flattenOrs(P, Ps) => P, #flattenAnds(Ps) [owise]
+```
 
-  // TODO: dnf should be greatly refactored. Normalization along with lift-constraints
-  // should happen likely in the same function, with much fewer ad-hoc rules than we
-  // have below
+`#nnf` converts a formula into Negation Normal Form:
+
+```k
+  syntax Patterns ::= #nnfPs(Patterns) [function]
+  rule #nnfPs(.Patterns) => .Patterns
+  rule #nnfPs(P, Ps) => #nnf(P), #nnfPs(Ps)
+
+  syntax Pattern  ::= #nnf(Pattern) [function]
+  rule #nnf(P) => P requires isDnfAtom(P)
+  rule #nnf(S:Symbol(Args)) => S(#nnfPs(Args))
+  rule #nnf( \or(Ps)) =>  \or(#nnfPs(Ps))
+  rule #nnf(\and(Ps)) => \and(#nnfPs(Ps))
+  rule #nnf(\implies(L, R)) => #nnf(\or(\not(L), R))
+
+  rule #nnf(\not(P)) => \not(P) requires isDnfAtom(P)
+  rule #nnf(\not(S:Symbol(Args))) => \not(S(#nnfPs(Args)))
+  rule #nnf(\not( \or(Ps))) => \and(#nnfPs(#not(Ps)))
+  rule #nnf(\not(\and(Ps))) => \or(#nnfPs(#not(Ps)))
+  rule #nnf(\not(\not(P))) => #nnf(P)
+  rule #nnf(\not(\implies(L, R))) => #nnf(\not(\or(\not(L), R)))
+
+  syntax Bool ::= isDnfAtom(Pattern) [function]
+  rule isDnfAtom(V:Variable) => true
+  rule isDnfAtom(X:SetVariable) => true
+  rule isDnfAtom(S:Symbol) => true
+  rule isDnfAtom(\equals(L, R)) => true
+  rule isDnfAtom(\exists{Vs}_) => true
+  rule isDnfAtom(\forall{Vs}_) => true
+  rule isDnfAtom(\mu X . _) => true
+  rule isDnfAtom(\nu X . _) => true
+  rule isDnfAtom(implicationContext(_, _)) => true
+  rule isDnfAtom(\and(_)) => false
+  rule isDnfAtom(\or(_)) => false
+  rule isDnfAtom(\implies(_, _)) => false
+  rule isDnfAtom(S:Symbol(ARGS)) => false
+  rule isDnfAtom(\not(P)) => false
+```
+
+```k
   syntax Pattern ::= #dnf(Pattern) [function]
-  rule #dnf(\or(Ps)) => \or(#dnfPs(Ps))
+  rule #dnf(P) => #flattenAssoc(#liftOr(#liftAnd(#nnf(\or(\and(P))))))
+```
 
-  syntax Patterns ::= #dnfPs(Patterns) [function]
+```k
+  syntax Pattern ::= #liftOr(Pattern) [function]
+  rule #liftOr(P) => \or(P) requires isDnfAtom(P)
+  rule #liftOr(\not(P)) => \or(\not(P))
+  rule #liftOr(S:Symbol(Args))
+    => \or(#liftOr_distribute( context: S(.Patterns)
+                             , processed: .Patterns
+                             , remaining: Args
+          )                  )
+  rule #liftOr(\and(Args))
+    => \or(#liftOr_distribute( context: \and(.Patterns)
+                             , processed: .Patterns
+                             , remaining: Args
+          )                  )
+  rule #liftOr(\or(Args)) => \or(#liftOrPs(Args))
 
-  rule #dnfPs(.Patterns) => .Patterns
-  rule #dnfPs(\or(Ps), REST) => #dnfPs(Ps ++Patterns REST)
-  rule #dnfPs(P, Ps) => \and(P), #dnfPs(Ps)
-    requires isBasePattern(P)
-  rule #dnfPs(\not(P), Ps) => \and(\not(P)), #dnfPs(Ps)
-    requires isBasePattern(P)
-  rule #dnfPs(\exists{Vs} P, Ps) => #exists(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
+  syntax Patterns ::= #liftOrPs(Patterns) [function]
+  rule #liftOrPs(.Patterns) => .Patterns
+  rule #liftOrPs(P, Ps) => #liftOr(P), #liftOrPs(Ps)
+
+  syntax Patterns ::= "#liftOr_distribute" "(" "context:"   Pattern
+                                           "," "processed:" Patterns
+                                           "," "remaining:" Patterns
+                                           ")" [function]
+  rule #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , remaining: P, Ps
+                         )
+    => #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: #flattenAssoc(#liftOr(P))
+                         , remaining: Ps
+                         )
+  rule #liftOr_distribute(context: S:Symbol(.Patterns), processed: Processed, remaining: .Patterns) => S(Processed), .Patterns
+  rule #liftOr_distribute(context: \and(.Patterns), processed: Processed, remaining: .Patterns) => \and(Processed), .Patterns
+
+  syntax Patterns ::= "#liftOr_distribute" "(" "context:"   Pattern
+                                           "," "processed:" Patterns
+                                           "," "or:"        Pattern
+                                           "," "remaining:" Patterns
+                                           ")" [function]
+  rule #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: \or(Or, Ors)
+                         , remaining: Remaining
+                         )
+    => #liftOr_distribute( context: Context
+                         , processed: Processed ++Patterns Or
+                         , remaining: Remaining
+                         ) ++Patterns
+       #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: \or(Ors)
+                         , remaining: Remaining
+                         )
+  rule #liftOr_distribute( context: Context
+                         , processed: Processed
+                         , or: \or(.Patterns)
+                         , remaining: Remaining
+                         )
+    => .Patterns 
+```
+
+```k
+  syntax Pattern ::= #liftAnd(Pattern) [function]
+  rule #liftAnd(P) => \and(P) requires isDnfAtom(P)
+  rule #liftAnd(\not(P)) => \and(\not(P))
+  rule #liftAnd(S:Symbol(Args))
+    => \and(#liftAnd_distribute( context: S(.Patterns)
+                               , processed: .Patterns
+                               , remaining: Args
+           )                   )
+  rule #liftAnd(\or(Args))
+    => \and(#liftAnd_distribute( context: \or(.Patterns)
+                               , processed: .Patterns
+                               , remaining: Args
+           )                   )
+  rule #liftAnd(\and(Args)) => \and(#liftAndPs(Args))
+
+  syntax Patterns ::= #liftAndPs(Patterns) [function]
+  rule #liftAndPs(.Patterns) => .Patterns
+  rule #liftAndPs(P, Ps) => #liftAnd(P), #liftAndPs(Ps)
+
+  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"   Pattern
+                                            "," "processed:" Patterns
+                                            "," "remaining:" Patterns
+                                            ")" [function]
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , remaining: P, Ps
+                          )
+    => #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: #flattenAssoc(#liftAnd(P))
+                          , remaining: Ps
+                          )
+    requires #flattenAssoc(#liftAnd(P)) =/=K \and(.Patterns)
+
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , remaining: P, Ps
+                          )
+    => #liftAnd_distribute( context: Context
+                          , processed: Processed ++Patterns \and(.Patterns)
+                          , remaining: Ps
+                          )
+    requires #flattenAssoc(#liftAnd(P)) ==K \and(.Patterns)
+
+  rule #liftAnd_distribute(context: S:Symbol(.Patterns), processed: Processed, remaining: .Patterns) => S(Processed), .Patterns
+  rule #liftAnd_distribute(context: \or(.Patterns), processed: Processed, remaining: .Patterns) => \or(Processed), .Patterns
+
+  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"   Pattern
+                                            "," "processed:" Patterns
+                                            "," "and:"       Pattern
+                                            "," "remaining:" Patterns
+                                            ")" [function]
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: \and(And, Ands)
+                          , remaining: Remaining
+                          )
+    => #liftAnd_distribute( context: Context
+                          , processed: Processed ++Patterns And
+                          , remaining: Remaining
+                          ) ++Patterns
+       #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: \and(Ands)
+                          , remaining: Remaining
+                          )
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , and: \and(.Patterns)
+                          , remaining: Remaining
+                          )
+    => .Patterns 
+```
+
+```k
+// TODO: These aren't sound
+//  rule #dnfPs(\exists{Vs} P, Ps) => #exists(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
+//  rule #dnfPs(\forall{Vs} P, Ps) => #forall(#dnfPs(P, .Patterns), Vs) ++Patterns #dnfPs(Ps)
 
   syntax Patterns ::= #exists(Patterns, Patterns) [function]
   rule #exists(.Patterns, _) => .Patterns
   rule #exists((\and(Ps1), Ps2), Vs) => \exists{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #exists(Ps2, Vs)
   rule #exists((\exists{Es} P, Ps2), Vs) => \exists{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #exists(Ps2, Vs)
-
-  rule #dnfPs(\not(\and(Ps)), REST) => #dnfPs(#not(Ps)) ++Patterns #dnfPs(REST)
-  rule #dnfPs(\not(\or(Ps)), REST)  => #dnfPs(\and(#not(Ps)), REST)
-
-  // Distribute \or over \and
-  rule #dnfPs(\and(\or(P, Ps1), Ps2), REST)
-    => #dnfPs(\and(P, Ps2)) ++Patterns #dnfPs(\and(\or(Ps1), Ps2))
-  rule #dnfPs(\and(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
-
-  // \and is assoc
-  rule #dnfPs(\and(\and(Ps1), Ps2), REST) => #dnfPs(\and(Ps1 ++Patterns Ps2), REST)
-
-  rule #dnfPs(\and(Ps), REST) => \and(Ps), #dnfPs(REST)
-    requires isBaseConjunction(Ps)
-  rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
-    requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
-  rule #dnfPs(\and(sep(Ps1), Ps2), REST) => #dnfPs(\and(\or(#dnfPs(sep(Ps1), .Patterns)), Ps2), REST)
-    requires notBool isBaseConjunction(Ps1)
-
-  // sep is assoc
-  rule #dnfPs(sep(sep(Ps1), Ps2), REST) => #dnfPs(sep(Ps1 ++Patterns Ps2), REST)
-
-  // sep is commutative
-  rule #dnfPs(sep(P, Ps), REST) => #dnfPs(sep(Ps ++Patterns P), REST)
-    requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
-
-  // borrowing code from lift-constraints
-  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(\and(sep(\and(Ps1), Ps2), P))
-    requires isPredicatePattern(P)
-  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(sep(\and(Ps1), P, Ps2))
-    requires isSpatialPattern(P)
-  rule #dnfPs(sep(\and(.Patterns), Ps), REST) => #dnfPs(sep(Ps), REST)
-
-  syntax Patterns ::= #dnfPsNew(Patterns) [function]
-
-  // Distribute \or over sep
-  rule #dnfPs(sep(\or(P, Ps1), Ps2), REST)
-    => #dnfPs(sep(P, Ps2)) ++Patterns #dnfPs(sep(\or(Ps1), Ps2))
-  rule #dnfPs(sep(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
-
-  syntax Bool ::= isBasePattern(Pattern) [function]
-  rule isBasePattern(S:Symbol(ARGS)) => true
-    [owise]
-  rule isBasePattern(\equals(L, R)) => true
-  rule isBasePattern(\and(_)) => false
-  rule isBasePattern(\or(_)) => false
-  rule isBasePattern(\exists{Vs}_) => false
-  rule isBasePattern(\not(P)) => isBasePattern(P)
-  rule isBasePattern(sep(ARGS)) => isBaseConjunction(ARGS)
-
-  syntax Bool ::= isBaseConjunction(Patterns) [function]
-  rule isBaseConjunction(.Patterns) => true
-  rule isBaseConjunction(\and(P), Ps) => false
-  rule isBaseConjunction(P, Ps) => isBasePattern(P) andBool isBaseConjunction(Ps) [owise]
-
-  syntax Bool ::= isConjunction(Pattern) [function]
-  rule isConjunction(\and(P)) => true
-  rule isConjunction(_) => false [owise]
+  
+  syntax Patterns ::= #forall(Patterns, Patterns) [function]
+  rule #forall(.Patterns, _) => .Patterns
+  rule #forall((\and(Ps1), Ps2), Vs) => \forall{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #forall(Ps2, Vs)
+  rule #forall((\forall{Es} P, Ps2), Vs) => \forall{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #forall(Ps2, Vs)
 ```
 
 ```k
@@ -763,17 +953,21 @@ Simplifications
   rule isPredicatePattern(\or(.Patterns)) => true
   rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
   rule isPredicatePattern(\implies(P1, P2)) => isPredicatePattern(P1) andBool isPredicatePattern(P2)
-  rule isPredicatePattern(#hole) => false
+  rule isPredicatePattern(#hole { Bool }) => true
+  rule isPredicatePattern(#hole { Heap }) => false
+  rule isPredicatePattern(V:VariableName { Heap }) => false
+  rule isPredicatePattern(V:SetVariable) => false
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`
   rule isPredicatePattern(S:Symbol(ARGS)) => true
     requires getReturnSort(S(ARGS)) ==K Bool
 
   rule isPredicatePattern(S:Symbol(ARGS)) => false
-    requires getReturnSort(S(ARGS)) ==K Heap
+    requires getReturnSort(S(ARGS)) =/=K Bool
   rule isPredicatePattern(emp(.Patterns)) => false
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
+  rule isPredicatePattern(\mu X . P) => false
   rule isPredicatePattern(implicationContext(\and(sep(_),_),_)) => false
   rule isPredicatePattern(\typeof(_,_)) => true
   rule isPredicatePattern(implicationContext(_,_)) => true
@@ -790,7 +984,13 @@ Simplifications
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
     requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
-  rule isSpatialPattern(#hole) => true
+  rule isSpatialPattern(S:Symbol(ARGS)) => false
+    requires getReturnSort(S(ARGS)) =/=K Heap
+  rule isSpatialPattern(#hole { Bool }) => false
+  rule isSpatialPattern(#hole { Heap }) => true
+  rule isSpatialPattern(V:VariableName { Heap }) => true
+  rule isSpatialPattern(V:SetVariable) => false
+  rule isSpatialPattern(\mu X . P) => false
 
   // TODO: Perhaps normalization should get rid of this?
   rule isSpatialPattern(\exists{_} implicationContext(\and(sep(_),_),_)) => true
@@ -800,6 +1000,19 @@ Simplifications
   rule isSpatialPattern(\forall{_} implicationContext(_,_)) => false
     [owise]
 
+  syntax Patterns ::= getSpatialPatterns(Patterns) [function]
+  rule getSpatialPatterns(.Patterns) => .Patterns
+  rule getSpatialPatterns(P, Ps) => P, getSpatialPatterns(Ps)
+    requires isSpatialPattern(P)
+  rule getSpatialPatterns(P, Ps) => getSpatialPatterns(Ps)
+    requires notBool isSpatialPattern(P)
+
+  syntax Patterns ::= getPredicatePatterns(Patterns) [function]
+  rule getPredicatePatterns(.Patterns) => .Patterns
+  rule getPredicatePatterns(P, Ps) => P, getPredicatePatterns(Ps)
+    requires isPredicatePattern(P)
+  rule getPredicatePatterns(P, Ps) => getPredicatePatterns(Ps)
+    requires notBool isPredicatePattern(P)
 ```
 
 ```k
@@ -820,6 +1033,7 @@ Simplifications
   syntax Bool ::= hasImplicationContext(Pattern)  [function]
   syntax Bool ::= hasImplicationContextPs(Patterns)  [function]
   rule hasImplicationContext(X:Variable) => false
+  rule hasImplicationContext(X:SetVariable) => false
   rule hasImplicationContext(X:Int) => false
   rule hasImplicationContext(S:Symbol) => false
   rule hasImplicationContext(\implies(LHS, RHS))
@@ -833,6 +1047,7 @@ Simplifications
   rule hasImplicationContext(\functionalPattern(P)) => hasImplicationContext(P)
   rule hasImplicationContext(\exists{ _ } P ) => hasImplicationContext(P)
   rule hasImplicationContext(\forall{ _ } P ) => hasImplicationContext(P)
+  rule hasImplicationContext(\mu X . P) => hasImplicationContext(P)
   rule hasImplicationContext(implicationContext(_, _)) => true
   rule hasImplicationContextPs(.Patterns) => false
   rule hasImplicationContextPs(P, Ps)
@@ -1034,6 +1249,12 @@ assume a pattern of the form:
        => StringToSymbol(
             getFreshNameNonum(Base, collectSymbolsS(GId)))
 
+  syntax Patterns ::= filterVariablesBySort(Patterns, Sort) [function]
+  rule filterVariablesBySort(.Patterns, _) => .Patterns
+  rule filterVariablesBySort(((_ { S } #as V), Vs), S)
+    => V, filterVariablesBySort(Vs, S)
+  rule filterVariablesBySort((V, Vs), S)
+    => filterVariablesBySort(Vs, S) [owise]
 ```
 
 ```k

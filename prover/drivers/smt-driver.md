@@ -138,9 +138,10 @@ module DRIVER-SMT
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
-                        <declaration> symbol parameterizedSymbol(nil, SMTLIB2SortToSort(LOC)) ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
+                        <declaration> symbol nil { SMTLIB2SortToSort(LOC) } (.Sorts) : SMTLIB2SortToSort(LOC) </declaration>
                         <declaration> axiom !N:AxiomName : heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
-                        <declaration> axiom !N:AxiomName : functional(parameterizedSymbol(nil, SMTLIB2SortToSort(LOC))) </declaration>
+                        <declaration> axiom !M:AxiomName : functional(nil { SMTLIB2SortToSort(LOC) }) </declaration>
+                        <declaration> axiom !P:AxiomName : constructor(nil { SMTLIB2SortToSort(LOC) }) </declaration>
                       ) ...
        </declarations>
 
@@ -159,6 +160,7 @@ module DRIVER-SMT
                      => <declaration> sort SMTLIB2SortToSort(SORT1) </declaration>
                         <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SortToSort(SORT1) </declaration>
                         <declaration> axiom !N:AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
+                        <declaration> axiom !M:AxiomName : constructor(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
                       ) ...
        </declarations>
 
@@ -185,10 +187,10 @@ module DRIVER-SMT
                       ) ...
        </declarations>
 
-  syntax K ::= #rest(SMTLIB2FunctionDecList, SMTLIB2TermList)
+  syntax K ::= #mutualRecUnfold(SMTLIB2FunctionDecList, SMTLIB2TermList)
 
   rule <k> _:GoalBuilder
-        ~> ( #rest(_, _)
+        ~> ( #mutualRecUnfold(_, _)
           ~> (define-funs-rec ( .SMTLIB2FunctionDecList ) ( .SMTLIB2TermList ) )
           => .K
            )
@@ -196,7 +198,7 @@ module DRIVER-SMT
        </k>
 
   rule <k> #goal( goal: _, strategy: unfold-mut-recs . REST_STRAT, expected: _ )
-        ~> (.K => #rest(FDs, BODIEs))
+        ~> (.K => #mutualRecUnfold(FDs, BODIEs))
         ~> (define-funs-rec ( FDs ) ( BODIEs ) )
            ...
        </k>
@@ -217,7 +219,7 @@ module DRIVER-SMT
        </k>
     requires notBool #matchesUnfoldMutRecs(STRAT)
 
-  rule <strategy> unfold-mut-recs => noop ... </strategy>
+  rule <k> unfold-mut-recs => noop ... </k>
 
   syntax Bool ::= #matchesUnfoldMutRecs(Strategy) [function]
   rule #matchesUnfoldMutRecs(unfold-mut-recs) => true
@@ -226,7 +228,7 @@ module DRIVER-SMT
     [owise]
 
   rule <k> _:GoalBuilder
-        ~> #rest(FDALLs, BODYALLs)
+        ~> #mutualRecUnfold(FDALLs, BODYALLs)
         ~> ( (define-funs-rec ( (ID (ARGs) RET) FDs ) ( BODY BODIEs ) )
           => unfoldMR( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
                      , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs))
@@ -252,7 +254,7 @@ module DRIVER-SMT
        ), #gatherRest(FDs, BODIEs)
 
   syntax K ::= unfoldMR(Pattern, Pattern, PatternTupleList)
-  rule <k> _:GoalBuilder ~> #rest(_, _)
+  rule <k> _:GoalBuilder ~> #mutualRecUnfold(_, _)
         ~> ( unfoldMR(ID:Symbol(ARGs), BODY, .PatternTupleList)
           => .K
            )
@@ -267,14 +269,14 @@ module DRIVER-SMT
                       ) ...
        </declarations>
 
-  rule <k> _:GoalBuilder ~> #rest(_, _)
+  rule <k> _:GoalBuilder ~> #mutualRecUnfold(_, _)
         ~> ( unfoldMR(ID:Symbol(ARGs1), BODY1, ((ID:Symbol(ARGs2), BODY2), REST))
           => unfoldMR(ID:Symbol(ARGs1), BODY1, REST)
            )
            ...
        </k>
 
-  rule <k> _:GoalBuilder ~> #rest(_, _)
+  rule <k> _:GoalBuilder ~> #mutualRecUnfold(_, _)
         ~> ( unfoldMR(ID1:Symbol(ARGs1), BODY1, ((ID2:Symbol(ARGs2), BODY2), REST))
           => unfoldMR(ID1:Symbol(ARGs1), substituteBRPs(BODY1, ID2, ARGs2, BODY2), REST)
            )
@@ -319,23 +321,20 @@ module DRIVER-SMT
   rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
 
   syntax KItem ::= "expect" TerminalStrategy
-  rule <strategy> S ~> expect S => .K ... </strategy>
+  rule <k> S ~> expect S => .K ... </k>
   
-  rule <goals>
-         <k> #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
+  rule <k> ( #goal( goal: (\exists{Vs} \and(Ps)) #as PATTERN, strategy: STRAT, expected: EXPECTED)
           ~> (check-sat)
-          => #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
-             ...
-         </k>
-         <strategy> .K
-                 => subgoal(\implies(\and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps))))
-                           , STRAT
-                           )
-                 ~> expect EXPECTED
-         </strategy>
-         ...
-       </goals>
-   requires notBool PATTERN ==K  \exists { .Patterns } \and ( .Patterns )
+           )
+        => ( subgoal(\implies( \and(#filterPositive(Ps)), \and(\or(#filterNegative(Ps))))
+                    , STRAT
+                    )
+        ~>   #goal( goal: PATTERN, strategy: STRAT, expected: EXPECTED)
+           )
+           ...
+       </k>
+    requires notBool PATTERN ==K  \exists { .Patterns } \and ( .Patterns )
+  rule <k> (success => .K) ~> #goal( goal: _, strategy: _, expected: _) ... </k>
 ```
 
 ```k
@@ -404,13 +403,9 @@ Clear the `<k>` cell once we are done:
   rule #removeExistentialsPatterns(P, Ps) => #removeExistentials(P) ++Patterns #removeExistentialsPatterns(Ps)
   rule #removeExistentialsPatterns(.Patterns) => .Patterns
 
-  syntax Pattern ::= #normalizeQFree(Pattern) [function]
-                   | #normalizeDefinition(Pattern) [function]
+  syntax Pattern ::= #normalizeDefinition(Pattern) [function]
                    | #pushExistentialsDisjunction(Pattern) [function]
-  rule #normalizeDefinition(P) => #pushExistentialsDisjunction(\exists { #getExistentialVariables(P) } #normalizeQFree(#removeExistentials(P)))
-  rule #normalizeQFree(\or(Ps)) => \or(#flattenOrs(#dnfPs(Ps)))
-  rule #normalizeQFree(P) => #normalizeQFree(\or(P, .Patterns))
-    [owise]
+  rule #normalizeDefinition(P) => #pushExistentialsDisjunction(\exists { #getExistentialVariables(P) } #dnf(#removeExistentials(P)))
   rule #pushExistentialsDisjunction(\exists{Vs} \or(Ps)) => \or(#exists(Ps, Vs))
 
   syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]
@@ -437,7 +432,7 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern(I:Int, _) => I
   rule SMTLIB2TermToPattern(#token("true", "LowerName"), _) => \top()
   rule SMTLIB2TermToPattern(#token("false", "LowerName"), _) => \bottom()
-  rule SMTLIB2TermToPattern((as nil SORT), _) => parameterizedSymbol(nil, SMTLIB2SortToSort(SORT))(.Patterns)
+  rule SMTLIB2TermToPattern((as nil SORT), _) => nil { SMTLIB2SortToSort(SORT) } (.Patterns)
   rule SMTLIB2TermToPattern((underscore emp _ _), _) => emp(.Patterns)
 
   rule SMTLIB2TermToPattern((ID Ts), Vs) => SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2TermListToPatterns(Ts, Vs))

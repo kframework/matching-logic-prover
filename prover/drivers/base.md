@@ -2,8 +2,8 @@ Configuration
 =============
 
 The configuration consists of a list of goals. The first goal is considered
-active. The `<k>` cell contains the Matching Logic Pattern for which we are
-searching for a proof. The `<strategy>` cell contains an imperative language
+active. The `<claim>` cell contains the Matching Logic Pattern for which we are
+searching for a proof. The `<k>` cell contains an imperative language
 that controls which (high-level) proof rules are used to complete the goal. The
 `<trace>` cell stores a log of the strategies used in the search of a proof and
 other debug information. Eventually, this could be used for constructing a proof
@@ -23,11 +23,11 @@ module PROVER-CONFIGURATION
       <prover>
         <exit-code exit=""> 1 </exit-code>
         <goals>
-          <goal multiplicity="*" type="List" format="%1%i%n%2, %3%n%4%n%5n%6%n%7%n%d%8">
+          <goal multiplicity="*" type="List" format="%1%i%n%2, %3%n%4%n%5%n%6%n%7%n%d%8">
             <id format="id: %2"> .K </id>
             <parent format="parent: %2"> .K </parent>
+            <claim> \or(.Patterns) </claim> // TODO: make this optional instead?
             <k> $COMMANDLINE:CommandLine ~> $PGM:Pgm </k>
-            <strategy> .K </strategy>
             <expected> .K </expected>
             <local-context>
               <local-decl multiplicity="*" type="Set">  .K </local-decl>
@@ -91,7 +91,7 @@ module DRIVER-BASE
          <goal>
            <id> .K </id>
            <expected> .K </expected>
-           <strategy> .K </strategy>
+           <k> .K </k>
            ...
          </goal>
        </goals>
