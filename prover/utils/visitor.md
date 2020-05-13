@@ -229,6 +229,16 @@ module VISITOR
   rule #visitTopDownTypeof1(visitorResult(V, P1), S)
     => visitorResult(V, \typeof(P1, S))
 
+  // \functionalPattern(_)
+  syntax VisitorResult
+         ::= #visitTopDownFunctionalPattern(VisitorResult) [function]
+
+  rule #visitTopDown(visitorResult(V, \functionalPattern(P)))
+    => #visitTopDownFunctionalPattern(visitTopDown(V, P))
+
+  rule #visitTopDownFunctionalPattern(visitorResult(V, P))
+    => visitorResult(V, \functionalPattern(P))
+
   rule visitorResult.getPattern(visitorResult(_, P)) => P
 
 ```
