@@ -32,6 +32,7 @@ module STRATEGY-APPLY
                  terms: G, .Patterns,
                  patterns: getConclusion(A), .Patterns,
                  variables: getUniversallyQuantifiedVariables(A)
+                           ++Patterns getSetVariables(A)
                ),
                Strat
              )
@@ -56,13 +57,13 @@ module STRATEGY-APPLY
                      Strategy, Strategy)
 
   rule <k>
-         #apply2(#instantiateAssumptionsResult(.Patterns, .Map), _, Result)
+         #apply2(#instantiateAssumptionsResult(.Patterns, _), _, Result)
          => Result
        ...</k>
 
   rule <k>
          #apply2(
-           #instantiateAssumptionsResult(P, Ps => Ps, .Map),
+           #instantiateAssumptionsResult(P, Ps => Ps, _),
            Strat,
            Result => Result & subgoal(P, Strat)
          )
