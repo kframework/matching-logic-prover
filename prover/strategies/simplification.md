@@ -6,6 +6,8 @@ module STRATEGY-SIMPLIFICATION
   imports STRATEGIES-EXPORTED-SYNTAX
   imports KORE-HELPERS
   imports SYNTACTIC-MATCH-SYNTAX
+  imports VISITOR-SYNTAX
+
 
 ```
 
@@ -305,6 +307,24 @@ Lift `\or`s on the left hand sides of implications
 ```k
   rule <claim> \implies(\and(LHS), \exists { _ } \and(RHS => RHS -Patterns LHS)) </claim>
        <k> simplify => noop ... </k>
+```
+
+#### Simplify ands
+
+```k
+
+  rule <k> simplify.flatten-ands => noop ...</k>
+       <claim> P => visitorResult.getPattern(visitTopDown(flattenAndsVisitor(), P)) </claim>
+
+  syntax Visitor ::= flattenAndsVisitor()
+
+  rule visit(flattenAndsVisitor(), P)
+    => visitorResult(flattenAndsVisitor(), P)
+    requires \and(...) :/=K P
+
+  rule visit(flattenAndsVisitor(), \and(Ps))
+    => visitorResult(flattenAndsVisitor(), maybeAnd(#flattenAnds(Ps)))
+
 ```
 
 ### Instantiate Existials
