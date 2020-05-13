@@ -549,6 +549,7 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(X:Variable,Y:Variable,V) => X    requires X =/=K Y
   rule subst(X:SetVariable,Y:SetVariable,V) => X requires X =/=K Y
   rule subst(X:Variable,P:Pattern, V) => X    requires notBool(isVariable(P) orBool isVariableName(P))
+  rule subst(X:SetVariable,P:Pattern, V) => X requires notBool isSetVariable(P)
   rule subst(I:Int, X, V) => I
   rule subst(\top(),_,_)=> \top()
   rule subst(\bottom(),_,_) => \bottom()
