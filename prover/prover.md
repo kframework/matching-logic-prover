@@ -91,6 +91,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "propagate-predicate-through-application" "(" Pattern "," Int ")"
                     | "propagate-conjunct-through-exists" "(" Int "," Int ")"
                     | "introduce-lemma" "(" AxiomName ":" Pattern "," "by:" Strategy ")"
+                    | "axiom-equals-top" "(" AxiomName ")"
 
   syntax RewriteDirection ::= "->" | "<-"
 
