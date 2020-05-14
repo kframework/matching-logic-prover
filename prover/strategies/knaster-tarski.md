@@ -82,8 +82,8 @@ for guessing an instantiation of the inductive hypothesis.
                  => ( kt-wrap(LRP) . kt-forall-intro
                     . kt-unfold . remove-lhs-existential
                     . kt-unwrap
-                    . simplify . normalize . or-split-rhs . lift-constraints
-                    . ( with-each-implication-context( simplify . normalize . or-split-rhs. lift-constraints
+                    . simplify . normalize . or-split-rhs
+                    . ( with-each-implication-context( simplify . normalize . or-split-rhs
                                                      . remove-lhs-existential
                                                      . normalize-implication-context
                                                      . kt-collapse

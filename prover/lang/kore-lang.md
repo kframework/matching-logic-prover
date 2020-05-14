@@ -804,16 +804,16 @@ single symbol applied to multiple arguments.
   rule #liftOr(P) => \or(P) requires isDnfAtom(P)
   rule #liftOr(\not(P)) => \or(\not(P))
   rule #liftOr(S:Symbol(Args))
-    => \or(#liftOr_distribute( context: S(.Patterns)
-                             , processed: .Patterns
-                             , remaining: Args
-          )                  )
+    => \or(removeDuplicates(#liftOr_distribute( context: S(.Patterns)
+                                              , processed: .Patterns
+                                              , remaining: Args
+          )                )                  )
   rule #liftOr(\and(Args))
-    => \or(#liftOr_distribute( context: \and(.Patterns)
-                             , processed: .Patterns
-                             , remaining: Args
-          )                  )
-  rule #liftOr(\or(Args)) => \or(#liftOrPs(Args))
+    => \or(removeDuplicates(#liftOr_distribute( context: \and(.Patterns)
+                                              , processed: .Patterns
+                                              , remaining: Args
+          )                )                  )
+  rule #liftOr(\or(Args)) => \or(removeDuplicates(#liftOrPs(Args)))
 
   syntax Patterns ::= #liftOrPs(Patterns) [function]
   rule #liftOrPs(.Patterns) => .Patterns
@@ -867,31 +867,36 @@ single symbol applied to multiple arguments.
   rule #liftAnd(P) => \and(P) requires isDnfAtom(P)
   rule #liftAnd(\not(P)) => \and(\not(P))
   rule #liftAnd(S:Symbol(Args))
-    => \and(#liftAnd_distribute( context: S(.Patterns)
-                               , processed: .Patterns
-                               , remaining: Args
-           )                   )
+    => \and(removeDuplicates(#liftAnd_distribute( context: S(.Patterns)
+                                                , processed: .Patterns
+                                                , predicates: .Patterns
+                                                , remaining: Args
+           )                )                   )
   rule #liftAnd(\or(Args))
-    => \and(#liftAnd_distribute( context: \or(.Patterns)
-                               , processed: .Patterns
-                               , remaining: Args
-           )                   )
-  rule #liftAnd(\and(Args)) => \and(#liftAndPs(Args))
+    => \and(removeDuplicates(#liftAnd_distribute( context: \or(.Patterns)
+                                                , processed: .Patterns
+                                                , predicates: .Patterns
+                                                , remaining: Args
+           )                )                   )
+  rule #liftAnd(\and(Args)) => \and(removeDuplicates(#liftAndPs(Args)))
 
   syntax Patterns ::= #liftAndPs(Patterns) [function]
   rule #liftAndPs(.Patterns) => .Patterns
   rule #liftAndPs(P, Ps) => #liftAnd(P), #liftAndPs(Ps)
 
-  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"   Pattern
-                                            "," "processed:" Patterns
-                                            "," "remaining:" Patterns
+  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"    Pattern
+                                            "," "processed:"  Patterns
+                                            "," "predicates:" Patterns
+                                            "," "remaining:"  Patterns
                                             ")" [function]
   rule #liftAnd_distribute( context: Context
                           , processed: Processed
+                          , predicates: Preds
                           , remaining: P, Ps
                           )
     => #liftAnd_distribute( context: Context
                           , processed: Processed
+                          , predicates: Preds
                           , and: #flattenAssoc(#liftAnd(P))
                           , remaining: Ps
                           )
@@ -899,38 +904,74 @@ single symbol applied to multiple arguments.
 
   rule #liftAnd_distribute( context: Context
                           , processed: Processed
+                          , predicates: Preds
                           , remaining: P, Ps
                           )
     => #liftAnd_distribute( context: Context
                           , processed: Processed ++Patterns \and(.Patterns)
+                          , predicates: Preds
                           , remaining: Ps
                           )
     requires #flattenAssoc(#liftAnd(P)) ==K \and(.Patterns)
 
-  rule #liftAnd_distribute(context: S:Symbol(.Patterns), processed: Processed, remaining: .Patterns) => S(Processed), .Patterns
-  rule #liftAnd_distribute(context: \or(.Patterns), processed: Processed, remaining: .Patterns) => \or(Processed), .Patterns
+  rule #liftAnd_distribute( context: S:Symbol(.Patterns)
+                          , processed: Processed
+                          , predicates: Preds
+                          , remaining: .Patterns
+                          )
+    => S(Processed), removeDuplicates(Preds)
+  rule #liftAnd_distribute( context: \or(.Patterns)
+                          , processed: Processed
+                          , predicates: Preds
+                          , remaining: .Patterns
+                          )
+    => \or(Processed ++Patterns Preds), .Patterns
 
-  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"   Pattern
-                                            "," "processed:" Patterns
-                                            "," "and:"       Pattern
-                                            "," "remaining:" Patterns
+  syntax Patterns ::= "#liftAnd_distribute" "(" "context:"    Pattern
+                                            "," "processed:"  Patterns
+                                            "," "predicates:" Patterns
+                                            "," "and:"        Pattern
+                                            "," "remaining:"  Patterns
                                             ")" [function]
   rule #liftAnd_distribute( context: Context
                           , processed: Processed
+                          , predicates: Preds
                           , and: \and(And, Ands)
                           , remaining: Remaining
                           )
     => #liftAnd_distribute( context: Context
                           , processed: Processed ++Patterns And
+                          , predicates: Preds
                           , remaining: Remaining
                           ) ++Patterns
        #liftAnd_distribute( context: Context
                           , processed: Processed
+                          , predicates: Preds
                           , and: \and(Ands)
                           , remaining: Remaining
                           )
+    requires notBool isPredicatePattern(And)
   rule #liftAnd_distribute( context: Context
                           , processed: Processed
+                          , predicates: Preds
+                          , and: \and(And, Ands)
+                          , remaining: Remaining
+                          )
+    => #liftAnd_distribute( context: Context
+                          , processed: Processed ++Patterns \and(.Patterns)
+                          , predicates: Preds ++Patterns And
+                          , remaining: Remaining
+                          ) ++Patterns
+       #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , predicates: Preds
+                          , and: \and(Ands)
+                          , remaining: Remaining
+                          )
+    requires isPredicatePattern(And)
+  rule #liftAnd_distribute( context: Context
+                          , processed: Processed
+                          , predicates: Preds
                           , and: \and(.Patterns)
                           , remaining: Remaining
                           )
@@ -964,8 +1005,9 @@ single symbol applied to multiple arguments.
   rule isPredicatePattern(\or(P, Ps)) => isPredicatePattern(P) andBool isPredicatePattern(\or(Ps))
   rule isPredicatePattern(\implies(P1, P2)) => isPredicatePattern(P1) andBool isPredicatePattern(P2)
   rule isPredicatePattern(#hole { Bool }) => true
-  rule isPredicatePattern(#hole { Heap }) => false
-  rule isPredicatePattern(V:VariableName { Heap }) => false
+  rule isPredicatePattern(V:VariableName { Bool }) => true
+  rule isPredicatePattern(V:VariableName { SORT }) => false
+    requires SORT =/=K Bool
   rule isPredicatePattern(V:SetVariable) => false
 
   // TODO: This should use an axiom, similar to `functional` instead: `axiom predicate(P)`

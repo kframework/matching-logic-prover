@@ -341,6 +341,7 @@ Bring predicate constraints to the top of a term.
   // TODO: should handle symbols the same as sep
   rule #liftConstraintsPs(S:Symbol(ARGs), REST) => S(ARGs), #liftConstraintsPs(REST)
     requires S =/=K sep
+     andBool notBool isSpatialPattern(S(ARGs))
   rule #liftConstraintsPs(\and(Ps), REST) => #liftConstraintsPs(Ps ++Patterns REST)
     requires notBool isPredicatePattern(\and(Ps))
   // note the rule below assumes we hever have a pure predicate pattern inside a sep

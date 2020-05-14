@@ -405,7 +405,7 @@ Clear the `<k>` cell once we are done:
 
   syntax Pattern ::= #normalizeDefinition(Pattern) [function]
                    | #pushExistentialsDisjunction(Pattern) [function]
-  rule #normalizeDefinition(P) => #pushExistentialsDisjunction(\exists { #getExistentialVariables(P) } #dnf(#removeExistentials(P)))
+  rule #normalizeDefinition(P) => #pushExistentialsDisjunction(\exists { #getExistentialVariables(P) } #flattenAssoc(#liftOr(#nnf(\or(\and(#removeExistentials(P)))))))
   rule #pushExistentialsDisjunction(\exists{Vs} \or(Ps)) => \or(#exists(Ps, Vs))
 
   syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]

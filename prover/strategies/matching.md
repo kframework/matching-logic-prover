@@ -821,6 +821,13 @@ If there is some remaining spatial part, bring it to the front:
 Remove any spatial pattern on the RHS that matches a spatial pattern on the LHS:
 
 ```k
+    rule <claim> \implies(\and(LHS), \exists{Vs} \and(RSPATIAL, RHS))
+              => \implies(\and(LHS), \exists{Vs} \and(sep(RSPATIAL), RHS))
+         </claim>
+         <k> spatial-patterns-equal ... </k>
+      requires isSpatialPattern(RSPATIAL)
+       andBool sep(_) :/=K RSPATIAL
+
     rule <claim> \implies(\and(LHS), \exists{Vs} \and(sep(RSPATIAL), RHS)) </claim>
          <k> spatial-patterns-equal
           => with-each-match( #match( terms: \and(getSpatialPatterns(LHS))
