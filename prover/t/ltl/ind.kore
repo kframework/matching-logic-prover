@@ -10,10 +10,10 @@ axiom lin: \implies(next(#X), \not(next(\not(#X))))
 claim \implies( \and( #PHI
                     , \nu #X . \or(\exists { } \and(\implies(#PHI, next(#PHI)), next(#X)))
                     )
-              , \nu #X . \or(\exists { } \and(#PHI, next(#X)))
+              , \nu #Y . \or(\exists { } \and(#PHI, next(#Y)))
               )
 
 strategy gfp . normalize . left-unfold-Nth(0) . normalize . lift-or . and-split . normalize
-             . ( ( patterns-equal . rhs-top )
-                 | ( contradiction )
+             . ( ( contradiction )
+               | ( patterns-equal . rhs-top )
                )
