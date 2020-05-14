@@ -207,9 +207,9 @@ Recurse over assoc-only constructors (including `pto`):
   // Both term and pattern are a mu:
   // Recurse over pattern with same fresh variable for each mu term
   rule #matchAssoc( terms:     (\mu X . T), Ts
-                            => subst(T, X, !F:SetVariable), Ts
+                            => subst(#nnf(T), X, !F:SetVariable), Ts
                   , pattern:   (\mu Y . P), Ps
-                            => subst(P, Y, !F), Ps
+                            => subst(#nnf(P), Y, !F), Ps
                   , variables: Vs
                   , subst:     SUBST
                   , rest:      REST
@@ -218,9 +218,9 @@ Recurse over assoc-only constructors (including `pto`):
   // Both term and pattern are a nu:
   // Recurse over pattern with same fresh variable for each nu term
   rule #matchAssoc( terms:     (\nu X . T), Ts
-                            => subst(T, X, !F:SetVariable), Ts
+                            => subst(#nnf(T), X, !F:SetVariable), Ts
                   , pattern:   (\nu Y . P), Ps
-                            => subst(P, Y, !F), Ps
+                            => subst(#nnf(P), Y, !F), Ps
                   , variables: Vs
                   , subst:     SUBST
                   , rest:      REST
