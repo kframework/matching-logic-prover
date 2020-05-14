@@ -297,12 +297,16 @@ Internal strategy used to implement `or-split` and `and-split`.
     requires P =/=K \and(.Patterns)
 ```
 
-`contradiction` evaluates to success if the second clause is the negation of the first
-clause in the LHS conjunction
+`contradiction` evaluates to success if the LHS includes both a clause and its negation.
+TODO: This currently only checks the first two clauses
 
 ```k
-  rule <claim> \implies(\and(P, \not(P), REST), RHS) </claim>
+  rule <claim> \implies(\and(P, REST), RHS) </claim>
        <k> contradiction => success ... </k>
+    requires \not(P) in REST
+  rule <claim> \implies(\and(P, REST), RHS) </claim>
+       <k> contradiction => fail ... </k>
+    requires notBool(\not(P) in REST)
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:
