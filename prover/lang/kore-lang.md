@@ -462,6 +462,8 @@ module KORE-HELPERS
     => getFreeVariables(P, .Patterns) -Patterns Vs
   rule getFreeVariables(\mu X . P,         .Patterns)
     => getFreeVariables(P, .Patterns) -Patterns (X, .Patterns)
+  rule getFreeVariables(\nu X . P,         .Patterns)
+    => getFreeVariables(P, .Patterns) -Patterns (X, .Patterns)
 
   rule getFreeVariables(implicationContext(CONTEXT, P), .Patterns)
     => (getFreeVariables(CONTEXT, .Patterns) ++Patterns getFreeVariables(P, .Patterns))
@@ -597,6 +599,8 @@ terms. This is very non-standard. This is currently needed because the various
 unfolding strategies use this function. They should instead generate a context,
 where the term being unfolded has been replace by `#hole`.
 
+TODO: These need to use alpha equivalence rather than `==K`
+
 ```k
   syntax PatternOrVarName ::= Pattern | VariableName
   syntax Pattern ::= subst(Pattern, PatternOrVarName, Pattern)    [function, klabel(subst)]
@@ -631,6 +635,10 @@ where the term being unfolded has been replace by `#hole`.
     requires X in E orBool X in PatternsToVariableNameSet(E)
   rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V)
     requires notBool( X in E orBool X in PatternsToVariableNameSet(E) )
+  rule subst(\mu Y . P, X, V) => \mu Y . subst(P, X, V)
+    requires notBool( X ==K Y orBool X ==K \mu Y . P)
+  rule subst(\nu Y . P, X, V) => \nu Y . subst(P, X, V)
+    requires notBool( X ==K Y orBool X ==K \nu Y . P)
   rule subst(S:Symbol, X, V) => S
     requires S =/=K X
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V)
