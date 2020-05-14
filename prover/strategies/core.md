@@ -292,6 +292,9 @@ Internal strategy used to implement `or-split` and `and-split`.
 ```k
   rule <claim> \implies(LHS, \exists{.Patterns} \and(.Patterns)) </claim>
        <k> rhs-top => success ... </k>
+  rule <claim> \implies(LHS, \exists{.Patterns} P) </claim>
+       <k> rhs-top => fail ... </k>
+    requires P =/=K \and(.Patterns)
 ```
 
 `contradiction` evaluates to success if the second clause is the negation of the first
