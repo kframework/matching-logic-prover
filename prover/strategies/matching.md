@@ -243,26 +243,27 @@ Recurse over assoc-only constructors (including `pto`):
                   )
     requires notBool P in Vs
 
-  // ground variable: non-identical
   rule #matchAssoc( terms:     T, Ts
-                  , pattern:   P:Variable, Ps
+                  , pattern:   P, Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
                   )
-    => #error( "No valid substitution" ), .MatchResults
+    => #error("Ground term does not match")
     requires T =/=K P
+     andBool (isSetVariable(T) orBool isVariable(T))
      andBool notBool P in Vs
 
   // ground variable: non-identical
   rule #matchAssoc( terms:     T, Ts
-                  , pattern:   P:SetVariable, Ps
+                  , pattern:   P, Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
                   )
     => #error( "No valid substitution" ), .MatchResults
     requires T =/=K P
+     andBool (isSetVariable(P) orBool isVariable(P))
      andBool notBool P in Vs
 
   // free variable: different sorts
@@ -1027,4 +1028,3 @@ things, so the LHS becomes unsat.
 ```k
 endmodule
 ```
-
