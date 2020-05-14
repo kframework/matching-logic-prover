@@ -164,6 +164,15 @@ Recurse over assoc-only constructors (including `pto`):
                   )
     requires S =/=K sep
 
+  rule #matchAssoc( terms:     \not(T), Ts
+                            => T, Ts
+                  , pattern:   \not(P), Ps
+                            => P, Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
   // TODO: the conjunction/disjunction matching rules should be more general, i.e. aware of commutativity
   // Recursive over conjunction
   rule #matchAssoc( terms:     \and(T_ARGs), Ts
