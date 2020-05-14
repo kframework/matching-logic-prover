@@ -767,6 +767,7 @@ single symbol applied to multiple arguments.
   rule #nnf( \or(Ps)) =>  \or(#nnfPs(Ps))
   rule #nnf(\and(Ps)) => \and(#nnfPs(Ps))
   rule #nnf(\implies(L, R)) => #nnf(\or(\not(L), R))
+  rule #nnf(\exists { .Patterns } P) => #nnf(P)
 
   rule #nnf(\not(P)) => \not(P) requires isDnfAtom(P)
   rule #nnf(\not(S:Symbol(Args))) => \not(S(#nnfPs(Args)))
@@ -774,13 +775,14 @@ single symbol applied to multiple arguments.
   rule #nnf(\not(\and(Ps))) => \or(#nnfPs(#not(Ps)))
   rule #nnf(\not(\not(P))) => #nnf(P)
   rule #nnf(\not(\implies(L, R))) => #nnf(\not(\or(\not(L), R)))
+  rule #nnf(\not(\exists { .Patterns } P)) => #nnf(\not(P))
 
   syntax Bool ::= isDnfAtom(Pattern) [function]
   rule isDnfAtom(V:Variable) => true
   rule isDnfAtom(X:SetVariable) => true
   rule isDnfAtom(S:Symbol) => true
   rule isDnfAtom(\equals(L, R)) => true
-  rule isDnfAtom(\exists{Vs}_) => true
+  rule isDnfAtom(\exists{Vs}_) => true requires Vs =/=K .Patterns
   rule isDnfAtom(\forall{Vs}_) => true
   rule isDnfAtom(\mu X . _) => true
   rule isDnfAtom(\nu X . _) => true
