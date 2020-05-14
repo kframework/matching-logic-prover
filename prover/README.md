@@ -1,39 +1,64 @@
-Build Instructions
-==================
+Building
+========
 
-Install these dependencies:
+Besides the normal K dependencies, the matching logic prover also depends on
+`pandoc-tangle`, `python3` and `ninja-build`.
+On an Ubuntu Bionic (18.04) system you can install the following packages:
 
-* pandoc
-* ninja-build
-* opam
-* maven
-* openjdk-11-jdk
+```
+apt install autoconf curl flex gcc libffi-dev libmpfr-dev libtool make         \                        
+            maven ninja-build opam openjdk-8-jdk pandoc pkg-config python3     \                        
+            time zlib1g-dev                           
+```
 
-Run `./build` to run all tests.
-Run `./build .build/t/TEST-NAME.smt2.prover-smt-krun` to run an individual test.
-
-Repository Layout
-=================
-
- * `prover.md` contains the implementation
- * `direct-proof.md` contains solutions to domain specific queries that
-   can be checked against an SMT solver.
- * The `t/` directory contains a number of tests and experiments, detailed below.
-
-Tests & Experiments
+Source organization
 ===================
 
-In the `t/` directory, we have a number of tests. Each test consists of a
-"claim" (the matching logic pattern that we are trying to prove), and a
-strategy. The strategy directs the prover in choosing which axioms to apply. The
-`search-bound(N)` strategy causes the prover to begin a bounded depth first
-search for a proof of the claim. All lemmas named in the paper except one
-(`t/lsegright-list-implies-list`; see below) are proved with a search depth of 5
-or lower. The program verification example is proved with a search up to depth
-3. In addition, there is an example of a coninductive proof
-(`t/zip-zeros-ones-implies-alters.prover`; see below).
+The source code is organized under the following directories:
 
-The `t/zip-zeros-ones-implies-alters.prover` test proof is at a depth of 17,
-and so we specify the strategy to reduce the search space.
-The `t/lsegright-list-implies-list` test needs some help in instantiating
-existential variables, which is done by specifying a strategy as a substitution.
+* `drivers/`: Modules for reading input formats and converting them to the
+   matching logic `kore` format, and loading them into the configuration.
+* `lang/`: Tools for working with the source languages (kore and smtlib)
+* `strategies/`: The various proof rules are implemented as "strategies".
+
+  * `strategies/core.md`: Core strategies, such as composition and choice.
+  * `strategies/knaster-tarski.md`: Strategies relating to using the Knaster Tarki rule
+    and contexts.
+  * `strategies/unfolding.md`: Strategies relating to unfolding fixed points.
+  * `strategies/matching.md`: Strategies relating to pattern matching
+  * `strategies/smt.md`: Strategies that utilize an SMT solver.
+
+Tests & Benchmarks
+==================
+
+Organization
+-------------
+
+The tests and benchmarks are stored under the `t/` directory in the following
+subdirectories:
+
+* `t/ltl`: LTL Tests.
+* `t/sl`: Separation Logic tests and benchmarks.
+    * `t/sl/SL-COMP18/`: This is a git submodule containing all the `SL-COMP` tests.
+    * `t/sl/SL-COMP18/bench/qf_shid_entl/`: These are the benchmarks we aim to complete.
+* `t/fol`: FOL Tests.
+
+In addition, unit tests are stored under `t/unit/`
+
+File formats
+------------
+
+The prover accepts two file formats:
+
+1. `.kore`: This is the "native" matching logic based format that the prover accepts.
+2. `.smt`: This is the [SMT-LIB 2.6 format] with the [extensions for SL-COMP]
+
+[SMT-LIB 2.6 format]: http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+[extensions for SL-COMP]: https://sl-comp.github.io/docs/smtlib-sl.pdf
+
+Running tests
+=============
+
+* To run a select group of tests, called the "smoke-tests", run: `./build smoke-tests`.
+* To run a single kore test named "t/foo.kore", run `./build .build/t/foo.kore.prover-kore-run`
+* To run a single smt test named "t/foo.smt", run `./build .build/t/foo.kore.prover-smt-run`
