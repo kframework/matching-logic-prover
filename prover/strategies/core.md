@@ -60,10 +60,6 @@ module PROVER-CORE
 
 `Strategy`s can be sequentially composed via the `.` operator.
 
-```k
-  rule <k> (S . T) . U => S . (T . U) ... </k>
-```
-
 Since strategies do not live in the K cell, we must manually heat and cool.
 `ResultStrategy`s are strategies that can only be simplified when they are
 cooled back into the sequence strategy.
@@ -72,7 +68,7 @@ cooled back into the sequence strategy.
   syntax ResultStrategy ::= "#hole"
   rule <k> S1 . S2 => S1 ~> #hole . S2 ... </k>
     requires notBool(isResultStrategy(S1))
-     andBool notBool(isSequenceStrategy(S1))
+
   rule <k> S1:ResultStrategy ~> #hole . S2 => S1 . S2 ... </k>
 ```
 
