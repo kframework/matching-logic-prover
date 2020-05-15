@@ -1020,6 +1020,7 @@ single symbol applied to multiple arguments.
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\mu X . P) => false
+  rule isPredicatePattern(\nu X . P) => false
   rule isPredicatePattern(implicationContext(\and(sep(_),_),_)) => false
   rule isPredicatePattern(\typeof(_,_)) => true
   rule isPredicatePattern(implicationContext(_,_)) => true
