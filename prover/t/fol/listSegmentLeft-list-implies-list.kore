@@ -1,5 +1,5 @@
-imports "t/definitions/list.kore"
-imports "t/definitions/listSegmentLeft.kore"
+imports "t/fol/definitions/list.kore"
+imports "t/fol/definitions/listSegmentLeft.kore"
 
 
 claim \implies( \and( listSegmentLeft( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } )

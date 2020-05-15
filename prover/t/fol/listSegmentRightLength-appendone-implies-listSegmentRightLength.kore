@@ -1,4 +1,4 @@
-imports "t/definitions/listSegmentRightLength.kore"
+imports "t/fol/definitions/listSegmentRightLength.kore"
 
 claim \implies( \and( listSegmentRightLength( H { ArrayIntInt }
                                             , X { Int } 

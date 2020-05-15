@@ -8,5 +8,5 @@
 	path = prover/ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle
 [submodule "prover/t/SL-COMP18"]
-	path = prover/t/SL-COMP18
+	path = prover/t/sl/SL-COMP18
 	url = https://github.com/sl-comp/SL-COMP18/

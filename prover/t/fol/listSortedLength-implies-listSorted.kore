@@ -1,5 +1,5 @@
-imports "t/definitions/listSortedLength.kore"
-imports "t/definitions/listSorted.kore"
+imports "t/fol/definitions/listSortedLength.kore"
+imports "t/fol/definitions/listSorted.kore"
 
 claim \implies( \and( listSortedLength( H { ArrayIntInt }
                                       , X { Int }

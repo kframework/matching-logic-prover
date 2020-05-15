@@ -1,5 +1,5 @@
-imports "t/definitions/listSegmentLeftSorted.kore"
-imports "t/definitions/listSorted.kore"
+imports "t/fol/definitions/listSegmentLeftSorted.kore"
+imports "t/fol/definitions/listSorted.kore"
 
 /* lseglsorted(H, X, Y, F, PV, MAX) ==
      (X = Y and F = empty and PV <= MAX) OR

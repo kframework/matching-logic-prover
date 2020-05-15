@@ -1,5 +1,5 @@
-imports "t/definitions/bt.kore"
-imports "t/definitions/bst.kore"
+imports "t/fol/definitions/bt.kore"
+imports "t/fol/definitions/bst.kore"
 
 claim \implies( \and( bst( H { ArrayIntInt }
                          , X { Int }

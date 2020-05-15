@@ -61,8 +61,8 @@ prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module D
 # Functional tests
 # ----------------
 
-prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
-prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_kore.tests(inputs = glob('t/**/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_smt .tests(inputs = glob('t/sl/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
 
 def log_on_success(file, message):
     return proj.rule( 'log-to-success'
@@ -135,7 +135,7 @@ secondary_tests('shid_entl_unsat_tests',       't/test-lists/shid_entl.unsat')
 def test_path(name, type):
     return ".build/t/%s.%s" % (name, type)
 def sl_comp_test_path(name):
-    return test_path("SL-COMP18/bench/qf_shid_entl/%s" % name, 'prover-smt-krun')
+    return test_path("sl/SL-COMP18/bench/qf_shid_entl/%s" % name, 'prover-smt-run')
 
 proj.alias('smoke-tests', list(map( sl_comp_test_path, [ 
            "02.tst.smt2"                         , # RList trans 
@@ -152,7 +152,7 @@ proj.alias('smoke-tests', list(map( sl_comp_test_path, [
            "ls_lsrev_concat_entail_ls_1.sb.smt2" , # need unfolding within implication context
            "dll-vc05.smt2"                       , # requires footprint analysis
           ])) +
-          [ test_path('avl-implies-bst.kore', 'prover-kore-run')
+          [ test_path('fol/avl-implies-bst.kore', 'prover-kore-run')
           ]
           )
 
