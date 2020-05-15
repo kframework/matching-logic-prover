@@ -288,12 +288,12 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , ('unfold-mut-recs . ',    8,  9, '20m', ['t/SL-COMP18/bench/qf_shid_entl/eolseg_07.sb.smt2'])
              , ('unfold-mut-recs . ',    5,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/lsleftright_14.sb.smt2'])
              , ('alternate-',            3,  2, '10m', ['t/SL-COMP18/bench/qf_shid_entl/tll_slk-13.smt2'])
-             , ('abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-rev-entails-dll.smt2'])
-             , ('abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll-rev.smt2'])
-             , ('abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll0+.smt2'])
-             , ('abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/node-node-dll-entails-dll.smt2'])
-             , ('abstract . kt-unfold-', 3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/node-dll-rev-dll-entails-dll.smt2'])
-             , ('abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll_append_tail_entails_dllnull_nil.sb.smt2'])
+             , ('normalize . or-split-rhs . abstract . normalize . prune(14) . ',           5,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-rev-entails-dll.smt2'])
+             , ('normalize . or-split-rhs . abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll-rev.smt2'])
+             , ('normalize . or-split-rhs . abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll0+.smt2'])
+             , ('normalize . or-split-rhs . abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/node-node-dll-entails-dll.smt2'])
+             , ('normalize . or-split-rhs . abstract . kt-unfold-', 3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/node-dll-rev-dll-entails-dll.smt2'])
+             , ('normalize . or-split-rhs . abstract . ',           3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll_append_tail_entails_dllnull_nil.sb.smt2'])
              , ('normalize . or-split-rhs . lift-constraints . left-unfold-Nth(0) . alternate-',
                                          1,  1, '10m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-16.smt2'])
              , ('normalize . or-split-rhs . lift-constraints . left-unfold-Nth(0) . alternate-',
@@ -307,8 +307,8 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , ('kt-unfold-',            4,  4, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_lsrev_concat_entail_lsrev_2.sb.smt2'])
              , ('kt-unfold-',            4,  4, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_lsrev_concat_entail_lsrev_3.sb.smt2'])
              , ('kt-unfold-',            4,  4, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_lsrev_concat_entail_lsrev_4.sb.smt2'])
-             , ('abstract . kt-unfold-', 5,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-rev-entails-dll-mid.smt2'])
-             , ('abstract . kt-unfold-', 3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-mid-entails-dll-rev.smt2'])
+             , ('normalize . or-split-rhs . abstract . kt-unfold-', 5,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-rev-entails-dll-mid.smt2'])
+             , ('normalize . or-split-rhs . abstract . kt-unfold-', 3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dll-mid-entails-dll-rev.smt2'])
              , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dllrev_append_dll_dll_entails_dll.sb.smt2'])
              , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dllrev_append_dll_dll_entails_dllrev.sb.smt2'])
              , ('kt-unfold-',            3,  5, '10m', ['t/SL-COMP18/bench/qf_shid_entl/dllrev_append_dllrev_dll_entails_dll.sb.smt2'])
@@ -345,7 +345,7 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
                  "     . right-unfold-Nth(0, 0)"
                  "     . lift-constraints . instantiate-existentials . substitute-equals-for-equals"
                  "     . normalize . or-split-rhs . lift-constraints . instantiate-existentials"
-                 "     . match . spatial-patterns-equal . smt-cvc4"
+                 "     . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4"
                  "     )"
                  "   | ( lift-constraints . instantiate-existentials . substitute-equals-for-equals"
                  "     . right-unfold-Nth(0, 1)"
