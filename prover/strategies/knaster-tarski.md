@@ -470,7 +470,7 @@ of heaps.
                        )
        </claim>
        <k> ( #matchResult(subst: SUBST, rest: REST) ~> kt-collapse )
-        => case-analysis( \and(getPredicatePatterns(CTXLHS))
+        => case-analysis( \and(getPredicatePatterns(substPatternsMap(CTXLHS, SUBST)))
                         , lift-or . and-split . normalize-implication-context . kt-collapse-no-match
                         , kt-collapse-matched(rest: REST)
                         )
