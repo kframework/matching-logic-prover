@@ -294,7 +294,7 @@ Internal strategy used to implement `or-split` and `and-split`.
        <k> and-split => #andSplit(GOALS) ... </k>
 
   syntax Strategy ::= "#andSplit" "(" Patterns ")" [function]
-  rule #andSplit(.Patterns) => noop
+  rule #andSplit(.Patterns) => success
   rule #andSplit(P:Pattern, .Patterns) => replace-goal(P)
   rule #andSplit(P:Pattern, Ps) => replace-goal(P) &> #andSplit(Ps) [owise]
 ```
