@@ -24,11 +24,15 @@
     <declaration>
       axiom ax0 : \and ( Q ( .Patterns ) , R ( .Patterns ) , S ( .Patterns ) , .Patterns )
     </declaration> <declaration>
-      axiom q : Q ( .Patterns )
+      axiom p : P ( .Patterns )
     </declaration> <declaration>
-      axiom r : R ( .Patterns )
+      axiom q : \equals ( Q ( .Patterns ) , P ( .Patterns ) )
     </declaration> <declaration>
-      axiom s : S ( .Patterns )
+      axiom r : \equals ( R ( .Patterns ) , P ( .Patterns ) )
+    </declaration> <declaration>
+      axiom s : \equals ( S ( .Patterns ) , P ( .Patterns ) )
+    </declaration> <declaration>
+      symbol P ( .Sorts ) : Bool
     </declaration> <declaration>
       symbol Q ( .Sorts ) : Bool
     </declaration> <declaration>
