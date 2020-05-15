@@ -1,0 +1,36 @@
+<prover>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      id: ., parent: .
+      <claim>
+        \and ( .Patterns )
+      </claim>
+      <k>
+        .
+      </k>n<expected>
+        .
+      </expected>
+      <local-context>
+        .LocalDeclCellSet
+      </local-context>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom ax0 : functional ( a )
+    </declaration> <declaration>
+      axiom ax1 : \implies ( \forall { .Patterns } \forall { X { Int } , Y { A } , .Patterns } \equals ( f ( X { Int } , Y { A } , .Patterns ) , 0 ) , \equals ( f ( 3 , a ( .Patterns ) , .Patterns ) , 0 ) )
+    </declaration> <declaration>
+      sort A
+    </declaration> <declaration>
+      symbol a ( .Sorts ) : A
+    </declaration> <declaration>
+      symbol f ( Int , Int , .Sorts ) : Int
+    </declaration>
+  </declarations>
+</prover>

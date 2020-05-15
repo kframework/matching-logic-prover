@@ -1,0 +1,32 @@
+<prover>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      id: ., parent: .
+      <claim>
+        \and ( .Patterns )
+      </claim>
+      <k>
+        .
+      </k>n<expected>
+        .
+      </expected>
+      <local-context>
+        .LocalDeclCellSet
+      </local-context>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom a : foo ( foo ( 1 , \exists { X { Int } , .Patterns } X { Int } , .Patterns ) , \exists { X { Int } , .Patterns } foo ( X { Int } , 3 , .Patterns ) , .Patterns )
+    </declaration> <declaration>
+      axiom ax0 : foo ( foo ( 1 , \exists { X { Int } , .Patterns } X { Int } , .Patterns ) , foo ( \exists { X { Int } , .Patterns } X { Int } , 3 , .Patterns ) , .Patterns )
+    </declaration> <declaration>
+      symbol foo ( Int , Int , .Sorts ) : Int
+    </declaration>
+  </declarations>
+</prover>
