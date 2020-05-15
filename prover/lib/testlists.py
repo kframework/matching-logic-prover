@@ -18,43 +18,52 @@ unfold_3_5_20 = [ 't/SL-COMP18/bench/qf_shid_entl/lsevenodd_ls2_01.sb.smt2'
                 ]
 
 tst_22_strategy = """
-    normalize . or-split-rhs
-  . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+    normalize . or-split-rhs . lift-constraints 
+  . instantiate-existentials . substitute-equals-for-equals
   . kt # index(0)
-  . ( ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
-      . right-unfold-Nth(0,1)
+  . normalize . or-split-rhs . lift-constraints 
+  . instantiate-existentials . substitute-equals-for-equals
+  . instantiate-separation-logic-axioms 
+  . normalize . or-split-rhs . lift-constraints 
+  . instantiate-existentials . substitute-equals-for-equals
+  . check-lhs-constraint-unsat
+  . ( ( right-unfold-Nth(0,1)
       . right-unfold-Nth(0,0)
-      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+      . normalize . or-split-rhs . lift-constraints 
+      . instantiate-existentials . substitute-equals-for-equals
       . match
       . left-unfold-Nth(0)
-      . ( ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+      . ( ( normalize . or-split-rhs . lift-constraints 
+          . instantiate-existentials . substitute-equals-for-equals
           . right-unfold-Nth(0,0)
-          . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-          . spatial-patterns-equal . smt-cvc4
+          . normalize . or-split-rhs . lift-constraints 
+          . instantiate-existentials . substitute-equals-for-equals
+          . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
           )
         | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
           . instantiate-separation-logic-axioms
           . right-unfold-Nth(0,1)
           . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-          . match . spatial-patterns-equal . smt-cvc4
+          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
           )
         )
       )
-    | ( instantiate-separation-logic-axioms . check-lhs-constraint-unsat
-      . right-unfold-Nth(0,1)
-      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+    | ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+    | ( right-unfold-Nth(0,1)
+      . normalize . or-split-rhs . lift-constraints 
+      . instantiate-existentials . substitute-equals-for-equals
       . match
       . left-unfold-Nth(1)
       . ( ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
           . right-unfold-Nth(1,0)
           . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-          . spatial-patterns-equal . smt-cvc4
+          . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
           )
         | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
           . instantiate-separation-logic-axioms
           . right-unfold-Nth(1,1)
           . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-          . match . spatial-patterns-equal . smt-cvc4
+          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
           )
         )
       )
