@@ -1,0 +1,14 @@
+symbol Q() : Bool
+symbol R() : Bool
+symbol S() : Bool
+
+axiom q: Q()
+axiom r: R()
+axiom s: S()
+
+claim \and(Q(), R(), S())
+strategy and-split
+      .( apply(q, fail)
+      <| apply(r, fail)
+      <| apply(s, fail)
+       )
