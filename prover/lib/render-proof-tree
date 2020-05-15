@@ -49,11 +49,11 @@ next_line_is_strategy = False
 
 with open(input_file) as f:
   for line in f:
-    match = re.search(' *active: (\w*), id: (\w*\d*), parent: (\.|\w*\d*)', line)
+    match = re.search(' *id: (\w*\d*), parent: (\.|\w*\d*)', line)
     if match is not None:
-        active    = match.group(1) == 'true'
-        id        = match.group(2)
-        parent    = match.group(3)
+        active    = nodes == {}
+        id        = match.group(1)
+        parent    = match.group(2)
         node      = Goal(id, parent, active)
         nodes[id] = node
         if parent == '.': roots += [node]
