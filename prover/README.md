@@ -60,5 +60,5 @@ Running tests
 =============
 
 * To run a select group of tests, called the "smoke-tests", run: `./build smoke-tests`.
-* To run a single kore test named "t/foo.kore", run `./build .build/t/foo.kore.prover-kore-run`
-* To run a single smt test named "t/foo.smt", run `./build .build/t/foo.kore.prover-smt-run`
+* To run a single kore test named "t/path_to_test/foo.kore", run `./build .build/t/path_to_test/foo.kore.prover-kore-run`
+* To run a single smt test named "t/path_to_test/foo.smt", run `./build .build/t/path_to_test/foo.kore.prover-smt-run`
