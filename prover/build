@@ -106,7 +106,7 @@ def make_test(rule, test):
 
 def sl_comp_test(test, log_file):
     global tests_with_timeout
-    test_no_timeout   = make_test(prover_smt.krun(), test)
+    test_no_timeout   = make_test(prover_smt.krun().ext('prover-smt-run'), test)
     test_with_timeout = make_test(krun_with_timeout(timeout_for_test(test)), test) \
                           .then(log_on_success(log_file, test))
     return (test_no_timeout, test_with_timeout)
