@@ -1,0 +1,40 @@
+<prover>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      id: ., parent: .
+      <claim>
+        \and ( .Patterns )
+      </claim>
+      <k>
+        .
+      </k>n<expected>
+        .
+      </expected>
+      <local-context>
+        .LocalDeclCellSet
+      </local-context>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom ax0 : bar ( .Patterns )
+    </declaration> <declaration>
+      axiom foo_and_goo_implies_bar : \implies ( foo ( .Patterns ) , \implies ( goo ( .Patterns ) , bar ( .Patterns ) ) )
+    </declaration> <declaration>
+      axiom foo_holds : foo ( .Patterns )
+    </declaration> <declaration>
+      axiom goo_holds : goo ( .Patterns )
+    </declaration> <declaration>
+      symbol bar ( .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol foo ( .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol goo ( .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>
