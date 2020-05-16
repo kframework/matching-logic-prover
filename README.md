@@ -2,7 +2,7 @@ Building
 ========
 
 Besides the normal K dependencies, the matching logic prover also depends on
-`pandoc-tangle`, `python3` and `ninja-build`.
+`pandoc`, `python3` and `ninja-build`.
 On an Ubuntu Bionic (18.04) system you can install the following packages:
 
 ```
