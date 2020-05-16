@@ -1,12 +1,25 @@
-[submodule "prover/k/ext/kninja"]
+[submodule "separation-logic/ext/kninja"]
 	path = separation-logic/ext/kninja
 	url = https://github.com/nishantjr/kninja
-[submodule "prover/k/ext/k"]
+[submodule "separation-logic/ext/k"]
 	path = separation-logic/ext/k
 	url = https://github.com/kframework/k
-[submodule "prover/k/ext/pandoc-tangle"]
+[submodule "separation-logic/ext/pandoc-tangle"]
 	path = separation-logic/ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle
-[submodule "prover/t/SL-COMP18"]
+[submodule "separation-logic/t/sl/SL-COMP18"]
 	path = separation-logic/t/sl/SL-COMP18
+	url = https://github.com/sl-comp/SL-COMP18/
+
+[submodule "linear-temporal-logic/ext/kninja"]
+	path = linear-temporal-logic/ext/kninja
+	url = https://github.com/nishantjr/kninja
+[submodule "linear-temporal-logic/ext/k"]
+	path = linear-temporal-logic/ext/k
+	url = https://github.com/kframework/k
+[submodule "linear-temporal-logic/ext/pandoc-tangle"]
+	path = linear-temporal-logic/ext/pandoc-tangle
+	url = https://github.com/ehildenb/pandoc-tangle
+[submodule "linear-temporal-logic/sl/t/SL-COMP18"]
+	path = linear-temporal-logic/t/SL-COMP18
 	url = https://github.com/sl-comp/SL-COMP18/
