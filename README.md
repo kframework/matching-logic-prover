@@ -11,10 +11,38 @@ apt install autoconf curl flex gcc libffi-dev libmpfr-dev libtool make         \
             time zlib1g-dev                           
 ```
 
+TLDR: to run separation logic tests, run:
+
+```
+git submodule update --init --recursive
+cd separation-logic
+./build smoke-tests
+```
+
+to run linear temporal logic tests, run:
+```
+git submodule update --init --recursive
+cd linear-temporal-logic
+./build ltl-tests
+```
+
 Source organization
 ===================
 
-The source code is organized under the following directories:
+While 266 of the SL-COMP tests as well as the LTL tests have all been working
+with recent versions of the project, we have had regressions, which due to time
+and engineering constraints we were unable to fix. Still, in this material, we
+provide two versions of our project.
+
+In the `separation-logic` directory, a number of representative tests denoted
+smoke tests are verified correctly. These include examples with mutual
+recursion, framing, abstracting variables, and footprint analysis.
+
+In the `linear-temporal-logic` directory, we prove the LTL axioms that require
+induction.
+
+Within each of these directories, the source code is further organized under the
+following directories:
 
 * `drivers/`: Modules for reading input formats and converting them to the
    matching logic `kore` format, and loading them into the configuration.
@@ -59,6 +87,5 @@ The prover accepts two file formats:
 Running tests
 =============
 
-* To run a select group of tests, called the "smoke-tests", run: `./build smoke-tests`.
 * To run a single kore test named "t/path_to_test/foo.kore", run `./build .build/t/path_to_test/foo.kore.prover-kore-run`
 * To run a single smt test named "t/path_to_test/foo.smt", run `./build .build/t/path_to_test/foo.kore.prover-smt-run`
