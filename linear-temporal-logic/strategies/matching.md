@@ -249,7 +249,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     _
                   , rest:      REST
                   )
-    => #error("Ground term does not match")
+    => #error("Ground term does not match"), .MatchResults
     requires T =/=K P
      andBool (isSetVariable(T) orBool isVariable(T))
      andBool notBool P in Vs
