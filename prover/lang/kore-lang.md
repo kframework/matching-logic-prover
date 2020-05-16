@@ -582,10 +582,13 @@ where the term being unfolded has been replace by `#hole`.
     => \member(subst(LHS, X, V), subst(RHS, X, V))
   rule subst(\subseteq(LHS, RHS):Pattern, X, V)
     => \subseteq(subst(LHS, X, V), subst(RHS, X, V))
+  rule subst(\forall { .Patterns } C, X, V) => \forall { .Patterns } subst(C, X, V)
   rule subst(\forall { E } C, X, V) => \forall { E } C
-    requires X in E orBool X in PatternsToVariableNameSet(E)
+    requires ( X in E orBool X in PatternsToVariableNameSet(E) )
+       andBool E =/=K .Patterns
   rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
     requires notBool( X in E orBool X in PatternsToVariableNameSet(E) )
+     andBool E =/=K .Patterns
   rule subst(\exists { E } C, X, V) => \exists { E } C
     requires X in E orBool X in PatternsToVariableNameSet(E)
   rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V)
