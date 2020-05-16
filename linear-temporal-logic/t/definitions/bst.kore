@@ -1,0 +1,48 @@
+symbol bst(ArrayIntInt, Int, SetInt, Int, Int) : Bool
+axiom functional(bst)
+
+axiom \forall { H { ArrayIntInt }, X { Int } , F { SetInt } , MIN { Int }, MAX { Int } }
+      \iff-lfp( bst(H { ArrayIntInt }, X { Int }, F { SetInt }, MIN { Int }, MAX { Int })
+              , \or( \exists { } 
+                     \and( \equals(X { Int },0)
+                         , \equals(F { SetInt }, emptyset)
+                         )
+                   , \exists { }
+                     \and( gt(X { Int } , 0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 1)), 0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 2)), 0)
+                         , \equals(MIN { Int }, X { Int })
+                         , \equals(MAX { Int }, X { Int })
+                         , \equals(F { SetInt }, singleton(X { Int }))
+                         )
+                   , \exists { F_J1 { SetInt } , F_J2 { SetInt } , MAX_L1 { Int } , MAX_L2 { Int } , MIN_K1 { Int } , MIN_K2 { Int } , X_I1 { Int } , X_I2 { Int } }
+                     \and( bst( H { ArrayIntInt }
+                              , X_I1 { Int }
+                              , F_J1 { SetInt }
+                              , MIN_K1 { Int }
+                              , MAX_L1 { Int }
+                              )
+                         , bst( H { ArrayIntInt }
+                              , X_I2 { Int }
+                              , F_J2 { SetInt }
+                              , MIN_K2 { Int }
+                              , MAX_L2 { Int }
+                              )
+                         , gt(X { Int },0)
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 1)), X_I1 { Int })
+                         , \equals(select(H { ArrayIntInt }, plus(X { Int }, 2)), X_I2 { Int })
+                         , gt(X { Int }, MAX_L1 { Int })
+                         , gt(MIN_K2 { Int }, X { Int })
+                         , \equals(MIN_K1 { Int }, MIN { Int })
+                         , \equals(MAX_L2 { Int }, MAX { Int })
+                         , \not(isMember(X { Int }, F_J1 { SetInt }))
+                         , \not(isMember(X { Int }, F_J2 { SetInt }))
+                         , \equals(F { SetInt }, union( singleton(X { Int })
+                                           , union( F_J1 { SetInt }
+                                                  , F_J2 { SetInt })))
+                         , disjoint(F_J1 { SetInt }, F_J2 { SetInt })
+                         )
+                   )
+              )
+
+

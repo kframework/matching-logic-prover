@@ -1,0 +1,28 @@
+symbol dllLength(ArrayIntInt, Int, SetInt, Int) : Bool
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, L { Int } }
+      \iff-lfp( dllLength(H { ArrayIntInt }, X { Int }, F { SetInt }, L { Int })
+              , \or( \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, 0)
+                         , \equals(L { Int }, emptyset)
+                         , .Patterns
+                         )
+                   , \and( dllLength( H
+                              , X", !I:Int) { Int }
+                              , F", !J:Int) { SetInt }
+                              , L", !K:Int) { Int }
+                              , .Patterns
+                              )
+                         , gt(X, 0)
+                         , \equals(L", !K:Int) { Int }, minus(L { Int }, 1))
+                         , gt(X", !I:Int) { Int } , 0)
+                         , \equals( X", !I:Int) { Int }
+                                  , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , \equals( X { Int }
+                                  , select(H { ArrayIntInt }, plus(X", !I:Int) { Int }, 2)))
+                         , \not(isMember(X { Int }, F", !J:Int) { SetInt }))
+                         , \equals(F { SetInt }, union(F", !J:Int) { SetInt }, singleton(X { Int })))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

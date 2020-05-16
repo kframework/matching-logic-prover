@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+
+import sys
+import shutil
+from os                 import (path, environ)
+from lib.testlists      import *
+
+repo_dir = path.dirname(__file__)
+sys.path.append(path.join(repo_dir, 'ext/'))
+from kninja import *
+environ['PATH'] = path.join(repo_dir, 'ext/k-light/bin/') + ':' + environ['PATH']
+
+# Project Definition
+# ==================
+
+proj = KProject()
+
+# Matching Logic Prover
+# =====================
+
+other_md_files = [ 'lang/smt-lang.md'
+                 , 'lang/kore-lang.md'
+                 , 'drivers/base.md'
+                 , 'drivers/smt-driver.md'
+                 , 'drivers/kore-driver.md'
+                 , 'strategies/apply.md'
+                 , 'strategies/apply-equation.md'
+                 , 'strategies/core.md'
+                 , 'strategies/duplicate.md'
+                 , 'strategies/instantiate-universals.md'
+                 , 'strategies/inst-exists.md'
+                 , 'strategies/intros.md'
+                 , 'strategies/knaster-tarski.md'
+                 , 'strategies/matching.md'
+                 , 'strategies/reflexivity.md'
+                 , 'strategies/replace-evar-with-func-constant.md'
+                 , 'strategies/simplification.md'
+                 , 'strategies/search-bound.md'
+                 , 'strategies/smt.md'
+                 , 'strategies/unfolding.md'
+                 , 'utils/error.md'
+                 , 'utils/instantiate-assumptions.md'
+                 , 'utils/load-named.md'
+                 , 'utils/heatcool.md'
+                 , 'utils/syntactic-match.md'
+                 , 'utils/visitor.md'
+                 ]
+
+def prover(alias, flags = None):
+    return proj.definition( alias = alias
+                          , backend = 'ocaml'
+                          , main = 'prover.md'
+                          , other = other_md_files
+                          , runner_script = './prover'
+                          , flags = flags
+                          )
+
+prover_kore = prover('prover-kore', '--main-module DRIVER-KORE --syntax-module DRIVER-KORE-SYNTAX')
+prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module DRIVER-SMT-SYNTAX' )
+
+# Functional tests
+# ----------------
+
+prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_kore.tests(inputs = glob('t/ltl/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
+
+def log_on_success(file, message):
+    return proj.rule( 'log-to-success'
+                    , description = '$out: $message'
+                    , command = "echo '$message' >> '$log_file'"
+                    ) \
+               .variable('log_file', file) \
+               .variable('message',  message) \
+               .ext(file.replace('/', '.'))
+
+def krun_with_timeout(timeout_flags):
+    # TODO: This timeout functionality should become a part of the runner script
+    # or KNinja
+    timeout_cmd = 'gtimeout' if shutil.which("gtimeout") else 'timeout'
+    return prover_smt.krun() \
+                     .ext('timeout') \
+                     .variable('env', timeout_cmd + ' ' + timeout_flags + ' opam config exec --') \
+
+def config_for_test(test):
+    for list_config in test_lists:
+        prefix, ktbound, unfold_bound, timeout, list = list_config
+        passing = True
+        if test in list: return (prefix, ktbound, unfold_bound, timeout, passing)
+    return ("unfold-mut-recs . ", 5, 12, '20m', False)
+def strategy_for_test(test):
+    (prefix, ktbound, unfold_bound, timeout, passing) = config_for_test(test)
+    strategy = prefix + 'search-sl(kt-bound: %d, unfold-bound: %d)' % (ktbound, unfold_bound)
+    return strategy
+def timeout_for_test(test):
+    (prefix, ktbound, unfold_bound, timeout, passing) = config_for_test(test)
+    return timeout
+def known_passing(test):
+    (prefix, ktbound, unfold_bound, timeout, passing) = config_for_test(test)
+    return passing
+
+def make_test(rule, test):
+    commandline = "'--default-strategy %s'" % strategy_for_test(test)
+    return proj.source(test) \
+               .then(rule.variable('flags', '-cCOMMANDLINE=%s' % commandline))
+
+def sl_comp_test(test, log_file):
+    global tests_with_timeout
+    test_no_timeout   = make_test(prover_smt.krun(), test)
+    test_with_timeout = make_test(krun_with_timeout(timeout_for_test(test)), test) \
+                          .then(log_on_success(log_file, test))
+    return (test_no_timeout, test_with_timeout)
+
+known_passing_tests = []
+remaining_tests     = []
+for t in qf_shid_entl_unsat_tests:
+    (test_no_timeout, test_with_timeout) = sl_comp_test(t, '.build/passed')
+    if known_passing(t): known_passing_tests += [test_with_timeout]
+    else:                remaining_tests     += [test_with_timeout]
+proj.alias('known-passing',   known_passing_tests).default()
+proj.alias('remaining-tests', remaining_tests)
+print('known-passing:', len(known_passing_tests))
+
+def secondary_tests(alias, file):
+    list = read_list(file)
+    tests = []
+    for t in list:
+        (test_no_timeout , test_with_timeout) = sl_comp_test(t, '.build/%s.passed' % alias)
+        tests += [test_with_timeout]
+    proj.alias(alias, tests)
+secondary_tests('qf_shidlia_entl_unsat_tests', 't/test-lists/qf_shidlia_entl.unsat')
+secondary_tests('qf_shlid_entl_unsat_tests',   't/test-lists/qf_shlid_entl.unsat')
+secondary_tests('shid_entl_unsat_tests',       't/test-lists/shid_entl.unsat')
+
+# TODO: Why are smt tests `-krun` and kore tests `-run`?
+def test_path(name, type):
+    return ".build/t/%s.%s" % (name, type)
+def sl_comp_test_path(name):
+    return test_path("SL-COMP18/bench/qf_shid_entl/%s" % name, 'prover-smt-krun')
+
+proj.alias('ltl-tests',
+          [ test_path('ltl/ind.kore', 'prover-kore-run')
+          , test_path('ltl/always-propagates.kore', 'prover-kore-run')
+          , test_path('ltl/until-implies-eventually.kore', 'prover-kore-run')
+          ]
+          )
+
+# Unit Tests
+# ----------
+
+unit_tests_sources = glob('t/unit/*.k')
+test_driver = proj.definition( alias = 'test-driver'
+                             , backend = 'ocaml'
+                             , main = 'drivers/unit-tests.md'
+                             , other = other_md_files + ['prover.md'] + unit_tests_sources
+                             , runner_script = './prover'
+                             , flags = '-I . --main-module DRIVER-UNIT-TEST' # -ccopt -O0'
+                             )
+proj.alias('unit-tests'
+          , [ proj.source('t/unit/unit-tests')
+                  .then(test_driver.krun()
+                                   .variable('flags', '-cCOMMANDLINE=.CommandLine')
+                       )
+            ]
+          ).default()
+
+if __name__ == "__main__": proj.main()

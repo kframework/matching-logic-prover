@@ -1,0 +1,20 @@
+symbol listSorted(ArrayIntInt, Int, SetInt, Int) : Bool
+axiom functional(listSorted)
+
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int } }
+      \iff-lfp( listSorted(H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int })
+              , \or( \exists { }
+                     \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, emptyset)
+                         )
+                   , \exists { F_I { SetInt } , VAL_I { Int } , X_I { Int } }
+                     \and( listSorted(H { ArrayIntInt }, X_I { Int }, F_I { SetInt }, VAL_I { Int })
+                         , gt(X { Int }, 0)
+                         , \equals(select(H { ArrayIntInt }, X { Int }) , X_I { Int })
+                         , \equals(F { SetInt } , union(F_I { SetInt }, singleton(X { Int })))
+                         , disjoint(F_I { SetInt }, singleton(X { Int }))
+                         , \equals(VAL_I { Int } , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , gt(VAL_I { Int }, PREV_VAL { Int })
+                         )
+                   )
+              )

@@ -1,0 +1,26 @@
+symbol bt(ArrayIntInt, Int, SetInt) : Bool
+axiom functional(bt)
+
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt } }
+      \iff-lfp( bt(H { ArrayIntInt }, X { Int }, F { SetInt } )
+              , \or( \exists { }
+                     \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt } , emptyset)
+                         )
+                   , \exists {  F_J1 { SetInt } , F_J2 { SetInt } , X_I1 { Int } , X_I2 { Int } }
+                     \and( bt(H { ArrayIntInt }, X_I1 { Int }, F_J1 { SetInt })
+                         , bt(H { ArrayIntInt }, X_I2 { Int }, F_J2 { SetInt })
+                         , gt(X { Int }, 0)
+                         , \equals( X_I1 { Int }
+                                  , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , \equals( X_I2 { Int }
+                                  , select(H { ArrayIntInt }, plus(X { Int }, 2)))
+                         , \not(isMember(X { Int }, F_J1 { SetInt }))
+                         , \not(isMember(X { Int }, F_J2 { SetInt }))
+                         , \equals(F { SetInt } , union( singleton(X { Int })
+                                           , union( F_J1 { SetInt }
+                                                  , F_J2 { SetInt })))
+                         , disjoint(F_J1 { SetInt }, F_J2 { SetInt })
+                         )
+                   )
+              )

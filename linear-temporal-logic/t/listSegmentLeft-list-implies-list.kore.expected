@@ -1,0 +1,39 @@
+<prover>
+  <k>
+    .
+  </k>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <k>
+        \implies ( \and ( listSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , list ( H { ArrayIntInt } , Y { Int } , G { SetInt } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , .Patterns ) , \and ( list ( H { ArrayIntInt } , X { Int } , K { SetInt } , .Patterns ) , .Patterns ) )
+      </k>
+      <strategy>
+        success
+      </strategy>
+      <expected>
+        success
+      </expected>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { H { ArrayIntInt } , X { Int } , F { SetInt } , .Patterns } \iff-lfp ( list ( H { ArrayIntInt } , X { Int } , F { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( X { Int } , 0 ) , \equals ( F { SetInt } , emptyset ) , .Patterns ) , \exists { F1 { SetInt } , X1 { Int } , .Patterns } \and ( list ( H { ArrayIntInt } , X1 { Int } , F1 { SetInt } , .Patterns ) , gt ( X { Int } , 0 , .Patterns ) , \equals ( select ( H { ArrayIntInt } , X { Int } , .Patterns ) , X1 { Int } ) , \equals ( F { SetInt } , union ( F1 { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) ) , disjoint ( F1 { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom \forall { H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns } \iff-lfp ( listSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( X { Int } , Y { Int } ) , \equals ( F { SetInt } , emptyset ) , .Patterns ) , \exists { X1 { Int } , F1 { SetInt } , .Patterns } \and ( gt ( X { Int } , 0 , .Patterns ) , listSegmentLeft ( H { ArrayIntInt } , X1 { Int } , Y { Int } , F1 { SetInt } , .Patterns ) , \equals ( select ( H { ArrayIntInt } , X { Int } , .Patterns ) , X1 { Int } ) , \equals ( F { SetInt } , union ( F1 { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) ) , disjoint ( F1 { SetInt } , singleton ( X { Int } , .Patterns ) , .Patterns ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( list )
+    </declaration> <declaration>
+      axiom functional ( listSegmentLeft )
+    </declaration> <declaration>
+      symbol list ( ArrayIntInt , Int , SetInt , .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol listSegmentLeft ( ArrayIntInt , Int , Int , SetInt , .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>

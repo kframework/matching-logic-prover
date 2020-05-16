@@ -1,0 +1,53 @@
+Remaining qf_shid_entl_unsat tests
+==================================
+
+t/SL-COMP18/bench/qf_shid_entl/22.tst.smt2
+ - special case
+
+t/SL-COMP18/bench/qf_shid_entl/dll-spaghetti.smt2
+t/SL-COMP18/bench/qf_shid_entl/dll2-spaghetti.smt2
+ - Framing on recursive patterns. (try these later; large obligations!)
+
+t/SL-COMP18/bench/qf_shid_entl/dll-vc05.smt2
+t/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2
+t/SL-COMP18/bench/qf_shid_entl/dll-vc11.smt2
+t/SL-COMP18/bench/qf_shid_entl/dll-vc17.smt2
+ - Requires to prove LHS unsat.
+ - 05,11,17: RU ~> PM ~> Realize to prove LHS unsat ~> matched-LHS -> \exists c d . y |-> <c,d>
+ - 07: RU ~> PM ~> Split spatial/constraints ~> (spatial just PM) ~> for constraints: Left-Unfold
+
+t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_14.sb.smt2
+t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_15.sb.smt2
+t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_16.sb.smt2
+ - will go through but take too long
+
+t/SL-COMP18/bench/qf_shid_entl/lsegex4_slk-1.smt2
+ - special case
+
+t/SL-COMP18/bench/qf_shid_entl/nll-vc03.smt2
+t/SL-COMP18/bench/qf_shid_entl/nll-vc04.smt2
+t/SL-COMP18/bench/qf_shid_entl/nll-vc08.smt2
+t/SL-COMP18/bench/qf_shid_entl/nll-vc10.smt2
+ - Framing
+ 
+t/SL-COMP18/bench/qf_shid_entl/odd-lseg3_slk-5.smt2
+ - know how to prove
+ - require an *Abstraction* on variables (not nil)
+ - turn RHS (olseg b b ) into (olseg b k), where k is fresh (i.e., abstraction). 
+
+t/SL-COMP18/bench/qf_shid_entl/skl3-vc04.smt2
+t/SL-COMP18/bench/qf_shid_entl/skl3-vc05.smt2
+t/SL-COMP18/bench/qf_shid_entl/skl3-vc06.smt2
+t/SL-COMP18/bench/qf_shid_entl/skl3-vc07.smt2
+t/SL-COMP18/bench/qf_shid_entl/skl3-vc08.smt2
+t/SL-COMP18/bench/qf_shid_entl/skl3-vc09.smt2
+t/SL-COMP18/bench/qf_shid_entl/skl3-vc10.smt2
+ - Framing; skl3-vc04,5,6 are songbird failures
+
+t/SL-COMP18/bench/qf_shid_entl/tll-pp-entails-tll-pp-rev.smt2
+ - ??
+
+t/SL-COMP18/bench/qf_shid_entl/tll-pp-rev-entails-tll-pp.smt2
+t/SL-COMP18/bench/qf_shid_entl/tree-pp-entails-tree-pp-rev.smt2
+t/SL-COMP18/bench/qf_shid_entl/tree-pp-rev-entails-tree-pp.smt2
+ - songbird failures

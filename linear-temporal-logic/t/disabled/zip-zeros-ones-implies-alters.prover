@@ -1,0 +1,82 @@
+claim \implies( \and( zeros(H0 { ArrayIntInt }, S0 { Int }, .Patterns)
+                    , ones (H1 { ArrayIntInt }, S1 { Int }, .Patterns)
+                    , alternating (HA { ArrayIntInt }, SA { Int }, .Patterns)
+                    , zip( H0 { ArrayIntInt }
+                         , S0 { Int }
+                         , H1 { ArrayIntInt }
+                         , S1 { Int }
+                         , HZ { ArrayIntInt }
+                         , SZ { Int }
+                         , .Patterns
+                         )
+                    , .Patterns
+                    )
+              , \and( same( HA { ArrayIntInt }
+                          , SA { Int } 
+                          , HZ { ArrayIntInt } 
+                          , SZ { Int }
+                          , .Patterns
+                          )
+                    , .Patterns
+                    )
+              )
+
+strategy kt-gfp ; simplify
+       ; right-unfold-Nth(1, 0) ; simplify 
+       ; kt-gfp # head(zip) # useAffectedHeuristic ; simplify
+       ; left-unfold-Nth(0) // zeros
+       ; left-unfold-Nth(0) // ones
+       ; left-unfold-Nth(0) // alternating
+       ; left-unfold-Nth(0) // zip
+       ; left-unfold-Nth(3) // zip
+       ; left-unfold-Nth(3) // zip
+       ; left-unfold-Nth(0) // zeros
+       ; right-unfold-Nth(0, 0) // zero
+       ; right-unfold-Nth(0, 0) // ones
+       ; right-unfold-Nth(0, 0) // zip
+       ; right-unfold-Nth(5, 0) // zip
+       ; right-unfold-Nth(5, 0) // zip
+       ; right-unfold-Nth(3, 0) // zeros
+       ; simplify ; direct-proof
+
+
+/*
+      \implies ( \and ( zeros ( H0 { ArrayIntInt } , S0 { Int } , .Patterns ) 
+                      , ones ( H1 { ArrayIntInt } , S1 { Int } , .Patterns ) 
+                      , alternating ( HA { ArrayIntInt } , SA { Int } , .Patterns ) 
+                      , zip ( H0 { ArrayIntInt } 
+                            , S0 { Int } 
+                            , H1 { ArrayIntInt } 
+                            , S1 { Int } 
+                            , HZ { ArrayIntInt } 
+                            , SZ { Int } 
+                            , .Patterns ) 
+                      , .Patterns ) 
+               , \and (
+                      // right-unfold forced by alternating 2x: zeros, 1x: ones; 3x for zip
+                      , zeros ( H0" , 8 ) { ArrayIntInt } , S0" , 9 ) { Int } , .Patterns ) 
+                      , ones ( H1" , 10 ) { ArrayIntInt } , S1" , 11 ) { Int } , .Patterns ) 
+                      , zip ( H0" , 8 ) { ArrayIntInt } 
+                            , S0" , 9 ) { Int } 
+                            , H1" , 10 ) { ArrayIntInt } 
+                            , S1" , 11 ) { Int } 
+                            , HZ { ArrayIntInt } 
+                            , SZ { Int } 
+                            , .Patterns ) 
+
+                      // Needs 3 left-unfolds of zip ; 
+                      , \equals ( select ( HZ { ArrayIntInt } , plus ( SZ { Int } , 2 ) )
+                                , select ( H0" , 2 ) { ArrayIntInt } , S0" , 3 ) { Int } ) ) 
+                      , zeros ( H0" , 2 ) { ArrayIntInt } , S0" , 3 ) { Int } , .Patterns ) 
+
+                      // Needs left-unfold of zeros; ones; alternating
+                      , alternating ( HA { ArrayIntInt } , plus ( SA { Int } , 2 ) , .Patterns ) 
+                      , \equals ( select ( HA { ArrayIntInt } , SA { Int } ) , select ( HZ { ArrayIntInt } , SZ { Int } ) ) 
+                      , \equals ( select ( HA { ArrayIntInt } , plus ( SA { Int } , 1 ) )
+                                , select ( HZ { ArrayIntInt } , plus ( SZ { Int } , 1 ) ) ) 
+
+                      , ones ( H1" , 4 ) { ArrayIntInt } , plus ( S1" , 5 ) { Int } , 1 ) , .Patterns ) 
+                      , \equals ( select ( H1" , 4 ) { ArrayIntInt } , S1" , 5 ) { Int } ) , 1 ) 
+                      , .Patterns ) 
+               )
+*/

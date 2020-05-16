@@ -1,0 +1,31 @@
+claim \implies( \and( dllSegmentLeft ( 
+                            H { ArrayIntInt }
+                          , X { Int }
+                          , Y { Int }
+                          , F { SetInt }
+                          )
+                    , dll ( H { ArrayIntInt }
+                          , Y { Int }
+                          , G { SetInt }
+                          )
+                    , \equals( K { SetInt }
+                             , union( F { SetInt }
+                                    , G { SetInt }
+                                    )
+                             )
+                    , disjoint( F { SetInt }
+                              , G { SetInt }
+                              )
+                    )
+              , \and( dll ( H { ArrayIntInt }
+                          , X { Int }
+                          , K { SetInt }
+                          )
+                    )
+              )
+// strategy search-bound(3)
+strategy simplify  ; kt ; normalize 
+       ; ( (simplify ; instantiate-existentials ; smt)
+         | (simplify ; right-unfold-Nth(0,1) ; simplify ; instantiate-existentials ; wait)
+         | (wait)
+         )

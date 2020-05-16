@@ -1,0 +1,32 @@
+claim \implies( \and( listSegmentRightLength( H { ArrayIntInt }
+                                            , X { Int } 
+                                            , Y { Int } 
+                                            , FA { SetInt } 
+                                            , LA { Int }
+                                            ) 
+                    , listSegmentRightLength( H { ArrayIntInt } 
+                                            , Y { Int } 
+                                            , Z { Int } 
+                                            , FB { SetInt } 
+                                            , LB { Int }
+                                            )
+                    , \equals(F { SetInt }, union(FA { SetInt }, FB { SetInt }))
+                    , disjoint(FA { SetInt }, FB { SetInt })
+                    , \equals(LENGTH { Int }, plus(LA { Int }, LB { Int }))
+                    )
+              , \and( listSegmentRightLength( H { ArrayIntInt } 
+                                            , X { Int } 
+                                            , Z { Int } 
+                                            , F { SetInt } 
+                                            , LENGTH { Int }
+                                            )
+                   )
+              ) 
+strategy search-bound(3)
+/*
+strategy kt # index(1) # useAffectedHeuristic
+         ; ( direct-proof
+           | ( simplify ; direct-proof )
+           | ( right-unfold-Nth(0, 1) ; simplify ; direct-proof ) 
+           )
+*/
