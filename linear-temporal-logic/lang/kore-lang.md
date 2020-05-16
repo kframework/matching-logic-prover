@@ -783,6 +783,7 @@ single symbol applied to multiple arguments.
   rule isDnfAtom(S:Symbol) => true
   rule isDnfAtom(\equals(L, R)) => true
   rule isDnfAtom(\exists{Vs}_) => true requires Vs =/=K .Patterns
+  rule isDnfAtom(\exists{.Patterns}P) => isDnfAtom(P)
   rule isDnfAtom(\forall{Vs}_) => true
   rule isDnfAtom(\mu X . _) => true
   rule isDnfAtom(\nu X . _) => true
