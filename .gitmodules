@@ -1,12 +1,12 @@
 [submodule "prover/k/ext/kninja"]
-	path = ext/kninja
+	path = separation-logic/ext/kninja
 	url = https://github.com/nishantjr/kninja
 [submodule "prover/k/ext/k"]
-	path = ext/k
+	path = separation-logic/ext/k
 	url = https://github.com/kframework/k
 [submodule "prover/k/ext/pandoc-tangle"]
-	path = ext/pandoc-tangle
+	path = separation-logic/ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle
 [submodule "prover/t/SL-COMP18"]
-	path = t/sl/SL-COMP18
+	path = separation-logic/t/sl/SL-COMP18
 	url = https://github.com/sl-comp/SL-COMP18/
