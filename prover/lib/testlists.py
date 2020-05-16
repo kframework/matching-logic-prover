@@ -252,7 +252,7 @@ skl3_vc10_strategy = """
 """.replace('\n', ' ')
 
     #         prefix   KT  RU timeout tests
-test_lists = [ ('unfold-mut-recs . wait . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
+test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/passing-3-3-5'))
              , ('unfold-mut-recs . ',    5, 12, '40m', read_list('t/test-lists/passing-5-12-40'))
              , ('unfold-mut-recs . ',    5,  6, '20m', read_list('t/test-lists/qf_shid_entl.unsat.5'))
              , ('unfold-mut-recs . ',    5,  9, '20m', read_list('t/test-lists/qf_shid_entl.unsat.8'))
