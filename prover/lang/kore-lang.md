@@ -195,7 +195,7 @@ only in this scenario*.
   syntax Declarations ::= Declaration Declarations
   syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
 
-  syntax VariableName ::= "#hole"
+  syntax VariableName ::= "#hole" [token]
 
   // Sugar for `\exists #hole . #hole /\ floor(Arg1 -> Arg2)
   syntax Pattern ::= implicationContext(Pattern, Pattern) [klabel(implicationContext)]
