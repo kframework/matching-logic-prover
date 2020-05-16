@@ -268,7 +268,7 @@ for guessing an instantiation of the inductive hypothesis.
 ```k
   syntax Strategy ::= "kt-unwrap"
   rule <claim> \implies(LHS, \forall { UNIV } implicationContext(CTX, RHS))
-        => \implies(subst(CTX, #hole { Bool }, LHS), RHS)
+        => \implies(subst(CTX, #hole, LHS), RHS)
        </claim>
        <k> kt-unwrap => noop ... </k>
 ```
