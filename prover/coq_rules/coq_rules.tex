@@ -343,8 +343,8 @@ Remove local definitions occurring in terms \\
 \end{center}
 In addition to the above convertibility rules, we also allow identifying a term
 $t$ of type $\cfa{x}{t}{U}$ with its \emph{$\eta$-expansion} $\clm{x}{T}{(t x)}$
-for $x$ fresh in $t$. Note \emph{$\eta$-reduction} is deliberately not defined
-(TODO: show example?).
+for $x$ fresh in $t$. Note \emph{$\eta$-reduction} is deliberately not defined.
+% TODO: show example?
 
 \begin{notation}
 We write $E[\Gamma] \vdash t \red u$ for the contextual closure of the rules
@@ -365,7 +365,22 @@ context $\Gamma$ iff there exists $t_1, t_2$ such that
 \[ E[\Gamma] \vdash t_1 \red \ldots \red u_1 \text{  and  } E[\Gamma] \vdash t_2 \red \ldots \red u_2  \]
 and either $u_1$ and $u_2$ are identical up irrelevant subterms, or they are
 convertible up to $\eta$-exxpansion. We denote this as
-$E[\Gamma] \vdash t_1 =_{\beta\delta\iota\zeta\eta} t_2$
+$E[\Gamma] \vdash t_1 \conveq t_2$
 \end{definition}
+
+\subsection{Subtyping Rules}
+The \emph{subtyping} relation is inductively defined as follows:
+% TODO: display as proof rules?
+\begin{itemize}
+\item if $E[\Gamma] \vdash t \conveq u$, then $E[\Gamma] \vdash t \subty u$
+\item if $i \leq j$, then $E[\Gamma] \vdash \Type(i) \subty \Type(j)$
+\item $E[\Gamma] \vdash \Set \subty \Type(i)$ for all $i$
+\item $E[\Gamma] \vdash \Prop \subty \Set$
+\item if $E[\Gamma] \vdash T \conveq U$ and
+  $E[\Gamma \dcln (\lasm{x}{T})] \vdash T' \subty U'$, then
+  $E[\Gamma] \vdash \cfa{x}{T}{T'} \subty \cfa{x}{U}{U'}$
+\end{itemize}
+
+\subsection{Conversion/Subtyping: Polymorphic Universes}
 
 \end{document}
