@@ -383,4 +383,123 @@ The \emph{subtyping} relation is inductively defined as follows:
 
 \subsection{Conversion/Subtyping: Polymorphic Universes}
 
+\subsection{Conversion Typing Rule}
+We now have the infrastructure to define the typing rule for conversion:
+\[
+\prule{Conv}\hspace{5ex}
+\prftree
+{E[\Gamma] \vdash \lasm{U}{s}}
+{E[\Gamma] \vdash \lasm{t}{T}}
+{E[\Gamma] T \subty U}
+{E[\Gamma] \vdash \lasm{t}{U}}
+\]
+
+\subsection{Inductive Definitions}
+\begin{definition}
+We represent an \emph{inductive definition} as $\Ind{p}{\Gamma_I}{\Gamma_C}$ where
+\begin{itemize}
+\item $p$ represents the number of parameters of the inductive types
+\item $\Gamma_I$ represents the names and types of inductive types
+\item $\Gamma_C$ represents the names and types of the constructors of the inductive types
+\end{itemize}
+\end{definition}
+
+\begin{definition}
+Let $\Ind{p}{\Gamma_I}{\Gamma_C}$ be an inductive definition and let $T$ be such
+that $(t \cln T) \in \Gamma_I \cup \Gamma_C$. Then, there exists a
+$\Gamma_P = [a_1 \cln A_1 \scln \ldots \scln a_p \cln A_p]$ such that $T$ can be
+written as $\forall \Gamma_P, T'$ for some $T'$. Here $\Gamma_P$ is called the
+\emph{context of paramters}.
+
+Additionaly, if $(t \cln T) \in \Gamma_I$, then $T$ can be written as
+$\forall \Gamma_P, \Gamma_{\mathit{Arr}(t)}, s$. Here, $\mathit{Arr}(t)$ is
+called the \emph{Arity} of the inductive type $t$ and $s$ is called the sort of
+$t$.
+\end{definition}
+
+\begin{example}
+The inductive definition for parameterized lists is:
+\[
+\Ind{1}{\begin{bmatrix} \mathsf{list} \cln \Set \rightarrow \Set \end{bmatrix}}
+    {\begin{bmatrix*}[l]
+        \mathsf{nil}\, &: \,\forall A \cln \Set,\, \mathsf{list}\, A \\
+        \mathsf{cons}\, &: \, \forall A \cln \Set,\, A\, \rightarrow\, \mathsf{list}\, A\,
+          \rightarrow\, \mathsf{list}\, A
+    \end{bmatrix*}}
+\]
+This corresponds to the Coq definition:
+\begin{verbatim}
+Inductive list (A:Set) : Set :=
+| nil : list A
+| cons : A -> list A -> list A.
+\end{verbatim}
+\end{example}
+
+Below are rules for types of constants in a global environment that contain an
+inductive definition:
+\[
+\prule{Ind}\hspace{5ex}
+\prftree
+{\wf(E)[\Gamma]}
+{\Ind{p}{\Gamma_I}{\Gamma_C} \in E}
+{\lasm{a}{A} \in \Gamma_I}
+{E[\Gamma] \vdash \lasm{a}{A}}
+\]
+\[
+\prule{Constr}\hspace{5ex}
+\prftree
+{\wf(E)[\Gamma]}
+{\Ind{p}{\Gamma_I}{\Gamma_C} \in E}
+{\lasm{c}{C} \in \Gamma_C}
+{E[\Gamma] \vdash \lasm{c}{C}}
+\]
+
+\begin{definition}
+A type $T$ is an \emph{arity of sort $s$} if it converts to the sort $s$ or to a
+product $\cfa{x}{T}{U}$ with $U$ an arity of sort $s$.
+\end{definition}
+\begin{definition}
+A type $T$ is an \emph{arity} if there is an $s \in S$ such that $T$ is an arity
+of sort $s$.
+\end{definition}
+
+\begin{definition}
+A type $T$ is a \emph{type of constructor of $I$} if $T$ is $(I\, t_1 \ldots t_n)$ or
+$T$ is $\cfa{x}{U}{T'}$ where $T'$ is a type of constructor of $I$.
+\end{definition}
+
+\begin{definition}
+A type of constructor $T$ is said to \emph{satisfy the positivity condition} for
+$X$ if $T = (X\, t_1 \ldots t_n)$ and $X$ does not occur free in any $t_i$, or
+$T = \cfa{x}{U}{V}$ where $X$ occurs only strictly positively in $U$ and
+$V$ satisfies the positivity condition for $X$.
+\end{definition}
+\begin{definition}
+A constant $X$ occurs \emph{strictly positive} in $T$ if one of the following
+cases hold:
+\begin{itemize}
+\item $X$ does not occur in $T$
+\item $T$ converts to $(X\, t_1 \ldots t_n)$ and $X$ does not occur in any $T_i$
+\item $T$ converts to $\cfa{x}{U}{V}$ where $X$ does not occur in $U$ and
+  $X$ occurs strictly positively in $V$
+\item $T$ converts to $(I\, a_1\ldots a_m\, t_1\ldots t_p)$ where $I$ represents
+  the inductive definition
+  \[\Ind{m}{\lasm{I}{A}}{\lasm{c_1}{\forall p_1 \cln P_1, \ldots \forall p_m \cln P_m, C_1}
+    \scln \ldots \lasm{c_n}{\forall p_1 \cln P_1, \ldots \forall p_m \cln P_m, C_n}}
+  \]
+  and $X$ does not occur in any of the $t_i$, and all instantiated types of
+  constructors $C_i\{p_j/a_j\}_{j=1\ldots m}$ satisfy the nested positivity
+  condition for $X$
+\end{itemize}
+\end{definition}
+\begin{definition}
+A type of constructor $T$ of $I$ is said to \emph{satisfy the nested positivity
+  condition} for $X$ if $T = (I\, b_1 \ldots b_n u_1 \ldots u_p)$ where $I$ is
+an inductive type with $m$ paramters and $X$ does not occur in any $u_i$, or
+$T = \cfa{x}{U}{V}$ where $X$ occurs only strictly positively in $U$ and $V$
+satisfies the nested positivity condition for $X$.
+\end{definition}
+
+\subsubsection{Correctness Rules}
+
 \end{document}
