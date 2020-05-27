@@ -243,7 +243,7 @@ module CVC4
   syntax CheckSATResult ::= "CheckSAT.doClose"  "(" /*Prelude*/String "," /*Query*/String "," IOFile "," K ")" [function]
   syntax CheckSATResult ::= "CheckSAT.doSystem" "(" /*Prelude*/String "," /*Query*/String "," String "," K ")" [function]
   rule CheckSATHelper(P, Q)
-    => CheckSAT.doWrite(P, Q, #mkstemp("query-XXXXXX.smt"))
+    => CheckSAT.doWrite(P, Q, #mkstemp("/tmp/smt-query-XXXXXX"))
   rule CheckSAT.doWrite(P, Q, #tempFile(FN, FD))
     => CheckSAT.doClose(P, Q, #tempFile(FN, FD), #write(FD, Q))
   rule CheckSAT.doClose(P, Q, #tempFile(FN, FD), .K)
