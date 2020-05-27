@@ -253,8 +253,6 @@ module CVC4
 					             +String FN
 			    +String " | " +String "cvc4 --lang smt --tlimit 5000 "))
 
-  rule CheckSAT.doWrite(_, _, E:IOError) => #error(E)
-
   syntax CheckSATResult ::= "CheckSAT.parseResult" "(" KItem ")" [function]
   rule CheckSAT.parseResult(#systemResult(0, "sat\n", STDERR))     => sat
   rule CheckSAT.parseResult(#systemResult(0, "unsat\n", STDERR))   => unsat
