@@ -1,9 +1,11 @@
-module TEST-VISITOR
-  imports UNIT-TEST
+requires "drivers/unit-tests.k"
+
+module UNIT-TEST
+  imports DRIVER-UNIT-TEST
 
   /* -------- \subseteq ------ */
 
-  rule test("visitor", 1)
+  rule test(1)
     => assert( 3
             == TestVisitorSubseteqResult(
                  visitTopDown(
@@ -35,7 +37,7 @@ module TEST-VISITOR
   
   /* -------- \member ------ */
 
-  rule test("visitor", 2)
+  rule test(2)
     => assert( 3
             == TestVisitorMemberResult(
                  visitTopDown(

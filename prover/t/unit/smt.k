@@ -1,5 +1,7 @@
-module TEST-CHECKSAT
-    imports UNIT-TEST
+requires "drivers/unit-tests.k"
+
+module UNIT-TEST
+    imports DRIVER-UNIT-TEST
     imports CVC4
 
     syntax LowerName ::= "a" [token]
@@ -10,16 +12,16 @@ module TEST-CHECKSAT
 // ====
 
 // TODO: This test fails because the file name is non-deterministic
-// rule test("CheckSAT.CVC4", )
+// rule test()
 //      ( CVC4CheckSAT((assert (= a b)))
 //      == #error(#systemResult(1, "(error \"Parse Error: /tmp/querydcba3f.smt:2.14: Symbol a is not declared.\n\n   ( assert (= a b ))\n               ^\n\")\n" , ""))
 //       )
-    rule test("CheckSAT.CVC4", 1)
+    rule test(1)
       => assert( CVC4CheckSAT((declare-const a Bool) (assert (= a a)))
        == sat
          )
          .Declarations
-    rule test("CheckSAT.CVC4", 2)
+    rule test(6)
       => assert( CVC4CheckSAT((declare-const a Bool)
                         (assert (distinct a a))
                        )
@@ -27,7 +29,7 @@ module TEST-CHECKSAT
          )
          .Declarations
     // Fermat's last theorem (n = 3)
-    rule test("CheckSAT.CVC4", 3)
+    rule test(2)
       => assert( CVC4CheckSAT((declare-const a Int) (declare-const b Int) (declare-const c Int)
                        ( assert ( > a 0 )) ( assert ( > b 0 )) ( assert ( > c 0 ))
                        ( assert ( = ( * c c c) ( + (* a a a) (* b b b))))
