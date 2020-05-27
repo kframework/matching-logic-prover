@@ -134,7 +134,12 @@ module SMTLIB2-HELPERS
   syntax String ::= SMTLIB2NumeralToString(SMTLIB2Numeral) [function]
   rule SMTLIB2NumeralToString(I:Int) => Int2String(I)
 
-  syntax String ::= SMTLIB2SimpleSymbolToString(SMTLIB2SimpleSymbol) [function, functional, hook(STRING.token2string)]
+  syntax String ::= LowerNameToString(LowerName) [function, functional, hook(STRING.token2string)]
+  syntax String ::= UpperNameToString(UpperName) [function, functional, hook(STRING.token2string)]
+  
+  syntax String ::= SMTLIB2SimpleSymbolToString(SMTLIB2SimpleSymbol) [function, functional]
+  rule SMTLIB2SimpleSymbolToString(UN) => UpperNameToString(UN)
+  rule SMTLIB2SimpleSymbolToString(LN) => LowerNameToString(LN)
 
   syntax String ::= SMTLIB2IndexToString(SMTLIB2Index)             [function]
   rule SMTLIB2IndexToString(I:SMTLIB2Numeral) => SMTLIB2TermToString(I)
