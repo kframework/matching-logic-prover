@@ -157,11 +157,10 @@ proj.alias('smoke-tests', list(map( sl_comp_test_path, [
 # Unit Tests
 # ----------
 
-unit_tests = []
-for test_module in glob('t/unit/*.k'):
-    test_driver = proj.definition( alias = test_module + '.driver'
-                                 , backend = 'ocaml'
-                                 , main = test_module
+def unit_test(test_file):
+    test_driver = proj.definition( alias = test_file + '.driver'
+                                 , backend = 'llvm'
+                                 , main = test_file
                                  , other = ['drivers/unit-tests.md', 'prover.md'] +
                                            other_md_files
                                  , runner_script = './prover'
@@ -170,8 +169,14 @@ for test_module in glob('t/unit/*.k'):
     test = proj.source('t/unit/unit-tests') \
                .then(test_driver.krun()
                                 .variable('flags', '-cCOMMANDLINE=.CommandLine')
-                    )
-    unit_tests += [test]
+                    ) \
+               .alias(test_file + '.test')
+    return test
+unit_tests = []
+for test_file in glob('t/unit/*.k'):
+    unit_tests += [unit_test(test_file)]
+
+
 proj.alias('unit-tests', unit_tests ).default()
 
 if __name__ == "__main__": proj.main()
