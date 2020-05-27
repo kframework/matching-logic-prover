@@ -9,8 +9,8 @@ ML to SMTLIB2
 module ML-TO-SMTLIB2
   imports STRING-SYNTAX
   imports SMTLIB2-HELPERS
-  imports KORE
   imports KORE-HELPERS
+  imports TOKENS-HELPERS
   imports STRATEGY-UNFOLDING
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
@@ -54,43 +54,43 @@ module ML-TO-SMTLIB2
   // TODO: All symbols must be functional!
   syntax SMTLIB2Term ::= PatternToSMTLIB2Term(Pattern) [function]
   rule PatternToSMTLIB2Term(\equals(LHS, RHS))
-    => ( = PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(RHS) ):SMTLIB2Term
+    => ( #token("=", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(RHS) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(VNAME { SORT }) => VariableNameToSMTLIB2SimpleSymbol(VNAME)
-  rule PatternToSMTLIB2Term(\not(P)) => ( not PatternToSMTLIB2Term(P) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\not(P)) => ( #token("not", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(I:Int) => I                                          requires I >=Int 0
   rule PatternToSMTLIB2Term(I:Int) => ( #token("-", "SMTLIB2SimpleSymbol") absInt(I) ):SMTLIB2Term requires I  <Int 0
-  rule PatternToSMTLIB2Term(emptyset) => emptysetx:SMTLIB2Term
-  rule PatternToSMTLIB2Term(singleton(P1)) => ( singleton PatternToSMTLIB2Term(P1) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(lt(P1, P2)) => ( < PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(gt(P1, P2)) => ( > PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(lte(P1, P2)) => ( <= PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(gte(P1, P2)) => ( >= PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(plus(P1, P2)) => ( + PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(max(P1, P2)) => ( max PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(minus(P1, P2)) => ( - PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(mult(P1, P2)) => ( * PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(div(P1, P2)) => ( / PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(select(P1, P2)) => ( select PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(isMember(P1, P2)) => ( in PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(add(P1, P2)) => ( setAdd PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(del(P1, P2)) => ( setDel PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(union(P1, P2)) => ( unionx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(disjoint(P1, P2)) => ( disjointx PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(store(P1, P2, P3)) => ( store PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) PatternToSMTLIB2Term(P3) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("emptyset", "Symbol")) => #token("emptysetx", "SMTLIB2SimpleSymbol"):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("singleton", "Symbol")(P1)) => ( #token("singleton", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("lt", "Symbol")(P1, P2)) => ( #token("<", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("gt", "Symbol")(P1, P2)) => ( #token(">", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("lte", "Symbol")(P1, P2)) => ( #token("<=", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("gte", "Symbol")(P1, P2)) => ( #token(">=", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("plus", "Symbol")(P1, P2)) => ( #token("+", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("max", "Symbol")(P1, P2)) => ( #token("max", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("minus", "Symbol")(P1, P2)) => ( #token("-", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("mult", "Symbol")(P1, P2)) => ( #token("*", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("div", "Symbol")(P1, P2)) => ( #token("/", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("select", "Symbol")(P1, P2)) => ( #token("select", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("isMember", "Symbol")(P1, P2)) => ( #token("in", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("add", "Symbol")(P1, P2)) => ( #token("setAdd", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("del", "Symbol")(P1, P2)) => ( #token("setDel", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("union", "Symbol")(P1, P2)) => ( #token("unionx", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("disjoint", "Symbol")(P1, P2)) => ( #token("disjointx", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
+  rule PatternToSMTLIB2Term(#token("store", "Symbol")(P1, P2, P3)) => ( #token("store", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) PatternToSMTLIB2Term(P3) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(S:Symbol(.Patterns)) => SymbolToSMTLIB2SymbolFresh(S):SMTLIB2Term
   rule PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( SymbolToSMTLIB2SymbolFresh(S) PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term [owise]
-  rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\and(P, Ps)) => (#token("and", "SMTLIB2SimpleSymbol") PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
     requires Ps =/=K .Patterns
   rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\and(.Patterns)) => #token("true", "LowerName")
+  rule PatternToSMTLIB2Term(\and(.Patterns)) => #token("true", "SMTLIB2SimpleSymbol")
   // rule PatternToSMTLIB2Term(true) => true
-  rule PatternToSMTLIB2Term(\or(P, Ps)) => (or PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\or(P, Ps)) => (#token("or", "SMTLIB2SimpleSymbol") PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
     requires Ps =/=K .Patterns
   rule PatternToSMTLIB2Term(\or(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\or(.Patterns)) => #token("false", "LowerName")
+  rule PatternToSMTLIB2Term(\or(.Patterns)) => #token("false", "SMTLIB2SimpleSymbol")
   // rule PatternToSMTLIB2Term(false) => false
 
-  rule PatternToSMTLIB2Term(\implies(LHS, RHS)) => ((=> PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(\and(RHS)))):SMTLIB2Term
+  rule PatternToSMTLIB2Term(\implies(LHS, RHS)) => ((#token("=>", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(\and(RHS)))):SMTLIB2Term
 
   rule PatternToSMTLIB2Term(\exists { .Patterns } C ) => PatternToSMTLIB2Term(C):SMTLIB2Term
   rule PatternToSMTLIB2Term(\exists { Vs } C ) => (exists (VariablesToSMTLIB2SortedVarList(Vs)) PatternToSMTLIB2Term(C)):SMTLIB2Term [owise]
@@ -110,8 +110,8 @@ module ML-TO-SMTLIB2
   rule SymbolToSMTLIB2SymbolFresh(S:Symbol) => StringToSMTLIB2SimpleSymbol("fresh_" +String SymbolToString(S))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
-  rule SortToSMTLIB2Sort(SetInt:Sort) => SetInt:SMTLIB2Sort
-  rule SortToSMTLIB2Sort(ArrayIntInt) => ( Array Int Int ):SMTLIB2Sort
+  rule SortToSMTLIB2Sort(SetInt) => #token("SetInt", "SMTLIB2SimpleSymbol")
+  rule SortToSMTLIB2Sort(ArrayIntInt) => ( #token("Array", "SMTLIB2SimpleSymbol") #token("Int", "SMTLIB2SimpleSymbol") #token("Int", "SMTLIB2SimpleSymbol") ):SMTLIB2Sort
   rule SortToSMTLIB2Sort(SORT) => StringToSMTLIB2SimpleSymbol(SortToString(SORT))
     [owise]
 
@@ -124,11 +124,6 @@ module ML-TO-SMTLIB2
     => ( VariableNameToSMTLIB2SimpleSymbol(VNAME)  SortToSMTLIB2Sort(S) ) VariablesToSMTLIB2SortedVarList(Cs)
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
-
-  syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
-  syntax String              ::= VariableNameToString(VariableName)  [function, functional, hook(STRING.token2string)]
-  syntax SMTLIB2SimpleSymbol ::= VariableNameToSMTLIB2SimpleSymbol(VariableName) [function]
-  rule VariableNameToSMTLIB2SimpleSymbol(V) => StringToSMTLIB2SimpleSymbol(VariableNameToString(V))
 
   syntax SMTLIB2SimpleSymbol  ::= freshSMTLIB2SimpleSymbol(Int)              [freshGenerator, function, functional]
   syntax SMTLIB2SortedVarList ::= freshSMTLIB2SortedVarList(SMTLIB2SortList) [function]

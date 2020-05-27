@@ -17,11 +17,7 @@ module DRIVER-SMT-SYNTAX
   imports DRIVER-SMT-COMMON
   imports SMTLIB2-SYNTAX
 
-  // TODO: Why doesn't this work in TOKENS-SYNTAX
-  syntax LowerName ::= Bool [token]
-
-  // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
-  syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
+  syntax SMTLIB2SimpleSymbol ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
 ```
 
 When parsing with the SMTLIB2 syntax, we use semicolons as comments:
@@ -102,12 +98,12 @@ module DRIVER-SMT
 
   rule <k> _:GoalBuilder ~> ((declare-sort SORT 0) => .) ... </k>
        <declarations> ( .Bag
-                     => <declaration> sort SMTLIB2SortToSort(SORT) </declaration>
+                     => <declaration> sort SMTLIB2SimpleSymbolToSort(SORT) </declaration>
                       ) ...
        </declarations>
 
   rule <k> #goal( goal: \exists { Us
-                               => (SMTLIB2SimpleSymbolToVariableName(ID) { SMTLIB2SortToSort(SORT) }, Us)
+                               => (SMTLIB2SimpleSymbolToVariableName(ID) { SMTLIB2SimpleSymbolToSort(SORT) }, Us)
                                 }
                         \and(Ps)
                 , strategy: _
@@ -137,10 +133,10 @@ module DRIVER-SMT
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol pto(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) : Heap </declaration>
-                        <declaration> symbol parameterizedSymbol(nil, SMTLIB2SortToSort(LOC)) ( .Sorts ) : SMTLIB2SortToSort(LOC) </declaration>
-                        <declaration> axiom !N:AxiomName : heap(SMTLIB2SortToSort(LOC), SMTLIB2SortToSort(DATA)) </declaration>
-                        <declaration> axiom !N:AxiomName : functional(parameterizedSymbol(nil, SMTLIB2SortToSort(LOC))) </declaration>
+                     => <declaration> symbol pto(SMTLIB2SimpleSymbolToSort(LOC), SMTLIB2SimpleSymbolToSort(DATA)) : Heap </declaration>
+                        <declaration> symbol parameterizedSymbol(nil, SMTLIB2SimpleSymbolToSort(LOC)) ( .Sorts ) : SMTLIB2SimpleSymbolToSort(LOC) </declaration>
+                        <declaration> axiom !N:AxiomName : heap(SMTLIB2SimpleSymbolToSort(LOC), SMTLIB2SimpleSymbolToSort(DATA)) </declaration>
+                        <declaration> axiom !N:AxiomName : functional(parameterizedSymbol(nil, SMTLIB2SimpleSymbolToSort(LOC))) </declaration>
                       ) ...
        </declarations>
 
@@ -156,15 +152,15 @@ module DRIVER-SMT
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> sort SMTLIB2SortToSort(SORT1) </declaration>
-                        <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SortToSort(SORT1) </declaration>
+                     => <declaration> sort SMTLIB2SimpleSymbolToSort(SORT1) </declaration>
+                        <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SimpleSymbolToSort(SORT1) </declaration>
                         <declaration> axiom !N:AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
                       ) ...
        </declarations>
 
   syntax Sorts ::= SelectorDecListToSorts(SMTLIB2SelectorDecList) [function]
   rule SelectorDecListToSorts(.SMTLIB2SelectorDecList) => .Sorts
-  rule SelectorDecListToSorts((_ SORT) SELDECs) => SMTLIB2SortToSort(SORT), SelectorDecListToSorts(SELDECs)
+  rule SelectorDecListToSorts((_ SORT) SELDECs) => SMTLIB2SimpleSymbolToSort(SORT), SelectorDecListToSorts(SELDECs)
 
   rule <k> _:GoalBuilder
         ~> ( (define-fun-rec ID (ARGs) RET BODY)
@@ -174,7 +170,7 @@ module DRIVER-SMT
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGs))
-                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SortToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SimpleSymbolToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
                         </declaration>
                         <declaration> axiom !N:AxiomName : \forall { SMTLIB2SortedVarListToPatterns(ARGs) }
                                          \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
@@ -237,7 +233,7 @@ module DRIVER-SMT
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGs))
-                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SortToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SimpleSymbolToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
                         </declaration>
                       ) ...
        </declarations>
@@ -410,32 +406,32 @@ Clear the `<k>` cell once we are done:
     [owise]
   rule #pushExistentialsDisjunction(\exists{Vs} \or(Ps)) => \or(#exists(Ps, Vs))
 
-  syntax Strategy ::= #statusToTerminalStrategy(CheckSATResult) [function]
-  rule #statusToTerminalStrategy(unsat)      => success
-  rule #statusToTerminalStrategy(sat)        => fail
-  rule #statusToTerminalStrategy(unknown)    => fail
+  syntax Strategy ::= #statusToTerminalStrategy(SMTLIB2SimpleSymbol) [function]
+  rule #statusToTerminalStrategy(#token("unsat", "SMTLIB2SimpleSymbol"))      => success
+  rule #statusToTerminalStrategy(#token("sat", "SMTLIB2SimpleSymbol"))        => fail
+  rule #statusToTerminalStrategy(#token("unknown", "SMTLIB2SimpleSymbol"))    => fail
 
   syntax Pattern ::= SMTLIB2TermToPattern(SMTLIB2Term, Patterns) [function]
   rule SMTLIB2TermToPattern( (exists ( ARGS ) T), Vs ) => \exists { SMTLIB2SortedVarListToPatterns(ARGS) } SMTLIB2TermToPattern(T, SMTLIB2SortedVarListToPatterns(ARGS) ++Patterns Vs)
-  rule SMTLIB2TermToPattern((and Ts), Vs) => \and(SMTLIB2TermListToPatterns(Ts, Vs))
-  rule SMTLIB2TermToPattern((or Ts), Vs) => \or(SMTLIB2TermListToPatterns(Ts, Vs))
-  rule SMTLIB2TermToPattern((distinct L R), Vs) => \not(\equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs)))
-  rule SMTLIB2TermToPattern((= L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((< L R), Vs) => lt(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((> L R), Vs) => gt(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((<= L R), Vs) => lte(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((>= L R), Vs) => gte(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((+ L R), Vs) => plus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((- L R), Vs) => minus(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((* L R), Vs) => mult(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((not T), Vs) => \not(SMTLIB2TermToPattern(T, Vs))
-  rule SMTLIB2TermToPattern((ite C L R), Vs) => \or( \and(SMTLIB2TermToPattern(C, Vs), SMTLIB2TermToPattern(L, Vs))
+  rule SMTLIB2TermToPattern((#token("and", "SMTLIB2SimpleSymbol") Ts), Vs) => \and(SMTLIB2TermListToPatterns(Ts, Vs))
+  rule SMTLIB2TermToPattern((#token("or", "SMTLIB2SimpleSymbol") Ts), Vs) => \or(SMTLIB2TermListToPatterns(Ts, Vs))
+  rule SMTLIB2TermToPattern((#token("distinct", "SMTLIB2SimpleSymbol") L R), Vs) => \not(\equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs)))
+  rule SMTLIB2TermToPattern((#token("=", "SMTLIB2SimpleSymbol") L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token("<", "SMTLIB2SimpleSymbol") L R), Vs) => #token("lt", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token(">", "SMTLIB2SimpleSymbol") L R), Vs) => #token("gt", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token("<=", "SMTLIB2SimpleSymbol") L R), Vs) => #token("lte", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token(">=", "SMTLIB2SimpleSymbol") L R), Vs) => #token("gte", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token("+", "SMTLIB2SimpleSymbol") L R), Vs) => #token("plus", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token("-", "SMTLIB2SimpleSymbol") L R), Vs) => #token("minus", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token("*", "SMTLIB2SimpleSymbol") L R), Vs) => #token("mult", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+  rule SMTLIB2TermToPattern((#token("not", "SMTLIB2SimpleSymbol") T), Vs) => \not(SMTLIB2TermToPattern(T, Vs))
+  rule SMTLIB2TermToPattern((#token("ite", "SMTLIB2SimpleSymbol") C L R), Vs) => \or( \and(SMTLIB2TermToPattern(C, Vs), SMTLIB2TermToPattern(L, Vs))
                                                    , \and(\not(SMTLIB2TermToPattern(C, Vs)), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern(I:Int, _) => I
-  rule SMTLIB2TermToPattern(#token("true", "LowerName"), _) => \top()
-  rule SMTLIB2TermToPattern(#token("false", "LowerName"), _) => \bottom()
-  rule SMTLIB2TermToPattern((as nil SORT), _) => parameterizedSymbol(nil, SMTLIB2SortToSort(SORT))(.Patterns)
-  rule SMTLIB2TermToPattern((underscore emp _ _), _) => emp(.Patterns)
+  rule SMTLIB2TermToPattern(#token("true", "SMTLIB2SimpleSymbol"), _) => \top()
+  rule SMTLIB2TermToPattern(#token("false", "SMTLIB2SimpleSymbol"), _) => \bottom()
+  rule SMTLIB2TermToPattern((as #token("nil", "SMTLIB2SimpleSymbol") SORT), _) => parameterizedSymbol(nil, SMTLIB2SimpleSymbolToSort(SORT))(.Patterns)
+  rule SMTLIB2TermToPattern((underscore #token("emp", "SMTLIB2SimpleSymbol") _ _), _) => emp(.Patterns)
 
   rule SMTLIB2TermToPattern((ID Ts), Vs) => SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2TermListToPatterns(Ts, Vs))
     [owise]
@@ -448,11 +444,11 @@ Clear the `<k>` cell once we are done:
 
   syntax Patterns ::= SMTLIB2SortedVarListToPatterns(SMTLIB2SortedVarList) [function]
   rule SMTLIB2SortedVarListToPatterns(.SMTLIB2SortedVarList) => .Patterns
-  rule SMTLIB2SortedVarListToPatterns((SYMBOL SORT) Ss) => SMTLIB2SimpleSymbolToVariableName(SYMBOL) { SMTLIB2SortToSort(SORT) }, SMTLIB2SortedVarListToPatterns(Ss)
+  rule SMTLIB2SortedVarListToPatterns((SYMBOL SORT) Ss) => SMTLIB2SimpleSymbolToVariableName(SYMBOL) { SMTLIB2SimpleSymbolToSort(SORT) }, SMTLIB2SortedVarListToPatterns(Ss)
 
   syntax Sorts ::= SMTLIB2SortedVarListToSorts(SMTLIB2SortedVarList) [function]
   rule SMTLIB2SortedVarListToSorts(.SMTLIB2SortedVarList) => .Sorts
-  rule SMTLIB2SortedVarListToSorts((SYMBOL SORT) Ss) => SMTLIB2SortToSort(SORT), SMTLIB2SortedVarListToSorts(Ss)
+  rule SMTLIB2SortedVarListToSorts((SYMBOL SORT) Ss) => SMTLIB2SimpleSymbolToSort(SORT), SMTLIB2SortedVarListToSorts(Ss)
 ```
 
 ```k

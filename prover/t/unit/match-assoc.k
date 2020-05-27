@@ -3,14 +3,14 @@ requires "drivers/unit-tests.k"
 module UNIT-TEST
   imports DRIVER-UNIT-TEST
 
-  syntax LowerName ::= "c"    [token]
-                     | "d"    [token]
-  syntax UpperName ::= "Data" [token]
-                     | "Loc"  [token]
-                     | "W"    [token]
-                     | "X0"   [token]
-                     | "Y0"   [token]
-                     | "Z"    [token]
+  syntax Symbol ::= "c"    [token]
+                  | "d"    [token]
+  syntax Sort ::= "Data" [token]
+                | "Loc"  [token]
+  syntax VariableName ::= "W"    [token]
+                        | "X0"   [token]
+                        | "Y0"   [token]
+                        | "Z"    [token]
 
   rule test(1)
     => assert( #error("No valid substitution"), .MatchResults
