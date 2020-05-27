@@ -1,12 +1,2 @@
-suite "CheckSAT.CVC4"
-
-suite "match-assoc"
-suite "match-assoc-comm"
-
-suite "subst"
-
-suite "syntactic-match"
-
-suite "visitor"
-
+test
 .Declarations
