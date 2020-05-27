@@ -243,8 +243,6 @@ module SMTLIB2-HELPERS
     => CheckSAT.doSystem(Q, C, FN, #close(FD))
   rule CheckSAT.doSystem(Q, C, FN, .K) => CheckSAT.parseResult(#system(C +String FN))
 
-  rule CheckSAT.doWrite(_, C, E:IOError) => #error(E)
-
   syntax CheckSATResult ::= "CheckSAT.parseResult" "(" KItem ")" [function]
   rule CheckSAT.parseResult(#systemResult(0, "sat\n", STDERR))     => sat
   rule CheckSAT.parseResult(#systemResult(0, "unsat\n", STDERR))   => unsat
