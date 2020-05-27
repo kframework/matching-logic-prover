@@ -164,7 +164,7 @@ def unit_test(test_file):
                                  , other = ['drivers/unit-tests.md', 'prover.md'] +
                                            other_md_files
                                  , runner_script = './prover'
-                                 , flags = '-I . --main-module UNIT-TEST'
+                                 , flags = '-I . --main-module UNIT-TEST -Og -ccopt -g'
                                  )
     test = proj.source('t/unit/unit-tests') \
                .then(test_driver.krun()
