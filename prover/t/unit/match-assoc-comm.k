@@ -3,15 +3,13 @@ requires "drivers/unit-tests.k"
 module UNIT-TEST
   imports DRIVER-UNIT-TEST
 
-  syntax LowerName ::= "c"    [token]
-                     | "d"    [token]
-  syntax UpperName ::= "Data" [token]
-                     | "Loc"  [token]
-                     | "W"    [token] | "W0"    [token] | "W1"    [token] | "W2"    [token]
-                     | "X0"   [token] | "X1"    [token] | "X2"    [token]
-                     | "Y0"   [token] | "Y1"    [token] | "Y2"    [token]
-                     | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
-                     | "H0"   [token] | "H1"    [token]
+  syntax Symbol ::= "c" [token] | "d" [token]
+  syntax Sort ::= "Data" [token] | "Loc"  [token]
+  syntax VariableName ::= "W"    [token] | "W0"   [token] | "W1"    [token] | "W2"    [token]
+                                         | "X0"   [token] | "X1"    [token] | "X2"    [token]
+                                         | "Y0"   [token] | "Y1"    [token] | "Y2"    [token]
+                        | "Z"    [token]                  | "Z1"    [token] | "Z2"    [token]
+                                         | "H0"   [token] | "H1"   [token]
 
   rule test(1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
@@ -126,9 +124,9 @@ module UNIT-TEST
   rule test(8)
     => assert( #error("Variable sort does not match term")
              , .MatchResults
-            == #matchAssocComm( terms:     pto ( W  { X1 } , c(X0 { X1 }) )
-                              , pattern:   pto ( Y0 { X2 } , c(Z  { X2 }) )
-                              , variables: Y0 { X2 }, Z { X2 }
+            == #matchAssocComm( terms:     pto ( W  { Loc } , c(X0 { Loc }) )
+                              , pattern:   pto ( Y0 { Data } , c(Z  { Data }) )
+                              , variables: Y0 { Data }, Z { Data }
                               , results:  .MatchResults
                               , subst:    .Map
                               , rest:     .Patterns

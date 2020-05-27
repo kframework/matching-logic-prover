@@ -4,9 +4,9 @@ module UNIT-TEST
     imports DRIVER-UNIT-TEST
     imports CVC4
 
-    syntax LowerName ::= "a" [token]
-                       | "b" [token]
-                       | "c" [token]
+    syntax SMTLIB2SimpleSymbol ::= "a" [token] | "b" [token] | "c" [token]
+                                 | "*" [token] | "+" [token] | "=" [token] | ">" [token] | "distinct" [token]
+                                 | "Bool" [token] | "Int" [token]
 
 // CVC4
 // ====
