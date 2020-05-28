@@ -580,7 +580,6 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(implicationContext(CTX, RHS), X, V)
     => implicationContext(subst(CTX,X,V), subst(RHS,X,V)):Pattern
 
-  syntax Pattern ::= Pattern "[" Map "]"    [function, klabel(substMap)]
   syntax Pattern ::= substMap(Pattern, Map) [function, klabel(substMap)]
   rule substMap(BP, M) => #fun(KVPAIR => #fun(FRESHs =>
          substUnsafe( substUnsafe(BP, zip(fst(KVPAIR), FRESHs))
@@ -595,8 +594,7 @@ where the term being unfolded has been replace by `#hole`.
     => substUnsafe(subst(BP,X,V), REST:Map)
   rule substUnsafe(BP, .Map) => BP
 
-  syntax Patterns ::= Patterns "[" Map "]"         [function, klabel(substPatternsMap)]
-  syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap)]
+  syntax Patterns ::= substPatternsMap(Patterns, Map) [function, klabel(substPatternsMap), symbol]
   rule substPatternsMap((BP, BPs), SUBST)
     => substUnsafe(BP, SUBST), substPatternsMap(BPs, SUBST)
   rule substPatternsMap(.Patterns, SUBST) => .Patterns
@@ -621,9 +619,9 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   syntax Pattern ::= alphaRename(Pattern)  [function]
   syntax Patterns ::= alphaRenamePs(Patterns) [function]
   rule alphaRename(\forall { Fs:Patterns } P:Pattern)
-    => #fun(RENAMING => \forall { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
+    => #fun(RENAMING => \forall { substPatternsMap(Fs,RENAMING) } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
   rule alphaRename(\exists { Fs:Patterns } P:Pattern)
-    => #fun(RENAMING => \exists { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
+    => #fun(RENAMING => \exists { substPatternsMap(Fs,RENAMING) } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
   rule alphaRename(\equals(L, R)) => \equals(alphaRename(L), alphaRename(R))
   rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
   rule alphaRename(\functionalPattern(Ps)) => \functionalPattern(alphaRename(Ps))
