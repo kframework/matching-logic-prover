@@ -2,27 +2,44 @@ This file contains infrastructure for writing tests for K functions.
 
 ```k
 requires "prover.k"
+requires "t/unit/smt.k"
+requires "t/unit/match-assoc.k"
+requires "t/unit/match-assoc-comm.k"
+requires "t/unit/subst.k"
+requires "t/unit/syntactic-match.k"
+requires "t/unit/visitor.k"
 ```
 
 ```k
 module DRIVER-UNIT-TEST
+  imports TEST-CHECKSAT
+  imports TEST-MATCH-ASSOC
+  imports TEST-MATCH-ASSOC-COMM
+  imports TEST-SUBST
+  imports TEST-SYNTACTIC-MATCH
+  imports TEST-VISITOR
+endmodule
+```
+
+```k
+module UNIT-TEST
   imports DRIVER-KORE
   
-  syntax Declaration ::= "test"
-  rule <k> test => next-test(1) ... </k>
+  syntax Declaration ::= "suite" String
+  rule <k> suite(SUITE) => next-test(SUITE, 1) ... </k>
 
-  syntax Declaration ::= "next-test" "(" Int ")"
-  rule <k> next-test(N)
-        => test(N)
-        ~> next-test(N +Int 1)
+  syntax Declaration ::= "next-test" "(" String "," Int ")"
+  rule <k> next-test(SUITE, N)
+        => test(SUITE, N)
+        ~> next-test(SUITE, N +Int 1)
            ...
        </k>
     requires N <Int 20 // TODO: This is a hack
-  rule <k> next-test(20) => .K ... </k>
-
+  rule <k> next-test(_, 20) => .K ... </k>
+    
   // TODO: This is also a hack
-  syntax Declarations ::= test(Int) [function]
-  rule test(N) => .Declarations
+  syntax Declarations ::= test(String, Int) [function]
+  rule test(_, N) => .Declarations
     requires N >Int 1 andBool  N <Int 20
     [owise]
 

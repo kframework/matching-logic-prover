@@ -47,7 +47,7 @@ other_md_files = [ 'lang/smt-lang.md'
 
 def prover(alias, flags = None):
     return proj.definition( alias = alias
-                          , backend = 'ocaml'
+                          , backend = 'llvm'
                           , main = 'prover.md'
                           , other = other_md_files
                           , runner_script = './prover'
@@ -157,26 +157,20 @@ proj.alias('smoke-tests', list(map( sl_comp_test_path, [
 # Unit Tests
 # ----------
 
-def unit_test(test_file):
-    test_driver = proj.definition( alias = test_file + '.driver'
-                                 , backend = 'llvm'
-                                 , main = test_file
-                                 , other = ['drivers/unit-tests.md', 'prover.md'] +
-                                           other_md_files
-                                 , runner_script = './prover'
-                                 , flags = '-I . --main-module UNIT-TEST -Og -ccopt -g'
-                                 )
-    test = proj.source('t/unit/unit-tests') \
-               .then(test_driver.krun()
-                                .variable('flags', '-cCOMMANDLINE=.CommandLine')
-                    ) \
-               .alias(test_file + '.test')
-    return test
-unit_tests = []
-for test_file in glob('t/unit/*.k'):
-    unit_tests += [unit_test(test_file)]
-
-
-proj.alias('unit-tests', unit_tests ).default()
+unit_tests_sources = glob('t/unit/*.k')
+test_driver = proj.definition( alias = 'test-driver'
+                             , backend = 'llvm'
+                             , main = 'drivers/unit-tests.md'
+                             , other = other_md_files + ['prover.md'] + unit_tests_sources
+                             , runner_script = './prover'
+                             , flags = '-I . --main-module DRIVER-UNIT-TEST' # -ccopt -O0'
+                             )
+proj.alias('unit-tests'
+          , [ proj.source('t/unit/unit-tests')
+                  .then(test_driver.krun()
+                                   .variable('flags', '-cCOMMANDLINE=.CommandLine')
+                       )
+            ]
+          ).default()
 
 if __name__ == "__main__": proj.main()

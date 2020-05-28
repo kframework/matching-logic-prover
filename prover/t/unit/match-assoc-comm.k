@@ -1,7 +1,5 @@
-requires "drivers/unit-tests.k"
-
-module UNIT-TEST
-  imports DRIVER-UNIT-TEST
+module TEST-MATCH-ASSOC-COMM
+  imports UNIT-TEST
 
   syntax LowerName ::= "c"    [token]
                      | "d"    [token]
@@ -13,7 +11,7 @@ module UNIT-TEST
                      | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
                      | "H0"   [token]
 
-  rule test(1)
+  rule test("match-assoc-comm", 1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
              , .MatchResults
             == #matchAssocComm( terms:     pto( Z { Loc }, W { Data })
@@ -26,7 +24,7 @@ module UNIT-TEST
               )
        .Declarations
 
-  rule test(2)
+  rule test("match-assoc-comm", 2)
     => assert( #matchResult( subst:         Z { Loc }  |-> X0 { Loc } 
                                             W { Data } |-> Y0 { Data }
                            , rest:          .Patterns
@@ -41,7 +39,7 @@ module UNIT-TEST
                               )
              )
        .Declarations
-  rule test(3)
+  rule test("match-assoc-comm", 3)
     => assert( #error("Pattern larger than term")
              , .MatchResults
             == #matchAssocComm( terms:     .Patterns
@@ -54,7 +52,7 @@ module UNIT-TEST
              )
        .Declarations
 
-  rule test(4)
+  rule test("match-assoc-comm", 4)
     => assert( #matchResult( subst: .Map , rest: .Patterns )
              , .MatchResults
             == #matchAssocComm( terms:     .Patterns
@@ -67,7 +65,7 @@ module UNIT-TEST
              )
        .Declarations
 
-  rule test(5)
+  rule test("match-assoc-comm", 5)
     => assert( #matchResult( subst: Z1 { Loc }  |-> X1 { Loc }
                                     W1 { Data } |-> Y1 { Data }
                            , rest: pto( X2 { Loc }, Y2 { Data })
@@ -88,7 +86,7 @@ module UNIT-TEST
              )
        .Declarations
 
-  rule test(6)
+  rule test("match-assoc-comm", 6)
     => assert( #error( "No valid substitution" )
              , #error( "No valid substitution" )
              , .MatchResults
@@ -104,7 +102,7 @@ module UNIT-TEST
              )
        .Declarations
 
-  rule test(7)
+  rule test("match-assoc-comm", 7)
     => assert( #error( "No valid substitution" ) 
              , #matchResult( subst:        W { Loc } |-> Y0 { Loc }
                            , rest:         .Patterns
@@ -123,7 +121,7 @@ module UNIT-TEST
        .Declarations
     
   // No match, since sorts are different
-  rule test(8)
+  rule test("match-assoc-comm", 8)
     => assert( #error("Variable sort does not match term")
              , .MatchResults
             == #matchAssocComm( terms:     pto ( W  { X1 } , c(X0 { X1 }) )

@@ -1,7 +1,5 @@
-requires "drivers/unit-tests.k"
-
-module UNIT-TEST
-  imports DRIVER-UNIT-TEST
+module TEST-MATCH-ASSOC
+  imports UNIT-TEST
 
   syntax LowerName ::= "c"    [token]
                      | "d"    [token]
@@ -12,7 +10,7 @@ module UNIT-TEST
                      | "Y0"   [token]
                      | "Z"    [token]
 
-  rule test(1)
+  rule test("match-assoc", 1)
     => assert( #error("No valid substitution"), .MatchResults
             == #matchAssoc( terms:     pto( X0 { Loc }, Y0 { Data })
                           , pattern:   pto( Z  { Loc }, W  { Data })
@@ -22,7 +20,7 @@ module UNIT-TEST
                           )
              )
        .Declarations
-  rule test(2)
+  rule test("match-assoc", 2)
     => assert( #error("Constructors do not match"), .MatchResults
             == #matchAssoc( terms:     c( X0 { Loc }, Y0 { Data })
                           , pattern:   d( Z  { Loc }, W  { Data })
@@ -32,7 +30,7 @@ module UNIT-TEST
                           )
              )
        .Declarations
-  rule test(3)
+  rule test("match-assoc", 3)
     => assert( #error( "Mismatch in length of arguments" ), .MatchResults
             == #matchAssoc( terms:     pto( X0 { Loc }, Y0 { Data })
                           , pattern:   .Patterns
@@ -42,7 +40,7 @@ module UNIT-TEST
                           )
              )
        .Declarations
-  rule test(4)
+  rule test("match-assoc", 4)
     => assert( #error( "Mismatch in length of arguments" ), .MatchResults
             == #matchAssoc( terms:     c(X0 { Loc }, Y0 { Data })
                           , pattern:   c(X0 { Loc }, Y0 { Data }, Y0 { Data })
@@ -53,7 +51,7 @@ module UNIT-TEST
              )
        .Declarations
   // Base Case: Empty patterns
-  rule test(5)
+  rule test("match-assoc", 5)
     => assert( #matchResult( subst:    .Map
                            , rest:     .Patterns
                            )
@@ -67,7 +65,7 @@ module UNIT-TEST
              )
        .Declarations
   // Basic Matching
-  rule test(6)
+  rule test("match-assoc", 6)
     => assert( #matchResult( subst:    Z { Loc }  |-> X0 { Loc }
                                        W { Data } |-> Y0 { Data }
                            , rest:     .Patterns
@@ -82,7 +80,7 @@ module UNIT-TEST
              )
        .Declarations
   // Match multiple occurances of a variable
-  rule test(7)
+  rule test("match-assoc", 7)
     => assert( #matchResult( subst:    Z { Loc }  |-> X0 { Loc }
                                        W { Data } |-> Y0 { Data }
                            , rest:     .Patterns
@@ -97,7 +95,7 @@ module UNIT-TEST
              )
        .Declarations
   // Matching multiple occurances to different values does not work
-  rule test(8)
+  rule test("match-assoc", 8)
     => assert( #error( "No valid substitution" )
              , .MatchResults
             == #matchAssoc( terms:     c( X0 { Loc }, Y0 { Data }), c( X0 { Loc }, Y0 { Data })
@@ -110,7 +108,7 @@ module UNIT-TEST
        .Declarations
 
   // Match constructor against variable
-  rule test(9)
+  rule test("match-assoc", 9)
     => symbol pto ( Loc, Data ) : Heap
        assert( #error("Constructors do not match")
              , .MatchResults

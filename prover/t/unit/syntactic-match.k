@@ -1,7 +1,5 @@
-requires "drivers/unit-tests.k"
-
-module UNIT-TEST
-  imports DRIVER-UNIT-TEST
+module TEST-SYNTACTIC-MATCH
+  imports UNIT-TEST
 
   syntax UpperName ::= "Int"  [token]
                      | "Nat"  [token]
@@ -9,7 +7,7 @@ module UNIT-TEST
   syntax SharpName ::= "#A" [token]
 
   // set variables: identical
-  rule test(1)
+  rule test("syntactic-match", 1)
     => assert( #matchResult( subst: .Map )
             == syntacticMatch( terms:  #A, .Patterns
                           , patterns:  #A, .Patterns
@@ -19,7 +17,7 @@ module UNIT-TEST
        .Declarations
 
   // set variables: extend substitution
-  rule test(2)
+  rule test("syntactic-match", 2)
     => assert( #matchResult( subst: (#A)::SetVariable |-> \or(1, 2, .Patterns))
             == syntacticMatch( terms:  \or(1, 2, .Patterns), .Patterns
                           , patterns:  #A, .Patterns
@@ -30,7 +28,7 @@ module UNIT-TEST
 
 
   // set variables: cannot extend substitution
-  rule test(3)
+  rule test("syntactic-match", 3)
     => assert( #error("No valid substitution")
             == syntacticMatch( terms:  \or(1, 2, .Patterns), .Patterns
                           , patterns:  #A, .Patterns
@@ -40,7 +38,7 @@ module UNIT-TEST
        .Declarations
 
   // typeof: matched
-  rule test(4)
+  rule test("syntactic-match", 4)
     => assert( #matchResult(subst: .Map)
             == syntacticMatch( terms:  \typeof(1, Int), .Patterns
                           , patterns:  \typeof(1, Int), .Patterns
@@ -50,7 +48,7 @@ module UNIT-TEST
        .Declarations
 
   // typeof: mismatched sort
-  rule test(5)
+  rule test("syntactic-match", 5)
     => assert( #error("\\typeof(_,_) sorts do not match")
             == syntacticMatch( terms:  \typeof(1, Int), .Patterns
                           , patterns:  \typeof(1, Nat), .Patterns
@@ -60,7 +58,7 @@ module UNIT-TEST
        .Declarations
 
   // typeof: mismatched
-  rule test(6)
+  rule test("syntactic-match", 6)
     => assert( #error("\\typeof(_,_) does not match")
             == syntacticMatch( terms:  1, .Patterns
                           , patterns:  \typeof(1, Int), .Patterns
