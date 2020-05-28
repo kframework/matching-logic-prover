@@ -2,7 +2,7 @@
 module SMTLIB2-SYNTAX
   imports TOKENS-SYNTAX
   imports SMTLIB2
-  syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
+  syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier), symbol]
 endmodule
 
 module SMTLIB2
@@ -31,7 +31,7 @@ module SMTLIB2
   syntax SMTLIB2Index      ::= SMTLIB2Numeral | SMTLIB2Symbol
   syntax SMTLIB2IndexList  ::= List{SMTLIB2Index, ""} [klabel(SMTLIB2IndexList)]
   syntax SMTLIB2Identifier ::= SMTLIB2Symbol
-                             | "(" "underscore" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier)]
+                             | "(" "underscore" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier), symbol]
 
 // Sorts
   syntax SMTLIB2Sort ::= SMTLIB2Identifier
