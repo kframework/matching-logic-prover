@@ -98,7 +98,7 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   , rest:      REST
                   )
-    => #matchResult( subst: SUBST V { getReturnSort(S(T)) } |-> S( #hole { getReturnSort(T) })
+    => #matchResult( subst: SUBST V { getReturnSort(S(T)) } |-> S( #hole )
                    , rest: .Patterns
                    )
      , .MatchResults
