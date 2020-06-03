@@ -431,6 +431,17 @@ Instantiate existentials using matching on the spatial part of goals:
        </k>
     requires isSpatialPattern(sep(RSPATIAL))
      andBool getFreeVariables(getSpatialPatterns(sep(RSPATIAL), RHS)) intersect Vs =/=K .Patterns
+
+  rule <claim> \implies(\and(LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
+       <k> match-debug => wait ...  </k>
+       <trace> _
+            => #match( terms: \and(getSpatialPatterns(LHS))
+                     , pattern: RSPATIAL
+                     , variables: Vs
+                     )
+      </trace>
+    requires isSpatialPattern(sep(RSPATIAL))
+
   rule <claim> \implies(\and(LHS) , \exists { Vs } \and(RHS)) </claim>
        <k> match => noop ... </k>
      requires getFreeVariables(getSpatialPatterns(RHS)) intersect Vs ==K .Patterns
