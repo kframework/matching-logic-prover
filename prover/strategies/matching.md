@@ -91,6 +91,19 @@ Work around OCaml not producing reasonable error messages:
 Recurse over assoc-only constructors (including `pto`):
 
 ```k
+  // TODO: matching over context patterns
+  rule #matchAssoc( terms:     S:Symbol(T), .Patterns
+                  , pattern:   V[T], .Patterns
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+    => #matchResult( subst: SUBST V { getReturnSort(S(T)) } |-> S( #hole { getReturnSort(T) })
+                   , rest: .Patterns
+                   )
+     , .MatchResults
+    requires V { getReturnSort(S(T)) } in Vs
+
   // Base case
   rule #matchAssoc( terms:     .Patterns
                   , pattern:   .Patterns
