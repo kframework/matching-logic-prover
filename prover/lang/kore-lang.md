@@ -140,11 +140,14 @@ only in this scenario*.
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
   syntax SetVariable ::= SharpName [klabel(setVariable)]
+  syntax Context ::= VariableName "[" Pattern "]" [klabel(context)]
   syntax Pattern ::= Int
                    | Variable
                    | SetVariable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
+
+                   | Context
 
                    | "\\top"    "(" ")"                         [klabel(top)]
                    | "\\bottom" "(" ")"                         [klabel(bottom)]
