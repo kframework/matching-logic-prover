@@ -56,7 +56,8 @@ module MATCHING-FUNCTIONAL
                                      , rest: .Patterns
                                      )
                     )
-    requires isSpatialPattern(sep(T))
+    [owise]
+    // requires isSpatialPattern(sep(T))
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
   rule #filterErrors(MR       , MRs) => MR , #filterErrors(MRs)
