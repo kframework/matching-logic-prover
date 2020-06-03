@@ -36,15 +36,24 @@ module MATCHING-FUNCTIONAL
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
+  rule #match( terms: \and(sep(H), Hs), pattern: P, variables: Vs )
+    =>                #match( terms: H,        pattern: P, variables: Vs )
+       ++MatchResults #match( terms: \and(Hs), pattern: P, variables: Vs )
+    requires Hs =/=K .Patterns
+
+  rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
+    => #match( terms: H,                       pattern: P, variables: Vs )
+
   rule #match( terms: T, pattern: P, variables: Vs )
     => #filterErrors( #matchAssocComm( terms: T
-                                            , pattern: P
-                                            , variables: Vs
-                                            , results: .MatchResults
-                                            , subst: .Map
-                                            , rest: .Patterns
-                                            )
-                           )
+                                     , pattern: P
+                                     , variables: Vs
+                                     , results: .MatchResults
+                                     , subst: .Map
+                                     , rest: .Patterns
+                                     )
+                    )
+    requires isSpatialPattern(sep(T))
 
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
