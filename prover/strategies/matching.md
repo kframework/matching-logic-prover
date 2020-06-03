@@ -417,18 +417,17 @@ The `with-each-match` strategy
 Instantiate existentials using matching on the spatial part of goals:
 
 ```k
-  rule <claim> \implies(\and(sep(LSPATIAL), LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
+  rule <claim> \implies(\and(LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
        <k> match
-               => with-each-match(#match( terms: LSPATIAL
+        => with-each-match(#match( terms: \and(getSpatialPatterns(LHS))
                                         , pattern: RSPATIAL
                                         , variables: Vs
-                                        )
-                                 , match
                                  )
-                  ...
+                          , match
+                          )
+           ...
        </k>
-    requires isSpatialPattern(sep(LSPATIAL))
-     andBool isSpatialPattern(sep(RSPATIAL))
+    requires isSpatialPattern(sep(RSPATIAL))
   rule <claim> \implies( \and( LSPATIAL, LHS)
                        ,  \exists { Vs } \and( RHS )
                        => \exists { Vs -Patterns fst(unzip(SUBST)) } substMap(\and(RHS), SUBST)
