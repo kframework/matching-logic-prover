@@ -36,28 +36,37 @@ module MATCHING-FUNCTIONAL
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
-  rule #match( terms: \and(sep(H), Hs), pattern: P, variables: Vs )
-    =>                #match( terms: H,        pattern: P, variables: Vs )
-       ++MatchResults #match( terms: \and(Hs), pattern: P, variables: Vs )
-    requires Hs =/=K .Patterns
-
-  rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
-    => #match( terms: H,                       pattern: P, variables: Vs )
-
-  rule #match( terms: \and(.Patterns),         pattern: P, variables: Vs )
+  rule #match(    terms: \and(T, Ts), pattern: P, variables: Vs )
+    =>                #match( terms: T,        pattern: P, variables: Vs )
+       ++MatchResults #match( terms: \and(Ts), pattern: P, variables: Vs )
+    requires \and(_) :/=K P
+  rule #match( terms: \and(T, .Patterns), pattern: P, variables: Vs )
+    => #match( terms: T,                  pattern: P, variables: Vs )
+    requires \and(_) :/=K P
+  rule #match( terms: \and(.Patterns),    pattern: P, variables: Vs )
     => .MatchResults
+    requires \and(_) :/=K P
 
-  rule #match( terms: T, pattern: P, variables: Vs )
-    => #filterErrors( #matchAssocComm( terms: T
-                                     , pattern: P
+  rule #match( terms: sep(Ts), pattern: sep(Ps), variables: Vs )
+    => #filterErrors( #matchAssocComm( terms: Ts
+                                     , pattern: Ps
                                      , variables: Vs
                                      , results: .MatchResults
                                      , subst: .Map
                                      , rest: .Patterns
                                      )
                     )
+
+  rule #match( terms: Ts, pattern: Ps, variables: Vs )
+    => #filterErrors( #matchAssoc( terms: Ts
+                                 , pattern: Ps
+                                 , variables: Vs
+                                 , subst: .Map
+                                 , rest: .Patterns
+                                 )
+                    )
     [owise]
-    // requires isSpatialPattern(sep(T))
+
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
   rule #filterErrors(MR       , MRs) => MR , #filterErrors(MRs)
@@ -153,7 +162,9 @@ Recurse over assoc-only constructors (including `pto`):
                   , subst:     SUBST
                   , rest:      REST
                   )
+    requires S =/=K sep
 
+  // TODO: the conjunction/disjunction matching rules should be more general, i.e. aware of commutativity
   // Recursive over conjunction
   rule #matchAssoc( terms:     \and(T_ARGs), Ts
                             => T_ARGs ++Patterns Ts
