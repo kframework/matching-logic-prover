@@ -2,129 +2,8 @@ Kore Sugar
 ==========
 
 ```k
-module TOKENS
-  // Lexical
-  syntax UpperName
-  syntax LowerName ::= CheckSATResult
-  syntax SharpName
-  syntax ColonName
-  syntax PipeQID
-  syntax Decimal
-
-  // Abstract
-  syntax Symbol ::= UpperName | LowerName
-  syntax VariableName ::= UpperName
-  syntax Sort ::= UpperName | LowerName
-
-  syntax CheckSATResult ::= "sat"       [token] 
-                          | "unsat"     [token]
-                          | "unknown"   [token]
-
-  // Identifiers used directly in the semantics
-
-  syntax LowerName ::= "emptysetx"  [token]
-                     | "unionx"     [token]
-                     | "singleton"  [token]
-                     | "intersectx" [token]
-                     | "in"         [token]
-                     | "disjointx"  [token]
-                     | "const"      [token]
-                     | "n"          [token]
-                     | "x"          [token]
-                     | "s"          [token]
-                     | "y"          [token]
-                     | "ite"        [token]
-                     | "setAdd"     [token]
-                     | "setDel"     [token]
-                     | "setminus"   [token]
-                     | "max"        [token]
-
-  syntax LowerName ::= "emptyset"      [token]
-                     | "singleton"     [token]
-                     | "union"         [token]
-                     | "disjoint"      [token]
-                     | "disjointUnion" [token]
-                     | "isMember"      [token]
-                     | "add"           [token]
-                     | "del"           [token]
-
-  // sep-logic symbols
-  syntax LowerName ::= "pto" [token]
-                     | "sep" [token]
-                     | "nil" [token]
-                     | "emp" [token]
-
-  // Arith
-  syntax LowerName ::= "plus"          [token]
-                     | "minus"         [token]
-                     | "mult"          [token]
-                     | "div"           [token]
-                     | "lt"            [token]
-                     | "gt"            [token]
-                     | "lte"           [token]
-                     | "gte"           [token]
-                     | "max"           [token]
-
-  // TODO: These aren't LowerNames
-  syntax LowerName ::= "*"     [token]
-                     | "+"     [token]
-                     | "/"     [token]
-                     | "-"     [token]
-                     | "^"     [token]
-                     | ">"     [token]
-                     | "<"     [token]
-                     | ">="    [token]
-                     | "<="    [token]
-
-  // Array
-  syntax LowerName ::= "store"         [token]
-                     | "select"        [token]
-
-  // Core symbols
-  syntax LowerName ::= "not"      [token]
-                     | "or"       [token]
-                     | "and"      [token]
-                     | "=>"       [token]
-                     | "="        [token]
-                     | "=>"       [token]
-                     | "ite"      [token]
-                     | "distinct" [token]
-
-  // Sets (defined by CVC4, but not Z3)
-  syntax LowerName ::= "emptyset"     [token]
-                     | "singleton"    [token]
-                     | "union"        [token]
-                     | "intersection" [token]
-                     | "member"       [token]
-
-  // Extensional Arrays
-  syntax LowerName ::= "select" [token]
-                     | "store"  [token]
-                     | "map"    [token]
-
-  // Sorts
-  syntax UpperName ::= "Array" [token]
-                     | "ArrayIntInt" [token]
-                     | "Bool" [token]
-                     | "Heap" [token]
-                     | "Int" [token]
-                     | "Set" [token]
-                     | "SetInt" [token]
-endmodule
-
-module TOKENS-SYNTAX
-  imports TOKENS
-  syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
-  syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
-  syntax SharpName ::= r"#[A-Za-z\\-0-9'\\#\\_]*"  [prec(100), token, autoReject]
-
-  syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token, autoReject]
-  syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token, autoreject]
-                   | "2.0" [token]
-endmodule
-
 module KORE
-  imports TOKENS
+  imports TOKENS-ABSTRACT
   imports INT-SYNTAX
   imports BOOL-SYNTAX
   imports STRING-SYNTAX
@@ -139,7 +18,7 @@ only in this scenario*.
 
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
-  syntax SetVariable ::= SharpName [klabel(setVariable)]
+  syntax SetVariable ::= "#" VariableName       [klabel(setVariable)]
   syntax Pattern ::= Int
                    | Variable
                    | SetVariable
@@ -181,7 +60,6 @@ only in this scenario*.
 
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
-  syntax AxiomName ::= LowerName | UpperName
 
   syntax Declaration ::= "imports" String
                        | "axiom" Pattern
@@ -213,10 +91,8 @@ module KORE-HELPERS
   imports PROVER-CONFIGURATION
   imports PROVER-CORE-SYNTAX
   imports VISITOR-SYNTAX
+  imports TOKENS-HELPERS
 
-  syntax String ::= SortToString(Sort)     [function, functional, hook(STRING.token2string)]
-  syntax String ::= SymbolToString(Symbol) [function, functional, hook(STRING.token2string)]
-  syntax LowerName ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
 
   syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
   rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))
@@ -468,14 +344,11 @@ and values, passed to K's substitute.
 ```
 
 ```k
-  syntax String ::= VariableName2String(VariableName) [function, functional, hook(STRING.token2string)]
-  syntax VariableName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
-  rule freshVariableName(I:Int) => String2VariableName("F" +String Int2String(I))
+  rule freshVariableName(I:Int) => StringToVariableName("F" +String Int2String(I))
 
-  syntax SetVariable ::= String2SetVariable(String) [function, functional, hook(STRING.string2token)]
   syntax SetVariable ::= freshSetVariable(Int) [freshGenerator, function, functional]
-  rule freshSetVariable(I:Int) => String2SetVariable("#F" +String Int2String(I))
+  rule freshSetVariable(I:Int) => # StringToVariableName("F" +String Int2String(I))
 
   syntax Map ::= makeFreshSubstitution(Patterns) [function] // Variables
   rule makeFreshSubstitution(V { SORT }, REST)
@@ -844,10 +717,7 @@ Simplifications
   rule maybeAnd(P, .Patterns) => P
   rule maybeAnd(Ps) => \and(Ps) [owise]
 
-  syntax String ::= AxiomNameToString(AxiomName) [function, hook(STRING.token2string)]
-  syntax AxiomName ::= StringToAxiomName(String) [function, functional, hook(STRING.string2token)]
-                     | freshAxiomName(Int)       [freshGenerator, function, functional]
-
+  syntax AxiomName ::= freshAxiomName(Int)       [freshGenerator, function, functional]
   rule freshAxiomName(I:Int) => StringToAxiomName("ax" +String Int2String(I))
 
   syntax Set ::= collectClaimNames() [function]
@@ -1013,7 +883,6 @@ assume a pattern of the form:
        => SetItem(SymbolToString(S)) #collectSymbolsS(Ds)
   rule #collectSymbolsS(_ Ds) => #collectSymbolsS(Ds) [owise]
 
-  syntax Symbol ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
 
   syntax Symbol ::= getFreshSymbol(GoalId, String) [function]
   rule getFreshSymbol(GId, Base)

@@ -9,8 +9,8 @@ ML to SMTLIB2
 module ML-TO-SMTLIB2
   imports STRING-SYNTAX
   imports SMTLIB2-HELPERS
-  imports KORE
   imports KORE-HELPERS
+  imports TOKENS-HELPERS
   imports STRATEGY-UNFOLDING
 
   syntax SMTLIB2Script ::= ML2SMTLIB(Pattern) [function]
@@ -82,12 +82,12 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(\and(P, Ps)) => (and PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
     requires Ps =/=K .Patterns
   rule PatternToSMTLIB2Term(\and(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\and(.Patterns)) => #token("true", "LowerName")
+  rule PatternToSMTLIB2Term(\and(.Patterns)) => #token("true", "SMTLIB2SimpleSymbol")
   // rule PatternToSMTLIB2Term(true) => true
   rule PatternToSMTLIB2Term(\or(P, Ps)) => (or PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term
     requires Ps =/=K .Patterns
   rule PatternToSMTLIB2Term(\or(P, .Patterns)) => PatternToSMTLIB2Term(P):SMTLIB2Term
-  rule PatternToSMTLIB2Term(\or(.Patterns)) => #token("false", "LowerName")
+  rule PatternToSMTLIB2Term(\or(.Patterns)) => #token("false", "SMTLIB2SimpleSymbol")
   // rule PatternToSMTLIB2Term(false) => false
 
   rule PatternToSMTLIB2Term(\implies(LHS, RHS)) => ((=> PatternToSMTLIB2Term(LHS) PatternToSMTLIB2Term(\and(RHS)))):SMTLIB2Term
@@ -128,14 +128,14 @@ module ML-TO-SMTLIB2
   syntax SMTLIB2Script ::= "Z3Prelude" [function]
   rule Z3Prelude
     => ( ( define-sort SetInt (.SMTLIB2SortList) ( Array Int  Bool ) )
-         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( ( as const SetInt ) #token("false", "LowerName") ) )
-         ( define-fun singleton ( ( x Int ) ) SetInt ( store emptysetx  x  #token("true", "LowerName") ) )
+         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( ( as const SetInt ) #token("false", "SMTLIB2SimpleSymbol") ) )
+         ( define-fun singleton ( ( x Int ) ) SetInt ( store emptysetx  x  #token("true", "SMTLIB2SimpleSymbol") ) )
          ( define-fun in ( ( n Int ) ( x SetInt ) ) Bool ( select x  n ) )
          ( define-fun unionx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map or ) x  y ) )
          ( define-fun intersectx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map and ) x  y ) )
          ( define-fun disjointx ( ( x SetInt )  ( y SetInt ) ) Bool ( = ( intersectx x  y ) emptysetx ) )
          ( define-fun setAdd ( ( s SetInt )  ( x Int ) ) SetInt ( unionx s ( singleton x ):SMTLIB2Term ) )
-         ( define-fun setDel ( ( s SetInt )  ( x Int ) ) SetInt ( store s x #token("false", "LowerName") ) )
+         ( define-fun setDel ( ( s SetInt )  ( x Int ) ) SetInt ( store s x #token("false", "SMTLIB2SimpleSymbol") ) )
 
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
@@ -153,11 +153,6 @@ module ML-TO-SMTLIB2
 
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
-
-  syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
-  syntax String              ::= VariableNameToString(VariableName)  [function, functional, hook(STRING.token2string)]
-  syntax SMTLIB2SimpleSymbol ::= VariableNameToSMTLIB2SimpleSymbol(VariableName) [function]
-  rule VariableNameToSMTLIB2SimpleSymbol(V) => StringToSMTLIB2SimpleSymbol(VariableNameToString(V))
 
   syntax SMTLIB2SimpleSymbol  ::= freshSMTLIB2SimpleSymbol(Int)              [freshGenerator, function, functional]
   syntax SMTLIB2SortedVarList ::= freshSMTLIB2SortedVarList(SMTLIB2SortList) [function]

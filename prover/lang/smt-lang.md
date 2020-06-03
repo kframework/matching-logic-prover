@@ -1,11 +1,12 @@
 ```k
 module SMTLIB2-SYNTAX
-  imports TOKENS-SYNTAX
+  imports TOKENS-LEXICAL
   imports SMTLIB2
   syntax SMTLIB2Identifier ::= "(" "_" SMTLIB2Symbol SMTLIB2IndexList ")" [klabel(indexedIdentifier), symbol]
 endmodule
 
 module SMTLIB2
+  imports TOKENS-ABSTRACT
   imports INT-SYNTAX
   imports BOOL-SYNTAX
   imports STRING
@@ -13,10 +14,7 @@ module SMTLIB2
 
 // Tokens
   syntax SMTLIB2Numeral ::= Int
-  syntax SMTLIB2SimpleSymbol ::= LowerName
-                               | UpperName
   syntax SMTLIB2Symbol ::= SMTLIB2SimpleSymbol
-                         | PipeQID
 
 // S Expressions
   syntax SMTLIB2SpecConstant ::= SMTLIB2Numeral
@@ -85,10 +83,8 @@ module SMTLIB2
                           | "(" "check-sat" ")"
   syntax SMTLIB2Script ::= List{SMTLIB2Command, ""} [klabel(SMTLIB2Script)]
 
-// For parsing strategies in smt files
   syntax SMTLIB2Attribute ::= ":mlprover-strategy" [token]
                             | ":status"            [token]
-                            | ColonName
 
   syntax SMTLIB2AttributeValue ::= SMTLIB2Symbol
                                  | SMTLIB2SpecConstant
@@ -104,9 +100,13 @@ module SMTLIB2-HELPERS
   imports SMTLIB2
   imports PROVER-CORE-SYNTAX
   imports ERROR
+  imports TOKENS-HELPERS
 
   syntax SMTLIB2AttributeValue ::=  CheckSATResult
   syntax CheckSATResult ::= Error
+                          | "sat"
+                          | "unsat"
+                          | "unknown"
 
 // Concatenation:
 
@@ -115,31 +115,10 @@ module SMTLIB2-HELPERS
     => COMMAND (SCRIPT1 ++SMTLIB2Script SCRIPT2)
   rule .SMTLIB2Script ++SMTLIB2Script SCRIPT2 => SCRIPT2
 
-// Converting between Sorts:
-
-  syntax VariableName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
-  syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
-  rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
-
-  syntax Symbol ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
-  rule SMTLIB2SimpleSymbolToSymbol(SYMBOL:UpperName) => SYMBOL
-  rule SMTLIB2SimpleSymbolToSymbol(SYMBOL:LowerName) => SYMBOL
-
-  syntax Sort ::= SMTLIB2SortToSort(SMTLIB2Sort) [function]
-  rule SMTLIB2SortToSort(SORT:UpperName) => SORT
-  rule SMTLIB2SortToSort(SORT:LowerName) => SORT
-
 // Serialize to String:
 
   syntax String ::= SMTLIB2NumeralToString(SMTLIB2Numeral) [function]
   rule SMTLIB2NumeralToString(I:Int) => Int2String(I)
-
-  syntax String ::= LowerNameToString(LowerName) [function, functional, hook(STRING.token2string)]
-  syntax String ::= UpperNameToString(UpperName) [function, functional, hook(STRING.token2string)]
-  
-  syntax String ::= SMTLIB2SimpleSymbolToString(SMTLIB2SimpleSymbol) [function, functional]
-  rule SMTLIB2SimpleSymbolToString(UN) => UpperNameToString(UN)
-  rule SMTLIB2SimpleSymbolToString(LN) => LowerNameToString(LN)
 
   syntax String ::= SMTLIB2IndexToString(SMTLIB2Index)             [function]
   rule SMTLIB2IndexToString(I:SMTLIB2Numeral) => SMTLIB2TermToString(I)
@@ -152,7 +131,8 @@ module SMTLIB2-HELPERS
 
   syntax String ::= SMTLIB2TermToString(SMTLIB2Term)         [function]
   rule SMTLIB2TermToString( N:SMTLIB2Numeral ) => SMTLIB2NumeralToString(N)
-  rule SMTLIB2TermToString( Op:SMTLIB2SimpleSymbol ) => SMTLIB2SimpleSymbolToString( Op )
+  rule SMTLIB2TermToString( Op:SMTLIB2SimpleSymbol )
+    => SMTLIB2SimpleSymbolToString( Op )
   rule SMTLIB2TermToString( ( ID:SMTLIB2QualIdentifier Ts ) )
     => "(" +String SMTLIB2TermToString(ID) +String " " +String SMTLIB2TermListToString(Ts) +String ")"
   rule SMTLIB2TermToString( ( as ID SORT ) )

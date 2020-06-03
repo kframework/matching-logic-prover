@@ -17,9 +17,6 @@ module DRIVER-SMT-SYNTAX
   imports DRIVER-SMT-COMMON
   imports SMTLIB2-SYNTAX
 
-  // TODO: Why doesn't this work in TOKENS-SYNTAX
-  syntax LowerName ::= Bool [token]
-
   // HACK: We disallow open parenthesis to reduce conflicts when tokenizing strategies
   syntax PipeQID ::= r"\\|[^\\|(]*\\|" [priority(100), token, autoReject]
 ```
@@ -432,8 +429,8 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern((ite C L R), Vs) => \or( \and(SMTLIB2TermToPattern(C, Vs), SMTLIB2TermToPattern(L, Vs))
                                                    , \and(\not(SMTLIB2TermToPattern(C, Vs)), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern(I:Int, _) => I
-  rule SMTLIB2TermToPattern(#token("true", "LowerName"), _) => \top()
-  rule SMTLIB2TermToPattern(#token("false", "LowerName"), _) => \bottom()
+  rule SMTLIB2TermToPattern(#token("true", "SMTLIB2SimpleSymbol"), _) => \top()
+  rule SMTLIB2TermToPattern(#token("false", "SMTLIB2SimpleSymbol"), _) => \bottom()
   rule SMTLIB2TermToPattern((as nil SORT), _) => parameterizedSymbol(nil, SMTLIB2SortToSort(SORT))(.Patterns)
   rule SMTLIB2TermToPattern((underscore emp _ _), _) => emp(.Patterns)
 

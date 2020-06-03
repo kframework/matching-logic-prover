@@ -39,7 +39,7 @@ module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
 
   rule <k> #rewfc1(N{S} #as V)
                => #rewfc2(V, getFreshSymbol(
-                               GId, VariableName2String(N)))
+                               GId, VariableNameToString(N)))
        ...</k>
        <id> GId </id>
        <claim> P </claim>
