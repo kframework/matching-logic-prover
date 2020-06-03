@@ -501,5 +501,28 @@ satisfies the nested positivity condition for $X$.
 \end{definition}
 
 \subsubsection{Correctness Rules}
+Let $E$ be a global environment and $\Gamma_P, \Gamma_I, \Gamma_C$ be contexts
+such that $\Gamma_I$ is
+$[I_1\cln \forall\Gamma_P, A_1 \scln \ldots I_k\cln \forall \Gamma_P, A_k]$
+and $\Gamma_C$ is
+$[c_1\cln \forall\Gamma_P, C_1 \scln \ldots c_n\cln \forall \Gamma_P, C_n]$.
+Then we have the following well-formedness rule:
+\[
+\prule{Ind}\hspace{5ex}
+\prftree
+{\wf(E)[\Gamma_P]}
+{(E[\Gamma_I\scln\Gamma_P] \vdash \lasm{C_i}{s_{q_i}})_i=1\ldots n}
+{\wf(E\scln \Ind{p}{\Gamma_I}{\Gamma_C})[]}
+\]
+provided the following side conditions hold:
+\begin{itemize}
+\item $k > 0$ and all $I_j$ and $c_i$ are distinct names for $j=1\ldots k$ and
+  $i=1\ldots n$
+\item $p$ is the number of parameters of $\Ind{p}{\Gamma_I}{\Gamma_C}$ and
+  $\Gamma_P$ is the context of paramters
+\item for $j=1\ldots k$, $A_j$ is an arity of sort $s_j$ and $I_j \not\in E$
+\item for $i=1\ldots n$, $C_i$ is a type of constructor of $I_{q_i}$ which
+  satisfies the positivity condition for $I_1 \ldots I_k$ and $c_i \not\in E$
+\end{itemize}
 
 \end{document}
