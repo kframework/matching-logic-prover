@@ -140,20 +140,6 @@ module ML-TO-SMTLIB2
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
 
-  syntax SMTLIB2Script ::= "CVC4Prelude" [function]
-  rule CVC4Prelude
-    => ( ( define-sort SetInt (.SMTLIB2SortList) ( Set Int ) )
-         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( as emptyset SetInt ) )
-         ( define-fun in ( ( n Int )  ( x SetInt )  ) Bool ( member n  x) )
-         ( define-fun unionx ( ( x SetInt )  ( y SetInt )  ) SetInt ( union x y  ) )
-         ( define-fun intersectx ( ( x SetInt )  ( y SetInt )  ) SetInt ( intersection x  y  ) )
-         ( define-fun disjointx ( ( x SetInt )  ( y SetInt )  ) Bool ( = ( intersectx x  y  ) emptysetx ) )
-         ( define-fun setAdd ( ( s SetInt )  ( x Int ) ) SetInt ( unionx s ( singleton x ):SMTLIB2Term ) )
-         ( define-fun setDel ( ( s SetInt )  ( x Int ) ) SetInt ( setminus s ( singleton x ):SMTLIB2Term ) )
-
-         ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
-       )
-
   syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
   syntax String              ::= VariableNameToString(VariableName)  [function, functional, hook(STRING.token2string)]
   syntax SMTLIB2SimpleSymbol ::= VariableNameToSMTLIB2SimpleSymbol(VariableName) [function]
@@ -214,7 +200,7 @@ module STRATEGY-SMT
   rule <claim> GOAL </claim>
        <id> GId </id>
        <k> smt-cvc4
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))) ==K unsat
+               => if CVC4CheckSAT(ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))) ==K unsat
                   then success
                   else fail
                   fi
@@ -227,7 +213,7 @@ module STRATEGY-SMT
   rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
        <id> GId </id>
        <k> check-lhs-constraint-unsat
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat
+               => if CVC4CheckSAT(ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat
                   then success
                   else noop
                   fi
@@ -252,20 +238,20 @@ We have an optimized version of trying both: Only call z3 if cvc4 reports unknow
                               fi
                              )
                         fi
-                      ) (CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))):CheckSATResult)
+                      ) (CVC4CheckSAT(ML2SMTLIB(\not(GOAL))):CheckSATResult)
                   ...
        </k>
-       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIB(GOAL) ... </trace>
+       <trace> .K => smt ~> ML2SMTLIB(GOAL) ... </trace>
 ```
 
 ```k
   rule <claim> GOAL </claim>
        <id> GId </id>
        <k> smt-debug
-               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))):CheckSATResult
+               => wait ~> CVC4CheckSAT(ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))):CheckSATResult
                   ...
        </k>
-       <trace> .K => smt ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId)) ... </trace>
+       <trace> .K => smt ~> ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId)) ... </trace>
      requires isPredicatePattern(GOAL)
 ```
 
@@ -298,6 +284,6 @@ module SMTLIB2-TEST-DRIVER
   rule <smt> SCRIPT:SMTLIB2Script </smt>
        <z3> .K => Z3CheckSAT(Z3Prelude ++SMTLIB2Script SCRIPT) </z3>
   rule <smt> SCRIPT:SMTLIB2Script </smt>
-       <cvc4> .K => CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script SCRIPT) </cvc4>
+       <cvc4> .K => CVC4CheckSAT(SCRIPT) </cvc4>
 endmodule
 ```
