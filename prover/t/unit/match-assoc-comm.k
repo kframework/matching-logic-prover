@@ -9,7 +9,7 @@ module TEST-MATCH-ASSOC-COMM
                      | "X0"   [token] | "X1"    [token] | "X2"    [token]
                      | "Y0"   [token] | "Y1"    [token] | "Y2"    [token]
                      | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
-                     | "H0"   [token]
+                     | "H0"   [token] | "H1"    [token]
 
   rule test("match-assoc-comm", 1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
