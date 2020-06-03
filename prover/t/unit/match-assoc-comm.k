@@ -229,6 +229,18 @@ module TEST-MATCH-ASSOC-COMM
              )
        .Declarations
 
+  rule test("match-assoc-comm", 13)
+    => assert( #error( "???" ), .MatchResults
+            == #match( terms:     \and(sep( pto ( Y0 { Loc } , c ( Z { Loc }))
+                                          , pto ( X0 { Loc } , c ( Y0 { Loc }))
+                                      )   )
+                      , pattern:   pto ( X0 { Loc } , c ( W0 { Loc }))
+                                 , pto ( W0 { Loc } , c ( Z { Loc }))
+                      , variables: W0 { Loc }
+                      )
+             )
+       .Declarations
+
   // matching on mu terms with different binders
   rule test("match-assoc-comm", 14)
     => assert( #matchResult( subst: .Map , rest: .Patterns )
@@ -240,6 +252,6 @@ module TEST-MATCH-ASSOC-COMM
                               , subst:     .Map
                               , rest:      .Patterns
                               )
-              )
+             )
        .Declarations
 endmodule
