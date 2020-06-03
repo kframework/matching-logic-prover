@@ -206,6 +206,17 @@ Recurse over assoc-only constructors (including `pto`):
                   , rest:      REST
                   )
 
+  // Both term and pattern are a nu:
+  // Recurse over pattern with same fresh variable for each nu term
+  rule #matchAssoc( terms:     (\nu X . T), Ts
+                            => subst(T, X, !F:SetVariable), Ts
+                  , pattern:   (\nu Y . P), Ps
+                            => subst(P, Y, !F), Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
   // ground variable: identical
   rule #matchAssoc( terms:     P:Variable, Ts => Ts
                   , pattern:   P, Ps => Ps
