@@ -230,7 +230,7 @@ module TEST-MATCH-ASSOC-COMM
        .Declarations
 
   // matching on mu terms with different binders
-  rule test("match-assoc-comm", 13)
+  rule test("match-assoc-comm", 14)
     => assert( #matchResult( subst: .Map , rest: .Patterns )
              , .MatchResults
             == #matchAssocComm( terms:     \mu #X0 . \and(#X0, #PHI1)
