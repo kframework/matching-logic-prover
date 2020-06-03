@@ -162,6 +162,7 @@ only in this scenario*.
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
                    | "\\mu" SetVariable "." Pattern             [klabel(mu)]
+                   | "\\nu" SetVariable "." Pattern             [klabel(mu)]
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 
