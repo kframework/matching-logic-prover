@@ -174,6 +174,16 @@ Recurse over assoc-only constructors (including `pto`):
                   , rest:      REST
                   )
 
+  // Recursive over exists
+  rule #matchAssoc( terms:     \exists { .Patterns } T, Ts
+                            => T, Ts
+                  , pattern:   \exists { .Patterns } P, Ps
+                            => P, Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
   // Both term and pattern are a mu:
   // Recurse over pattern with same fresh variable for each mu term
   rule #matchAssoc( terms:     (\mu X . T), Ts
