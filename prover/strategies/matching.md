@@ -143,7 +143,15 @@ Recurse over assoc-only constructors (including `pto`):
 
   // ground variable: identical
   rule #matchAssoc( terms:     P:Variable, Ts => Ts
-                  , pattern:   P:Variable, Ps => Ps
+                  , pattern:   P, Ps => Ps
+                  , variables: Vs
+                  , subst:     _
+                  , rest:      REST
+                  )
+    requires notBool P in Vs
+
+  rule #matchAssoc( terms:     P:SetVariable, Ts => Ts
+                  , pattern:   P, Ps => Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
@@ -160,7 +168,18 @@ Recurse over assoc-only constructors (including `pto`):
     => #error( "No valid substitution" ), .MatchResults
     requires T =/=K P
      andBool notBool P in Vs
-     
+
+  // ground variable: non-identical
+  rule #matchAssoc( terms:     T, Ts
+                  , pattern:   P:SetVariable, Ps
+                  , variables: Vs
+                  , subst:     _
+                  , rest:      REST
+                  )
+    => #error( "No valid substitution" ), .MatchResults
+    requires T =/=K P
+     andBool notBool P in Vs
+
   // free variable: different sorts
   rule #matchAssoc( terms:     T         , Ts
                   , pattern:   P:Variable, Ps
