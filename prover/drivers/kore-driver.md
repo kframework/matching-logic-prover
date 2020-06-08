@@ -27,10 +27,10 @@ Handle each `Declaration` sequentially:
 ```k
   // K changes directory to "REPODIR/.krun-TIMESTAMP"
   rule <k> imports FILE:String
-        => #system("kast --directory ../.build/defn/prover-kore '../" +String FILE +String "'")
+        => #system("kast --directory .build/defn/prover-kore --output kore '" +String FILE +String "'")
            ...
        </k>
-  rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKAST(KAST_STRING) ... </k>
+  rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKORE(KAST_STRING) ... </k>
 ```
 
 Add various standard Kore declarations to the configuration directly:

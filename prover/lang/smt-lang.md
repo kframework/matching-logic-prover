@@ -218,9 +218,8 @@ module CVC4
 
   syntax CheckSATResult ::= CVC4CheckSAT(SMTLIB2Script) [function]
   rule CVC4CheckSAT(QUERY)
-    => CheckSATHelper( "../include/prelude.smt2"
-	             , SMTLIB2ScriptToString(QUERY)
-               +String "\n( check-sat )\n"
+    => CheckSATHelper( "include/prelude.smt2"
+	                 , SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n"
                      )
 
   syntax CheckSATResult ::= CheckSATHelper(/*Prelude*/ String, /*Query*/String)                                [function]
