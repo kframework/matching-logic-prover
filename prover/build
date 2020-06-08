@@ -48,11 +48,11 @@ other_md_files = [ 'lang/smt-lang.md'
 
 def prover(alias, flags = None):
     return proj.definition( alias = alias
-                          , backend = 'ocaml'
+                          , backend = 'llvm'
                           , main = 'prover.md'
                           , other = other_md_files
                           , runner_script = './prover'
-                          , flags = flags
+                          , flags = '-ccopt -g -ccopt -O0 ' + flags
                           )
 
 prover_kore = prover('prover-kore', '--main-module DRIVER-KORE --syntax-module DRIVER-KORE-SYNTAX')
