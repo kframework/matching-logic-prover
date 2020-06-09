@@ -124,7 +124,7 @@ module TEST-MATCH-ASSOC
   // Match multiple occurances of a variable
   rule test("match-assoc", 10)
     => symbol c ( Data ) : Data
-       assert( #matchResult( subst:    X0 |-> c( #hole )
+       assert( #matchResult( subst:    X0 { Data } |-> c( #hole )
                            , rest:     .Patterns
                            )
              , .MatchResults
