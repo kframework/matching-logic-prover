@@ -75,3 +75,13 @@ We got stuck on the LLVM backend. Therefore, we plan to move to the task "moving
 1. (JT, XC) Make SMT translation module be dependent only on the annotations about symbols (function and predicates).
 2. (NR, LP) Make Pattern Matching module be dependent only on the annotations about assoc/comm/injectivity of functions. 
 
+
+# Meeting (2020/06/09)
+
+Moving to LLVM:
+  All four unit test modules have been merged to LLVM. We are merging the rest of the prover now. We expect this to be done in the next week. 
+  
+Moving to AML:
+  Created PR73. Look at strategies/smt.md, remove built-in rules for `ML2SMTLIBDecls` and other fnuctions. First create a unit test. 
+  Created PR72. 
+
