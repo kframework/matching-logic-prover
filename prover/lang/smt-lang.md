@@ -252,13 +252,6 @@ module SMTLIB2-HELPERS
     requires I =/=Int 0
 endmodule
 
-module Z3
-  imports SMTLIB2-HELPERS
-  syntax CheckSATResult ::= Z3CheckSAT(SMTLIB2Script) [function]
-  rule Z3CheckSAT(QUERY)
-    => CheckSATHelper("../include/prelude.smt2", SMTLIB2ScriptToString(QUERY) +String "\n( check-sat )\n", "z3 -T:5 ")
-endmodule
-
 module CVC4
   imports SMTLIB2-HELPERS
   syntax CheckSATResult ::= CVC4CheckSAT(SMTLIB2Script) [function]

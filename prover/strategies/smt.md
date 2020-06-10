@@ -125,21 +125,6 @@ module ML-TO-SMTLIB2
   rule VariablesToSMTLIB2SortedVarList(.Patterns)
     => .SMTLIB2SortedVarList
 
-  syntax SMTLIB2Script ::= "Z3Prelude" [function]
-  rule Z3Prelude
-    => ( ( define-sort SetInt (.SMTLIB2SortList) ( Array Int  Bool ) )
-         ( define-fun emptysetx (.SMTLIB2SortedVarList) SetInt ( ( as const SetInt ) #token("false", "LowerName") ) )
-         ( define-fun singleton ( ( x Int ) ) SetInt ( store emptysetx  x  #token("true", "LowerName") ) )
-         ( define-fun in ( ( n Int ) ( x SetInt ) ) Bool ( select x  n ) )
-         ( define-fun unionx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map or ) x  y ) )
-         ( define-fun intersectx ( ( x SetInt )  ( y SetInt ) ) SetInt ( ( underscore map and ) x  y ) )
-         ( define-fun disjointx ( ( x SetInt )  ( y SetInt ) ) Bool ( = ( intersectx x  y ) emptysetx ) )
-         ( define-fun setAdd ( ( s SetInt )  ( x Int ) ) SetInt ( unionx s ( singleton x ):SMTLIB2Term ) )
-         ( define-fun setDel ( ( s SetInt )  ( x Int ) ) SetInt ( store s x #token("false", "LowerName") ) )
-
-         ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
-       )
-
   syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String) [function, functional, hook(STRING.string2token)]
   syntax String              ::= VariableNameToString(VariableName)  [function, functional, hook(STRING.token2string)]
   syntax SMTLIB2SimpleSymbol ::= VariableNameToSMTLIB2SimpleSymbol(VariableName) [function]
@@ -174,28 +159,16 @@ endmodule
 
 ### SMT
 
-We can call into both CVC4 and Z3 to solve SMT queries:
+We can call into CVC4 to solve SMT queries:
 
 ```k
 module STRATEGY-SMT
-  imports Z3
   imports CVC4
   imports PROVER-CORE
   imports STRATEGIES-EXPORTED-SYNTAX
   imports ML-TO-SMTLIB2
 
-  rule <claim> GOAL </claim>
-       <k> smt-z3
-               => if Z3CheckSAT(Z3Prelude ++SMTLIB2Script ML2SMTLIB(\not(GOAL))) ==K unsat
-                  then success
-                  else fail
-                  fi
-                  ...
-       </k>
-       <trace> .K => smt-z3 ... </trace>
-
-  rule <claim> GOAL </claim>
-       <k> smt-z3 => fail </k>
+  rule <k> smt => smt-cvc4 ...</k>
 
   rule <claim> GOAL </claim>
        <id> GId </id>
@@ -222,26 +195,6 @@ module STRATEGY-SMT
        <trace> .K => check-lhs-constraint-unsat ... </trace>
      requires isPredicatePattern(\and(LCONSTRAINTS))
 
-```
-
-We have an optimized version of trying both: Only call z3 if cvc4 reports unknown.
-
-```k
-  rule <claim> GOAL </claim>
-       <k> smt
-               => #fun( CVC4RESULT
-                     => if CVC4RESULT ==K unsat
-                        then success
-                        else (if isUnknown(CVC4RESULT)
-                              then smt-z3
-                              else fail
-                              fi
-                             )
-                        fi
-                      ) (CVC4CheckSAT(ML2SMTLIB(\not(GOAL))):CheckSATResult)
-                  ...
-       </k>
-       <trace> .K => smt ~> ML2SMTLIB(GOAL) ... </trace>
 ```
 
 ```k
@@ -271,18 +224,14 @@ Main
 ```k
 module SMTLIB2-TEST-DRIVER
   imports ML-TO-SMTLIB2
-  imports Z3
   imports CVC4
 
   configuration <claim> $PGM:Pattern </claim>
                 <smt> .K </smt>
-                <z3> .K </z3>
                 <cvc4> .K </cvc4>
 
   rule <claim> IMPL </claim>
        <smt> .K => ML2SMTLIB(\not(IMPL)) </smt>
-  rule <smt> SCRIPT:SMTLIB2Script </smt>
-       <z3> .K => Z3CheckSAT(Z3Prelude ++SMTLIB2Script SCRIPT) </z3>
   rule <smt> SCRIPT:SMTLIB2Script </smt>
        <cvc4> .K => CVC4CheckSAT(SCRIPT) </cvc4>
 endmodule
