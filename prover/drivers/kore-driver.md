@@ -57,6 +57,12 @@ Add various standard Kore declarations to the configuration directly:
        </declarations>
 ```
 
+For hook-smt-symbol, hook-smt-sort
+```k
+  rule <k> hook-smt-symbol(From, To) => .K ...</k>
+       <hooked-smt-symbols>... (.Map => (From |-> To)) </hooked-smt-symbols>
+```
+
 The `claim` Declaration creates a new `<goal>` cell.
 
 ```k

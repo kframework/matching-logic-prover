@@ -1,3 +1,4 @@
+imports "include/prelude.kore"
 imports "t/definitions/avl.kore"
 imports "t/definitions/bst.kore"
 

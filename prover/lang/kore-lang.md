@@ -61,9 +61,17 @@ only in this scenario*.
   syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
 
+  // defined in `lang/smt-lang.md
+  syntax SMTLIB2Sort 
+  syntax SMTLIB2SimpleSymbol
+
+  syntax HookDeclaration ::= "hook-smt-sort" "(" Sort ","  SMTLIB2Sort ")"
+                           | "hook-smt-symbol" "(" Symbol "," SMTLIB2SimpleSymbol ")"
+
   syntax Declaration ::= "imports" String
                        | "axiom" Pattern
                        | "axiom" AxiomName ":" Pattern
+                       | HookDeclaration
                        | SymbolDeclaration
                        | SortDeclaration
   syntax Declarations ::= List{Declaration, ""} [klabel(Declarations)]

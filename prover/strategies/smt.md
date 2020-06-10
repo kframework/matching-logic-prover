@@ -30,6 +30,10 @@ module ML-TO-SMTLIB2
     ::= DeclarationsToSMTLIB(GoalId, Declarations) [function]
 
   rule DeclarationsToSMTLIB(_, .Declarations) => .SMTLIB2Script
+
+  rule DeclarationsToSMTLIB(GId, _:HookDeclaration Ds)
+    => DeclarationsToSMTLIB(GId, Ds)
+
   rule DeclarationsToSMTLIB(GId, (symbol S(ARGS) : SORT) Ds)
     => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
        DeclarationsToSMTLIB(GId, Ds)
@@ -59,24 +63,15 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(\not(P)) => ( #token("not", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P) ):SMTLIB2Term
   rule PatternToSMTLIB2Term(I:Int) => I                                          requires I >=Int 0
   rule PatternToSMTLIB2Term(I:Int) => ( #token("-", "SMTLIB2SimpleSymbol") absInt(I) ):SMTLIB2Term requires I  <Int 0
-  rule PatternToSMTLIB2Term(#token("emptyset", "Symbol")) => #token("emptysetx", "SMTLIB2SimpleSymbol"):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("singleton", "Symbol")(P1)) => ( #token("singleton", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("lt", "Symbol")(P1, P2)) => ( #token("<", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("gt", "Symbol")(P1, P2)) => ( #token(">", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("lte", "Symbol")(P1, P2)) => ( #token("<=", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("gte", "Symbol")(P1, P2)) => ( #token(">=", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("plus", "Symbol")(P1, P2)) => ( #token("+", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("max", "Symbol")(P1, P2)) => ( #token("max", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("minus", "Symbol")(P1, P2)) => ( #token("-", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("mult", "Symbol")(P1, P2)) => ( #token("*", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("div", "Symbol")(P1, P2)) => ( #token("/", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("select", "Symbol")(P1, P2)) => ( #token("select", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("isMember", "Symbol")(P1, P2)) => ( #token("in", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("add", "Symbol")(P1, P2)) => ( #token("setAdd", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("del", "Symbol")(P1, P2)) => ( #token("setDel", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("union", "Symbol")(P1, P2)) => ( #token("unionx", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("disjoint", "Symbol")(P1, P2)) => ( #token("disjointx", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) ):SMTLIB2Term
-  rule PatternToSMTLIB2Term(#token("store", "Symbol")(P1, P2, P3)) => ( #token("store", "SMTLIB2SimpleSymbol") PatternToSMTLIB2Term(P1) PatternToSMTLIB2Term(P2) PatternToSMTLIB2Term(P3) ):SMTLIB2Term
+
+  rule [[ PatternToSMTLIB2Term(S:Symbol) => ({Hooks[S]}:>SMTLIB2SimpleSymbol):SMTLIB2Term ]]
+       <hooked-smt-symbols> Hooks </hooked-smt-symbols>
+       requires S in_keys(Hooks)
+
+  rule [[ PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( {Hooks[S]}:>SMTLIB2SimpleSymbol PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term ]]
+       <hooked-smt-symbols> Hooks </hooked-smt-symbols>
+       requires S in_keys(Hooks)
+
   rule PatternToSMTLIB2Term(S:Symbol(.Patterns)) => SymbolToSMTLIB2SymbolFresh(S):SMTLIB2Term
   rule PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( SymbolToSMTLIB2SymbolFresh(S) PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term [owise]
   rule PatternToSMTLIB2Term(\and(P, Ps)) => (#token("and", "SMTLIB2SimpleSymbol") PatternsToSMTLIB2TermList(P, Ps)):SMTLIB2Term

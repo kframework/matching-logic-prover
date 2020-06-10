@@ -13,6 +13,7 @@ object.
 module PROVER-CONFIGURATION
   imports KORE
   imports DOMAINS-SYNTAX
+  imports MAP
 
   syntax Pgm
   syntax Strategy
@@ -38,6 +39,7 @@ module PROVER-CONFIGURATION
         <declarations>
           <declaration multiplicity="*" type="Set">  .K </declaration>
         </declarations>
+        <hooked-smt-symbols> .Map </hooked-smt-symbols>
       </prover>
 endmodule
 ```
