@@ -184,6 +184,7 @@ Recurse over assoc-comm `sep`:
                       , rest:      REST
                       )
     => #error( "Pattern larger than term" ), .MatchResults
+    requires notBool P in Vs
 
 // Base case: emp matches all heaps
   rule #matchAssocComm( terms:     Ts
@@ -195,7 +196,7 @@ Recurse over assoc-comm `sep`:
                       )
     => #matchResult(subst: SUBST, rest: REST ++Patterns Ts), .MatchResults
 
-// Base case: If matching a single term, agains an atomic pattern, use Assoc Matching
+// Base case: If matching a single term against an atomic pattern, use Assoc Matching
   rule #matchAssocComm( terms:     T, .Patterns
                       , pattern:   P, .Patterns
                       , variables: Vs
@@ -209,6 +210,7 @@ Recurse over assoc-comm `sep`:
                   , subst: SUBST
                   , rest:      REST
                   )
+    requires notBool P in Vs
 ```
 
 Matching an atomic pattern against multiple terms: return a disjunction of the solutions
@@ -236,6 +238,7 @@ Matching an atomic pattern against multiple terms: return a disjunction of the s
                       , rest:      T, REST
                       )
     requires Ts =/=K .Patterns
+     andBool notBool P in Vs
 ```
 
 Matching a non-atomic pattern against multiple terms: Match the first
@@ -264,6 +267,30 @@ atom in the pattern against any of the terms, and then extend those solutions.
                       )
     requires ARGs =/=K .Patterns
      andBool P_ARGs =/=K .Patterns
+     andBool notBool P_ARG in Vs
+```
+
+Base case: If matching a single term against a heap variable, return REST
+TODO: if there are multiple heap variables, we need to return all possible partitions.
+Currently, the entire REST is constrained to a single heap variable
+TODO: other corner cases probably
+
+```k
+  rule #matchAssocComm( terms:     T, Ts
+                      , pattern:   H:Variable, Ps
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      , rest:      REST
+                      )
+    => #matchAssocComm( terms:     T, Ts
+                      , pattern:   Ps
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST H |-> sep(REST)
+                      , rest:      .Patterns
+                      )
+    requires H in Vs
 ```
 
 With each returned result, we apply the substitution and continue matching over
@@ -271,16 +298,22 @@ the unmatched part of the term:
 
 ```k
   // TODO: don't want to call substUnsafe directly (obviously)
-  rule #matchAssocComm( terms:     Ts => REST
-                      , pattern:   P  => substPatternsMap(P, SUBST1)
-                      , variables: Vs => Vs -Patterns fst(unzip(SUBST1))
-                      , results:   #matchResult(subst: SUBST1, rest: REST), .MatchResults
-                                => .MatchResults
-                      , subst:     SUBST2
-                                => (SUBST1 SUBST2)
-                      , rest:      _
+  rule #matchAssocComm( terms:     Ts
+                      , pattern:   P
+                      , variables: Vs
+                      , results:   #matchResult(subst: SUBST_INNER, rest: REST_INNER), .MatchResults
+                      , subst:     SUBST
+                      , rest:      REST
                       )
-    requires intersectSet(keys(SUBST1), keys(SUBST2)) ==K .Set
+    => #matchAssocComm( terms:     REST_INNER
+                      , pattern:   substPatternsMap(P, SUBST_INNER)
+                      , variables: Vs -Patterns fst(unzip(SUBST_INNER))
+                      , results:   .MatchResults
+                      , subst:     SUBST_INNER SUBST
+                      , rest:      REST
+                      )
+    requires intersectSet(keys(SUBST_INNER), keys(SUBST)) ==K .Set
+     andBool notBool P in Vs
 ```
 
 Failures are propagated:
