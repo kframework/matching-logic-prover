@@ -44,7 +44,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "lift-constraints"
                     | "direct-proof"
                     | "check-lhs-constraint-unsat"
-                    | "smt" | "smt-z3" | "smt-cvc4" | "smt-debug"
+                    | "smt" | "smt-cvc4" | "smt-debug"
                     | "left-unfold" | "left-unfold-Nth" "(" Int ")"
                     | "right-unfold" | "right-unfold-Nth" "(" Int "," Int ")" | "right-unfold" "(" Symbol ")"
                     | "right-unfold-all"  "(" "bound" ":" Int ")"
