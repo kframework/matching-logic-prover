@@ -1,6 +1,5 @@
 module TEST-CHECKSAT
     imports UNIT-TEST
-    imports Z3
     imports CVC4
 
     syntax LowerName ::= "a" [token]
