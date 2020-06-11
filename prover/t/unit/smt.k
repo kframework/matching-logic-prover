@@ -7,33 +7,6 @@ module TEST-CHECKSAT
                        | "b" [token]
                        | "c" [token]
 
-    rule test("CheckSAT.Z3", 1)
-      => assert( Z3CheckSAT((assert (= a b)))
-              == #error(#systemResult(1, "(error \"line 1 column 13: unknown constant a\")\nsat\n" , ""))
-               )
-         .Declarations
-    rule test("CheckSAT.Z3", 2)
-      => assert( Z3CheckSAT((declare-const a Bool) (assert (= a a)))
-              == sat
-               )
-         .Declarations
-    rule test("CheckSAT.Z3", 3)
-      => assert( Z3CheckSAT((declare-const a Bool)
-                       (assert (distinct a a))
-                      )
-              == unsat
-               )
-         .Declarations
-    // Fermat's last theorem (n = 3)
-    rule test("CheckSAT.Z3", 4)
-      => assert( Z3CheckSAT((declare-const a Int) (declare-const b Int) (declare-const c Int)
-                            ( assert ( > a 0 )) ( assert ( > b 0 )) ( assert ( > c 0 ))
-                            ( assert ( = ( * c c c) ( + (* a a a) (* b b b))))
-                           )
-              == unknown
-               )
-         .Declarations
-
 // CVC4
 // ====
 
