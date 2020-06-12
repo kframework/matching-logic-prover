@@ -11,6 +11,6 @@
 
 (set-info :mlprover-strategy
             normalize . or-split-rhs
-          . right-unfold . smt
+          . right-unfold . smt-cvc4
 )
 (check-sat)

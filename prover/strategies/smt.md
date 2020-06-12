@@ -168,8 +168,6 @@ module STRATEGY-SMT
   imports STRATEGIES-EXPORTED-SYNTAX
   imports ML-TO-SMTLIB2
 
-  rule <k> smt => smt-cvc4 ...</k>
-
   rule <claim> GOAL </claim>
        <id> GId </id>
        <k> smt-cvc4
@@ -204,7 +202,7 @@ module STRATEGY-SMT
                => wait ~> CVC4CheckSAT(ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId))):CheckSATResult
                   ...
        </k>
-       <trace> .K => smt ~> ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId)) ... </trace>
+       <trace> .K => smt-debug ~> ML2SMTLIBDecls(GId, \not(GOAL), collectDeclarations(GId)) ... </trace>
      requires isPredicatePattern(GOAL)
 ```
 
