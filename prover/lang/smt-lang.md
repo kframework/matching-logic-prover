@@ -100,7 +100,6 @@ endmodule
 
 ```k
 module SMTLIB2-HELPERS
-  imports K-IO
   imports SMTLIB2
   imports PROVER-CORE-SYNTAX
   imports ERROR
@@ -226,22 +225,35 @@ module SMTLIB2-HELPERS
   rule SMTLIB2ScriptToString( COMMAND SCRIPT )
     => SMTLIB2CommandToString( COMMAND ) +String "\n" +String SMTLIB2ScriptToString( SCRIPT )
 
-  syntax CheckSATResult ::= CheckSATHelper(/*Prelude*/ String, /*Query*/String, String/*Command*/)                                 [function]
-  syntax CheckSATResult ::= "CheckSAT.doWrite"  "(" /*Prelude*/String "," /*Query*/String "," /*Command*/String "," IOFile ")"       [function]
-  syntax CheckSATResult ::= "CheckSAT.doClose"  "(" /*Prelude*/String "," /*Query*/String "," /*Command*/String "," IOFile "," K ")" [function]
-  syntax CheckSATResult ::= "CheckSAT.doSystem" "(" /*Prelude*/String "," /*Query*/String "," /*Command*/String "," String "," K ")" [function]
-  rule CheckSATHelper(P, Q, C)
-    => CheckSAT.doWrite(P, Q, C, #mkstemp("query-XXXXXX.smt"))
-  rule CheckSAT.doWrite(P, Q, C, #tempFile(FN, FD))
-    => CheckSAT.doClose(P, Q, C, #tempFile(FN, FD), #write(FD, Q))
-  rule CheckSAT.doClose(P, Q, C, #tempFile(FN, FD), .K)
-    => CheckSAT.doSystem(P, Q, C, FN, #close(FD))
-  rule CheckSAT.doSystem(P, Q, C, FN, .K)
+endmodule
+
+module CVC4
+  imports K-IO
+  imports SMTLIB2-HELPERS
+
+  syntax CheckSATResult ::= CVC4CheckSAT(SMTLIB2Script) [function]
+  rule CVC4CheckSAT(QUERY)
+    => CheckSATHelper( "../include/prelude.smt2"
+	             , SMTLIB2ScriptToString(QUERY)
+               +String "\n( check-sat )\n"
+                     )
+
+  syntax CheckSATResult ::= CheckSATHelper(/*Prelude*/ String, /*Query*/String)                                [function]
+  syntax CheckSATResult ::= "CheckSAT.doWrite"  "(" /*Prelude*/String "," /*Query*/String "," IOFile ")"       [function]
+  syntax CheckSATResult ::= "CheckSAT.doClose"  "(" /*Prelude*/String "," /*Query*/String "," IOFile "," K ")" [function]
+  syntax CheckSATResult ::= "CheckSAT.doSystem" "(" /*Prelude*/String "," /*Query*/String "," String "," K ")" [function]
+  rule CheckSATHelper(P, Q)
+    => CheckSAT.doWrite(P, Q, #mkstemp("query-XXXXXX.smt"))
+  rule CheckSAT.doWrite(P, Q, #tempFile(FN, FD))
+    => CheckSAT.doClose(P, Q, #tempFile(FN, FD), #write(FD, Q))
+  rule CheckSAT.doClose(P, Q, #tempFile(FN, FD), .K)
+    => CheckSAT.doSystem(P, Q, FN, #close(FD))
+  rule CheckSAT.doSystem(P, Q, FN, .K)
     => CheckSAT.parseResult(#system("cat " +String P +String " "
 					             +String FN
-			    +String " | " +String C))
+			    +String " | " +String "cvc4 --lang smt --tlimit 5000 "))
 
-  rule CheckSAT.doWrite(_, _, C, E:IOError) => #error(E)
+  rule CheckSAT.doWrite(_, _, E:IOError) => #error(E)
 
   syntax CheckSATResult ::= "CheckSAT.parseResult" "(" KItem ")" [function]
   rule CheckSAT.parseResult(#systemResult(0, "sat\n", STDERR))     => sat
@@ -250,17 +262,7 @@ module SMTLIB2-HELPERS
   rule CheckSAT.parseResult(#systemResult(0, "timeout\n", STDERR)) => unknown
   rule CheckSAT.parseResult(#systemResult(I, STDOUT, STDERR))      => #error(#systemResult(I, STDOUT, STDERR))
     requires I =/=Int 0
-endmodule
 
-module CVC4
-  imports SMTLIB2-HELPERS
-  syntax CheckSATResult ::= CVC4CheckSAT(SMTLIB2Script) [function]
-  rule CVC4CheckSAT(QUERY)
-    => CheckSATHelper( "../include/prelude.smt2"
-	             , SMTLIB2ScriptToString(QUERY)
-               +String "\n( check-sat )\n"
-                     , "cvc4 --lang smt --tlimit 5000 "
-                     )
 endmodule
 
 module SMTLIB-SL
