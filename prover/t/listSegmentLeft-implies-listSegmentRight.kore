@@ -7,19 +7,19 @@ claim \implies( \and( listSegmentLeft (H { ArrayIntInt } , X { Int }, Y { Int },
 
 // strategy search-bound(5)
 
-strategy kt . normalize . ( ( simplify . right-unfold-Nth(0, 0) . smt )
-                          | ( kt-solve-implications(smt) . normalize
+strategy kt . normalize . ( ( simplify . right-unfold-Nth(0, 0) . smt-cvc4 )
+                          | ( kt-solve-implications(smt-cvc4) . normalize
                             . kt . ( ( right-unfold-Nth(0, 1)
                                      . right-unfold-Nth(0, 0)
                                      . normalize
                                      . instantiate-existentials
-                                     . smt
+                                     . smt-cvc4
                                      )
                                    | ( right-unfold-Nth(0, 1)
                                      . instantiate-existentials
                                      . instantiate-universals-with-ground-terms
                                      . normalize
-                                     . smt
+                                     . smt-cvc4
                                      )
                                    )
                             )

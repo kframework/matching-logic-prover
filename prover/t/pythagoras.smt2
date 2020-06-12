@@ -10,5 +10,5 @@
 
 (assert (= (+ (* x x) (* y y)) (* z z)))
 
-(set-info :mlprover-strategy smt)
+(set-info :mlprover-strategy smt-cvc4)
 (check-sat)

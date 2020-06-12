@@ -19,11 +19,11 @@ claim \implies( \and( listSegmentRight( H { ArrayIntInt }
 strategy kt # head(listSegmentRight) # freshPositions(1) ; search-bound(4)
 /* 
 strategy kt # head(listSegmentRight) # freshPositions(1)
-       ; ( ( simplify ; instantiate-existentials ; smt-z3 )
+       ; ( ( simplify ; instantiate-existentials ; smt-cvc4 )
          | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials  )
          | noop
          )
-       ; ( ( simplify ; instantiate-existentials ; smt )
-         | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt )
+       ; ( ( simplify ; instantiate-existentials ; smt-cvc4 )
+         | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt-cvc4 )
          )
 */
