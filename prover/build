@@ -62,8 +62,11 @@ prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module D
 # Functional tests
 # ----------------
 
-prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
-prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
+def proverPathFlag():
+    return "-cPROVERDIR=\\\"{}\\\"".format(sys.path[0])
+
+prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine' + ' ' + proverPathFlag())
+prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine' + ' ' + proverPathFlag())
 
 def log_on_success(file, message):
     return proj.rule( 'log-to-success'
@@ -102,7 +105,7 @@ def known_passing(test):
 def make_test(rule, test):
     commandline = "'--default-strategy %s'" % strategy_for_test(test)
     return proj.source(test) \
-               .then(rule.variable('flags', '-cCOMMANDLINE=%s' % commandline))
+               .then(rule.variable('flags', ('-cCOMMANDLINE=%s' % commandline) + ' ' + proverPathFlag()))
 
 def sl_comp_test(test, log_file):
     global tests_with_timeout
@@ -170,7 +173,7 @@ def unit_test(test_file):
                                  )
     test = proj.source('t/unit/unit-tests') \
                .then(test_driver.krun()
-                                .variable('flags', '-cCOMMANDLINE=.CommandLine')
+                                .variable('flags', '-cCOMMANDLINE=.CommandLine' + ' ' + proverPathFlag())
                     ) \
                .alias(test_file + '.test')
     return test
