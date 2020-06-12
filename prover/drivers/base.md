@@ -28,7 +28,10 @@ module PROVER-CONFIGURATION
             <id format="id: %2"> root </id>
             <parent format="parent: %2"> none </parent>
             <claim> \and(.Patterns) </claim> // TODO: make this optional instead?
-            <k> $COMMANDLINE:CommandLine ~> $PGM:Pgm </k>
+            <k> $COMMANDLINE:CommandLine
+             ~> imports "include/prelude.kore"
+             ~> $PGM:Pgm
+            </k>
             <expected> .K </expected>
             <local-context>
               <local-decl multiplicity="*" type="Set">  .K </local-decl>
