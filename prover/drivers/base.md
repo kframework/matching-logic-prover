@@ -23,13 +23,14 @@ module PROVER-CONFIGURATION
   configuration
       <prover>
         <exit-code exit=""> 1 </exit-code>
+        <prover-dir> $PROVERDIR:String </prover-dir>
         <goals>
           <goal multiplicity="*" type="List" format="%1%i%n%2, %3%n%4%n%5%n%6%n%7%n%d%8">
             <id format="id: %2"> root </id>
             <parent format="parent: %2"> none </parent>
             <claim> \and(.Patterns) </claim> // TODO: make this optional instead?
-            <k> $COMMANDLINE:CommandLine
-             ~> imports "include/prelude.kore"
+            <k> imports "include/prelude.kore"
+             ~> $COMMANDLINE:CommandLine
              ~> $PGM:Pgm
             </k>
             <expected> .K </expected>
