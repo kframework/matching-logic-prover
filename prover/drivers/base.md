@@ -29,7 +29,7 @@ module PROVER-CONFIGURATION
             <id format="id: %2"> root </id>
             <parent format="parent: %2"> none </parent>
             <claim> \and(.Patterns) </claim> // TODO: make this optional instead?
-            <k> imports "include/prelude.kore"
+            <k> imports system "prelude.kore"
              ~> $COMMANDLINE:CommandLine
              ~> $PGM:Pgm
             </k>

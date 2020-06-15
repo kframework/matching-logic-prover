@@ -26,10 +26,23 @@ Handle each `Declaration` sequentially:
 
 ```k
   // K changes directory to "REPODIR/.krun-TIMESTAMP"
-  rule <k> imports FILE:String
-        => #system("kast --directory .build/defn/prover-kore --output kore '" +String FILE +String "'")
+  rule imports FILE:String
+    => #imports FILE
+
+  rule <k> imports system FILE:String
+        => #imports PD +String "/include/" +String FILE
            ...
        </k>
+       <prover-dir> PD:String </prover-dir>
+
+  syntax KItem ::= "#imports" String
+  rule <k> #imports PATH:String
+        => #system("kast --output kore --directory " +String PD +String "/.build/defn/prover-kore"
+             +String " '" +String PATH +String "'")
+           ...
+       </k>
+       <prover-dir> PD:String </prover-dir>
+
   rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKORE(KAST_STRING):Declarations ... </k>
 ```
 
