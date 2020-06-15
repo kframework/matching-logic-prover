@@ -105,8 +105,11 @@ module ML-TO-SMTLIB2
   rule SymbolToSMTLIB2SymbolFresh(S:Symbol) => StringToSMTLIB2SimpleSymbol("fresh_" +String SymbolToString(S))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
-  rule SortToSMTLIB2Sort(SetInt) => #token("SetInt", "SMTLIB2SimpleSymbol")
-  rule SortToSMTLIB2Sort(ArrayIntInt) => ( #token("Array", "SMTLIB2SimpleSymbol") #token("Int", "SMTLIB2SimpleSymbol") #token("Int", "SMTLIB2SimpleSymbol") ):SMTLIB2Sort
+
+  rule [[ SortToSMTLIB2Sort(S:Sort) => {Hooks[S]}:>SMTLIB2Sort ]]
+       <hooked-smt-sorts> Hooks </hooked-smt-sorts>
+       requires S in_keys(Hooks)
+
   rule SortToSMTLIB2Sort(SORT) => StringToSMTLIB2SimpleSymbol(SortToString(SORT))
     [owise]
 

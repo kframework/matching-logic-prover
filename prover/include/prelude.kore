@@ -1,3 +1,6 @@
+hook-smt-sort(SetInt, SetInt)
+hook-smt-sort(ArrayIntInt, (Array Int Int))
+
 hook-smt-symbol(emptyset, emptysetx)
 hook-smt-symbol(singleton, singleton)
 hook-smt-symbol(lt, < )
