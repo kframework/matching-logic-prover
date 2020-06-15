@@ -74,6 +74,9 @@ For hook-smt-symbol, hook-smt-sort
 ```k
   rule <k> hook-smt-symbol(From, To) => .K ...</k>
        <hooked-smt-symbols>... (.Map => (From |-> To)) </hooked-smt-symbols>
+
+  rule <k> hook-smt-sort(From, To) => .K ...</k>
+       <hooked-smt-sorts>... (.Map => (From |-> To)) </hooked-smt-sorts>
 ```
 
 The `claim` Declaration creates a new `<goal>` cell.
