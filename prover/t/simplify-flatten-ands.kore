@@ -1,0 +1,6 @@
+symbol f(Int) : Int
+axiom a: \equals(f(1), 1)
+claim \equals(f(\and(1, \and())), 1)
+strategy simplify.flatten-ands
+       . apply-equation -> a at 0 by []
+       . reflexivity

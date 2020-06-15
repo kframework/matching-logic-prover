@@ -1,0 +1,3 @@
+claim \equals(1, 1)
+strategy introduce-lemma(H: \equals(1,1), by: reflexivity)
+       . apply(H, fail)

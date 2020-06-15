@@ -113,6 +113,7 @@ module STRATEGY-APPLY-EQUATION
                       ( term: T
                       , pattern: L
                       , variables: getUniversallyQuantifiedVariables(H)
+                                   ++Patterns getSetVariables(H)
                       , index: Idx
                       )
         , to: R
@@ -137,7 +138,7 @@ module STRATEGY-APPLY-EQUATION
          , by: Ss
          )
          => instantiateAssumptions(GId, Subst, P)
-         ~> createSubgoalsWithStrategies(strats: Ss, result: noop)
+         ~> createSubgoalsWithStrategies(strats: Ss, result: success)
        ...</k>
        <claim>
          _ => cool(heated: Heated, term: substMap(R, Subst))
@@ -149,17 +150,17 @@ module STRATEGY-APPLY-EQUATION
                    "," "result:" Strategy
                    ")"
 
-  rule <k> (#instantiateAssumptionsResult(.Patterns, .Map)
+  rule <k> (#instantiateAssumptionsResult(.Patterns, _)
                ~> createSubgoalsWithStrategies
                   ( strats: .Strategies
                   , result: R))
-               => R
+               => R & noop
        ...</k>
 
-  rule <k> #instantiateAssumptionsResult(P,Ps => Ps, .Map)
+  rule <k> #instantiateAssumptionsResult(P,Ps => Ps, _)
                ~> createSubgoalsWithStrategies
                   ( strats: (S, Ss) => Ss
-                  , result: R => R & subgoal(P, S))
+                  , result: R => subgoal(P, S) & R)
        ...</k>
 
 ```

@@ -1,0 +1,4 @@
+symbol f() : Int
+axiom a: \equals(f(), 1)
+claim \equals(\equals(f(), 1), \top())
+strategy axiom-equals-top(a)

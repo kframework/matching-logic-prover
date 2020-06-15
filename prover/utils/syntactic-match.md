@@ -224,6 +224,42 @@ module SYNTACTIC-MATCH-RULES
     => #error("\\equals(_,_) does not match")
     requires \equals(...) :/=K T
 
+  // \member(_,_) matched
+  rule #syntacticMatch( terms:     \member(T1, T2), Ts
+                               => T1 ++Patterns T2 ++Patterns Ts
+                      , patterns:  \member(P1, P2), Ps
+                               => P1 ++Patterns P2 ++Patterns Ps
+                      , variables: _
+                      , subst:     _
+                      )
+
+  // \member(_,_) mismatched
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  \member(...), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #error("\\member(_,_) does not match")
+    requires \member(...) :/=K T
+
+  // \subseteq(_,_) matched
+  rule #syntacticMatch( terms:     \subseteq(T1, T2), Ts
+                               => T1 ++Patterns T2 ++Patterns Ts
+                      , patterns:  \subseteq(P1, P2), Ps
+                               => P1 ++Patterns P2 ++Patterns Ps
+                      , variables: _
+                      , subst:     _
+                      )
+
+  // \subseteq(_,_) mismatched
+  rule #syntacticMatch( terms:     T, _
+                      , patterns:  \subseteq(...), _
+                      , variables: _
+                      , subst:     _
+                      )
+    => #error("\\subseteq(_,_) does not match")
+    requires \subseteq(...) :/=K T
+
   // \not(_) matched
   rule #syntacticMatch( terms:     \not(T), Ts
                                => T ++Patterns Ts

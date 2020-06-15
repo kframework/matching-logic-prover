@@ -9,6 +9,7 @@ requires "strategies/core.k"
 requires "strategies/duplicate.k"
 requires "strategies/instantiate-universals.k"
 requires "strategies/inst-exists.k"
+requires "strategies/introduce-lemma.k"
 requires "strategies/intros.k"
 requires "strategies/knaster-tarski.k"
 requires "strategies/matching.k"
@@ -89,6 +90,9 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "propagate-exists-through-application" Int
                     | "propagate-predicate-through-application" "(" Pattern "," Int ")"
                     | "propagate-conjunct-through-exists" "(" Int "," Int ")"
+                    | "introduce-lemma" "(" AxiomName ":" Pattern "," "by:" Strategy ")"
+                    | "axiom-equals-top" "(" AxiomName ")"
+                    | "simplify.flatten-ands"
 
   syntax RewriteDirection ::= "->" | "<-"
 
