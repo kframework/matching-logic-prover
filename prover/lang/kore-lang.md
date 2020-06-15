@@ -69,6 +69,7 @@ only in this scenario*.
                            | "hook-smt-symbol" "(" Symbol "," SMTLIB2SimpleSymbol ")"
 
   syntax Declaration ::= "imports" String
+                       | "imports" "system" String
                        | "axiom" Pattern
                        | "axiom" AxiomName ":" Pattern
                        | HookDeclaration
