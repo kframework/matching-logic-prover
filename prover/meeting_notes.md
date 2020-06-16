@@ -82,6 +82,21 @@ Moving to LLVM:
   All four unit test modules have been merged to LLVM. We are merging the rest of the prover now. We expect this to be done in the next week. 
   
 Moving to AML:
-  Created PR73. Look at strategies/smt.md, remove built-in rules for `ML2SMTLIBDecls` and other fnuctions. First create a unit test. 
+  Created PR73/PR76. Look at strategies/smt.md, remove built-in rules for `ML2SMTLIBDecls` and other fnuctions. First create a unit test. 
   Created PR72. 
+
+# Meeting (2020/06/16)
+
+Moving to LLVM:
+  debugging
+
+Moving to AML:
+  PR73 merged. PR76 in review. 
+  PR72 wip. 
+
+Adding Notations:
+  add "Head" syntax
+  add notation declaration syntax
+  add notatoin desugaring as a strategy
+  add support for occurrences
 
