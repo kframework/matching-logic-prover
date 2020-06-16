@@ -88,7 +88,7 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
 
 ```k
   syntax Strategy ::= goalStrat(GoalId)
-  rule <prover>
+  rule <goals>
          ( <goal> <id> ID </id>
                   <parent> PID </parent>
                   <k> RStrat:TerminalStrategy </k>
@@ -100,7 +100,7 @@ completed, its result is replaced in the parent goal and the subgoal is removed.
                 ...
          </goal>
          ...
-       </prover>
+       </goals>
 ```
 
 Proving a goal may involve proving other subgoals:
