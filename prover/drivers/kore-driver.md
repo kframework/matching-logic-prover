@@ -30,7 +30,7 @@ Handle each `Declaration` sequentially:
         => #system("kast --directory .build/defn/prover-kore --output kore '" +String FILE +String "'")
            ...
        </k>
-  rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKORE(KAST_STRING) ... </k>
+  rule <k> #systemResult(0, KAST_STRING, STDERR) => #parseKORE(KAST_STRING):Declarations ... </k>
 ```
 
 Add various standard Kore declarations to the configuration directly:
