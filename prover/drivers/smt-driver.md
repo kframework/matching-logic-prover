@@ -181,7 +181,7 @@ module DRIVER-SMT
                       ) ...
        </declarations>
 
-  syntax K ::= #rest(SMTLIB2FunctionDecList, SMTLIB2TermList)
+  syntax KItem ::= #rest(SMTLIB2FunctionDecList, SMTLIB2TermList)
 
   rule <k> _:GoalBuilder
         ~> ( #rest(_, _)
@@ -247,7 +247,7 @@ module DRIVER-SMT
        , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs))
        ), #gatherRest(FDs, BODIEs)
 
-  syntax K ::= unfoldMR(Pattern, Pattern, PatternTupleList)
+  syntax KItem ::= unfoldMR(Pattern, Pattern, PatternTupleList)
   rule <k> _:GoalBuilder ~> #rest(_, _)
         ~> ( unfoldMR(ID:Symbol(ARGs), BODY, .PatternTupleList)
           => .K
