@@ -66,8 +66,7 @@ only in this scenario*.
                        | "axiom" AxiomName ":" Pattern
                        | SymbolDeclaration
                        | SortDeclaration
-  syntax Declarations ::= Declaration Declarations
-  syntax Declarations ::= ".Declarations" [klabel(.Declarations), symbol]
+  syntax Declarations ::= List{Declaration, ""} [klabel(Declarations)]
 
   syntax Variable ::= "#hole"
 
@@ -185,8 +184,8 @@ module KORE-HELPERS
   rule getReturnSort( #token("singleton", "Symbol") ( ARGS ) ) => SetInt
   rule getReturnSort( #token("emptyset", "Symbol") ) => SetInt
   rule getReturnSort( #token("disjoint", "Symbol") ( ARGS ) ) => Bool
-  rule getReturnSort( #token("lt ", "Symbol") ( ARGS ) ) => Bool
-  rule getReturnSort( #token("gt ", "Symbol") ( ARGS ) ) => Bool
+  rule getReturnSort( #token("lt", "Symbol") ( ARGS ) ) => Bool
+  rule getReturnSort( #token("gt", "Symbol") ( ARGS ) ) => Bool
   rule getReturnSort( #token("lte", "Symbol") ( ARGS ) ) => Bool
   rule getReturnSort( #token("gte", "Symbol") ( ARGS ) ) => Bool
   rule getReturnSort( #token("isMember", "Symbol") ( _ ) ) => Bool
