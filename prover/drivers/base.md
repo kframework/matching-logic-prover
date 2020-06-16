@@ -101,7 +101,6 @@ endmodule
 module DRIVER-BASE-SYNTAX
   imports DRIVER-BASE-COMMON
   imports TOKENS-LEXICAL
-  syntax Declarations ::= "" [klabel(.Declarations), symbol]
   // TODO: Why doesn't this work?
   // syntax CommandLine ::= "" [klabel(.CommandLine)]
 endmodule
