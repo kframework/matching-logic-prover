@@ -24,15 +24,15 @@
 (set-info :mlprover-strategy
             normalize
           . or-split-rhs
-          . kt . ( ( right-unfold . smt )
-                 | ( kt-solve-implications(smt) . normalize
+          . kt . ( ( right-unfold . smt-cvc4 )
+                 | ( kt-solve-implications(smt-cvc4) . normalize
                  . kt . ( ( right-unfold-Nth(0, 1) . normalize
                           . right-unfold-Nth(0, 1) . normalize
                           . right-unfold-Nth(0, 0) . normalize
-                          . smt
+                          . smt-cvc4
                           )
-                        | ( kt-solve-implications(smt) . normalize
-                          . smt
+                        | ( kt-solve-implications(smt-cvc4) . normalize
+                          . smt-cvc4
                           )
                         )
                    )

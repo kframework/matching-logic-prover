@@ -38,14 +38,14 @@ module ML-TO-SMTLIB2
     => DeclarationsToSMTLIB(GId, Ds)
 
   rule DeclarationsToSMTLIB(GId, (symbol S(ARGS) : SORT) Ds)
-    => (declare-fun SymbolToSMTLIB2SymbolFresh(S) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
+    => (declare-fun SymbolToSMTLIB2SymbolFresh(symbol(S)) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(SORT) ) ++SMTLIB2Script
        DeclarationsToSMTLIB(GId, Ds)
-    requires isFunctional(GId, S)
+    requires isFunctional(GId, symbol(S))
 
 // We only translate functional symbols to SMT
   rule DeclarationsToSMTLIB(GId, (symbol S(ARGS) : SORT) Ds)
     => DeclarationsToSMTLIB(GId, Ds)
-    requires notBool isFunctional(GId, S)
+    requires notBool isFunctional(GId, symbol(S))
 
   syntax SMTLIB2TermList ::= SMTLIB2SortedVarListToSMTLIB2TermList(SMTLIB2SortedVarList) [function]
   rule SMTLIB2SortedVarListToSMTLIB2TermList(.SMTLIB2SortedVarList) => .SMTLIB2TermList
@@ -67,12 +67,11 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(I:Int) => I                                          requires I >=Int 0
   rule PatternToSMTLIB2Term(I:Int) => ( #token("-", "SMTLIB2SimpleSymbol") absInt(I) ):SMTLIB2Term requires I  <Int 0
 
-  rule [[ PatternToSMTLIB2Term(S1:Symbol) => (S2):SMTLIB2Term ]]
+  rule [[ PatternToSMTLIB2Term(symbol(S1)) => (S2):SMTLIB2Term ]]
        <declaration> axiom _ : hook-smt-symbol(S1, S2) </declaration>
 
-  rule [[ PatternToSMTLIB2Term(S1:Symbol(ARGS)) => ( S2 PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term ]]
+  rule [[ PatternToSMTLIB2Term(symbol(S1)(ARGS)) => ( S2 PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term ]]
        <declaration> axiom _ : hook-smt-symbol(S1, S2) </declaration>
-
 
   rule PatternToSMTLIB2Term(S:Symbol(.Patterns)) => SymbolToSMTLIB2SymbolFresh(S):SMTLIB2Term
   rule PatternToSMTLIB2Term(S:Symbol(ARGS)) => ( SymbolToSMTLIB2SymbolFresh(S) PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term [owise]
@@ -101,10 +100,10 @@ module ML-TO-SMTLIB2
     => .SMTLIB2TermList
 
   syntax SMTLIB2Symbol ::= SymbolToSMTLIB2Symbol(Symbol) [function]
-  rule SymbolToSMTLIB2Symbol(S:Symbol) => StringToSMTLIB2SimpleSymbol(SymbolToString(S))
+  rule SymbolToSMTLIB2Symbol(symbol(S)) => StringToSMTLIB2SimpleSymbol(HeadToString(S))
 
   syntax SMTLIB2Symbol ::= SymbolToSMTLIB2SymbolFresh(Symbol) [function]
-  rule SymbolToSMTLIB2SymbolFresh(S:Symbol) => StringToSMTLIB2SimpleSymbol("fresh_" +String SymbolToString(S))
+  rule SymbolToSMTLIB2SymbolFresh(symbol(S)) => StringToSMTLIB2SimpleSymbol("fresh_" +String HeadToString(S))
 
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
 
@@ -144,7 +143,7 @@ module ML-TO-SMTLIB2
 
   syntax SMTLIB2Command ::= SymbolDeclarationToSMTLIB2FunctionDeclaration(SymbolDeclaration) [function]
   rule SymbolDeclarationToSMTLIB2FunctionDeclaration(symbol NAME ( ARGS ) : RET)
-    => ( declare-fun SymbolToSMTLIB2SymbolFresh(NAME) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(RET) )
+    => ( declare-fun SymbolToSMTLIB2SymbolFresh(symbol(NAME)) ( SortsToSMTLIB2SortList(ARGS) ) SortToSMTLIB2Sort(RET) )
 ```
 
 ```k
@@ -175,7 +174,7 @@ module STRATEGY-SMT
      requires isPredicatePattern(GOAL)
 
 // If the constraints are unsatisfiable, the entire term is unsatisfiable
-  rule <claim> \implies(\and(sep(_), LCONSTRAINTS), _) </claim>
+  rule <claim> \implies(\and(symbol(sep)(_), LCONSTRAINTS), _) </claim>
        <id> GId </id>
        <k> check-lhs-constraint-unsat
                => if CVC4CheckSAT(ML2SMTLIBDecls(GId, \and(LCONSTRAINTS), collectDeclarations(GId))) ==K unsat

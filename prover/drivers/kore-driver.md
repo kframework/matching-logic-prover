@@ -10,6 +10,30 @@ module DRIVER-KORE
   imports PROVER-CORE
   imports K-IO
   imports K-REFLECTION
+  imports VISITOR-SYNTAX
+
+  syntax Pattern ::= classify(Head) [function]
+
+  rule [[ classify(S) => symbol(S) ]]
+       <declaration> symbol S(_) : _ </declaration>
+
+  rule [[ classify(N) => notation(N) ]]
+       <declaration> notation N(_) = _ </declaration>
+
+  syntax Pattern ::= resolveHeads(Pattern) [function]
+
+  rule resolveHeads(P)
+    => visitorResult.getPattern(visitTopDown(resolveHeadsVisitor(), P))
+
+  syntax Visitor ::= resolveHeadsVisitor()
+
+  rule visit(resolveHeadsVisitor(), unclassified(Head))
+    => visitorResult(resolveHeadsVisitor(), classify(Head))
+
+  rule visit(resolveHeadsVisitor(), P)
+    => visitorResult(resolveHeadsVisitor(), P)
+    requires unclassified(_) :/=K P
+
 ```
 
 Handle each `Declaration` sequentially:
@@ -49,6 +73,12 @@ Handle each `Declaration` sequentially:
 Add various standard Kore declarations to the configuration directly:
 
 ```k
+  rule <k> (notation H(Args) = P) #as DECL:NotationDeclaration => .K ...</k>
+        <declarations>
+         (.Bag => <declaration> notation H(Args) = resolveHeads(P) </declaration>)
+         ...
+       </declarations>       
+
   rule <k> (symbol _ ( _ ) : _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
@@ -63,9 +93,15 @@ Add various standard Kore declarations to the configuration directly:
 
   rule axiom Body => axiom getFreshGlobalAxiomName() : Body
 
-  rule <k> (axiom _: _ #as DECL:Declaration) => .K ... </k>
+  rule <k> (axiom N : P:Pattern) => .K ... </k>
        <declarations>
-         (.Bag => <declaration> DECL </declaration>)
+         (.Bag => <declaration> axiom N : resolveHeads(P) </declaration>)
+         ...
+       </declarations>
+
+  rule <k> (axiom N : B:HookAxiom) => .K ... </k>
+       <declarations>
+         (.Bag => <declaration> axiom N : B </declaration>)
          ...
        </declarations>
 ```
@@ -79,8 +115,8 @@ The `claim` Declaration creates a new `<goal>` cell.
        </k>
   rule <k> claim NAME : PATTERN
            strategy STRAT
-        => subgoal(NAME, PATTERN, STRAT)
-        ~> axiom NAME : PATTERN
+        => subgoal(NAME, resolveHeads(PATTERN), STRAT)
+        ~> axiom NAME : resolveHeads(PATTERN)
            ...
        </k>
 
@@ -98,5 +134,7 @@ module DRIVER-KORE-SYNTAX
   imports DRIVER-BASE-SYNTAX
   imports SMTLIB2-SYNTAX
   imports SMTLIB-SL
+
+  syntax Pattern ::= Head [klabel(unclassified), symbol, avoid]
 endmodule
 ```

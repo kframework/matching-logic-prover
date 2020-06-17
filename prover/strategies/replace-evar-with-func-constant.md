@@ -45,9 +45,9 @@ module STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
        <claim> P </claim>
        requires V in getFreeVariables(P, .Patterns)
 
-  rule <k> #rewfc2(N{S}, Sym) => .K ...</k>
+  rule <k> #rewfc2(N{S}, symbol(Sym)) => .K ...</k>
        <id> GId </id>
-       <claim> P => subst(P, N{S}, Sym(.Patterns)) </claim>
+       <claim> P => subst(P, N{S}, symbol(Sym)(.Patterns)) </claim>
        <local-context> (.Bag =>
          <local-decl> symbol Sym(.Sorts) : S </local-decl>
          <local-decl>

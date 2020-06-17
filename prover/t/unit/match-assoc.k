@@ -3,8 +3,8 @@ requires "drivers/unit-tests.k"
 module UNIT-TEST
   imports DRIVER-UNIT-TEST
 
-  syntax Symbol ::= "c"    [token]
-                  | "d"    [token]
+  syntax Head ::= "c"    [token]
+                | "d"    [token]
   syntax Sort ::= "Data" [token]
                 | "Loc"  [token]
   syntax VariableName ::= "W"    [token]
@@ -14,8 +14,8 @@ module UNIT-TEST
 
   rule test(1)
     => assert( #error("No valid substitution"), .MatchResults
-            == #matchAssoc( terms:     pto( X0 { Loc }, Y0 { Data })
-                          , pattern:   pto( Z  { Loc }, W  { Data })
+            == #matchAssoc( terms:     symbol(pto)( X0 { Loc }, Y0 { Data })
+                          , pattern:   symbol(pto)( Z  { Loc }, W  { Data })
                           , variables: W { Data }
                           , subst:     .Map
                           , rest:      .Patterns
@@ -24,8 +24,8 @@ module UNIT-TEST
        .Declarations
   rule test(2)
     => assert( #error("Constructors do not match"), .MatchResults
-            == #matchAssoc( terms:     c( X0 { Loc }, Y0 { Data })
-                          , pattern:   d( Z  { Loc }, W  { Data })
+            == #matchAssoc( terms:     symbol(c)( X0 { Loc }, Y0 { Data })
+                          , pattern:   symbol(d)( Z  { Loc }, W  { Data })
                           , variables: Z { Loc }, W { Data }
                           , subst:     .Map
                           , rest:      .Patterns
@@ -34,7 +34,7 @@ module UNIT-TEST
        .Declarations
   rule test(3)
     => assert( #error( "Mismatch in length of arguments" ), .MatchResults
-            == #matchAssoc( terms:     pto( X0 { Loc }, Y0 { Data })
+            == #matchAssoc( terms:     symbol(pto)( X0 { Loc }, Y0 { Data })
                           , pattern:   .Patterns
                           , variables: .Patterns
                           , subst:     .Map
@@ -44,8 +44,8 @@ module UNIT-TEST
        .Declarations
   rule test(4)
     => assert( #error( "Mismatch in length of arguments" ), .MatchResults
-            == #matchAssoc( terms:     c(X0 { Loc }, Y0 { Data })
-                          , pattern:   c(X0 { Loc }, Y0 { Data }, Y0 { Data })
+            == #matchAssoc( terms:     symbol(c)(X0 { Loc }, Y0 { Data })
+                          , pattern:   symbol(c)(X0 { Loc }, Y0 { Data }, Y0 { Data })
                           , variables: .Patterns
                           , subst:     .Map
                           , rest:      .Patterns
@@ -73,8 +73,8 @@ module UNIT-TEST
                            , rest:     .Patterns
                            )
              , .MatchResults
-            == #matchAssoc( terms:     pto( X0 { Loc }, Y0 { Data })
-                          , pattern:   pto( Z  { Loc }, W  { Data })
+            == #matchAssoc( terms:     symbol(pto)( X0 { Loc }, Y0 { Data })
+                          , pattern:   symbol(pto)( Z  { Loc }, W  { Data })
                           , variables: Z { Loc }, W { Data }
                           , subst:     .Map
                           , rest:      .Patterns
@@ -88,8 +88,8 @@ module UNIT-TEST
                            , rest:     .Patterns
                            )
              , .MatchResults
-            == #matchAssoc( terms:     c( X0 { Loc }, Y0 { Data }), d( X0 { Loc }, Y0 { Data })
-                          , pattern:   c( Z  { Loc }, W  { Data }), d( Z  { Loc }, W  { Data })
+            == #matchAssoc( terms:     symbol(c)( X0 { Loc }, Y0 { Data }), symbol(d)( X0 { Loc }, Y0 { Data })
+                          , pattern:   symbol(c)( Z  { Loc }, W  { Data }), symbol(d)( Z  { Loc }, W  { Data })
                           , variables: Z { Loc }, W { Data }
                           , subst:     .Map
                           , rest:      .Patterns
@@ -100,8 +100,8 @@ module UNIT-TEST
   rule test(8)
     => assert( #error( "No valid substitution" )
              , .MatchResults
-            == #matchAssoc( terms:     c( X0 { Loc }, Y0 { Data }), c( X0 { Loc }, Y0 { Data })
-                          , pattern:   c( Z  { Loc }, W  { Data }), c( Y0 { Loc }, W  { Data })
+            == #matchAssoc( terms:     symbol(c)( X0 { Loc }, Y0 { Data }), symbol(c)( X0 { Loc }, Y0 { Data })
+                          , pattern:   symbol(c)( Z  { Loc }, W  { Data }), symbol(c)( Y0 { Loc }, W  { Data })
                           , variables: Z { Loc }, W { Data }
                           , subst:     .Map
                           , rest:      .Patterns
@@ -115,7 +115,7 @@ module UNIT-TEST
        assert( #error("Constructors do not match")
              , .MatchResults
             == #matchAssoc( terms:     X0 { Loc }, Y0 { Data }
-                          , pattern:   c( Z { Loc }, W { Data }), c( Y0 { Loc }, W { Data })
+                          , pattern:   symbol(c)( Z { Loc }, W { Data }), symbol(c)( Y0 { Loc }, W { Data })
                           , variables: Z { Loc }, W { Data }
                           , subst:     .Map
                           , rest:      .Patterns

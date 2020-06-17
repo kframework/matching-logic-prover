@@ -43,6 +43,7 @@ module VISITOR
          orBool isVariable(P)
          orBool isSetVariable(P)
          orBool isSymbol(P)
+         orBool isNotation(P)
 
   // \equals(_, _)
   rule #visitTopDown(visitorResult(V,\equals(P1, P2)))
@@ -113,29 +114,31 @@ module VISITOR
          .Patterns
        ) => visitorResult(V, \or(Ps ++Patterns P))
 
-  // symbol application
-  rule #visitTopDown(visitorResult(V, _:Symbol(.Patterns)) #as VR)
-       => VR
+  // application
 
-  rule #visitTopDown(visitorResult(V, S:Symbol(P, Ps)))
-    => #visitTopDownSym(.Patterns, S, visitTopDown(V, P), Ps)
+  rule #visitTopDown(visitorResult(V, C(Ps)))
+    => #visitTopDownSym(.Patterns, visitTopDown(V, C), Ps)
 
   syntax VisitorResult
-     ::= #visitTopDownSym(Patterns, Symbol, VisitorResult, Patterns) [function]
+     ::= #visitTopDownSym(Patterns, VisitorResult, Patterns) [function]
 
   rule #visitTopDownSym(
          Ps1 => Ps1 ++Patterns P1,
-         _,
          visitorResult(V, P1) => visitTopDown(V, P2),
          P2, Ps2 => Ps2
        )
 
   rule #visitTopDownSym(
-         Ps,
-         S,
+         (C, Ps),
          visitorResult(V, P),
          .Patterns
-       ) => visitorResult(V, S(Ps ++Patterns P))
+       ) => visitorResult(V, C(Ps ++Patterns P))
+
+  rule #visitTopDownSym(
+         .Patterns,
+         visitorResult(V, C),
+         .Patterns
+       ) => visitorResult(V, C(.Patterns))
 
 
   // \implies(_, _)
@@ -238,6 +241,10 @@ module VISITOR
 
   rule #visitTopDownFunctionalPattern(visitorResult(V, P))
     => visitorResult(V, \functionalPattern(P))
+
+  // functional(_)
+  rule #visitTopDown(visitorResult(V, functional(_) #as P))
+    => visitorResult(V, P)
 
   rule visitorResult.getPattern(visitorResult(_, P)) => P
 

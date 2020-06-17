@@ -22,9 +22,9 @@ for guessing an instantiation of the inductive hypothesis.
   rule getKTUnfoldables(S:Symbol, REST)
     => getKTUnfoldables(REST)
     requires notBool isUnfoldable(S)
-  rule getKTUnfoldables(S:Symbol(ARGS), REST)
+  rule getKTUnfoldables(symbol(S)(ARGS), REST)
     => getKTUnfoldables(REST)
-    requires notBool isUnfoldable(S)
+    requires notBool isUnfoldable(symbol(S))
      andBool S =/=K sep
   rule getKTUnfoldables(I:Int, REST)
     => getKTUnfoldables(REST)
@@ -34,7 +34,7 @@ for guessing an instantiation of the inductive hypothesis.
     => getKTUnfoldables(REST)
   rule getKTUnfoldables(\and(Ps), REST)
     => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
-  rule getKTUnfoldables(sep(Ps), REST)
+  rule getKTUnfoldables(symbol(sep)(Ps), REST)
     => getKTUnfoldables(Ps) ++Patterns getKTUnfoldables(REST)
   rule getKTUnfoldables(\implies(LHS, RHS), REST)
     => getKTUnfoldables(REST)
@@ -151,8 +151,8 @@ for guessing an instantiation of the inductive hypothesis.
 ## kt-wrap (SL)
 
 ```k
-  rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT:Patterns), RHS)
-            => \implies(LRP, implicationContext(\and( sep(#hole, (LSPATIAL -Patterns LRP))
+  rule <claim> \implies(\and(symbol(sep)(LSPATIAL), LCONSTRAINT:Patterns), RHS)
+            => \implies(LRP, implicationContext(\and( symbol(sep)(#hole, (LSPATIAL -Patterns LRP))
                                                     , LCONSTRAINT
                                                     )
                                                , RHS)
@@ -161,7 +161,7 @@ for guessing an instantiation of the inductive hypothesis.
        <k> kt-wrap(LRP) => noop ... </k>
        <trace> .K => kt-wrap(LRP)  ... </trace>
     requires LRP in LSPATIAL
-     andBool isSpatialPattern(sep(LSPATIAL))
+     andBool isSpatialPattern(symbol(sep)(LSPATIAL))
 ```
 
 >   phi(x) -> \forall y. psi(x, y)
@@ -216,7 +216,7 @@ for guessing an instantiation of the inductive hypothesis.
   rule substituteBRPs(P:Symbol, RP, Vs, RHS) => P
   rule substituteBRPs(S:Symbol(ARGS) #as P, RP, Vs, RHS) => P
     requires S =/=K RP
-     andBool S =/=K sep
+     andBool S =/=K symbol(sep)
  rule substituteBRPs(RP(BODY_ARGS), RP, ARGS, RHS)
    => alphaRename(substMap(alphaRename(RHS), zip(ARGS, BODY_ARGS)))
 
@@ -231,7 +231,7 @@ for guessing an instantiation of the inductive hypothesis.
 
   rule substituteBRPs(\or(Ps), RP, Vs, RHS)  => \or(substituteBRPsPs(Ps, RP, Vs, RHS))
   rule substituteBRPs(\and(Ps), RP, Vs, RHS) => \and(substituteBRPsPs(Ps, RP, Vs, RHS))
-  rule substituteBRPs(sep(Ps), RP, Vs, RHS) => sep(substituteBRPsPs(Ps, RP, Vs, RHS))
+  rule substituteBRPs(symbol(sep)(Ps), RP, Vs, RHS) => symbol(sep)(substituteBRPsPs(Ps, RP, Vs, RHS))
 
   rule substituteBRPs(\exists { E } C, RP, Vs, RHS)
     => \exists { E } substituteBRPs(C, RP, Vs, RHS)
@@ -286,15 +286,15 @@ Bring terms containing the implication context to the front:
 
 ```k
   // SL case
-  rule <claim> \implies(\and((sep(S, Ss) #as LSPATIAL), Ps), RHS)
-            => \implies(\and(sep(Ss ++Patterns S), Ps), RHS)
+  rule <claim> \implies(\and((symbol(sep)(S, Ss) #as LSPATIAL), Ps), RHS)
+            => \implies(\and(symbol(sep)(Ss ++Patterns S), Ps), RHS)
        </claim>
        <k> kt-collapse ... </k>
     requires notBool hasImplicationContext(S)
      andBool hasImplicationContext(LSPATIAL)
 
-  rule <claim> \implies(\and((sep(S, Ss) #as LSPATIAL), Ps), RHS)
-            => \implies(\and(sep(Ss ++Patterns S), Ps), RHS)
+  rule <claim> \implies(\and((symbol(sep)(S, Ss) #as LSPATIAL), Ps), RHS)
+            => \implies(\and(symbol(sep)(Ss ++Patterns S), Ps), RHS)
        </claim>
        <k> imp-ctx-unfold ... </k>
     requires notBool hasImplicationContext(S)
@@ -318,7 +318,7 @@ Move #holes to the front
     requires P =/=K #hole:Pattern
      andBool #hole in Ps
 
-  rule <claim> \implies(\and(sep(\forall { _ }
+  rule <claim> \implies(\and(symbol(sep)(\forall { _ }
                          implicationContext( \and(P, Ps)
                                           => \and(Ps ++Patterns P)
                                            , _)
@@ -359,8 +359,8 @@ Next, duplicate constraints are removed using the ad-hoc rule below until the im
 context has no constraints.
 
 ```k
-  rule <claim> \implies(\and( sep ( \forall { UNIVs }
-                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns), CTXLCONSTRAINTS) , _)
+  rule <claim> \implies(\and( symbol(sep) ( \forall { UNIVs }
+                                    implicationContext( \and(symbol(sep)(#hole, CTXLHS:Patterns), CTXLCONSTRAINTS) , _)
                                   , LSPATIAL
                                   )
                             , LHS:Patterns
@@ -378,8 +378,8 @@ context has no constraints.
 ```
 
 ```k
-  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => .Patterns }
-                                      ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
+  rule <claim> \implies(\and( ( symbol(sep) ( \forall { UNIVs => .Patterns }
+                                      ( implicationContext( \and(symbol(sep)(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
                                      => substMap(CTX, SUBST)
                                       )
                                     , LSPATIAL
@@ -397,8 +397,8 @@ context has no constraints.
      requires UNIVs =/=K .Patterns
       andBool UNIVs -Patterns fst(unzip(SUBST)) ==K .Patterns
 
-  rule <claim> \implies(\and( ( sep ( \forall { UNIVs => .Patterns }
-                                      ( implicationContext( \and(sep(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
+  rule <claim> \implies(\and( ( symbol(sep) ( \forall { UNIVs => .Patterns }
+                                      ( implicationContext( \and(symbol(sep)(_), CTXLCONSTRAINTS), CTXRHS ) #as CTX
                                       )
                                     , LSPATIAL
                                     )
@@ -419,8 +419,8 @@ context has no constraints.
 Finally, we use matching on the no universal quantifiers case to collapse the context.
 
 ```k
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
+  rule <claim> \implies(\and( symbol(sep) ( \forall { .Patterns }
+                                    implicationContext( \and(symbol(sep)(#hole, CTXLHS:Patterns)) , _)
                                   , LSPATIAL
                                   )
                             , LHS:Patterns
@@ -435,11 +435,11 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
                   ...
        </k>
 
-  rule <claim> \implies( \and( ( sep ( \forall { .Patterns }
-                                       implicationContext( \and(sep(_)) , CTXRHS)
+  rule <claim> \implies( \and( ( symbol(sep) ( \forall { .Patterns }
+                                       implicationContext( \and(symbol(sep)(_)) , CTXRHS)
                                      , LSPATIAL
                                      )
-                              => sep(substMap(CTXRHS, SUBST) ++Patterns REST)
+                              => symbol(sep)(substMap(CTXRHS, SUBST) ++Patterns REST)
                                )
                                , LHS:Patterns
                              )
@@ -455,8 +455,8 @@ Finally, we use matching on the no universal quantifiers case to collapse the co
 TODO: This is pretty adhoc: Remove constraints in the context that are already in the LHS
 
 ```k
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and( sep(_)
+  rule <claim> \implies(\and( symbol(sep) ( \forall { .Patterns }
+                                    implicationContext( \and( symbol(sep)(_)
                                                             , ( CTXCONSTRAINT, CTXCONSTRAINTs
                                                              => CTXCONSTRAINTs
                                                               )
@@ -472,8 +472,8 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
     requires isPredicatePattern(CTXCONSTRAINT)
      andBool CTXCONSTRAINT in LHS
 
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and( sep(_)
+  rule <claim> \implies(\and( symbol(sep) ( \forall { .Patterns }
+                                    implicationContext( \and( symbol(sep)(_)
                                                             , ( CTXCONSTRAINT, CTXCONSTRAINTs )
                                                             ) , _)
                                   , LSPATIAL
@@ -495,8 +495,8 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
 ```
 
 ```k
-  rule <claim> \implies(\and( sep ( \forall { UNIVs }
-                                    implicationContext( \and( sep( #hole
+  rule <claim> \implies(\and( symbol(sep) ( \forall { UNIVs }
+                                    implicationContext( \and( symbol(sep)( #hole
                                                                  , CTXLHS:Patterns
                                                                  )
                                                             , CTXLCONSTRAINTS
@@ -513,8 +513,8 @@ TODO: This is pretty adhoc: Remove constraints in the context that are already i
        <k> imp-ctx-unfold => right-unfold-eachRRP(getUnfoldables(CTXLHS)) ... </k>
      requires UNIVs =/=K .Patterns
 
-  rule <claim> \implies(\and( sep ( \forall { .Patterns }
-                                    implicationContext( \and(sep(#hole, CTXLHS:Patterns)) , _)
+  rule <claim> \implies(\and( symbol(sep) ( \forall { .Patterns }
+                                    implicationContext( \and(symbol(sep)(#hole, CTXLHS:Patterns)) , _)
                                   , LSPATIAL
                                   )
                             , LHS:Patterns

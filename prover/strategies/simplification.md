@@ -119,7 +119,7 @@ LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
            )( makePureVariables(ARGs) )
     requires isUnfoldable(S)
   rule #purify(\and(Ps)) => \and(#purifyPs(Ps))
-  rule #purify(sep(Ps)) => sep(#purifyPs(Ps))
+  rule #purify(symbol(sep)(Ps)) => symbol(sep)(#purifyPs(Ps))
   rule #purify(\not(P)) => \not(#purify(P))
   rule #purify(\equals(P1, P2)) => \equals(P1, P2)
   rule #purify(S:Symbol(Ps)) => S(Ps)
@@ -174,11 +174,11 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #getNewVariables(\and(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(\or(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(\not(P), Vs) => #getNewVariablesPs(P, Vs)
-  rule #getNewVariables(sep(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
+  rule #getNewVariables(symbol(sep)(Ps), Vs) => #getNewVariablesPs(Ps, Vs)
   rule #getNewVariables(S(ARGs), Ps)
     => (makePureVariables(ARGs) -Patterns ARGs) ++Patterns Ps
     requires isUnfoldable(S)
-  rule #getNewVariables(pto(_), Ps) => Ps
+  rule #getNewVariables(symbol(pto)(_), Ps) => Ps
   rule #getNewVariables(\equals(_, _), Ps) => Ps
 
   rule #getNewVariablesPs(.Patterns, _) => .Patterns
@@ -189,11 +189,11 @@ R(V, Vs) => exists V', R(V', Vs') and V = V'
   rule #abstract(\and(Ps), Vs) => \and(#abstractPs(Ps, Vs))
   rule #abstract(\or(Ps), Vs) => \or(#abstractPs(Ps, Vs))
   rule #abstract(\not(P), Vs) => \not(#abstract(P, Vs))
-  rule #abstract(sep(Ps), Vs) => sep(#abstractPs(Ps, Vs))
+  rule #abstract(symbol(sep)(Ps), Vs) => symbol(sep)(#abstractPs(Ps, Vs))
   rule #abstract(S(ARGs), Vs)
     => S(#replaceNewVariables(ARGs, Vs))
     requires isUnfoldable(S)
-  rule #abstract(pto(ARGs), Vs) => pto(ARGs)
+  rule #abstract(symbol(pto)(ARGs), Vs) => symbol(pto)(ARGs)
   rule #abstract(\equals(L, R), Vs) => \equals(L, R)
 
   rule #abstractPs(.Patterns, _) => .Patterns
@@ -226,31 +226,31 @@ Bring predicate constraints to the top of a term.
 
   syntax Pattern ::= #liftConstraints(Pattern) [function]
   rule #liftConstraints(P) =>     P  requires isPredicatePattern(P)
-  rule #liftConstraints(S) => sep(S) requires isSpatialPattern(S)
+  rule #liftConstraints(S) => symbol(sep)(S) requires isSpatialPattern(S)
 
-  rule #liftConstraints(sep(\and(.Patterns), REST)) => #liftConstraints(sep(REST))
+  rule #liftConstraints(symbol(sep)(\and(.Patterns), REST)) => #liftConstraints(symbol(sep)(REST))
 
-  rule #liftConstraints(sep(\and(P, Ps:Patterns), REST:Patterns))
-    => #liftConstraints(\and(sep(\and(Ps), REST), P, .Patterns))
+  rule #liftConstraints(symbol(sep)(\and(P, Ps:Patterns), REST:Patterns))
+    => #liftConstraints(\and(symbol(sep)(\and(Ps), REST), P, .Patterns))
     requires isPredicatePattern(P)
-  rule #liftConstraints(sep(\and(P, Ps), REST))
-    => #liftConstraints(sep(\and(Ps), P, REST))
+  rule #liftConstraints(symbol(sep)(\and(P, Ps), REST))
+    => #liftConstraints(symbol(sep)(\and(Ps), P, REST))
     requires isSpatialPattern(P)
-  rule #liftConstraints(sep(\and(P, Ps), REST))
-    => #liftConstraints(sep(\and(#flattenAnds(#liftConstraints(P), Ps)), REST))
+  rule #liftConstraints(symbol(sep)(\and(P, Ps), REST))
+    => #liftConstraints(symbol(sep)(\and(#flattenAnds(#liftConstraints(P), Ps)), REST))
     requires notBool isPredicatePattern(P) andBool notBool isSpatialPattern(P)
 
   // Rotate
-  rule #liftConstraints(sep(S, Ps))
-    => #liftConstraints(sep(Ps ++Patterns S))
-    requires isSpatialPattern(S) andBool notBool isSpatialPattern(sep(S, Ps))
+  rule #liftConstraints(symbol(sep)(S, Ps))
+    => #liftConstraints(symbol(sep)(Ps ++Patterns S))
+    requires isSpatialPattern(S) andBool notBool isSpatialPattern(symbol(sep)(S, Ps))
 
-  rule #liftConstraints(\and(sep(Ss), Ps))
-    => #liftConstraints(\and(#flattenAnds(#liftConstraints(sep(Ss)), .Patterns) ++Patterns Ps))
-    requires notBool isSpatialPattern(sep(Ss))
+  rule #liftConstraints(\and(symbol(sep)(Ss), Ps))
+    => #liftConstraints(\and(#flattenAnds(#liftConstraints(symbol(sep)(Ss)), .Patterns) ++Patterns Ps))
+    requires notBool isSpatialPattern(symbol(sep)(Ss))
 
   rule #liftConstraints(\and(S, Ps))
-    => \and(sep(S), #flattenAnds(#liftConstraints(\and(Ps)), .Patterns))
+    => \and(symbol(sep)(S), #flattenAnds(#liftConstraints(\and(Ps)), .Patterns))
     requires isSpatialPattern(S)
 
   rule #liftConstraints(\and(\and(Ps), REST))
@@ -483,7 +483,7 @@ Gamma |- C[C_\sigma[\exists X. Phi]]
   rule #propagateExistsThroughApplication(Ps1, 0, S, (\exists{V, Vs} P, Ps2))
     => visitorResult(
          propagateExistsThroughApplicationVisitor(-1),
-         \exists{V} S(Ps1 ++Patterns (maybeExists{Vs} P, .Patterns) ++Patterns Ps2)
+         \exists{V} (S(Ps1 ++Patterns (maybeExists{Vs} P, .Patterns) ++Patterns Ps2))
        )
 
   rule #propagateExistsThroughApplication(Ps, N, S, .Patterns)
