@@ -42,6 +42,7 @@ module TOKENS-LEXICAL
                      | "<" [token] | ">=" [token] | "<=" [token]
                      | "=" [token]
                      | "=>" [token]
+                     | "in" [token] // Why is this needed?
 
   syntax ColonName ::= r":[a-z][A-Za-z\\-0-9'\\#\\_]*" [token]
   syntax Decimal ::= r"[0-9][0-9]*\\.[0-9][0-9]*" [token]
