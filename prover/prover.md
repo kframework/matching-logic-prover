@@ -59,7 +59,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "instantiate-universals-with-ground-terms"
                     | "instantiate-separation-logic-axioms"
                     | "spatial-patterns-equal"
-                    | "match" | "match-pto"
+                    | "match" | "match-debug" | "match-pto"
                     | "frame"
                     | "unfold-mut-recs"
                     | "apply-equation"
