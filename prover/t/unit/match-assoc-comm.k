@@ -5,11 +5,11 @@ module TEST-MATCH-ASSOC-COMM
                      | "d"    [token]
   syntax UpperName ::= "Data" [token]
                      | "Loc"  [token]
-                     | "W"    [token] | "W1"    [token] | "W2"    [token]
+                     | "W"    [token] | "W0"    [token] | "W1"    [token] | "W2"    [token]
                      | "X0"   [token] | "X1"    [token] | "X2"    [token]
                      | "Y0"   [token] | "Y1"    [token] | "Y2"    [token]
                      | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
-                     | "H0"   [token]
+                     | "H0"   [token] | "H1"    [token]
 
   rule test("match-assoc-comm", 1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
@@ -130,6 +130,99 @@ module TEST-MATCH-ASSOC-COMM
                               , results:  .MatchResults
                               , subst:    .Map
                               , rest:     .Patterns
+                              )
+             )
+       .Declarations
+
+  rule test("match-assoc-comm", 9)
+    => assert( #matchResult( subst: Y2 { Data } |-> Y1 { Data }
+                                   H1 { Heap } |-> sep( pto ( X2 { Loc } , c( W1 { Loc } , Z1 { Loc }) ), H0 { Heap } )
+                          , rest:  .Patterns
+                          )
+            , .MatchResults
+           == #filterErrors( #matchAssocComm( terms:     H0 { Heap }
+                                                       , pto ( X1 { Loc } , Y1 { Data } )
+                                                       , pto ( X2 { Loc } , c( W1 { Loc } , Z1 { Loc }) )
+                                            , pattern:   pto ( X1 { Loc } , Y2 { Data } )
+                                                       , H1 { Heap }
+                                            , variables: Y2 { Data }
+                                                       , H1 { Heap }
+                                            , results:   .MatchResults
+                                            , subst:     .Map
+                                            , rest:      .Patterns
+                                            )
+                           )
+            )
+       .Declarations
+
+  // Matching on a symbolic heap
+  rule test("match-assoc-comm", 10)
+    => assert( #matchResult( subst: H0 { Heap } |-> sep ( pto ( X2 { Loc } , Y2 { Data } ) )
+                                    W  { Loc }  |-> X1 { Loc }
+                                    Z  { Data } |-> Y1 { Data }
+                           , rest:  .Patterns
+                           )
+             , #matchResult( subst: H0 { Heap } |-> sep ( pto ( X1 { Loc } , Y1 { Data } ) )
+                                    W  { Loc }  |-> X2 { Loc }
+                                    Z  { Data } |-> Y2 { Data }
+                           , rest:  .Patterns
+                           )
+             // TODO: we need to be getting these results as well
+             // , #matchResult( subst: H0 { Heap } |-> sep ( .Patterns )
+             //                        W  { Loc }  |-> X1 { Loc }
+             //                        Z  { Data } |-> Y1 { Data }
+             //               , rest:  pto ( X2 { Loc } , Y2 { Data } )
+             //               )
+             // , #matchResult( subst: H0 { Heap } |-> sep ( .Patterns )
+             //                        W  { Loc }  |-> X1 { Loc }
+             //                        Z  { Data } |-> Y1 { Data }
+             //               , rest:  pto ( X1 { Loc } , Y1 { Data } )
+             //               )
+             , .MatchResults
+            == #matchAssocComm( terms:     pto ( X1 { Loc } , Y1 { Data } )
+                                         , pto ( X2 { Loc } , Y2 { Data } )
+                              , pattern:   H0 { Heap }
+                                         , pto ( W { Loc } , Z { Data } )
+                              , variables: H0 { Heap }, W { Loc }, Z { Data }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+
+  // Matching on a symbolic heap
+  rule test("match-assoc-comm", 11)
+    => assert( #matchResult( subst: H0 { Heap } |-> sep ( pto ( X2 { Loc } , Y2 { Data } ) )
+                                    W  { Loc }  |-> X1 { Loc }
+                                    Z  { Data } |-> Y1 { Data }
+                           , rest:  .Patterns
+                           )
+             , #matchResult( subst: H0 { Heap } |-> sep ( pto ( X1 { Loc } , Y1 { Data } ) )
+                                    W  { Loc }  |-> X2 { Loc }
+                                    Z  { Data } |-> Y2 { Data }
+                           , rest:  .Patterns
+                           )
+             // TODO : we need to be getting these results as well
+             // , #matchResult( subst: H0 { Heap } |-> sep ( .Patterns )
+             //                        W  { Loc }  |-> X1 { Loc }
+             //                        Z  { Data } |-> Y1 { Data }
+             //               , rest:  pto ( X2 { Loc } , Y2 { Data } )
+             //               )
+             // , #matchResult( subst: H0 { Heap } |-> sep ( .Patterns )
+             //                        W  { Loc }  |-> X1 { Loc }
+             //                        Z  { Data } |-> Y1 { Data }
+             //               , rest:  pto ( X1 { Loc } , Y1 { Data } )
+             //               )
+             , .MatchResults
+            == #matchAssocComm( terms:     pto ( X1 { Loc } , Y1 { Data } )
+                                         , pto ( X2 { Loc } , Y2 { Data } )
+                              , pattern:   H0 { Heap }
+                                         , pto ( W { Loc } , Z { Data } )
+                              , variables: H0 { Heap }, W { Loc }, Z { Data }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
                               )
              )
        .Declarations

@@ -36,15 +36,23 @@ module MATCHING-FUNCTIONAL
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
+  rule #match( terms: \and(sep(H), Hs), pattern: P, variables: Vs )
+    =>                #match( terms: H,        pattern: P, variables: Vs )
+       ++MatchResults #match( terms: \and(Hs), pattern: P, variables: Vs )
+    requires Hs =/=K .Patterns
+
+  rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
+    => #match( terms: H,                       pattern: P, variables: Vs )
+
   rule #match( terms: T, pattern: P, variables: Vs )
     => #filterErrors( #matchAssocComm( terms: T
-                                            , pattern: P
-                                            , variables: Vs
-                                            , results: .MatchResults
-                                            , subst: .Map
-                                            , rest: .Patterns
-                                            )
-                           )
+                                     , pattern: P
+                                     , variables: Vs
+                                     , results: .MatchResults
+                                     , subst: .Map
+                                     , rest: .Patterns
+                                     )
+                    )
 
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
@@ -56,21 +64,23 @@ module MATCHING-FUNCTIONAL
 Work around OCaml not producing reasonable error messages:
 
 ```k
+  syntax MatchResult ::= MatchStuck
+  syntax MatchStuck ::= "#matchStuck" "(" K ")"
   syntax KItem ::= "\\n" [format(%n)]
-  rule #matchAssocComm(terms: T
-                      , pattern: P   
+  rule #matchAssocComm( terms: T
+                      , pattern: P
                       , variables: Vs
                       , results: MRs 
                       , subst: SUBST
                       , rest: REST
                       )
-    => #error( "AC" 
-            ~> "terms:" ~> T
-            ~> "pattern:" ~> P
-            ~> "variables:" ~> Vs
-            ~> "subst:" ~> SUBST
-            ~> "rest:" ~> REST
-            ~> "MRs:" ~> MRs )
+    => #matchStuck( "AC" 
+                 ~> "terms:" ~> T
+                 ~> "pattern:" ~> P
+                 ~> "variables:" ~> Vs
+                 ~> "subst:" ~> SUBST
+                 ~> "rest:" ~> REST
+                 ~> "MRs:" ~> MRs )
      , .MatchResults
     [owise]
 ```
@@ -184,6 +194,7 @@ Recurse over assoc-comm `sep`:
                       , rest:      REST
                       )
     => #error( "Pattern larger than term" ), .MatchResults
+    requires notBool P in Vs
 
 // Base case: emp matches all heaps
   rule #matchAssocComm( terms:     Ts
@@ -195,7 +206,7 @@ Recurse over assoc-comm `sep`:
                       )
     => #matchResult(subst: SUBST, rest: REST ++Patterns Ts), .MatchResults
 
-// Base case: If matching a single term, agains an atomic pattern, use Assoc Matching
+// Base case: If matching a single term against an atomic pattern, use Assoc Matching
   rule #matchAssocComm( terms:     T, .Patterns
                       , pattern:   P, .Patterns
                       , variables: Vs
@@ -209,6 +220,7 @@ Recurse over assoc-comm `sep`:
                   , subst: SUBST
                   , rest:      REST
                   )
+    requires notBool P in Vs
 ```
 
 Matching an atomic pattern against multiple terms: return a disjunction of the solutions
@@ -236,6 +248,7 @@ Matching an atomic pattern against multiple terms: return a disjunction of the s
                       , rest:      T, REST
                       )
     requires Ts =/=K .Patterns
+     andBool notBool P in Vs
 ```
 
 Matching a non-atomic pattern against multiple terms: Match the first
@@ -264,6 +277,37 @@ atom in the pattern against any of the terms, and then extend those solutions.
                       )
     requires ARGs =/=K .Patterns
      andBool P_ARGs =/=K .Patterns
+     andBool notBool P_ARG in Vs
+```
+
+Base case: If matching a single term against a heap variable, return REST
+TODO: if there are multiple heap variables, we need to return all possible partitions.
+Currently, the entire REST is constrained to a single heap variable
+TODO: other corner cases probably
+
+```k
+  rule #matchAssocComm( terms:     Ts
+                      , pattern:   (H:Variable, P, Ps)
+                                => ((P, Ps) ++Patterns H)
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      , rest:      .Patterns
+                      )
+    requires notBool isVariable(P)
+
+  rule #matchAssocComm( terms:     Ts
+                      , pattern:   H:Variable, .Patterns
+                      , variables: Vs
+                      , results:   .MatchResults
+                      , subst:     SUBST
+                      , rest:      .Patterns
+                      )
+    => #matchResult( subst: SUBST H |-> sep(Ts)
+                   , rest: .Patterns
+                   )
+     , .MatchResults
+    requires H in Vs
 ```
 
 With each returned result, we apply the substitution and continue matching over
@@ -271,16 +315,21 @@ the unmatched part of the term:
 
 ```k
   // TODO: don't want to call substUnsafe directly (obviously)
-  rule #matchAssocComm( terms:     Ts => REST
-                      , pattern:   P  => substPatternsMap(P, SUBST1)
-                      , variables: Vs => Vs -Patterns fst(unzip(SUBST1))
-                      , results:   #matchResult(subst: SUBST1, rest: REST), .MatchResults
-                                => .MatchResults
-                      , subst:     SUBST2
-                                => (SUBST1 SUBST2)
-                      , rest:      _
+  rule #matchAssocComm( terms:     Ts
+                      , pattern:   P
+                      , variables: Vs
+                      , results:   #matchResult(subst: SUBST_INNER, rest: REST_INNER), .MatchResults
+                      , subst:     SUBST
+                      , rest:      REST
                       )
-    requires intersectSet(keys(SUBST1), keys(SUBST2)) ==K .Set
+    => #matchAssocComm( terms:     REST_INNER
+                      , pattern:   substPatternsMap(P, SUBST_INNER)
+                      , variables: Vs -Patterns fst(unzip(SUBST_INNER))
+                      , results:   .MatchResults
+                      , subst:     SUBST_INNER SUBST
+                      , rest:      REST
+                      )
+    requires intersectSet(keys(SUBST_INNER), keys(SUBST)) ==K .Set
 ```
 
 Failures are propagated:
@@ -367,26 +416,33 @@ The `with-each-match` strategy
 Instantiate existentials using matching on the spatial part of goals:
 
 ```k
-  rule <claim> \implies(\and(sep(LSPATIAL), LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
+  rule <claim> \implies(\and(LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
        <k> match
-               => with-each-match(#match( terms: LSPATIAL
+        => with-each-match(#match( terms: \and(getSpatialPatterns(LHS))
                                         , pattern: RSPATIAL
                                         , variables: Vs
-                                        )
-                                 , match
                                  )
-                  ...
+                          , match
+                          )
+           ...
        </k>
-    requires isSpatialPattern(sep(LSPATIAL))
-     andBool isSpatialPattern(sep(RSPATIAL))
+    requires isSpatialPattern(sep(RSPATIAL))
+     andBool getFreeVariables(getSpatialPatterns(sep(RSPATIAL), RHS)) intersect Vs =/=K .Patterns
+  rule <claim> \implies(\and(LHS) , \exists { Vs } \and(RHS)) </claim>
+       <k> match => noop ... </k>
+     requires getFreeVariables(getSpatialPatterns(RHS)) intersect Vs ==K .Patterns
   rule <claim> \implies( \and( LSPATIAL, LHS)
-                       ,  \exists { Vs } \and( RHS )
-                       => \exists { Vs -Patterns fst(unzip(SUBST)) } substMap(\and(RHS), SUBST)
+                       ,  \exists { Vs } \and(sep(RSPATIAL), RHS)
+                       => \exists { Vs -Patterns fst(unzip(SUBST)) }
+                          #flattenAnd(substMap( \and(getSpatialPatterns(RHS) ++Patterns (sep(RSPATIAL), (RHS -Patterns getSpatialPatterns(RHS))))
+                                              , SUBST
+                                              )
+                                     )
                        )
        </claim>
        <k> ( #matchResult(subst: SUBST, rest: .Patterns) ~> match )
-               => noop
-                  ...
+        => match
+          ...
        </k>
 
   rule <claim> \implies(LHS, \exists { Vs } \and(RSPATIAL, RHS)) </claim>
