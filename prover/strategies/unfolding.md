@@ -14,7 +14,7 @@ module STRATEGY-UNFOLDING
     requires getFreeVariables(DEF) -Patterns Vs =/=K .Patterns
 
   syntax SymbolDeclaration ::= getSymbolDeclaration(Symbol) [function]
-  rule [[ getSymbolDeclaration(S) => DECL ]]
+  rule [[ getSymbolDeclaration(symbol(S)) => DECL ]]
        <declaration> symbol S (_) : _ #as DECL </declaration>
 
   syntax Patterns ::= getRecursiveSymbols(Patterns) [function]
@@ -45,7 +45,7 @@ module STRATEGY-UNFOLDING
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
   rule getUnfoldables(\and(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
-  rule getUnfoldables(sep(Ps), REST)
+  rule getUnfoldables(symbol(sep)(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
   rule getUnfoldables(\or(Ps), REST)
     => getUnfoldables(Ps) ++Patterns getUnfoldables(REST)
@@ -86,7 +86,7 @@ module STRATEGY-UNFOLDING
        <trace> .K => left-unfold-oneBody(LRP, \and(BODY)) ... </trace>
        requires LRP in LHS
 
-  rule <claim> \implies( \and( sep( (LHS => ((LHS -Patterns (LRP, .Patterns)) ++Patterns \and(BODY))) )
+  rule <claim> \implies( \and( symbol(sep)( (LHS => ((LHS -Patterns (LRP, .Patterns)) ++Patterns \and(BODY))) )
                              , _
                              )
                        , RHS
@@ -235,20 +235,20 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
     requires notBool hasImplicationContext(LHS)
 
   syntax Pattern ::= #moveHoleToFront(Pattern) [function]
-  rule #moveHoleToFront(\and(sep(#hole, REST_SEP), REST_AND)) => \and(sep(#hole, REST_SEP), REST_AND)
-  rule #moveHoleToFront(\and(sep(P, REST_SEP), REST_AND)) => #moveHoleToFront(\and(sep(REST_SEP ++Patterns P), REST_AND))
+  rule #moveHoleToFront(\and(symbol(sep)(#hole, REST_SEP), REST_AND)) => \and(symbol(sep)(#hole, REST_SEP), REST_AND)
+  rule #moveHoleToFront(\and(symbol(sep)(P, REST_SEP), REST_AND)) => #moveHoleToFront(\and(symbol(sep)(REST_SEP ++Patterns P), REST_AND))
     requires P =/=K #hole:Variable
 
   // right unfolding within an implication context
-  rule <claim> \implies(\and( sep ( \forall { UNIVs => UNIVs ++Patterns E2 }
-                                    implicationContext( ( \and( sep( #hole
+  rule <claim> \implies(\and( symbol(sep) ( \forall { UNIVs => UNIVs ++Patterns E2 }
+                                    implicationContext( ( \and( symbol(sep)( #hole
                                                                    , CTXLHS
                                                                    )
                                                               , CTXLCONSTRAINTS
                                                               )
                                                         )
                                                        => #moveHoleToFront(#flattenAnd(
-                                                            #liftConstraints( \and( sep( #hole
+                                                            #liftConstraints( \and( symbol(sep)( #hole
                                                                                        , substPatternsMap(CTXLHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
                                                                                        )
                                                                                   , CTXLCONSTRAINTS

@@ -36,12 +36,12 @@ module MATCHING-FUNCTIONAL
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
-  rule #match( terms: \and(sep(H), Hs), pattern: P, variables: Vs )
+  rule #match( terms: \and(symbol(sep)(H), Hs), pattern: P, variables: Vs )
     =>                #match( terms: H,        pattern: P, variables: Vs )
        ++MatchResults #match( terms: \and(Hs), pattern: P, variables: Vs )
     requires Hs =/=K .Patterns
 
-  rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
+  rule #match( terms: \and(symbol(sep)(H), .Patterns), pattern: P, variables: Vs )
     => #match( terms: H,                       pattern: P, variables: Vs )
 
   rule #match( terms: T, pattern: P, variables: Vs )
@@ -304,7 +304,7 @@ TODO: other corner cases probably
                       , subst:     SUBST
                       , rest:      .Patterns
                       )
-    => #matchResult( subst: SUBST H |-> sep(Ts)
+    => #matchResult( subst: SUBST H |-> symbol(sep)(Ts)
                    , rest: .Patterns
                    )
      , .MatchResults
@@ -417,7 +417,7 @@ The `with-each-match` strategy
 Instantiate existentials using matching on the spatial part of goals:
 
 ```k
-  rule <claim> \implies(\and(LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
+  rule <claim> \implies(\and(LHS) , \exists { Vs } \and(symbol(sep)(RSPATIAL), RHS)) </claim>
        <k> match
         => with-each-match(#match( terms: \and(getSpatialPatterns(LHS))
                                         , pattern: RSPATIAL
@@ -427,15 +427,15 @@ Instantiate existentials using matching on the spatial part of goals:
                           )
            ...
        </k>
-    requires isSpatialPattern(sep(RSPATIAL))
-     andBool getFreeVariables(getSpatialPatterns(sep(RSPATIAL), RHS)) intersect Vs =/=K .Patterns
+    requires isSpatialPattern(symbol(sep)(RSPATIAL))
+     andBool getFreeVariables(getSpatialPatterns(symbol(sep)(RSPATIAL), RHS)) intersect Vs =/=K .Patterns
   rule <claim> \implies(\and(LHS) , \exists { Vs } \and(RHS)) </claim>
        <k> match => noop ... </k>
      requires getFreeVariables(getSpatialPatterns(RHS)) intersect Vs ==K .Patterns
   rule <claim> \implies( \and( LSPATIAL, LHS)
-                       ,  \exists { Vs } \and(sep(RSPATIAL), RHS)
+                       ,  \exists { Vs } \and(symbol(sep)(RSPATIAL), RHS)
                        => \exists { Vs -Patterns fst(unzip(SUBST)) }
-                          #flattenAnd(substMap( \and(getSpatialPatterns(RHS) ++Patterns (sep(RSPATIAL), (RHS -Patterns getSpatialPatterns(RHS))))
+                          #flattenAnd(substMap( \and(getSpatialPatterns(RHS) ++Patterns (symbol(sep)(RSPATIAL), (RHS -Patterns getSpatialPatterns(RHS))))
                                               , SUBST
                                               )
                                      )
@@ -464,8 +464,8 @@ Instantiate existentials using matching on the spatial part of goals:
 
 ```k
   syntax Strategy ::= "match-pto" "(" Patterns ")"
-  rule <claim> \implies( \and(sep(LSPATIAL), LHS)
-                       , \exists { Vs } \and(sep(RSPATIAL), RHS)
+  rule <claim> \implies( \and(symbol(sep)(LSPATIAL), LHS)
+                       , \exists { Vs } \and(symbol(sep)(RSPATIAL), RHS)
                        )
        </claim>
        <k> match-pto => match-pto(getPartiallyInstantiatedPtos(RSPATIAL, Vs)) ... </k>
@@ -474,8 +474,8 @@ Instantiate existentials using matching on the spatial part of goals:
                   ...
        </k>
 
-  rule <claim> \implies( \and(sep(LSPATIAL), LHS:Patterns)
-                       , \exists { Vs } \and(sep(RSPATIAL), RHS:Patterns))
+  rule <claim> \implies( \and(symbol(sep)(LSPATIAL), LHS:Patterns)
+                       , \exists { Vs } \and(symbol(sep)(RSPATIAL), RHS:Patterns))
        </claim>
        <k> match-pto(P, Ps:Patterns)
                => with-each-match(
@@ -502,8 +502,8 @@ Instantiate existentials using matching on the spatial part of goals:
        </k>
 
   syntax Patterns ::= getPartiallyInstantiatedPtos(Patterns, Patterns) [function]
-  rule getPartiallyInstantiatedPtos((pto(L, R), Ps), Vs)
-    => pto(L, R), getPartiallyInstantiatedPtos(Ps, Vs)
+  rule getPartiallyInstantiatedPtos((symbol(pto)(L, R), Ps), Vs)
+    => symbol(pto)(L, R), getPartiallyInstantiatedPtos(Ps, Vs)
     requires notBool L in Vs
      andBool getFreeVariables(R) intersect Vs =/=K .Patterns
   rule getPartiallyInstantiatedPtos((P, Ps), Vs) => getPartiallyInstantiatedPtos(Ps, Vs)
@@ -531,12 +531,12 @@ Instantiate heap axioms:
     rule <k> instantiate-separation-logic-axioms(heap(LOC, DATA), AXs)
                  => instantiate-separation-logic-axioms(AXs)
                   . instantiate-axiom( \forall { !L { LOC }, !D {DATA} }
-                                       \implies( \and(sep(pto(!L { LOC }, !D { DATA })))
-                                               , \not(\equals( parameterizedSymbol(nil, LOC)(.Patterns), !L { LOC }))
+                                       \implies( \and(symbol(sep)(symbol(pto)(!L { LOC }, !D { DATA })))
+                                               , \not(\equals(symbol(parameterizedHead(nil, LOC))(.Patterns), !L { LOC }))
                                                )
                                      )
                   . instantiate-axiom( \forall { !L1 { LOC }, !D1 {DATA}, !L2 { LOC }, !D2 { DATA } }
-                                       \implies( \and(sep(pto(!L1 { LOC }, !D1 { DATA }), pto(!L2 { LOC }, !D2 { DATA })) )
+                                       \implies( \and(symbol(sep)(symbol(pto)(!L1 { LOC }, !D1 { DATA }), symbol(pto)(!L2 { LOC }, !D2 { DATA })) )
                                                , \not(\equals( !L1 { LOC }, !L2 { LOC }) )
                                                )
                                      )
@@ -548,9 +548,9 @@ Instantiate heap axioms:
 Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 
 ```k
-    rule <claim> \implies(\and((sep(LSPATIAL)), LCONSTRAINT), RHS) </claim>
+    rule <claim> \implies(\and((symbol(sep)(LSPATIAL)), LCONSTRAINT), RHS) </claim>
          <k> instantiate-axiom(\forall { Vs }
-                                      \implies( \and(sep(AXIOM_LSPATIAL))
+                                      \implies( \and(symbol(sep)(AXIOM_LSPATIAL))
                                               , AXIOM_RHS
                                               )
                                      ) #as STRAT
@@ -562,9 +562,9 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                     )
                     ...
          </k>
-       requires isSpatialPattern(sep(AXIOM_LSPATIAL))
+       requires isSpatialPattern(symbol(sep)(AXIOM_LSPATIAL))
 
-    rule <claim> \implies(\and((sep(_) #as LSPATIAL), (LCONSTRAINT => substMap(AXIOM_RHS, SUBST), LCONSTRAINT))
+    rule <claim> \implies(\and((symbol(sep)(_) #as LSPATIAL), (LCONSTRAINT => substMap(AXIOM_RHS, SUBST), LCONSTRAINT))
                          , RHS
                          )
          </claim>
@@ -582,8 +582,8 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 
     rule <k> (.MatchResults ~> instantiate-axiom(_)) => noop ... </k>
 
-    rule <claim> \implies(               \and(sep(LSPATIAL), LCONSTRAINT)
-                         , \exists{ Vs } \and(sep(RSPATIAL), RCONSTRAINT)
+    rule <claim> \implies(               \and(symbol(sep)(LSPATIAL), LCONSTRAINT)
+                         , \exists{ Vs } \and(symbol(sep)(RSPATIAL), RCONSTRAINT)
                          )
               => \implies(\and(LCONSTRAINT), \exists { Vs } \and(RCONSTRAINT))
          </claim>
@@ -591,8 +591,8 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
       requires LSPATIAL -Patterns RSPATIAL ==K .Patterns
        andBool RSPATIAL -Patterns LSPATIAL ==K .Patterns
 
-    rule <claim> \implies(               \and(sep(LSPATIAL), _)
-                         , \exists{ Vs } \and(sep(RSPATIAL), _)
+    rule <claim> \implies(               \and(symbol(sep)(LSPATIAL), _)
+                         , \exists{ Vs } \and(symbol(sep)(RSPATIAL), _)
                          )
          </claim>
          <k> spatial-patterns-equal => fail ... </k>
@@ -601,9 +601,9 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 ```
 
 ```k
-    rule <claim> \implies( \and(sep( LSPATIAL ) , _ )
+    rule <claim> \implies( \and(symbol(sep)( LSPATIAL ) , _ )
                          , \exists {_}
-                           \and(sep( RSPATIAL ) , _ )
+                           \and(symbol(sep)( RSPATIAL ) , _ )
                          )
          </claim>
          <k> frame => frame(LSPATIAL intersect RSPATIAL) ... </k>
@@ -613,10 +613,10 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
     syntax Strategy ::= "frame" "(" Patterns ")"
     rule <claim> \implies( LHS
                          , \exists { .Patterns }
-                           \and( sep(_),  RCONSTRAINTs )
+                           \and( symbol(sep)(_),  RCONSTRAINTs )
                          )
          </claim>
-         <k> frame(pto(LOC, VAL), Ps)
+         <k> frame(symbol(pto)(LOC, VAL), Ps)
                  => subgoal( \implies( LHS
                                      , \and(filterClausesInvolvingVariable(LOC, RCONSTRAINTs))
                                      )
@@ -625,30 +625,30 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                            . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                            . instantiate-separation-logic-axioms . subsume-spatial . (smt-cvc4)
                            )
-                 ~> frame(pto(LOC, VAL))
+                 ~> frame(symbol(pto)(LOC, VAL))
                  ~> frame(Ps)
                     ...
          </k>
 
-    rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
+    rule <claim> \implies( \and( symbol(sep)(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
                          , \exists { .Patterns }
-                           \and( (sep(RSPATIAL => RSPATIAL -Patterns P)) , (RCONSTRAINTs => RCONSTRAINTs -Patterns filterClausesInvolvingVariable(LOC, RCONSTRAINTs)) )
+                           \and( (symbol(sep)(RSPATIAL => RSPATIAL -Patterns P)) , (RCONSTRAINTs => RCONSTRAINTs -Patterns filterClausesInvolvingVariable(LOC, RCONSTRAINTs)) )
                          )
          </claim>
          <k> success
-                 ~> frame((pto(LOC, VAL) #as P), .Patterns)
+                 ~> frame((symbol(pto)(LOC, VAL) #as P), .Patterns)
                  => .K
                     ...
          </k>
       requires P in LSPATIAL
        andBool P in RSPATIAL
 
-    rule <claim> \implies( \and( sep(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
+    rule <claim> \implies( \and( symbol(sep)(LSPATIAL => (LSPATIAL -Patterns P)) , LCONSTRAINTs )
                          , \exists { .Patterns }
-                           \and( (sep(RSPATIAL => RSPATIAL -Patterns P)) , RCONSTRAINTs )
+                           \and( (symbol(sep)(RSPATIAL => RSPATIAL -Patterns P)) , RCONSTRAINTs )
                          )
          </claim>
-         <k> frame((S:Symbol(_) #as P), Ps)  => frame(Ps)
+         <k> frame((symbol(S)(_) #as P), Ps)  => frame(Ps)
                     ...
          </k>
       requires notBool S ==K pto
@@ -666,7 +666,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
       => .Patterns
 
     syntax Strategy ::= "subsume-spatial"
-    rule <claim> \implies( \and( sep(LSPATIAL:Patterns) , LCONSTRAINTs:Patterns)
+    rule <claim> \implies( \and( symbol(sep)(LSPATIAL:Patterns) , LCONSTRAINTs:Patterns)
                         => \and(                 LCONSTRAINTs:Patterns)
                          , \exists { Vs:Patterns }
                            \and( RHS:Patterns )

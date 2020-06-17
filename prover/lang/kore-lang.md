@@ -17,13 +17,17 @@ is to be used for generating fresh variables. *The second variety must be used
 only in this scenario*.
 
 ```k
+  syntax Symbol ::= symbol(Head)
+  syntax Notation ::= notation(Head)
+
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
   syntax SetVariable ::= "#" VariableName       [klabel(setVariable)]
   syntax Pattern ::= Int
                    | Variable
                    | SetVariable
                    | Symbol
-                   | Symbol "(" Patterns ")"                    [klabel(apply)]
+                   | Notation
+                   | Pattern "(" Patterns ")"                    [klabel(apply)]
 
                    | "\\top"    "(" ")"                         [klabel(top)]
                    | "\\bottom" "(" ")"                         [klabel(bottom)]
@@ -45,7 +49,7 @@ only in this scenario*.
 
                    // sugar for commonly needed axioms
                    | "\\typeof" "(" Pattern "," Sort ")"
-                   | "functional" "(" Symbol ")"
+                   | "functional" "(" Head ")"
                    | "partial" "(" Patterns ")"
                    | "heap" "(" Sort "," Sort ")" // Location, Data
                    | "\\hole" "(" ")" [klabel(Phole)]
@@ -58,7 +62,7 @@ only in this scenario*.
   syntax Patterns ::= List{Pattern, ","}                        [klabel(Patterns)]
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
 
-  syntax SymbolDeclaration ::= "symbol" Symbol "(" Sorts ")" ":" Sort
+  syntax SymbolDeclaration ::= "symbol" Head "(" Sorts ")" ":" Sort
   syntax SortDeclaration ::= "sort" Sort
 
   // defined in `lang/smt-lang.md
@@ -66,7 +70,7 @@ only in this scenario*.
   syntax SMTLIB2SimpleSymbol
 
   syntax HookAxiom ::= "hook-smt-sort" "(" Sort ","  SMTLIB2Sort ")"
-                     | "hook-smt-symbol" "(" Symbol "," SMTLIB2SimpleSymbol ")"
+                     | "hook-smt-symbol" "(" Head "," SMTLIB2SimpleSymbol ")"
 
   syntax AxiomBody ::= Pattern | HookAxiom
 
@@ -76,6 +80,11 @@ only in this scenario*.
                        | "axiom" AxiomName ":" AxiomBody
                        | SymbolDeclaration
                        | SortDeclaration
+                       | NotationDeclaration
+
+  // TODO allow only variables as the parameters
+  syntax NotationDeclaration ::= "notation" Head "(" Patterns ")" "=" Pattern
+
   syntax Declarations ::= List{Declaration, ""} [klabel(Declarations)]
 
   syntax Variable ::= "#hole"
@@ -102,9 +111,10 @@ module KORE-HELPERS
   imports VISITOR-SYNTAX
   imports TOKENS-HELPERS
 
+  syntax Pattern ::= unclassified(Head)                         [klabel(unclassified), symbol]
 
-  syntax Symbol ::= parameterizedSymbol(Symbol, Sort) [function]
-  rule parameterizedSymbol(SYMBOL, SORT) => StringToSymbol(SymbolToString(SYMBOL) +String "_" +String SortToString(SORT))
+  syntax Head ::= parameterizedHead(Head, Sort) [function]
+  rule parameterizedHead(SYMBOL, SORT) => StringToHead(HeadToString(SYMBOL) +String "_" +String SortToString(SORT))
 
   syntax Bool ::= Pattern "in" Patterns [function]
   rule P in (P,  P1s) => true
@@ -157,10 +167,10 @@ module KORE-HELPERS
 ```k
   syntax Bool ::= isFunctional(GoalId, Pattern) [function]
 
-  rule [[ isFunctional(_, S) => true ]]
+  rule [[ isFunctional(_, symbol(S)) => true ]]
        <declaration> axiom _: functional(S) </declaration>
 
-  rule [[ isFunctional(GId, S) => true ]]
+  rule [[ isFunctional(GId, symbol(S)) => true ]]
        <id> GId </id>
        <local-decl> axiom _: functional(S) </local-decl>
 
@@ -182,9 +192,9 @@ module KORE-HELPERS
   rule getReturnSort(\exists{_} P) => getReturnSort(P)
   rule getReturnSort(\and((P, Ps))) => getReturnSort(P)
        requires sameSortOrPredicate(getReturnSort(P), Ps)
-  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
+  rule [[ getReturnSort( symbol(R) ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
-  rule [[ getReturnSort( R ( ARGS ) )  => S ]]
+  rule [[ getReturnSort( symbol(R) ( ARGS ) )  => S ]]
        <local-decl> symbol R ( _ ) : S </local-decl>
 
   syntax Bool ::= sameSortOrPredicate(Sort, Patterns) [function]
@@ -529,13 +539,13 @@ Simplifications
 
   syntax Patterns ::= #flattenAnds(Patterns) [function]
   rule #flattenAnds(\and(Ps1), Ps2) => #flattenAnds(Ps1) ++Patterns #flattenAnds(Ps2)
-  rule #flattenAnds(sep(Ps1), Ps2) => sep(#flattenSeps(Ps1)) ++Patterns #flattenAnds(Ps2)
+  rule #flattenAnds(symbol(sep)(Ps1), Ps2) => symbol(sep)(#flattenSeps(Ps1)) ++Patterns #flattenAnds(Ps2)
   rule #flattenAnds(P, Ps) => P, #flattenAnds(Ps) [owise]
   rule #flattenAnds(.Patterns) => .Patterns
 
   syntax Patterns ::= #flattenSeps(Patterns) [function]
-  rule #flattenSeps(emp(.Patterns), Ps2) => #flattenSeps(Ps2)
-  rule #flattenSeps(sep(Ps1), Ps2) => #flattenSeps(Ps1) ++Patterns #flattenSeps(Ps2)
+  rule #flattenSeps(symbol(emp)(.Patterns), Ps2) => #flattenSeps(Ps2)
+  rule #flattenSeps(symbol(sep)(Ps1), Ps2) => #flattenSeps(Ps1) ++Patterns #flattenSeps(Ps2)
   rule #flattenSeps(P, Ps) => P, #flattenSeps(Ps) [owise]
   rule #flattenSeps(.Patterns) => .Patterns
 
@@ -580,29 +590,29 @@ Simplifications
     requires isBaseConjunction(Ps)
   rule #dnfPs(\and(P, Ps), REST) => #dnfPs(\and(Ps ++Patterns P), REST)
     requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
-  rule #dnfPs(\and(sep(Ps1), Ps2), REST) => #dnfPs(\and(\or(#dnfPs(sep(Ps1), .Patterns)), Ps2), REST)
+  rule #dnfPs(\and(symbol(sep)(Ps1), Ps2), REST) => #dnfPs(\and(\or(#dnfPs(symbol(sep)(Ps1), .Patterns)), Ps2), REST)
     requires notBool isBaseConjunction(Ps1)
 
   // sep is assoc
-  rule #dnfPs(sep(sep(Ps1), Ps2), REST) => #dnfPs(sep(Ps1 ++Patterns Ps2), REST)
+  rule #dnfPs(symbol(sep)(symbol(sep)(Ps1), Ps2), REST) => #dnfPs(symbol(sep)(Ps1 ++Patterns Ps2), REST)
 
   // sep is commutative
-  rule #dnfPs(sep(P, Ps), REST) => #dnfPs(sep(Ps ++Patterns P), REST)
+  rule #dnfPs(symbol(sep)(P, Ps), REST) => #dnfPs(symbol(sep)(Ps ++Patterns P), REST)
     requires notBool isBaseConjunction(P, Ps) andBool notBool isConjunction(P) andBool isBasePattern(P)
 
   // borrowing code from lift-constraints
-  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(\and(sep(\and(Ps1), Ps2), P))
+  rule #dnfPs(symbol(sep)(\and(P, Ps1), Ps2), REST) => #dnfPs(\and(symbol(sep)(\and(Ps1), Ps2), P))
     requires isPredicatePattern(P)
-  rule #dnfPs(sep(\and(P, Ps1), Ps2), REST) => #dnfPs(sep(\and(Ps1), P, Ps2))
+  rule #dnfPs(symbol(sep)(\and(P, Ps1), Ps2), REST) => #dnfPs(symbol(sep)(\and(Ps1), P, Ps2))
     requires isSpatialPattern(P)
-  rule #dnfPs(sep(\and(.Patterns), Ps), REST) => #dnfPs(sep(Ps), REST)
+  rule #dnfPs(symbol(sep)(\and(.Patterns), Ps), REST) => #dnfPs(symbol(sep)(Ps), REST)
 
   syntax Patterns ::= #dnfPsNew(Patterns) [function]
 
   // Distribute \or over sep
-  rule #dnfPs(sep(\or(P, Ps1), Ps2), REST)
-    => #dnfPs(sep(P, Ps2)) ++Patterns #dnfPs(sep(\or(Ps1), Ps2))
-  rule #dnfPs(sep(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
+  rule #dnfPs(symbol(sep)(\or(P, Ps1), Ps2), REST)
+    => #dnfPs(symbol(sep)(P, Ps2)) ++Patterns #dnfPs(symbol(sep)(\or(Ps1), Ps2))
+  rule #dnfPs(symbol(sep)(\or(.Patterns), Ps2), REST) => #dnfPs(REST)
 
   syntax Bool ::= isBasePattern(Pattern) [function]
   rule isBasePattern(S:Symbol(ARGS)) => true
@@ -612,7 +622,7 @@ Simplifications
   rule isBasePattern(\or(_)) => false
   rule isBasePattern(\exists{Vs}_) => false
   rule isBasePattern(\not(P)) => isBasePattern(P)
-  rule isBasePattern(sep(ARGS)) => isBaseConjunction(ARGS)
+  rule isBasePattern(symbol(sep)(ARGS)) => isBaseConjunction(ARGS)
 
   syntax Bool ::= isBaseConjunction(Patterns) [function]
   rule isBaseConjunction(.Patterns) => true
@@ -642,32 +652,32 @@ Simplifications
 
   rule isPredicatePattern(S:Symbol(ARGS)) => false
     requires getReturnSort(S(ARGS)) ==K Heap
-  rule isPredicatePattern(emp(.Patterns)) => false
+  rule isPredicatePattern(symbol(emp)(.Patterns)) => false
   rule isPredicatePattern(\exists{Vs} P) => isPredicatePattern(P)
   rule isPredicatePattern(\forall{Vs} P) => isPredicatePattern(P)
-  rule isPredicatePattern(implicationContext(\and(sep(_),_),_)) => false
+  rule isPredicatePattern(implicationContext(\and(symbol(sep)(_),_),_)) => false
   rule isPredicatePattern(\typeof(_,_)) => true
   rule isPredicatePattern(implicationContext(_,_)) => true
     [owise]
 
   syntax Bool ::= isSpatialPattern(Pattern) [function]
-  rule isSpatialPattern(pto(_)) => true
-  rule isSpatialPattern(emp(.Patterns)) => true
-  rule isSpatialPattern(sep(.Patterns)) => true
-  rule isSpatialPattern(sep(P, Ps)) => isSpatialPattern(P) andBool isSpatialPattern(sep(Ps))
+  rule isSpatialPattern(symbol(pto)(_)) => true
+  rule isSpatialPattern(symbol(emp)(.Patterns)) => true
+  rule isSpatialPattern(symbol(sep)(.Patterns)) => true
+  rule isSpatialPattern(symbol(sep)(P, Ps)) => isSpatialPattern(P) andBool isSpatialPattern(symbol(sep)(Ps))
   rule isSpatialPattern(P) => false
     requires isPredicatePattern(P)
   rule isSpatialPattern(\and(_)) => false
   rule isSpatialPattern(\or(_)) => false
   rule isSpatialPattern(S:Symbol(ARGS)) => true
-    requires S =/=K sep andBool getReturnSort(S(ARGS)) ==K Heap
+    requires S =/=K symbol(sep) andBool getReturnSort(S(ARGS)) ==K Heap
   rule isSpatialPattern(#hole) => true
 
   // TODO: Perhaps normalization should get rid of this?
-  rule isSpatialPattern(\exists{_} implicationContext(\and(sep(_),_),_)) => true
+  rule isSpatialPattern(\exists{_} implicationContext(\and(symbol(sep)(_),_),_)) => true
   rule isSpatialPattern(\exists{_} implicationContext(_,_)) => false
     [owise]
-  rule isSpatialPattern(\forall{_} implicationContext(\and(sep(_),_),_)) => true
+  rule isSpatialPattern(\forall{_} implicationContext(\and(symbol(sep)(_),_),_)) => true
   rule isSpatialPattern(\forall{_} implicationContext(_,_)) => false
     [owise]
 
@@ -895,14 +905,13 @@ assume a pattern of the form:
 
   rule #collectSymbolsS(.Declarations) => .Set
   rule #collectSymbolsS( (symbol S ( _ ) : _) Ds)
-       => SetItem(SymbolToString(S)) #collectSymbolsS(Ds)
+       => SetItem(HeadToString(S)) #collectSymbolsS(Ds)
   rule #collectSymbolsS(_ Ds) => #collectSymbolsS(Ds) [owise]
-
 
   syntax Symbol ::= getFreshSymbol(GoalId, String) [function]
   rule getFreshSymbol(GId, Base)
-       => StringToSymbol(
-            getFreshNameNonum(Base, collectSymbolsS(GId)))
+       => symbol(StringToHead(
+            getFreshNameNonum(Base, collectSymbolsS(GId))))
 
   syntax KItem ::= loadNamed(AxiomName)
 

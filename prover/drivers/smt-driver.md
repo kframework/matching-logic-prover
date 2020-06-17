@@ -134,9 +134,9 @@ module DRIVER-SMT
        </k>
        <declarations> ( .Bag
                      => <declaration> symbol pto(SMTLIB2SimpleSymbolToSort(LOC), SMTLIB2SimpleSymbolToSort(DATA)) : Heap </declaration>
-                        <declaration> symbol parameterizedSymbol(nil, SMTLIB2SimpleSymbolToSort(LOC)) ( .Sorts ) : SMTLIB2SimpleSymbolToSort(LOC) </declaration>
-                        <declaration> axiom !N:AxiomName : heap(SMTLIB2SimpleSymbolToSort(LOC), SMTLIB2SimpleSymbolToSort(DATA)) </declaration>
-                        <declaration> axiom !N:AxiomName : functional(parameterizedSymbol(nil, SMTLIB2SimpleSymbolToSort(LOC))) </declaration>
+                        <declaration> symbol parameterizedHead(nil, SMTLIB2SimpleSymbolToSort(LOC)) ( .Sorts ) : SMTLIB2SimpleSymbolToSort(LOC) </declaration>
+                        <declaration> axiom !_:AxiomName : heap(SMTLIB2SimpleSymbolToSort(LOC), SMTLIB2SimpleSymbolToSort(DATA)) </declaration>
+                        <declaration> axiom !_:AxiomName : functional(parameterizedHead(nil, SMTLIB2SimpleSymbolToSort(LOC))) </declaration>
                       ) ...
        </declarations>
 
@@ -153,8 +153,8 @@ module DRIVER-SMT
        </k>
        <declarations> ( .Bag
                      => <declaration> sort SMTLIB2SimpleSymbolToSort(SORT1) </declaration>
-                        <declaration> symbol SMTLIB2SimpleSymbolToSymbol(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SimpleSymbolToSort(SORT1) </declaration>
-                        <declaration> axiom !N:AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(CTOR)) </declaration>
+                        <declaration> symbol SMTLIB2SimpleSymbolToHead(CTOR)(SelectorDecListToSorts(SELDECs)) : SMTLIB2SimpleSymbolToSort(SORT1) </declaration>
+                        <declaration> axiom !_:AxiomName : functional(SMTLIB2SimpleSymbolToHead(CTOR)) </declaration>
                       ) ...
        </declarations>
 
@@ -169,15 +169,15 @@ module DRIVER-SMT
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGs))
-                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SimpleSymbolToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
+                     => <declaration> symbol SMTLIB2SimpleSymbolToHead(ID)(SMTLIB2SortedVarListToSorts(ARGs))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SimpleSymbolToSort(RET), SMTLIB2SimpleSymbolToHead(ID))
                         </declaration>
                         <declaration> axiom !N:AxiomName : \forall { SMTLIB2SortedVarListToPatterns(ARGs) }
-                                         \iff-lfp( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
+                                         \iff-lfp( symbol(SMTLIB2SimpleSymbolToHead(ID))(SMTLIB2SortedVarListToPatterns(ARGs))
                                                  , #normalizeDefinition(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)))
                                                  )
                         </declaration>
-                        <declaration> axiom !N':AxiomName : functional(SMTLIB2SimpleSymbolToSymbol(ID)) </declaration>
+                        <declaration> axiom !N':AxiomName : functional(SMTLIB2SimpleSymbolToHead(ID)) </declaration>
                       ) ...
        </declarations>
 
@@ -224,7 +224,7 @@ module DRIVER-SMT
   rule <k> _:GoalBuilder
         ~> #rest(FDALLs, BODYALLs)
         ~> ( (define-funs-rec ( (ID (ARGs) RET) FDs ) ( BODY BODIEs ) )
-          => unfoldMR( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
+          => unfoldMR( symbol(SMTLIB2SimpleSymbolToHead(ID))(SMTLIB2SortedVarListToPatterns(ARGs))
                      , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs))
                      , #gatherRest(FDALLs, BODYALLs) )
           ~> (define-funs-rec ( FDs ) ( BODIEs ) )
@@ -232,8 +232,8 @@ module DRIVER-SMT
            ...
        </k>
        <declarations> ( .Bag
-                     => <declaration> symbol SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToSorts(ARGs))
-                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SimpleSymbolToSort(RET), SMTLIB2SimpleSymbolToSymbol(ID))
+                     => <declaration> symbol SMTLIB2SimpleSymbolToHead(ID)(SMTLIB2SortedVarListToSorts(ARGs))
+                                             : #returnSort(SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs)), SMTLIB2SimpleSymbolToSort(RET), SMTLIB2SimpleSymbolToHead(ID))
                         </declaration>
                       ) ...
        </declarations>
@@ -243,7 +243,7 @@ module DRIVER-SMT
   syntax PatternTupleList ::= #gatherRest(SMTLIB2FunctionDecList, SMTLIB2TermList) [function]
   rule #gatherRest(.SMTLIB2FunctionDecList, .SMTLIB2TermList ) => .PatternTupleList
   rule #gatherRest((ID (ARGs) RET) FDs, BODY BODIEs )
-    => ( SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2SortedVarListToPatterns(ARGs))
+    => ( symbol(SMTLIB2SimpleSymbolToHead(ID))(SMTLIB2SortedVarListToPatterns(ARGs))
        , SMTLIB2TermToPattern(BODY, SMTLIB2SortedVarListToPatterns(ARGs))
        ), #gatherRest(FDs, BODIEs)
 
@@ -280,18 +280,18 @@ module DRIVER-SMT
 
   // Note: We cannot call isPredicatePattern because that requires knowing the return type of the
   // symbols inside before calling. This is not feasible since they may be recursive symbols.
-  syntax Sort ::= #returnSort(Pattern, Sort, Symbol) [function]
+  syntax Sort ::= #returnSort(Pattern, Sort, Head) [function]
   rule #returnSort(P, Bool, S) => Heap
     requires #containsSpatial(P, S)
   rule #returnSort(P, Bool, _) => Bool
     [owise]
 
-  syntax Bool ::= #containsSpatial(Pattern, Symbol)          [function]
-  syntax Bool ::= #containsSpatialPatterns(Patterns, Symbol) [function]
+  syntax Bool ::= #containsSpatial(Pattern, Head)          [function]
+  syntax Bool ::= #containsSpatialPatterns(Patterns, Head) [function]
   rule #containsSpatial(_{_}, _) => false
   rule #containsSpatial(_:Int, _) => false
-  rule #containsSpatial(sep(_), _) => true
-  rule #containsSpatial(pto(_), _) => true
+  rule #containsSpatial(symbol(sep)(_), _) => true
+  rule #containsSpatial(symbol(pto)(_), _) => true
   rule #containsSpatial(\equals(P1, P2), S) => #containsSpatial(P1, S) orBool #containsSpatial(P2, S)
   rule #containsSpatial(\forall{_}(P), S) => #containsSpatial(P, S)
   rule #containsSpatial(\exists{_}(P), S) => #containsSpatial(P, S)
@@ -300,16 +300,16 @@ module DRIVER-SMT
   rule #containsSpatial(\or(Ps), S) => #containsSpatialPatterns(Ps, S)
 
   // For recursive calls: must only check arguments of calls to avoid infinite looping
-  rule #containsSpatial(S(Ps), S) => #containsSpatialPatterns(Ps, S)
+  rule #containsSpatial(symbol(S)(Ps), S) => #containsSpatialPatterns(Ps, S)
     requires S =/=K sep andBool S =/=K pto
 
   // If S2 calls another symbol S1 that returns a heap, then S2 is spatial
-  rule #containsSpatial(S1(Ps), S2) => true
-    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(S1(Ps)) ==K Heap
+  rule #containsSpatial(symbol(S1)(Ps), S2) => true
+    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(symbol(S1)(Ps)) ==K Heap
 
   // If S2 calls another symbol S1 that does not return a heap, then recurse on the arguments of S1
-  rule #containsSpatial(S1(Ps), S2) => #containsSpatialPatterns(Ps, S2)
-    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(S1(Ps)) =/=K Heap
+  rule #containsSpatial(symbol(S1)(Ps), S2) => #containsSpatialPatterns(Ps, S2)
+    requires S1 =/=K sep andBool S1 =/=K pto andBool S1 =/=K S2 andBool getReturnSort(symbol(S1)(Ps)) =/=K Heap
 
   rule #containsSpatialPatterns(.Patterns, _) => false
   rule #containsSpatialPatterns((P, Ps), S) => #containsSpatial(P, S) orBool #containsSpatialPatterns(Ps, S)
@@ -418,7 +418,7 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern((#token("distinct", "SMTLIB2SimpleSymbol") L R), Vs) => \not(\equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern((#token("=", "SMTLIB2SimpleSymbol") L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
 
-  rule [[ SMTLIB2TermToPattern((S2:SMTLIB2SimpleSymbol Args:SMTLIB2TermList), Vs) => S1(SMTLIB2TermListToPatterns(Args, Vs)) ]]
+  rule [[ SMTLIB2TermToPattern((S2:SMTLIB2SimpleSymbol Args:SMTLIB2TermList), Vs) => symbol(S1)(SMTLIB2TermListToPatterns(Args, Vs)) ]]
        <declaration> axiom _ : hook-smt-symbol(S1, S2) </declaration>
 
   rule SMTLIB2TermToPattern((#token("not", "SMTLIB2SimpleSymbol") T), Vs) => \not(SMTLIB2TermToPattern(T, Vs))
@@ -427,10 +427,10 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern(I:Int, _) => I
   rule SMTLIB2TermToPattern(#token("true", "SMTLIB2SimpleSymbol"), _) => \top()
   rule SMTLIB2TermToPattern(#token("false", "SMTLIB2SimpleSymbol"), _) => \bottom()
-  rule SMTLIB2TermToPattern((as #token("nil", "SMTLIB2SimpleSymbol") SORT), _) => parameterizedSymbol(nil, SMTLIB2SimpleSymbolToSort(SORT))(.Patterns)
-  rule SMTLIB2TermToPattern((underscore #token("emp", "SMTLIB2SimpleSymbol") _ _), _) => emp(.Patterns)
+  rule SMTLIB2TermToPattern((as #token("nil", "SMTLIB2SimpleSymbol") SORT), _) => symbol(parameterizedHead(nil, SMTLIB2SimpleSymbolToSort(SORT)))(.Patterns)
+  rule SMTLIB2TermToPattern((underscore #token("emp", "SMTLIB2SimpleSymbol") _ _), _) => symbol(emp)(.Patterns)
 
-  rule SMTLIB2TermToPattern((ID Ts), Vs) => SMTLIB2SimpleSymbolToSymbol(ID)(SMTLIB2TermListToPatterns(Ts, Vs))
+  rule SMTLIB2TermToPattern((ID Ts), Vs) => symbol(SMTLIB2SimpleSymbolToHead(ID))(SMTLIB2TermListToPatterns(Ts, Vs))
     [owise]
   rule SMTLIB2TermToPattern(ID:SMTLIB2SimpleSymbol, Vs) => SMTLIB2SimpleSymbolToVariableName(ID) { getSortForVariableName(SMTLIB2SimpleSymbolToVariableName(ID), Vs) }
     [owise]

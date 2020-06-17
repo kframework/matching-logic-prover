@@ -8,7 +8,7 @@ module TOKENS-ABSTRACT
   syntax AxiomName
 
   syntax Decimal
-  syntax Symbol
+  syntax Head
   syntax Sort
   syntax VariableName
 ```
@@ -17,10 +17,10 @@ This tokens are used directly in the semantics:
 
 ```k
   // sep-logic symbols
-  syntax Symbol ::= "pto" [token]
-                  | "sep" [token]
-                  | "nil" [token]
-                  | "emp" [token]
+  syntax Head ::= "pto" [token]
+                | "sep" [token]
+                | "nil" [token]
+                | "emp" [token]
 
   // Sorts
   syntax Sort ::= "Array"        [token]
@@ -58,8 +58,8 @@ module TOKENS-LEXICAL
   syntax SMTLIB2SimpleSymbol ::= UpperName [token] | LowerName [token]
                                | SMTName [token]
                                | Sort [token]
-                               | Symbol [token]
-  syntax Symbol ::= UpperName [token] | LowerName [token]
+                               | Head [token]
+  syntax Head ::= UpperName [token] | LowerName [token]
   syntax Sort   ::= UpperName [token] | LowerName [token]
   syntax VariableName ::= UpperName [token]
 
@@ -71,14 +71,13 @@ module TOKENS-HELPERS
   syntax String ::= AxiomNameToString(AxiomName)                     [function, functional, hook(STRING.token2string)]
   syntax String ::= SMTLIB2SimpleSymbolToString(SMTLIB2SimpleSymbol) [function, functional, hook(STRING.token2string)]
   syntax String ::= SortToString(Sort)                               [function, functional, hook(STRING.token2string)]
-  syntax String ::= SymbolToString(Symbol)                           [function, functional, hook(STRING.token2string)]
+  syntax String ::= HeadToString(Head)                               [function, functional, hook(STRING.token2string)]
   syntax String ::= VariableNameToString(VariableName)               [function, functional, hook(STRING.token2string)]
 
   syntax AxiomName           ::= StringToAxiomName(String)            [function, functional, hook(STRING.string2token)]
   syntax SMTLIB2SimpleSymbol ::= StringToSMTLIB2SimpleSymbol(String)  [function, functional, hook(STRING.string2token)]  
-  syntax Symbol              ::= StringToSymbol(String)               [function, functional, hook(STRING.string2token)]
+  syntax Head                ::= StringToHead(String)                 [function, functional, hook(STRING.string2token)]
   syntax Sort                ::= StringToSort(String)                 [function, functional, hook(STRING.string2token)]
-  syntax VariableName        ::= StringToVariableName(String)         [function, functional, hook(STRING.string2token)]
   syntax VariableName        ::= StringToVariableName(String)         [function, functional, hook(STRING.string2token)]
 
   syntax SMTLIB2SimpleSymbol ::= VariableNameToSMTLIB2SimpleSymbol(VariableName) [function]
@@ -88,10 +87,10 @@ module TOKENS-HELPERS
   rule SMTLIB2SimpleSymbolToVariableName(SYMBOL)
     => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
 
-  syntax Symbol ::= SMTLIB2SimpleSymbolToSymbol(SMTLIB2SimpleSymbol) [function]
-  rule SMTLIB2SimpleSymbolToSymbol(S)
-    => StringToSymbol(SMTLIB2SimpleSymbolToString(S))
-    
+  syntax Head ::= SMTLIB2SimpleSymbolToHead(SMTLIB2SimpleSymbol) [function]
+  rule SMTLIB2SimpleSymbolToHead(S)
+    => StringToHead(SMTLIB2SimpleSymbolToString(S))
+
   syntax Sort ::= SMTLIB2SimpleSymbolToSort(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToSort(S)
     => StringToSort(SMTLIB2SimpleSymbolToString(S))
