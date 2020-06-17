@@ -1,15 +1,17 @@
 module TEST-MATCH-ASSOC-COMM
   imports UNIT-TEST
 
-  syntax LowerName ::= "c"    [token]
-                     | "d"    [token]
-  syntax UpperName ::= "Data" [token]
-                     | "Loc"  [token]
-                     | "W"    [token] | "W0"    [token] | "W1"    [token] | "W2"    [token]
-                     | "X0"   [token] | "X1"    [token] | "X2"    [token]
-                     | "Y0"   [token] | "Y1"    [token] | "Y2"    [token]
-                     | "Z"    [token] | "Z1"    [token] | "Z2"    [token]
-                     | "H0"   [token] | "H1"    [token]
+  syntax LowerName ::= "c"     [token]
+                     | "d"     [token]
+  syntax UpperName ::= "Data"  [token]
+                     | "Loc"   [token]
+                     | "W"     [token] | "W0"    [token] | "W1"    [token] | "W2"    [token]
+                     | "X0"    [token] | "X1"    [token] | "X2"    [token]
+                     | "Y0"    [token] | "Y1"    [token] | "Y2"    [token]
+                     | "Z"     [token] | "Z1"    [token] | "Z2"    [token]
+                     | "H0"    [token] | "H1"    [token]
+  syntax SharpName ::= "#X0"   [token] | "#X1"   [token]
+                     | "#PHI1" [token]
 
   rule test("match-assoc-comm", 1)
     => assert( #matchResult( subst: .Map , rest: pto( Z { Loc }, W { Data }))
@@ -220,6 +222,36 @@ module TEST-MATCH-ASSOC-COMM
                               , pattern:   H0 { Heap }
                                          , pto ( W { Loc } , Z { Data } )
                               , variables: H0 { Heap }, W { Loc }, Z { Data }
+                              , results:   .MatchResults
+                              , subst:     .Map
+                              , rest:      .Patterns
+                              )
+             )
+       .Declarations
+
+  rule test("match-assoc-comm", 12)
+    => assert( #matchResult( subst: W0 { Loc } |-> Y0 { Loc }
+                           , rest: .Patterns
+                           )
+             , .MatchResults
+            == #match( terms:     \and(sep( pto ( Y0 { Loc } , c ( Z { Loc }))
+                                          , pto ( X0 { Loc } , c ( Y0 { Loc }))
+                                      )   )
+                      , pattern:   sep ( pto ( X0 { Loc } , c ( W0 { Loc }))
+                                       , pto ( W0 { Loc } , c ( Z { Loc }))
+                                       )
+                      , variables: W0 { Loc }
+                      )
+             )
+       .Declarations
+
+  // matching on mu terms with different binders
+  rule test("match-assoc-comm", 13)
+    => assert( #matchResult( subst: .Map , rest: .Patterns )
+             , .MatchResults
+            == #matchAssocComm( terms:     \mu #X0 . \and(#X0, #PHI1)
+                              , pattern:   \mu #X1 . \and(#X1, #PHI1)
+                              , variables: .Patterns
                               , results:   .MatchResults
                               , subst:     .Map
                               , rest:      .Patterns

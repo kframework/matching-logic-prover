@@ -140,11 +140,14 @@ only in this scenario*.
 ```k
   syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
   syntax SetVariable ::= SharpName [klabel(setVariable)]
+  syntax Context ::= VariableName "[" Pattern "]" [klabel(context)]
   syntax Pattern ::= Int
                    | Variable
                    | SetVariable
                    | Symbol
                    | Symbol "(" Patterns ")"                    [klabel(apply)]
+
+                   | Context
 
                    | "\\top"    "(" ")"                         [klabel(top)]
                    | "\\bottom" "(" ")"                         [klabel(bottom)]
@@ -158,6 +161,8 @@ only in this scenario*.
                    | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
+                   | "\\mu" SetVariable "." Pattern             [klabel(mu)]
+                   | "\\nu" SetVariable "." Pattern             [klabel(mu)]
                      /* Sugar for \iff, \mu and application */
                    | "\\iff-lfp" "(" Pattern "," Pattern ")"    [klabel(ifflfp)]
 

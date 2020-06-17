@@ -36,23 +36,36 @@ module MATCHING-FUNCTIONAL
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
-  rule #match( terms: \and(sep(H), Hs), pattern: P, variables: Vs )
-    =>                #match( terms: H,        pattern: P, variables: Vs )
-       ++MatchResults #match( terms: \and(Hs), pattern: P, variables: Vs )
-    requires Hs =/=K .Patterns
+  rule #match(    terms: \and(T, Ts), pattern: P, variables: Vs )
+    =>                #match( terms: T,        pattern: P, variables: Vs )
+       ++MatchResults #match( terms: \and(Ts), pattern: P, variables: Vs )
+    requires \and(_) :/=K P
+  rule #match( terms: \and(T, .Patterns), pattern: P, variables: Vs )
+    => #match( terms: T,                  pattern: P, variables: Vs )
+    requires \and(_) :/=K P
+  rule #match( terms: \and(.Patterns),    pattern: P, variables: Vs )
+    => .MatchResults
+    requires \and(_) :/=K P
 
-  rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
-    => #match( terms: H,                       pattern: P, variables: Vs )
-
-  rule #match( terms: T, pattern: P, variables: Vs )
-    => #filterErrors( #matchAssocComm( terms: T
-                                     , pattern: P
+  rule #match( terms: sep(Ts), pattern: sep(Ps), variables: Vs )
+    => #filterErrors( #matchAssocComm( terms: Ts
+                                     , pattern: Ps
                                      , variables: Vs
                                      , results: .MatchResults
                                      , subst: .Map
                                      , rest: .Patterns
                                      )
                     )
+
+  rule #match( terms: Ts, pattern: Ps, variables: Vs )
+    => #filterErrors( #matchAssoc( terms: Ts
+                                 , pattern: Ps
+                                 , variables: Vs
+                                 , subst: .Map
+                                 , rest: .Patterns
+                                 )
+                    )
+    [owise]
 
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
@@ -88,6 +101,19 @@ Work around OCaml not producing reasonable error messages:
 Recurse over assoc-only constructors (including `pto`):
 
 ```k
+  // TODO: matching over context patterns
+  rule #matchAssoc( terms:     S:Symbol(T), .Patterns
+                  , pattern:   V[T], .Patterns
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+    => #matchResult( subst: SUBST V { getReturnSort(S(T)) } |-> S( #hole )
+                   , rest: .Patterns
+                   )
+     , .MatchResults
+    requires V { getReturnSort(S(T)) } in Vs
+
   // Base case
   rule #matchAssoc( terms:     .Patterns
                   , pattern:   .Patterns
@@ -138,26 +164,108 @@ Recurse over assoc-only constructors (including `pto`):
                   )
     requires S =/=K sep
 
+  rule #matchAssoc( terms:     \not(T), Ts
+                            => T, Ts
+                  , pattern:   \not(P), Ps
+                            => P, Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // TODO: the conjunction/disjunction matching rules should be more general, i.e. aware of commutativity
+  // Recursive over conjunction
+  rule #matchAssoc( terms:     \and(T_ARGs), Ts
+                            => T_ARGs ++Patterns Ts
+                  , pattern:   \and(P_ARGs), Ps
+                            => P_ARGs ++Patterns Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // Recursive over disjunction
+  rule #matchAssoc( terms:     \or(T_ARGs), Ts
+                            => T_ARGs ++Patterns Ts
+                  , pattern:   \or(P_ARGs), Ps
+                            => P_ARGs ++Patterns Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // Recursive over exists
+  rule #matchAssoc( terms:     \exists { .Patterns } T, Ts
+                            => T, Ts
+                  , pattern:   \exists { .Patterns } P, Ps
+                            => P, Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // Both term and pattern are a mu:
+  // Recurse over pattern with same fresh variable for each mu term
+  rule #matchAssoc( terms:     (\mu X . T), Ts
+                            => subst(T, X, !F:SetVariable), Ts
+                  , pattern:   (\mu Y . P), Ps
+                            => subst(P, Y, !F), Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
+  // Both term and pattern are a nu:
+  // Recurse over pattern with same fresh variable for each nu term
+  rule #matchAssoc( terms:     (\nu X . T), Ts
+                            => subst(T, X, !F:SetVariable), Ts
+                  , pattern:   (\nu Y . P), Ps
+                            => subst(P, Y, !F), Ps
+                  , variables: Vs
+                  , subst:     SUBST
+                  , rest:      REST
+                  )
+
   // ground variable: identical
   rule #matchAssoc( terms:     P:Variable, Ts => Ts
-                  , pattern:   P:Variable, Ps => Ps
+                  , pattern:   P, Ps => Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
                   )
     requires notBool P in Vs
 
+  rule #matchAssoc( terms:     P:SetVariable, Ts => Ts
+                  , pattern:   P, Ps => Ps
+                  , variables: Vs
+                  , subst:     _
+                  , rest:      REST
+                  )
+    requires notBool P in Vs
+
+  rule #matchAssoc( terms:     T, Ts
+                  , pattern:   P, Ps
+                  , variables: Vs
+                  , subst:     _
+                  , rest:      REST
+                  )
+    => #error("Ground term does not match")
+    requires T =/=K P
+     andBool (isSetVariable(T) orBool isVariable(T))
+     andBool notBool P in Vs
+
   // ground variable: non-identical
   rule #matchAssoc( terms:     T, Ts
-                  , pattern:   P:Variable, Ps
+                  , pattern:   P, Ps
                   , variables: Vs
                   , subst:     _
                   , rest:      REST
                   )
     => #error( "No valid substitution" ), .MatchResults
     requires T =/=K P
+     andBool (isSetVariable(P) orBool isVariable(P))
      andBool notBool P in Vs
-     
+
   // free variable: different sorts
   rule #matchAssoc( terms:     T         , Ts
                   , pattern:   P:Variable, Ps
@@ -428,6 +536,17 @@ Instantiate existentials using matching on the spatial part of goals:
        </k>
     requires isSpatialPattern(sep(RSPATIAL))
      andBool getFreeVariables(getSpatialPatterns(sep(RSPATIAL), RHS)) intersect Vs =/=K .Patterns
+
+  rule <claim> \implies(\and(LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
+       <k> match-debug => wait ...  </k>
+       <trace> _
+            => #match( terms: \and(getSpatialPatterns(LHS))
+                     , pattern: RSPATIAL
+                     , variables: Vs
+                     )
+      </trace>
+    requires isSpatialPattern(sep(RSPATIAL))
+
   rule <claim> \implies(\and(LHS) , \exists { Vs } \and(RHS)) </claim>
        <k> match => noop ... </k>
      requires getFreeVariables(getSpatialPatterns(RHS)) intersect Vs ==K .Patterns
@@ -449,8 +568,9 @@ Instantiate existentials using matching on the spatial part of goals:
        <k> match => fail ... </k>
     requires isPredicatePattern(LHS)
      andBool isSpatialPattern(RSPATIAL)
+
   rule <claim> \implies(\and(LSPATIAL, LHS), \exists { Vs } RHS) </claim>
-       <k> match => fail ... </k>
+       <k> match => noop ... </k>
     requires isPredicatePattern(RHS)
      andBool isSpatialPattern(LSPATIAL)
 
@@ -680,4 +800,3 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
 ```k
 endmodule
 ```
-
