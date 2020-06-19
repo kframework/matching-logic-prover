@@ -1,92 +1,227 @@
 fmod CHECKER is protecting NAT + STRING .
 
 ---------------------------------------
----- Proof object definition
+---- Proofs and proof steps
 ---------------------------------------
 
 sort Id .
-op `(_`) : NzNat -> Id .
+op `(_`) : Nat -> Id .
 
-sort Proof .
-op ___; : Id Digest Rule -> Proof [prec 40] .
+sort ProofStep .
+op ___; : Id Claim Rule -> ProofStep [prec 40] .
+---- You can put a string as a comment to the proof step; it will be ignored.
+op ___;_ : Id Claim Rule String -> Proof [prec 40] .
+eq N:Id C:Claim Rl:Rule ; S:String = N:Id C:Claim Rl:Rule ; .
+
+sort Proof . subsort ProofStep < Proof .
 op .Proof : -> Proof .
 op __ : Proof Proof -> Proof [assoc id: .Proof prec 45 format(d n d)] .
----- proof with comments
-op ___;_ : Id Digest Rule String -> Proof [prec 40] .
-eq ID:Id D:Digest R:Rule ; S:String = ID:Id D:Digest R:Rule ; .
 
----- AtomicPattern contains element/set variables, symbols, and \bottom.
+---------------------------------------
+---- Claims definitions
+---------------------------------------
 
-sorts AtomicPattern Digest .
-subsort AtomicPattern Id < Digest .
+sort Claim .
 
-op `(\evar_`) : NzNat -> AtomicPattern .
-op `(\svar_`) : NzNat -> AtomicPattern .
-op `(\symb_`) : NzNat -> AtomicPattern .
-op `(\bot`) : -> AtomicPattern .
-op `(\app__`) : Id Id -> Digest .
-op `(\imp__`) : Id Id -> Digest .
-op `(\ex__`) : Id Id -> Digest . 
-op `(\mu__`) : Id Id -> Digest . 
+---------------------------------------
+---- There are many types of claims:
+----   1. Wellformedness (WF) claims. These are claims that construct wellformed patterns.
+----   2. Provability claims. These are the normal claims as understood in logic. They
+----      refer to wellformed patterns and claim that those patterns are provable.
+----   3. Not-occur-free (NF) claims. They claim that an element/set variable does
+----      not occur free in a wellformed pattern.
+----   4. Substitution (Subst) claims. They claim that a pattern is the result
+----      of substituting another pattern, a third pattern for a variable. We consider
+----      capture-avoiding substitution.
+----   5. Application Contexts (AppCtx) claims. They claim that a pattern is an appliation
+----      context wrt a given placeholder variable.
+----   6. Non-negative/Non-positive occurrence (NNO/NPO) claims. They claim that a pattern 
+----      is non-negative/non-positive in a set variable X. This checking is used to decide
+----      the wellformedness of least fixpoint patterns. We call non-negative (non-positive)
+----      instead of positive (negative) because no occurrence is OK and passes the check.
+----  Only (2) is the "logical" object-level claims. (1)(3)(4)(5)(6) are all "syntactic"
+----  meta-level claims; they are only about the "structures" of patterns, instead of
+----  their logical consequences.
+---------------------------------------
 
----- Rule annotations
----- Rules are divided into the following two categories:
-----   1. (WF), which proves that a pattern is wellformed.
-----   2. Other rules, which prove that a pattern is provable.
----- Note that we unify wellformedness and provability. The former is a meta-level
----- property while the latter is an object level property. 
+---------------------------------------
+---- Wellformedness (WF) claims: Basically, they construct patterns.
+---------------------------------------
+
+---- AML has 8 primitive constructs: 4 atomic and 4 compound ones.
+---- For the four compound ones, arguments are referred by their ids.
+---- For the four atomic ones, the following three of them 
+----   element variables (evar)
+----   set variable (svar)
+----   constant symbols (symb) 
+---- use the ids of the steps when they are constructed, as their names.
+---- The bottom pattern (\bot) must always be constructed in the first proof step,
+---- so it always has id (0).
+
+op `(\evar`) : -> Claim .
+op `(\svar`) : -> Claim .
+op `(\symb`) : -> Claim .
+op `(\bot`) : -> Claim .
+op `(\app__`) : Id Id -> Claim .
+op `(\imp__`) : Id Id -> Claim .
+op `(\ex__`) : Id Id -> Claim . 
+op `(\mu__`) : Id Id -> Claim . 
+
+---------------------------------------
+---- Provability claims.
+---------------------------------------
+
+---- To say a wellformed pattern is provable, simply refer to its id.
+subsort Id < Claim .
+
+---------------------------------------
+---- Other meta-level claims.
+---------------------------------------
+
+---- Not-occur-free (NF) claims: 
+----   (#nf X P) means X does not occur free in P
+---- Substitution (Subst) claims:
+----   (#subst R P Q X) means R equals P[Q/X]
+---- Application context (AppCtx) claims:
+----   (#appctx P X) means P is an application context wrt set/element variable X.
+---- Non-negative/non-positive occurrence (NNO/NPO) claims:
+----   (#nno P X) means P is non-negative in set variable X.
+----   (#npo P X) means P is non-positive in set variable X.
+
+op `(#nf__`) : Id Id -> Claim .
+op `(#subst____`) : Id Id Id Id -> Claim .
+op `(#appctx__`) : Id Id -> Claim .
+op `(#nno__`) : Id Id -> Claim .
+op `(#npo__`) : Id Id -> Claim .
+
+---------------------------------------
+---- Rules
+---------------------------------------
 
 sort Rule .
 
----- Wellformedness
+---------------------------------------
+---- Rules to prove WF claims.
+---------------------------------------
+
 op `(WF`) : -> Rule . 
-op `(NotOccurFree__`) : Id Id -> Rule . ---- x doesn't occur free in p
-
----- Provability
-
----- Propositional rules
-op `(PropK__`) : Id Id -> Rule . ---- p -> (q -> p)
-op `(PropS___`) : Id Id Id -> Rule . ---- (p -> (q -> r)) -> (p -> q) -> (p -> r)
-op `(PropF_`) : Id -> Rule . ---- (((p -> \bot) -> \bot) -> p)
-op `(MP__`) : Id Id -> Rule . ---- p and p -> q deduces q
-
----- FOL rules
-op `(ExistQ__`) : Id Id -> Rule . ---- p[y/x] -> \ex x . p, parameter order: (\ex x . p) y
-op `(ExistR___`) : Id Id Id -> Rule . ---- p -> q deduces (\ex x . p) -> q, order: x p q
-
----- Propagation rules
-op `(PropagationBotL_`) : Id -> Rule . ---- \bot p -> \bot 
-op `(PropagationBotR_`) : Id -> Rule . ---- p \bot -> \bot
-op `(PropagationOrL___`) : Id Id Id -> Rule . ---- (p1 \/ p2) q -> p1 q \/ p2 q, order: p1 p2 q
-op `(PropagationOrR___`) : Id Id Id -> Rule . ---- q (p1 \/ p2) -> q p1 \/ q p2, order: p1 p2 q 
-op `(PropagationExL___`) : Id Id Id -> Rule . ---- (\ex x . p) q -> \ex x . (p q), order: x p q
-op `(PropagationExR___`) : Id Id Id -> Rule . ---- q (\ex x . p) -> \ex x . (q p), order: x p q
-op `(FrameL_`) : Id -> Rule . ---- p -> q deduces p r -> q r
-op `(FrameR_`) : Id -> Rule . ---- p -> q deduces r p -> r q
-
----- Fixpoint rules
-op `(SVarSubst___`) : Id Id Id -> Rule . ---- p deduces p[q/X], order &p, X, q
-op `(Prefixpoint__`) : Id Id -> Rule . ---- p[(\mu X . p) / X] -> \mu X . p, order X p
-op `(KT_`) : Id -> Rule . ---- p[r/X] -> q deduces (\mu X . p) -> q, order &premis
-
----- Misc rules
-op `(Existence`) : -> Rule . ---- \ex x . x
-op `(Singleton`) : -> Rule . ---- \not (C1[x /\ p] /\ C2[x /\ \not p]) !!!
-
+op `(WFMu_`) : Id -> Rule . ---- in \mu X . P we require X non-negative in P
 
 ---------------------------------------
----- Proof checking definition
+---- Rules to prove provability claims.
 ---------------------------------------
 
-vars Phi Psi P Q R : Digest .
+---- We design the proof rules so that they have the fewest parameters as possible.
+---- Having more parameters doesn't simply the proof checking anyway but complicates
+---- the construction of proof objects.
+---- If a proof rule has premise(s), they are the first parameter(s).
+---- If a proof rule has side conditions (such as not-occur-free, substitution, etc.), 
+---- the side conditions must be proved and then put as parameters.
+
+---- Propositional reasoning
+op `(PropK`) : -> Rule .      ---- P -> (Q -> P)
+op `(PropS`) : -> Rule .      ---- (P -> (Q -> R)) -> ((P -> Q) -> (P -> R))
+op `(PropF`) : -> Rule .      ---- ((P -> \bot) -> \bot) -> P
+op `(MP__`) : Id Id -> Rule . ---- P && P -> Q => Q
+
+---- FOL reasoning
+op `(ExistsQ_`) : Id -> Rule .     ---- P[y/x] -> \ex x . P
+op `(ExistsR__`) : Id Id -> Rule . ---- P -> Q => (\ex x . P) -> Q with (#nf x Q)
+
+---- Propagation rules and frame reasoning (the disjunction \/ needs to be desugared)
+op `(PropagationBotL`) : -> Rule .    ---- \bot P -> \bot
+op `(PropagationBotR`) : -> Rule .    ---- P \bot -> \bot
+op `(PropagationOrL`)  : -> Rule .    ---- (P \/ Q) R -> PR \/ QR
+op `(PropagationOrR`)  : -> Rule .    ---- R (P \/ Q) -> RP \/ RQ
+op `(PropagationExL_`) : Id -> Rule . ---- (\ex x . P) R -> \ex x . (PR) with (#nf x R)
+op `(PropagationExR_`) : Id -> Rule . ---- R (\ex x . P) -> \ex x . (RP) with (#nf x R)
+op `(FrameL_`) : Id -> Rule .         ---- P -> Q => P R -> Q R
+op `(FrameR_`) : Id -> Rule .         ---- P -> Q => R P -> R Q
+
+---- Fixpoint reasoning
+op `(SVarSubst__`) : Id Id -> Rule . 
+op `(Prefixpoint_`) : Id -> Rule .   
+op `(KT__`) : Id Id -> Rule .        
+
+---- Technical rules
+op `(Existence`) : -> Rule .                 
+op `(Singleton____`) : Id Id Id Id -> Rule . 
+
+---------------------------------------
+---- Rules to prove other meta-level claims.
+---------------------------------------
+
+---- Not-occur-free checking
+op `(NFBasic`) : -> Rule .
+op `(NFApp__`) : Id Id -> Rule .
+op `(NFImp__`) : Id Id -> Rule .
+op `(NFExBinding`) : -> Rule .
+op `(NFExBody_`) : Id -> Rule .
+op `(NFMuBinding`) : -> Rule .
+op `(NFMuBody_`) : Id -> Rule .
+
+---- Substitution checking
+op `(SubstVariable`) : -> Rule .
+op `(SubstSymb`) : -> Rule .
+op `(SubstBot`) : -> Rule .
+op `(SubstImp__`) : Id Id -> Rule .
+op `(SubstApp__`) : Id Id -> Rule .
+op `(SubstExBinding`) : -> Rule .
+op `(SubstExBody____`) : Id Id Id Id -> Rule .
+op `(SubstMuBinding`) : -> Rule .
+op `(SubstMuBody____`) : Id Id Id Id -> Rule .
+
+---- Application context checking
+op `(AppCtxInit`) : -> Rule .
+op `(AppCtxL__`) : Id Id -> Rule .
+op `(AppCtxR__`) : Id Id -> Rule .
+
+---- Non-negative/non-positive occurrence checking
+op `(NNOBasic`) : -> Rule .
+op `(NNOImp__`) : Id Id -> Rule .
+op `(NNOApp__`) : Id Id -> Rule .
+op `(NNOEx_`) : Id -> Rule .
+op `(NNOMuBinding`) : -> Rule .
+op `(NNOMuBody_`) : Id -> Rule .
+
+op `(NPOBasic`) : -> Rule .
+op `(NPOImp__`) : Id Id -> Rule .
+op `(NPOApp__`) : Id Id -> Rule .
+op `(NPOEx_`) : Id -> Rule .
+op `(NPOMuBinding`) : -> Rule .
+op `(NPOMuBody_`) : Id -> Rule .
+
+---------------------------------------
+---- Variable definitions
+---------------------------------------
+
+---- A lot of variables have sort Nat; these variables are used to refer to claims
+---- of various types. We may think about a better naming convention of these variables
+---- so we can infer the types of the claims by their names.
+
+vars M M1 M2 N N1 N2 M21 M22 N' : Nat .
+vars Ix Iy Iz Ix' Iy' Iz' : Nat .
+vars IX IY IZ IX' IY' IZ' : Nat .
+vars IP IP' IP1 IP2 IP3 : Nat .
+vars IQ IQ' IQ1 IQ2 IQ3 : Nat .
+vars IR IR' IR1 IR2 IR3 : Nat .
+vars IdP IdQ IdR IdH IdX IdY IdZ IdSX IdSY IdSZ : Nat .
+vars IdP1 IdQ1 IdR1 IdX1 IdY1 IdZ1 IdC1 IdC2 : Nat .
+vars IdP2 IdQ2 IdR2 IdX2 IdY2 IdZ2 : Nat .
+vars IdP3 IdQ3 IdR3 IdX3 IdY3 IdZ3 : Nat .
+vars ISubst ISubst1 ISubst2 IdNF IdHP : Nat .
+vars IdPx IdPBody IdMu IdCtx1 IdCtx2 : Nat .
+vars IdLHS IdRHS IdLHS1 IdLHS2 IdLHS3 IdRHS1 IdRHS2 IdRHS3 : Nat .
+vars IdAppCtx INNO INPO INNO1 INNO2 INPO1 INPO2 : Nat .
+vars Phi Psi P Q R : Claim .
 vars Pi Pi1 Pi2 Pi3 : Proof .
 vars Rl Rl1 Rl2 : Rule .
-vars M M1 M2 N N1 N2 : NzNat .
+vars EP EQ EP1 EP2 EQ1 EQ2 : ExClaim .
 
 ---------------------------------------
----- Proof check:
-----   PC1: check ids are (1) (2) (3) ...
-----   PC2: check each proof step is correct
+---- Proof checking procedures:
+----   Phase 1: check ids are (1) (2) (3) ...
+----   Phase 2: check each proof step is correct
 ---------------------------------------
 
 op check : Proof -> Bool .
@@ -95,38 +230,41 @@ op check-step : Proof -> Bool .
 eq check(Pi) = check-id(Pi) and check-step(Pi) .
 
 ---------------------------------------
----- PC1: check ids
----------------------------------------
-
-op check-id-aux : Proof NzNat -> Bool .
-eq check-id(Pi) = check-id-aux(Pi, 1) .
-eq check-id-aux(.Proof, N) = true .
-eq check-id-aux(((N) Phi Rl ; Pi), N) = check-id-aux(Pi, N + 1) .
-eq check-id-aux(Pi, N) = false [owise] .
-
-
----------------------------------------
 ---- Some auxilliary definitions
 ---------------------------------------
 
----- Pattern lookup
-op _[_] : Proof NzNat -> [Digest] .
+---- Lookup a claim in a proof.
+op _[_] : Proof NzNat -> [Claim] .
 eq (Pi1 ((N) Phi Rl ;) Pi2) [N] = Phi .
 
----- Auxilliary data structures: ExDigest,
----- which extends Digest by allowing *nested* constructs.
----- This is useful for proof checking.
+---- We define a new sort ExClaim, taking Claim as a subsort. 
+---- ExClaim constructs all *nested* structures of patterns.
 
-sort ExDigest . subsort Digest < ExDigest .
+sort ExClaim . subsort Claim < ExClaim .
 
-op `(\app__`) : ExDigest ExDigest -> ExDigest .
-op `(\imp__`) : ExDigest ExDigest -> ExDigest .
-op `(\ex__`) : ExDigest ExDigest -> ExDigest . 
-op `(\mu__`) : ExDigest ExDigest -> ExDigest . 
+op `(\app__`) : ExClaim ExClaim -> ExClaim .
+op `(\imp__`) : ExClaim ExClaim -> ExClaim .
+op `(\ex__`) : ExClaim ExClaim -> ExClaim . 
+op `(\mu__`) : ExClaim ExClaim -> ExClaim . 
 
-vars EP EQ EP1 EP2 EQ1 EQ2 : ExDigest .
+---- Check if two ExClaim are equal wellformed pattern *without* fully expanding them.
+---- Equations are based on the (implicit) structural induction on the last argument.
 
----- Expand ExDigest to a full pattern.
+op eq? : Proof ExClaim ExClaim -> Bool .
+ceq eq?(Pi, EP1, EP2) = false
+ if not EP1 is-wf-in Pi or not EP2 is-wf-in Pi .
+ceq eq?(Pi, EP1, EP2)
+  = EP1 == EP2
+ if EP2 is-var-in Pi or EP2 is-symb-in Pi or EP2 == (0) . ---- (0) means \bot
+eq eq?(Pi, EP1, (IdP2)) = eq?(Pi, EP1, Pi[IdP2]) .
+eq eq?(Pi, (IdP1), EP2) = eq?(Pi, Pi[IdP1], EP2) .
+eq eq?(Pi, (\app EP1 EP2), (\app EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\imp EP1 EP2), (\imp EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\ex EP1 EP2), (\ex EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, (\mu EP1 EP2), (\mu EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
+eq eq?(Pi, EP, EQ) = false [owise] .
+
+---- Expand ExClaim to a full pattern.
 ---- op expand : Proof NzNat -> [Pattern] .
 ---- eq expand( (Pi1 ((N) AP:AtomicPattern Rl ;) Pi2), N)
 ----  = AP:AtomicPattern .
@@ -141,29 +279,25 @@ vars EP EQ EP1 EP2 EQ1 EQ2 : ExDigest .
 ---- eq expand( (Pi1 ((N) (\mu (M1) (M2)) Rl ;) Pi2), N)
 ----  = (\mu (expand(Pi1, M1)) (expand(Pi1, M2))) .
 
----- Check if two ExDigest are equal *without* fully expanding them.
-op eq? : Proof ExDigest ExDigest -> Bool .
-eq eq?(Pi, EP, EP) = true .
-ceq eq?(Pi, (M), (N)) = eq?(Pi, (N), (M)) if M > N .
-eq eq?(Pi, (M), (N)) = eq?(Pi, (M), Pi[N]) .
-eq eq?(Pi, P:AtomicPattern, P:AtomicPattern) = true .
-eq eq?(Pi, P:AtomicPattern, Q:AtomicPattern) = false [owise] .
-eq eq?(Pi, EP, (M)) = eq?(Pi, (M), EP) .
-eq eq?(Pi, (M), EP) = eq?(Pi, Pi[M], EP) .
-eq eq?(Pi, (\app EP1 EP2), (\app EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, (\imp EP1 EP2), (\imp EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, (\ex EP1 EP2), (\ex EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, (\mu EP1 EP2), (\mu EQ1 EQ2)) = eq?(Pi, EP1, EQ1) and eq?(Pi, EP2, EQ2) .
-eq eq?(Pi, EP, EQ) = false [owise] .
+---------------------------------------
+---- Proof checking phase 1: check ids
+---------------------------------------
 
+op check-id-aux : Proof NzNat -> Bool .
+op check-id0 : Proof -> Bool .
+eq check-id(Pi) = check-id-aux(Pi, 0) .
+eq check-id-aux(.Proof, N) = N >= 1 .
+eq check-id-aux(((0) (\bot) (WF) ; Pi), 0) = check-id-aux(Pi, 1) .
+eq check-id-aux(((N:NzNat) Phi Rl ; Pi), N:NzNat) = check-id-aux(Pi, N:NzNat + 1) .
+eq check-id-aux(Pi, N) = false [owise] .
 
 ---------------------------------------
----- PC2: check steps
+---- Proof checking phase 2: check each proof step
 ---------------------------------------
 
 ---- Put a marker that separates the part that is checked from the rest. 
 
-op _check-step-marker_ : Proof Proof -> Bool [format(g bn nr o)] .
+op _check-step-marker_ : Proof Proof ~> Bool [format(g bn nr o)] .
 eq check-step(Pi) = .Proof check-step-marker Pi .
 eq Pi check-step-marker .Proof = true .
 
@@ -174,7 +308,16 @@ ceq Pi1 check-step-marker (((N) Phi Rl ;) Pi2)
  if Pi1 |- ((N) Phi Rl ;) .
 op _|-_ : Proof Proof -> Bool [prec 46] .
 
----- Some auxiliary functions. We might want to eliminate them in the future.
+---------------------------------------
+---- Some auxiliary checking functions.
+---- Eliminate them in the future (or not?)
+---------------------------------------
+
+---- Check if a digest/id is a wellformed pattern.
+op _is-wf-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-wf-in Pi1 ((N) D:Claim (WF) ;) Pi2 = true .
+eq (N) is-wf-in Pi1 ((N) D:Claim (WFMu (INNO)) ;) Pi2 = true .
+eq (N) is-wf-in Pi = false [owise] .
 
 ---- Check if a pattern is proved to be provable (not just wellformed).
 op _proved-in_ : Id Proof -> Bool [prec 50] .
@@ -183,46 +326,514 @@ eq (N) proved-in Pi = false [owise] .
 
 ---- Check if a pattern is an element variable.
 op _is-evar-in_ : Id Proof -> Bool [prec 50] .
-eq (N) is-evar-in Pi1 ((N) (\evar (M)) (WF) ;) Pi2 = true .
+eq (N) is-evar-in Pi1 ((N) (\evar) (WF) ;) Pi2 = true .
 eq (N) is-evar-in Pi = false [owise] .
 
----- Check if a patter is the successor element variable of the other pattern.
-op _is-succ-evar-of_in_ : Id Id Proof -> Bool [prec 50] .
-ceq (N) is-succ-evar-of (M) in Pi
-  = (N) is-evar-in Pi and (M) is-evar-in Pi
-    and N1 == M1 + 1
- if (\evar M1) := Pi[N] /\ (\evar N1) := Pi[N] .
+---- Check if a pattern is a set variable.
+op _is-svar-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-svar-in Pi1 ((N) (\svar) (WF) ;) Pi2 = true .
+eq (N) is-svar-in Pi = false [owise] .
 
----- (WF): wellformedness checking
-eq Pi |- ((N) (\evar M) (WF) ;) = true .
-eq Pi |- ((N) (\imp (M1) (M2)) (WF) ;) = M1 < N and M2 < N .
-eq Pi |- ((N) (\ex (M1) (M2)) (WF) ;)
- = M1 < N and M2 < N and (M1) is-evar-in Pi .
+---- Check if a pattern is a variable.
+op _is-var-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-var-in Pi = (N) is-evar-in Pi or (N) is-svar-in Pi .
 
----- NFV: check a variable doesn't occur free
----- eq Pi |- (N) (#nfv (M1) (M2)) (NFV-evar) ;
-----  = M1 < N and M2 < N and (M1) is-evar-in Pi and (M2) is-evar-in Pi
-----    and not eq?(Pi, (M1), (M2)) .
+---- Check if a pattern is a symbol.
+op _is-symb-in_ : Id Proof -> Bool [prec 50] .
+eq (N) is-symb-in Pi1 ((N) (\symb) (WF) ;) Pi2 = true .
+eq (N) is-symb-in Pi = false [owise] .
 
----- (Substitution phi psi x): check substitution result
+---------------------------------------
+---- Well-formedness checking
+---------------------------------------
 
----- PropK
-eq Pi |- (N) (M) (PropK P Q) ;
- = eq?(Pi, (M), (\imp P (\imp Q P))) .
+eq  Pi |- (0) (\bot) (WF) ;  = true .
+eq  Pi |- (N) (\evar) (WF) ;  = true .
+eq  Pi |- (N) (\svar) (WF) ;  = true .
+eq  Pi |- (N) (\symb) (WF) ;  = true .
+eq  Pi |- (N) (\app (M1) (M2)) (WF) ;  = M1 < N and M2 < N .
+eq  Pi |- (N) (\imp (M1) (M2)) (WF) ;  = M1 < N and M2 < N .
+eq  Pi |- (N) (\ex (M1) (M2)) (WF) ; 
+ =  M1 < N and M2 < N and (M1) is-evar-in Pi .
+ceq Pi |- (N) (\mu (M1) (M2)) (WFMu (INNO)) ;
+  = M1 < N and M2 < N and (M1) is-svar-in Pi
+if (#nno (M2) (M1)) := Pi[INNO] .
+eq  Pi |- (N) G:Claim (WF) ;
+ = false [owise] .
 
----- PropS 
-eq Pi |- (N) (M) (PropS P Q R) ;
- = eq?(Pi, (M), (\imp (\imp P (\imp Q R)) (\imp (\imp P Q) (\imp P R)))) .
+---------------------------------------
+---- Free variables checking 
+---- Notes:
+----   1. We use the assumption that Maude applies equations in order.
+----   2. Some checkings in conditions can be moved to the right-hand side
+----      of equations, so the proof checking can fail earlier. 
+--------------------------------------
 
----- MP: Modus Ponens
-eq Pi |- (N) (M) (MP P Q) ;
- = P proved-in Pi
-   and Q proved-in Pi
-   and eq?(Pi, Q, (\imp P (M))) .
+---- Proof step with rule (#nf (IdX) (IP)) holds if
+----   1. IdX is an element or set variable;
+----   2. IP is a wellformed pattern;
+----   3. IdX doesn't occur free in IP;
 
----- Checking FOL rules
+---- Failure case.
+ceq Pi |- (N) (#nf (IdX) (IP)) Rl ;
+  = false
+ if IdX >= N or IP >= N 
+ or not (IdX) is-var-in Pi
+ or not (IP) is-wf-in Pi .
 
----- ExistsQ
+---- Define equations by structural induction on (IP).
+
+ceq Pi |- (N) (#nf (IdX) (IdY)) (NFBasic) ;
+  = IdX =/= IdY
+ if (IdY) is-var-in Pi .
+
+eq Pi |- (N) (#nf (IdX) (0)) (NFBasic) ;
+ = true .
+
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFBasic) ;
+  = true
+ if (IP) is-symb-in Pi .
+
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFImp (N1) (N2)) ;
+ = true 
+ if (#nf (IdX) (IP1)) := Pi[N1]
+ /\ (#nf (IdX) (IP2)) := Pi[N2]
+ /\ (\imp (IP1) (IP2)) := Pi[IP] .
+
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFApp (N1) (N2)) ;
+ = true 
+ if (#nf (IdX) (IP1)) := Pi[N1]
+ /\ (#nf (IdX) (IP2)) := Pi[N2]
+ /\ (\app (IP1) (IP2)) := Pi[IP] .
+
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFExBinding) ;
+  = true
+ if (\ex (IdX) (IP')) := Pi[IP] .
+
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFExBody (IdNF)) ;
+  = true
+ if (\ex (IdY) (IP')) := Pi[IP]
+ /\ IdY =/= IdX
+ /\ (#nf (IdX) (IP')) := Pi[IdNF] .
+
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFMuBinding) ;
+  = true
+ if (\mu (IdX) (IP')) := Pi[IP] .
+
+ceq Pi |- (N) (#nf (IdX) (IP)) (NFMuBody (IdNF)) ;
+  = true
+ if (\mu (IdY) (IP')) := Pi[IP] 
+ /\ IdY =/= IdX
+ /\ (#nf (IdX) (IP')) := Pi[IdNF] .
+
+---------------------------------------
+---- Substitution checking
+---------------------------------------
+
+---- Proof step with rule (#subst (IdR) (IP) (IQ) (IdX)) holds if
+----   1. (IdX) is an element or set variable;
+----   2. (IdR),(IP),(IQ) are wellformed patterns;
+----   3. (IdR) is the result of substituting in (IP), (IQ) for (IdX)
+----      (this substitution is capture-avoiding substitution).
+
+---- Failure case.
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) Rl ;
+  = false
+ if IdR >= N or IP >= N or IQ >= N or IdX >= N 
+ or not (IdX) is-var-in Pi
+ or not (IdR) is-wf-in Pi
+ or not (IP) is-wf-in Pi
+ or not (IQ) is-wf-in Pi .
+
+---- Equations are defined based on structural induction on (IP).
+
+ eq Pi |- (N) (#subst (IdR) (IdY) (IQ) (IdX)) (SubstVariable) ;
+  = (IdY) is-var-in Pi
+    and ( (IdY == IdX and IdR == IQ) or (IdY =/= IdX and IdR == IdY) ) .
+
+ eq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstBot) ;
+  = IP == 0 and IdR == 0 .
+
+ eq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstSymb) ;
+  = (IP) is-symb-in Pi and IdR == IP .
+
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstImp (ISubst1) (ISubst2)) ;
+  = true
+ if (\imp (IP1) (IP2)) := Pi[IP]
+ /\ (\imp (IdR1) (IdR2)) := Pi[IdR]
+ /\ (#subst (IdR1) (IP1) (IQ) (IdX)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IP2) (IQ) (IdX)) := Pi[ISubst2] .
+
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstApp (ISubst1) (ISubst2)) ;
+  = true
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (\app (IdR1) (IdR2)) := Pi[IdR]
+ /\ (#subst (IdR1) (IP1) (IQ) (IdX)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IP2) (IQ) (IdX)) := Pi[ISubst2] .
+
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstExBinding) ;
+  = IdR == IP
+ if (\ex (IdX) (IP')) := Pi[IP] .
+
+---- How to do capture-avoiding substitution in (\ex Y . P1)[Q/X]
+----   1. Pick a fresh variable Z such that Z =/= X and (#nf Z Q);
+----   2. Calculate substitution P1[Z/Y], denoted R1;
+----   3. Calculate substitution R1[Q/X], denoted R2;
+----   4. Return the final result R = \ex Z . R2
+---- The correctness of the above computation is explained in page 8 of
+---- "Matching Logic" (LMCS'17 paper).
+
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) 
+              (SubstExBody (IdZ)         ---- fresh var Z
+                           (IdNF)        ---- proved claim (#nf Z Q)
+                           (ISubst1)    ---- proved claim for R1=P1[Z/Y]
+                           (ISubst2)) ; ---- proved claim for R2=R1[Q/X]
+  = true
+ if (\ex (IdY) (IP1)) := Pi[IP]
+ /\ IdY =/= IdX
+ /\ (\ex (IdZ) (IdR2)) := Pi[IdR]
+ /\ IdZ =/= IdX
+ /\ (#nf (IdZ) (IQ)) := Pi[IdNF]
+ /\ (#subst (IdR1) (IP1) (IdZ) (IdY)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IdR1) (IQ) (IdX)) := Pi[ISubst2] .
+
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) (SubstMuBinding) ;
+  = IdR == IP
+ if (\mu (IdX) (IP')) := Pi[IP] .
+
+ceq Pi |- (N) (#subst (IdR) (IP) (IQ) (IdX)) 
+              (SubstMuBody (IdZ)         ---- fresh var Z
+                           (IdNF)        ---- proved claim (#nf Z Q)
+                           (ISubst1)    ---- proved claim for R1=P1[Z/Y]
+                           (ISubst2)) ; ---- proved claim for R2=R1[Q/X]
+  = true
+ if (\mu (IdY) (IP1)) := Pi[IP]
+ /\ IdY =/= IdX
+ /\ (\mu (IdZ) (IdR2)) := Pi[IdR]
+ /\ IdZ =/= IdX
+ /\ (#nf (IdZ) (IQ)) := Pi[IdNF]
+ /\ (#subst (IdR1) (IP1) (IdZ) (IdY)) := Pi[ISubst1]
+ /\ (#subst (IdR2) (IdR1) (IQ) (IdX)) := Pi[ISubst2] .
+
+---------------------------------------
+---- Application context checking
+---------------------------------------
+
+---- (#appctx P X) holds if
+----   1. X is an element or set variable;
+----   2. P is a wellformed pattern;
+----   3. P is an application context wrt X.
+
+ceq Pi |- (N) (#appctx (IP) (IdX)) Rl ;
+  = false
+ if IP >= N or IdX >= N 
+ or not (IdX) is-var-in Pi or not (IP) is-wf-in Pi .
+
+ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxInit) ;
+  = IP == IdX 
+ if (IP) is-var-in Pi .
+
+ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxL (IdAppCtx) (IdNF)) ;
+  = true
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#appctx (IP1) (IdX)) := Pi[IdAppCtx]
+ /\ (#nf (IdX) (IP2)) := Pi[IdNF] .
+
+ceq Pi |- (N) (#appctx (IP) (IdX)) (AppCtxR (IdAppCtx) (IdNF)) ;
+  = true
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#nf (IdX) (IP1)) := Pi[IdNF] 
+ /\ (#appctx (IP2) (IdX)) := Pi[IdAppCtx] .
+
+---------------------------------------
+---- Application context checking
+---------------------------------------
+
+---- "negative occurrence" means *free* occurrence in the left-hand side of an implicaiton.
+
+---- (#nno P X) holds if
+----   1. X is a set variable;
+----   2. P is a wellformed pattern;
+----   3. X has no negative occurrence in P.
+
+---- (#npo P X) holds if
+----   1. X is a set variable;
+----   2. P is a wellformed pattern;
+----   3. X has no positive occurrence in P.
+
+ceq Pi |- (N) (#nno (IP) (IX)) Rl ;
+  = false
+ if IP >= N or IX >= N
+ or not (IX) is-svar-in Pi or not (IP) is-wf-in Pi .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOBasic) ;
+  = true
+ if (IP) is-var-in Pi or (IP) is-symb-in Pi or IP == 0 .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOImp (INPO) (INNO)) ;
+  = true
+ if (\imp (IP1) (IP2)) := Pi[IP]
+ /\ (#npo (IP1) (IX))  := Pi[INPO]
+ /\ (#nno (IP2) (IX))  := Pi[INNO] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOApp (INNO1) (INNO2)) ;
+  = true
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#nno (IP1) (IX))  := Pi[INNO1]
+ /\ (#nno (IP2) (IX))  := Pi[INNO2] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOEx (INNO1)) ;
+  = true
+ if (\ex (Ix) (IP1)) := Pi[IP]
+ /\ (#nno (IP1) (IX)) := Pi[INNO1] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOMuBinding) ;
+  = true
+ if (\mu (IX) (IP1)) := Pi[IP] .
+
+ceq Pi |- (N) (#nno (IP) (IX)) (NNOMuBody (INNO1)) ;
+  = true
+ if (\mu (IY) (IP1)) := Pi[IP]
+ /\ IY =/= IX
+ /\ (#nno (IP1) (IX)) := Pi[INNO1] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOBasic) ;
+  = true
+ if (IP) is-evar-in Pi or (IP) is-symb-in Pi or IP == 0 .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOBasic) ;
+  = not (IP == IX)
+ if (IP) is-svar-in Pi .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOImp (INNO) (INPO)) ;
+  = true
+ if (\imp (IP1) (IP2)) := Pi[IP]
+ /\ (#nno (IP1) (IX))  := Pi[INNO]
+ /\ (#npo (IP2) (IX))  := Pi[INPO] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOApp (INPO1) (INPO2)) ;
+  = true
+ if (\app (IP1) (IP2)) := Pi[IP]
+ /\ (#npo (IP1) (IX))  := Pi[INPO1]
+ /\ (#npo (IP2) (IX))  := Pi[INPO2] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOEx (INPO1)) ;
+  = true
+ if (\ex (Ix) (IP1)) := Pi[IP]
+ /\ (#npo (IP1) (IX)) := Pi[INPO1] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOMuBinding) ;
+  = true
+ if (\mu (IX) (IP1)) := Pi[IP] .
+
+ceq Pi |- (N) (#npo (IP) (IX)) (NPOMuBody (INPO1)) ;
+  = true
+ if (\mu (IY) (IP1)) := Pi[IP]
+ /\ IY =/= IX
+ /\ (#npo (IP1) (IX)) := Pi[INPO1] .
+
+---------------------------------------
+---- Provability checking
+---------------------------------------
+
+---------------------------------------
+---- Checking proof rules Part A
+----   Propositional reasoning
+---------------------------------------
+
+---- (PropK) P -> (Q -> P)
+
+ceq Pi |- (N) (M) (PropK) ;
+  = true
+ if (\imp (IP) (IdR)) := Pi[M]
+ /\ (\imp (IQ) (IP)) := Pi[IdR] .
+
+---- (PropS) (P -> (Q -> R)) -> (P -> Q) -> (P -> R)
+ceq Pi |- (N) (M) (PropS) ;
+  = true
+ if (\imp (IP1) (IP2)) := Pi[M]   ---- IP1: P -> (Q -> R), IP2: (P -> Q) -> (P -> R)
+ /\ (\imp (IP) (IP3)) := Pi[IP1] ---- IP3: Q -> R
+ /\ (\imp (IQ) (IdR)) := Pi[IP3]
+ /\ (\imp (IQ1) (IQ2)) := Pi[IP2]
+ /\ (\imp (IP) (IQ)) := Pi[IQ1]
+ /\ (\imp (IP) (IdR)) := Pi[IQ2] .
+
+---- (PropF) ((P -> \bot) -> \bot) -> P
+ceq Pi |- (N) (M) (PropF) ;
+  = true
+ if (\imp (IdLHS) (IP)) := Pi[M]  ---- IdLHS: (P -> \bot) -> \bot
+ /\ (\imp (IP1) (0)) := Pi[IdLHS] ---- IP1: P -> \bot
+ /\ (\imp (IP) (0)) := Pi[IP1] .
+
+---- (MP) P && P -> Q => Q
+eq Pi |- (N) (M) (MP (IP) (IQ)) ; ---- IP,IQ refer to provability claims, not WF claims.
+ = (IP) proved-in Pi and (IQ) proved-in Pi
+   and eq?(Pi, (\imp (Pi[IP]) (M)), Pi[IQ]) .
+
+---------------------------------------
+---- Checking proof rules Part B
+----   FOL reasoning
+---------------------------------------
+
+---- (ExistsQ) P[y/x] -> \ex x . P
+
+ceq Pi |- (N) (M) (ExistsQ (ISubst)) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]  ---- IdLHS: P[y/x], IdRHS: \ex x . P
+ /\ (\ex (Ix) (IP)) := Pi[IdRHS]
+ /\ (#subst (IdLHS) (IP) (Iy) (Ix)) := Pi[ISubst] .
+
+----(ExistsR) P -> Q => (\ex x . P) -> Q with (#nf x Q)
+ceq Pi |- (N) (M) (ExistsR (IdH) (IdNF)) ; 
+  = true
+ if (IdHP) := Pi[IdH]             ---- IdH is provability claim "|- P -> Q"
+ /\ (\imp (IP) (IQ)) := Pi[IdHP]  ---- IdHP is the WF claim "P -> Q"
+ /\ (\imp (IR) (IQ)) := Pi[M]
+ /\ (\ex (Ix) (IP)) := Pi[IR]
+ /\ (#nf (Ix) (IQ)) := Pi[IdNF] .
+
+---------------------------------------
+---- Checking proof rules Part C
+----   Frame reasoning and propagation rules
+---------------------------------------
+
+---- (PropagationBotL) \bot P -> \bot
+ceq Pi |- (N) (M) (PropagationBotL) ;
+  = true
+ if (\imp (IdR) (0)) := Pi[M]
+ /\ (\app (0) (IP)) := Pi[IdR]
+ /\ (IP) is-wf-in Pi .
+
+---- (PropagationBotR) P \bot -> \bot
+ceq Pi |- (N) (M) (PropagationBotR) ;
+  = true
+ if (\imp (IdR) (0)) := Pi[M]
+ /\ (\app (IP) (0)) := Pi[IdR]
+ /\ (IP) is-wf-in Pi .
+
+---- (PropagationOrL) (P\/Q) R -> (PR) \/ (QR)
+---- desugar to primitive form
+---- (((P -> \bot) -> Q) R) -> ((PR -> \bot) -> (QR))
+ceq Pi |- (N) (M) (PropagationOrL) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IdLHS1) (IdR)) := Pi[IdLHS]
+ /\ (\imp (IdLHS2) (IQ)) := Pi[IdLHS1]
+ /\ (\imp (IP) (0)) := Pi[IdLHS2]
+ /\ (\imp (IdRHS1) (IdRHS2)) := Pi[IdRHS] ---- IdRHS1: (PR -> \bot), IdRHS2: QR
+ /\ (\imp (IdRHS3) (0)) := Pi[IdRHS1]     ---- IdRHS3: PR
+ /\ (\app (IP) (IdR)) := Pi[IdRHS3]
+ /\ (\app (IQ) (IdR)) := Pi[IdRHS2] .
+
+---- (PropagationOrR) R (P\/Q) -> (RP) \/ (RQ)
+---- desugar to primitive form
+---- R ((P -> \bot) -> Q)
+----   -> ((RP -> \bot) -> RQ)
+ceq Pi |- (N) (M) (PropagationOrR) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IdR) (IdLHS1)) := Pi[IdLHS]    ---- IdLHS1: (P -> \bot) -> Q
+ /\ (\imp (IdLHS2) (IQ)) := Pi[IdLHS1]   ---- IdLHS2: P -> \bot
+ /\ (\imp (IP) (0)) := Pi[IdLHS2]
+ /\ (\imp (IdRHS1) (IdRHS2)) := Pi[IdRHS] ---- IdRHS1: (RP -> \bot), IdRHS2: RQ
+ /\ (\imp (IdRHS3) (0)) := Pi[IdRHS1]     ---- IdRHS3: RP 
+ /\ (\app (IdR) (IP)) := Pi[IdRHS3]
+ /\ (\app (IdR) (IQ)) := Pi[IdRHS2] .
+
+---- (PropagationExL) (\ex X . P) Q -> \ex X . (P Q) requires (#nf X Q)
+ceq Pi |- (N) (M) (PropagationExL (IdNF)) ;
+  = true 
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: (\ex X . P) Q, IdRHS: \ex X . (P Q)
+ /\ (\app (IdLHS1) (IQ)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
+ /\ (\ex (IdX) (IP)) := Pi[IdLHS1]
+ /\ (\ex (IdX) (IdRHS1)) := Pi[IdRHS]   ---- IdRHS1: P Q
+ /\ (\app (IP) (IQ)) := Pi[IdRHS1]
+ /\ (#nf (IdX) (IQ)) := Pi[IdNF] .
+
+---- (PropagationExR)  Q (\ex X . P) -> \ex X . (Q P) requires (#nf X Q)
+ceq Pi |- (N) (M) (PropagationExR (IdNF)) ;
+  = true 
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]     ---- IdLHS: Q (\ex X . P), IdRHS: \ex X . (Q P)
+ /\ (\app (IQ) (IdLHS1)) := Pi[IdLHS]  ---- IdLHS1: \ex X . P
+ /\ (\ex (IdX) (IP)) := Pi[IdLHS1]
+ /\ (\ex (IdX) (IdRHS1)) := Pi[IdRHS]   ---- IdRHS1: Q P
+ /\ (\app (IQ) (IP)) := Pi[IdRHS1]
+ /\ (#nf (IdX) (IQ)) := Pi[IdNF] .
+
+---- (FrameL) P -> Q => PR -> QR
+ceq Pi |- (N) (M) (FrameL (IdH)) ;
+  = true
+ if (IdHP) := Pi[IdH]                ---- IdH is provability claim
+ /\ (\imp (IP) (IQ)) := Pi[IdHP]   ---- IdHP is WF claim
+ /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IP) (IdR)) := Pi[IdLHS]
+ /\ (\app (IQ) (IdR)) := Pi[IdRHS] .
+
+---- (FrameR) P -> Q => RP -> RQ
+ceq Pi |- (N) (M) (FrameR (IdH)) ;
+  = true
+ if (IdHP) := Pi[IdH]                ---- IdH is provability claim
+ /\ (\imp (IP) (IQ)) := Pi[IdHP]   ---- IdHP is WF claim
+ /\ (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\app (IdR) (IP)) := Pi[IdLHS]
+ /\ (\app (IdR) (IQ)) := Pi[IdRHS] .
+
+
+---------------------------------------
+---- Checking proof rules Part D
+----   Fixpoint reasoning
+---------------------------------------
+
+---- (SVarSubst) P => P[Q/SX]
+ceq Pi |- (N) (M) (SVarSubst (IdH) (ISubst)) ;
+  = true
+ if (IP) := Pi[IdH]
+ /\ (#subst (M) (IP) (IQ) (IdSX)) := Pi[ISubst] .
+
+---- (Prefixpoint) P[(\mu SX . P) / SX] -> \mu SX . P
+ceq Pi |- (N) (M) (Prefixpoint (ISubst)) ;
+  = true
+ if (\imp (IdLHS) (IdRHS)) := Pi[M]
+ /\ (\mu (IdSX) (IP)) := Pi[IdRHS]
+ /\ (#subst (IdLHS) (IP) (IdRHS) (IdSX)) := Pi[ISubst] .
+
+---- (KT) P[Q/SX] -> Q => (\mu SX . P) -> Q
+ceq Pi |- (N) (M) (KT (IdH) (ISubst)) ;
+  = true
+ if (\imp (IdMu) (IQ)) := Pi[M]
+ /\ (\mu (IdSX) (IP)) := Pi[IdMu]
+ /\ (IdHP) := Pi[IdH]
+ /\ (\imp (IdR) (IQ)) := Pi[IdHP]
+ /\ (#subst (IdR) (IP) (IQ) (IdSX)) := Pi[ISubst] .
+
+---------------------------------------
+---- Checking proof rules Part E
+----   Technical rules
+---------------------------------------
+
+---- (Existence) \ex X . X
+ceq Pi |- (N) (M) (Existence) ;
+  = true
+ if (\ex (IdX) (IdX)) := Pi[M]
+ /\ (IdX) is-evar-in Pi .
+
+---- x /\ P      desugars to (x -> (P -> \bot)) -> \bot
+---- x /\ \not P desugars to (x -> P) -> \bot
+
+---- (Singleton) \not (C1[x /\ P] /\ C2[x /\ \not P])
+----   desugar to C1[x /\ P] -> (C2[x /\ \not P] -> \bot)
+ceq Pi |- (N) (M) (Singleton (IdCtx1) (ISubst1) (IdCtx2) (ISubst2)) ;
+  = true
+ if (#subst (IP1) (IdC1) (IdR1) (IdZ1)) := Pi[ISubst1] ---- IdR1: (x -> (P -> \bot)) -> \bot
+ /\ (#subst (IP2) (IdC2) (IdR2) (IdZ2)) := Pi[ISubst2] ---- IdR2: (x -> P) -> \bot
+ /\ (#appctx (IdC1) (IdZ1)) := Pi[IdCtx1]
+ /\ (#appctx (IdC2) (IdZ2)) := Pi[IdCtx2]
+ /\ (\imp (IdR3) (0)) := Pi[IdR2]                        ---- IdR3: (x -> P)
+ /\ (\imp (IdX) (IP)) := Pi[IdR3]
+ /\ (IdX) is-evar-in Pi
+ /\ eq?(Pi, (\imp (\imp (IdX) (\imp (IP) (0))) (0)), (IdR1)) 
+ /\ eq?(Pi, (\imp (IP1) (\imp (IP2) (0))), (M)) .
 
 endfm
+
 
