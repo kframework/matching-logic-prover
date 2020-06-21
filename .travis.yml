@@ -7,4 +7,4 @@ jobs:
   include:
     - stage: Build Docker Image
       script:
-      - "travis_wait 60 docker build --tag matching-logic-prover ."
+      - "travis_wait 60 docker build --build-arg K_COMMIT=$(cd prover/ext/k && git rev-parse --short=7 HEAD) --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --tag matching-logic-prover ."

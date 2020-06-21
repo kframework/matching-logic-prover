@@ -1,4 +1,5 @@
-FROM ubuntu:bionic
+ARG K_COMMIT
+FROM runtimeverificationinc/kframework-k:ubuntu-bionic-${K_COMMIT}
 
 ENV TZ=America/Chicago
 RUN    ln --symbolic --no-dereference --force /usr/share/zoneinfo/$TZ /etc/localtime \
@@ -7,9 +8,38 @@ RUN    ln --symbolic --no-dereference --force /usr/share/zoneinfo/$TZ /etc/local
 RUN    apt update                                                          \
     && apt upgrade --yes                                                   \
     && apt install --yes                                                   \
-        autoconf curl flex gcc libffi-dev libmpfr-dev libtool make         \                                          
-        maven ninja-build opam openjdk-8-jdk pandoc pkg-config python3     \                                          
-        python-pygments python-recommonmark python-sphinx time zlib1g-dev
+        autoconf             \
+        bison                \
+        clang-8              \
+        cmake                \
+        curl                 \
+        debhelper            \
+        flex                 \
+        gcc                  \
+        git                  \
+        libboost-test-dev    \
+        libffi-dev           \
+        libgmp-dev           \
+        libjemalloc-dev      \
+        libmpfr-dev          \
+        libtool              \
+        libyaml-dev          \
+        libz3-dev            \
+        lld-8                \
+        llvm-8-tools         \
+        make                 \
+        maven                \
+        ninja-build          \
+        opam                 \
+        openjdk-11-jdk       \
+        openjdk-8-jdk        \
+        pandoc               \
+        pkg-config           \
+        python3              \
+        python3-graphviz     \
+        time                 \
+        z3                   \
+        zlib1g-dev
 
 RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
