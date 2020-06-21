@@ -1,6 +1,7 @@
-We define the lexical and abstract tokens needed for both SMT and Kore.
-We also define helpers for converting between abstract tokens.
-*Only abstract tokens must be used in the semantics*.
+We define the lexical and abstract tokens needed for both SMT and Kore. We also
+define helpers for converting between abstract tokens. We do not expose the
+lexical tokens to the semantics. Only abstract tokens may be used. This
+simplifies token conversions and parsing greatly.
 
 ```k
 module TOKENS-ABSTRACT
@@ -10,7 +11,11 @@ module TOKENS-ABSTRACT
   syntax Symbol
   syntax Sort
   syntax VariableName
-  
+```
+
+This tokens are used directly in the semantics:
+
+```k
   // sep-logic symbols
   syntax Symbol ::= "pto" [token]
                   | "sep" [token]
