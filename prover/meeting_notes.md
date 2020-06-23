@@ -89,8 +89,7 @@ The Main Concerns
 Current Short-Term Goal: Moving to LLVM backend.
 ------------------------------
 
-Tasks
------
+Tasks.
 
 1. Necessary refactoring on the unit tests module.
 2. Move the following four modules:
@@ -100,8 +99,7 @@ Tasks
    2d. Substitution
 3. Move the rest. 
 
-Assignments
------------
+Assignments.
 
 1. NR will do (1) on 05/26.
 2. NR, JT, XC will hold a meeting on 05/27 and do one of the items under (2).
