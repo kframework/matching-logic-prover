@@ -144,7 +144,7 @@ module UNIT-TEST
              )
        .Declarations
 
-  rule test("match-assoc-comm", 9)
+  rule test(9)
     => assert( #matchResult( subst: Y2 { Data } |-> Y1 { Data }
                                    H1 { Heap } |-> sep( pto ( X2 { Loc } , c( W1 { Loc } , Z1 { Loc }) ), H0 { Heap } )
                           , rest:  .Patterns
@@ -166,7 +166,7 @@ module UNIT-TEST
        .Declarations
 
   // Matching on a symbolic heap
-  rule test("match-assoc-comm", 10)
+  rule test(10)
     => assert( #matchResult( subst: H0 { Heap } |-> sep ( pto ( X2 { Loc } , Y2 { Data } ) )
                                     W  { Loc }  |-> X1 { Loc }
                                     Z  { Data } |-> Y1 { Data }
@@ -202,7 +202,7 @@ module UNIT-TEST
        .Declarations
 
   // Matching on a symbolic heap
-  rule test("match-assoc-comm", 11)
+  rule test(11)
     => assert( #matchResult( subst: H0 { Heap } |-> sep ( pto ( X2 { Loc } , Y2 { Data } ) )
                                     W  { Loc }  |-> X1 { Loc }
                                     Z  { Data } |-> Y1 { Data }
