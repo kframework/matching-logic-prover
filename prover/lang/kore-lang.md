@@ -443,15 +443,16 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(\forall { E } C, X, V) => \forall { E } C requires X in E
   rule subst(\forall { E } C, X, V) => \forall { E } C requires X in PatternsToVariableNameSet(E)
   rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V) requires notBool( X in E )
-  rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V)
-    requires notBool( X in PatternsToVariableNameSet(E) )
-     andBool notBool( X in E )
-
+  rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V) requires notBool( X in PatternsToVariableNameSet(E) ) andBool isVariableName(X)
+  rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V) requires notBool( X in E )                            andBool isVariable(X)
+  rule subst(\forall { E } C, X, V) => \forall { E } subst(C, X, V) requires notBool(isVariable(X) andBool isVariableName(X))
+  
   rule subst(\exists { E } C, X, V) => \exists { E } C requires X in E
   rule subst(\exists { E } C, X, V) => \exists { E } C requires X in PatternsToVariableNameSet(E)
-  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V)
-    requires notBool( X in PatternsToVariableNameSet(E) )
-     andBool notBool( X in E )
+  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V) requires notBool( X in E )
+  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V) requires notBool( X in PatternsToVariableNameSet(E) ) andBool isVariableName(X)
+  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V) requires notBool( X in E )                            andBool isVariable(X)
+  rule subst(\exists { E } C, X, V) => \exists { E } subst(C, X, V) requires notBool(isVariable(X) andBool isVariableName(X))
 
   rule subst(S:Symbol, X, V) => S
     requires S =/=K X
