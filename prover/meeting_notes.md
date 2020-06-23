@@ -99,4 +99,17 @@ Adding Notations:
   add notation declaration syntax
   add notatoin desugaring as a strategy
   add support for occurrences
+  
+  
+# Meeting (2020/06/23)
+
+Moving to LLVM:
+  PR77: debugging about matching to do. 
+
+Moving to AML:
+  PR72 wip
+  PR76 in review, should add SMT symbol definitions
+  
+Implementing ML proof system. 
+  
 
