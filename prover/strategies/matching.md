@@ -53,6 +53,7 @@ module MATCHING-FUNCTIONAL
                                      , rest: .Patterns
                                      )
                     )
+                    [owise]
 
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
