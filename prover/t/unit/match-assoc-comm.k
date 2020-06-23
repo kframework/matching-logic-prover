@@ -38,6 +38,16 @@ module UNIT-TEST
                               , rest:      .Patterns
                               )
              )
+       assert( #matchResult( subst:         Z { Loc }  |-> X0 { Loc }
+                                            W { Data } |-> Y0 { Data }
+                           , rest:          .Patterns
+                           )
+             , .MatchResults
+            == #match( terms:     \and(sep(pto( X0 { Loc }, Y0 { Data })))
+                              , pattern:   pto( Z { Loc }, W { Data })
+                              , variables: Z { Loc }, W { Data }
+                              )
+             )
        .Declarations
   rule test(3)
     => assert( #error("Pattern larger than term")
