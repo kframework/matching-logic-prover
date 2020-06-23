@@ -1,4 +1,57 @@
-# Planning Meeting (2020/05/26)
+For readability, the notes are listed from the latest to the oldest. 
+
+# Meeting (2020/06/23)
+
+Moving to LLVM:
+  PR77: debugging about matching to do. 
+
+Moving to AML:
+  PR72 wip
+  PR76 in review, should add SMT symbol definitions
+  
+Implementing ML proof system. 
+
+# Meeting (2020/06/16)
+
+Moving to LLVM:
+  debugging
+
+Moving to AML:
+  PR73 merged. PR76 in review. 
+  PR72 wip. 
+
+Adding Notations:
+  add "Head" syntax
+  add notation declaration syntax
+  add notatoin desugaring as a strategy
+  add support for occurrences
+  
+# Meeting (2020/06/09)
+
+Moving to LLVM:
+  All four unit test modules have been merged to LLVM. We are merging the rest of the prover now. We expect this to be done in the next week. 
+  
+Moving to AML:
+  Created PR73/PR76. Look at strategies/smt.md, remove built-in rules for `ML2SMTLIBDecls` and other fnuctions. First create a unit test. 
+  Created PR72. 
+
+# Meeting (2020/06/02)
+
+We got stuck on the LLVM backend. Therefore, we plan to move to the task "moving to AML". The first task is to create a separation-of-concern between the reasoning modules (SMT and Pattern Matching) and the ML specifications that they work on. Thus, we identify the following two tasks to do in the week:
+1. (JT, XC) Make SMT translation module be dependent only on the annotations about symbols (function and predicates).
+2. (NR, LP) Make Pattern Matching module be dependent only on the annotations about assoc/comm/injectivity of functions. 
+
+# Meeting (2020/05/27)
+
+Items 2b and 2d have been finished. Item 2a is in progress (which is also the hardest one). Item 2c is not done yet but is expected to be simple.
+
+Some refactoring notes
+----------------------------
+
+We should move the infrastructure from built-ins to pre-defined modules. In particular, the meta-level operations (such as free variables, substitution, etc) should have a fixed number of rules, and those definitions should not change as we develop the prover.
+
+
+# Meeting (2020/05/26)
 
 The Main Concerns
 -----------------------
@@ -53,63 +106,3 @@ Assignments
 1. NR will do (1) on 05/26.
 2. NR, JT, XC will hold a meeting on 05/27 and do one of the items under (2).
 3. To be decided in the future.
-
-
-
-
-# Meeting (2020/05/27)
-
-Items 2b and 2d have been finished. Item 2a is in progress (which is also the hardest one). Item 2c is not done yet but is expected to be simple.
-
-Some refactoring notes
-----------------------------
-
-We should move the infrastructure from built-ins to pre-defined modules. In particular, the meta-level operations (such as free variables, substitution, etc) should have a fixed number of rules, and those definitions should not change as we develop the prover.
-
-
-
-
-# Meeting (2020/06/02)
-
-We got stuck on the LLVM backend. Therefore, we plan to move to the task "moving to AML". The first task is to create a separation-of-concern between the reasoning modules (SMT and Pattern Matching) and the ML specifications that they work on. Thus, we identify the following two tasks to do in the week:
-1. (JT, XC) Make SMT translation module be dependent only on the annotations about symbols (function and predicates).
-2. (NR, LP) Make Pattern Matching module be dependent only on the annotations about assoc/comm/injectivity of functions. 
-
-
-# Meeting (2020/06/09)
-
-Moving to LLVM:
-  All four unit test modules have been merged to LLVM. We are merging the rest of the prover now. We expect this to be done in the next week. 
-  
-Moving to AML:
-  Created PR73/PR76. Look at strategies/smt.md, remove built-in rules for `ML2SMTLIBDecls` and other fnuctions. First create a unit test. 
-  Created PR72. 
-
-# Meeting (2020/06/16)
-
-Moving to LLVM:
-  debugging
-
-Moving to AML:
-  PR73 merged. PR76 in review. 
-  PR72 wip. 
-
-Adding Notations:
-  add "Head" syntax
-  add notation declaration syntax
-  add notatoin desugaring as a strategy
-  add support for occurrences
-  
-  
-# Meeting (2020/06/23)
-
-Moving to LLVM:
-  PR77: debugging about matching to do. 
-
-Moving to AML:
-  PR72 wip
-  PR76 in review, should add SMT symbol definitions
-  
-Implementing ML proof system. 
-  
-
