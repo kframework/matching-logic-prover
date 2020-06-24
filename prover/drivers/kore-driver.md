@@ -61,20 +61,11 @@ Add various standard Kore declarations to the configuration directly:
          ...
        </declarations>
 
-  rule axiom (P:Pattern) => axiom getFreshGlobalAxiomName() : P
+  rule axiom Body => axiom getFreshGlobalAxiomName() : Body
 
   rule <k> (axiom _: _ #as DECL:Declaration) => .K ... </k>
        <declarations>
          (.Bag => <declaration> DECL </declaration>)
-         ...
-       </declarations>
-```
-
-For hook-smt-symbol, hook-smt-sort
-```k
-  rule <k> D:HookDeclaration => .K ...</k>
-       <declarations>
-         (.Bag => <declaration> D </declaration>)
          ...
        </declarations>
 ```

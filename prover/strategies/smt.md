@@ -31,7 +31,10 @@ module ML-TO-SMTLIB2
 
   rule DeclarationsToSMTLIB(_, .Declarations) => .SMTLIB2Script
 
-  rule DeclarationsToSMTLIB(GId, _:HookDeclaration Ds)
+  rule DeclarationsToSMTLIB(GId, axiom _:HookAxiom Ds)
+    => DeclarationsToSMTLIB(GId, Ds)
+
+  rule DeclarationsToSMTLIB(GId, axiom _ : _:HookAxiom Ds)
     => DeclarationsToSMTLIB(GId, Ds)
 
   rule DeclarationsToSMTLIB(GId, (symbol S(ARGS) : SORT) Ds)
@@ -65,10 +68,10 @@ module ML-TO-SMTLIB2
   rule PatternToSMTLIB2Term(I:Int) => ( #token("-", "SMTLIB2SimpleSymbol") absInt(I) ):SMTLIB2Term requires I  <Int 0
 
   rule [[ PatternToSMTLIB2Term(S1:Symbol) => (S2):SMTLIB2Term ]]
-       <declaration> hook-smt-symbol(S1, S2) </declaration>
+       <declaration> axiom _ : hook-smt-symbol(S1, S2) </declaration>
 
   rule [[ PatternToSMTLIB2Term(S1:Symbol(ARGS)) => ( S2 PatternsToSMTLIB2TermList(ARGS) ):SMTLIB2Term ]]
-       <declaration> hook-smt-symbol(S1, S2) </declaration>
+       <declaration> axiom _ : hook-smt-symbol(S1, S2) </declaration>
 
 
   rule PatternToSMTLIB2Term(S:Symbol(.Patterns)) => SymbolToSMTLIB2SymbolFresh(S):SMTLIB2Term
@@ -106,7 +109,7 @@ module ML-TO-SMTLIB2
   syntax SMTLIB2Sort ::= SortToSMTLIB2Sort(Sort) [function]
 
   rule [[ SortToSMTLIB2Sort(S1:Sort) => S2 ]]
-       <declaration> hook-smt-sort(S1, S2) </declaration>
+       <declaration> axiom _ : hook-smt-sort(S1, S2) </declaration>
 
   rule SortToSMTLIB2Sort(SORT) => StringToSMTLIB2SimpleSymbol(SortToString(SORT))
     [owise]
