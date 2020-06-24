@@ -65,14 +65,15 @@ only in this scenario*.
   syntax SMTLIB2Sort 
   syntax SMTLIB2SimpleSymbol
 
-  syntax HookDeclaration ::= "hook-smt-sort" "(" Sort ","  SMTLIB2Sort ")"
-                           | "hook-smt-symbol" "(" Symbol "," SMTLIB2SimpleSymbol ")"
+  syntax HookAxiom ::= "hook-smt-sort" "(" Sort ","  SMTLIB2Sort ")"
+                     | "hook-smt-symbol" "(" Symbol "," SMTLIB2SimpleSymbol ")"
+
+  syntax AxiomBody ::= Pattern | HookAxiom
 
   syntax Declaration ::= "imports" String
                        | "imports" "system" String
-                       | "axiom" Pattern
-                       | "axiom" AxiomName ":" Pattern
-                       | HookDeclaration
+                       | "axiom" AxiomBody
+                       | "axiom" AxiomName ":" AxiomBody
                        | SymbolDeclaration
                        | SortDeclaration
   syntax Declarations ::= List{Declaration, ""} [klabel(Declarations)]
