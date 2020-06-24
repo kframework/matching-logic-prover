@@ -43,8 +43,6 @@ module PROVER-CONFIGURATION
         <declarations>
           <declaration multiplicity="*" type="Set">  .K </declaration>
         </declarations>
-        <hooked-smt-sorts> .Map </hooked-smt-sorts>
-        <hooked-smt-symbols> .Map </hooked-smt-symbols>
       </prover>
 endmodule
 ```
