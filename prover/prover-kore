@@ -1,4 +1,5 @@
 #!/bin/sh
+prover_dir=$(cd $(dirname $0); pwd -P)
 
 if [ $# -ne 1 ]; then
   echo "Usage: $0 file.kore"
@@ -7,4 +8,4 @@ fi
 
 file="$1"
 
-./prover run --definition prover-kore "$file" -cCOMMANDLINE=.CommandLine -cPROVERDIR="\"`pwd`\""
+"$prover_dir/prover" run --definition prover-kore "$file" -cCOMMANDLINE=.CommandLine -cPROVERDIR="\"$prover_dir\""
