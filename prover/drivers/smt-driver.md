@@ -417,13 +417,10 @@ Clear the `<k>` cell once we are done:
   rule SMTLIB2TermToPattern((#token("or", "SMTLIB2SimpleSymbol") Ts), Vs) => \or(SMTLIB2TermListToPatterns(Ts, Vs))
   rule SMTLIB2TermToPattern((#token("distinct", "SMTLIB2SimpleSymbol") L R), Vs) => \not(\equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs)))
   rule SMTLIB2TermToPattern((#token("=", "SMTLIB2SimpleSymbol") L R), Vs) => \equals(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((#token("<", "SMTLIB2SimpleSymbol") L R), Vs) => #token("lt", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((#token(">", "SMTLIB2SimpleSymbol") L R), Vs) => #token("gt", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((#token("<=", "SMTLIB2SimpleSymbol") L R), Vs) => #token("lte", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((#token(">=", "SMTLIB2SimpleSymbol") L R), Vs) => #token("gte", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((#token("+", "SMTLIB2SimpleSymbol") L R), Vs) => #token("plus", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((#token("-", "SMTLIB2SimpleSymbol") L R), Vs) => #token("minus", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
-  rule SMTLIB2TermToPattern((#token("*", "SMTLIB2SimpleSymbol") L R), Vs) => #token("mult", "Sort")(SMTLIB2TermToPattern(L, Vs), SMTLIB2TermToPattern(R, Vs))
+
+  rule [[ SMTLIB2TermToPattern((S2:SMTLIB2SimpleSymbol Args:SMTLIB2TermList), Vs) => S1(SMTLIB2TermListToPatterns(Args, Vs)) ]]
+       <declaration> axiom _ : hook-smt-symbol(S1, S2) </declaration>
+
   rule SMTLIB2TermToPattern((#token("not", "SMTLIB2SimpleSymbol") T), Vs) => \not(SMTLIB2TermToPattern(T, Vs))
   rule SMTLIB2TermToPattern((#token("ite", "SMTLIB2SimpleSymbol") C L R), Vs) => \or( \and(SMTLIB2TermToPattern(C, Vs), SMTLIB2TermToPattern(L, Vs))
                                                    , \and(\not(SMTLIB2TermToPattern(C, Vs)), SMTLIB2TermToPattern(R, Vs)))
