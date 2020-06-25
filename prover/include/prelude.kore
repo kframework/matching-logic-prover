@@ -9,6 +9,7 @@ symbol lt(Int, Int) : Bool
 symbol gt(Int, Int) : Bool
 symbol lte(Int, Int) : Bool
 symbol gte(Int, Int) : Bool
+symbol max(Int, Int) : Int
 symbol isMember(Int, SetInt) : Bool
 
 axiom functional(plus)
