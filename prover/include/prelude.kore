@@ -1,3 +1,23 @@
+symbol plus(Int, Int) : Int
+symbol minus(Int, Int) : Int
+symbol select(ArrayIntInt, Int) : Int
+symbol union(SetInt, SetInt) : SetInt
+symbol singleton() : SetInt
+symbol emptyset() : SetInt
+symbol disjoint(SetInt, SetInt) : Bool
+symbol lt(Int, Int) : Bool
+symbol gt(Int, Int) : Bool
+symbol lte(Int, Int) : Bool
+symbol gte(Int, Int) : Bool
+symbol isMember(Int, SetInt) : Bool
+
+axiom functional(plus)
+axiom functional(minus)
+axiom functional(select)
+axiom functional(union)
+axiom functional(singleton)
+axiom functional(emptyset)
+
 axiom hook-smt-sort(SetInt, SetInt)
 axiom hook-smt-sort(ArrayIntInt, (Array Int Int))
 
