@@ -157,11 +157,6 @@ module KORE-HELPERS
 ```k
   syntax Bool ::= isFunctional(GoalId, Pattern) [function]
 
-  rule isFunctional(_, ( #token("plus",  "Symbol"):Symbol #Or #token("minus",     "Symbol"):Symbol #Or #token("select",   "Symbol"):Symbol #Or
-                         #token("union", "Symbol"):Symbol #Or #token("singleton", "Symbol"):Symbol #Or #token("emptyset", "Symbol"):Symbol
-                       )
-                   ) => true
-
   rule [[ isFunctional(_, S) => true ]]
        <declaration> axiom _: functional(S) </declaration>
 
@@ -187,18 +182,6 @@ module KORE-HELPERS
   rule getReturnSort(\exists{_} P) => getReturnSort(P)
   rule getReturnSort(\and((P, Ps))) => getReturnSort(P)
        requires sameSortOrPredicate(getReturnSort(P), Ps)
-  rule getReturnSort( #token("plus", "Symbol") ( ARGS ) ) => Int
-  rule getReturnSort( #token("minus", "Symbol") ( ARGS ) ) => Int
-  rule getReturnSort( #token("select", "Symbol") ( ARGS ) ) => Int
-  rule getReturnSort( #token("union", "Symbol") ( ARGS ) ) => SetInt
-  rule getReturnSort( #token("singleton", "Symbol") ( ARGS ) ) => SetInt
-  rule getReturnSort( #token("emptyset", "Symbol") ) => SetInt
-  rule getReturnSort( #token("disjoint", "Symbol") ( ARGS ) ) => Bool
-  rule getReturnSort( #token("lt", "Symbol") ( ARGS ) ) => Bool
-  rule getReturnSort( #token("gt", "Symbol") ( ARGS ) ) => Bool
-  rule getReturnSort( #token("lte", "Symbol") ( ARGS ) ) => Bool
-  rule getReturnSort( #token("gte", "Symbol") ( ARGS ) ) => Bool
-  rule getReturnSort( #token("isMember", "Symbol") ( _ ) ) => Bool
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
