@@ -921,6 +921,27 @@ assume a pattern of the form:
   rule <k> loadNamed(Name) => P ...</k>
        <local-decl> axiom Name : P </local-decl>
 
+  syntax Pattern ::= classify(Head) [function]
+
+  rule [[ classify(S) => symbol(S) ]]
+       <declaration> symbol S(_) : _ </declaration>
+
+  rule [[ classify(N) => notation(N) ]]
+       <declaration> notation N(_) = _ </declaration>
+
+  syntax Pattern ::= classifyHeads(Pattern) [function]
+
+  rule classifyHeads(P)
+    => visitorResult.getPattern(visitTopDown(classifyHeadsVisitor(), P))
+
+  syntax Visitor ::= classifyHeadsVisitor()
+
+  rule visit(classifyHeadsVisitor(), unclassified(Head))
+    => visitorResult(classifyHeadsVisitor(), classify(Head))
+
+  rule visit(classifyHeadsVisitor(), P)
+    => visitorResult(classifyHeadsVisitor(), P)
+    requires unclassified(_) :/=K P
 ```
 
 ```k
