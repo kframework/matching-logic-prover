@@ -11,29 +11,6 @@ module DRIVER-KORE
   imports K-IO
   imports K-REFLECTION
   imports VISITOR-SYNTAX
-
-  syntax Pattern ::= classify(Head) [function]
-
-  rule [[ classify(S) => symbol(S) ]]
-       <declaration> symbol S(_) : _ </declaration>
-
-  rule [[ classify(N) => notation(N) ]]
-       <declaration> notation N(_) = _ </declaration>
-
-  syntax Pattern ::= resolveHeads(Pattern) [function]
-
-  rule resolveHeads(P)
-    => visitorResult.getPattern(visitTopDown(resolveHeadsVisitor(), P))
-
-  syntax Visitor ::= resolveHeadsVisitor()
-
-  rule visit(resolveHeadsVisitor(), unclassified(Head))
-    => visitorResult(resolveHeadsVisitor(), classify(Head))
-
-  rule visit(resolveHeadsVisitor(), P)
-    => visitorResult(resolveHeadsVisitor(), P)
-    requires unclassified(_) :/=K P
-
 ```
 
 Handle each `Declaration` sequentially:
@@ -75,7 +52,7 @@ Add various standard Kore declarations to the configuration directly:
 ```k
   rule <k> (notation H(Args) = P) #as DECL:NotationDeclaration => .K ...</k>
         <declarations>
-         (.Bag => <declaration> notation H(Args) = resolveHeads(P) </declaration>)
+         (.Bag => <declaration> notation H(Args) = classifyHeads(P) </declaration>)
          ...
        </declarations>       
 
@@ -95,7 +72,7 @@ Add various standard Kore declarations to the configuration directly:
 
   rule <k> (axiom N : P:Pattern) => .K ... </k>
        <declarations>
-         (.Bag => <declaration> axiom N : resolveHeads(P) </declaration>)
+         (.Bag => <declaration> axiom N : classifyHeads(P) </declaration>)
          ...
        </declarations>
 
@@ -115,8 +92,8 @@ The `claim` Declaration creates a new `<goal>` cell.
        </k>
   rule <k> claim NAME : PATTERN
            strategy STRAT
-        => subgoal(NAME, resolveHeads(PATTERN), STRAT)
-        ~> axiom NAME : resolveHeads(PATTERN)
+        => subgoal(NAME, classifyHeads(PATTERN), STRAT)
+        ~> axiom NAME : classifyHeads(PATTERN)
            ...
        </k>
 
