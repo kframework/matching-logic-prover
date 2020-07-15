@@ -53,7 +53,7 @@ def prover(alias, flags = None):
                           , main = 'prover.md'
                           , other = other_md_files
                           , runner_script = './prover'
-                          , flags = '-ccopt -g -ccopt -O0 ' + flags
+                          , flags = '--gen-bison-parser -ccopt -g -ccopt -O0 ' + flags
                           )
 
 prover_kore = prover('prover-kore', '--main-module DRIVER-KORE --syntax-module DRIVER-KORE-SYNTAX')
