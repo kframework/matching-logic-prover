@@ -109,9 +109,6 @@ endmodule
 ```k
 module DRIVER-KORE-SYNTAX
   imports DRIVER-BASE-SYNTAX
-  imports SMTLIB2-SYNTAX
-  imports SMTLIB-SL
-
   syntax Pattern ::= Head [klabel(unclassified), symbol, avoid]
 endmodule
 ```

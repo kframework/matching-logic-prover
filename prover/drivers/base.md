@@ -55,12 +55,11 @@ The driver is responsible for loading prover files into the configuration.
 ```k
 module DRIVER-BASE-COMMON
   imports PROVER-CORE-SYNTAX
+  imports PROVER-CONFIGURATION
   imports STRATEGIES-EXPORTED-SYNTAX
-  imports SMTLIB2
   imports KORE
 
-  syntax Pgm ::= SMTLIB2Script
-               | Declarations
+  syntax Pgm ::= Declarations
 
   // TODO: Why does K not handle the empty token when parsing options?
   syntax CommandLine ::= ".CommandLine" [klabel(.CommandLine)]
@@ -69,26 +68,6 @@ endmodule
 
 module DRIVER-BASE
   imports DRIVER-BASE-COMMON
-  imports STRATEGY-DUPLICATE
-  imports STRATEGY-INSTANTIATE-UNIVERSALS
-  imports STRATEGY-INST-EXISTS
-  imports STRATEGY-INTRODUCE-LEMMA
-  imports STRATEGY-INTROS
-  imports STRATEGY-SMT
-  imports STRATEGY-SEARCH-BOUND
-  imports STRATEGY-SIMPLIFICATION
-  imports STRATEGY-MATCHING
-  imports STRATEGY-APPLY
-  imports STRATEGY-APPLY-EQUATION
-  imports STRATEGY-REFLEXIVITY
-  imports STRATEGY-UNFOLDING
-  imports STRATEGY-KNASTER-TARSKI
-  imports STRATEGY-REPLACE-EVAR-WITH-FUNC-CONSTANT
-  imports SYNTACTIC-MATCH-RULES
-  imports INSTANTIATE-ASSUMPTIONS-RULES
-  imports VISITOR
-  imports PATTERN-LENGTH
-  imports HEATCOOL-RULES
 
   rule <k> .CommandLine => .K ... </k>
 

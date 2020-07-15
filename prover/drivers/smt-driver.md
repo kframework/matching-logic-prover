@@ -39,7 +39,6 @@ module DRIVER-SMT
   imports PROVER-CORE-SYNTAX
   imports SMTLIB2-HELPERS
   imports STRATEGIES-EXPORTED-SYNTAX
-  imports STRATEGY-KNASTER-TARSKI
 
   syntax GoalBuilder ::= "#goal" "(" "goal:"     Pattern
                                  "," "strategy:" Strategy
