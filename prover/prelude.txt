@@ -1,0 +1,94 @@
+// theory BASIC-LOGIC
+
+notation \not
+notation \top
+notation \or
+notation \and
+notation \iff
+notation \forall
+notation \nu
+
+// The following are notation desugar definitions, implemented as K rules.
+// I intend to add them in a separate, companion K module, which will be imported
+// by the prover. This is a compromise, to (1) eliminate notations as built-ins, and
+// (2) avoid re-implement pattern matching. 
+// We also add the following syntax definition to the kore-lang:
+//   syntax Pattern ::= desugar(Pattern) [function]
+// which denotes one-step notation desugar. We can also define desugar* as the
+// "Kleene star" of desugar. 
+
+// rule desugar(\not(P:Pattern)) => \implies(P, \bottom())
+// rule desugar(\top()) => \not(\bottom())
+
+// We can let \or and \and take multiple patterns as arguments.
+// rule desugar(\or()) => \bottom()
+// rule desugar(\or(P:Pattern)) => P
+// rule desugar(\or(P:Pattern,Ps:Patterns)) => \implies(\not(P), \or(Ps))
+// rule desugar(\and()) => \top()
+// rule desugar(\and(P:Pattern)) => P
+// rule desugar(\and(P:Pattern,Ps:Patterns) => \not(\not(P), \not(\and(Ps)))
+
+// rule desugar(\iff(P:Pattern,Q:Pattern)) => \and(\implies(P,Q), \implies(Q,P))
+
+// In the following, I use ElementVariable to denote the sort of (unsorted)
+// element variables. I also assume that the syntax of \exists and \mu
+// has been modified to (which is more uniform):
+//   | "\\forall" "(" ElementVariables "," Pattern ")"
+//   | "\\mu" "(" SetVariables "," Pattern ")"
+
+// rule desugar(\forall(Xs:ElementVariables, P:Pattern)) => \not(\exists(Xs,\not(P)))
+// rule desugar(\nu(SXs:SetVariables, P:Pattern)) => \not(\mu(SXs, P[???]))
+// where ??? denotes the substitution of (\neg \SXs)for SXs. 
+
+// endtheory BASIC-LOGIC
+
+// theory DEFINEDNESS
+//  imports BASIC-LOGIC
+
+// I want to create a naming convension: symbols are named like: thisIsASymbol
+// and notations start with "\".
+
+symbol def
+axiom  \forall{X} def(X) // X should be parsed as an element variable.
+
+notation \ceil
+notation \floor
+notation \eq
+notation \subset
+notation \in
+notation \neq
+notation \nsubset
+notation \nin
+
+// notation definitions
+// rule desugar(\ceil(P:Pattern)) => def(P)
+// rule desugar(\floor(P:Pattern)) => \not(\ceil(\not(P)))
+// rule desugar(\eq(P:Pattern,Q:Pattern)) => \floor(\iff(P,Q))
+// rule desugar(\subset(P:Pattern,Q:Pattern)) => \floor(\implies(P,Q))
+// rule desugar(\in(X:ElementVariable, P:Pattern)) => \subset(X,P)
+// rule desugar(\neq(P:Pattern,Q:Pattern)) => \not(\eq(P,Q))
+// rule desugar(\nsubset(P:Pattern,Q:Pattern)) => \not(\subset(P,Q))
+// rule desugar(\nin(X:ElementVariable, P:Pattern)) => \not(\in(X,P))
+// endtheory DEFINEDNESS
+
+// The following defines natural numbers. It is part of the prelude, so we
+// don't have sorts and functions yet. The "standard" definition of natural
+// numbers using the sorts and functions will be defined later, in theory NAT.
+// Here, we use unusual names like nn, z, s, because their use should be limited
+// to prelude theories.
+
+// theory NN
+//  imports DEFINEDNESS
+
+symbol nn   // the set of all natural numbers
+symbol z
+symbol s
+
+axiom \exists(X, \and(\in(X, nn), \eq(z, X)))
+axiom \forall(X, \implies(\in(X, nn), \exists(Y, \and(\in(Y, nn), \eq(s(X), Y)))))
+axiom \neq(s(z), z)
+axiom \forall((X,Y), \implies(\and(\in(X,nn), \in(Y,nn)), 
+                       \implies(\eq(s(X),s(Y)), \eq(X,Y))))
+axiom \eq(nn, \mu(#D, \or(z, s(#D))))
+
+// endtheory NN
