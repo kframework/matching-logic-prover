@@ -81,6 +81,7 @@ notation \nin
 //  imports DEFINEDNESS
 
 symbol nn   // the set of all natural numbers
+symbol pnn  // the set of positive natural numbers
 symbol z
 symbol s
 
@@ -90,6 +91,7 @@ axiom \neq(s(z), z)
 axiom \forall((X,Y), \implies(\and(\in(X,nn), \in(Y,nn)), 
                        \implies(\eq(s(X),s(Y)), \eq(X,Y))))
 axiom \eq(nn, \mu(#D, \or(z, s(#D))))
+axiom \eq(pnn, s(nn))
 
 // endtheory NN
 
@@ -99,19 +101,102 @@ axiom \eq(nn, \mu(#D, \or(z, s(#D))))
 symbol inh
 symbol Sort
 
-notation \inh
 notation \snot
 notation \sforall
 notation \sexists
 notation \types
 
 // notation definition
-// rule desugar(\inh(P:Pattern)) => inh(P)
-// rule desugar(\snot(SORT:Pattern, P:Pattern)) => \and(\not(P), \inh(SORT))
-// rule desugar(\sforall(X:ElementVariable, S:Pattern, P:Pattern)) => \forall(X:ElementVariable, \implies(\in(X, \inh(S))), P)
+// rule desugar(\snot(SORT:Pattern, P:Pattern)) => \and(\not(P), inh(SORT))
+// rule desugar(\sforall(X:ElementVariable, S:Pattern, P:Pattern)) => \forall(X:ElementVariable, \implies(\in(X, inh(S))), P)
 // rule desugar(\sforall((X:ElementVariable, Xs:ElementVariables), S:Pattern, P:Pattern)) => \sforall(X, S, \sforall(Xs, S, P))
-// rule desugar(\sexists(X:ElementVariable, S:Pattern, P:Pattern)) => \exists(X:ElementVariable, \implies(\in(X, \inh(S))), P)
+// rule desugar(\sexists(X:ElementVariable, S:Pattern, P:Pattern)) => \exists(X:ElementVariable, \implies(\in(X, inh(S))), P)
 // rule desugar(\sexists((X:ElementVariable, Xs:ElementVariables), S:Pattern, P:Pattern)) => \sexists(X, S, \sexists(Xs, S, P))
 // rule desugar(\types(P:Pattern, S:Pattern)) => \sexists(!Z:ElementVariable, S, \eq(P, Z))
 
 // endtheory SORT
+
+// theory PAIR
+//   imports SORT
+
+symbol Pair
+symbol pair
+symbol fst
+symbol snd
+
+axiom \sforall((S1,S2), Sort, \types(Pair(S1,S2), Sort))
+axiom \sforall((S1,S2), Sort, \sforall(X1, S1, \sforall(X2, S2, \types(pair(X1,X2), Pair(S1,S2)))))
+axiom \sforall((S1,S2), Sort, \sforall(X1, S1, \sforall(X2, S2, \eq(fst(pair(X1,X2)), X1))))
+axiom \sforall((S1,S2), Sort, \sforall(X1, S1, \sforall(X2, S2, \eq(snd(pair(X1,X2)), X2))))
+axiom \sforall((S1,S2), Sort, \sforall((X1,Y1), S1, \sforall((X2,Y2), S2, \implies(\eq(pair(X1,X2), pair(Y1,Y2)), \and(\eq(X1,Y1), \eq(X2,Y2))))))
+axiom \sforall((S1,S2), Sort, \eq(inh(Pair(S1,S2)), pair(inh(S1), inh(S2))))
+
+// endtheory PAIR
+
+// theory UNIT
+
+symbol Unit
+symbol unit
+
+axiom \types(Unit, Sort)
+axiom \types(unit, Unit)
+axiom \eq(inh(Unit), unit)
+axiom \sforall(S, Sort, \sforall(X, S, \eq(X(unit), X)))
+
+// endtheory UNIT
+
+// theory TUPLE
+//   imports PAIR, NN
+
+symbol proj
+
+notation \tuple
+notation \Tuple
+
+// notation definition
+// desugar(\tuple()) => unit
+// desugar(\tuple(P:Pattern)) => P
+// desugar(\tuple(P1:Pattern, Ps:Patterns)) => pair(P1, \tuple(Ps))
+// desugar(\Tuple()) => Unit
+// desugar(\Tuple(S:Pattern)) => S
+// desugar(\Tuple(S1:Pattern, Ss:Pattern)) => Pair(S1, \Tuple(Ss))
+
+axiom \sforall((S1,S2), Sort, \sforall(X1, S1, \sforall(X2, S2, \eq(proj(s(z), pair(X1,X2)), X1))))
+axiom \sforall((S1,S2), Sort, \sforall(X1, S1, \sforall(X2, S2, \forall(N, \implies(\in(N, pnn), \eq(proj(s(N), pair(X1,X2)), proj(N, X2)))))))
+
+// endtheory TUPLE
+
+// theory FUNCTION
+//  imports SORT
+
+symbol Function
+
+axiom \sforall((S1,S2), Sort, \types(Function(S1,S2), Sort))
+axiom \sforall((S1,S2), Sort, \eq(inh(Function(S1,S2)), \exists(F, \and(F, \sforall(X, S1, \types(F(X), S2))))))
+axiom \sforall((S1,S2), Sort, \sforall((F,G), (Function(S1,S2)), \implies(\sforall(X, S1, \eq(F(X), G(X))), \eq(F,G))))
+
+// endtheory FUNCTION
+
+// theory PRELUDE
+//   imports FUNCTION TUPLE
+// endtheory PRELUDE
+
+
+// The following is an example theory for natural numbers, using the infrastructure.
+
+// theory NAT
+//   imports PRELUDE
+
+symbol Nat
+symbol zero
+symbol succ
+symbol plus
+symbol mult
+
+axiom \types(Nat, Sort)
+axiom \types(zero, Function(\Tuple(), Nat))
+axiom \types(succ, Function(\Tuple(Nat), Nat))
+axiom \types(plus, Function(\Tupel(Nat,Nat), Nat))
+axiom \types(mult, Function(\Tuple(Nat,Nat), Nat))
+
+// endtheory NAT
