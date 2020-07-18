@@ -92,3 +92,26 @@ axiom \forall((X,Y), \implies(\and(\in(X,nn), \in(Y,nn)),
 axiom \eq(nn, \mu(#D, \or(z, s(#D))))
 
 // endtheory NN
+
+// theory SORT
+//   imports DEFINEDNESS
+
+symbol inh
+symbol Sort
+
+notation \inh
+notation \snot
+notation \sforall
+notation \sexists
+notation \types
+
+// notation definition
+// rule desugar(\inh(P:Pattern)) => inh(P)
+// rule desugar(\snot(SORT:Pattern, P:Pattern)) => \and(\not(P), \inh(SORT))
+// rule desugar(\sforall(X:ElementVariable, S:Pattern, P:Pattern)) => \forall(X:ElementVariable, \implies(\in(X, \inh(S))), P)
+// rule desugar(\sforall((X:ElementVariable, Xs:ElementVariables), S:Pattern, P:Pattern)) => \sforall(X, S, \sforall(Xs, S, P))
+// rule desugar(\sexists(X:ElementVariable, S:Pattern, P:Pattern)) => \exists(X:ElementVariable, \implies(\in(X, \inh(S))), P)
+// rule desugar(\sexists((X:ElementVariable, Xs:ElementVariables), S:Pattern, P:Pattern)) => \sexists(X, S, \sexists(Xs, S, P))
+// rule desugar(\types(P:Pattern, S:Pattern)) => \sexists(!Z:ElementVariable, S, \eq(P, Z))
+
+// endtheory SORT
