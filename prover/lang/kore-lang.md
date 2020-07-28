@@ -11,34 +11,45 @@ module KORE
   syntax Ints ::= List{Int, ","}
 ```
 
-We allow two "variaties" of variables: the first, identified by a String, is for
-use in defining claims; the second, identified by a String and an Int subscript
-is to be used for generating fresh variables. *The second variety must be used
-only in this scenario*.
-
 ```k
-  syntax Symbol ::= symbol(Head)
+  syntax Symbol   ::= symbol(Head)
   syntax Notation ::= notation(Head)
+  syntax ElementVariable ::= UpperName      [klabel(elementVariable)]
+  syntax SetVariable     ::= SharpUpperName [klabel(setVariable)]
+  syntax Variable        ::= ElementVariable | SetVariable
+  
+  syntax Pattern         ::= Variable | Symbol | Notation
+  
+  // syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
+   
+  syntax Patterns         ::= List{Pattern, ","}          [klabel(Patterns)]
+  // syntax ElementVariables ::= List{ElementVariable, ","}  [klabel(ElementVariables)]
+  // syntax SetVariables     ::= List{SetVariable, ","}      [klabel(SetVariables)]
+  syntax Variables        ::= List{Variable, ","}         [klabel(Variables)]
+  
+  // Application patterns
+  // P () means P.
+  // P (Q1) means application pattern (P Q1), that is, P applied to Q1. 
+  // P (Q1 Q2 ... Qn) means (P Q1) (Q2 ... Qn), that is, nested application. 
+  syntax Pattern ::= Pattern "(" Patterns ")"                         [klabel(apply)]
 
-  syntax Variable ::= VariableName "{" Sort "}" [klabel(sortedVariable)]
-  syntax SetVariable ::= "#" VariableName       [klabel(setVariable)]
+  // primitive syntax constructs
+  syntax Pattern ::= "\\bottom" "(" ")"                               [klabel(bottom)]
+                   | "\\implies" "(" Pattern "," Pattern ")"          [klabel(implies)]
+                   | "\\exists" "(" ElementVariable "," Pattern ")"   [klabel(exists)]
+                   | "\\mu" "(" SetVariable "," Pattern ")"           [klabel(mu)]
+  
+   
+  
+  
+  // TO BE REMOVE
+  /*
   syntax Pattern ::= Int
-                   | Variable
-                   | SetVariable
-                   | Symbol
-                   | Notation
-                   | Pattern "(" Patterns ")"                    [klabel(apply)]
-
                    | "\\top"    "(" ")"                         [klabel(top)]
-                   | "\\bottom" "(" ")"                         [klabel(bottom)]
                    | "\\equals" "(" Pattern "," Pattern ")"     [klabel(equals)]
                    | "\\not"    "(" Pattern ")"                 [klabel(not)]
-
                    | "\\and"    "(" Patterns ")"                [klabel(and)]
                    | "\\or"     "(" Patterns ")"                [klabel(or)]
-                   | "\\implies" "(" Pattern "," Pattern ")"    [klabel(implies)]
-
-                   | "\\exists" "{" Patterns "}" Pattern        [klabel(exists)]
                    | "\\forall" "{" Patterns "}" Pattern        [klabel(forall)]
 
                      /* Sugar for \iff, \mu and application */
@@ -57,13 +68,15 @@ only in this scenario*.
                    | "\\functionalPattern" "(" Pattern ")"
 
   rule \top()    => \and(.Patterns) [anywhere]
-  rule \bottom() => \or(.Patterns) [anywhere]
-
-  syntax Patterns ::= List{Pattern, ","}                        [klabel(Patterns)]
+  rule \bottom() => \or(.Patterns)  [anywhere]
   syntax Sorts ::= List{Sort, ","}                              [klabel(Sorts)]
-
-  syntax SymbolDeclaration ::= "symbol" Head "(" Sorts ")" ":" Sort
-  syntax SortDeclaration ::= "sort" Sort
+  */
+  
+  
+  
+  
+  // syntax SymbolDeclaration ::= "symbol" Head "(" Sorts ")" ":" Sort
+  // syntax SortDeclaration ::= "sort" Sort
 
   // defined in `lang/smt-lang.md
   syntax SMTLIB2Sort 
@@ -83,9 +96,10 @@ only in this scenario*.
                        | NotationDeclaration
 
   // TODO allow only variables as the parameters
-  syntax NotationDeclaration ::= "notation" Head "(" Patterns ")" "=" Pattern
+  syntax NotationDeclaration ::= "notation" Head "(" Patterns ")" ":=" Pattern
 
   syntax Declarations ::= List{Declaration, ""} [klabel(Declarations)]
+
 
   syntax Variable ::= "#hole"
 
@@ -110,8 +124,40 @@ module KORE-HELPERS
   imports PROVER-CORE-SYNTAX
   imports VISITOR-SYNTAX
   imports TOKENS-HELPERS
+  
+  // Notation desugaring.
+  //   desugar:  desugar one notation
+  //   desugar*: desugar all notations
+  syntax Pattern ::= "desugar" "(" Pattern ")"
+                   | "desugar" "(" Pattern "," Position ")"
+                   | "desugar*" "(" Pattern ")"
+                   
+  rule desugar*(P) => P requires P ==K desugar(P)
+  rule desugar*(P) => desugar*(Q) requires Q := desugar(P) andBool Q =/=K P
+  
+  // check whether a set variable occurs non-negatively in all patterns.
+  
+  syntax Bool ::= SetVariable "not-negative-in" Patterns     [function]
+                | SetVariable "not-positive-in" Patterns     [function]
+  
+  rule X not-negative-in .Patterns => true
+  rule X not-positive-in .Patterns => true
+  rule X not-negative-in (P Ps) => (X not-negative-in P) andBool (X not-negative-in Ps)
+  rule X not-positive-in (P Ps) => (X not-positive-in P) andBool (X not-positive-in Ps)
+  
+  rule X not-negative-in P => X not-negative-in desugar*(P) requires P =/=K desugar*(P)
+  rule X not-positive-in P => X not-positive-in desugar*(P) requires P =/=K desugar*(P)
+                
+  rule X not-negative-in Y:Variable => true
+  rule X not-negative-in Sigma:Symbol => true
+  rule X not-negative-in P(Qs) => (X not-negative-in-pure P) andBool (X not-negative-in Qs)
+  rule X not-negative-in \bot() => true
+  rule X not-negative-in \implies(P1,P2) => (X not-negative-in-pure P1) andBool (X not-positive-in-pure P2)
+  // TODO:: FINISH ME
+  
+  // TO BE CLEANED
 
-  syntax Pattern ::= unclassified(Head)                         [klabel(unclassified), symbol]
+  syntax Pattern ::= unclassified(Head)      [klabel(unclassified), symbol]
 
   syntax Head ::= parameterizedHead(Head, Sort) [function]
   rule parameterizedHead(SYMBOL, SORT) => StringToHead(HeadToString(SYMBOL) +String "_" +String SortToString(SORT))

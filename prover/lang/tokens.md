@@ -41,6 +41,7 @@ module TOKENS-LEXICAL
 
   syntax UpperName ::= r"[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [token]
                      | Bool [token]
+  syntax SharpUpperName ::= r"\#[A-Z][A-Za-z\\-0-9'\\#\\_]*"  [token]
   syntax LowerName ::= r"[a-z][A-Za-z\\-0-9'\\#\\_]*"  [token]
   syntax SMTName   ::= "*" [token] | "+"  [token] | "/"  [token] 
                      | "-" [token] | "^"  [token] | ">"  [token] 
@@ -61,7 +62,7 @@ module TOKENS-LEXICAL
                                | Head [token]
   syntax Head ::= UpperName [token] | LowerName [token]
   syntax Sort   ::= UpperName [token] | LowerName [token]
-  syntax VariableName ::= UpperName [token]
+  // syntax VariableName ::= UpperName [token]
 
 endmodule
 
