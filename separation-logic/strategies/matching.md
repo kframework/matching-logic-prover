@@ -708,7 +708,7 @@ Remove any spatial pattern on the RHS that matches a spatial pattern on the LHS:
              ...
          </k>
 
-    rule <k> #matchResult(subst: .Map , rest: P, Ps)
+    rule <k> #matchResult(subst: _, rest: P, Ps)
           ~> spatial-patterns-equal
           => fail
              ...
