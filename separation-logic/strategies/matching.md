@@ -36,27 +36,36 @@ module MATCHING-FUNCTIONAL
   rule (MR1, MR1s) ++MatchResults MR2s => MR1, (MR1s ++MatchResults MR2s)
   rule .MatchResults ++MatchResults MR2s => MR2s
 
-  rule #match( terms: \and(sep(H), Hs), pattern: P, variables: Vs )
-    =>                #match( terms: H,        pattern: P, variables: Vs )
-       ++MatchResults #match( terms: \and(Hs), pattern: P, variables: Vs )
-    requires Hs =/=K .Patterns
-
-  rule #match( terms: \and(sep(H), .Patterns), pattern: P, variables: Vs )
-    => #match( terms: H,                       pattern: P, variables: Vs )
-
-  rule #match( terms: \and(.Patterns),         pattern: P, variables: Vs )
+  rule #match(    terms: \and(T, Ts), pattern: P, variables: Vs )
+    =>                #match( terms: T,        pattern: P, variables: Vs )
+       ++MatchResults #match( terms: \and(Ts), pattern: P, variables: Vs )
+    requires \and(_) :/=K P
+  rule #match( terms: \and(T, .Patterns), pattern: P, variables: Vs )
+    => #match( terms: T,                  pattern: P, variables: Vs )
+    requires \and(_) :/=K P
+  rule #match( terms: \and(.Patterns),    pattern: P, variables: Vs )
     => .MatchResults
+    requires \and(_) :/=K P
 
-  rule #match( terms: T, pattern: P, variables: Vs )
-    => #filterErrors( #matchAssocComm( terms: T
-                                     , pattern: P
+  rule #match( terms: sep(Ts), pattern: sep(Ps), variables: Vs )
+    => #filterErrors( #matchAssocComm( terms: Ts
+                                     , pattern: Ps
                                      , variables: Vs
                                      , results: .MatchResults
                                      , subst: .Map
                                      , rest: .Patterns
                                      )
                     )
-    requires isSpatialPattern(sep(T))
+
+  rule #match( terms: Ts, pattern: Ps, variables: Vs )
+    => #filterErrors( #matchAssoc( terms: Ts
+                                 , pattern: Ps
+                                 , variables: Vs
+                                 , subst: .Map
+                                 , rest: .Patterns
+                                 )
+                    )
+    [owise]
 
   syntax MatchResults ::= #filterErrors(MatchResults) [function]
   rule #filterErrors(MR:Error , MRs) => #filterErrors(MRs)
@@ -423,7 +432,7 @@ Instantiate existentials using matching on the spatial part of goals:
   rule <claim> \implies(\and(LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
        <k> match
         => with-each-match(#match( terms: \and(getSpatialPatterns(LHS))
-                                        , pattern: RSPATIAL
+                                        , pattern: sep(RSPATIAL)
                                         , variables: Vs
                                  )
                           , match
@@ -437,7 +446,7 @@ Instantiate existentials using matching on the spatial part of goals:
        <k> match-debug => wait ...  </k>
        <trace> _ 
             => #match( terms: \and(getSpatialPatterns(LHS))
-                     , pattern: RSPATIAL
+                     , pattern: sep(RSPATIAL)
                      , variables: Vs
                      )
       </trace>
@@ -493,9 +502,8 @@ Instantiate existentials using matching on the spatial part of goals:
                        , \exists { Vs } \and(sep(RSPATIAL), RHS:Patterns))
        </claim>
        <k> match-pto(P, Ps:Patterns)
-               => with-each-match(
-                    #match( terms: LSPATIAL:Patterns
-                                         , pattern: P
+               => with-each-match( #match( terms: sep(LSPATIAL:Patterns)
+                                         , pattern: sep(P)
                                          , variables: Vs:Patterns
                                          )
                                  , match-pto
@@ -571,7 +579,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                                                    )
                                           ) #as STRAT
                  => ( #match( terms: \and(getSpatialPatterns(LHS))
-                            , pattern:  AXIOM_LSPATIAL
+                            , pattern:  sep(AXIOM_LSPATIAL)
                             , variables: Vs
                             )
                    ~> STRAT:Strategy
@@ -619,12 +627,12 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
     // TODO: this should become unification
     rule <claim> \implies(\and(sep(SPATIAL1), sep(SPATIAL2), LHS), RHS) </claim>
          <k> pto-is-injective(L { LOC }, LOCs)
-                 => #match( terms:     SPATIAL1
-                          , pattern:   pto(L { LOC }, !D1 { DATA })
+                 => #match( terms:     sep(SPATIAL1)
+                          , pattern:   sep(pto(L { LOC }, !D1 { DATA }))
                           , variables: !D1 { DATA }
                           )
-                 ~> #match( terms:     SPATIAL2
-                          , pattern:   pto(L { LOC }, !D2 { DATA })
+                 ~> #match( terms:     sep(SPATIAL2)
+                          , pattern:   sep(pto(L { LOC }, !D2 { DATA }))
                           , variables: !D2 { DATA }
                           )
                  ~> pto-is-injective(L { LOC }, LOCs)
@@ -683,18 +691,19 @@ Remove any spatial pattern on the RHS that matches a spatial pattern on the LHS:
     rule <claim> \implies(\and(LHS), \exists{Vs} \and(sep(RSPATIAL), RHS)) </claim>
          <k> spatial-patterns-equal
           => with-each-match( #match( terms: \and(getSpatialPatterns(LHS))
-                                    , pattern: RSPATIAL
-                                    , variables: .Patterns
+                                    , pattern: sep(RSPATIAL)
+                                    , variables: Vs
                                     )
                             , spatial-patterns-equal
                             )
              ...
          </k>
-    rule <claim> \implies(LHS, \exists{ Vs } \and(sep(RSPATIAL), RHS))
-              => \implies(LHS, \exists{ Vs } \and(RHS))
+    rule <claim> \implies(LHS, \exists{ Vs:Patterns } \and(sep(RSPATIAL:Patterns), RHS:Patterns))
+              => \implies(LHS, \exists{ Vs -Patterns fst(unzip(SUBST)) } \and(substPatternsMap(RHS, SUBST)))
          </claim>
-         <k> #matchResult(subst: .Map , rest: .Patterns)
-          ~> spatial-patterns-equal
+         <k> ( #matchResult(subst: SUBST , rest: .Patterns)
+            ~> spatial-patterns-equal
+             )
           => spatial-patterns-equal
              ...
          </k>
@@ -733,8 +742,8 @@ things, so the LHS becomes unsat.
 
   rule <claim> \implies(\and(sep(LSPATIAL), LCONSTRAINT), RHS) </claim>
        <k> footprint-analysis
-               => with-each-match( #match( terms:     LSPATIAL
-                                         , pattern:   pto(!X:VariableName { LOC }, !Y:VariableName { DATA })
+               => with-each-match( #match( terms:     sep(LSPATIAL)
+                                         , pattern:   sep(pto(!X:VariableName { LOC }, !Y:VariableName { DATA }))
                                          , variables: !X { LOC }, !Y { DATA }
                                          )
                                  , footprint-analysis( pto(!X { LOC }, !Y { DATA }) )

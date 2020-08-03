@@ -448,7 +448,7 @@ of heaps.
                        )
        </claim>
        <k> kt-collapse
-               => with-each-match( #match(terms: LSPATIAL, pattern: CTXLHS, variables: UNIVs)
+               => with-each-match( #match(terms: sep(LSPATIAL), pattern: sep(CTXLHS), variables: UNIVs)
                                  , kt-collapse
                                  , kt-collapse-no-match
                                  )

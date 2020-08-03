@@ -527,7 +527,7 @@ Instantiate existentials using matching on the spatial part of goals:
   rule <claim> \implies(\and(LHS) , \exists { Vs } \and(sep(RSPATIAL), RHS)) </claim>
        <k> match
         => with-each-match(#match( terms: \and(getSpatialPatterns(LHS))
-                                        , pattern: RSPATIAL
+                                        , pattern: sep(RSPATIAL)
                                         , variables: Vs
                                  )
                           , match
@@ -541,7 +541,7 @@ Instantiate existentials using matching on the spatial part of goals:
        <k> match-debug => wait ...  </k>
        <trace> _ 
             => #match( terms: \and(getSpatialPatterns(LHS))
-                     , pattern: RSPATIAL
+                     , pattern: sep(RSPATIAL)
                      , variables: Vs
                      )
       </trace>
@@ -597,8 +597,7 @@ Instantiate existentials using matching on the spatial part of goals:
                        , \exists { Vs } \and(sep(RSPATIAL), RHS:Patterns))
        </claim>
        <k> match-pto(P, Ps:Patterns)
-               => with-each-match(
-                    #match( terms: LSPATIAL:Patterns
+               => with-each-match( #match( terms: LSPATIAL:Patterns
                                          , pattern: P
                                          , variables: Vs:Patterns
                                          )
@@ -675,7 +674,7 @@ Instantiate the axiom: `\forall { L, D } (pto L D) -> L != nil
                                                    )
                                           ) #as STRAT
                  => ( #match( terms: \and(getSpatialPatterns(LHS))
-                            , pattern:  AXIOM_LSPATIAL
+                            , pattern:  sep(AXIOM_LSPATIAL)
                             , variables: Vs
                             )
                    ~> STRAT:Strategy
@@ -824,7 +823,7 @@ Remove any spatial pattern on the RHS that matches a spatial pattern on the LHS:
     rule <claim> \implies(\and(LHS), \exists{Vs} \and(sep(RSPATIAL), RHS)) </claim>
          <k> spatial-patterns-equal
           => with-each-match( #match( terms: \and(getSpatialPatterns(LHS))
-                                    , pattern: RSPATIAL
+                                    , pattern: sep(RSPATIAL)
                                     , variables: .Patterns
                                     )
                             , spatial-patterns-equal
