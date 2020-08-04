@@ -507,7 +507,7 @@ and values, passed to K's substitute.
 	requires isVariable(P)
   rule makeFreshVariables(P, REST) => !V1:SetVariable, makeFreshVariables(REST)
 	requires isSetVariable(P)
-
+  rule makeFreshVariables(nil{SORT}(.Patterns), REST) => nil{SORT}(.Patterns), makeFreshVariables(REST)
   rule makeFreshVariables(.Patterns) => .Patterns
 ```
 
