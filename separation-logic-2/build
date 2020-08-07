@@ -155,6 +155,10 @@ separation_logic_2 = [ '.build/t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll-re
                      ]
 proj.alias('separation-logic-2-tests', separation_logic_2)
 
+fol_tests = [ 
+            ]
+proj.alias('fol-tests', separation_logic_2)
+
 def secondary_tests(alias, file):
     list = read_list(file)
     tests = []
