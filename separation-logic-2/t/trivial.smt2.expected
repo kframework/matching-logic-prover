@@ -1,0 +1,27 @@
+<prover>
+  <k>
+    .
+  </k>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <claim>
+        \implies ( \and ( \equals ( 1 , 1 ) , .Patterns ) , \and ( \or ( \equals ( 2 , 2 ) , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <expected>
+        success
+      </expected>
+    <trace>
+      smt ~> ( define-sort SetInt ( .SMTLIB2SortList ) ( Set Int  .SMTLIB2SortList ) )  ( define-fun emptysetx ( .SMTLIB2SortedVarList ) SetInt ( as emptyset SetInt ) )  ( define-fun in ( ( n Int )  ( x SetInt )  .SMTLIB2SortedVarList ) Bool ( member n  x  .SMTLIB2TermList ) )  ( define-fun unionx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) SetInt ( union x  y  .SMTLIB2TermList ) )  ( define-fun intersectx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) SetInt ( intersection x  y  .SMTLIB2TermList ) )  ( define-fun disjointx ( ( x SetInt )  ( y SetInt )  .SMTLIB2SortedVarList ) Bool ( = ( intersectx x  y  .SMTLIB2TermList )  emptysetx  .SMTLIB2TermList ) )  ( define-fun setAdd ( ( s SetInt )  ( x Int )  .SMTLIB2SortedVarList ) SetInt ( unionx s  ( singleton x  .SMTLIB2TermList )  .SMTLIB2TermList ) )  ( define-fun setDel ( ( s SetInt )  ( x Int )  .SMTLIB2SortedVarList ) SetInt ( setminus s  ( singleton x  .SMTLIB2TermList )  .SMTLIB2TermList ) )  ( define-fun max ( ( x Int )  ( y Int )  .SMTLIB2SortedVarList ) Int ( ite ( < x  y  .SMTLIB2TermList )  y  x  .SMTLIB2TermList ) )  ( assert ( => ( = 1  1  .SMTLIB2TermList )  ( = 2  2  .SMTLIB2TermList )  .SMTLIB2TermList ) )  .SMTLIB2Script
+    </trace>
+  </goals>
+  <declarations>
+    .DeclarationCellSet
+  </declarations>
+</prover>

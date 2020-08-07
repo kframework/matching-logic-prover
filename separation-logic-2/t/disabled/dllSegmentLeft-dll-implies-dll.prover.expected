@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      root
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      .
+    </parent>
+    <k>
+      \implies ( \and ( dllSegmentLeft ( H { ArrayIntInt } , X { Int } , Y { Int } , F { SetInt } , .Patterns ) , dll ( H { ArrayIntInt } , Y { Int } , G { SetInt } , .Patterns ) , \equals ( K { SetInt } , union ( F { SetInt } , G { SetInt } , .Patterns ) ) , disjoint ( F { SetInt } , G { SetInt } , .Patterns ) , .Patterns ) , \exists { .Patterns } \and ( dll ( H { ArrayIntInt } , X { Int } , K { SetInt } , .Patterns ) , .Patterns ) )
+    </k>
+    <strategy>
+      success
+    </strategy>
+    <trace>
+      .
+    </trace>
+  </goal>
+</prover>

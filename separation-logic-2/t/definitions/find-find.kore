@@ -1,0 +1,15 @@
+symbol find-find(Int, Int, SetInt) : Bool
+axiom \forall { DATA : Int, RET : Int, F : SetInt }
+      \iff-lfp( find-find(DATA, RET, F)
+              , \or( \and( gt(RET, 0)
+                         , \equals(RET, DATA)
+                         , isMember(DATA, F)
+                         , .Patterns
+                         )
+                   , \and( \equals(RET, 0)
+                         , \not(isMember(DATA, F))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

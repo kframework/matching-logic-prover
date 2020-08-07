@@ -1,0 +1,30 @@
+symbol dllSegmentRightLength(ArrayIntInt, Int, Int, SetInt, Int) : Bool
+axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, L { Int } }
+      \iff-lfp( dllSegmentRightLength(H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, L { Int })
+              , \or( \and( \equals(X { Int }, Y { Int })
+                         , \equals(F { SetInt }, emptyset)
+                         , \equals(L { Int }, 0)
+                         , .Patterns
+                         )
+                   , \and( dllSegmentRightLength( H { ArrayIntInt }
+                                          , X", !I:Int) { Int }
+                                          , Y { Int }
+                                          , F", !J:Int) { SetInt }
+                                          , L", !K:Int) { Int }
+                                          , .Patterns
+                                          )
+                         , gt(X { Int }, 0)
+                         , \equals(L { Int }, plus(1, L", !K:Int) { Int }))
+                         , gt(X", !I:Int) { Int }, 0)
+                         , \equals( X { Int }
+                                  , select(H { ArrayIntInt }, plus(X", !I:Int) { Int }, 2)))
+                         , \equals( X", !I:Int) { Int }
+                                  , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , \not(isMember(X { Int }, F", !J:Int) { SetInt }))
+                         , \equals(F { SetInt }, union( F", !J:Int) { SetInt }
+                                           , singleton(X { Int })))
+                         , .Patterns
+                         )
+                   , .Patterns
+                   )
+              )

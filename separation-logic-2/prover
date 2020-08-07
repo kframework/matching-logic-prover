@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+extdir = 'ext'
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), extdir))
+from kninja.runner import *
+
+proj = KProject(extdir = extdir)
+KDefinition( proj
+           , alias = 'prover-kore'
+           , backend = 'ocaml'
+           , directory = proj.builddir('defn/prover-kore')
+           , krun_flags = '--interpret'
+           )
+KDefinition( proj
+           , alias = 'prover-smt'
+           , backend = 'ocaml'
+           , directory = proj.builddir('defn/prover-smt')
+           , krun_flags = '--interpret'
+           )
+KDefinition( proj
+           , alias = 'test-driver'
+           , backend = 'llvm'
+           , directory = proj.builddir('defn/test-driver')
+           )
+KRunner(proj).main()

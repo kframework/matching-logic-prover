@@ -1,0 +1,27 @@
+<prover>
+  <k>
+    .
+  </k>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <claim>
+        \implies ( \and ( .Patterns ) , \and ( \or ( \equals ( Vx { Int } , Vx { Int } ) , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <expected>
+        success
+      </expected>
+    <trace>
+      smt-cvc4
+    </trace>
+  </goals>
+  <declarations>
+    .DeclarationCellSet
+  </declarations>
+</prover>

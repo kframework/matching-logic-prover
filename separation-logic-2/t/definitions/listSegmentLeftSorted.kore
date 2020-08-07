@@ -1,0 +1,31 @@
+symbol listSegmentLeftSorted(ArrayIntInt, Int, Int, SetInt, Int, Int) : Bool
+axiom functional(listSegmentLeftSorted)
+
+axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, PREV_VAL { Int }, MAX { Int } }
+      \iff-lfp( listSegmentLeftSorted(H { ArrayIntInt }, X { Int }, Y { Int }, F { SetInt }, PREV_VAL { Int }, MAX { Int })
+              , \or( \exists { }
+                     \and( \equals(X { Int }, Y { Int })
+                         , \equals(F { SetInt }, emptyset)
+                         , \not(gt(PREV_VAL { Int }, MAX { Int }))
+                         )
+                   , \exists { F_I { SetInt } , VAL_I { Int } , X_I { Int } }
+                     \and( listSegmentLeftSorted( H { ArrayIntInt }
+                                                , X_I { Int }
+                                                , Y { Int }
+                                                , F_I { SetInt }
+                                                , VAL_I { Int }
+                                                , MAX { Int }
+                                                )
+                         , gt(X { Int }, 0)
+                         , \equals(select(H { ArrayIntInt }, X { Int }) , X_I { Int })
+                         , \equals(F { SetInt } , union(F_I { SetInt }, singleton(X { Int })))
+                         , disjoint(F_I { SetInt }, singleton(X { Int }))
+
+                         , \equals(VAL_I { Int } , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         // Strictly decreasing
+                         , gt(VAL_I { Int }, PREV_VAL { Int })
+                         , \not(gt(VAL_I { Int }, MAX { Int }))
+                         )
+                   )
+              )
+

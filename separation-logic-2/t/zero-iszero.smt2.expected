@@ -1,0 +1,33 @@
+<prover>
+  <k>
+    .
+  </k>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <claim>
+        \implies ( \and ( .Patterns ) , \exists { .Patterns } \and ( iszero ( 0 , .Patterns ) , .Patterns ) )
+      </claim>
+      <strategy>
+        success
+      </strategy>
+      <expected>
+        success
+      </expected>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { Vx { Int } , .Patterns } \iff-lfp ( iszero ( Vx { Int } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( Vx { Int } , 0 ) , \equals ( 0 , 0 ) , .Patterns ) , \exists { .Patterns } \and ( \not ( \equals ( Vx { Int } , 0 ) ) , \equals ( 0 , 1 ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( iszero )
+    </declaration> <declaration>
+      symbol iszero ( Int , .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>
