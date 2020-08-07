@@ -16,7 +16,9 @@ TLDR: to run separation logic tests, run:
 ```
 git submodule update --init --recursive
 cd separation-logic
-./build smoke-tests
+./build separation-logic-tests
+cd separation-logic-2
+./build separation-logic-2-tests
 ```
 
 to run linear temporal logic tests, run:
@@ -34,9 +36,13 @@ with recent versions of the project, we have had regressions, which due to time
 and engineering constraints we were unable to fix. Still, in this material, we
 provide two versions of our project.
 
-In the `separation-logic` directory, a number of representative tests denoted
-smoke tests are verified correctly. These include examples with mutual
-recursion, framing, abstracting variables, and footprint analysis.
+In the `separation-logic` directory, a majority of the SLCOMP tests are verified
+correctly. These include examples with mutual recursion, framing, abstracting
+variables, and footprint analysis.
+
+In the `separation-logic-2` directory, a few additional SLCOMP tests are verified.
+These include examples with mutual recursion, framing, abstracting
+variables, and footprint analysis.
 
 In the `linear-temporal-logic` directory, we prove the LTL axioms that require
 induction.
