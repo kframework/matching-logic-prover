@@ -46,6 +46,8 @@ for guessing an instantiation of the inductive hypothesis.
     => getKTUnfoldables(P, REST)
   rule getKTUnfoldables(\forall { .Patterns } P, REST)
     => getKTUnfoldables(P, REST)
+  rule getKTUnfoldables(\forall { Us } P, REST)
+    => getKTUnfoldables(REST) requires Us =/=K .Patterns
 ```
 
 ```k

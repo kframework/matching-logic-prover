@@ -246,6 +246,7 @@ module KORE-HELPERS
   syntax Sort ::= getReturnSort(Pattern) [function]
   rule getReturnSort( I:Int ) => Int
   rule getReturnSort( _ { S } ) => S
+  rule getReturnSort( plus ( ARGS ) ) => Int
   rule getReturnSort( minus ( ARGS ) ) => Int
   rule getReturnSort( select ( ARGS ) ) => Int
   rule getReturnSort( union ( ARGS ) ) => SetInt
@@ -480,6 +481,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(\exists { Fs:Patterns } P:Pattern)
     => #fun(RENAMING => \exists { Fs[RENAMING] } alphaRename(substMap(P,RENAMING))) ( makeFreshSubstitution(Fs) )
   rule alphaRename(\equals(L, R)) => \equals(alphaRename(L), alphaRename(R))
+  rule alphaRename(\implies(L, R)) => \implies(alphaRename(L), alphaRename(R))
   rule alphaRename(\not(Ps)) => \not(alphaRename(Ps))
   rule alphaRename(\and(Ps)) => \and(alphaRenamePs(Ps))
   rule alphaRename(\or(Ps)) => \or(alphaRenamePs(Ps))

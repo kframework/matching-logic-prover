@@ -47,8 +47,8 @@ prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module D
 # Functional tests
 # ----------------
 
-# prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
-# prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_kore.tests(inputs = glob('t/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_smt .tests(inputs = glob('t/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
 
 def log_on_success(file, message):
     return proj.rule( 'log-to-success'
@@ -151,9 +151,18 @@ separation_logic_2 = [ '.build/t/SL-COMP18/bench/qf_shid_entl/dll-entails-dll-re
                      ]
 proj.alias('separation-logic-2-tests', separation_logic_2)
 
-fol_tests = [ 
+fol_tests = [ '.build/t/listSegmentRight-implies-listSegmentLeft.kore.prover-kore-run'
+            , '.build/t/listSegmentLeft-list-implies-list.kore.prover-kore-run'
+            , '.build/t/listSortedLength-implies-listSorted.kore.prover-kore-run'
+            , '.build/t/emptyset-implies-isempty.kore.prover-kore-run'
+            , '.build/t/sortedlist-implies-list.kore.prover-kore-run'
+            , '.build/t/bst-implies-bt.kore.prover-kore-run'
+            , '.build/t/avl-implies-bst.kore.prover-kore-run'
+            , '.build/t/listSegmentLeft-implies-listSegmentRight.kore.prover-kore-run'
+            , '.build/t/listSegmentRightLength-appendone-implies-listSegmentRightLength.kore.prover-kore-run'
+            , '.build/t/listSortedLength-implies-listLength.kore.prover-kore-run'
             ]
-proj.alias('fol-tests', separation_logic_2)
+proj.alias('fol-tests', fol_tests)
 
 def secondary_tests(alias, file):
     list = read_list(file)

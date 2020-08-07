@@ -30,7 +30,7 @@ lseg(x,y) -> \exists h. h /\ h * list(y) -> list(x) -- by kt-wrap
 
 strategy kt . normalize
             . ( ( simplify
-                . left-unfold-Nth(0) .
+                . kt .
                   ( ( right-unfold-Nth(0, 0) . smt)
                   | ( right-unfold-Nth(0, 1) . smt)
                   )

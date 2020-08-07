@@ -22,10 +22,19 @@ cd separation-logic-2
 ```
 
 to run linear temporal logic tests, run:
+
 ```
 git submodule update --init --recursive
 cd linear-temporal-logic
 ./build ltl-tests
+```
+
+to run the fol tests, run:
+
+```
+git submodule update --init --recursive
+cd separation-logic-2
+./build fol-tests
 ```
 
 Source organization
