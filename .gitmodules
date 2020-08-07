@@ -11,6 +11,19 @@
 	path = separation-logic/t/sl/SL-COMP18
 	url = https://github.com/sl-comp/SL-COMP18/
 
+[submodule "separation-logic-2/ext/kninja"]
+	path = separation-logic-2/ext/kninja
+	url = https://github.com/nishantjr/kninja
+[submodule "separation-logic-2/ext/k"]
+	path = separation-logic-2/ext/k
+	url = https://github.com/kframework/k
+[submodule "separation-logic-2/ext/pandoc-tangle"]
+	path = separation-logic-2/ext/pandoc-tangle
+	url = https://github.com/ehildenb/pandoc-tangle
+[submodule "separation-logic-2/t/SL-COMP18"]
+	path = separation-logic-2/t/SL-COMP18
+	url = https://github.com/sl-comp/SL-COMP18/
+
 [submodule "linear-temporal-logic/ext/kninja"]
 	path = linear-temporal-logic/ext/kninja
 	url = https://github.com/nishantjr/kninja
