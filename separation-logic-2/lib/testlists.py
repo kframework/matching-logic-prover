@@ -86,9 +86,10 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , ('unfold-mut-recs . ',   10, 16, '20m', ['t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_11.sb.smt2'])
              , ('unfold-mut-recs . ',    6, 16, '10m', ['t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_12.sb.smt2'])
              , ('unfold-mut-recs . ',   12, 18, '75m', ['t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_13.sb.smt2'])
+
+             , ('unfold-mut-recs . ',   14, 21,'240m', ['t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_14.sb.smt2'])
              ## these 3 tests should go  through with this strategy, but they will need a very high
              ## time bound (>60m)
-             # , ('unfold-mut-recs . ',   14, 20, '60m', ['t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_14.sb.smt2'])
              # , ('unfold-mut-recs . ',   16, 22, '60m', ['t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_15.sb.smt2'])
              # , ('unfold-mut-recs . ',   18, 24, '60m', ['t/SL-COMP18/bench/qf_shid_entl/ls_nonrec_entail_ls_16.sb.smt2'])
              , ('unfold-mut-recs . ',    2,  2, '20m', ['t/SL-COMP18/bench/qf_shid_entl/append_sll_cll_slk-1.smt2'])
