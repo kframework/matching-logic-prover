@@ -362,7 +362,6 @@ test_lists = [ ('unfold-mut-recs . ',    3,  3,  '5m', read_list('t/test-lists/p
              , (dll_vc07_strategy,    2,  2, '10m', ['t/sl/SL-COMP18/bench/qf_shid_entl/dll-vc07.smt2'])
              , ('footprint-analysis . abstract-nil . ',
                                       2,  1, '10m', ['t/sl/SL-COMP18/bench/qf_shid_entl/dll-vc11.smt2'])
-             , (dll_vc17_strategy,    2,  2, '10m', ['t/sl/SL-COMP18/bench/qf_shid_entl/dll-vc17.smt2'])
              , (nll_vc03_strategy,    2,  3, '10m', ['t/sl/SL-COMP18/bench/qf_shid_entl/nll-vc03.smt2'])
              , (nll_vc04_strategy,    2,  6, '10m', ['t/sl/SL-COMP18/bench/qf_shid_entl/nll-vc04.smt2'])
              , (nll_vc08_10_strategy, 2,  2, '10m', ['t/sl/SL-COMP18/bench/qf_shid_entl/nll-vc08.smt2'])
