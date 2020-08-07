@@ -1,7 +1,0 @@
-in ../kore
-
-fmod TEST-SORT-01 is
-
-  including KORE .
-
-endfm

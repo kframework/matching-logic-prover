@@ -1,4 +1,0 @@
-load full-maude.maude
-load string.maude
-load metafresh.maude
-load foform.maude
