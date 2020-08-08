@@ -37,25 +37,38 @@
 (assert (not (RList x z )))
 
 (set-info :mlprover-strategy
-    normalize . or-split-rhs
-  . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-  . kt
-  . normalize . or-split-rhs
-  . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-  . instantiate-separation-logic-axioms . check-lhs-constraint-unsat
-  . ( ( right-unfold-Nth(0,1)
-      . right-unfold-Nth(0,0)
-      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+    normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals          ; Normalization
+  . kt                                                                                                             ; Apply the Knaster-Tarski rule
+  . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals          ; Normalization
+  . instantiate-separation-logic-axioms                                                                            ; Instantiate quantified separation logic axioms (e.g. add `x != y` for all `x |-> _ * y |-> _` in LHS)
+  . check-lhs-constraint-unsat                                                                                     ; Check if that LHS is satisfiable
+
+                                                                                                                   ; Base case for induction 
+                                                                                                                   ; =======================
+  . ( ( right-unfold-Nth(0,1)                                                                                      ; Unfold the 0th recursive predicate to the 1st case (recursive case)
+      . right-unfold-Nth(0,0)                                                                                      ; Unfold the 0th recursive predicate to the 0th case (base case)
+      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals      ; Normalization
+      . match                                                                                                      ; Use syntactic matching to instantiate existentials on the RHS 
+      . spatial-patterns-equal . spatial-patterns-match                                                            ; Remove spatial terms on the RHS that are identical to ones on the LHS
+      . smt-cvc4                                                                                                   ; Translate remaining FOL constraints for the SMT solver.
       )
-    | ( right-unfold-Nth(0,1)
-      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+
+                                                                                                                   ; Collapsing the Implication context
+                                                                                                                   ; =======================
+    | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals      ; Normalization
+      . match                                                                                                      ; Use syntactic matching to instantiate existentials on the RHS 
+      . spatial-patterns-equal . spatial-patterns-match                                                            ; Remove spatial terms on the RHS that are identical to ones on the LHS
+      . smt-cvc4                                                                                                   ; Translate remaining FOL constraints for the SMT solver.
       )
-    | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-      . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+
+                                                                                                                   ; Recursive case
+                                                                                                                   ; =======================
+    | ( right-unfold-Nth(0,1)                                                                                      ; Unfold the 0th recursive predicate to the 1st case (recursive case)
+      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals      ; Normalization
+      . match                                                                                                      ; Use syntactic matching to instantiate existentials on the RHS 
+      . spatial-patterns-equal . spatial-patterns-match                                                            ; Remove spatial terms on the RHS that are identical to ones on the LHS
+      . smt-cvc4                                                                                                   ; Translate remaining FOL constraints for the SMT solver.
       )
-    | (wait)
     )
 )
 (check-sat)
