@@ -8,14 +8,14 @@ As stated in Section 6, we evaluated our prototype implementation against:
 2.  265 of 280 claims in separation logic from the SL-COMP'19 competition
 
     Note: the number 266 in submission paper was a mistake due to a miscount; we
-    will fix this in the revision).
+    will fix this in the revision.
 
 3.  Linear Temporal Logic
 
 4.  Reachability: A claim about the `sum-to-n` program. Our artifact
     adopts the LFP encoding where reachability is captured by a binary
-    predicate; the RL encoding is shown on paper, which we will clarify in the
-    revision.
+    predicate. The RL encoding is shown on paper; we will clarify this point in 
+    the revision.
 
 Getting Started Guide
 =====================
@@ -28,7 +28,7 @@ apt install autoconf curl flex gcc libffi-dev libmpfr-dev libtool make         \
             time zlib1g-dev                           
 ```
 
-To run the fol tests (claim 1.), run:
+To run the FOL tests (claim 1.), run:
 
 ```
 cd <path-to-artifact>
@@ -71,7 +71,7 @@ Source organization
 ===================
 
 While 265 of the SL-COMP tests as well as the LTL tests have all been working
-with recent versions of the project, we have had regressions, which due to time
+with recent versions of the project, we have had regressions due to the time
 and engineering constraints we were unable to fix. Still, in this material, we
 provide two versions of our project.
 
