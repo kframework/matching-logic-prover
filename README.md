@@ -28,13 +28,15 @@ apt install autoconf curl flex gcc libffi-dev libmpfr-dev libtool make         \
             time zlib1g-dev                           
 ```
 
-To run the FOL tests (claim 1.), run:
+Times given below are on a 2.2 GHz Quad-Core Intel Core i7.
+
+To run the fol tests (claim 1.), run:
 
 ```
 cd <path-to-artifact>
 git submodule update --init --recursive
 cd separation-logic-2
-./build fol-tests
+./build fol-tests                           # Takes 3 minutes
 ```
 
 To run separation logic tests mentioned in our paper (claim 2.), run:
@@ -54,7 +56,7 @@ To run linear temporal logic tests (claim 3.), run:
 cd <path-to-artifact>
 git submodule update --init --recursive
 cd linear-temporal-logic
-./build ltl-tests                           # Takes ~1.5 hours
+./build ltl-tests                           # Takes ~2 minutes
 ```
 
 You may also run a smaller selection of tests intended to be representitive of
@@ -64,16 +66,11 @@ the SLCOMP tests.
 cd <path-to-artifact>
 git submodule update --init --recursive
 cd separation-logic
-./build smoke-tests
+./build smoke-tests                         # Takes ~6 minutes
 ```
 
 Source organization
 ===================
-
-While 265 of the SL-COMP tests as well as the LTL tests have all been working
-with recent versions of the project, we have had regressions due to the time
-and engineering constraints we were unable to fix. Still, in this material, we
-provide two versions of our project.
 
 In the `separation-logic` directory, a majority of the SLCOMP tests are verified
 correctly. These include examples with mutual recursion, framing, abstracting
