@@ -148,6 +148,9 @@ tests and the reachability tests are in this format. Examples include:
 * `linear-temporal-logic/t/ltl/always-propagates.kore`
 * `linear-temporal-logic/t/ltl/ind.kore`
 * `linear-temporal-logic/t/ltl/until-implies-eventually.kore`
+ 
+* `separation-logic-2/t/sum-to-n.kore`
+* `separation-logic-2/t/listSegmentLeft-implies-listSegmentRight.kore`
 
 Those in the `linear-temporal-logic/` directory are run with: 
  
@@ -155,9 +158,6 @@ Those in the `linear-temporal-logic/` directory are run with:
 cd linear-temporal-logic
 ./build .build/t/ltl/always-propagates.kore.prover-kore-run
 ```
- 
-* separation-logic-2/t/sum-to-n.kore
-* separation-logic-2/t/listSegmentLeft-implies-listSegmentRight.kore
 
 Those in the `separation-logic-2/` directory are run with: 
  
