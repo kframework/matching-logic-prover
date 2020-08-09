@@ -36,7 +36,7 @@ To run the fol tests (claim 1.), run:
 cd <path-to-artifact>
 git submodule update --init --recursive
 cd separation-logic-2
-./build fol-tests                           # Takes 3 minutes
+./build fol-tests                           # Takes ~3 minutes
 ```
 
 To run separation logic tests mentioned in our paper (claim 2.), run:
@@ -57,6 +57,15 @@ cd <path-to-artifact>
 git submodule update --init --recursive
 cd linear-temporal-logic
 ./build ltl-tests                           # Takes ~2 minutes
+```
+
+To run the reachability test (claim 4.), run:
+
+```
+cd <path-to-artifact>
+git submodule update --init --recursive
+cd separation-logic-2
+./build .build/t/sum-to-n.kore.prover-kore-run  # Takes ~15 seconds
 ```
 
 You may also run a smaller selection of tests intended to be representitive of

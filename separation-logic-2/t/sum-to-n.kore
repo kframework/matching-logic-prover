@@ -1,0 +1,67 @@
+symbol reachableInNSteps(ArrayIntInt, ArrayIntInt, ArrayIntInt, Int) : Bool
+axiom functional(reachableInNSteps)
+
+// addr_N = 2
+// addr_S = 1
+
+axiom \forall { PGM { ArrayIntInt }, HEAP_INIT { ArrayIntInt }
+                                   , HEAP_FINAL { ArrayIntInt }
+                                   , N { Int } }
+      \iff-lfp( reachableInNSteps( PGM { ArrayIntInt }
+                                 , HEAP_INIT { ArrayIntInt }
+                                 , HEAP_FINAL { ArrayIntInt }
+                                 , N { Int }
+                                 )
+              , \or( \exists { }
+                     \and( \equals(select(HEAP_INIT { ArrayIntInt }, 2), 0)
+                         , \equals(HEAP_INIT { ArrayIntInt }, HEAP_FINAL { ArrayIntInt })
+                         , \equals(N { Int }, 0)
+                         )
+                   , \exists { HEAP_NEXT { ArrayIntInt } }
+                     \and( gt(select(HEAP_INIT { ArrayIntInt }, 2), 0)
+                         , \equals( HEAP_NEXT { ArrayIntInt }
+                                  , store ( store ( HEAP_INIT { ArrayIntInt }
+                                                  , 1
+                                                  , plus( select(HEAP_INIT { ArrayIntInt }, 2)
+                                                        , select(HEAP_INIT { ArrayIntInt }, 1)
+                                                        )
+                                                  )
+                                          , 2
+                                          , minus(select(HEAP_INIT { ArrayIntInt }, 2), 1)
+                                          )
+                                  )
+                         , gt(N { Int }, 0)
+                         , reachableInNSteps( PGM { ArrayIntInt }
+                                            , HEAP_NEXT { ArrayIntInt }
+                                            , HEAP_FINAL { ArrayIntInt }
+                                            , minus(N { Int }, 1)
+                                            )
+                         )
+                   )
+              )
+
+claim \implies ( \and ( \equals(N_INIT { Int }, select(H_INIT { ArrayIntInt }, 2))
+                      , \equals(S_INIT { Int }, select(H_INIT { ArrayIntInt }, 1))
+                      , \equals(N_FINAL { Int }, select(H_FINAL { ArrayIntInt }, 2))
+                      , \equals(S_FINAL { Int }, select(H_FINAL { ArrayIntInt }, 1))
+
+                      , reachableInNSteps( PGM { ArrayIntInt }
+                                         , H_INIT { ArrayIntInt }
+                                         , H_FINAL { ArrayIntInt }
+                                         , STEPS { Int }
+                                         )
+                      )
+               , \and ( \equals(S_FINAL { Int }, plus( S_INIT { Int }
+                                                     , div( mult( N_INIT { Int }
+                                                                , plus( N_INIT { Int }, 1)
+                                                                )
+                                                          , 2
+                                                          )
+                                                     )
+                               )
+
+                      , \equals(N_FINAL { Int }, 0)
+                      )
+               )
+
+strategy search-fol(bound: 2)
