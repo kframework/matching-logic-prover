@@ -46,6 +46,7 @@ cd <path-to-artifact>
 git submodule update --init --recursive
 cd separation-logic
 ./build separation-logic-tests              # Takes ~6 hours.
+cd ..
 cd separation-logic-2
 ./build separation-logic-2-tests            # Takes ~2 hours.
 ```
@@ -138,6 +139,33 @@ Running tests
 
 Tests may be in one of two possible formats:
 
+### `kore`/matching logic tests
+
+Tests in the kore format are a list of matching logic declarations, axioms, a
+claim and a strategy (see next section for an example). The LTL tests, the FOL
+tests and the reachability tests are in this format. Examples include:
+
+* `linear-temporal-logic/t/ltl/always-propagates.kore`
+* `linear-temporal-logic/t/ltl/ind.kore`
+* `linear-temporal-logic/t/ltl/until-implies-eventually.kore`
+
+Those in the `linear-temporal-logic/` directory are run with: 
+ 
+```
+cd linear-temporal-logic
+./build .build/t/ltl/always-propagates.kore.prover-kore-run
+```
+ 
+* separation-logic-2/t/sum-to-n.kore
+* separation-logic-2/t/listSegmentLeft-implies-listSegmentRight.kore
+
+Those in the `separation-logic-2/` directory are run with: 
+ 
+```
+cd separation-logic-2
+./build .build/t/listSegmentLeft-implies-listSegmentRight.kore.prover-kore-run
+```
+
 ### `smt2` tests
 
 These tests are in the SMTLIB2 format (with SLCOMP extensions). In addition, we
@@ -194,19 +222,4 @@ To run a single smt test named `t/sl/qf_shid_entl-01.tst.smt2`, run:
 cd separation-logic
 ./build .build/t/sl/qf_shid_entl-01.tst.smt2.prover-smt-run
 ```
-
-### `kore`/matching logic tests
-
-TODO
-
-//These tests are in a matching logic like format (we allow some sugar, e.g. for
-//defining recursive functions).
-//
-// To run a single kore test named `t/path_to_test/foo.kore`, run
-// `./build .build/t/path_to_test/foo.kore.prover-kore-run`.
-// 
-// ```
-// cd separation-logic
-// ./build .build/t/sl/qf_shid_entl-01.tst.smt2.prover-smt-run
-// ```
 
