@@ -1,0 +1,3 @@
+\and( \mu X . \or([$a X], \nu Y . \and([ $a Y ], $c)) 
+    , \nu X . \and(<$a X>, \or(\mu Y . <$a Y>, \not $c))
+    )
