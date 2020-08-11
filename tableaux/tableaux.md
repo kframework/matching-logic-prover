@@ -88,8 +88,8 @@ Contract operator
       => (K |-> V[Left/Right]) substituteDefintionList(Rest, Left, Right)
 ```
 
-Tableaux rules
---------------
+(Refutation) Tableaux rules
+---------------------------
 
 ```k
     rule <gamma>
