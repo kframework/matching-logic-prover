@@ -27,7 +27,6 @@ endmodule
 ```k
 module TABLEAUX-SYNTAX
     imports MATCHING-LOGIC
-
     syntax Symbol ::= "$" #LowerId [token]
 endmodule
 ```
@@ -44,18 +43,27 @@ module TABLEAUX
     configuration <k> $PGM:Pattern ~> .K </k>
                   <tableaux>
                     <sequent type="Set" multiplicity="*">
-                      <gamma> <clause type="Set" multiplicity="*"> #token("clause", "#LowerId"):Pattern </clause> </gamma>
+                      <gamma>
+                        <clause type="Set" multiplicity="*">
+                          <p> #token("clause", "#LowerId"):Pattern </p>
+                          <l> .IntList </l>
+                        </clause>
+                      </gamma>
                       <defnList> .Map </defnList>
                     </sequent>
                   </tableaux>
    rule <k> P:Pattern => .K ... </k>
         <tableaux> ( .Bag
                   => <sequent>
-                       <gamma> <clause> P </clause> </gamma>
+                       <gamma> <clause> <p> P </p> ... </clause> </gamma>
                        <defnList> contract(P) </defnList>
                      </sequent>
                    )
         </tableaux>
+```
+
+```k
+    syntax IntList ::= List{Int, ","} [klabel(IntList)]
 ```
 
 Contract operator
@@ -93,47 +101,38 @@ Contract operator
 
 ```k
     rule <gamma>
-           <clause> \and(P, Ps) </clause>
-        => ( <clause> P        </clause>
-             <clause> \and(Ps) </clause>
+           <clause> <p> \and(P, Ps) </p> <l> L </l> </clause>
+        => ( <clause> <p> P        </p> <l> 0, L </l> </clause>
+             <clause> <p> \and(Ps) </p> <l> 1, L </l> </clause>
            )
            ... 
          </gamma>
      requires Ps =/=K .Patterns
-    rule <clause> \and(P, .Patterns) => P </clause>
+    rule <p> \and(P, .Patterns) => P </p>
 ```
 
 ```k
     rule <tableaux> 
-           <sequent> <gamma> <clause> \or(P, Ps) </clause> Gamma </gamma> Rest </sequent>
-      => ( <sequent> <gamma> <clause>     P      </clause> Gamma </gamma> Rest </sequent>
-           <sequent> <gamma> <clause> \or(   Ps) </clause> Gamma </gamma> Rest </sequent>
+           <sequent> <gamma> <clause> <p> \or(P, Ps) </p> <l>   L </l> </clause> Gamma </gamma> Rest </sequent>
+      => ( <sequent> <gamma> <clause> <p>     P      </p> <l> 0,L </l> </clause> Gamma </gamma> Rest </sequent>
+           <sequent> <gamma> <clause> <p> \or(   Ps) </p> <l> 1,L </l> </clause> Gamma </gamma> Rest </sequent>
          )
            ...
          </tableaux>
      requires Ps =/=K .Patterns
 
-    rule <clause> \or(P, .Patterns) => P </clause>
+    rule <p> \or(P, .Patterns) => P </p>
 ```
 
 ```k
-    rule <gamma>
-           <clause> P => V </clause>
-           ...
-        </gamma>
-        <defnList> V |-> P ... </defnList>
+    rule <p> P => V </p>
+         <defnList> V |-> P ... </defnList>
 
-    rule <gamma>
-           <clause> V => P[X/V] </clause>
-           ...
-        </gamma>
-        <defnList> V |-> \mu X . P ... </defnList>
+    rule <p> V => P[X/V] </p>
+         <defnList> V |-> \mu X . P ... </defnList>
 
-    rule <gamma>
-           <clause> V => P[X/V] </clause>
-           ...
-        </gamma>
-        <defnList> V |-> \nu X . P ... </defnList>
+    rule <p> V => P[X/V] </p>
+         <defnList> V |-> \nu X . P ... </defnList>
 ```
 
 De Morgan's Laws
