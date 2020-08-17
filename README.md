@@ -4,19 +4,6 @@ colorlinks: true
 urlcolor: blue
 ---
 
-Download Virtual Box image from:
-
-[https://drive.google.com/file/d/1xgW7BaJDYpRRmbMhFu7F3qsT8TXnuNNr/view?usp=sharing](https://drive.google.com/file/d/1xgW7BaJDYpRRmbMhFu7F3qsT8TXnuNNr/view?usp=sharing)
-
-In the Virtual Box toolbar, click the import button and select the downloaded `.ova` file.
-Click "Next". Adjust the CPUs and RAM as resources allow (we recommend atleast 8GB of RAM).
-Click "Import".
-
-Start the VM and login with:
-
-Username: oopsla-artifact
-Password: oopsla-artifact
-
 Claims
 ======
 
@@ -39,12 +26,32 @@ As stated in Section 6, we evaluated our prototype implementation against:
 Getting Started Guide
 =====================
 
+## Set up the Virtual Machine
+
+Download the latest version (ver 6.1) of Virtual Box from link (https://www.virtualbox.org/) and install it.
+
+Download Virtual Box image from:
+
+[https://drive.google.com/file/d/1xgW7BaJDYpRRmbMhFu7F3qsT8TXnuNNr/view?usp=sharing](https://drive.google.com/file/d/1xgW7BaJDYpRRmbMhFu7F3qsT8TXnuNNr/view?usp=sharing)
+
+In the Virtual Box toolbar, click the import button and select the downloaded `.ova` file.
+Click "Next". Adjust the CPUs and RAM as resources allow (we recommend atleast 8GB of RAM).
+Click "Import" (this may take a few minutes).
+
+In the VirtualBox toolbar, click the "Start" button and login with:
+
+    Username: oopsla-artifact
+    Password: oopsla-artifact
+
+## Run the tests
+
 Times given below are for a single-core virtual machine with 8GB of RAM
 
 To run the fol tests (claim 1.), run:
 
 ```
 cd ~/matching-logic-prover
+# Note that the following directory is "separation-logic-2" and not "separation-logic" 
 cd separation-logic-2
 ./build fol-tests                           # Takes ~7 minutes
 ```
