@@ -24,7 +24,7 @@ WORKDIR /home/user/prover/
 
 RUN git submodule update --init --recursive
 RUN cd linear-temporal-logic && ./build prover-kore
-RUN cd separation-logic      && ./build prover-smt
+RUN cd separation-logic      && ./build prover-kore prover-smt
 RUN cd separation-logic-2    && ./build prover-kore prover-smt
 
 ENV LC_ALL=C.UTF-8
