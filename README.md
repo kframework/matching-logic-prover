@@ -1,3 +1,22 @@
+---
+geometry: "landscape,margin=1cm"
+colorlinks: true
+urlcolor: blue
+---
+
+Download Virtual Box image from:
+
+[https://drive.google.com/file/d/1xgW7BaJDYpRRmbMhFu7F3qsT8TXnuNNr/view?usp=sharing](https://drive.google.com/file/d/1xgW7BaJDYpRRmbMhFu7F3qsT8TXnuNNr/view?usp=sharing)
+
+In the Virtual Box toolbar, click the import button and select the downloaded `.ova` file.
+Click "Next". Adjust the CPUs and RAM as resources allow (we recommend atleast 8GB of RAM).
+Click "Import".
+
+Start the VM and login with:
+
+Username: oopsla-artifact
+Password: oopsla-artifact
+
 Claims
 ======
 
@@ -20,64 +39,52 @@ As stated in Section 6, we evaluated our prototype implementation against:
 Getting Started Guide
 =====================
 
-On an Ubuntu Bionic (18.04) system you can install the following packages:
-
-```
-apt install autoconf curl flex gcc libffi-dev libmpfr-dev libtool make         \                        
-            maven ninja-build opam openjdk-8-jdk pandoc pkg-config python3     \                        
-            time zlib1g-dev                           
-```
-
-Times given below are on a 2.2 GHz Quad-Core Intel Core i7.
+Times given below are for a single-core virtual machine with 8GB of RAM
 
 To run the fol tests (claim 1.), run:
 
 ```
-cd <path-to-artifact>
-git submodule update --init --recursive
+cd ~/matching-logic-prover
 cd separation-logic-2
-./build fol-tests                           # Takes ~3 minutes
+./build fol-tests                           # Takes ~7 minutes
 ```
 
 To run separation logic tests mentioned in our paper (claim 2.), run:
 
 ```
-cd <path-to-artifact>
-git submodule update --init --recursive
+cd ~/matching-logic-prover
 cd separation-logic
-./build separation-logic-tests              # Takes ~6 hours.
-cd ..
+./build separation-logic-tests              # Takes ~7 hours.
+cd ~/matching-logic-prover
 cd separation-logic-2
-./build separation-logic-2-tests            # Takes ~2 hours.
+./build separation-logic-2-tests            # Takes ~6 hours.
 ```
 
 To run linear temporal logic tests (claim 3.), run:
 
 ```
-cd <path-to-artifact>
-git submodule update --init --recursive
+cd ~/matching-logic-prover
 cd linear-temporal-logic
-./build ltl-tests                           # Takes ~2 minutes
+./build ltl-tests                           # Takes ~3 minutes
 ```
 
 To run the reachability test (claim 4.), run:
 
 ```
-cd <path-to-artifact>
-git submodule update --init --recursive
+cd ~/matching-logic-prover
 cd separation-logic-2
-./build .build/t/sum-to-n.kore.prover-kore-run  # Takes ~15 seconds
+./build .build/t/sum-to-n.kore.prover-kore-run  # Takes ~1 minute
 ```
 
 You may also run a smaller selection of tests intended to be representitive of
 the SLCOMP tests.
 
 ```
-cd <path-to-artifact>
-git submodule update --init --recursive
+cd ~/matching-logic-prover
 cd separation-logic
-./build smoke-tests                         # Takes ~6 minutes
+./build smoke-tests                         # Takes ~20 minutes
 ```
+
 
 Source organization
 ===================
@@ -137,6 +144,17 @@ The prover accepts two file formats:
 Running tests
 -------------
 
+The build script is a thin wrapper around the `ninja` build system (similar to
+`make`). The `build` script takes a list of targets as options. See `ninja -h`
+for additional help. In this artifact, we support the following targets:
+
+* In the `linear-temporal-logic/` directory, the `ltl-tests` target for running all LTL tests.
+* In the `separation-logic/` directory, the `separation-logic-tests` target for running most SLCOMP tests.
+* In the `separation-logic-2/` directory,
+    * the `separation-logic-2-tests` target for running the remaining SLCOMP tests.
+    * the `.build/t/sum-to-n.kore.prover-kore-run` target for running the reachability test
+    * the `fol-test` target for running the FOL tests
+
 Tests may be in one of two possible formats:
 
 ### `kore`/matching logic tests
@@ -178,39 +196,42 @@ claim. Strategies may be composed sequentially with the `.` operator, and in
 parallel via the `|` choice operator. For example, the following strategy is
 used to prove the claim in `t/sl/qf_shid_entl-01.tst.smt2`
 
+\footnotesize
+
 ```
 (set-info :mlprover-strategy
-    normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals          ; Normalization
-  . kt                                                                                                             ; Apply the Knaster-Tarski rule
-  . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals          ; Normalization
-  . instantiate-separation-logic-axioms                                                                            ; Instantiate quantified separation logic axioms (e.g. add `x != y` for all `x |-> _ * y |-> _` in LHS)
-  . check-lhs-constraint-unsat                                                                                     ; Check if that LHS is satisfiable
+    normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals     ; Normalization
+  . kt                                                                                                        ; Apply the Knaster-Tarski rule
+  . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals     ; Normalization
+  . instantiate-separation-logic-axioms                                                                       ; Instantiate quantified separation logic axioms
+                                                                                                              ; (e.g. add `x != y` for all `x |-> _ * y |-> _` in LHS)
+  . check-lhs-constraint-unsat                                                                                ; Check if that LHS is satisfiable
 
-                                                                                                                   ; Base case for induction 
-                                                                                                                   ; =======================
-  . ( ( right-unfold-Nth(0,1)                                                                                      ; Unfold the 0th recursive predicate to the 1st case (recursive case)
-      . right-unfold-Nth(0,0)                                                                                      ; Unfold the 0th recursive predicate to the 0th case (base case)
-      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals      ; Normalization
-      . match                                                                                                      ; Use syntactic matching to instantiate existentials on the RHS 
-      . spatial-patterns-equal . spatial-patterns-match                                                            ; Remove spatial terms on the RHS that are identical to ones on the LHS
-      . smt-cvc4                                                                                                   ; Translate remaining FOL constraints for the SMT solver.
+                                                                                                              ; Base case for induction 
+                                                                                                              ; =======================
+  . ( ( right-unfold-Nth(0,1)                                                                                 ; Unfold the 0th recursive predicate to the 1st case (recursive case)
+      . right-unfold-Nth(0,0)                                                                                 ; Unfold the 0th recursive predicate to the 0th case (base case)
+      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals ; Normalization
+      . match                                                                                                 ; Use syntactic matching to instantiate existentials on the RHS 
+      . spatial-patterns-equal . spatial-patterns-match                                                       ; Remove spatial terms on the RHS identical to ones on the LHS
+      . smt-cvc4                                                                                              ; Translate remaining FOL constraints for the SMT solver.
       )
 
-                                                                                                                   ; Collapsing the Implication context
-                                                                                                                   ; =======================
-    | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals      ; Normalization
-      . match                                                                                                      ; Use syntactic matching to instantiate existentials on the RHS 
-      . spatial-patterns-equal . spatial-patterns-match                                                            ; Remove spatial terms on the RHS that are identical to ones on the LHS
-      . smt-cvc4                                                                                                   ; Translate remaining FOL constraints for the SMT solver.
+                                                                                                              ; Collapsing the Implication context
+                                                                                                              ; =======================
+    | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals ; Normalization
+      . match                                                                                                 ; Use syntactic matching to instantiate existentials on the RHS 
+      . spatial-patterns-equal . spatial-patterns-match                                                       ; Remove spatial terms on the RHS identical to ones on the LHS
+      . smt-cvc4                                                                                              ; Translate remaining FOL constraints for the SMT solver.
       )
 
-                                                                                                                   ; Recursive case
-                                                                                                                   ; =======================
-    | ( right-unfold-Nth(0,1)                                                                                      ; Unfold the 0th recursive predicate to the 1st case (recursive case)
-      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals      ; Normalization
-      . match                                                                                                      ; Use syntactic matching to instantiate existentials on the RHS 
-      . spatial-patterns-equal . spatial-patterns-match                                                            ; Remove spatial terms on the RHS that are identical to ones on the LHS
-      . smt-cvc4                                                                                                   ; Translate remaining FOL constraints for the SMT solver.
+                                                                                                              ; Recursive case
+                                                                                                              ; =======================
+    | ( right-unfold-Nth(0,1)                                                                                 ; Unfold the 0th recursive predicate to the 1st case (recursive case)
+      . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals ; Normalization
+      . match                                                                                                 ; Use syntactic matching to instantiate existentials on the RHS 
+      . spatial-patterns-equal . spatial-patterns-match                                                       ; Remove spatial terms on the RHS identical to ones on the LHS
+      . smt-cvc4                                                                                              ; Translate remaining FOL constraints for the SMT solver.
       )
     )
 )
