@@ -1,137 +1,33 @@
 ```
-I bet you don't understand me.
+Matching Logic Proof Object
 ```
 
 ```mm
-$c
-  #TokenSequence
-$.
+$c \bot \imp \app \ex \mu ( ) $.   
+$c #Pattern #ElementVariable #SetVariable #Symbol #Variable $. 
+$v ph ps ph1 ph2 ph3 ph4 ph5 ph6 x y z X Y Z sg sg1 sg2 xX yY $.
 
-$v
-  ts
-  ts1
-  ts2
-  ts3
-$.
-
-vts  $f #TokenSequence ts  $.
-vts1 $f #TokenSequence ts1 $.
-vts2 $f #TokenSequence ts2 $.
-vts3 $f #TokenSequence ts3 $.
-```
-
-```
-These are predicates on `#TokenSequence`.
-```
-
-```mm
-$c 
-  #Pattern 
-  #ElementVariable 
-  #SetVariable 
-  #NoNegativeOccurrence 
-  #NoPositiveOccurrence 
-  #NoFreeOccurrence
-  #NestedInApplicationOnly 
-  #Eq
-  |-
-$. 
-```
-
-```
-We axiomatize `#Eq` to be a congruence relation on `#TokenSequence`.
-```
-
-```mm
-axeqr $a #Eq ts ts $.
-
-{
-  axeqs.1 $e #Eq ts1 ts2 $.
-  axeqs   $a #Eq ts2 ts1 $.
-}
-
-{
-  axeqt.1 $e #Eq ts1 ts2 $.
-  axeqt.2 $e #Eq ts2 ts3 $.
-  axeqt   $a #Eq ts1 ts3 $.
-}
-```
-
-```
-We define the basic matching logic constructs as tokens, one per line.
-These constructs exist in all matching logic theories.
-We are not trying to be minimal here, at least for now.
-Therefore, we include all the common constructs.
-Note that `\mu` builds least fixpoints and `\nu` builds greatest fixpoints.
-We need to define the parentheses as tokens, too. 
-```
-
-```mm
-$c
-  \top 
-  \bottom
-  \and
-  \or
-  \implies
-  \iff
-  \not
-  \app
-  \exists
-  \forall
-  \mu
-  \nu 
-  ( 
-  ) 
-$.
-```
-
-```
-We define meta-variables of patterns, element variables, and set variables.
-```
-
-```mm
-$v
-  ph
-  ph1
-  ph2
-  ph3
-  ps
-  x 
-  x1 
-  x2 
-  x3
-  y
-  sx 
-  sx1 
-  sx2 
-  sx3
-  sy
-$.
-```
-
-```
-We define the ranges of the above meta-variables.
-```
-
-```mm
-vph    $f #Pattern         ph  $.
-vph1   $f #Pattern         ph1 $.
-vph2   $f #Pattern         ph2 $.
-vph3   $f #Pattern         ph3 $.
-vps    $f #Pattern         ps  $.
-vx     $f #ElementVariable x   $.
-vx1    $f #ElementVariable x1  $.
-vx2    $f #ElementVariable x2  $.
-vx3    $f #ElementVariable x3  $.
-vy     $f #ElementVariable y   $.
-vsx    $f #SetVariable     sx  $.
-vsx1   $f #SetVariable     sx1 $.
-vsx2   $f #SetVariable     sx2 $.
-vsx3   $f #SetVariable     sx3 $.
-vsy    $f #SetVariable     sy  $.
-```
-
-```rest
+vph  $f #Pattern ph $.
+vps  $f #Pattern ps $.
+vph1 $f #Pattern ph1 $.
+vph2 $f #Pattern ph2 $.
+vph3 $f #Pattern ph3 $.
+vph4 $f #Pattern ph4 $.
+vph5 $f #Pattern ph5 $.
+vph6 $f #Pattern ph6 $.
+vx   $f #ElementVariable x $.
+vy   $f #ElementVariable y $.
+vz   $f #ElementVariable z $.
+vX   $f #SetVariable X $.
+vY   $f #SetVariable Y $.
+vZ   $f #SetVariable Z $.
+vsg  $f #Symbol sg $.
+vsg1 $f #Symbol sg1 $.
+vsg2 $f #Symbol sg2 $.
+vxX  $f #Variable xX $.
+vyY  $f #Variable yY $.
+vev  $a #Variable x $.
+vsv  $a #Variable X $.
 
 $c #NoNegativeOccurrence #NoPositiveOccurrence #NoFreeOccurrence
    #NestedInApplicationOnly #Substitution $.    
