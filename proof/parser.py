@@ -11,7 +11,7 @@ def meta_info(f):
     @v_args(tree=True)
     def wrapper(self, tree):
         node = f(self, tree.children)
-        if isinstance(node, BaseAST):
+        if isinstance(node, BaseAST) and not tree.meta.empty:
             node.set_position(tree.meta.line, tree.meta.column, tree.meta.end_line, tree.meta.end_column)
         return node
     return wrapper
@@ -32,6 +32,9 @@ class ASTTransformer(Transformer):
         assert literal.startswith("\"") and literal.endswith("\"")
         return literal[1:-1]
 
+    def ml_symbols(self, args):
+        return args[0].value
+
     @meta_info
     def definition(self, args):
         attributes, *modules = args
@@ -47,16 +50,20 @@ class ASTTransformer(Transformer):
     def sentence(self, args):
         return args[0]
 
+    @meta_info
     def sort_variable(self, args):
-        return args[0]
+        return SortVariable(args[0])
 
     def sort_variables(self, args):
         return args
 
     @meta_info
     def sort(self, args):
-        sort_id, sort_arguments = args
-        return SortInstance(sort_id, sort_arguments)
+        if len(args) == 1:
+            return args[0]
+        else:
+            sort_id, sort_arguments = args
+            return SortInstance(sort_id, sort_arguments)
 
     def sorts(self, args):
         return args
@@ -134,82 +141,10 @@ class ASTTransformer(Transformer):
         symbol, sort_arguments, arguments = args
         return Application(SymbolInstance(symbol, sort_arguments), arguments)
 
-    def get_ml_pattern(self, name, args):
-        sorts = [ arg for arg in args if isinstance(arg, SortInstance) ]
-        arguments = [ arg for arg in args if isinstance(arg, Pattern) ]
-        return MLPattern(name, sorts, arguments)
-
     @meta_info
-    def ml_top_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.TOP, args)
-
-    @meta_info
-    def ml_bottom_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.BOTTOM, args)
-
-    @meta_info
-    def ml_not_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.NOT, args)
-
-    @meta_info
-    def ml_and_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.AND, args)
-
-    @meta_info
-    def ml_or_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.OR, args)
-
-    @meta_info
-    def ml_implies_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.IMPLIES, args)
-
-    @meta_info
-    def ml_iff_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.IFF, args)
-
-    @meta_info
-    def ml_exists_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.EXISTS, args)
-
-    @meta_info
-    def ml_forall_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.FORALL, args)
-
-    @meta_info
-    def ml_mu_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.MU, args)
-
-    @meta_info
-    def ml_nu_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.NU, args)
-
-    @meta_info
-    def ml_ceil_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.CEIL, args)
-
-    @meta_info
-    def ml_floor_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.FLOOR, args)
-
-    @meta_info
-    def ml_equals_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.EQUALS, args)
-
-    @meta_info
-    def ml_in_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.IN, args)
-
-    @meta_info
-    def ml_next_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.NEXT, args)
-
-    @meta_info
-    def ml_rewrites_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.REWRITES, args)
-
-    @meta_info
-    def ml_dv_pattern(self, args):
-        return self.get_ml_pattern(MLPattern.DV, args)
+    def ml_pattern(self, args):
+        symbol, sort_arguments, arguments = args
+        return MLPattern(symbol, sort_arguments, arguments)
 
 
 syntax = r"""
@@ -234,6 +169,17 @@ identifier: IDENTIFIER
 symbol_id: SYMBOL_ID | IDENTIFIER
 set_var_id: SET_VAR_ID
 string_literal: STRING_LITERAL
+
+ML_SYMBOLS.2: "\\top" | "\\bottom"
+            | "\\not" | "\\and" | "\\or" | "\\implies" | "\\iff"
+            | "\\exists" | "\\forall"
+            | "\\mu" | "\\nu"
+            | "\\ceil" | "\\floor"
+            | "\\equals" | "\\in"
+            | "\\next" | "\\rewrites"
+            | "\\dv"
+
+ml_symbols: ML_SYMBOLS
 
 // syntax
 definition: "[" attributes "]" module+
@@ -288,38 +234,16 @@ set_variable: set_var_id ":" sort
 
 application_pattern: symbol_id "{" sorts "}" "(" patterns ")"
 
-ml_pattern: "\\top" "{" sort "}"          "(" ")"                              -> ml_top_pattern
-    | "\\bottom"    "{" sort "}"          "(" ")"                              -> ml_bottom_pattern
-    | "\\not"       "{" sort "}"          "(" pattern ")"                      -> ml_not_pattern
-    | "\\and"       "{" sort "}"          "(" pattern "," pattern ")"          -> ml_and_pattern
-    | "\\or"        "{" sort "}"          "(" pattern "," pattern ")"          -> ml_or_pattern
-    | "\\implies"   "{" sort "}"          "(" pattern "," pattern ")"          -> ml_implies_pattern
-    | "\\iff"       "{" sort "}"          "(" pattern "," pattern ")"          -> ml_iff_pattern
-
-    | "\\exists"    "{" sort "}"          "(" element_variable "," pattern ")" -> ml_exists_pattern
-    | "\\forall"    "{" sort "}"          "(" element_variable "," pattern ")" -> ml_forall_pattern
-
-    | "\\mu"        "{" "}"               "(" set_variable "," pattern ")"     -> ml_mu_pattern
-    | "\\nu"        "{" "}"               "(" set_variable "," pattern ")"     -> ml_nu_pattern
-
-    | "\\ceil"      "{" sort "," sort "}" "(" pattern ")"                      -> ml_ceil_pattern
-    | "\\floor"     "{" sort "," sort "}" "(" pattern ")"                      -> ml_floor_pattern
-
-    | "\\equals"    "{" sort "," sort "}" "(" pattern "," pattern ")"          -> ml_equals_pattern
-    | "\\in"        "{" sort "," sort "}" "(" pattern "," pattern ")"          -> ml_in_pattern
-
-    | "\\next"      "{" sort "}"          "(" pattern ")"                      -> ml_next_pattern
-    | "\\rewrites"  "{" sort "}"          "(" pattern "," pattern ")"          -> ml_rewrites_pattern
-
-    | "\\dv"        "{" sort "}"          "(" STRING_LITERAL ")"               -> ml_dv_pattern
+ml_pattern: ml_symbols "{" sorts "}" "(" patterns ")"
 """
 
 
 parser = Lark(
     syntax,
     start="definition",
-    propagate_positions=True,
+    parser="lalr",
     lexer="standard",
+    propagate_positions=True,
 )
 
 

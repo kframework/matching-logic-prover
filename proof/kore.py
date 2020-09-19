@@ -21,8 +21,8 @@ class BaseAST:
 
 
 class Definition(BaseAST):
-    def __init__(self, modules: List[Module], attributes: List[Application], **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, modules: List[Module], attributes: List[Application]):
+        super().__init__()
 
         self.attributes = attributes
         self.module_map = {}
@@ -47,8 +47,8 @@ class Definition(BaseAST):
 
 
 class Module(BaseAST):
-    def __init__(self, name: str, sentences: List[Sentence], attributes: List[Application], **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, name: str, sentences: List[Sentence], attributes: List[Application]):
+        super().__init__()
         
         self.name = name
         self.attributes = attributes
@@ -118,16 +118,16 @@ class Module(BaseAST):
 
 
 class Sentence(BaseAST):
-    def __init__(self, **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self):
+        super().__init__()
 
     def resolve(self, module: Module):
         pass # nothing to resolve in default
 
 
 class ImportStatement(Sentence):
-    def __init__(self, module: Union[str, Module], attributes: List[Application], **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, module: Union[str, Module], attributes: List[Application]):
+        super().__init__()
         self.module = module
         self.attributes = attributes
 
@@ -145,8 +145,8 @@ class ImportStatement(Sentence):
 
 
 class SortDefinition(Sentence):
-    def __init__(self, sort_id: str, sort_variables: List[str], attributes: List[Application], hooked=False, **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, sort_id: str, sort_variables: List[SortVariable], attributes: List[Application], hooked=False):
+        super().__init__()
         self.sort_id = sort_id
         self.sort_variables = sort_variables
         self.attributes = attributes
@@ -157,8 +157,8 @@ class SortDefinition(Sentence):
 
 
 class SortInstance(BaseAST):
-    def __init__(self, definition: Union[str, SortDefinition], arguments: List[SortInstance], **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, definition: Union[str, SortDefinition], arguments: List[Sort]):
+        super().__init__()
         self.definition = definition
         self.arguments = arguments
 
@@ -175,21 +175,34 @@ class SortInstance(BaseAST):
 
     def __str__(self) -> str:
         sort_id = self.definition.sort_id if isinstance(self.definition, SortDefinition) else "<?" + self.definition + ">"
-        return "{}{{{}}}".format(sort_id, "\n".join(map(str, self.arguments)))
+        return "{}{{{}}}".format(sort_id, ", ".join(map(str, self.arguments)))
+
+
+class SortVariable(BaseAST):
+    def __init__(self, name: str):
+        self.name = name
+
+    def resolve(self, module: Module):
+        pass
+
+    def __str__(self) -> str:
+        return self.name
+
+
+Sort = Union[SortVariable, SortInstance]
 
 
 class SymbolDefinition(Sentence):
     def __init__(
         self,
         symbol: str,
-        sort_variables: List[str],
-        input_sorts: List[SortInstance],
-        output_sort: SortInstance,
+        sort_variables: List[SortVariable],
+        input_sorts: List[Sort],
+        output_sort: Sort,
         attributes: List[Application],
         hooked=False,
-        **ast_args,
     ):
-        super().__init__(**ast_args)
+        super().__init__()
         self.symbol = symbol
         self.sort_variables = sort_variables
         self.input_sorts = input_sorts
@@ -213,8 +226,8 @@ class SymbolDefinition(Sentence):
 
 
 class SymbolInstance(Sentence):
-    def __init__(self, definition: Union[str, SymbolDefinition], sort_arguments: List[SortInstance], **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, definition: Union[str, SymbolDefinition], sort_arguments: List[Sort]):
+        super().__init__()
         self.definition = definition
         self.sort_arguments = sort_arguments
 
@@ -231,12 +244,12 @@ class SymbolInstance(Sentence):
 
     def __str__(self) -> str:
         symbol = self.definition.symbol if isinstance(self.definition, SymbolDefinition) else "<?" + self.definition + ">"
-        return "{}{{{}}}".format(symbol, "\n".join(map(str, self.sort_arguments)))
+        return "{}{{{}}}".format(symbol, ", ".join(map(str, self.sort_arguments)))
 
 
 class Axiom(Sentence):
-    def __init__(self, sort_variables: List[str], pattern: Pattern, attributes: List[Application], is_claim=False, **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, sort_variables: List[SortVariable], pattern: Pattern, attributes: List[Application], is_claim=False):
+        super().__init__()
         self.sort_variables = sort_variables
         self.pattern = pattern
         self.attributes = attributes
@@ -246,12 +259,12 @@ class Axiom(Sentence):
         self.pattern.resolve(module)
 
     def __str__(self) -> str:
-        return "axiom {{{}}} {}".format(", ".join(self.sort_variables), self.pattern)
+        return "axiom {{{}}} {}".format(", ".join(map(str, self.sort_variables)), self.pattern)
 
 
 class AliasDefinition(Sentence):
-    def __init__(self, definition: SymbolDefinition, lhs: Application, rhs: Pattern, attributes: List[Application], **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, definition: SymbolDefinition, lhs: Application, rhs: Pattern, attributes: List[Application]):
+        super().__init__()
         self.definition = definition
         self.lhs = lhs
         self.rhs = rhs
@@ -267,16 +280,16 @@ class AliasDefinition(Sentence):
 
 
 class Pattern(BaseAST):
-    def __init__(self, **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self):
+        super().__init__()
 
     def resolve(self, module: Module):
         pass
 
 
 class Variable(Pattern):
-    def __init__(self, name: str, sort: SortInstance, is_set_variable=False, **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, name: str, sort: Sort, is_set_variable=False):
+        super().__init__()
         self.name = name
         self.sort = sort
         self.is_set_variable = is_set_variable
@@ -289,7 +302,7 @@ class Variable(Pattern):
 
 
 class StringLiteral(Pattern):
-    def __init__(self, content: str, **ast_args):
+    def __init__(self, content: str):
         self.content = content
 
     def __str__(self) -> str:
@@ -297,8 +310,8 @@ class StringLiteral(Pattern):
 
 
 class Application(Pattern):
-    def __init__(self, symbol: SymbolInstance, arguments: List[Pattern], **ast_args):
-        super().__init__(**ast_args)
+    def __init__(self, symbol: SymbolInstance, arguments: List[Pattern]):
+        super().__init__()
         self.symbol = symbol
         self.arguments = arguments
 
@@ -339,9 +352,9 @@ class MLPattern(Pattern):
 
     DV = "\\dv"
 
-    def __init__(self, symbol: str, sorts: List[SortInstance], arguments: List[Pattern], **ast_args):
-        super().__init__(**ast_args)
-        self.symbol = symbol
+    def __init__(self, construct: str, sorts: List[Sort], arguments: List[Pattern]):
+        super().__init__()
+        self.construct = construct
         self.sorts = sorts
         self.arguments = arguments
     
@@ -353,4 +366,4 @@ class MLPattern(Pattern):
             arg.resolve(module)
 
     def __str__(self) -> str:
-        return "{}{{{}}}({})".format(self.symbol, "\n".join(map(str, self.sorts)), "\n".join(map(str, self.arguments)))
+        return "{}{{{}}}({})".format(self.construct, ", ".join(map(str, self.sorts)), ", ".join(map(str, self.arguments)))
