@@ -1,4 +1,4 @@
-TANGLELUA=~/Workspace/pandoc-tangle/tangle.lua
+TANGLELUA=~/repos/pandoc-tangle/tangle.lua
 
 verify: checker.mm
 	metamath "read checker.mm" "verify proof *" "exit"
