@@ -2,30 +2,30 @@ from __future__ import annotations
 from typing import List, Union, Optional, Any
 
 
-class KORETransformer:
-    def transform_default(self, x, *args):
+class KOREVisitor:
+    def visit_default(self, x, *args):
         return x
 
     def __getattr__(self, name):
-        if name.startswith("transform_"):
-            return self.transform_default
+        if name.startswith("visit_"):
+            return self.visit_default
         else:
             raise AttributeError()
 
 
 """
-Union transfomer is used for collecting
+Union visitor is used for collecting
 information that is unioned at each node
 """
-class UnionTransfomer(KORETransformer):
-    def transform_default(self, x, *args):
+class UnionVisitor(KOREVisitor):
+    def visit_default(self, x, *args):
         union = set()
 
         for arg in args:
             if type(arg) is set:
                 union = union.union(arg)
             elif type(arg) is list:
-                union = union.union(self.transform_default(None, *arg))
+                union = union.union(self.visit_default(None, *arg))
 
         return union
 
@@ -43,7 +43,7 @@ class BaseAST:
         self.meta_end_line = end_line
         self.meta_end_column = end_column
 
-    def transform(self, transformer: KORETransformer) -> Any:
+    def visit(self, visitor: KOREVisitor) -> Any:
         raise NotImplementedError()
 
     def error_with_position(self, msg: str, *args, **kwargs):
@@ -73,9 +73,9 @@ class Definition(BaseAST):
     def get_module_by_name(self, name: str) -> Optional[Module]:
         return self.module_map.get(name)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_modules = [ module.transform(transformer) for module in self.module_map.values() ]
-        return transformer.transform_definition(self, transformed_modules)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_modules = [ module.visit(visitor) for module in self.module_map.values() ]
+        return visitor.visit_definition(self, visited_modules)
 
     def __str__(self) -> str:
         return "definition {{\n{}\n}}".format("\n".join(map(str, self.module_map.values())))
@@ -148,9 +148,9 @@ class Module(BaseAST):
         for sentence in self.all_sentences:
             sentence.resolve(self)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_sentences = [ sentence.transform(transformer) for sentence in self.all_sentences ]
-        return transformer.transform_module(self, transformed_sentences)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_sentences = [ sentence.visit(visitor) for sentence in self.all_sentences ]
+        return visitor.visit_module(self, visited_sentences)
 
     def __str__(self) -> str:
         return "module {} {{\n{}\n}}".format(self.name, "\n".join(map(str, self.all_sentences)))
@@ -178,8 +178,8 @@ class ImportStatement(Sentence):
 
             self.module = resolved_module
     
-    def transform(self, transformer: KORETransformer) -> Any:
-        return transformer.transform_import_statement(self)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        return visitor.visit_import_statement(self)
 
     def __str__(self) -> str:
         module_name = self.module.name if isinstance(self.module, Module) else "<?" + self.module + ">"
@@ -194,8 +194,8 @@ class SortDefinition(Sentence):
         self.attributes = attributes
         self.hooked = hooked
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        return transformer.transform_sort_definition(self)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        return visitor.visit_sort_definition(self)
 
     def __str__(self) -> str:
         return "sort {}({})".format(self.sort_id, ", ".join(map(str, self.sort_variables)))
@@ -218,9 +218,9 @@ class SortInstance(BaseAST):
         for arg in self.arguments:
             arg.resolve(module)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_arguments = [ arg.transform(transformer) for arg in self.arguments ]
-        return transformer.transform_sort_instance(self, transformed_arguments)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]
+        return visitor.visit_sort_instance(self, visited_arguments)
 
     def __eq__(self, other):
         if isinstance(other, SortInstance):
@@ -245,8 +245,8 @@ class SortVariable(BaseAST):
     def resolve(self, module: Module):
         pass
     
-    def transform(self, transformer: KORETransformer) -> Any:
-        return transformer.transform_sort_variable(self)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        return visitor.visit_sort_variable(self)
 
     def __eq__(self, other):
         if isinstance(other, SortVariable):
@@ -292,15 +292,15 @@ class SymbolDefinition(Sentence):
             sort.resolve(module)
         self.output_sort.resolve(module)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_sort_variables = [ var.transform(transformer) for var in self.sort_variables ]
-        transformed_input_sorts = [ sort.transform(transformer) for sort in self.input_sorts ]
-        transformed_output_sort = self.output_sort.transform(transformer)
-        return transformer.transform_symbol_definition(
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_sort_variables = [ var.visit(visitor) for var in self.sort_variables ]
+        visited_input_sorts = [ sort.visit(visitor) for sort in self.input_sorts ]
+        visited_output_sort = self.output_sort.visit(visitor)
+        return visitor.visit_symbol_definition(
             self,
-            transformed_sort_variables,
-            transformed_input_sorts,
-            transformed_output_sort,
+            visited_sort_variables,
+            visited_input_sorts,
+            visited_output_sort,
         )
 
     def __str__(self):
@@ -324,9 +324,9 @@ class SymbolInstance(Sentence):
         for arg in self.sort_arguments:
             arg.resolve(module)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_sort_arguments = [ arg.transform(transformer) for arg in self.sort_arguments ]
-        return transformer.transform_symbol_instance(self, transformed_sort_arguments)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_sort_arguments = [ arg.visit(visitor) for arg in self.sort_arguments ]
+        return visitor.visit_symbol_instance(self, visited_sort_arguments)
 
     def __str__(self) -> str:
         symbol = self.definition.symbol if isinstance(self.definition, SymbolDefinition) else "<?" + self.definition + ">"
@@ -344,10 +344,10 @@ class Axiom(Sentence):
     def resolve(self, module: Module):
         self.pattern.resolve(module)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_sort_variables = [ var.transform(transformer) for var in self.sort_variables ]
-        transformed_pattern = self.pattern.transform(transformer)
-        return transformer.transform_axiom(self, transformed_sort_variables, transformed_pattern)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_sort_variables = [ var.visit(visitor) for var in self.sort_variables ]
+        visited_pattern = self.pattern.visit(visitor)
+        return visitor.visit_axiom(self, visited_sort_variables, visited_pattern)
 
     def __str__(self) -> str:
         return "axiom {{{}}} {}".format(", ".join(map(str, self.sort_variables)), self.pattern)
@@ -372,9 +372,9 @@ class AliasDefinition(Sentence):
             assert isinstance(arg, Variable)
         return list(self.lhs.arguments)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_rhs = self.rhs.transform(transformer)
-        return transformer.transform_alias_definition(self, transformed_rhs)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_rhs = self.rhs.visit(visitor)
+        return visitor.visit_alias_definition(self, visited_rhs)
 
     def __str__(self) -> str:
         return "alias {} where {} := {}".format(self.definition, self.lhs, self.rhs)
@@ -398,8 +398,8 @@ class Variable(Pattern):
     def resolve(self, module: Module):
         self.sort.resolve(module)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        return transformer.transform_variable(self)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        return visitor.visit_variable(self)
 
     def __eq__(self, other):
         if isinstance(other, Variable):
@@ -419,8 +419,8 @@ class StringLiteral(Pattern):
     def __init__(self, content: str):
         self.content = content
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        return transformer.transform_string_literal(self)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        return visitor.visit_string_literal(self)
 
     def __str__(self) -> str:
         return "\"" + repr(self.content)[1:-1] + "\""
@@ -439,10 +439,10 @@ class Application(Pattern):
         for arg in self.arguments:
             arg.resolve(module)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_symbol = self.symbol.transform(transformer)
-        transformed_arguments = [ arg.transform(transformer) for arg in self.arguments ]
-        return transformer.transform_application(self, transformed_symbol, transformed_arguments)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_symbol = self.symbol.visit(visitor)
+        visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]
+        return visitor.visit_application(self, visited_symbol, visited_arguments)
 
     def __str__(self) -> str:
         return "{}({})".format(self.symbol, ", ".join(map(str, self.arguments)))
@@ -487,10 +487,10 @@ class MLPattern(Pattern):
         for arg in self.arguments:
             arg.resolve(module)
 
-    def transform(self, transformer: KORETransformer) -> Any:
-        transformed_sorts = [ sort.transform(transformer) for sort in self.sorts ]
-        transformed_arguments = [ arg.transform(transformer) for arg in self.arguments ]
-        return transformer.transform_ml_pattern(self, transformed_sorts, transformed_arguments)
+    def visit(self, visitor: KOREVisitor) -> Any:
+        visited_sorts = [ sort.visit(visitor) for sort in self.sorts ]
+        visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]
+        return visitor.visit_ml_pattern(self, visited_sorts, visited_arguments)
 
     def __str__(self) -> str:
         return "{}{{{}}}({})".format(self.construct, ", ".join(map(str, self.sorts)), ", ".join(map(str, self.arguments)))
