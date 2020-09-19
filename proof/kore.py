@@ -2,8 +2,28 @@ from __future__ import annotations
 from typing import List, Union, Optional
 
 
-class Definition:
-    def __init__(self, modules: List[Module], attributes: List[Application]):
+class BaseAST:
+    def __init__(self):
+        self.meta_line = None
+        self.meta_column = None
+        self.meta_end_line = None
+        self.meta_end_column = None
+
+    def set_position(self, line: int, column: int, end_line: int, end_column: int):
+        self.meta_line = line
+        self.meta_column = column
+        self.meta_end_line = end_line
+        self.meta_end_column = end_column
+
+    def error_with_position(self, msg: str, *args, **kwargs):
+        err_msg = "at line {}, column {}: {}".format(self.meta_line, self.meta_column, msg.format(*args, **kwargs))
+        raise Exception(err_msg)
+
+
+class Definition(BaseAST):
+    def __init__(self, modules: List[Module], attributes: List[Application], **ast_args):
+        super().__init__(**ast_args)
+
         self.attributes = attributes
         self.module_map = {}
 
@@ -11,9 +31,11 @@ class Definition:
             self.module_map[module.name] = module
 
     """
-    Resolves sort, symbol, alias, and module references
+    Resolves sort, symbol, alias, and module references,
+    and add circular reference for users and uses
     """
     def resolve(self):
+        # TODO: check cyclic module imports
         for module in self.module_map.values():
             module.resolve(self)
 
@@ -24,8 +46,10 @@ class Definition:
         return "definition {{\n{}\n}}".format("\n".join(map(str, self.module_map.values())))
 
 
-class Module:
-    def __init__(self, name: str, sentences: List[Sentence], attributes: List[Application]):
+class Module(BaseAST):
+    def __init__(self, name: str, sentences: List[Sentence], attributes: List[Application], **ast_args):
+        super().__init__(**ast_args)
+        
         self.name = name
         self.attributes = attributes
         self.all_sentences = sentences
@@ -53,17 +77,38 @@ class Module:
                 raise Exception("unknown sentence type {}".format(type(sentence)))
 
     def get_sort_by_id(self, sort_id: str) -> Optional[SortDefinition]:
-        return self.sort_map.get(sort_id)
+        if sort_id in self.sort_map:
+            return self.sort_map[sort_id]
+
+        # check imported modules
+        for import_stmt in self.imports:
+            found = import_stmt.module.get_sort_by_id(sort_id)
+            if found is not None:
+                return found
+
+        return None
 
     def get_symbol_by_name(self, symbol: str) -> Optional[SymbolDefinition]:
         if symbol in self.symbol_map:
             return self.symbol_map[symbol]
         elif symbol in self.alias_map:
             return self.alias_map[symbol].definition
+
+        # check imported modules
+        for import_stmt in self.imports:
+            found = import_stmt.module.get_symbol_by_name(symbol)
+            if found is not None:
+                return found
+
         return None
 
     def resolve(self, definition: Definition):
         self.parent = definition
+
+        # resolve import statements first
+        # since other references may depend on it
+        for import_stmt in self.imports:
+            import_stmt.resolve(self)
 
         for sentence in self.all_sentences:
             sentence.resolve(self)
@@ -72,21 +117,26 @@ class Module:
         return "module {} {{\n{}\n}}".format(self.name, "\n".join(map(str, self.all_sentences)))
 
 
-class Sentence:
+class Sentence(BaseAST):
+    def __init__(self, **ast_args):
+        super().__init__(**ast_args)
+
     def resolve(self, module: Module):
         pass # nothing to resolve in default
 
 
 class ImportStatement(Sentence):
-    def __init__(self, module: Union[str, Module], attributes: List[Application]):
-        super().__init__()
+    def __init__(self, module: Union[str, Module], attributes: List[Application], **ast_args):
+        super().__init__(**ast_args)
         self.module = module
         self.attributes = attributes
 
     def resolve(self, module: Module):
         if type(self.module) is str:
             resolved_module = module.parent.get_module_by_name(self.module)
-            assert resolved_module is not None, "unable to resolve module reference: {}".format(self.module)
+            if resolved_module is None:
+                self.error_with_position("unable to find module {}", self.module)
+
             self.module = resolved_module
     
     def __str__(self) -> str:
@@ -95,8 +145,8 @@ class ImportStatement(Sentence):
 
 
 class SortDefinition(Sentence):
-    def __init__(self, sort_id: str, sort_variables: List[str], attributes: List[Application], hooked=False):
-        super().__init__()
+    def __init__(self, sort_id: str, sort_variables: List[str], attributes: List[Application], hooked=False, **ast_args):
+        super().__init__(**ast_args)
         self.sort_id = sort_id
         self.sort_variables = sort_variables
         self.attributes = attributes
@@ -106,15 +156,18 @@ class SortDefinition(Sentence):
         return "sort {}({})".format(self.sort_id, ", ".join(map(str, self.sort_variables)))
 
 
-class SortInstance:
-    def __init__(self, definition: Union[str, SortDefinition], arguments: List[SortInstance]):
+class SortInstance(BaseAST):
+    def __init__(self, definition: Union[str, SortDefinition], arguments: List[SortInstance], **ast_args):
+        super().__init__(**ast_args)
         self.definition = definition
         self.arguments = arguments
 
     def resolve(self, module: Module):
         if type(self.definition) is str:
             resloved_definition = module.get_sort_by_id(self.definition)
-            assert resloved_definition is not None, "unable to find sort reference: {}".format(self.definition)
+            if resloved_definition is None:
+                self.error_with_position("unable to find sort {}", self.definition)
+
             self.definition = resloved_definition
 
         for arg in self.arguments:
@@ -134,14 +187,20 @@ class SymbolDefinition(Sentence):
         output_sort: SortInstance,
         attributes: List[Application],
         hooked=False,
+        **ast_args,
     ):
-        super().__init__()
+        super().__init__(**ast_args)
         self.symbol = symbol
         self.sort_variables = sort_variables
         self.input_sorts = input_sorts
         self.output_sort = output_sort
         self.attributes = attributes
         self.hooked = hooked
+
+        self.users = set() # a set of patterns that uses this symbol
+
+    def add_user(self, user: Pattern):
+        self.users.add(user)
 
     def resolve(self, module: Module):
         # resolve input and output sorts
@@ -154,15 +213,17 @@ class SymbolDefinition(Sentence):
 
 
 class SymbolInstance(Sentence):
-    def __init__(self, definition: Union[str, SymbolDefinition], sort_arguments: List[SortInstance]):
-        super().__init__()
+    def __init__(self, definition: Union[str, SymbolDefinition], sort_arguments: List[SortInstance], **ast_args):
+        super().__init__(**ast_args)
         self.definition = definition
         self.sort_arguments = sort_arguments
 
     def resolve(self, module: Module):
         if type(self.definition) is str:
             resolved_definition = module.get_symbol_by_name(self.definition)
-            assert resolved_definition is not None, "unable to find symbol: {}".format(self.definition)
+            if resolved_definition is None:
+                self.error_with_position("unable to find symbol {}", self.definition)
+
             self.definition = resolved_definition
 
         for arg in self.sort_arguments:
@@ -174,8 +235,8 @@ class SymbolInstance(Sentence):
 
 
 class Axiom(Sentence):
-    def __init__(self, sort_variables: List[str], pattern: Pattern, attributes: List[Application], is_claim=False):
-        super().__init__()
+    def __init__(self, sort_variables: List[str], pattern: Pattern, attributes: List[Application], is_claim=False, **ast_args):
+        super().__init__(**ast_args)
         self.sort_variables = sort_variables
         self.pattern = pattern
         self.attributes = attributes
@@ -189,8 +250,8 @@ class Axiom(Sentence):
 
 
 class AliasDefinition(Sentence):
-    def __init__(self, definition: SymbolDefinition, lhs: Application, rhs: Pattern, attributes: List[Application]):
-        super().__init__()
+    def __init__(self, definition: SymbolDefinition, lhs: Application, rhs: Pattern, attributes: List[Application], **ast_args):
+        super().__init__(**ast_args)
         self.definition = definition
         self.lhs = lhs
         self.rhs = rhs
@@ -205,13 +266,17 @@ class AliasDefinition(Sentence):
         return "alias {} where {} := {}".format(self.definition, self.lhs, self.rhs)
 
 
-class Pattern:
+class Pattern(BaseAST):
+    def __init__(self, **ast_args):
+        super().__init__(**ast_args)
+
     def resolve(self, module: Module):
         pass
 
 
 class Variable(Pattern):
-    def __init__(self, name: str, sort: SortInstance, is_set_variable=False):
+    def __init__(self, name: str, sort: SortInstance, is_set_variable=False, **ast_args):
+        super().__init__(**ast_args)
         self.name = name
         self.sort = sort
         self.is_set_variable = is_set_variable
@@ -224,7 +289,7 @@ class Variable(Pattern):
 
 
 class StringLiteral(Pattern):
-    def __init__(self, content: str):
+    def __init__(self, content: str, **ast_args):
         self.content = content
 
     def __str__(self) -> str:
@@ -232,12 +297,15 @@ class StringLiteral(Pattern):
 
 
 class Application(Pattern):
-    def __init__(self, symbol: SymbolInstance, arguments: List[Pattern]):
+    def __init__(self, symbol: SymbolInstance, arguments: List[Pattern], **ast_args):
+        super().__init__(**ast_args)
         self.symbol = symbol
         self.arguments = arguments
 
     def resolve(self, module: Module):
         self.symbol.resolve(module)
+        self.symbol.definition.add_user(self)
+
         for arg in self.arguments:
             arg.resolve(module)
 
@@ -271,7 +339,8 @@ class MLPattern(Pattern):
 
     DV = "\\dv"
 
-    def __init__(self, symbol: str, sorts: List[SortInstance], arguments: List[Pattern]):
+    def __init__(self, symbol: str, sorts: List[SortInstance], arguments: List[Pattern], **ast_args):
+        super().__init__(**ast_args)
         self.symbol = symbol
         self.sorts = sorts
         self.arguments = arguments

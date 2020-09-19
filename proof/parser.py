@@ -1,5 +1,20 @@
 from lark import Lark, Transformer
+from lark.visitors import v_args
 from .kore import *
+
+
+"""
+A decorator to attach extra info on each
+AST node when doing tranformation
+"""
+def meta_info(f):
+    @v_args(tree=True)
+    def wrapper(self, tree):
+        node = f(self, tree.children)
+        if isinstance(node, BaseAST):
+            node.set_position(tree.meta.line, tree.meta.column, tree.meta.end_line, tree.meta.end_column)
+        return node
+    return wrapper
 
 
 class ASTTransformer(Transformer):
@@ -17,10 +32,12 @@ class ASTTransformer(Transformer):
         assert literal.startswith("\"") and literal.endswith("\"")
         return literal[1:-1]
 
+    @meta_info
     def definition(self, args):
         attributes, *modules = args
         return Definition(modules, attributes)
 
+    @meta_info
     def module(self, args):
         name = args[0]
         sentences = args[1:-1]
@@ -36,6 +53,7 @@ class ASTTransformer(Transformer):
     def sort_variables(self, args):
         return args
 
+    @meta_info
     def sort(self, args):
         sort_id, sort_arguments = args
         return SortInstance(sort_id, sort_arguments)
@@ -43,35 +61,48 @@ class ASTTransformer(Transformer):
     def sorts(self, args):
         return args
 
+    def attribute(self, args):
+        return args[0]
+
+    def attributes(self, args):
+        return args
+
+    @meta_info
     def sort_definition(self, args):
         sort_id, sort_vars, attributes = args
         return SortDefinition(sort_id, sort_vars, attributes, hooked=False)
 
+    @meta_info
     def hooked_sort_definition(self, args):
         sort_id, sort_vars, attributes = args
         return SortDefinition(sort_id, sort_vars, attributes, hooked=True)
 
+    @meta_info
     def symbol_definition(self, args):
         symbol, sort_variables, input_sorts, output_sort, attributes = args
         return SymbolDefinition(symbol, sort_variables, input_sorts, output_sort, attributes, hooked=False)
 
+    @meta_info
     def hooked_symbol_definition(self, args):
         symbol, sort_variables, input_sorts, output_sort, attributes = args
         return SymbolDefinition(symbol, sort_variables, input_sorts, output_sort, attributes, hooked=True)
 
+    @meta_info
     def axiom(self, args):
         sort_variables, pattern, attributes = args
         return Axiom(sort_variables, pattern, attributes, is_claim=False)
 
+    @meta_info
     def claim(self, args):
         sort_variables, pattern, attributes = args
         return Axiom(sort_variables, pattern, attributes, is_claim=True)
 
+    @meta_info
     def import_statement(self, args):
         module_name, attributes = args
         return ImportStatement(module_name, attributes)
 
-    # alias_definition: "alias" SYMBOL_ID "{" sort_variables "}" "(" sorts ")" ":" sort "where" application_pattern ":=" pattern "[" attributes "]"
+    @meta_info
     def alias_definition(self, args):
         symbol, sort_variables, input_sorts, output_sort, lhs, rhs, attributes = args
         definition = SymbolDefinition(symbol, sort_variables, input_sorts, output_sort, [], hooked=False)
@@ -84,17 +115,21 @@ class ASTTransformer(Transformer):
     def patterns(self, args):
         return args
 
+    @meta_info
     def string_literal_pattern(self, args):
         return StringLiteral(args[0])
 
+    @meta_info
     def element_variable(self, args):
         name, sort = args
         return Variable(name, sort, is_set_variable=False)
 
+    @meta_info
     def set_variable(self, args):
         name, sort = args
         return Variable(name, sort, is_set_variable=True)
 
+    @meta_info
     def application_pattern(self, args):
         symbol, sort_arguments, arguments = args
         return Application(SymbolInstance(symbol, sort_arguments), arguments)
@@ -104,57 +139,75 @@ class ASTTransformer(Transformer):
         arguments = [ arg for arg in args if isinstance(arg, Pattern) ]
         return MLPattern(name, sorts, arguments)
 
+    @meta_info
     def ml_top_pattern(self, args):
         return self.get_ml_pattern(MLPattern.TOP, args)
 
+    @meta_info
     def ml_bottom_pattern(self, args):
         return self.get_ml_pattern(MLPattern.BOTTOM, args)
 
+    @meta_info
     def ml_not_pattern(self, args):
         return self.get_ml_pattern(MLPattern.NOT, args)
 
+    @meta_info
     def ml_and_pattern(self, args):
         return self.get_ml_pattern(MLPattern.AND, args)
 
+    @meta_info
     def ml_or_pattern(self, args):
         return self.get_ml_pattern(MLPattern.OR, args)
 
+    @meta_info
     def ml_implies_pattern(self, args):
         return self.get_ml_pattern(MLPattern.IMPLIES, args)
 
+    @meta_info
     def ml_iff_pattern(self, args):
         return self.get_ml_pattern(MLPattern.IFF, args)
 
+    @meta_info
     def ml_exists_pattern(self, args):
         return self.get_ml_pattern(MLPattern.EXISTS, args)
 
+    @meta_info
     def ml_forall_pattern(self, args):
         return self.get_ml_pattern(MLPattern.FORALL, args)
 
+    @meta_info
     def ml_mu_pattern(self, args):
         return self.get_ml_pattern(MLPattern.MU, args)
 
+    @meta_info
     def ml_nu_pattern(self, args):
         return self.get_ml_pattern(MLPattern.NU, args)
 
+    @meta_info
     def ml_ceil_pattern(self, args):
         return self.get_ml_pattern(MLPattern.CEIL, args)
 
+    @meta_info
     def ml_floor_pattern(self, args):
         return self.get_ml_pattern(MLPattern.FLOOR, args)
 
+    @meta_info
     def ml_equals_pattern(self, args):
         return self.get_ml_pattern(MLPattern.EQUALS, args)
 
+    @meta_info
     def ml_in_pattern(self, args):
         return self.get_ml_pattern(MLPattern.IN, args)
 
+    @meta_info
     def ml_next_pattern(self, args):
         return self.get_ml_pattern(MLPattern.NEXT, args)
 
+    @meta_info
     def ml_rewrites_pattern(self, args):
         return self.get_ml_pattern(MLPattern.REWRITES, args)
 
+    @meta_info
     def ml_dv_pattern(self, args):
         return self.get_ml_pattern(MLPattern.DV, args)
 
@@ -262,8 +315,14 @@ ml_pattern: "\\top" "{" sort "}"          "(" ")"                              -
 """
 
 
-parser = Lark(syntax, start="definition", parser="lalr", lexer="standard", transformer=ASTTransformer())
+parser = Lark(
+    syntax,
+    start="definition",
+    propagate_positions=True,
+    lexer="standard",
+)
 
 
 def parse(src: str) -> Definition:
-    return parser.parse(src)
+    tree = parser.parse(src)
+    return ASTTransformer().transform(tree)
