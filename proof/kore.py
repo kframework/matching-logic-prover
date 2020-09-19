@@ -1,5 +1,33 @@
 from __future__ import annotations
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Any
+
+
+class KORETransformer:
+    def transform_default(self, x, *args):
+        return x
+
+    def __getattr__(self, name):
+        if name.startswith("transform_"):
+            return self.transform_default
+        else:
+            raise AttributeError()
+
+
+"""
+Union transfomer is used for collecting
+information that is unioned at each node
+"""
+class UnionTransfomer(KORETransformer):
+    def transform_default(self, x, *args):
+        union = set()
+
+        for arg in args:
+            if type(arg) is set:
+                union = union.union(arg)
+            elif type(arg) is list:
+                union = union.union(self.transform_default(None, *arg))
+
+        return union
 
 
 class BaseAST:
@@ -14,6 +42,9 @@ class BaseAST:
         self.meta_column = column
         self.meta_end_line = end_line
         self.meta_end_column = end_column
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        raise NotImplementedError()
 
     def error_with_position(self, msg: str, *args, **kwargs):
         err_msg = "at line {}, column {}: {}".format(self.meta_line, self.meta_column, msg.format(*args, **kwargs))
@@ -41,6 +72,10 @@ class Definition(BaseAST):
 
     def get_module_by_name(self, name: str) -> Optional[Module]:
         return self.module_map.get(name)
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_modules = [ module.transform(transformer) for module in self.module_map.values() ]
+        return transformer.transform_definition(self, transformed_modules)
 
     def __str__(self) -> str:
         return "definition {{\n{}\n}}".format("\n".join(map(str, self.module_map.values())))
@@ -113,6 +148,10 @@ class Module(BaseAST):
         for sentence in self.all_sentences:
             sentence.resolve(self)
 
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_sentences = [ sentence.transform(transformer) for sentence in self.all_sentences ]
+        return transformer.transform_module(self, transformed_sentences)
+
     def __str__(self) -> str:
         return "module {} {{\n{}\n}}".format(self.name, "\n".join(map(str, self.all_sentences)))
 
@@ -139,6 +178,9 @@ class ImportStatement(Sentence):
 
             self.module = resolved_module
     
+    def transform(self, transformer: KORETransformer) -> Any:
+        return transformer.transform_import_statement(self)
+
     def __str__(self) -> str:
         module_name = self.module.name if isinstance(self.module, Module) else "<?" + self.module + ">"
         return "import {}".format(module_name)
@@ -151,6 +193,9 @@ class SortDefinition(Sentence):
         self.sort_variables = sort_variables
         self.attributes = attributes
         self.hooked = hooked
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        return transformer.transform_sort_definition(self)
 
     def __str__(self) -> str:
         return "sort {}({})".format(self.sort_id, ", ".join(map(str, self.sort_variables)))
@@ -173,6 +218,21 @@ class SortInstance(BaseAST):
         for arg in self.arguments:
             arg.resolve(module)
 
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_arguments = [ arg.transform(transformer) for arg in self.arguments ]
+        return transformer.transform_sort_instance(self, transformed_arguments)
+
+    def __eq__(self, other):
+        if isinstance(other, SortInstance):
+            # if self.definition is str, then this comparison is correct
+            # if self.definition has been resolved to the actual definition
+            # then it should be unique across the entire KORE definition
+            return self.definition == other.definition
+        return False
+
+    def __hash__(self):
+        return hash(self.definition) ^ hash(self.arguments)
+
     def __str__(self) -> str:
         sort_id = self.definition.sort_id if isinstance(self.definition, SortDefinition) else "<?" + self.definition + ">"
         return "{}{{{}}}".format(sort_id, ", ".join(map(str, self.arguments)))
@@ -184,6 +244,17 @@ class SortVariable(BaseAST):
 
     def resolve(self, module: Module):
         pass
+    
+    def transform(self, transformer: KORETransformer) -> Any:
+        return transformer.transform_sort_variable(self)
+
+    def __eq__(self, other):
+        if isinstance(other, SortVariable):
+            return self.name == other.name
+        return False
+
+    def __hash__(self):
+        return hash(self.name)
 
     def __str__(self) -> str:
         return self.name
@@ -221,6 +292,17 @@ class SymbolDefinition(Sentence):
             sort.resolve(module)
         self.output_sort.resolve(module)
 
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_sort_variables = [ var.transform(transformer) for var in self.sort_variables ]
+        transformed_input_sorts = [ sort.transform(transformer) for sort in self.input_sorts ]
+        transformed_output_sort = self.output_sort.transform(transformer)
+        return transformer.transform_symbol_definition(
+            self,
+            transformed_sort_variables,
+            transformed_input_sorts,
+            transformed_output_sort,
+        )
+
     def __str__(self):
         return "symbol {}({}): {}".format(self.symbol, ", ".join(map(str, self.input_sorts)), self.output_sort)
 
@@ -242,6 +324,10 @@ class SymbolInstance(Sentence):
         for arg in self.sort_arguments:
             arg.resolve(module)
 
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_sort_arguments = [ arg.transform(transformer) for arg in self.sort_arguments ]
+        return transformer.transform_symbol_instance(self, transformed_sort_arguments)
+
     def __str__(self) -> str:
         symbol = self.definition.symbol if isinstance(self.definition, SymbolDefinition) else "<?" + self.definition + ">"
         return "{}{{{}}}".format(symbol, ", ".join(map(str, self.sort_arguments)))
@@ -257,6 +343,11 @@ class Axiom(Sentence):
 
     def resolve(self, module: Module):
         self.pattern.resolve(module)
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_sort_variables = [ var.transform(transformer) for var in self.sort_variables ]
+        transformed_pattern = self.pattern.transform(transformer)
+        return transformer.transform_axiom(self, transformed_sort_variables, transformed_pattern)
 
     def __str__(self) -> str:
         return "axiom {{{}}} {}".format(", ".join(map(str, self.sort_variables)), self.pattern)
@@ -274,6 +365,16 @@ class AliasDefinition(Sentence):
         self.definition.resolve(module)
         self.lhs.resolve(module)
         self.rhs.resolve(module)
+
+    def get_lhs_variables(self) -> List[Variable]:
+        assert isinstance(self.lhs, Application)
+        for arg in self.lhs.arguments:
+            assert isinstance(arg, Variable)
+        return list(self.lhs.arguments)
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_rhs = self.rhs.transform(transformer)
+        return transformer.transform_alias_definition(self, transformed_rhs)
 
     def __str__(self) -> str:
         return "alias {} where {} := {}".format(self.definition, self.lhs, self.rhs)
@@ -297,6 +398,19 @@ class Variable(Pattern):
     def resolve(self, module: Module):
         self.sort.resolve(module)
 
+    def transform(self, transformer: KORETransformer) -> Any:
+        return transformer.transform_variable(self)
+
+    def __eq__(self, other):
+        if isinstance(other, Variable):
+            return (self.name == other.name and
+                    self.is_set_variable == other.is_set_variable and
+                    self.sort == other.sort)
+        return False
+
+    def __hash__(self):
+        return hash(self.name)
+
     def __str__(self) -> str:
         return "{}:{}".format(self.name, self.sort)
 
@@ -304,6 +418,9 @@ class Variable(Pattern):
 class StringLiteral(Pattern):
     def __init__(self, content: str):
         self.content = content
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        return transformer.transform_string_literal(self)
 
     def __str__(self) -> str:
         return "\"" + repr(self.content)[1:-1] + "\""
@@ -321,6 +438,11 @@ class Application(Pattern):
 
         for arg in self.arguments:
             arg.resolve(module)
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_symbol = self.symbol.transform(transformer)
+        transformed_arguments = [ arg.transform(transformer) for arg in self.arguments ]
+        return transformer.transform_application(self, transformed_symbol, transformed_arguments)
 
     def __str__(self) -> str:
         return "{}({})".format(self.symbol, ", ".join(map(str, self.arguments)))
@@ -364,6 +486,11 @@ class MLPattern(Pattern):
 
         for arg in self.arguments:
             arg.resolve(module)
+
+    def transform(self, transformer: KORETransformer) -> Any:
+        transformed_sorts = [ sort.transform(transformer) for sort in self.sorts ]
+        transformed_arguments = [ arg.transform(transformer) for arg in self.arguments ]
+        return transformer.transform_ml_pattern(self, transformed_sorts, transformed_arguments)
 
     def __str__(self) -> str:
         return "{}{{{}}}({})".format(self.construct, ", ".join(map(str, self.sorts)), ", ".join(map(str, self.arguments)))
