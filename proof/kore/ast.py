@@ -39,12 +39,13 @@ class UnionVisitor(KOREVisitor):
 
 
 class BaseAST:
-    def __init__(self):
+    def __init__(self, attributes: List[Application]=[]):
         self.meta_line = None
         self.meta_column = None
         self.meta_end_line = None
         self.meta_end_column = None
         self.meta_parent = None
+        self.attributes = attributes
 
     def set_position(self, line: int, column: int, end_line: int, end_column: int):
         self.meta_line = line
@@ -63,6 +64,13 @@ class BaseAST:
     def set_parent(self, parent: BaseAST):
         self.meta_parent = parent
 
+    def get_attribute_by_symbol(self, symbol: str) -> Optional[Application]:
+        for attr in self.attributes:
+            # here we are assuming all attribute symbols are unresolved
+            if attr.symbol.definition == symbol:
+                return attr
+        return None
+
     def error_with_position(self, msg: str, *args, **kwargs):
         err_msg = "at line {}, column {}: {}".format(self.meta_line, self.meta_column, msg.format(*args, **kwargs))
         raise Exception(err_msg)
@@ -70,9 +78,8 @@ class BaseAST:
 
 class Definition(BaseAST):
     def __init__(self, modules: List[Module], attributes: List[Application]):
-        super().__init__()
+        super().__init__(attributes)
 
-        self.attributes = attributes
         self.module_map = {}
 
         for module in modules:
@@ -102,10 +109,9 @@ class Definition(BaseAST):
 
 class Module(BaseAST):
     def __init__(self, name: str, sentences: List[Sentence], attributes: List[Application]):
-        super().__init__()
+        super().__init__(attributes)
         
         self.name = name
-        self.attributes = attributes
         self.all_sentences = sentences
 
         # sort out different sentences
@@ -192,8 +198,8 @@ class Module(BaseAST):
 
 
 class Sentence(BaseAST):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, attributes=[]):
+        super().__init__(attributes)
 
     def resolve(self, module: Module):
         pass # nothing to resolve in default
@@ -201,9 +207,8 @@ class Sentence(BaseAST):
 
 class ImportStatement(Sentence):
     def __init__(self, module: Union[str, Module], attributes: List[Application]):
-        super().__init__()
+        super().__init__(attributes)
         self.module = module
-        self.attributes = attributes
 
     def resolve(self, module: Module):
         if type(self.module) is str:
@@ -224,10 +229,9 @@ class ImportStatement(Sentence):
 
 class SortDefinition(Sentence):
     def __init__(self, sort_id: str, sort_variables: List[SortVariable], attributes: List[Application], hooked=False):
-        super().__init__()
+        super().__init__(attributes)
         self.sort_id = sort_id
         self.sort_variables = sort_variables
-        self.attributes = attributes
         self.hooked = hooked
 
     def visit(self, visitor: KOREVisitor) -> Any:
@@ -312,12 +316,11 @@ class SymbolDefinition(Sentence):
         attributes: List[Application],
         hooked=False,
     ):
-        super().__init__()
+        super().__init__(attributes)
         self.symbol = symbol
         self.sort_variables = sort_variables
         self.input_sorts = input_sorts
         self.output_sort = output_sort
-        self.attributes = attributes
         self.hooked = hooked
 
         self.users = set() # a set of patterns that uses this symbol
@@ -376,10 +379,9 @@ class SymbolInstance(Sentence):
 
 class Axiom(Sentence):
     def __init__(self, sort_variables: List[SortVariable], pattern: Pattern, attributes: List[Application], is_claim=False):
-        super().__init__()
+        super().__init__(attributes)
         self.sort_variables = sort_variables
         self.pattern = pattern
-        self.attributes = attributes
         self.is_claim = is_claim
 
     def resolve(self, module: Module):
@@ -398,11 +400,10 @@ class Axiom(Sentence):
 
 class AliasDefinition(Sentence):
     def __init__(self, definition: SymbolDefinition, lhs: Application, rhs: Pattern, attributes: List[Application]):
-        super().__init__()
+        super().__init__(attributes)
         self.definition = definition
         self.lhs = lhs
         self.rhs = rhs
-        self.attributes = attributes
 
     def resolve(self, module: Module):
         self.definition.set_parent(self)

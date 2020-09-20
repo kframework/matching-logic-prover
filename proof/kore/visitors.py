@@ -1,6 +1,6 @@
 from typing import Set, List, Dict
 
-from proof.kore import *
+from .ast import *
 
 
 """

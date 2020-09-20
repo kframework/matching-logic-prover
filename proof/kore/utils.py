@@ -1,4 +1,4 @@
-from .kore import *
+from .ast import *
 from .visitors import VariableAssignmentVisitor, CopyVisitor
 
 """

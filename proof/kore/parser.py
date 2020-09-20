@@ -1,6 +1,6 @@
 from lark import Lark, Transformer
 from lark.visitors import v_args
-from .kore import *
+from .ast import *
 
 
 """
