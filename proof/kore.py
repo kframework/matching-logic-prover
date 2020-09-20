@@ -44,6 +44,7 @@ class BaseAST:
         self.meta_column = None
         self.meta_end_line = None
         self.meta_end_column = None
+        self.meta_parent = None
 
     def set_position(self, line: int, column: int, end_line: int, end_column: int):
         self.meta_line = line
@@ -53,6 +54,14 @@ class BaseAST:
 
     def visit(self, visitor: KOREVisitor) -> Any:
         raise NotImplementedError()
+
+    def get_parent(self) -> BaseAST:
+        if self.meta_parent is None:
+            self.error_with_position("does not have a parent")
+        return self.meta_parent
+
+    def set_parent(self, parent: BaseAST):
+        self.meta_parent = parent
 
     def error_with_position(self, msg: str, *args, **kwargs):
         err_msg = "at line {}, column {}: {}".format(self.meta_line, self.meta_column, msg.format(*args, **kwargs))
@@ -71,11 +80,12 @@ class Definition(BaseAST):
 
     """
     Resolves sort, symbol, alias, and module references,
-    and add circular reference for users and uses
+    and add circular reference for users and uses, parents and chlidren
     """
     def resolve(self):
         # TODO: check cyclic module imports
         for module in self.module_map.values():
+            module.set_parent(self)
             module.resolve(self)
 
     def get_module_by_name(self, name: str) -> Optional[Module]:
@@ -97,7 +107,6 @@ class Module(BaseAST):
         self.name = name
         self.attributes = attributes
         self.all_sentences = sentences
-        self.parent = None
 
         # sort out different sentences
         self.imports = set()
@@ -146,8 +155,24 @@ class Module(BaseAST):
 
         return None
 
+    def remove_sentence(self, sentence: Sentence):
+        assert sentence in self.all_sentences
+        self.all_sentences.remove(sentence)
+
+        if isinstance(sentence, ImportStatement):
+            self.imports.remove(sentence)
+        elif isinstance(sentence, SortDefinition):
+            del self.sort_map[sentence.sort_id]
+        elif isinstance(sentence, SymbolDefinition):
+            del self.symbol_map[sentence.symbol]
+        elif isinstance(sentence, AliasDefinition):
+            del self.alias_map[sentence.definition.symbol]
+        elif isinstance(sentence, Axiom):
+            self.axioms.remove(sentence)
+
     def resolve(self, definition: Definition):
-        self.parent = definition
+        for sentence in self.all_sentences:
+            sentence.set_parent(self)
 
         # resolve import statements first
         # since other references may depend on it
@@ -182,7 +207,7 @@ class ImportStatement(Sentence):
 
     def resolve(self, module: Module):
         if type(self.module) is str:
-            resolved_module = module.parent.get_module_by_name(self.module)
+            resolved_module = module.get_parent().get_module_by_name(self.module)
             if resolved_module is None:
                 self.error_with_position("unable to find module {}", self.module)
 
@@ -358,6 +383,7 @@ class Axiom(Sentence):
         self.is_claim = is_claim
 
     def resolve(self, module: Module):
+        self.pattern.set_parent(self)
         self.pattern.resolve(module)
 
     def visit(self, visitor: KOREVisitor) -> Any:
@@ -379,6 +405,10 @@ class AliasDefinition(Sentence):
         self.attributes = attributes
 
     def resolve(self, module: Module):
+        self.definition.set_parent(self)
+        self.lhs.set_parent(self)
+        self.rhs.set_parent(self)
+
         self.definition.resolve(module)
         self.lhs.resolve(module)
         self.rhs.resolve(module)
@@ -418,7 +448,8 @@ class Variable(Pattern):
 
     def visit(self, visitor: KOREVisitor) -> Any:
         visitor.before_visiting_variable(self)
-        return visitor.visit_variable(self)
+        visited_sort = self.sort.visit(visitor)
+        return visitor.visit_variable(self, visited_sort)
 
     def __eq__(self, other):
         if isinstance(other, Variable):
@@ -453,10 +484,12 @@ class Application(Pattern):
         self.arguments = arguments
 
     def resolve(self, module: Module):
+        self.symbol.set_parent(self)
         self.symbol.resolve(module)
         self.symbol.definition.add_user(self)
 
         for arg in self.arguments:
+            arg.set_parent(self)
             arg.resolve(module)
 
     def visit(self, visitor: KOREVisitor) -> Any:
@@ -506,6 +539,7 @@ class MLPattern(Pattern):
             sort.resolve(module)
 
         for arg in self.arguments:
+            arg.set_parent(self)
             arg.resolve(module)
 
     def is_binder(self) -> bool:
@@ -517,7 +551,6 @@ class MLPattern(Pattern):
             return self.arguments[0]
         else:
             return None
-
 
     def visit(self, visitor: KOREVisitor) -> Any:
         visitor.before_visiting_ml_pattern(self)

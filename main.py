@@ -5,6 +5,7 @@ import argparse
 from proof.parser import parse
 from proof.visitors import FreeVariableVisitor, VariableAssignmentVisitor
 from proof.kore import StringLiteral
+from proof.utils import KOREUtils
 
 
 if __name__ == "__main__":
@@ -21,8 +22,11 @@ if __name__ == "__main__":
         fvs = definition.visit(FreeVariableVisitor())
         print("free variables:", ", ".join(map(str, fvs)))
 
-        assignment = { fv: StringLiteral("variable: {}".format(fv.name)) for fv in fvs }
-        definition.visit(VariableAssignmentVisitor(assignment))
+        # assignment = { fv: StringLiteral("variable: {}".format(fv.name)) for fv in fvs }
+        # definition.visit(VariableAssignmentVisitor(assignment))
+
+        for module in definition.module_map.values():
+            KOREUtils.instantiate_all_alias_uses(module)
 
         # print(definition.get_module_by_name("FOO").get_symbol_by_name("id").users)
         print(definition)
