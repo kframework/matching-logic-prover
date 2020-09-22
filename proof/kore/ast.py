@@ -3,9 +3,9 @@ from typing import List, Union, Optional, Any
 
 
 """
-Visits a KORE AST in post-order traversal
+Visits a Kore AST in post-order traversal
 """
-class KOREVisitor:
+class KoreVisitor:
     def visit_default(self, x, *args):
         return x
 
@@ -25,7 +25,7 @@ class KOREVisitor:
 Union visitor is used for collecting
 information that is unioned at each node
 """
-class UnionVisitor(KOREVisitor):
+class UnionVisitor(KoreVisitor):
     def visit_default(self, x, *args):
         union = set()
 
@@ -53,7 +53,7 @@ class BaseAST:
         self.meta_end_line = end_line
         self.meta_end_column = end_column
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         raise NotImplementedError()
 
     def get_parent(self) -> BaseAST:
@@ -98,7 +98,7 @@ class Definition(BaseAST):
     def get_module_by_name(self, name: str) -> Optional[Module]:
         return self.module_map.get(name)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_definition(self)
         visited_modules = [ module.visit(visitor) for module in self.module_map.values() ]
         return visitor.visit_definition(self, visited_modules)
@@ -188,7 +188,7 @@ class Module(BaseAST):
         for sentence in self.all_sentences:
             sentence.resolve(self)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_module(self)
         visited_sentences = [ sentence.visit(visitor) for sentence in self.all_sentences ]
         return visitor.visit_module(self, visited_sentences)
@@ -218,7 +218,7 @@ class ImportStatement(Sentence):
 
             self.module = resolved_module
     
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_import_statement(self)
         return visitor.visit_import_statement(self)
 
@@ -234,7 +234,7 @@ class SortDefinition(Sentence):
         self.sort_variables = sort_variables
         self.hooked = hooked
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_sort_definition(self)
         return visitor.visit_sort_definition(self)
 
@@ -259,7 +259,7 @@ class SortInstance(BaseAST):
         for arg in self.arguments:
             arg.resolve(module)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_sort_instance(self)
         visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]
         return visitor.visit_sort_instance(self, visited_arguments)
@@ -287,7 +287,7 @@ class SortVariable(BaseAST):
     def resolve(self, module: Module):
         pass
     
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_sort_variable(self)
         return visitor.visit_sort_variable(self)
 
@@ -334,7 +334,7 @@ class SymbolDefinition(Sentence):
             sort.resolve(module)
         self.output_sort.resolve(module)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_symbol_definition(self)
         visited_sort_variables = [ var.visit(visitor) for var in self.sort_variables ]
         visited_input_sorts = [ sort.visit(visitor) for sort in self.input_sorts ]
@@ -367,7 +367,7 @@ class SymbolInstance(Sentence):
         for arg in self.sort_arguments:
             arg.resolve(module)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_symbol_instance(self)
         visited_sort_arguments = [ arg.visit(visitor) for arg in self.sort_arguments ]
         return visitor.visit_symbol_instance(self, visited_sort_arguments)
@@ -388,7 +388,7 @@ class Axiom(Sentence):
         self.pattern.set_parent(self)
         self.pattern.resolve(module)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_axiom(self)
         visited_sort_variables = [ var.visit(visitor) for var in self.sort_variables ]
         visited_pattern = self.pattern.visit(visitor)
@@ -420,7 +420,7 @@ class AliasDefinition(Sentence):
             assert isinstance(arg, Variable)
         return list(self.lhs.arguments)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_alias_definition(self)
         visited_rhs = self.rhs.visit(visitor)
         return visitor.visit_alias_definition(self, visited_rhs)
@@ -447,7 +447,7 @@ class Variable(Pattern):
     def resolve(self, module: Module):
         self.sort.resolve(module)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_variable(self)
         visited_sort = self.sort.visit(visitor)
         return visitor.visit_variable(self, visited_sort)
@@ -470,7 +470,7 @@ class StringLiteral(Pattern):
     def __init__(self, content: str):
         self.content = content
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_string_literal(self)
         return visitor.visit_string_literal(self)
 
@@ -493,7 +493,7 @@ class Application(Pattern):
             arg.set_parent(self)
             arg.resolve(module)
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_application(self)
         visited_symbol = self.symbol.visit(visitor)
         visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]
@@ -553,7 +553,7 @@ class MLPattern(Pattern):
         else:
             return None
 
-    def visit(self, visitor: KOREVisitor) -> Any:
+    def visit(self, visitor: KoreVisitor) -> Any:
         visitor.before_visiting_ml_pattern(self)
         visited_sorts = [ sort.visit(visitor) for sort in self.sorts ]
         visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]

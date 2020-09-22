@@ -27,7 +27,7 @@ class FreeVariableVisitor(UnionVisitor):
 In place substitution of variables
 Note: this visitor does not detect free variable capturing
 """
-class VariableAssignmentVisitor(KOREVisitor):
+class VariableAssignmentVisitor(KoreVisitor):
     def __init__(self, assignment: Dict[Variable, Pattern]):
         super().__init__()
         self.assignment = assignment
@@ -97,11 +97,11 @@ Note: the result of the copy is left in unresolved form
 we have to call resolve() again to relink all the
 references to definitions
 """
-class CopyVisitor(KOREVisitor):
+class CopyVisitor(KoreVisitor):
     def visit_default(self, x, *args):
         raise NotImplementedError()
 
-    def visit_definition(self, definition: Definition, modules: Module) -> Definition:
+    def visit_definition(self, definition: Definition, modules: List[Module]) -> Definition:
         copied_attributes = [ attr.visit(self) for attr in definition.attributes ]
         return Definition(modules, copied_attributes)
 

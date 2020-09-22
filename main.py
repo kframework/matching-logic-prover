@@ -4,9 +4,10 @@ import argparse
 
 from proof.kore.parser import parse
 from proof.kore.visitors import FreeVariableVisitor, VariableAssignmentVisitor
-from proof.kore.ast import StringLiteral
+from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KOREUtils
 
+from proof.kore2mm import KoreToMetamathVisitor
 
 if __name__ == "__main__":
     sys.setrecursionlimit(4096)
@@ -33,6 +34,17 @@ if __name__ == "__main__":
             for sentence in module.all_sentences:
                 if sentence.get_attribute_by_symbol("subsort") is not None:
                     print(sentence)
+
+        # generate metamath formulas for functional, subsort, and rewrite rules
+        module = definition.module_map["FOO"]
+        mm_module = KoreToMetamathVisitor.genMetamath(
+            module,
+            lambda axiom:
+                axiom.get_attribute_by_symbol("functional") is not None or \
+                axiom.get_attribute_by_symbol("subsort") is not None or \
+                (isinstance(axiom.pattern, MLPattern) and axiom.pattern.construct == MLPattern.REWRITES),
+        )
+        print(mm_module)
 
         # print(definition.get_module_by_name("FOO").get_symbol_by_name("id").users)
         # print(definition)
