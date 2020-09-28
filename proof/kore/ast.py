@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Union, Optional, Any
+from typing import List, Union, Optional, Any, Mapping, Set
 
 
 """
@@ -115,11 +115,11 @@ class Module(BaseAST):
         self.all_sentences = sentences
 
         # sort out different sentences
-        self.imports = set()
-        self.sort_map = {}
-        self.symbol_map = {}
-        self.alias_map = {}
-        self.axioms = []
+        self.imports: Set[ImportStatement] = set()
+        self.sort_map: Mapping[str, Sort] = {}
+        self.symbol_map: Mapping[str, SymbolDefinition] = {}
+        self.alias_map: Mapping[str, AliasDefinition] = {}
+        self.axioms: List[Axiom] = []
 
         for sentence in sentences:
             if isinstance(sentence, ImportStatement):
@@ -436,6 +436,10 @@ class Pattern(BaseAST):
     def resolve(self, module: Module):
         pass
 
+    # make this a sort check
+    def get_sort(self) -> Sort:
+        raise NotImplementedError()
+
 
 class Variable(Pattern):
     def __init__(self, name: str, sort: Sort, is_set_variable=False):
@@ -451,6 +455,9 @@ class Variable(Pattern):
         visitor.before_visiting_variable(self)
         visited_sort = self.sort.visit(visitor)
         return visitor.visit_variable(self, visited_sort)
+
+    def get_sort(self) -> Sort:
+        return self.sort
 
     def __eq__(self, other):
         if isinstance(other, Variable):
@@ -468,6 +475,7 @@ class Variable(Pattern):
 
 class StringLiteral(Pattern):
     def __init__(self, content: str):
+        super().__init__()
         self.content = content
 
     def visit(self, visitor: KoreVisitor) -> Any:
@@ -498,6 +506,9 @@ class Application(Pattern):
         visited_symbol = self.symbol.visit(visitor)
         visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]
         return visitor.visit_application(self, visited_symbol, visited_arguments)
+
+    def get_sort(self) -> Sort:
+        return self.symbol.definition.output_sort
 
     def __str__(self) -> str:
         return "{}({})".format(self.symbol, ", ".join(map(str, self.arguments)))
@@ -558,6 +569,11 @@ class MLPattern(Pattern):
         visited_sorts = [ sort.visit(visitor) for sort in self.sorts ]
         visited_arguments = [ arg.visit(visitor) for arg in self.arguments ]
         return visitor.visit_ml_pattern(self, visited_sorts, visited_arguments)
+
+    # as a convention, first of the sort arguments is the sort of the pattern
+    def get_sort(self) -> Sort:
+        assert len(self.sorts)
+        return self.sorts[0]
 
     def __str__(self) -> str:
         return "{}{{{}}}({})".format(self.construct, ", ".join(map(str, self.sorts)), ", ".join(map(str, self.arguments)))

@@ -2,6 +2,8 @@ import sys
 
 import argparse
 
+from io import StringIO
+
 from proof.kore.parser import parse
 from proof.kore.visitors import FreeVariableVisitor, VariableAssignmentVisitor
 from proof.kore.ast import StringLiteral, MLPattern
@@ -14,6 +16,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("definition", help="a kore file")
+    parser.add_argument("module", help="the entry module name")
+    parser.add_argument("output", help="output mm file")
+    parser.add_argument("--prelude", help="prelude mm file")
     args = parser.parse_args()
 
     with open(args.definition) as f:
@@ -36,7 +41,7 @@ if __name__ == "__main__":
                     print(sentence)
 
         # generate metamath formulas for functional, subsort, and rewrite rules
-        module = definition.module_map["FOO"]
+        module = definition.module_map[args.module]
         mm_module = KoreToMetamathVisitor.genMetamath(
             module,
             lambda axiom:
@@ -44,7 +49,18 @@ if __name__ == "__main__":
                 axiom.get_attribute_by_symbol("subsort") is not None or \
                 (isinstance(axiom.pattern, MLPattern) and axiom.pattern.construct == MLPattern.REWRITES),
         )
-        print(mm_module)
+        # print(mm_module)
+        # print(mm_module.meta_variables)
+
+        with open(args.output, "w") as f:
+            if args.prelude is not None:
+                with open(args.prelude) as prelude:
+                    f.write(prelude.read())
+
+            f.write("\n")
+            f.write("$( Auto-generated from module {} $)\n\n".format(args.module))
+
+            mm_module.emit_metamath(f)
 
         # print(definition.get_module_by_name("FOO").get_symbol_by_name("id").users)
         # print(definition)

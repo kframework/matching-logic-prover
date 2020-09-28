@@ -52,7 +52,7 @@ class ASTTransformer(Transformer):
 
     @meta_info
     def sort_variable(self, args):
-        return SortVariable(args[0])
+        return SortVariable(str(args[0]))
 
     def sort_variables(self, args):
         return args
@@ -129,12 +129,12 @@ class ASTTransformer(Transformer):
     @meta_info
     def element_variable(self, args):
         name, sort = args
-        return Variable(name, sort, is_set_variable=False)
+        return Variable(str(name), sort, is_set_variable=False)
 
     @meta_info
     def set_variable(self, args):
         name, sort = args
-        return Variable(name, sort, is_set_variable=True)
+        return Variable(str(name), sort, is_set_variable=True)
 
     @meta_info
     def application_pattern(self, args):
