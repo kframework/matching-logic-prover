@@ -488,14 +488,15 @@ $(
     Derived and sorted constructs
 $)
 
-$c \bot-s \top-s \and-s \or-s \ex-s \fa-s $.
-$c \ceil \floor \eq \member \subset \domain \rewrites \sort $.
+$c \bot-s \top-s \not-s \and-s \or-s \ex-s \fa-s $.
+$c \ceil \floor \eq \member \subset \domain \rewrites \dv \sort $.
 
 ex-s-pattern $a #Pattern ( \ex-s ph x ps ) $.
 fa-s-pattern $a #Pattern ( \fa-s ph x ps ) $.
 
 bot-s-pattern $a #Pattern ( \bot-s ph ) $.
 top-s-pattern $a #Pattern ( \top-s ph ) $.
+not-s-pattern $a #Pattern ( \not-s ph1 ph2 ) $.
 and-s-pattern $a #Pattern ( \and-s ph1 ph2 ph3 ) $.
 or-s-pattern $a #Pattern ( \or-s ph1 ph2 ph3 ) $.
 
@@ -506,5 +507,7 @@ member-pattern $a #Pattern ( \member ph1 ph2 ph3 ph3 ) $.
 subset-pattern $a #Pattern ( \subset ph1 ph2 ph3 ph3 ) $.
 domain-pattern $a #Pattern ( \domain ph ) $.
 rewrites-pattern $a #Pattern ( \rewrites ph1 ph2 ph3 ) $.
+
+dv-pattern $a #Pattern ( \dv ph ps ) $.
 
 sort-symbol $a #Symbol \sort $.

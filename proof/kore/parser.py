@@ -238,7 +238,7 @@ ml_pattern: ml_symbols "{" sorts "}" "(" patterns ")"
 """
 
 
-parser = Lark(
+definition_parser = Lark(
     syntax,
     start="definition",
     parser="lalr",
@@ -247,6 +247,21 @@ parser = Lark(
 )
 
 
-def parse(src: str) -> Definition:
-    tree = parser.parse(src)
+# parser for an individual pattern
+pattern_parser = Lark(
+    syntax,
+    start="pattern",
+    parser="lalr",
+    lexer="standard",
+    propagate_positions=True,
+)
+
+
+def parse_definition(src: str) -> Definition:
+    tree = definition_parser.parse(src)
+    return ASTTransformer().transform(tree)
+
+
+def parse_pattern(src: str) -> Pattern:
+    tree = pattern_parser.parse(src)
     return ASTTransformer().transform(tree)

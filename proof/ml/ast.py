@@ -1,13 +1,104 @@
 from __future__ import annotations
-from typing import List, Set, NewType, TextIO
+from typing import List, Set, NewType, TextIO, Mapping
 
 import re
 
 from io import StringIO
 
-"""
-AST for an unsorted, functional variant of matching logic in metamath
-"""
+
+class Pattern:
+    def encode(self, stream: TextIO):
+        raise NotImplementedError()
+
+    def __str__(self):
+        buffer = StringIO()
+        self.encode(buffer)
+        return buffer.getvalue()
+
+
+class Variable(Pattern):
+    def __init__(self, name: str, is_set_variable=False):
+        super().__init__()
+        self.name = name
+        self.is_set_variable = is_set_variable
+    
+    def encode(self, stream: TextIO):
+        stream.write(self.name)
+
+
+class Symbol(Pattern):
+    def __init__(self, symbol: str, arity: int):
+        super().__init__()
+        self.symbol = symbol
+        self.arity = arity
+
+    def encode(self, stream: TextIO):
+        stream.write(self.symbol)
+
+    def __hash__(self):
+        return hash(self.symbol) ^ hash(self.arity)
+
+    def __eq__(self, other):
+        if not isinstance(other, Symbol): return False
+        return self.symbol == other.symbol and self.arity == other.arity
+
+
+class LogicalPattern(Pattern):
+    FORALL = "\\fa-s"
+    EXISTS = "\\ex-s"
+    BOTTOM = "\\bot-s"
+    TOP = "\\top-s"
+    AND = "\\and-s"
+    OR = "\\or-s"
+    NOT = "\\not-s"
+    IMPLIES = "\\imp-s"
+
+    def __init__(self, connective: str, arguments: List[Pattern]):
+        super().__init__()
+        self.connective = connective
+        self.arguments = arguments
+
+    def encode(self, stream: TextIO):
+        if len(self.arguments) == 0:
+            stream.write(self.connective)
+        else:
+            stream.write("( {}".format(self.connective))
+            for arg in self.arguments:
+                stream.write(" ")
+                arg.encode(stream)
+            stream.write(" )")
+
+
+class ApplicationPattern(Pattern):
+    CEIL = "\\ceil",
+    FLOOR = "\\floor"
+    EQUALS = "\\eq"
+    MEMBER = "\\member"
+    SUBSET = "\\subset"
+    DOMAIN = "\\domain"
+    REWRITES = "\\rewrites"
+
+    # domain variable
+    DV = "\\dv"
+
+    # symbol interpreted to the set of all sorts
+    SORT = "\\sort"
+
+    def __init__(self, symbol: Symbol, arguments: List[Pattern]):
+        super().__init__()
+        self.symbol = symbol
+        self.arguments = arguments
+
+    def encode(self, stream: TextIO):
+        if len(self.arguments) == 0:
+            self.symbol.encode(stream)
+        else:
+            stream.write("( ")
+            self.symbol.encode(stream)
+            for arg in self.arguments:
+                stream.write(" ")
+                arg.encode(stream)
+            stream.write(" )")
 
 
 class Module:
@@ -61,7 +152,7 @@ class Module:
 
         # add all placeholder variables
         for symbol in self.signature:
-            self.get_distinct_metavariables(Module.META_ELEMENT_VARIABLE, symbol.arity)
+            self.get_distinct_metavariables(Module.META_PATTERN, symbol.arity)
 
         # write all variables
         stream.write("$v")
@@ -84,7 +175,7 @@ class Module:
             stream.write("kore2mm-axiom-{} $a #Symbol ".format(axiom_index))
             axiom_index += 1
 
-            variables = self.get_distinct_metavariables(Module.META_ELEMENT_VARIABLE, symbol.arity)
+            variables = self.get_distinct_metavariables(Module.META_PATTERN, symbol.arity)
             variables = [ Variable(var) for var in variables ]
 
             ApplicationPattern(symbol, variables).encode(stream)
@@ -95,7 +186,7 @@ class Module:
 
         # write all axioms
         for axiom in self.theory:
-            stream.write("kore2mm-axiom-{} $a ".format(axiom_index))
+            stream.write("kore2mm-axiom-{} $a |- ".format(axiom_index))
             axiom_index += 1
             axiom.encode(stream)
             stream.write(" $.\n")
@@ -105,88 +196,3 @@ class Module:
             ", ".join(map(str, self.signature)),
             "\n".join(map(lambda p: "  " + str(p), self.theory))
         )
-
-
-class Pattern:
-    def encode(self, stream: TextIO):
-        raise NotImplementedError()
-
-    def __str__(self):
-        buffer = StringIO()
-        self.encode(buffer)
-        return buffer.getvalue()
-
-
-class Variable(Pattern):
-    def __init__(self, name: str, is_set_variable=False):
-        super().__init__()
-        self.name = name
-        self.is_set_variable = is_set_variable
-    
-    def encode(self, stream: TextIO):
-        stream.write(self.name)
-
-
-class Symbol(Pattern):
-    def __init__(self, symbol: str, arity: int):
-        super().__init__()
-        self.symbol = symbol
-        self.arity = arity
-
-    def encode(self, stream: TextIO):
-        stream.write(self.symbol)
-
-
-class LogicalPattern(Pattern):
-    FORALL = "\\fa-s"
-    EXISTS = "\\ex-s"
-    BOTTOM = "\\bot-s"
-    TOP = "\\top-s"
-    AND = "\\and-s"
-    OR = "\\or-s"
-    NOT = "\\not-s"
-    IMPLIES = "\\imp-s"
-
-    def __init__(self, connective: str, arguments: List[Pattern]):
-        super().__init__()
-        self.connective = connective
-        self.arguments = arguments
-
-    def encode(self, stream: TextIO):
-        if len(self.arguments) == 0:
-            stream.write(self.connective)
-        else:
-            stream.write("( {}".format(self.connective))
-            for arg in self.arguments:
-                stream.write(" ")
-                arg.encode(stream)
-            stream.write(" )")
-
-
-class ApplicationPattern(Pattern):
-    CEIL = "\\ceil",
-    FLOOR = "\\floor"
-    EQUALS = "\\eq"
-    MEMBER = "\\member"
-    SUBSET = "\\subset"
-    DOMAIN = "\\domain"
-    REWRITES = "\\rewrites"
-
-    # symbol interpreted to the set of all sorts
-    SORT = "\\sort"
-
-    def __init__(self, symbol: Symbol, arguments: List[Pattern]):
-        super().__init__()
-        self.symbol = symbol
-        self.arguments = arguments
-
-    def encode(self, stream: TextIO):
-        if len(self.arguments) == 0:
-            self.symbol.encode(stream)
-        else:
-            stream.write("( ")
-            self.symbol.encode(stream)
-            for arg in self.arguments:
-                stream.write(" ")
-                arg.encode(stream)
-            stream.write(" )")
