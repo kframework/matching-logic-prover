@@ -172,7 +172,7 @@ class Module:
 
         # assert types of all custom symbols
         for symbol in self.signature:
-            stream.write("kore2mm-axiom-{} $a #Symbol ".format(axiom_index))
+            stream.write("kore2mm-axiom-{} $a #Pattern ".format(axiom_index))
             axiom_index += 1
 
             variables = self.get_distinct_metavariables(Module.META_PATTERN, symbol.arity)
