@@ -43,8 +43,9 @@ module TABLEAUX
 ```k
     configuration <k> $PGM:Pattern ~> .K </k>
                   <tableaux>
-                    <sequent type="Set" multiplicity="*">
+                    <sequent type="List" multiplicity="*">
                       <gamma> .Set /* of Patterns */ </gamma>
+                      <generated> .Set </generated>
                     </sequent>
                   </tableaux>
                   <defnList> .Map </defnList>
@@ -52,6 +53,7 @@ module TABLEAUX
         <tableaux> ( .Bag
                   => <sequent>
                        <gamma> SetItem(P)  </gamma>
+                       ...
                      </sequent>
                    )
         </tableaux>
@@ -113,8 +115,14 @@ Contract operator
 ons:
 
 ```k
-    rule <gamma> SetItem(U => P[U/X]) ... </gamma> <defnList> U |-> \mu X . P ... </defnList>
-    rule <gamma> SetItem(V => P[V/X]) ... </gamma> <defnList> V |-> \nu X . P ... </defnList>
+    rule <gamma> SetItem(U => P[U/X]) ... </gamma>
+         <defnList> U |-> \mu X . P ... </defnList>
+         <generated> (.Set => SetItem(U)) Generated </generated>
+      requires notBool U in Generated
+    rule <gamma> SetItem(V => P[V/X]) ... </gamma>
+         <defnList> V |-> \nu X . P ... </defnList>
+         <generated> (.Set => SetItem(V)) Generated </generated>
+      requires notBool V in Generated
 ```
 
 mu/nu:
