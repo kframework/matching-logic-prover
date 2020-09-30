@@ -12,8 +12,8 @@ module MATCHING-LOGIC
 
                      | KVar /* SetVariable */
 
-                     | "[" Symbol Patterns "]" // Application
-                     | "<" Symbol Patterns ">" // Dual
+                     | "[" Pattern Patterns "]" // Application
+                     | "<" Pattern Patterns ">" // Dual
 
                      | "\\and" "(" Patterns ")"
                      | "\\or"  "(" Patterns ")"
@@ -44,14 +44,14 @@ module TABLEAUX
     configuration <k> $PGM:Pattern ~> .K </k>
                   <tableaux>
                     <sequent type="Set" multiplicity="*">
-                      <gamma> <clause type="Set" multiplicity="*"> #token("clause", "#LowerId"):Pattern </clause> </gamma>
+                      <gamma> .Set /* of Patterns */ </gamma>
                       <defnList> .Map </defnList>
                     </sequent>
                   </tableaux>
    rule <k> P:Pattern => .K ... </k>
         <tableaux> ( .Bag
                   => <sequent>
-                       <gamma> <clause> P </clause> </gamma>
+                       <gamma> SetItem(P)  </gamma>
                        <defnList> contract(P) </defnList>
                      </sequent>
                    )
@@ -92,48 +92,67 @@ Contract operator
 ---------------------------
 
 ```k
-    rule <gamma>
-           <clause> \and(P, Ps) </clause>
-        => ( <clause> P        </clause>
-             <clause> \and(Ps) </clause>
-           )
-           ... 
-         </gamma>
-     requires Ps =/=K .Patterns
-    rule <clause> \and(P, .Patterns) => P </clause>
+    rule <gamma> SetItem(\and(P, Ps)) => SetItem(P) SetItem(\and(Ps)) ... </gamma>
+      requires Ps =/=K .Patterns
+    rule <gamma> SetItem(\and(P, .Patterns) => P) ... </gamma>
 ```
 
 ```k
     rule <tableaux> 
-           <sequent> <gamma> <clause> \or(P, Ps) </clause> Gamma </gamma> Rest </sequent>
-      => ( <sequent> <gamma> <clause>     P      </clause> Gamma </gamma> Rest </sequent>
-           <sequent> <gamma> <clause> \or(   Ps) </clause> Gamma </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(\or(P, Ps)) Gamma </gamma> Rest </sequent>
+      => ( <sequent> <gamma> SetItem(   P     )  Gamma </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(\or(   Ps)) Gamma </gamma> Rest </sequent>
          )
            ...
          </tableaux>
      requires Ps =/=K .Patterns
 
-    rule <clause> \or(P, .Patterns) => P </clause>
+    rule <gamma> SetItem(\or(P, .Patterns) => P) ... </gamma>
 ```
 
 ```k
     rule <gamma>
-           <clause> P => V </clause>
+           SetItem(P => V)
            ...
         </gamma>
         <defnList> V |-> P ... </defnList>
 
     rule <gamma>
-           <clause> V => P[X/V] </clause>
+           SetItem(V => P[V/X])
            ...
         </gamma>
         <defnList> V |-> \mu X . P ... </defnList>
 
     rule <gamma>
-           <clause> V => P[X/V] </clause>
+           SetItem(V => P[V/X])
            ...
         </gamma>
         <defnList> V |-> \nu X . P ... </defnList>
+```
+
+```k
+    rule <gamma> Gamma => SetItem(all<>(Gamma)) </gamma>
+      requires canApplyAll<>(Gamma)
+
+    syntax KItem ::= "all<>" "(" Set ")"
+    rule <tableaux> 
+           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha>) Gamma)) </gamma> Rest </sequent>
+      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)             </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(all<>(Gamma))                       </gamma> Rest </sequent>
+         )
+           ...
+         </tableaux>
+
+    syntax Set ::= "all<" Pattern ">" "(" Set ")" [function]
+    rule all<Head>(SetItem([Head Beta]) Rest) => SetItem(Beta) all<Head>(Rest)
+    rule all<Head>(SetItem(_)           Rest) =>               all<Head>(Rest)
+    rule all< _  >(                     .Set) => .Set
+    
+    syntax Bool ::= "canApplyAll<>" "(" Set ")" [function]
+    rule canApplyAll<>(SetItem([_Head _Beta]) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(SetItem(<_Head _Beta>) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(                       .Set) => true
+    rule canApplyAll<>(SetItem(_)            _Rest) => false [owise]
 ```
 
 De Morgan's Laws
