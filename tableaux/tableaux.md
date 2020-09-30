@@ -20,7 +20,7 @@ module MATCHING-LOGIC
 
                      | "\\mu" KVar "." Pattern [binder]
                      | "\\nu" KVar "." Pattern [binder]
-    syntax Patterns ::= List{Pattern, ","}
+    syntax Patterns ::= List{Pattern, ","} [klabel(Patterns)]
 endmodule
 ```
 
@@ -98,7 +98,7 @@ Contract operator
 ```
 
 ```k
-    rule <tableaux> 
+    rule <tableaux>
            <sequent> <gamma> SetItem(\or(P, Ps)) Gamma </gamma> Rest </sequent>
       => ( <sequent> <gamma> SetItem(   P     )  Gamma </gamma> Rest </sequent>
            <sequent> <gamma> SetItem(\or(   Ps)) Gamma </gamma> Rest </sequent>
@@ -110,49 +110,45 @@ Contract operator
     rule <gamma> SetItem(\or(P, .Patterns) => P) ... </gamma>
 ```
 
+ons:
+
 ```k
-    rule <gamma>
-           SetItem(P => V)
-           ...
-        </gamma>
-        <defnList> V |-> P ... </defnList>
-
-    rule <gamma>
-           SetItem(V => P[V/X])
-           ...
-        </gamma>
-        <defnList> V |-> \mu X . P ... </defnList>
-
-    rule <gamma>
-           SetItem(V => P[V/X])
-           ...
-        </gamma>
-        <defnList> V |-> \nu X . P ... </defnList>
+    rule <gamma> SetItem(U => P[U/X]) ... </gamma> <defnList> U |-> \mu X . P ... </defnList>
+    rule <gamma> SetItem(V => P[V/X]) ... </gamma> <defnList> V |-> \nu X . P ... </defnList>
 ```
 
+mu/nu:
+
 ```k
-    rule <gamma> Gamma => SetItem(all<>(Gamma)) </gamma>
-      requires canApplyAll<>(Gamma)
+    rule <gamma> SetItem(P => V) ... </gamma> <defnList> V |-> P ... </defnList>
+```
+
+
+```k
+    rule <gamma> Gamma => SetItem(all<>(Gamma)) </gamma> requires canApplyAll<>(Gamma)
 
     syntax KItem ::= "all<>" "(" Set ")"
     rule <tableaux> 
-           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha>) Gamma)) </gamma> Rest </sequent>
-      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)             </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns>) Gamma)) </gamma> Rest </sequent>
+      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)     </gamma> Rest </sequent>
            <sequent> <gamma> SetItem(all<>(Gamma))                       </gamma> Rest </sequent>
          )
            ...
          </tableaux>
 
     syntax Set ::= "all<" Pattern ">" "(" Set ")" [function]
-    rule all<Head>(SetItem([Head Beta]) Rest) => SetItem(Beta) all<Head>(Rest)
-    rule all<Head>(SetItem(_)           Rest) =>               all<Head>(Rest)
+    rule all<Head>(SetItem([Head Beta, .Patterns]) Rest) => SetItem(Beta) all<Head>(Rest)
+    rule all<Head>(SetItem(_)           Rest) =>               all<Head>(Rest) [owise]
     rule all< _  >(                     .Set) => .Set
     
     syntax Bool ::= "canApplyAll<>" "(" Set ")" [function]
-    rule canApplyAll<>(SetItem([_Head _Beta]) Rest) => canApplyAll<>(Rest)
-    rule canApplyAll<>(SetItem(<_Head _Beta>) Rest) => canApplyAll<>(Rest)
-    rule canApplyAll<>(                       .Set) => true
-    rule canApplyAll<>(SetItem(_)            _Rest) => false [owise]
+    rule canApplyAll<>(SetItem([_Head _Beta] ) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(SetItem(<_Head _Beta> ) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(SetItem(_:Symbol      ) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(SetItem(\not _:Symbol ) Rest) => canApplyAll<>(Rest)
+    rule [[ canApplyAll<>(SetItem(X:KVar     ) Rest) => canApplyAll<>(Rest) ]] <defnList> DefnList </defnList> requires notBool X in_keys(DefnList)
+    rule canApplyAll<>(                        .Set) => true
+    rule canApplyAll<>(SetItem(_)             _Rest) => false [owise]
 ```
 
 De Morgan's Laws
