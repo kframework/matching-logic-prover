@@ -73,8 +73,8 @@ Contract operator
     rule <k> contract([_S Ps])  => contractPs(Ps) ... </k>
     rule <k> contract(<_S Ps>)  => contractPs(Ps) ... </k>
 
-    rule <k> contract(\mu X . P) => contract(P[X/!D]) ... </k> <defnList> (.Map => !D:KVar |-> (age: !_, \mu X . P)) DefnList </defnList> requires notBool \mu X . P in values(DefnList)
-    rule <k> contract(\nu X . P) => contract(P[X/!D]) ... </k> <defnList> (.Map => !D:KVar |-> (age: !_, \nu X . P)) DefnList </defnList> requires notBool \nu X . P in values(DefnList)
+    rule <k> contract(\mu X . P) => contract(P[!D/X]) ... </k> <defnList> (.Map => !D:KVar |-> (age: !_, \mu X . P)) DefnList </defnList> requires notBool \mu X . P in values(DefnList)
+    rule <k> contract(\nu X . P) => contract(P[!D/X]) ... </k> <defnList> (.Map => !D:KVar |-> (age: !_, \nu X . P)) DefnList </defnList> requires notBool \nu X . P in values(DefnList)
 
     rule <k> contract(\mu X . P) => .K                ... </k> <defnList>                                            DefnList </defnList> requires         \mu X . P in values(DefnList)
     rule <k> contract(\nu X . P) => .K                ... </k> <defnList>                                            DefnList </defnList> requires         \nu X . P in values(DefnList)
@@ -90,8 +90,9 @@ Contract operator
 ---------------------------
 
 ```k
-    rule <gamma> SetItem(\and(P, Ps)) => SetItem(P) SetItem(\and(Ps)) ... </gamma>
+    rule <gamma> (SetItem(\and(P, Ps)) => SetItem(P) SetItem(\and(Ps))) Gamma </gamma>
       requires Ps =/=K .Patterns
+       andBool notBool isAxiom(Gamma)
     rule <gamma> SetItem(\and(P, .Patterns) => P) ... </gamma>
 ```
 
@@ -103,7 +104,8 @@ Contract operator
          )
            ...
          </tableaux>
-     requires Ps =/=K .Patterns
+      requires Ps =/=K .Patterns
+       andBool notBool isAxiom(Gamma)
 
     rule <gamma> SetItem(\or(P, .Patterns) => P) ... </gamma>
 ```
@@ -111,34 +113,56 @@ Contract operator
 ons:
 
 ```k
-    rule <gamma> SetItem(U => P[U/X]) ... </gamma>
+    rule <gamma> SetItem(U => P[U/X]) Gamma </gamma>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
          <generated> (.Set => SetItem(U)) Generated </generated>
       requires notBool U in Generated
-    rule <gamma> SetItem(V => P[V/X]) ... </gamma>
+       andBool notBool isAxiom(Gamma)
+    rule <gamma> SetItem(V => P[V/X]) Gamma </gamma>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
          <generated> (.Set => SetItem(V)) Generated </generated>
       requires notBool V in Generated
+       andBool notBool isAxiom(Gamma)
 ```
 
 mu/nu:
 
 ```k
-    rule <gamma> SetItem(P => V) ... </gamma> <defnList> V |-> (age: _, P) ... </defnList>
+    rule <gamma> SetItem(P => V) Gamma </gamma> <defnList> V |-> (age: _, P) ... </defnList>
+      requires notBool isAxiom(Gamma)
 ```
 
+```k
+//    rule <gamma> Gamma => SetItem(all<>(Gamma)) </gamma> requires canApplyAll<>(Gamma)
+//
+//    syntax KItem ::= "all<>" "(" Set ")"
+//    rule <tableaux> 
+//           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns>) Gamma)) </gamma> Rest </sequent>
+//      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)     </gamma> Rest </sequent>
+//           <sequent> <gamma> SetItem(all<>(Gamma))                       </gamma> Rest </sequent>
+//         )
+//           ...
+//         </tableaux>
+//    rule <tableaux> 
+//           <sequent> <gamma> SetItem(all<>(_)) </gamma> Rest </sequent>
+//      =>   .Bag
+//           ...
+//         </tableaux>
+//      [owise]
+```
 
 ```k
-    rule <gamma> Gamma => SetItem(all<>(Gamma)) </gamma> requires canApplyAll<>(Gamma)
+    rule <gamma> SetItem(<Head Alpha, .Patterns>) Gamma
+              => SetItem(Alpha) all<Head>(Gamma)
+         </gamma>
+      requires canApplyAll<>(Gamma)
+       andBool notBool isAxiom(Gamma)
+```
 
-    syntax KItem ::= "all<>" "(" Set ")"
-    rule <tableaux> 
-           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns>) Gamma)) </gamma> Rest </sequent>
-      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)     </gamma> Rest </sequent>
-           <sequent> <gamma> SetItem(all<>(Gamma))                       </gamma> Rest </sequent>
-         )
-           ...
-         </tableaux>
+```k
+    syntax Bool ::= isAxiom(Set) [function]
+    rule isAxiom(SetItem(P) SetItem(\not P)_Rest) => true
+    rule isAxiom(                              _) => false [owise]
 
     syntax Set ::= "all<" Pattern ">" "(" Set ")" [function]
     rule all<Head>(SetItem([Head Beta, .Patterns]) Rest) => SetItem(Beta) all<Head>(Rest)
@@ -155,8 +179,62 @@ mu/nu:
     rule canApplyAll<>(SetItem(_)             _Rest) => false [owise]
 ```
 
-De Morgan's Laws
-----------------
+Check for mu/nu traces
+----------------------
+
+TODO: What about other Definitional constants that may be generated later?
+I don't think that that is possible because of the topological structure of the terms, but it needs to be proved.
+
+```k
+    rule <tableaux> 
+           <sequent>
+             <gamma> SetItem(Generated) Gamma </gamma>
+             <generated> SetItem(Generated) RestGen </generated>
+             ...
+           </sequent>
+        => .Bag
+           ...
+         </tableaux>
+      requires isMuTrace(Generated, Gamma, RestGen)
+
+    syntax Bool ::= isMuTrace(regenerated: KVar, gamma: Set, generated: Set) [function]
+    rule isMuTrace(_, SetItem([_Head _Beta] )_Rest,_Gen) => false // Can still apply all<>
+    rule isMuTrace(_, SetItem(<_Head _Beta> )_Rest,_Gen) => false // Can still apply all<>
+    rule isMuTrace(G, SetItem(_:Symbol      ) Rest, Gen) => isMuTrace(G, Rest, Gen)
+    rule isMuTrace(G, SetItem(\not _:Symbol ) Rest, Gen) => isMuTrace(G, Rest, Gen)
+```
+
+If X is not a definitional constant, it is not important
+
+```k
+    rule [[ isMuTrace(G, SetItem(X:KVar     ) Rest, Gen) => isMuTrace(G, Rest, Gen) ]]
+         <defnList> DefnList </defnList>
+      requires notBool X in_keys(DefnList)
+```
+
+If G' is a definitional constant, and has *not* been regenerated, we can reduce further:
+
+```k
+    rule [[ isMuTrace(G, SetItem(G':KVar) Rest, Gen) => isMuTrace(G, Rest, Gen) ]]
+         <defnList> DefnList </defnList>
+      requires G' in_keys(DefnList)
+       andBool notBool G' in Gen
+```
+
+If G' is a definitional constant, and has also been regenerated, then G must be older than G'
+(note: lower age is "older")
+
+```k
+    rule [[ isMuTrace(G, SetItem(G':KVar) Rest, Gen) => isMuTrace(G, Rest, Gen) ]]
+         <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
+      requires Age <Int Age' andBool G' in Gen 
+
+    rule [[ isMuTrace(G, SetItem(G':KVar)_Rest, Gen) => false ]]
+         <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
+      requires Age >Int Age'  andBool G' in Gen 
+
+    rule isMuTrace(_, .Set, _) => true
+```
 
 ```k
 endmodule
