@@ -49,7 +49,7 @@ module TABLEAUX
                     </sequent>
                   </tableaux>
                   <defnList> .Map </defnList>
-   rule <k> P:Pattern => .K ... </k>
+   rule <k> P:Pattern => contract(P) ... </k>
         <tableaux> ( .Bag
                   => <sequent>
                        <gamma> SetItem(P)  </gamma>
@@ -57,37 +57,33 @@ module TABLEAUX
                      </sequent>
                    )
         </tableaux>
-        <defnList> .Map => contract(P) </defnList>
 ```
 
 Contract operator
 -----------------
 
 ```k
-    syntax Map ::= contract(Pattern) [function]
-    rule contract(_:Symbol) => .Map
-    rule contract(\not _) => .Map
-    rule contract(_:KVar) => .Map
+    syntax KItem ::= contract(Pattern)
+    rule <k> contract(_:Symbol) => .K ... </k>
+    rule <k> contract(\not _)   => .K ... </k>
+    rule <k> contract(_:KVar)   => .K ... </k>
+
+    rule <k> contract(\or(Ps))  => contractPs(Ps) ... </k>
+    rule <k> contract(\and(Ps)) => contractPs(Ps) ... </k>
+    rule <k> contract([_S Ps])  => contractPs(Ps) ... </k>
+    rule <k> contract(<_S Ps>)  => contractPs(Ps) ... </k>
+
+    rule <k> contract(\mu X . P) => contract(P[X/!D]) ... </k> <defnList> (.Map => !D:KVar |-> (age: !_, \mu X . P)) DefnList </defnList> requires notBool \mu X . P in values(DefnList)
+    rule <k> contract(\nu X . P) => contract(P[X/!D]) ... </k> <defnList> (.Map => !D:KVar |-> (age: !_, \nu X . P)) DefnList </defnList> requires notBool \nu X . P in values(DefnList)
+
+    rule <k> contract(\mu X . P) => .K                ... </k> <defnList>                                            DefnList </defnList> requires         \mu X . P in values(DefnList)
+    rule <k> contract(\nu X . P) => .K                ... </k> <defnList>                                            DefnList </defnList> requires         \nu X . P in values(DefnList)
+
+    syntax KItem ::= contractPs(Patterns)
+    rule <k> contractPs(P, Ps) => contract(P) ~> contractPs(Ps) ... </k>
+    rule <k> contractPs(.Patterns) => .K ... </k>
     
-    rule contract(\or(Ps))  => contractPs(Ps)
-    rule contract(\and(Ps)) => contractPs(Ps)
-    rule contract([_S Ps])  => contractPs(Ps)
-    rule contract(<_S Ps>)  => contractPs(Ps)
-
-    rule contract(\mu X . P) => (!D:KVar |-> \mu X . P) contract(P[X/!D])
-    rule contract(\nu X . P) => (!D:KVar |-> \nu X . P) contract(P[X/!D])
-    
-    syntax Map ::= contractPs(Patterns) [function]
-    rule contractPs(P, Ps) => union(contract(P), contractPs(Ps))
-    rule contractPs(.Patterns) => .Map
-
-    syntax Map ::= union(Map, Map) [function]
-    rule union((U |-> Psi) Left, (V |-> Psi) Right) => union((U |-> Psi) Left, substituteDefintionList(Right, U, V))
-    rule union(Left, Right) => Left Right [owise]
-
-    syntax Map ::= substituteDefintionList(Map, KVar, KVar) [function]
-    rule substituteDefintionList(K |-> V Rest, Left, Right)
-      => (K |-> V[Left/Right]) substituteDefintionList(Rest, Left, Right)
+    syntax DefnConst ::= "(" "age:" Int "," Pattern ")"
 ```
 
 (Refutation) Tableaux rules
@@ -116,11 +112,11 @@ ons:
 
 ```k
     rule <gamma> SetItem(U => P[U/X]) ... </gamma>
-         <defnList> U |-> \mu X . P ... </defnList>
+         <defnList> U |-> (age: _, \mu X . P) ... </defnList>
          <generated> (.Set => SetItem(U)) Generated </generated>
       requires notBool U in Generated
     rule <gamma> SetItem(V => P[V/X]) ... </gamma>
-         <defnList> V |-> \nu X . P ... </defnList>
+         <defnList> V |-> (age: _, \nu X . P) ... </defnList>
          <generated> (.Set => SetItem(V)) Generated </generated>
       requires notBool V in Generated
 ```
@@ -128,7 +124,7 @@ ons:
 mu/nu:
 
 ```k
-    rule <gamma> SetItem(P => V) ... </gamma> <defnList> V |-> P ... </defnList>
+    rule <gamma> SetItem(P => V) ... </gamma> <defnList> V |-> (age: _, P) ... </defnList>
 ```
 
 
