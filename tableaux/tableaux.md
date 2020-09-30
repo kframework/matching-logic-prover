@@ -45,17 +45,17 @@ module TABLEAUX
                   <tableaux>
                     <sequent type="Set" multiplicity="*">
                       <gamma> .Set /* of Patterns */ </gamma>
-                      <defnList> .Map </defnList>
                     </sequent>
                   </tableaux>
+                  <defnList> .Map </defnList>
    rule <k> P:Pattern => .K ... </k>
         <tableaux> ( .Bag
                   => <sequent>
                        <gamma> SetItem(P)  </gamma>
-                       <defnList> contract(P) </defnList>
                      </sequent>
                    )
         </tableaux>
+        <defnList> .Map => contract(P) </defnList>
 ```
 
 Contract operator
