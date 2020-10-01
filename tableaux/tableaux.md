@@ -82,7 +82,7 @@ Contract operator
     syntax KItem ::= contractPs(Patterns)
     rule <k> contractPs(P, Ps) => contract(P) ~> contractPs(Ps) ... </k>
     rule <k> contractPs(.Patterns) => .K ... </k>
-    
+
     syntax DefnConst ::= "(" "age:" Int "," Pattern ")"
 ```
 
@@ -147,30 +147,24 @@ mu/nu:
 ```
 
 ```k
-//    rule <gamma> Gamma => SetItem(all<>(Gamma)) </gamma> requires canApplyAll<>(Gamma)
-//
-//    syntax KItem ::= "all<>" "(" Set ")"
-//    rule <tableaux> 
-//           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns>) Gamma)) </gamma> Rest </sequent>
-//      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)     </gamma> Rest </sequent>
-//           <sequent> <gamma> SetItem(all<>(Gamma))                       </gamma> Rest </sequent>
-//         )
-//           ...
-//         </tableaux>
-//    rule <tableaux> 
-//           <sequent> <gamma> SetItem(all<>(_)) </gamma> Rest </sequent>
-//      =>   .Bag
-//           ...
-//         </tableaux>
-//      [owise]
-```
-
-```k
-    rule <gamma> SetItem(<Head Alpha, .Patterns>) Gamma
-              => SetItem(Alpha) all<Head>(Gamma)
-         </gamma>
+    rule <gamma> (SetItem(<_ _, .Patterns>) _:Set) #as Gamma => SetItem(all<>(Gamma)) </gamma>
       requires canApplyAll<>(Gamma)
        andBool notBool isAxiom(Gamma)
+
+    syntax KItem ::= "all<>" "(" Set ")"
+    rule <tableaux>
+           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns>) Gamma)) </gamma> Rest </sequent>
+      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)     </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(all<>(Gamma))                       </gamma> Rest </sequent>
+         )
+           ...
+         </tableaux>
+    rule <tableaux>
+           <sequent> <gamma> SetItem(all<>(_)) </gamma> Rest </sequent>
+      =>   .Bag
+           ...
+         </tableaux>
+      [owise]
 ```
 
 ```k
@@ -182,7 +176,7 @@ mu/nu:
     rule all<Head>(SetItem([Head Beta, .Patterns]) Rest) => SetItem(Beta) all<Head>(Rest)
     rule all<Head>(SetItem(_)           Rest) =>               all<Head>(Rest) [owise]
     rule all< _  >(                     .Set) => .Set
-    
+
     syntax Bool ::= "canApplyAll<>" "(" Set ")" [function]
     rule canApplyAll<>(SetItem([_Head _Beta] ) Rest) => canApplyAll<>(Rest)
     rule canApplyAll<>(SetItem(<_Head _Beta> ) Rest) => canApplyAll<>(Rest)
@@ -196,10 +190,8 @@ mu/nu:
 Check for mu/nu traces
 ----------------------
 
-TODO: Implement annotations to keep track of actual traces :-/
-
 ```k
-    rule <tableaux> 
+    rule <tableaux>
            <sequent>
              <gamma> SetItem(Generated) Gamma </gamma>
              <generated> SetItem(Generated) RestGen </generated>
@@ -241,11 +233,11 @@ If G' is a definitional constant, and has also been regenerated, then G must be 
 ```k
     rule [[ isRegenerativeTrace(G, SetItem(G':KVar) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
          <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
-      requires Age <Int Age' andBool G' in Gen 
+      requires Age <Int Age' andBool G' in Gen
 
     rule [[ isRegenerativeTrace(G, SetItem(G':KVar)_Rest, Gen) => false ]]
          <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
-      requires Age >Int Age'  andBool G' in Gen 
+      requires Age >Int Age'  andBool G' in Gen
 
     rule isRegenerativeTrace(_, .Set, _) => true
 ```
