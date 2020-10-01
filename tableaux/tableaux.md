@@ -86,8 +86,22 @@ Contract operator
     syntax DefnConst ::= "(" "age:" Int "," Pattern ")"
 ```
 
-(Refutation) Tableaux rules
----------------------------
+Axioms
+------
+
+```k
+    syntax KItem ::= "\\n" [format(%n%n)]
+    rule <tableaux>
+           <sequent> <gamma> Gamma </gamma> ... </sequent>
+        => .Bag
+           ...
+         </tableaux>
+         <k> .K => "Axiom:" ~> Gamma ~> \n ... </k>
+      requires isAxiom(Gamma)
+```
+
+Tableaux rules
+--------------
 
 ```k
     rule <gamma> (SetItem(\and(P, Ps)) => SetItem(P) SetItem(\and(Ps))) Gamma </gamma>
@@ -182,8 +196,7 @@ mu/nu:
 Check for mu/nu traces
 ----------------------
 
-TODO: What about other Definitional constants that may be generated later?
-I don't think that that is possible because of the topological structure of the terms, but it needs to be proved.
+TODO: Implement annotations to keep track of actual traces :-/
 
 ```k
     rule <tableaux> 
@@ -195,19 +208,20 @@ I don't think that that is possible because of the topological structure of the 
         => .Bag
            ...
          </tableaux>
-      requires isMuTrace(Generated, Gamma, RestGen)
+         <k> .K => "sigma-trace:" ~> Generated ~> Gamma~> \n ... </k>
+      requires isRegenerativeTrace(Generated, Gamma, RestGen)
 
-    syntax Bool ::= isMuTrace(regenerated: KVar, gamma: Set, generated: Set) [function]
-    rule isMuTrace(_, SetItem([_Head _Beta] )_Rest,_Gen) => false // Can still apply all<>
-    rule isMuTrace(_, SetItem(<_Head _Beta> )_Rest,_Gen) => false // Can still apply all<>
-    rule isMuTrace(G, SetItem(_:Symbol      ) Rest, Gen) => isMuTrace(G, Rest, Gen)
-    rule isMuTrace(G, SetItem(\not _:Symbol ) Rest, Gen) => isMuTrace(G, Rest, Gen)
+    syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Set) [function]
+    rule isRegenerativeTrace(_, SetItem([_Head _Beta] )_Rest,_Gen) => false // Can still apply all<>
+    rule isRegenerativeTrace(_, SetItem(<_Head _Beta> )_Rest,_Gen) => false // Can still apply all<>
+    rule isRegenerativeTrace(G, SetItem(_:Symbol      ) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
+    rule isRegenerativeTrace(G, SetItem(\not _:Symbol ) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
 ```
 
 If X is not a definitional constant, it is not important
 
 ```k
-    rule [[ isMuTrace(G, SetItem(X:KVar     ) Rest, Gen) => isMuTrace(G, Rest, Gen) ]]
+    rule [[ isRegenerativeTrace(G, SetItem(X:KVar     ) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
          <defnList> DefnList </defnList>
       requires notBool X in_keys(DefnList)
 ```
@@ -215,7 +229,7 @@ If X is not a definitional constant, it is not important
 If G' is a definitional constant, and has *not* been regenerated, we can reduce further:
 
 ```k
-    rule [[ isMuTrace(G, SetItem(G':KVar) Rest, Gen) => isMuTrace(G, Rest, Gen) ]]
+    rule [[ isRegenerativeTrace(G, SetItem(G':KVar) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
          <defnList> DefnList </defnList>
       requires G' in_keys(DefnList)
        andBool notBool G' in Gen
@@ -225,15 +239,15 @@ If G' is a definitional constant, and has also been regenerated, then G must be 
 (note: lower age is "older")
 
 ```k
-    rule [[ isMuTrace(G, SetItem(G':KVar) Rest, Gen) => isMuTrace(G, Rest, Gen) ]]
+    rule [[ isRegenerativeTrace(G, SetItem(G':KVar) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
          <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
       requires Age <Int Age' andBool G' in Gen 
 
-    rule [[ isMuTrace(G, SetItem(G':KVar)_Rest, Gen) => false ]]
+    rule [[ isRegenerativeTrace(G, SetItem(G':KVar)_Rest, Gen) => false ]]
          <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
       requires Age >Int Age'  andBool G' in Gen 
 
-    rule isMuTrace(_, .Set, _) => true
+    rule isRegenerativeTrace(_, .Set, _) => true
 ```
 
 ```k
