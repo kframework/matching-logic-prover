@@ -12,8 +12,8 @@ module MATCHING-LOGIC
 
                      | KVar /* SetVariable */
 
-                     | "[" Pattern Patterns "]" // Application
-                     | "<" Pattern Patterns ">" // Dual
+                     | "<" Pattern Patterns ">" // Application
+                     | "[" Pattern Patterns "]" // Dual
 
                      | "\\and" "(" Patterns ")"
                      | "\\or"  "(" Patterns ")"
