@@ -45,14 +45,13 @@ module TABLEAUX
                   <tableaux>
                     <sequent type="List" multiplicity="*">
                       <gamma> .Set /* of Patterns */ </gamma>
-                      <generated> .Set </generated>
                     </sequent>
                   </tableaux>
                   <defnList> .Map </defnList>
    rule <k> P:Pattern => contract(P) ... </k>
         <tableaux> ( .Bag
                   => <sequent>
-                       <gamma> SetItem(P)  </gamma>
+                       <gamma> SetItem(P @ .Set)  </gamma>
                        ...
                      </sequent>
                    )
@@ -86,6 +85,16 @@ Contract operator
     syntax DefnConst ::= "(" "age:" Int "," Pattern ")"
 ```
 
+Traces
+------
+
+To aid in detection of regenerative traces, we annotate Patterns with the set of
+Definitional constants they have been generated from.
+
+```k
+    syntax AnnotatedPattern ::= Pattern "@" Set
+```
+
 Axioms
 ------
 
@@ -104,58 +113,62 @@ Tableaux rules
 --------------
 
 ```k
-    rule <gamma> (SetItem(\and(P, Ps)) => SetItem(P) SetItem(\and(Ps))) Gamma </gamma>
+    rule <gamma> ( SetItem(\and(P, Ps) @ A)
+                => SetItem(P           @ A)
+                   SetItem(\and(Ps)    @ A)
+                 )
+                 Gamma
+         </gamma>
       requires Ps =/=K .Patterns
        andBool notBool isAxiom(Gamma)
-    rule <gamma> SetItem(\and(P, .Patterns) => P) ... </gamma>
+    rule <gamma> SetItem(\and(P, .Patterns) @ A => P @ A) ... </gamma>
 ```
 
 ```k
     rule <tableaux>
-           <sequent> <gamma> SetItem(\or(P, Ps)) Gamma </gamma> Rest </sequent>
-      => ( <sequent> <gamma> SetItem(   P     )  Gamma </gamma> Rest </sequent>
-           <sequent> <gamma> SetItem(\or(   Ps)) Gamma </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(\or(P, Ps) @ A) Gamma </gamma> Rest </sequent>
+      => ( <sequent> <gamma> SetItem(   P       @ A) Gamma </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(\or(   Ps) @ A) Gamma </gamma> Rest </sequent>
          )
            ...
          </tableaux>
       requires Ps =/=K .Patterns
        andBool notBool isAxiom(Gamma)
 
-    rule <gamma> SetItem(\or(P, .Patterns) => P) ... </gamma>
+    rule <gamma> SetItem(\or(P, .Patterns) @ A => P @ A) ... </gamma>
 ```
 
 ons:
 
 ```k
-    rule <gamma> SetItem(U => P[U/X]) Gamma </gamma>
+    rule <gamma> SetItem(U @ A => P[U/X] @ SetItem(U) A) Gamma </gamma>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
-         <generated> (.Set => SetItem(U)) Generated </generated>
-      requires notBool U in Generated
+      requires notBool U in A
        andBool notBool isAxiom(Gamma)
-    rule <gamma> SetItem(V => P[V/X]) Gamma </gamma>
+    rule <gamma> SetItem(V @ A => P[V/X] @ SetItem(V) A) Gamma </gamma>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
-         <generated> (.Set => SetItem(V)) Generated </generated>
-      requires notBool V in Generated
+      requires notBool V in A
        andBool notBool isAxiom(Gamma)
 ```
 
 mu/nu:
 
 ```k
-    rule <gamma> SetItem(P => V) Gamma </gamma> <defnList> V |-> (age: _, P) ... </defnList>
+    rule <gamma> SetItem(P @ A => V @ A) Gamma </gamma>
+         <defnList> V |-> (age: _, P) ... </defnList>
       requires notBool isAxiom(Gamma)
 ```
 
 ```k
-    rule <gamma> (SetItem(<_ _, .Patterns>) _:Set) #as Gamma => SetItem(all<>(Gamma)) </gamma>
+    rule <gamma> (SetItem(<_ _, .Patterns> @ _) _:Set) #as Gamma => SetItem(all<>(Gamma)) </gamma>
       requires canApplyAll<>(Gamma)
        andBool notBool isAxiom(Gamma)
 
     syntax KItem ::= "all<>" "(" Set ")"
     rule <tableaux>
-           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns>) Gamma)) </gamma> Rest </sequent>
-      => ( <sequent> <gamma> SetItem(Alpha) all<Head>(Gamma)     </gamma> Rest </sequent>
-           <sequent> <gamma> SetItem(all<>(Gamma))                       </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns> @ A) Gamma)) </gamma> Rest </sequent>
+      => ( <sequent> <gamma> SetItem(Alpha @ A) all<Head>(Gamma)                        </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(all<>(Gamma))                                      </gamma> Rest </sequent>
          )
            ...
          </tableaux>
@@ -169,32 +182,38 @@ mu/nu:
 
 ```k
     syntax Bool ::= isAxiom(Set) [function]
-    rule isAxiom(SetItem(P) SetItem(\not P)_Rest) => true
-    rule isAxiom(                              _) => false [owise]
+    rule isAxiom(SetItem(P @ _) SetItem(\not P @ _) _Rest) => true
+    rule isAxiom(_) => false [owise]
 
     syntax Set ::= "all<" Pattern ">" "(" Set ")" [function]
-    rule all<Head>(SetItem([Head Beta, .Patterns]) Rest) => SetItem(Beta) all<Head>(Rest)
+    rule all<Head>(SetItem([Head Beta, .Patterns] @ A) Rest) => SetItem(Beta @ A) all<Head>(Rest)
     rule all<Head>(SetItem(_)           Rest) =>               all<Head>(Rest) [owise]
     rule all< _  >(                     .Set) => .Set
 
     syntax Bool ::= "canApplyAll<>" "(" Set ")" [function]
-    rule canApplyAll<>(SetItem([_Head _Beta] ) Rest) => canApplyAll<>(Rest)
-    rule canApplyAll<>(SetItem(<_Head _Beta> ) Rest) => canApplyAll<>(Rest)
-    rule canApplyAll<>(SetItem(_:Symbol      ) Rest) => canApplyAll<>(Rest)
-    rule canApplyAll<>(SetItem(\not _:Symbol ) Rest) => canApplyAll<>(Rest)
-    rule [[ canApplyAll<>(SetItem(X:KVar     ) Rest) => canApplyAll<>(Rest) ]] <defnList> DefnList </defnList> requires notBool X in_keys(DefnList)
+    rule canApplyAll<>(SetItem([_Head _Beta] @ _) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(SetItem(<_Head _Beta> @ _) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(SetItem(_:Symbol      @ _) Rest) => canApplyAll<>(Rest)
+    rule canApplyAll<>(SetItem(\not _:Symbol @ _) Rest) => canApplyAll<>(Rest)
+    rule [[ canApplyAll<>(SetItem(X:KVar     @ _) Rest) => canApplyAll<>(Rest) ]]
+         <defnList> DefnList </defnList> requires notBool X in_keys(DefnList)
     rule canApplyAll<>(                        .Set) => true
-    rule canApplyAll<>(SetItem(_)             _Rest) => false [owise]
+    
+    rule canApplyAll<>(SetItem(\and(_)    @ _) Rest) => false
+    rule canApplyAll<>(SetItem(\or(_)     @ _) Rest) => false
+    rule canApplyAll<>(SetItem(\mu _ . _  @ _) Rest) => false
+    rule canApplyAll<>(SetItem(\nu _ . _  @ _) Rest) => false
 ```
 
 Check for mu/nu traces
 ----------------------
 
+TODO: We need the *oldest* amoung all vars, not just the ones the current patterns trace.
+
 ```k
     rule <tableaux>
            <sequent>
-             <gamma> SetItem(Generated) Gamma </gamma>
-             <generated> SetItem(Generated) RestGen </generated>
+             <gamma> SetItem(Generated @ SetItem(Generated) RestGen) Gamma </gamma>
              ...
            </sequent>
         => .Bag
@@ -204,16 +223,16 @@ Check for mu/nu traces
       requires isRegenerativeTrace(Generated, Gamma, RestGen)
 
     syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Set) [function]
-    rule isRegenerativeTrace(_, SetItem([_Head _Beta] )_Rest,_Gen) => false // Can still apply all<>
-    rule isRegenerativeTrace(_, SetItem(<_Head _Beta> )_Rest,_Gen) => false // Can still apply all<>
-    rule isRegenerativeTrace(G, SetItem(_:Symbol      ) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
-    rule isRegenerativeTrace(G, SetItem(\not _:Symbol ) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
+    rule isRegenerativeTrace(_, SetItem([_Head _Beta] @ _)_Rest,_Gen) => false // Can still apply all<>
+    rule isRegenerativeTrace(_, SetItem(<_Head _Beta> @ _)_Rest,_Gen) => false // Can still apply all<>
+    rule isRegenerativeTrace(G, SetItem(_:Symbol      @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
+    rule isRegenerativeTrace(G, SetItem(\not _:Symbol @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
 ```
 
 If X is not a definitional constant, it is not important
 
 ```k
-    rule [[ isRegenerativeTrace(G, SetItem(X:KVar     ) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
+    rule [[ isRegenerativeTrace(G, SetItem(X:KVar     @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
          <defnList> DefnList </defnList>
       requires notBool X in_keys(DefnList)
 ```
@@ -221,7 +240,7 @@ If X is not a definitional constant, it is not important
 If G' is a definitional constant, and has *not* been regenerated, we can reduce further:
 
 ```k
-    rule [[ isRegenerativeTrace(G, SetItem(G':KVar) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
+    rule [[ isRegenerativeTrace(G, SetItem(G':KVar @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
          <defnList> DefnList </defnList>
       requires G' in_keys(DefnList)
        andBool notBool G' in Gen
@@ -231,11 +250,11 @@ If G' is a definitional constant, and has also been regenerated, then G must be 
 (note: lower age is "older")
 
 ```k
-    rule [[ isRegenerativeTrace(G, SetItem(G':KVar) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
+    rule [[ isRegenerativeTrace(G, SetItem(G':KVar @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
          <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
       requires Age <Int Age' andBool G' in Gen
 
-    rule [[ isRegenerativeTrace(G, SetItem(G':KVar)_Rest, Gen) => false ]]
+    rule [[ isRegenerativeTrace(G, SetItem(G':KVar @ _)_Rest, Gen) => false ]]
          <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
       requires Age >Int Age'  andBool G' in Gen
 
