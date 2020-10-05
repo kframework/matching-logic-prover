@@ -51,7 +51,7 @@ module TABLEAUX
    rule <k> P:Pattern => contract(P) ... </k>
         <tableaux> ( .Bag
                   => <sequent>
-                       <gamma> SetItem(P @ .Set)  </gamma>
+                       <gamma> SetItem(P @ .Patterns)  </gamma>
                        ...
                      </sequent>
                    )
@@ -88,11 +88,11 @@ Contract operator
 Traces
 ------
 
-To aid in detection of regenerative traces, we annotate Patterns with the set of
+To aid in detection of regenerative traces, we annotate Patterns with the list of
 Definitional constants they have been generated from.
 
 ```k
-    syntax AnnotatedPattern ::= Pattern "@" Set
+    syntax AnnotatedPattern ::= Pattern "@" Patterns
 ```
 
 Axioms
@@ -141,11 +141,11 @@ Tableaux rules
 ons:
 
 ```k
-    rule <gamma> SetItem(U @ A => P[U/X] @ SetItem(U) A) Gamma </gamma>
+    rule <gamma> SetItem(U @ A => P[U/X] @ U, A) Gamma </gamma>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
       requires notBool U in A
        andBool notBool isAxiom(Gamma)
-    rule <gamma> SetItem(V @ A => P[V/X] @ SetItem(V) A) Gamma </gamma>
+    rule <gamma> SetItem(V @ A => P[V/X] @ V, A) Gamma </gamma>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
       requires notBool V in A
        andBool notBool isAxiom(Gamma)
@@ -213,7 +213,7 @@ TODO: We need the *oldest* amoung all vars, not just the ones the current patter
 ```k
     rule <tableaux>
            <sequent>
-             <gamma> SetItem(Generated @ SetItem(Generated) RestGen) Gamma </gamma>
+             <gamma> SetItem(Generated @ Generated, RestGen) Gamma </gamma>
              ...
            </sequent>
         => .Bag
@@ -222,7 +222,7 @@ TODO: We need the *oldest* amoung all vars, not just the ones the current patter
          <k> .K => "sigma-trace:" ~> Generated ~> Gamma~> \n ... </k>
       requires isRegenerativeTrace(Generated, Gamma, RestGen)
 
-    syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Set) [function]
+    syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Patterns) [function]
     rule isRegenerativeTrace(_, SetItem([_Head _Beta] @ _)_Rest,_Gen) => false // Can still apply all<>
     rule isRegenerativeTrace(_, SetItem(<_Head _Beta> @ _)_Rest,_Gen) => false // Can still apply all<>
     rule isRegenerativeTrace(G, SetItem(_:Symbol      @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
@@ -259,6 +259,17 @@ If G' is a definitional constant, and has also been regenerated, then G must be 
       requires Age >Int Age'  andBool G' in Gen
 
     rule isRegenerativeTrace(_, .Set, _) => true
+```
+
+
+Helpers
+-------
+
+```k
+    syntax Bool ::= Pattern "in" Patterns [function]
+    rule P in (P, Ps) => true
+    rule P in (Q, Ps) => P in Ps requires P =/=K Q
+    rule P in .Patterns => false
 ```
 
 ```k
