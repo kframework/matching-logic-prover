@@ -45,9 +45,11 @@ module TABLEAUX
                   <tableaux>
                     <sequent type="List" multiplicity="*">
                       <gamma> .Set /* of Patterns */ </gamma>
+                      <parent> -1 </parent>
                     </sequent>
                   </tableaux>
                   <defnList> .Map </defnList>
+                  <tree> .Map </tree>
    rule <k> P:Pattern => contract(P) ... </k>
         <tableaux> ( .Bag
                   => <sequent>
@@ -101,11 +103,11 @@ Axioms
 ```k
     syntax KItem ::= "\\n" [format(%n%n)]
     rule <tableaux>
-           <sequent> <gamma> Gamma </gamma> ... </sequent>
+           <sequent> _ </sequent>
         => .Bag
            ...
          </tableaux>
-         <k> .K => "Axiom:" ~> Gamma ~> \n ... </k>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires isAxiom()
 ```
 
@@ -117,8 +119,10 @@ Tableaux rules
                 => SetItem(P           @ A)
                    SetItem(\and(Ps)    @ A)
                  )
-                 Gamma
+                 ...
          </gamma>
+         <parent> _ => !I </parent>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires Ps =/=K .Patterns
        andBool notBool isAxiom()
     rule <gamma> SetItem(\and(P, .Patterns) @ A => P @ A) ... </gamma>
@@ -126,12 +130,13 @@ Tableaux rules
 
 ```k
     rule <tableaux>
-           <sequent> <gamma> SetItem(\or(P, Ps) @ A) Gamma </gamma> Rest </sequent>
-      => ( <sequent> <gamma> SetItem(   P       @ A) Gamma </gamma> Rest </sequent>
-           <sequent> <gamma> SetItem(\or(   Ps) @ A) Gamma </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(\or(P, Ps) @ A) RGamma </gamma> <parent> _  </parent> Rest </sequent>
+      => ( <sequent> <gamma> SetItem(   P       @ A) RGamma </gamma> <parent> !I </parent> Rest </sequent>
+           <sequent> <gamma> SetItem(\or(   Ps) @ A) RGamma </gamma> <parent> !I </parent> Rest </sequent>
          )
            ...
          </tableaux>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires Ps =/=K .Patterns
        andBool notBool isAxiom()
 
@@ -142,11 +147,15 @@ ons:
 
 ```k
     rule <gamma> SetItem(U @ A => P[U/X] @ U, A) Gamma </gamma>
+         <parent> _ => !I </parent>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires notBool U in A
        andBool notBool isAxiom()
     rule <gamma> SetItem(V @ A => P[V/X] @ V, A) Gamma </gamma>
+         <parent> _ => !I </parent>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires notBool V in A
        andBool notBool isAxiom()
 ```
@@ -155,12 +164,16 @@ mu/nu:
 
 ```k
     rule <gamma> SetItem(P @ A => V @ A) Gamma </gamma>
+         <parent> _ => !I </parent>
          <defnList> V |-> (age: _, P) ... </defnList>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires notBool isAxiom()
 ```
 
 ```k
     rule <gamma> (SetItem(<_ _, .Patterns> @ _) _:Set) #as Gamma => SetItem(all<>(Gamma)) </gamma>
+         <parent> _ => !I </parent>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires canApplyAll<>()
        andBool notBool isAxiom()
 
@@ -220,7 +233,6 @@ TODO: We need the *oldest* amoung all vars, not just the ones the current patter
         => .Bag
            ...
          </tableaux>
-         <k> .K => "sigma-trace:" ~> Generated ~> Gamma~> \n ... </k>
       requires isRegenerativeTrace(Generated, Gamma, RestGen)
 
     syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Patterns) [function]
@@ -286,6 +298,15 @@ Helpers
     syntax Bool ::= isAxiom(Set) [function]
     rule isAxiom(SetItem(P @ _) SetItem(\not P @ _) _Rest) => true
     rule isAxiom(_) => false [owise]
+```
+
+```k
+    syntax Map ::= makeTreeEntry(Int) [function]
+    rule [[ makeTreeEntry(Id) => Id |-> (Parent, Gamma) ]]
+         <gamma> Gamma </gamma>
+         <parent> Parent </parent>
+
+    syntax TreeEntry ::= "(" parent: Int "," gamma: Set ")"
 ```
 
 ```k
