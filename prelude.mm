@@ -485,29 +485,77 @@ $}
 $( -------------------------------------------------------------------------- $)
 
 $(
-    Derived and sorted constructs
+    KORE logical symbols and constructs
 $)
 
-$c \bot-s \top-s \not-s \and-s \or-s \ex-s \fa-s $.
-$c \ceil \floor \eq \member \subset \domain \rewrites \dv \sort $.
+$c \kore-bot \kore-top \kore-not \kore-and \kore-or \kore-exists \kore-forall $.
+$c \kore-ceil \kore-floor \kore-equals \kore-member \kore-subset \kore-domain \kore-rewrites \kore-dv \kore-sort $.
 
-ex-s-pattern $a #Pattern ( \ex-s ph x ps ) $.
-fa-s-pattern $a #Pattern ( \fa-s ph x ps ) $.
+kore-exists-pattern $a #Pattern ( \kore-exists ph x ps ) $.
+kore-forall-pattern $a #Pattern ( \kore-forall ph x ps ) $.
 
-bot-s-pattern $a #Pattern ( \bot-s ph ) $.
-top-s-pattern $a #Pattern ( \top-s ph ) $.
-not-s-pattern $a #Pattern ( \not-s ph1 ph2 ) $.
-and-s-pattern $a #Pattern ( \and-s ph1 ph2 ph3 ) $.
-or-s-pattern $a #Pattern ( \or-s ph1 ph2 ph3 ) $.
+kore-bot-pattern $a #Pattern ( \kore-bot ph ) $.
+kore-top-pattern $a #Pattern ( \kore-top ph ) $.
+kore-not-pattern $a #Pattern ( \kore-not ph1 ph2 ) $.
+kore-and-pattern $a #Pattern ( \kore-and ph1 ph2 ph3 ) $.
+kore-or-pattern $a #Pattern ( \kore-or ph1 ph2 ph3 ) $.
 
-ceil-pattern   $a #Pattern ( \ceil ph1 ph2 ph3 ) $.
-floor-pattern  $a #Pattern ( \floor ph1 ph2 ph3 ) $.
-eq-pattern     $a #Pattern ( \eq ph1 ph2 ph3 ph3 ) $.
-member-pattern $a #Pattern ( \member ph1 ph2 ph3 ph3 ) $.
-subset-pattern $a #Pattern ( \subset ph1 ph2 ph3 ph3 ) $.
-domain-pattern $a #Pattern ( \domain ph ) $.
-rewrites-pattern $a #Pattern ( \rewrites ph1 ph2 ph3 ) $.
+kore-ceil-pattern   $a #Pattern ( \kore-ceil ph1 ph2 ph3 ) $.
+kore-floor-pattern  $a #Pattern ( \kore-floor ph1 ph2 ph3 ) $.
+kore-equals-pattern $a #Pattern ( \kore-equals ph1 ph2 ph3 ph3 ) $.
+kore-member-pattern $a #Pattern ( \kore-member ph1 ph2 ph3 ph3 ) $.
+kore-subset-pattern $a #Pattern ( \kore-subset ph1 ph2 ph3 ph3 ) $.
+kore-domain-pattern $a #Pattern ( \kore-domain ph ) $.
+kore-rewrites-pattern $a #Pattern ( \kore-rewrites ph1 ph2 ph3 ) $.
 
-dv-pattern $a #Pattern ( \dv ph ps ) $.
+kore-dv-pattern $a #Pattern ( \kore-dv ph ps ) $.
 
-sort-symbol $a #Symbol \sort $.
+kore-sort-symbol $a #Symbol \kore-sort $.
+
+$(
+    KORE lemmas
+$)
+
+kore-top-valid $p |- ( \kore-top ph ) $= ? $.
+
+${
+    $(
+        ph1: rewrite sort
+        ph2: rewrite condition (`requires` clause)
+        ph3: LHS
+        ph4: `ensures` claus
+        ph5: RHS
+    $)
+    kore-rewrites-conditional.1 $e |- ( \kore-rewrites ph1 ( \kore-and ph1 ph2 ph3 ) ( \kore-and ph1 ph4 ph5 ) ) $.
+    kore-rewrites-conditional.2 $e |- ph2 $.
+    kore-rewrites-conditional.3 $e |- ph4 $.
+    kore-rewrites-conditional $p |- \kore-rewrites ph1 ph3 ph5 $= ? $.
+$}
+
+${
+    kore-forall-elim.1 $e |- ( \kore-forall ph1 x ph2 ) $.
+
+    $( ph3 is functional and has sort ph1 $)
+    kore-forall-elim.2 $e |- ( \kore-forall \kore-sort z ( \kore-exists ph1 y ( \kore-equals ph1 z y ph3 ) ) ) $.
+
+    kore-forall-elim.3 $e #Substitution ph4 ph2 ph3 x $.
+  
+    kore-forall-elim $p |- ph4 $= ? $.
+$}
+
+${
+    $d x y $.
+    kore-forall-commute.1 $e |- ( \kore-forall ph1 x ( \kore-forall ph2 y ph3 ) ) $.
+    kore-forall-commute.2 $e #NoFreeOccurrence x ph2 $.
+    kore-forall-commute.3 $e #NoFreeOccurrence y ph1 $.
+    kore-forall-commute $p |- ( \kore-forall ph2 y ( \kore-forall ph1 x ph3 ) ) $= ? $.
+$}
+
+${
+    $( ph2 = ph3 $)
+    kore-equality.1 $e |- ( \kore-forall \kore-sort z ( \kore-equals ph1 z ph2 ph3 ) ) $.
+    kore-equality.2 $e |- ph4 $.
+    kore-equality.3 $e #Substitution ph4 ph5 ph2 x $.
+    kore-equality.4 $e #Substitution ph6 ph5 ph3 x $.
+    kore-equality $p |- ph6 $= ? $.
+$}
