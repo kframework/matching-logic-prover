@@ -1,0 +1,1 @@
+\and (\nu X1 . \and( \mu Z . \or($p, <$a Z>) , < $a X1 >) , \mu Y . \nu X2 . \or(\and (\not $p, [a X2]), [a Y])) 
