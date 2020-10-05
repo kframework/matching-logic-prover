@@ -198,7 +198,9 @@ mu/nu:
     rule [[ canApplyAll<>(SetItem(X:KVar     @ _) Rest) => canApplyAll<>(Rest) ]]
          <defnList> DefnList </defnList> requires notBool X in_keys(DefnList)
     rule canApplyAll<>(                        .Set) => true
-    
+
+    rule [[ canApplyAll<>(SetItem(X:KVar     @ _) Rest) => false ]]
+         <defnList> DefnList </defnList> requires X in_keys(DefnList)
     rule canApplyAll<>(SetItem(\and(_)    @ _) Rest) => false
     rule canApplyAll<>(SetItem(\or(_)     @ _) Rest) => false
     rule canApplyAll<>(SetItem(\mu _ . _  @ _) Rest) => false
