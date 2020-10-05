@@ -106,7 +106,7 @@ Axioms
            ...
          </tableaux>
          <k> .K => "Axiom:" ~> Gamma ~> \n ... </k>
-      requires isAxiom(Gamma)
+      requires isAxiom()
 ```
 
 Tableaux rules
@@ -120,7 +120,7 @@ Tableaux rules
                  Gamma
          </gamma>
       requires Ps =/=K .Patterns
-       andBool notBool isAxiom(Gamma)
+       andBool notBool isAxiom()
     rule <gamma> SetItem(\and(P, .Patterns) @ A => P @ A) ... </gamma>
 ```
 
@@ -133,7 +133,7 @@ Tableaux rules
            ...
          </tableaux>
       requires Ps =/=K .Patterns
-       andBool notBool isAxiom(Gamma)
+       andBool notBool isAxiom()
 
     rule <gamma> SetItem(\or(P, .Patterns) @ A => P @ A) ... </gamma>
 ```
@@ -144,11 +144,11 @@ ons:
     rule <gamma> SetItem(U @ A => P[U/X] @ U, A) Gamma </gamma>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
       requires notBool U in A
-       andBool notBool isAxiom(Gamma)
+       andBool notBool isAxiom()
     rule <gamma> SetItem(V @ A => P[V/X] @ V, A) Gamma </gamma>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
       requires notBool V in A
-       andBool notBool isAxiom(Gamma)
+       andBool notBool isAxiom()
 ```
 
 mu/nu:
@@ -156,13 +156,13 @@ mu/nu:
 ```k
     rule <gamma> SetItem(P @ A => V @ A) Gamma </gamma>
          <defnList> V |-> (age: _, P) ... </defnList>
-      requires notBool isAxiom(Gamma)
+      requires notBool isAxiom()
 ```
 
 ```k
     rule <gamma> (SetItem(<_ _, .Patterns> @ _) _:Set) #as Gamma => SetItem(all<>(Gamma)) </gamma>
-      requires canApplyAll<>(Gamma)
-       andBool notBool isAxiom(Gamma)
+      requires canApplyAll<>()
+       andBool notBool isAxiom()
 
     syntax KItem ::= "all<>" "(" Set ")"
     rule <tableaux>
@@ -181,14 +181,13 @@ mu/nu:
 ```
 
 ```k
-    syntax Bool ::= isAxiom(Set) [function]
-    rule isAxiom(SetItem(P @ _) SetItem(\not P @ _) _Rest) => true
-    rule isAxiom(_) => false [owise]
-
     syntax Set ::= "all<" Pattern ">" "(" Set ")" [function]
     rule all<Head>(SetItem([Head Beta, .Patterns] @ A) Rest) => SetItem(Beta @ A) all<Head>(Rest)
     rule all<Head>(SetItem(_)           Rest) =>               all<Head>(Rest) [owise]
     rule all< _  >(                     .Set) => .Set
+
+    syntax Bool ::= "canApplyAll<>" "("")" [function]
+    rule canApplyAll<>() => canApplyAll<>(getGamma())
 
     syntax Bool ::= "canApplyAll<>" "(" Set ")" [function]
     rule canApplyAll<>(SetItem([_Head _Beta] @ _) Rest) => canApplyAll<>(Rest)
@@ -272,6 +271,21 @@ Helpers
     rule P in (P, Ps) => true
     rule P in (Q, Ps) => P in Ps requires P =/=K Q
     rule P in .Patterns => false
+```
+
+```k
+    syntax Set ::= getGamma() [function]
+    rule [[ getGamma() => Gamma ]]
+         <gamma> Gamma </gamma>
+```
+
+```k
+    syntax Bool ::= isAxiom() [function]
+    rule isAxiom() => isAxiom(getGamma())
+
+    syntax Bool ::= isAxiom(Set) [function]
+    rule isAxiom(SetItem(P @ _) SetItem(\not P @ _) _Rest) => true
+    rule isAxiom(_) => false [owise]
 ```
 
 ```k
