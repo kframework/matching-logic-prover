@@ -168,32 +168,34 @@ mu/nu:
       requires notBool isAxiom()
 ```
 
+all<>:
+
 ```k
-    rule <k> sequent(_ => !I,  Gamma => SetItem(all<>(Gamma))) ... </k>
+    rule <k> sequent(_ => !I,  Gamma => SetItem(all<Gamma>(Gamma))) ... </k>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires canApplyAll<>()
        andBool notBool isAxiom()
 
-    syntax KItem ::= "all<>" "(" Set ")"
-    rule <k> sequent(P, SetItem(all<>(SetItem(<Head Alpha, .Patterns> @ A) Gamma)))
-        => ( sequent(P, SetItem(Alpha @ A) all<Head>(Gamma)                       )
-          && sequent(P, SetItem(all<>(Gamma))                                     )
+    syntax KItem ::= "all<" Set ">" "(" Set ")"
+    rule <k> sequent(P, SetItem(all<SetItem(<Head Alpha, .Patterns> @ A) Rest>(Gamma)))
+        => ( sequent(P, SetItem(Alpha @ A) all<Head>(Gamma))
+          && sequent(P, SetItem(all<Rest>(Gamma)))
            )
            ...
          </k>
 
-    rule <k> sequent(_, SetItem(all<>((SetItem([_ _] @ A) => .Set) _)) ) ... </k>
-    rule <k> sequent(_, SetItem(all<>((SetItem(_:Symbol @ A) => .Set) _)) ) ... </k>
-    rule <k> sequent(_, SetItem(all<>((SetItem(\not _:Symbol @ A) => .Set) _)) ) ... </k>
+    rule <k> sequent(_, SetItem(all<((SetItem([_ _] @ A) => .Set) _)>(_))) ... </k>
+    rule <k> sequent(_, SetItem(all<((SetItem(_:Symbol @ A) => .Set) _)>(_))) ... </k>
+    rule <k> sequent(_, SetItem(all<((SetItem(\not _:Symbol @ A) => .Set) _)>(_))) ... </k>
 
-    rule <k> sequent(_, SetItem(all<>(.Set))) => sat ... </k>
+    rule <k> sequent(_, SetItem(all<.Set>(_))) => sat ... </k>
 ```
 
 ```k
     syntax Set ::= "all<" Pattern ">" "(" Set ")" [function]
     rule all<Head>(SetItem([Head Beta, .Patterns] @ A) Rest) => SetItem(Beta @ A) all<Head>(Rest)
-    rule all<Head>(SetItem(_)           Rest) =>               all<Head>(Rest) [owise]
-    rule all< _  >(                     .Set) => .Set
+    rule all<Head>(SetItem(_)           Rest) => all<Head:Pattern>(Rest) [owise]
+    rule all<_:Pattern>(                     .Set) => .Set
 
     syntax Bool ::= "canApplyAll<>" "("")" [function]
     rule canApplyAll<>() => canApplyAll<>(getGamma())
@@ -213,8 +215,8 @@ mu/nu:
     rule canApplyAll<>(SetItem(\or(_)     @ _) _Rest) => false
     rule canApplyAll<>(SetItem(\mu _ . _  @ _) _Rest) => false
     rule canApplyAll<>(SetItem(\nu _ . _  @ _) _Rest) => false
-    
-    rule canApplyAll<>(SetItem(all<>(_))) => false
+
+    rule canApplyAll<>(SetItem(all<_:Set>(_))) => false
 ```
 
 Check for mu/nu traces
@@ -227,7 +229,7 @@ Check for mu/nu traces
          <tree> .Map => makeTreeEntry(!I) ... </tree>
          <defnList> Generated |-> (age: _, P) ... </defnList>
       requires isRegenerativeTrace(Generated, Gamma, RestGen)
-       andBool \nu _ . _ :=K P 
+       andBool \nu _ . _ :=K P
 ```
 
 `\mu` traces prove the branch unsat:
