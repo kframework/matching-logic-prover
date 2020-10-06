@@ -107,7 +107,7 @@ Axioms
         => .Bag
            ...
          </tableaux>
-         <tree> .Map => makeTreeEntry(!I) ... </tree>
+         <tree> .Map => makeTreeEntry(!_) ... </tree>
       requires isAxiom()
 ```
 
@@ -146,13 +146,13 @@ Tableaux rules
 ons:
 
 ```k
-    rule <gamma> SetItem(U @ A => P[U/X] @ U, A) Gamma </gamma>
+    rule <gamma> SetItem(U @ A => P[U/X] @ U, A) ... </gamma>
          <parent> _ => !I </parent>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires notBool U in A
        andBool notBool isAxiom()
-    rule <gamma> SetItem(V @ A => P[V/X] @ V, A) Gamma </gamma>
+    rule <gamma> SetItem(V @ A => P[V/X] @ V, A) ... </gamma>
          <parent> _ => !I </parent>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
@@ -163,7 +163,7 @@ ons:
 mu/nu:
 
 ```k
-    rule <gamma> SetItem(P @ A => V @ A) Gamma </gamma>
+    rule <gamma> SetItem(P @ A => V @ A) ... </gamma>
          <parent> _ => !I </parent>
          <defnList> V |-> (age: _, P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
@@ -185,12 +185,16 @@ mu/nu:
          )
            ...
          </tableaux>
+
+    rule <gamma> SetItem(all<>((SetItem([_ _] @ A) => .Set) _)) </gamma>
+    rule <gamma> SetItem(all<>((SetItem(_:Symbol @ A) => .Set) _)) </gamma>
+    rule <gamma> SetItem(all<>((SetItem(\not _:Symbol @ A) => .Set) _)) </gamma>
+
     rule <tableaux>
-           <sequent> <gamma> SetItem(all<>(_)) </gamma> Rest </sequent>
+           <sequent> <gamma> SetItem(all<>(.Set)) </gamma> Rest </sequent>
       =>   .Bag
            ...
          </tableaux>
-      [owise]
 ```
 
 ```k
@@ -211,12 +215,12 @@ mu/nu:
          <defnList> DefnList </defnList> requires notBool X in_keys(DefnList)
     rule canApplyAll<>(                        .Set) => true
 
-    rule [[ canApplyAll<>(SetItem(X:KVar     @ _) Rest) => false ]]
+    rule [[ canApplyAll<>(SetItem(X:KVar     @ _) _) => false ]]
          <defnList> DefnList </defnList> requires X in_keys(DefnList)
-    rule canApplyAll<>(SetItem(\and(_)    @ _) Rest) => false
-    rule canApplyAll<>(SetItem(\or(_)     @ _) Rest) => false
-    rule canApplyAll<>(SetItem(\mu _ . _  @ _) Rest) => false
-    rule canApplyAll<>(SetItem(\nu _ . _  @ _) Rest) => false
+    rule canApplyAll<>(SetItem(\and(_)    @ _) _Rest) => false
+    rule canApplyAll<>(SetItem(\or(_)     @ _) _Rest) => false
+    rule canApplyAll<>(SetItem(\mu _ . _  @ _) _Rest) => false
+    rule canApplyAll<>(SetItem(\nu _ . _  @ _) _Rest) => false
 ```
 
 Check for mu/nu traces
@@ -233,6 +237,9 @@ TODO: We need the *oldest* amoung all vars, not just the ones the current patter
         => .Bag
            ...
          </tableaux>
+         <tree> .Map => makeTreeEntry(!I)
+                ...
+         </tree>
       requires isRegenerativeTrace(Generated, Gamma, RestGen)
 
     syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Patterns) [function]
@@ -280,9 +287,9 @@ Helpers
 
 ```k
     syntax Bool ::= Pattern "in" Patterns [function]
-    rule P in (P, Ps) => true
+    rule P in (P, _Ps) => true
     rule P in (Q, Ps) => P in Ps requires P =/=K Q
-    rule P in .Patterns => false
+    rule _ in .Patterns => false
 ```
 
 ```k
