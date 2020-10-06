@@ -42,22 +42,9 @@ module TABLEAUX
 
 ```k
     configuration <k> $PGM:Pattern ~> .K </k>
-                  <tableaux>
-                    <sequent type="List" multiplicity="*">
-                      <gamma> .Set /* of Patterns */ </gamma>
-                      <parent> -1 </parent>
-                    </sequent>
-                  </tableaux>
                   <defnList> .Map </defnList>
                   <tree> .Map </tree>
-   rule <k> P:Pattern => contract(P) ... </k>
-        <tableaux> ( .Bag
-                  => <sequent>
-                       <gamma> SetItem(P @ .Patterns)  </gamma>
-                       ...
-                     </sequent>
-                   )
-        </tableaux>
+   rule <k> P:Pattern => contract(P) ~> sequent(-1, SetItem(P @ .Patterns)) ... </k>
 ```
 
 Contract operator
@@ -87,6 +74,27 @@ Contract operator
     syntax DefnConst ::= "(" "age:" Int "," Pattern ")"
 ```
 
+Sequents
+--------
+
+```k
+    syntax Sequent ::= sequent(parent: Int, gamma: Set)
+    syntax Sequent ::= Sequent "&&" Sequent [seqstrict]
+                     | Sequent "||" Sequent [seqstrict]
+                     | ResultSequent
+```
+
+```k
+    syntax ResultSequent ::= "sat" | "unsat"
+    syntax KResult ::= ResultSequent
+
+    rule <k> unsat && _ => unsat ... </k>
+    rule <k> sat && Rest => Rest ... </k>
+
+    rule <k> unsat || Rest => Rest ... </k>
+    rule <k> sat || _ => sat ... </k>
+```
+
 Traces
 ------
 
@@ -102,11 +110,7 @@ Axioms
 
 ```k
     syntax KItem ::= "\\n" [format(%n%n)]
-    rule <tableaux>
-           <sequent> _ </sequent>
-        => .Bag
-           ...
-         </tableaux>
+    rule <k> sequent(_, _) => unsat ... </k>
          <tree> .Map => makeTreeEntry(!_) ... </tree>
       requires isAxiom()
 ```
@@ -115,45 +119,40 @@ Tableaux rules
 --------------
 
 ```k
-    rule <gamma> ( SetItem(\and(P, Ps) @ A)
-                => SetItem(P           @ A)
-                   SetItem(\and(Ps)    @ A)
-                 )
-                 ...
-         </gamma>
-         <parent> _ => !I </parent>
+    rule <k> sequent(_ , SetItem(\and(P, Ps) @ A)           Rest:Set)
+          => sequent(!I, SetItem(P@ A) SetItem(\and(Ps)@ A) Rest:Set)
+             ...
+         </k>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires Ps =/=K .Patterns
        andBool notBool isAxiom()
-    rule <gamma> SetItem(\and(P, .Patterns) @ A => P @ A) ... </gamma>
+
+    rule <k> sequent(_, SetItem(\and(P, .Patterns) @ A => P @ A) _) ... </k>
 ```
 
 ```k
-    rule <tableaux>
-           <sequent> <gamma> SetItem(\or(P, Ps) @ A) RGamma </gamma> <parent> _  </parent> Rest </sequent>
-      => ( <sequent> <gamma> SetItem(   P       @ A) RGamma </gamma> <parent> !I </parent> Rest </sequent>
-           <sequent> <gamma> SetItem(\or(   Ps) @ A) RGamma </gamma> <parent> !I </parent> Rest </sequent>
-         )
+    rule <k> sequent(_ , SetItem(\or(P, Ps) @ A) RGamma)
+        => ( sequent(!I, SetItem(   P       @ A) RGamma)
+          || sequent(!I, SetItem(\or(   Ps) @ A) RGamma)
+           )
            ...
-         </tableaux>
+         </k>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires Ps =/=K .Patterns
        andBool notBool isAxiom()
 
-    rule <gamma> SetItem(\or(P, .Patterns) @ A => P @ A) ... </gamma>
+    rule <k> sequent(_, SetItem(\or(P, .Patterns) @ A => P @ A) _) ... </k>
 ```
 
 ons:
 
 ```k
-    rule <gamma> SetItem(U @ A => P[U/X] @ U, A) ... </gamma>
-         <parent> _ => !I </parent>
+    rule <k> sequent(_ => !I, SetItem(U @ A => P[U/X] @ U, A) _) ... </k>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires notBool U in A
        andBool notBool isAxiom()
-    rule <gamma> SetItem(V @ A => P[V/X] @ V, A) ... </gamma>
-         <parent> _ => !I </parent>
+    rule <k> sequent(_ => !I, SetItem(V @ A => P[V/X] @ V, A) _) ... </k>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires notBool V in A
@@ -163,38 +162,31 @@ ons:
 mu/nu:
 
 ```k
-    rule <gamma> SetItem(P @ A => V @ A) ... </gamma>
-         <parent> _ => !I </parent>
+    rule <k> sequent(_ => !I, SetItem(P @ A => V @ A) _) ... </k>
          <defnList> V |-> (age: _, P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires notBool isAxiom()
 ```
 
 ```k
-    rule <gamma> (SetItem(<_ _, .Patterns> @ _) _:Set) #as Gamma => SetItem(all<>(Gamma)) </gamma>
-         <parent> _ => !I </parent>
+    rule <k> sequent(_ => !I,  Gamma => SetItem(all<>(Gamma))) ... </k>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
       requires canApplyAll<>()
        andBool notBool isAxiom()
 
     syntax KItem ::= "all<>" "(" Set ")"
-    rule <tableaux>
-           <sequent> <gamma> SetItem(all<>(SetItem(<Head Alpha, .Patterns> @ A) Gamma)) </gamma> Rest </sequent>
-      => ( <sequent> <gamma> SetItem(Alpha @ A) all<Head>(Gamma)                        </gamma> Rest </sequent>
-           <sequent> <gamma> SetItem(all<>(Gamma))                                      </gamma> Rest </sequent>
-         )
+    rule <k> sequent(P, SetItem(all<>(SetItem(<Head Alpha, .Patterns> @ A) Gamma)))
+        => ( sequent(P, SetItem(Alpha @ A) all<Head>(Gamma)                       )
+          && sequent(P, SetItem(all<>(Gamma))                                     )
+           )
            ...
-         </tableaux>
+         </k>
 
-    rule <gamma> SetItem(all<>((SetItem([_ _] @ A) => .Set) _)) </gamma>
-    rule <gamma> SetItem(all<>((SetItem(_:Symbol @ A) => .Set) _)) </gamma>
-    rule <gamma> SetItem(all<>((SetItem(\not _:Symbol @ A) => .Set) _)) </gamma>
+    rule <k> sequent(_, SetItem(all<>((SetItem([_ _] @ A) => .Set) _)) ) ... </k>
+    rule <k> sequent(_, SetItem(all<>((SetItem(_:Symbol @ A) => .Set) _)) ) ... </k>
+    rule <k> sequent(_, SetItem(all<>((SetItem(\not _:Symbol @ A) => .Set) _)) ) ... </k>
 
-    rule <tableaux>
-           <sequent> <gamma> SetItem(all<>(.Set)) </gamma> Rest </sequent>
-      =>   .Bag
-           ...
-         </tableaux>
+    rule <k> sequent(_, SetItem(all<>(.Set))) => sat ... </k>
 ```
 
 ```k
@@ -221,27 +213,36 @@ mu/nu:
     rule canApplyAll<>(SetItem(\or(_)     @ _) _Rest) => false
     rule canApplyAll<>(SetItem(\mu _ . _  @ _) _Rest) => false
     rule canApplyAll<>(SetItem(\nu _ . _  @ _) _Rest) => false
+    
+    rule canApplyAll<>(SetItem(all<>(_))) => false
 ```
 
 Check for mu/nu traces
 ----------------------
 
+`\nu` traces imply a pre-model:
+
+```k
+    rule <k> sequent(_, SetItem(Generated @ Generated, RestGen) Gamma) => sat ... </k>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
+         <defnList> Generated |-> (age: _, P) ... </defnList>
+      requires isRegenerativeTrace(Generated, Gamma, RestGen)
+       andBool \nu _ . _ :=K P 
+```
+
+`\mu` traces prove the branch unsat:
+
+```k
+    rule <k> sequent(_, SetItem(Generated @ Generated, RestGen) Gamma) => unsat ... </k>
+         <tree> .Map => makeTreeEntry(!I) ... </tree>
+         <defnList> Generated |-> (age: _, P:Pattern) ... </defnList>
+      requires isRegenerativeTrace(Generated, Gamma, RestGen)
+       andBool \mu _ . _ :=K P  // Why can't I match in the configuration? Is it a bug in K?
+```
+
 TODO: We need the *oldest* amoung all vars, not just the ones the current patterns trace.
 
 ```k
-    rule <tableaux>
-           <sequent>
-             <gamma> SetItem(Generated @ Generated, RestGen) Gamma </gamma>
-             ...
-           </sequent>
-        => .Bag
-           ...
-         </tableaux>
-         <tree> .Map => makeTreeEntry(!I)
-                ...
-         </tree>
-      requires isRegenerativeTrace(Generated, Gamma, RestGen)
-
     syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Patterns) [function]
     rule isRegenerativeTrace(_, SetItem([_Head _Beta] @ _)_Rest,_Gen) => false // Can still apply all<>
     rule isRegenerativeTrace(_, SetItem(<_Head _Beta> @ _)_Rest,_Gen) => false // Can still apply all<>
@@ -281,7 +282,6 @@ If G' is a definitional constant, and has also been regenerated, then G must be 
     rule isRegenerativeTrace(_, .Set, _) => true
 ```
 
-
 Helpers
 -------
 
@@ -295,7 +295,7 @@ Helpers
 ```k
     syntax Set ::= getGamma() [function]
     rule [[ getGamma() => Gamma ]]
-         <gamma> Gamma </gamma>
+         <k> sequent(_, Gamma) ... </k>
 ```
 
 ```k
@@ -310,8 +310,7 @@ Helpers
 ```k
     syntax Map ::= makeTreeEntry(Int) [function]
     rule [[ makeTreeEntry(Id) => Id |-> (Parent, Gamma) ]]
-         <gamma> Gamma </gamma>
-         <parent> Parent </parent>
+         <k> sequent(Parent, Gamma) ... </k>
 
     syntax TreeEntry ::= "(" parent: Int "," gamma: Set ")"
 ```
