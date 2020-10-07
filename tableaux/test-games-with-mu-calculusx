@@ -1,3 +1,0 @@
-\and( \mu X . \or([$a X], \nu Y . \and([ $a Y ], $c))
-    , \not $c
-    )
