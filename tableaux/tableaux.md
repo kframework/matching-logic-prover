@@ -311,10 +311,8 @@ Helpers
 
 ```k
     syntax Map ::= makeTreeEntry(Int) [function]
-    rule [[ makeTreeEntry(Id) => Id |-> (Parent, Gamma) ]]
+    rule [[ makeTreeEntry(Id) => Id |-> sequent(Parent, Gamma) ]]
          <k> sequent(Parent, Gamma) ... </k>
-
-    syntax TreeEntry ::= "(" parent: Int "," gamma: Set ")"
 ```
 
 ```k
