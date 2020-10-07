@@ -35,6 +35,48 @@ Encode a kore pattern as a Term and collect all
 constants and variables required
 """
 class KorePatternEncoder(KoreVisitor):
+    TOP = "\\kore-top"
+    BOTTOM = "\\kore-bot"
+    NOT = "\\kore-not"
+    AND = "\\kore-and"
+    OR = "\\kore-or"
+    CEIL = "\\kore-ceil"
+    FLOOR = "\\kore-floor"
+    EQUALS = "\\kore-equals"
+    IN = "\\kore-member"
+    REWRITES = "\\kore-rewrites"
+    DV = "\\kore-dv"
+    SORT = "\\kore-sort"
+
+    FORALL = "\\kore-forall"
+    EXISTS = "\\kore-exists"
+
+    @staticmethod
+    def encode_symbol(symbol: SymbolInstance) -> str:
+        return symbol.definition.symbol
+
+    @staticmethod
+    def encode_string_literal(literal: StringLiteral) -> str:
+        return "\"" + quote_plus(literal.content) + "\""
+
+    @staticmethod
+    def encode_logical_construct(construct: str) -> str:
+        return {
+            MLPattern.TOP: KorePatternEncoder.TOP,
+            MLPattern.BOTTOM: KorePatternEncoder.BOTTOM,
+            MLPattern.NOT: KorePatternEncoder.NOT,
+            MLPattern.AND: KorePatternEncoder.AND,
+            MLPattern.OR: KorePatternEncoder.OR,
+            MLPattern.CEIL: KorePatternEncoder.CEIL,
+            MLPattern.FLOOR: KorePatternEncoder.FLOOR,
+            MLPattern.EQUALS: KorePatternEncoder.EQUALS,
+            MLPattern.IN: KorePatternEncoder.IN,
+            MLPattern.REWRITES: KorePatternEncoder.REWRITES,
+            MLPattern.DV: KorePatternEncoder.DV,
+            MLPattern.FORALL: KorePatternEncoder.FORALL,
+            MLPattern.EXISTS: KorePatternEncoder.EXISTS,
+        }[construct]
+
     def __init__(self, composer: Composer):
         super().__init__()
         self.composer = composer
@@ -43,7 +85,7 @@ class KorePatternEncoder(KoreVisitor):
         term = axiom.pattern.visit(self)
         for var in axiom.sort_variables[::-1]:
             var_term = var.visit(self)
-            term = Term("\\kore-forall", "\\kore-sort", var_term, term)
+            term = Term(KorePatternEncoder.FORALL, KorePatternEncoder.SORT, var_term, term)
         return term
 
     def postvisit_sort_instance(self, sort_instance: SortInstance) -> Term:
@@ -62,61 +104,43 @@ class KorePatternEncoder(KoreVisitor):
         return Term(var.name)
 
     def postvisit_string_literal(self, literal: StringLiteral) -> Term:
-        encoded = "\"" + quote_plus(literal.content) + "\""
+        encoded = KorePatternEncoder.encode_string_literal(literal)
         self.composer.add_constant(encoded, 0)
         return Term(encoded)
         
-    def postvisit_application(self, application: Application):
+    def postvisit_application(self, application: Application) -> Term:
         arity = len(application.symbol.sort_arguments) + len(application.arguments)
-        self.composer.add_constant(application.symbol.definition.symbol, arity)
+        constant_symbol = KorePatternEncoder.encode_symbol(application.symbol)
+
+        self.composer.add_constant(constant_symbol, arity)
         return Term(
-            application.symbol.definition.symbol,
+            constant_symbol,
             *[ sort_arg.visit(self) for sort_arg in application.symbol.sort_arguments ],
             *[ arg.visit(self) for arg in application.arguments ],
         )
 
-    def postvisit_ml_pattern(self, ml_pattern: MLPattern):
-        symbol_map = {
-            MLPattern.TOP: "\\kore-top",
-            MLPattern.BOTTOM: "\\kore-bot",
-            MLPattern.NOT: "\\kore-not",
-            MLPattern.AND: "\\kore-and",
-            MLPattern.OR: "\\kore-or",
-            MLPattern.CEIL: "\\kore-ceil",
-            MLPattern.FLOOR: "\\kore-floor",
-            MLPattern.EQUALS: "\\kore-equals",
-            MLPattern.IN: "\\kore-member",
-            MLPattern.REWRITES: "\\kore-rewrites",
-            MLPattern.DV: "\\kore-dv",
-        }
+    def postvisit_ml_pattern(self, ml_pattern: MLPattern) -> Term:
+        encoded_construct = KorePatternEncoder.encode_logical_construct(ml_pattern.construct)
         
         if ml_pattern.construct == MLPattern.FORALL or \
            ml_pattern.construct == MLPattern.EXISTS:
-            if ml_pattern.construct == MLPattern.FORALL:
-                quantifier = "\\kore-forall "
-            else:
-                quantifier = "\\kore-exists "
-
             var = ml_pattern.get_binding_variable()
             assert len(ml_pattern.arguments) == 2
 
             return Term(
-                quantifier,
+                encoded_construct,
                 var.sort.visit(self),
                 var.visit(self),
                 ml_pattern.arguments[1].visit(self)
             )
 
         # TODO: we are ignoring the sorts of these connectives
-        elif ml_pattern.construct in symbol_map:
+        else:
             return Term(
-                symbol_map[ml_pattern.construct],
+                encoded_construct,
                 *[ sort.visit(self) for sort in ml_pattern.sorts ],
                 *[ arg.visit(self) for arg in ml_pattern.arguments ],
             )
-
-        else:
-            ml_pattern.error_with_position("unsupported ml construct")
 
 
 class Statement:

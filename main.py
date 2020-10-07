@@ -6,11 +6,11 @@ import argparse
 from io import StringIO
 
 from proof.kore.parser import parse_definition, parse_pattern
-from proof.kore.visitors import FreeVariableVisitor, VariableAssignmentVisitor
+from proof.kore.visitors import FreePatternVariableVisitor, PatternVariableAssignmentVisitor
 from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KOREUtils
 
-from proof.generator import ProofGenerator
+from proof.generator import ProofEnvironment
 
 if __name__ == "__main__":
     sys.setrecursionlimit(4096)
@@ -28,11 +28,11 @@ if __name__ == "__main__":
         definition = parse_definition(f.read())
         definition.resolve()
 
-        # fvs = definition.visit(FreeVariableVisitor())
+        # fvs = definition.visit(FreePatternVariableVisitor())
         # print("free variables:", ", ".join(map(str, fvs)))
 
         # assignment = { fv: StringLiteral("variable: {}".format(fv.name)) for fv in fvs }
-        # definition.visit(VariableAssignmentVisitor(assignment))
+        # definition.visit(PatternVariableAssignmentVisitor(assignment))
 
         # print(definition)
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         #     print("instantiating alias uses in module {}".format(module.name))
         #     KOREUtils.instantiate_all_alias_uses(module)
 
-        gen = ProofGenerator(definition, args.module)
+        env = ProofEnvironment(definition, args.module)
         module = definition.module_map[args.module]
 
         print("loading snapshots")
@@ -81,4 +81,4 @@ if __name__ == "__main__":
             
             output.write("$( Auto-generated $)\n\n")
 
-            gen.emit(output, snapshots)
+            env.emit(output, snapshots)

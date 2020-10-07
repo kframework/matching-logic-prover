@@ -1,4 +1,4 @@
-from typing import Set, List, Dict
+from typing import Set, List, Dict, Tuple
 
 from .ast import *
 
@@ -218,7 +218,7 @@ class UnionVisitor(KoreVisitor):
 """
 Collect free (pattern) variables in a definition
 """
-class FreeVariableVisitor(UnionVisitor, PatternOnlyVisitorStructure):
+class FreePatternVariableVisitor(UnionVisitor, PatternOnlyVisitorStructure):
     def postvisit_variable(self, var) -> Set[Variable]:
         return { var }
 
@@ -239,10 +239,32 @@ class FreeVariableVisitor(UnionVisitor, PatternOnlyVisitorStructure):
 
 
 """
+Collect all variables used in a pattern
+"""
+class PatternVariableVisitor(UnionVisitor, PatternOnlyVisitorStructure):
+    def postvisit_variable(self, var) -> Set[Variable]:
+        return { var }
+
+
+
+"""
+Collect all variables used in a pattern (in order of visit)
+"""
+class OrderedPatternVariableVisitor(UnionVisitor, PatternOnlyVisitorStructure):
+    def __init__(self):
+        self.index = 0
+
+    def postvisit_variable(self, var) -> Set[Tuple[int, Variable]]:
+        i = self.index
+        self.index += 1
+        return { (i, var) }
+
+
+"""
 In place substitution of variables
 Note: this visitor does not detect free variable capturing
 """
-class VariableAssignmentVisitor(KoreVisitor, PatternOnlyVisitorStructure):
+class PatternVariableAssignmentVisitor(KoreVisitor, PatternOnlyVisitorStructure):
     def __init__(self, assignment: Dict[Variable, Pattern]):
         super().__init__()
         self.assignment = assignment

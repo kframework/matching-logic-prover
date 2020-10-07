@@ -1,5 +1,5 @@
 from .ast import *
-from .visitors import VariableAssignmentVisitor, CopyVisitor
+from .visitors import PatternVariableAssignmentVisitor, CopyVisitor
 
 """
 Utility functions on KORE AST
@@ -25,7 +25,7 @@ class KOREUtils:
             application.error_with_position("unmatched number of arguments in the use of alias")
 
         assignment = { var: arg for var, arg in zip(variables, application.arguments) }
-        assignment_visitor = VariableAssignmentVisitor(assignment)
+        assignment_visitor = PatternVariableAssignmentVisitor(assignment)
         
         copied_rhs = KOREUtils.copy_pattern(alias_def.get_parent(), alias_def.rhs)
         copied_rhs.visit(assignment_visitor)

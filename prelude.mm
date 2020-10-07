@@ -533,13 +533,11 @@ ${
 $}
 
 ${
+    $d z y $.
     kore-forall-elim.1 $e |- ( \kore-forall ph1 x ph2 ) $.
-
     $( ph3 is functional and has sort ph1 $)
     kore-forall-elim.2 $e |- ( \kore-forall \kore-sort z ( \kore-exists ph1 y ( \kore-equals ph1 z y ph3 ) ) ) $.
-
     kore-forall-elim.3 $e #Substitution ph4 ph2 ph3 x $.
-  
     kore-forall-elim $p |- ph4 $= ? $.
 $}
 
