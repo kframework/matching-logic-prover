@@ -224,21 +224,26 @@ Check for mu/nu traces
 
 `\nu` traces imply a pre-model:
 
-//```k
-//    rule <k> sequent(_, SetItem(Generated @ Generated, RestGen) Gamma) => sat ... </k>
-//         <tree> .Map => makeTreeEntry(!I) ... </tree>
-//         <defnList> Generated |-> (age: _, P) ... </defnList>
-//      requires sequentHasRecurred()
-//       andBool \nu _ . _ :=K P
-//```
-
-`\mu` traces prove the branch unsat:
-
 ```k
-    rule <k> sequent(_, SetItem(_:KVar @ Generated) Gamma) => unsat ... </k>
+// TODO: we want this rule to fire only when there aren't any \mu traces. Can we do it without owise?
+    rule <k> sequent(_, SetItem(C:KVar @ Generated) Gamma) => sat ... </k>
          <tree> .Map => makeTreeEntry(!_) ... </tree>
          <defnList> DefnList </defnList>
-      requires isMuConstant(getOldestRegnerated(Generated)) [owise]
+      requires sequentHasRecurred()
+       andBool C in Generated
+       andBool isNuConstant(getOldestRegnerated(Generated))
+               [owise]
+```
+
+`\mu` traces have the oldest `\mu` trace
+
+```k
+    rule <k> sequent(_, SetItem(C:KVar @ Generated) Gamma) => unsat ... </k>
+         <tree> .Map => makeTreeEntry(!_) ... </tree>
+         <defnList> DefnList </defnList>
+      requires sequentHasRecurred()
+       andBool C in Generated
+       andBool isMuConstant(getOldestRegnerated(Generated))
 ```
 
 ```k
@@ -254,12 +259,18 @@ Check for mu/nu traces
     rule [[ getOldestRegneratedAux(C1, (C2, Ps)) => getOldestRegneratedAux(C2, Ps) ]]
          <defnList> C1 |-> (age: Age1, _) C2 |-> (age: Age2, _) ... </defnList>
       requires notBool Age1 <Int Age2 // Age should be called rank
-      
+
     syntax Bool ::= isMuConstant(KVar) [function]
     rule [[ isMuConstant(V) => true ]]
          <defnList> V |-> (age: _, \mu _ . _) ... </defnList>
     rule [[ isMuConstant(V) => false ]]
          <defnList> V |-> (age: _, \nu _ . _) ... </defnList>
+
+    syntax Bool ::= isNuConstant(KVar) [function]
+    rule [[ isNuConstant(V) => true ]]
+         <defnList> V |-> (age: _, \nu _ . _) ... </defnList>
+    rule [[ isNuConstant(V) => false ]]
+         <defnList> V |-> (age: _, \mu _ . _) ... </defnList>
 ```
 
 Helpers
@@ -269,7 +280,7 @@ Helpers
     syntax Bool ::= sequentHasRecurred() [function]
     rule [[ sequentHasRecurred() => sequentHasRecurred(Parent) ]]
          <k> sequent(Parent, _) ... </k>
-         
+
     syntax Bool ::= sequentHasRecurred(Int) [function]
     rule [[ sequentHasRecurred(Id) => sequentHasRecurred(Ancestor) ]]
          <k> sequent(_, Gamma) ... </k>
