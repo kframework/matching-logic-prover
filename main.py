@@ -10,10 +10,7 @@ from proof.kore.visitors import FreeVariableVisitor, VariableAssignmentVisitor
 from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KOREUtils
 
-from proof.encoder import KorePatternEncoder
 from proof.generator import ProofGenerator
-
-from proof.kore2ml import KoreToMLVisitor
 
 if __name__ == "__main__":
     sys.setrecursionlimit(4096)
@@ -69,6 +66,8 @@ if __name__ == "__main__":
                         # resolve all references in the specified module
                         snapshot_pattern.resolve(module)
                         snapshots[step] = snapshot_pattern
+
+            snapshots = [ snapshots[i] for i in range(max_step + 1) ]
         else:
             snapshots = []
 
