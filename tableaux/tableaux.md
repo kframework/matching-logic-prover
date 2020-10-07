@@ -150,12 +150,12 @@ ons:
     rule <k> sequent(_ => !I, SetItem(U @ A => P[U/X] @ U, A) _) ... </k>
          <defnList> U |-> (age: _, \mu X . P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
-      requires notBool U in A
+      requires notBool ( sequentHasRecurred() andBool U in A)
        andBool notBool isAxiom()
     rule <k> sequent(_ => !I, SetItem(V @ A => P[V/X] @ V, A) _) ... </k>
          <defnList> V |-> (age: _, \nu X . P) ... </defnList>
          <tree> .Map => makeTreeEntry(!I) ... </tree>
-      requires notBool V in A
+      requires notBool sequentHasRecurred()
        andBool notBool isAxiom()
 ```
 
@@ -184,9 +184,9 @@ all<>:
            ...
          </k>
 
-    rule <k> sequent(_, SetItem(all<((SetItem([_ _] @ A) => .Set) _)>(_))) ... </k>
-    rule <k> sequent(_, SetItem(all<((SetItem(_:Symbol @ A) => .Set) _)>(_))) ... </k>
-    rule <k> sequent(_, SetItem(all<((SetItem(\not _:Symbol @ A) => .Set) _)>(_))) ... </k>
+    rule <k> sequent(_, SetItem(all<((SetItem([_ _] @ _) => .Set) _)>(_))) ... </k>
+    rule <k> sequent(_, SetItem(all<((SetItem(_:Symbol @ _) => .Set) _)>(_))) ... </k>
+    rule <k> sequent(_, SetItem(all<((SetItem(\not _:Symbol @ _) => .Set) _)>(_))) ... </k>
 
     rule <k> sequent(_, SetItem(all<.Set>(_))) => sat ... </k>
 ```
@@ -224,68 +224,71 @@ Check for mu/nu traces
 
 `\nu` traces imply a pre-model:
 
-```k
-    rule <k> sequent(_, SetItem(Generated @ Generated, RestGen) Gamma) => sat ... </k>
-         <tree> .Map => makeTreeEntry(!I) ... </tree>
-         <defnList> Generated |-> (age: _, P) ... </defnList>
-      requires isRegenerativeTrace(Generated, Gamma, RestGen)
-       andBool \nu _ . _ :=K P
-```
+//```k
+//    rule <k> sequent(_, SetItem(Generated @ Generated, RestGen) Gamma) => sat ... </k>
+//         <tree> .Map => makeTreeEntry(!I) ... </tree>
+//         <defnList> Generated |-> (age: _, P) ... </defnList>
+//      requires sequentHasRecurred()
+//       andBool \nu _ . _ :=K P
+//```
 
 `\mu` traces prove the branch unsat:
 
 ```k
-    rule <k> sequent(_, SetItem(Generated @ Generated, RestGen) Gamma) => unsat ... </k>
-         <tree> .Map => makeTreeEntry(!I) ... </tree>
-         <defnList> Generated |-> (age: _, P:Pattern) ... </defnList>
-      requires isRegenerativeTrace(Generated, Gamma, RestGen)
-       andBool \mu _ . _ :=K P  // Why can't I match in the configuration? Is it a bug in K?
-```
-
-TODO: We need the *oldest* amoung all vars, not just the ones the current patterns trace.
-
-```k
-    syntax Bool ::= isRegenerativeTrace(regenerated: KVar, gamma: Set, generated: Patterns) [function]
-    rule isRegenerativeTrace(_, SetItem([_Head _Beta] @ _)_Rest,_Gen) => false // Can still apply all<>
-    rule isRegenerativeTrace(_, SetItem(<_Head _Beta> @ _)_Rest,_Gen) => false // Can still apply all<>
-    rule isRegenerativeTrace(G, SetItem(_:Symbol      @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
-    rule isRegenerativeTrace(G, SetItem(\not _:Symbol @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen)
-```
-
-If X is not a definitional constant, it is not important
-
-```k
-    rule [[ isRegenerativeTrace(G, SetItem(X:KVar     @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
+    rule <k> sequent(_, SetItem(_:KVar @ Generated) Gamma) => unsat ... </k>
+         <tree> .Map => makeTreeEntry(!_) ... </tree>
          <defnList> DefnList </defnList>
-      requires notBool X in_keys(DefnList)
+      requires isMuConstant(getOldestRegnerated(Generated)) [owise]
 ```
 
-If G' is a definitional constant, and has *not* been regenerated, we can reduce further:
-
 ```k
-    rule [[ isRegenerativeTrace(G, SetItem(G':KVar @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
-         <defnList> DefnList </defnList>
-      requires G' in_keys(DefnList)
-       andBool notBool G' in Gen
-```
+    syntax KVar ::= getOldestRegnerated(generated: Patterns) [function]
+    rule getOldestRegnerated((P, Ps)) => getOldestRegneratedAux(P, Ps)
 
-If G' is a definitional constant, and has also been regenerated, then G must be older than G'
-(note: lower age is "older")
-
-```k
-    rule [[ isRegenerativeTrace(G, SetItem(G':KVar @ _) Rest, Gen) => isRegenerativeTrace(G, Rest, Gen) ]]
-         <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
-      requires Age <Int Age' andBool G' in Gen
-
-    rule [[ isRegenerativeTrace(G, SetItem(G':KVar @ _)_Rest, Gen) => false ]]
-         <defnList> G |-> (age: Age, _) G' |-> (age: Age', _) ... </defnList>
-      requires Age >Int Age'  andBool G' in Gen
-
-    rule isRegenerativeTrace(_, .Set, _) => true
+    syntax KVar ::= getOldestRegneratedAux(constant: KVar, generated: Patterns) [function]
+    rule getOldestRegneratedAux(C, .Patterns) => C
+    rule getOldestRegneratedAux(C, (C, Ps)) => getOldestRegneratedAux(C, Ps)
+    rule [[ getOldestRegneratedAux(C1, (C2, Ps)) => getOldestRegneratedAux(C1, Ps) ]]
+         <defnList> C1 |-> (age: Age1, _) C2 |-> (age: Age2, _) ... </defnList>
+      requires Age1 <Int Age2 // Age should be called rank
+    rule [[ getOldestRegneratedAux(C1, (C2, Ps)) => getOldestRegneratedAux(C2, Ps) ]]
+         <defnList> C1 |-> (age: Age1, _) C2 |-> (age: Age2, _) ... </defnList>
+      requires notBool Age1 <Int Age2 // Age should be called rank
+      
+    syntax Bool ::= isMuConstant(KVar) [function]
+    rule [[ isMuConstant(V) => true ]]
+         <defnList> V |-> (age: _, \mu _ . _) ... </defnList>
+    rule [[ isMuConstant(V) => false ]]
+         <defnList> V |-> (age: _, \nu _ . _) ... </defnList>
 ```
 
 Helpers
 -------
+
+```k
+    syntax Bool ::= sequentHasRecurred() [function]
+    rule [[ sequentHasRecurred() => sequentHasRecurred(Parent) ]]
+         <k> sequent(Parent, _) ... </k>
+         
+    syntax Bool ::= sequentHasRecurred(Int) [function]
+    rule [[ sequentHasRecurred(Id) => sequentHasRecurred(Ancestor) ]]
+         <k> sequent(_, Gamma) ... </k>
+         <tree> Id |-> sequent(Ancestor, Gamma') ... </tree>
+      requires notBool stripAnnotations(Gamma) ==K stripAnnotations(Gamma')
+
+    rule [[ sequentHasRecurred(Id) => true ]]
+         <k> sequent(_, Gamma) ... </k>
+         <tree> Id |-> sequent(_, Gamma') ... </tree>
+      requires stripAnnotations(Gamma) ==K stripAnnotations(Gamma')
+
+    rule sequentHasRecurred(-1) => false
+```
+
+```k
+    syntax Patterns ::= stripAnnotations(Set) [function]
+    rule stripAnnotations(SetItem(P @ _) APs) => P, stripAnnotations(APs)
+    rule stripAnnotations(.Set) => .Patterns
+```
 
 ```k
     syntax Bool ::= Pattern "in" Patterns [function]
