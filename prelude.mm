@@ -26,7 +26,7 @@ $c #SetVariable $.
 $c #Symbol $.   
 $c #Variable $. 
 $v 
-    ph ps ph1 ph2 ph3 ph4 ph5 ph6
+    ph ps ph1 ph2 ph3 ph4 ph5 ph6 ph7 ph8 ph9
     x y z 
     X Y Z 
     sg sg1 sg2
@@ -40,6 +40,9 @@ vph3 $f #Pattern ph3 $.
 vph4 $f #Pattern ph4 $.
 vph5 $f #Pattern ph5 $.
 vph6 $f #Pattern ph6 $.
+vph7 $f #Pattern ph7 $.
+vph8 $f #Pattern ph8 $.
+vph9 $f #Pattern ph9 $.
 vx   $f #ElementVariable x $.
 vy   $f #ElementVariable y $.
 vz   $f #ElementVariable z $.
@@ -489,28 +492,127 @@ $(
 $)
 
 $c \kore-bot \kore-top \kore-not \kore-and \kore-or \kore-exists \kore-forall $.
-$c \kore-ceil \kore-floor \kore-equals \kore-member \kore-subset \kore-domain \kore-rewrites \kore-dv \kore-sort $.
+$c \kore-ceil \kore-floor \kore-equals \kore-in \kore-rewrites \kore-dv \kore-sort $.
 
-kore-exists-pattern $a #Pattern ( \kore-exists ph x ps ) $.
-kore-forall-pattern $a #Pattern ( \kore-forall ph x ps ) $.
+kore-exists-pattern $a #Pattern ( \kore-exists ph1 x ph2 ) $.
+kore-forall-pattern $a #Pattern ( \kore-forall ph1 x ph2 ) $.
 
-kore-bot-pattern $a #Pattern ( \kore-bot ph ) $.
-kore-top-pattern $a #Pattern ( \kore-top ph ) $.
+kore-bot-pattern $a #Pattern ( \kore-bot ph1 ) $.
+kore-top-pattern $a #Pattern ( \kore-top ph1 ) $.
 kore-not-pattern $a #Pattern ( \kore-not ph1 ph2 ) $.
 kore-and-pattern $a #Pattern ( \kore-and ph1 ph2 ph3 ) $.
 kore-or-pattern $a #Pattern ( \kore-or ph1 ph2 ph3 ) $.
 
 kore-ceil-pattern   $a #Pattern ( \kore-ceil ph1 ph2 ph3 ) $.
 kore-floor-pattern  $a #Pattern ( \kore-floor ph1 ph2 ph3 ) $.
-kore-equals-pattern $a #Pattern ( \kore-equals ph1 ph2 ph3 ph3 ) $.
-kore-member-pattern $a #Pattern ( \kore-member ph1 ph2 ph3 ph3 ) $.
-kore-subset-pattern $a #Pattern ( \kore-subset ph1 ph2 ph3 ph3 ) $.
-kore-domain-pattern $a #Pattern ( \kore-domain ph ) $.
+kore-equals-pattern $a #Pattern ( \kore-equals ph1 ph2 ph3 ph4 ) $.
+kore-in-pattern $a #Pattern ( \kore-in ph1 ph2 ph3 ph4 ) $.
 kore-rewrites-pattern $a #Pattern ( \kore-rewrites ph1 ph2 ph3 ) $.
+kore-dv-pattern $a #Pattern ( \kore-dv ph1 ph2 ) $.
+kore-sort-pattern $a #Pattern \kore-sort $.
 
-kore-dv-pattern $a #Pattern ( \kore-dv ph ps ) $.
+$(
+    Substitution rules
+$)
 
-kore-sort-symbol $a #Symbol \kore-sort $.
+${
+    $d xX y $.
+    kore-exists-substitution.1 $e #Substitution ph1 ph3 ph5 xX $.
+    kore-exists-substitution.2 $e #Substitution ph2 ph4 ph5 xX $.
+    kore-exists-substitution $a #Substitution ( \kore-exists ph1 y ph2 ) ( \kore-exists ph3 y ph4 ) ph5 xX $.
+$}
+
+${
+    kore-exists-substitution-shadowed.1 $e #Substitution ph1 ph3 ph4 x $.
+    kore-exists-substitution-shadowed $a #Substitution ( \kore-exists ph1 x ph2 ) ( \kore-exists ph3 x ph2 ) ph4 x $.
+$}
+
+${
+    $d xX y $.
+    kore-forall-substitution.1 $e #Substitution ph1 ph3 ph5 xX $.
+    kore-forall-substitution.2 $e #Substitution ph2 ph4 ph5 xX $.
+    kore-forall-substitution $a #Substitution ( \kore-forall ph1 y ph2 ) ( \kore-forall ph3 y ph4 ) ph5 xX $.
+$}
+
+${
+    kore-forall-substitution-shadowed.1 $e #Substitution ph1 ph3 ph4 x $.
+    kore-forall-substitution-shadowed $a #Substitution ( \kore-forall ph1 x ph2 ) ( \kore-forall ph3 x ph2 ) ph4 x $.
+$}
+
+${
+    kore-bot-substitution.1 $e #Substitution ph1 ph2 ph3 xX $.
+    kore-bot-substitution $a #Substitution ( \kore-bot ph1 ) ( \kore-bot ph2 ) ph3 xX $.
+$}
+
+${
+    kore-top-substitution.1 $e #Substitution ph1 ph2 ph3 xX $.
+    kore-top-substitution $a #Substitution ( \kore-top ph1 ) ( \kore-top ph2 ) ph3 xX $.
+$}
+
+${
+    kore-not-substitution.1 $e #Substitution ph1 ph3 ph5 xX $.
+    kore-not-substitution.2 $e #Substitution ph2 ph4 ph5 xX $.
+    kore-not-substitution $a #Substitution ( \kore-not ph1 ph2 ) ( \kore-not ph3 ph4 ) ph5 xX $.
+$}
+
+${
+    kore-and-substitution.1 $e #Substitution ph1 ph4 ph7 xX $.
+    kore-and-substitution.2 $e #Substitution ph2 ph5 ph7 xX $.
+    kore-and-substitution.3 $e #Substitution ph3 ph6 ph7 xX $.
+    kore-and-substitution $a #Substitution ( \kore-and ph1 ph2 ph3 ) ( \kore-and ph4 ph5 ph6 ) ph7 xX $.
+$}
+
+${
+    kore-or-substitution.1 $e #Substitution ph1 ph4 ph7 xX $.
+    kore-or-substitution.2 $e #Substitution ph2 ph5 ph7 xX $.
+    kore-or-substitution.3 $e #Substitution ph3 ph6 ph7 xX $.
+    kore-or-substitution $a #Substitution ( \kore-or ph1 ph2 ph3 ) ( \kore-or ph4 ph5 ph6 ) ph7 xX $.
+$}
+
+${
+    kore-ceil-substitution.1 $e #Substitution ph1 ph4 ph7 xX $.
+    kore-ceil-substitution.2 $e #Substitution ph2 ph5 ph7 xX $.
+    kore-ceil-substitution.3 $e #Substitution ph3 ph6 ph7 xX $.
+    kore-ceil-substitution $a #Substitution ( \kore-ceil ph1 ph2 ph3 ) ( \kore-ceil ph4 ph5 ph6 ) ph7 xX $.
+$}
+
+${
+    kore-floor-substitution.1 $e #Substitution ph1 ph4 ph7 xX $.
+    kore-floor-substitution.2 $e #Substitution ph2 ph5 ph7 xX $.
+    kore-floor-substitution.3 $e #Substitution ph3 ph6 ph7 xX $.
+    kore-floor-substitution $a #Substitution ( \kore-floor ph1 ph2 ph3 ) ( \kore-floor ph4 ph5 ph6 ) ph7 xX $.
+$}
+
+${
+    kore-equals-substitution.1 $e #Substitution ph1 ph5 ph9 xX $.
+    kore-equals-substitution.2 $e #Substitution ph2 ph6 ph9 xX $.
+    kore-equals-substitution.3 $e #Substitution ph3 ph7 ph9 xX $.
+    kore-equals-substitution.4 $e #Substitution ph4 ph8 ph9 xX $.
+    kore-equals-substitution $a #Substitution ( \kore-equals ph1 ph2 ph3 ph4 ) ( \kore-equals ph5 ph6 ph7 ph8 ) ph9 xX $.
+$}
+
+${
+    kore-in-substitution.1 $e #Substitution ph1 ph5 ph9 xX $.
+    kore-in-substitution.2 $e #Substitution ph2 ph6 ph9 xX $.
+    kore-in-substitution.3 $e #Substitution ph3 ph7 ph9 xX $.
+    kore-in-substitution.4 $e #Substitution ph4 ph8 ph9 xX $.
+    kore-in-substitution $a #Substitution ( \kore-in ph1 ph2 ph3 ph4 ) ( \kore-in ph5 ph6 ph7 ph8 ) ph9 xX $.
+$}
+
+${
+    kore-rewrites-substitution.1 $e #Substitution ph1 ph4 ph7 xX $.
+    kore-rewrites-substitution.2 $e #Substitution ph2 ph5 ph7 xX $.
+    kore-rewrites-substitution.3 $e #Substitution ph3 ph6 ph7 xX $.
+    kore-rewrites-substitution $a #Substitution ( \kore-rewrites ph1 ph2 ph3 ) ( \kore-rewrites ph4 ph5 ph6 ) ph7 xX $.
+$}
+
+${
+    kore-dv-substitution.1 $e #Substitution ph1 ph3 ph5 xX $.
+    kore-dv-substitution.2 $e #Substitution ph2 ph4 ph5 xX $.
+    kore-dv-substitution $a #Substitution ( \kore-dv ph1 ph2 ) ( \kore-dv ph3 ph4 ) ph5 xX $.
+$}
+
+kore-sort-substitution $a #Substitution \kore-sort \kore-sort ph1 xX $.
 
 $(
     KORE lemmas

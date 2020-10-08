@@ -8,7 +8,7 @@ from io import StringIO
 from proof.kore.parser import parse_definition, parse_pattern
 from proof.kore.visitors import FreePatternVariableVisitor, PatternVariableAssignmentVisitor
 from proof.kore.ast import StringLiteral, MLPattern
-from proof.kore.utils import KOREUtils
+from proof.kore.utils import KoreUtils
 
 from proof.generator import ProofEnvironment
 
@@ -38,9 +38,15 @@ if __name__ == "__main__":
 
         # for module in definition.module_map.values():
         #     print("instantiating alias uses in module {}".format(module.name))
-        #     KOREUtils.instantiate_all_alias_uses(module)
+        #     KoreUtils.instantiate_all_alias_uses(module)
 
-        env = ProofEnvironment(definition, args.module)
+        if args.prelude is not None:
+            with open(args.prelude) as prelude_file:
+                prelude = prelude_file.read()
+        else:
+            prelude = None
+
+        env = ProofEnvironment(definition, args.module, prelude=prelude)
         module = definition.module_map[args.module]
 
         print("loading snapshots")
@@ -74,11 +80,4 @@ if __name__ == "__main__":
         print("emitting metamath proof file")
         
         with open(args.output, "w") as output:
-            if args.prelude is not None:
-                with open(args.prelude) as prelude:
-                    output.write(prelude.read())
-                    output.write("\n")
-            
-            output.write("$( Auto-generated $)\n\n")
-
             env.emit(output, snapshots)
