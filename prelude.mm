@@ -27,8 +27,8 @@ $c #Symbol $.
 $c #Variable $. 
 $v 
     ph ps ph1 ph2 ph3 ph4 ph5 ph6 ph7 ph8 ph9
-    x y z 
-    X Y Z 
+    x y z w
+    X Y Z
     sg sg1 sg2
     xX yY
 $.
@@ -46,6 +46,7 @@ vph9 $f #Pattern ph9 $.
 vx   $f #ElementVariable x $.
 vy   $f #ElementVariable y $.
 vz   $f #ElementVariable z $.
+vw   $f #ElementVariable w $.
 vX   $f #SetVariable X $.
 vY   $f #SetVariable Y $.
 vZ   $f #SetVariable Z $.
@@ -509,6 +510,8 @@ kore-equals-pattern $a #Pattern ( \kore-equals ph1 ph2 ph3 ph4 ) $.
 kore-in-pattern $a #Pattern ( \kore-in ph1 ph2 ph3 ph4 ) $.
 kore-rewrites-pattern $a #Pattern ( \kore-rewrites ph1 ph2 ph3 ) $.
 kore-dv-pattern $a #Pattern ( \kore-dv ph1 ph2 ) $.
+
+$( a sort symbol whose domain is the set of all sort symbols $)
 kore-sort-pattern $a #Pattern \kore-sort $.
 
 $(
@@ -625,13 +628,13 @@ ${
         ph1: rewrite sort
         ph2: rewrite condition (`requires` clause)
         ph3: LHS
-        ph4: `ensures` claus
+        ph4: `ensures` clause
         ph5: RHS
     $)
     kore-rewrites-conditional.1 $e |- ( \kore-rewrites ph1 ( \kore-and ph1 ph2 ph3 ) ( \kore-and ph1 ph4 ph5 ) ) $.
     kore-rewrites-conditional.2 $e |- ph2 $.
     kore-rewrites-conditional.3 $e |- ph4 $.
-    kore-rewrites-conditional $p |- \kore-rewrites ph1 ph3 ph5 $= ? $.
+    kore-rewrites-conditional $p |- ( \kore-rewrites ph1 ph3 ph5 ) $= ? $.
 $}
 
 ${
@@ -643,12 +646,15 @@ ${
     kore-forall-elim $p |- ph4 $= ? $.
 $}
 
+$( a variant of the quantifier elimination above, more convenient for proving functional properties $)
 ${
-    $d x y $.
-    kore-forall-commute.1 $e |- ( \kore-forall ph1 x ( \kore-forall ph2 y ph3 ) ) $.
-    kore-forall-commute.2 $e #NoFreeOccurrence x ph2 $.
-    kore-forall-commute.3 $e #NoFreeOccurrence y ph1 $.
-    kore-forall-commute $p |- ( \kore-forall ph2 y ( \kore-forall ph1 x ph3 ) ) $= ? $.
+    $d w x $.
+    $d z y $.
+    kore-forall-elim-variant.1 $e |- ( \kore-forall \kore-sort w ( \kore-forall ph1 x ph2 ) ) $.
+    $( ph3 is functional and has sort ph1 $)
+    kore-forall-elim-variant.2 $e |- ( \kore-forall \kore-sort z ( \kore-exists ph1 y ( \kore-equals ph1 z y ph3 ) ) ) $.
+    kore-forall-elim-variant.3 $e #Substitution ph4 ph2 ph3 x $.
+    kore-forall-elim-variant $p |- ( \kore-forall \kore-sort w ph4 ) $= ? $.
 $}
 
 ${

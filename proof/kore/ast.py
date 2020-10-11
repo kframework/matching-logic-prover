@@ -269,7 +269,7 @@ class SortInstance(BaseAST):
         return False
 
     def __hash__(self):
-        return hash(self.definition) ^ hash(self.arguments)
+        return hash(self.definition) ^ hash(tuple(self.arguments))
 
     def __str__(self) -> str:
         sort_id = self.definition.sort_id if isinstance(self.definition, SortDefinition) else "<?" + self.definition + ">"
@@ -457,6 +457,14 @@ class StringLiteral(Pattern):
 
     def visit(self, visitor: KoreVisitor) -> Any:
         return visitor.proxy_visit_string_literal(self)
+
+    def __eq__(self, other):
+        if isinstance(other, StringLiteral):
+            return self.content == other.content
+        return False
+
+    def __hash__(self):
+        return hash(self.content)
 
     def __str__(self) -> str:
         return "\"" + repr(self.content)[1:-1] + "\""

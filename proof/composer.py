@@ -27,6 +27,7 @@ class KorePatternEncoder(KoreVisitor):
     REWRITES = "\\kore-rewrites"
     DV = "\\kore-dv"
     SORT = "\\kore-sort"
+    STRING = "\\kore-string"
 
     FORALL = "\\kore-forall"
     EXISTS = "\\kore-exists"
@@ -77,12 +78,11 @@ class KorePatternEncoder(KoreVisitor):
         term = axiom.pattern.visit(self)
 
         # universally quantify all free variables
-        free_vars = axiom.pattern.visit(FreePatternVariableVisitor())
-
-        for var in free_vars:
-            var_term = var.visit(self)
-            sort_term = var.sort.visit(self)
-            term = Constant(KorePatternEncoder.FORALL, sort_term, var_term, term)
+        # free_vars = axiom.pattern.visit(FreePatternVariableVisitor())
+        # for var in free_vars:
+        #     var_term = var.visit(self)
+        #     sort_term = var.sort.visit(self)
+        #     term = Constant(KorePatternEncoder.FORALL, sort_term, var_term, term)
 
         for var in axiom.sort_variables[::-1]:
             var_term = var.visit(self)
@@ -140,6 +140,10 @@ class KorePatternEncoder(KoreVisitor):
 
         # TODO: we are ignoring the sorts of these connectives
         else:
+            if ml_pattern.construct == MLPattern.DV:
+                assert isinstance(ml_pattern.arguments[0], StringLiteral)
+                self.composer.add_domain_value(ml_pattern.sorts[0], ml_pattern.arguments[0])
+
             return Constant(
                 encoded_construct,
                 *[ sort.visit(self) for sort in ml_pattern.sorts ],
@@ -285,6 +289,7 @@ class Composer:
 
         self.indentation = indentation
 
+        self.domain_values = set() # set of pairs (sort, string literal)
         self.constants = {} # constant name -> arity
         self.variables = {} # meta type -> list of variables
         self.generated_variable_count = {} # meta type -> number of variables generated
@@ -295,6 +300,9 @@ class Composer:
 
     def get_level_info(self, key: str):
         return self.levels[-1].get(key)
+
+    def add_domain_value(self, sort: Sort, literal: StringLiteral):
+        self.domain_values.add((sort, literal))
 
     def add_constant(self, symbol: str, arity: int):
         self.constants[symbol] = arity

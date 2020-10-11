@@ -1,5 +1,5 @@
 from .ast import *
-from .visitors import PatternVariableAssignmentVisitor, CopyVisitor
+from .visitors import PatternVariableAssignmentVisitor, CopyVisitor, FreePatternVariableVisitor
 
 """
 Utility functions on KORE AST
@@ -69,3 +69,18 @@ class KoreUtils:
 
         for alias_def in alias_defs:
             module.remove_sentence(alias_def)
+
+    """
+    Quantify all free (pattern) variables in the axioms
+    """
+    @staticmethod
+    def quantify_all_free_variables(module: Module):
+        for axiom in module.axioms:
+            free_vars = axiom.pattern.visit(FreePatternVariableVisitor())
+            body = axiom.pattern
+
+            for free_var in free_vars:
+                # TODO: fix the output sort here
+                body = MLPattern(MLPattern.FORALL, [], [ free_var, body ])
+
+            axiom.pattern = body
