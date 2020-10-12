@@ -10,7 +10,9 @@ from proof.kore.visitors import FreePatternVariableVisitor, PatternVariableAssig
 from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KoreUtils
 
-from proof.generator import ProofEnvironment
+from proof.metamath.parser import parse_database
+
+from proof.generator import ProofGenerator
 
 if __name__ == "__main__":
     sys.setrecursionlimit(4096)
@@ -28,26 +30,14 @@ if __name__ == "__main__":
         definition = parse_definition(f.read())
         definition.resolve()
 
-        # fvs = definition.visit(FreePatternVariableVisitor())
-        # print("free variables:", ", ".join(map(str, fvs)))
-
-        # assignment = { fv: StringLiteral("variable: {}".format(fv.name)) for fv in fvs }
-        # definition.visit(PatternVariableAssignmentVisitor(assignment))
-
-        # print(definition)
-
-        # for module in definition.module_map.values():
-        #     print("instantiating alias uses in module {}".format(module.name))
-        #     KoreUtils.instantiate_all_alias_uses(module)
-
         if args.prelude is not None:
             with open(args.prelude) as prelude_file:
-                prelude = prelude_file.read()
+                prelude = parse_database(prelude_file.read())
         else:
             prelude = None
 
-        env = ProofEnvironment(definition, args.module, prelude=prelude)
         module = definition.module_map[args.module]
+        gen = ProofGenerator(module, prelude)
 
         print("loading snapshots")
 
@@ -77,7 +67,25 @@ if __name__ == "__main__":
         else:
             snapshots = []
 
-        print("emitting metamath proof file")
-        
-        with open(args.output, "w") as output:
-            env.emit(output, snapshots)
+        # load all snapshots into the encoder before init_module()
+        # so that the encoder has all information about
+        # the domain values and constants in the snapshots
+        for snapshot in snapshots:
+            gen.encoder.visit(snapshot)
+
+        gen.init_module()
+
+        with open(args.output, "w") as out:
+            gen.composer.encode(out)
+
+        if len(snapshots) >= 2:
+            gen.prove_step(
+                snapshots[0],
+                snapshots[1],
+                "9df58d519f0ac3563b432908d0958fe2843cb60c17168d6ac902920da21191aa",
+                {
+                    "Var'Unds'DotVar0": snapshots[0].arguments[0].arguments[1],
+                    "Var'Unds'DotVar1": snapshots[0].arguments[0].arguments[0].arguments[0].arguments[1],
+                    "VarX": snapshots[0].arguments[0].arguments[0].arguments[0].arguments[0].arguments[0].arguments[0],
+                }
+            )

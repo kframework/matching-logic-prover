@@ -41,6 +41,46 @@ class Theorem:
         self.floatings = floatings
         self.essentials = essentials
 
+    def is_meta_substitution_consistent(self, substituted: Union[Proof, Term], term: Term) -> bool:
+        if isinstance(substituted, Proof):
+            assert len(substituted.statement.terms) == 2
+            return substituted.statement.terms[1] == term
+        else:
+            return substituted == term
+
+    """
+    Treat the theorem itself as a proof of itself, provided
+    no essential is needed
+    """
+    def as_proof(self):
+        assert len(self.essentials) == 0
+        return self.unify_and_apply(self.statement)
+
+    """
+    Unify the theorem statement with a target,
+    infer as many metavariables as possible, and
+    then call self.apply
+    """
+    def unify_and_apply(self, target: StructuredStatement, *args, **kwargs):
+        substitution = self.composer.unify_statements(self.statement, target)
+        assert substitution is not None, \
+               "failed to unify the target statement `{}` and the theorem `{}`".format(target, self.statement)
+
+        for lhs, rhs in substitution:
+            if not isinstance(lhs, Metavariable):
+                continue
+
+            var = lhs.name
+
+            if var in kwargs:
+                assert self.is_meta_substitution_consistent(kwargs[var], rhs), \
+                       "metavariable assignment to {} is not consistent: " \
+                       "`{}` and `{}` are both assigned to it".format(var, kwargs[var], rhs)
+            else:
+                kwargs[var] = rhs
+
+        return self.apply(*args, **kwargs)
+
     """
     Applies the theorem, given the following arguments:
       - a list of essential proofs, from which we may infer some of
@@ -49,16 +89,12 @@ class Theorem:
         will try to prove the typecode automatically)
     """
     def apply(self, *essential_proofs: Proof, **metavar_substitution) -> Proof:
+        substitution = {}
+        script = []
+
         assert len(essential_proofs) == len(self.essentials), \
                "unmatched number of subproofs for " \
                "essential statements, expecting {}, {} given".format(len(essential_proofs), len(self.essentials))
-
-        # required_metavars = { var for _, var, in self.floatings }
-        # assert set(metavar_substitution.keys()) == required_metavars, \
-        #        "unmatched metavariables, expecting {}, {} given".format(required_metavars, set(metavar_substitution.keys()))
-
-        substitution = {}
-        script = []
 
         # TODO: check proofs for essential statements
         for essential, essential_proof in zip(self.essentials, essential_proofs):
@@ -70,18 +106,16 @@ class Theorem:
             # the metavariable assignment
             for var, term in solution.items():
                 if var in metavar_substitution:
-                    assert metavar_substitution[var] == term, \
+                    assert self.is_meta_substitution_consistent(metavar_substitution[var], term), \
                            "metavariable assignment to {} is not consistent: " \
                            "`{}` and `{}` are both assigned to it".format(var, metavar_substitution[var], term)
                 else:
                     # update metavar_substitution to reflect this assignment
                     metavar_substitution[var] = term
 
-            script += essential_proof.script
-
         for typecode, var in self.floatings:
             assert var in metavar_substitution, \
-                   "assignment to metavariable `{} {}` cannot be inferred".format(typecode, var)
+                   "assignment to metavariable `{}` cannot be inferred".format(var)
 
             # this can either be a direct proof,
             # or a term, in which case we will try to
@@ -110,6 +144,9 @@ class Theorem:
 
             substitution[var] = proved_term
             script += typecode_proof.script
+
+        for essential_proof in essential_proofs:
+            script += essential_proof.script
 
         script.append(self.statement.label)
 
@@ -160,9 +197,29 @@ class Composer(MetamathVisitor):
     def __init__(self):
         self.context = Context() # outermost context for a database
         self.theorems = {} # label -> Theorem
+        self.statements = [] # all statements at the top level
 
-    def load(self, database: Database):
-        return self.visit(database)
+    def load(self, database_or_statement: Union[Database, Statement]):
+        if isinstance(database_or_statement, Database):
+            assert self.context.prev is None, "loading a database at non-top level"
+
+        self.visit(database_or_statement)
+
+        if isinstance(database_or_statement, Database):
+            self.statements += database_or_statement.statements
+        else:
+            self.statements.append(database_or_statement)
+
+            # return the corresponding theorem
+            if isinstance(database_or_statement, StructuredStatement) and \
+               database_or_statement.statement_type in { Statement.AXIOM, Statement.FLOATING, Statement.PROVABLE }:
+                assert database_or_statement.label in self.theorems
+                return self.theorems[database_or_statement.label]
+
+    def encode(self, stream: TextIO):
+        for stmt in self.statements:
+            stmt.encode(stream)
+            stream.write("\n")
 
     ####################################
     # Composer as a metamath AST visitor
@@ -320,4 +377,3 @@ class Composer(MetamathVisitor):
                     return theorem.apply(**meta_subst)
         
         return None
-                        

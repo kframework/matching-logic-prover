@@ -1,82 +1,14 @@
 from __future__ import annotations
 
-import re
+from typing import Optional, Union, List, Tuple, Mapping
 
-from typing import TextIO, Tuple, List
-from io import StringIO
-
-from .kore.ast import *
+from .kore import ast as kore
 from .kore.utils import KoreUtils
-from .kore.visitors import PatternVariableVisitor, KoreVisitor, FreePatternVariableVisitor
 
-from .composer import Composer, KorePatternEncoder, Metavariable, Constant, Lemma
+from .metamath import ast as mm
+from .metamath.composer import Composer, Proof
 
-
-"""
-Given a pattern phi, generate a proof for
-#Pattern phi
-"""
-class TypePatternProofGenerator(KoreVisitor):
-    def __init__(self, env: ProofEnvironment, composer: Composer):
-        self.env = env
-        self.composer = composer
-
-    def gen_proof_for_application(self, constant_symbol: str, children: List[BaseAST]) -> List[str]:
-        pattern_lemma = self.env.get_entity_info("constant", constant_symbol, "pattern")
-        variables = self.composer.gen_variables("#Pattern", len(children))
-        return pattern_lemma.apply(self.env, **{
-            var: child.visit(self) for var, child in zip(variables, children)
-        })
-
-    def postvisit_sort_instance(self, sort_instance: SortInstance) -> List[str]:
-        constant_symbol = KorePatternEncoder.encode_sort_instance(sort_instance)
-        return self.gen_proof_for_application(constant_symbol, sort_instance.arguments)
-
-    def postvisit_sort_variable(self, sort_variable: SortVariable) -> List[str]:
-        var_encoded = KorePatternEncoder.encode_sort_variable(sort_variable)
-        return self.env.get_entity_info("prelude", "metavariable", "element-var-pattern").apply(
-            self.env,
-            x=self.env.get_entity_info("variable", var_encoded, "type").apply(self.env),
-        )
-
-    def postvisit_variable(self, var: Variable) -> List[str]:
-        assert not var.is_set_variable
-        var_encoded = KorePatternEncoder.encode_variable(var)
-        variable_type = self.env.get_entity_info("variable", var_encoded, "type").apply(self.env)
-        return self.env.get_entity_info("prelude", "metavariable", "element-var-pattern").apply(
-            self.env,
-            x=variable_type
-        )
-
-    def postvisit_string_literal(self, literal: StringLiteral) -> List[str]:
-        constant_symbol = KorePatternEncoder.encode_string_literal(literal)
-        return self.env.get_entity_info("constant", constant_symbol, "pattern").apply(self.env)
-
-    def postvisit_application(self, application: Application) -> List[str]:
-        constant_symbol = KorePatternEncoder.encode_symbol(application.symbol)
-        return self.gen_proof_for_application(constant_symbol, application.symbol.sort_arguments + application.arguments)
-
-    def postvisit_ml_pattern(self, ml_pattern: MLPattern) -> List[str]:
-        encoded_construct = KorePatternEncoder.encode_logical_construct(ml_pattern.construct)
-
-        if encoded_construct == KorePatternEncoder.FORALL or \
-           encoded_construct == KorePatternEncoder.EXISTS:
-            var = ml_pattern.get_binding_variable()
-            var_encoded = KorePatternEncoder.encode_variable(var)
-
-            return self.env.get_entity_info("prelude", encoded_construct, "pattern").apply(
-                self.env,
-                ph1=var.sort.visit(self),
-                x=self.env.get_entity_info("variable", var_encoded, "type").apply(self.env),
-                ph2=ml_pattern.arguments[1].visit(self)
-            )
-        else:
-            return self.env.get_entity_info("prelude", encoded_construct, "pattern").apply(
-                self.env,
-                **{
-                    "ph" + str(i + 1): arg.visit(self) for i, arg in enumerate(ml_pattern.sorts + ml_pattern.arguments)
-                }
-            )
+from .encoder import KorePatternEncoder
 
 
 """
@@ -87,175 +19,125 @@ Given a kore pattern phi, pattern psi, and variable x, generate a proof for
 where phi[psi/x] is the actual pattern with x substituted with phi,
 with the assumption that distinct meta #Variable varible are disjoint
 """
-class SingleSubstitutionProofGenerator(KoreVisitor):
-    def __init__(self, env: ProofEnvironment, composer: Composer, var: Variable, pattern: Pattern):
-        self.env = env
-        self.composer = composer
+class SingleSubstitutionProofGenerator(kore.KoreVisitor):
+    def __init__(self, gen: ProofGenerator, var: kore.Variable, pattern: kore.Pattern):
+        self.gen = gen
         self.var = var
         self.pattern = pattern
-        self.type_pattern_gen = TypePatternProofGenerator(env, composer)
-    
-        # generate some proof first that might come in handy
-        # #Pattern <pattern>
-        self.pattern_type_proof = self.pattern.visit(self.type_pattern_gen)
 
-        # #Variable <var>
-        assert not var.is_set_variable
-        var_encoded = KorePatternEncoder.encode_variable(var)
-        self.var_type_proof = self.env.get_entity_info("prelude", "metavariable", "element-var-variable").apply(
-            self.env,
-            x=self.env.get_entity_info("variable", var_encoded, "type").apply(self.env),
+        self.var_encoded = self.gen.encoder.visit(var)
+        self.pattern_encoded = self.gen.encoder.visit(pattern)
+
+        # get a "template" for the target statement
+        # for convenience
+        tmp1, tmp2 = self.gen.gen_metavariables("#Pattern", 2)
+        self.target = mm.StructuredStatement(
+            mm.Statement.PROVABLE,
+            [
+                mm.Application("#Substitution"),
+                mm.Metavariable(tmp1),
+                mm.Metavariable(tmp2),
+                self.pattern_encoded,
+                self.var_encoded,
+            ]
         )
 
-    """
-    Given constant symbol along with children
-    recursively substitute each child and generate a proof
-    for the substitution.
-    """
-    def gen_proof_for_application(self, constant_symbol, children: List[BaseAST], meta_vars=None, kind="constant") -> List[str]:
-        arity = len(children)
-
-        # substituted subpatterns and their proofs
-        subproofs = [ child.visit(self) for child in children ]
-        
-        # first substitute all variables in the lemma
-        meta_subst = {}
-
-        if meta_vars is None:
-            # by default, these are the variables generated for the substitution rule
-            x, = self.composer.gen_variables("#Variable", 1)
-            subpatterns = self.composer.gen_variables("#Pattern", arity * 2 + 1)
-            t = subpatterns[-1]
-            subpatterns = subpatterns[:-1]
-        else:
-            x, *subpatterns = meta_vars
-            t = subpatterns[-1]
-            subpatterns = subpatterns[:-1]
-
-        # substitute all metavariables
-        for i, child in enumerate(children):
-            meta_subst[subpatterns[i + arity]] = child.visit(self.type_pattern_gen)
-            substituted = KoreUtils.copy_and_substitute(self.env.module, child, { self.var: self.pattern })
-            meta_subst[subpatterns[i]] = substituted.visit(self.type_pattern_gen)
-
-        meta_subst[t] = self.pattern_type_proof
-        meta_subst[x] = self.var_type_proof
-
-        return self.env.get_entity_info(kind, constant_symbol, "substitution").apply(
-            self.env,
-            *subproofs,
-            **meta_subst,
+    def postvisit_sort_instance(self, sort_instance: kore.SortInstance) -> Proof:
+        symbol = KorePatternEncoder.encode_sort_instance(sort_instance)
+        return self.gen.unify_and_apply(
+            self.gen.substitution_axioms[symbol],
+            self.target,
+            *[ self.visit(arg) for arg in sort_instance.arguments ],
         )
 
-    def postvisit_sort_instance(self, sort_instance: SortInstance) -> List[str]:
-        constant_symbol = KorePatternEncoder.encode_sort_instance(sort_instance)
-        return self.gen_proof_for_application(constant_symbol, sort_instance.arguments)
-
-    def postvisit_sort_variable(self, sort_variable: SortVariable) -> List[str]:
-        # treat as the disjoint case
-        return self.env.get_entity_info("prelude", "substitution", "disjoint-variable-substitution").apply(
-            self.env,
-            ph=self.pattern_type_proof,
-            xX=self.var_type_proof,
-            yY=self.env.get_entity_info("prelude", "metavariable", "element-var-variable").apply(
-                self.env,
-                x=self.env.get_entity_info("variable", sort_variable.name, "type").apply(self.env),
-            ),
+    def postvisit_sort_variable(self, sort_variable: kore.SortVariable) -> Proof:
+        assert sort_variable.name != self.var.name
+        return self.gen.composer.theorems["sbv"].apply(
+            yY=self.gen.encoder.visit(sort_variable),
+            ph=self.pattern_encoded,
+            xX=self.var_encoded,
         )
 
-    def postvisit_variable(self, var: Variable) -> List[str]:
-        assert not var.is_set_variable
-
-        # proof for #Variable <var>
-        var_proof = self.env.get_entity_info("prelude", "metavariable", "element-var-variable").apply(
-            self.env,
-            x=self.env.get_entity_info("variable", var.name, "type").apply(self.env)
-        )
-
+    def postvisit_variable(self, var: kore.Variable) -> Proof:
         if var == self.var:
-            # if they are the same variable, apply variable substitution
-            return self.env.get_entity_info("prelude", "substitution", "variable-substitution").apply(
-                self.env,
-                ph=self.pattern_type_proof,
-                xX=var_proof,
+            return self.gen.composer.theorems["sb"].apply(
+                ph=self.pattern_encoded,
+                xX=self.var_encoded
             )
         else:
-            # if they are distinct, apply disjoint variable substitution to skip
-            return self.env.get_entity_info("prelude", "substitution", "disjoint-variable-substitution").apply(
-                self.env,
-                ph=self.pattern_type_proof,
-                xX=self.var_type_proof,
-                yY=var_proof,
+            return self.gen.composer.theorems["sbv"].apply(
+                yY=self.gen.encoder.visit(var),
+                ph=self.pattern_encoded,
+                xX=self.var_encoded,
             )
 
-    def postvisit_string_literal(self, literal: StringLiteral) -> List[str]:
-        constant_symbol = KorePatternEncoder.encode_string_literal(literal)
-        return self.gen_proof_for_application(constant_symbol, [])
+    def postvisit_string_literal(self, literal: kore.StringLiteral) -> Proof:
+        symbol = KorePatternEncoder.encode_string_literal(literal)
+        return self.gen.unify_and_apply(self.gen.substitution_axioms[symbol], self.target)
 
-    def postvisit_application(self, application: Application) -> List[str]:
-        constant_symbol = KorePatternEncoder.encode_symbol(application.symbol)
-        return self.gen_proof_for_application(constant_symbol, application.symbol.sort_arguments + application.arguments)
+    def postvisit_application(self, application: kore.Application) -> Proof:
+        symbol = KorePatternEncoder.encode_symbol(application.symbol)
+        return self.gen.unify_and_apply(
+            self.gen.substitution_axioms[symbol],
+            self.target,
+            *[ self.visit(arg) for arg in application.symbol.sort_arguments + application.arguments ],
+        )
 
-    def postvisit_ml_pattern(self, ml_pattern: MLPattern) -> List[str]:
-        encoded_construct = KorePatternEncoder.encode_logical_construct(ml_pattern.construct)
+    def postvisit_ml_pattern(self, ml_pattern: kore.MLPattern) -> Proof:
+        substitution_axiom_map = {
+            kore.MLPattern.TOP: "kore-top-substitution",
+            kore.MLPattern.BOTTOM: "kore-bot-substitution",
+            kore.MLPattern.NOT: "kore-not-substitution",
+            kore.MLPattern.AND: "kore-and-substitution",
+            kore.MLPattern.OR: "kore-or-substitution",
+            kore.MLPattern.CEIL: "kore-ceil-substitution",
+            kore.MLPattern.FLOOR: "kore-floor-substitution",
+            kore.MLPattern.EQUALS: "kore-equals-substitution",
+            kore.MLPattern.IN: "kore-in-substitution",
+            kore.MLPattern.REWRITES: "kore-rewrites-substitution",
+            kore.MLPattern.DV: "kore-dv-substitution",
+        }
 
-        if encoded_construct == KorePatternEncoder.FORALL or \
-           encoded_construct == KorePatternEncoder.EXISTS:
-            var = ml_pattern.get_binding_variable()
-            var_encoded = KorePatternEncoder.encode_variable(var)
+        if ml_pattern.construct in substitution_axiom_map:
+            return self.gen.composer.theorems[substitution_axiom_map[ml_pattern.construct]].apply(
+                *[ self.visit(arg) for arg in ml_pattern.sorts + ml_pattern.arguments ],
+            )
+        elif ml_pattern.construct in { kore.MLPattern.FORALL, kore.MLPattern.EXISTS }:
+            binding_var = ml_pattern.get_binding_variable()
+            body = ml_pattern.arguments[1]
 
-            sort_type_proof = var.sort.visit(self.type_pattern_gen)
-            sort_substitution_proof = var.sort.visit(self)
-            sort_substituted = KoreUtils.copy_and_substitute(self.env.module, var.sort, { self.var: self.pattern })
-            sort_substituted_type_proof = sort_substituted.visit(self.type_pattern_gen)
+            if binding_var == self.var:
+                theorem_name = "kore-forall-substitution-shadowed" if ml_pattern.construct == kore.MLPattern.FORALL else \
+                               "kore-exists-substitution-shadowed"
 
-            body_pattern_type_proof = ml_pattern.arguments[1].visit(self.type_pattern_gen)
+                sort_subproof = self.visit(binding_var.sort)
 
-            if var == self.var:
                 # shadowed
-                return self.env.get_entity_info("prelude", encoded_construct, "substitution-shadowed").apply(
-                    self.env,
-                    sort_substitution_proof,
-                    ph1=sort_substituted_type_proof,
-                    ph2=body_pattern_type_proof,
-                    ph3=sort_type_proof,
-                    ph4=self.pattern_type_proof,
-                    x=self.env.get_entity_info("variable", var_encoded, "type").apply(self.env),
+                return self.gen.composer.theorems[theorem_name].apply(
+                    sort_subproof,
+                    ph2=self.gen.encoder.visit(body),
                 )
             else:
-                # not shadowed, need to substitute the body as well
-                body_substitution_proof = ml_pattern.arguments[1].visit(self)
-                body_substituted = KoreUtils.copy_and_substitute(self.env.module, ml_pattern.arguments[1], { self.var: self.pattern })
-                body_substituted_type_proof = body_substituted.visit(self.type_pattern_gen)
+                theorem_name = "kore-forall-substitution" if ml_pattern.construct == kore.MLPattern.FORALL else \
+                               "kore-exists-substitution"
 
-                return self.env.get_entity_info("prelude", encoded_construct, "substitution").apply(
-                    self.env,
-                    sort_substitution_proof,
-                    body_substitution_proof,
-                    ph1=sort_substituted_type_proof,
-                    ph2=body_substituted_type_proof,
-                    ph3=sort_type_proof,
-                    ph4=body_pattern_type_proof,
-                    ph5=self.pattern_type_proof,
-                    xX=self.var_type_proof,
-                    y=self.env.get_entity_info("variable", var_encoded, "type").apply(self.env),
+                sort_subproof = self.visit(binding_var.sort)
+                body_subproof = self.visit(body)
+
+                return self.gen.composer.theorems[theorem_name].apply(
+                    sort_subproof,
+                    body_subproof,
+                    y=self.gen.encoder.visit(binding_var), # still need to specify the binding variable
                 )
+                
         else:
-            # IMPORTANT NOTE: meta variables in the substitution rules in prelude
-            # should follow this convention
-            arity = len(ml_pattern.sorts) + len(ml_pattern.arguments)
-            return self.gen_proof_for_application(
-                encoded_construct,
-                ml_pattern.sorts + ml_pattern.arguments,
-                kind="prelude",
-                meta_vars=[ "xX" ] + [ "ph" + str(i + 1) for i in range(2 * arity + 1) ]
-            )
+            raise Exception("unsupported construct {}".format(ml_pattern))
 
 
 """
-Given a pattern phi, generate a proof in the form
+Given a pattern phi, generate a proof for the statement in the form
 
-( \\kore-forall \\sort R ( \\kore-exists Sort1 x ( \kore-equals Sort1 R x phi ) ) )
+|- ( \\kore-forall \\sort R ( \\kore-exists Sort1 x ( \kore-equals Sort1 R x phi ) ) )
 
 that is, phi is a functional pattern that has a unique singleton interpretation in the domain of Sort1
 
@@ -263,927 +145,496 @@ Almost all patterns used in the execution should have such property
 
 NOTE: only supports concrete patterns right now
 """
-class FunctionalPatternProofGenerator(KoreVisitor):
-    def __init__(self, env: ProofEnvironment, composer: Composer):
-        self.env = env
-        self.composer = composer
-        self.forall_elim_variant = self.env.get_entity_info("prelude", "lemma", "kore-forall-elim-variant")
+class FunctionalProofGenerator(kore.KoreVisitor):
+    def __init__(self, gen: ProofGenerator):
+        self.gen = gen
 
     """
-    Returns (m, p) where p is a proof for the statement above and
-    m is a partial meta substitution to the hypothesis `kore-forall-elim-variant.2`
+    Given a functional axiom sigma and an application phi,
+    sigma should be in the form,
+    ( forall Sort_1 V_1 ... ( forall Sort_n V_n ( exists Sort_0 W ( equals Sort_0 R W <RHS> ) ) ) )
+    where <RHS> will be of the form ( symbol <term_1> ... <term_n> )
+    and <term_i> will be a variable, but the order is uncertain
+
+    This function will figure out the order of variables in the term <RHS>
     """
+    def get_order_of_substitution(self, axiom: kore.Axiom, application: kore.Application) -> List[Tuple(kore.Variable, kore.Pattern)]:
+        variables = []
+        equality = axiom.pattern
+        while isinstance(equality, kore.MLPattern) and \
+              equality.construct == kore.MLPattern.FORALL:
+            variables.append(equality.get_binding_variable())
+            equality = equality.arguments[1]
 
-    def postvisit_application(self, application: Application) -> Tuple[Mapping[str, List[str]], List[str]]:
-        constant_symbol = KorePatternEncoder.encode_symbol(application.symbol)
-        functional_lemmas = self.env.get_entity_info("constant", constant_symbol, "functional")
-        assert functional_lemmas is not None, "no functional lemmas found for {}".format(application.symbol)
-        assert tuple(application.symbol.sort_arguments) in functional_lemmas
+        assert isinstance(equality, kore.MLPattern) and \
+               equality.construct == kore.MLPattern.EXISTS
+        equality = equality.arguments[1]
+        rhs = equality.arguments[1]
 
-        functional_lemma, argument_vars, output_var, kore_axiom = functional_lemmas[tuple(application.symbol.sort_arguments)]
+        assert rhs.symbol == application.symbol
+        assert len(rhs.arguments) == len(application.arguments)
 
-        # TODO: this is a further assumption that the sort variables will be R in the kore definition
-        # w in kore-forall-elim-variant.1
-        sort_var = "R"
-        sort_var_type = self.env.get_entity_info("variable", sort_var, "type").apply(self.env)
+        ordered_variable_to_term = []
 
-        # substitute each argument using kore-forall-elim-variant
-        # TODO: this is dependent on the order that the free variables are quantifier
-        # right now if the symbol is ( s a b c )
-        # c will be quantified in the outermost layer, and a will be in the innermost layer
+        for var, term in zip(rhs.arguments, application.arguments):
+            assert isinstance(var, kore.Variable)
+            ordered_variable_to_term.append((variables.index(var), var, term))
 
-        current_axiom_pattern = kore_axiom.pattern
+        ordered_variable_to_term.sort(key=lambda t: t[0])
 
-        output_var = KorePatternEncoder.encode_variable(output_var)
-        output_var_type = self.env.get_entity_info("variable", output_var, "type").apply(self.env)
+        return [ (var, term) for _, var, term in ordered_variable_to_term ]
 
-        # initialize an meta substitution for the functional lemma itself
-        # and generate the first instance of kore-forall-elim-variant.1
-        meta_subst_for_functional_lemma = {}
-        meta_subst_for_functional_lemma[sort_var] = sort_var_type
-        meta_subst_for_functional_lemma[output_var] = output_var_type
-        for arg_var in argument_vars:
-            arg_var_encoded = KorePatternEncoder.encode_variable(arg_var)
-            meta_subst_for_functional_lemma[arg_var_encoded] = self.env.get_entity_info("variable", arg_var_encoded, "type").apply(self.env)
-
-        # get a initial proof for kore-forall-elim-variant.1
-        functional_lemma_instance = functional_lemma.apply(
-            self.env,
-            **meta_subst_for_functional_lemma,
-        )
-
-        for i, arg_var in enumerate(argument_vars):
-            # ph3 in kore-forall-elim-variant.2
-            arg = application.arguments[-i - 1]
-
-            arg_var_encoded = KorePatternEncoder.encode_variable(arg_var)
-
-            # x in kore-forall-elim-variant.1
-            arg_var_type = self.env.get_entity_info("variable", arg_var_encoded, "type").apply(self.env)
-
-            # ph1 in kore-forall-elim-variant.1
-            arg_var_sort_pattern_type = arg_var.sort.visit(TypePatternProofGenerator(self.env, self.composer))
-
-            # ph2 in kore-forall-elim-variant.1
-            current_axiom_pattern = current_axiom_pattern.arguments[1]
-            pattern_encoded_type = current_axiom_pattern.visit(TypePatternProofGenerator(self.env, self.composer))
-            
-            # generate subproof
-            partial_meta_subst, subproof = arg.visit(self)
-
-            # generate a substitution proof
-            subst_proof = current_axiom_pattern.visit(SingleSubstitutionProofGenerator(self.env, self.composer, arg_var, arg))
-
-            # ph4 in kore-forall-elim-variant.3
-            current_axiom_pattern = KoreUtils.copy_and_substitute(self.env.module, current_axiom_pattern, {
-                arg_var: arg
-            })
-            ph4_type = current_axiom_pattern.visit(TypePatternProofGenerator(self.env, self.composer))
-
-            functional_lemma_instance = self.forall_elim_variant.apply(
-                self.env,
-                functional_lemma_instance,
-                subproof,
-                subst_proof,
-                **{
-                    "w": sort_var_type,
-                    "x": arg_var_type,
-                    "ph1": arg_var_sort_pattern_type,
-                    "ph2": pattern_encoded_type,
-                    "ph4": ph4_type,
-                    **partial_meta_subst,
-                }
-            )
-
-        assert isinstance(current_axiom_pattern, MLPattern) and current_axiom_pattern.construct == MLPattern.EXISTS
-        assert isinstance(current_axiom_pattern.arguments[1], MLPattern) and current_axiom_pattern.arguments[1].construct == MLPattern.EQUALS
-
-        var_encoded = KorePatternEncoder.encode_variable(current_axiom_pattern.get_binding_variable())
-        var_type = self.env.get_entity_info("variable", var_encoded, "type").apply(self.env)
-
-        rhs = current_axiom_pattern.arguments[1].arguments[1]
-        rhs_pattern_type = rhs.visit(TypePatternProofGenerator(self.env, self.composer))
-
-        # for parents
-        partial_meta_subst = {
-            "z": sort_var_type,
-            "y": var_type,
-            # "ph1": current_axiom_pattern.sorts[0].visit(TypePatternProofGenerator(self.env, self.composer)),
-            "ph3": rhs_pattern_type,
-        }
-
-        return partial_meta_subst, functional_lemma_instance
-
-    def postvisit_ml_pattern(self, ml_pattern: MLPattern) -> Tuple[Mapping[str, List[str]], List[str]]:
-        if ml_pattern.construct == MLPattern.DV:
-            sort, literal = ml_pattern.sorts[0], ml_pattern.arguments[0]
-            functional_lemmas = self.env.get_entity_info("prelude", KorePatternEncoder.DV, "functional")
-            assert functional_lemmas is not None, "no functional lemma is generated for domain values"
-            assert (sort, literal) in functional_lemmas, "no functional lemma is generated for {}".format(ml_pattern)
-
-            dv_functional = functional_lemmas[sort, literal]
-
-            # TODO: right now this has to be generated in the same manner as in
-            # ProofEnvironment.emit_constant
-            domain_var, sort_var = self.composer.gen_variables("#ElementVariable", 2)
-
-            domain_var_type = self.env.get_entity_info("variable", domain_var, "type").apply(self.env)
-            sort_var_type = self.env.get_entity_info("variable", sort_var, "type").apply(self.env)
-
-            # sort_type = sort.visit(TypePatternProofGenerator(self.env, self.composer))
-            dv_pattern_type = ml_pattern.visit(TypePatternProofGenerator(self.env, self.composer))
-
-            # self.forall_elim_variant.apply(
-            #     self.env,
-            #     w=sort_var_type,
-
-            # )
-            proof = dv_functional.apply(
-                self.env,
-                **{
-                    domain_var: domain_var_type,
-                    sort_var: sort_var_type,
-                }
-            )
-
-            partial_meta_subst = {
-                "z": sort_var_type,
-                "y": domain_var_type,
-                # "ph1": sort_type,
-                "ph3": dv_pattern_type,
-            }
-
-            return partial_meta_subst, proof
-        else:
-            raise Exception("unable to prove {} is functional".format(ml_pattern))
-
-
-"""
-A Hint specified which rewrite axiom is used
-and the substitution that could be used to obtain the LHS
-"""
-class Hint:
-    def __init__(self, axiom: Axiom, substitution: Mapping[str, Pattern]):
-        self.axiom = axiom
-        self.substitution = substitution
-
-
-"""
-A utility class to generate a proof in metamath given a kore module
-"""
-class ProofEnvironment:
-    def __init__(self, definition: Definition, main_module: str, prelude: str=None):
-        self.definition = definition
-
-        # expand all alias uses and universally quantify
-        # all free variables
-        for module in self.definition.module_map.values():
-            print("instantiating alias uses in module {}".format(module.name))
-            KoreUtils.instantiate_all_alias_uses(module)
-            KoreUtils.quantify_all_free_variables(module)
-
-        self.module = self.definition.module_map[main_module]
-        self.prelude = prelude
-
-        self.num_metavariables = 0
-
-        # a map to keep track of all info and lemmas about entities (constants, configuration, etc.)
-        # e.g. (kind, entity) -> { "pattern": pattern lemma name, ... }
-        self.entity_info = {}
-
-        # initialize some known info about the prelude
-        self.add_entity_info("prelude", "metavariable", "element-var-variable", Lemma("vev", { "x" }))
-        self.add_entity_info("prelude", "metavariable", "element-var-pattern", Lemma("wev", { "x" }))
-        self.add_entity_info("prelude", "metavariable", "set-var-variable", Lemma("vsv", { "X" }))
-        self.add_entity_info("prelude", "metavariable", "set-var-pattern", Lemma("wsv", { "X" }))
-
-        self.add_entity_info("prelude", "lemma", "kore-rewrites-conditional",
-            Lemma(
-                "kore-rewrites-conditional",
-                { "ph1", "ph2", "ph3", "ph4", "ph5" },
-                [
-                    "kore-rewrites-conditional.1",
-                    "kore-rewrites-conditional.2",
-                    "kore-rewrites-conditional.3",
-                ],
-            ))
-
-        self.add_entity_info("prelude", "lemma", "kore-forall-elim",
-            Lemma(
-                "kore-forall-elim",
-                { "ph1", "ph2", "ph3", "ph4", "x", "y", "z" },
-                [
-                    "kore-forall-elim.1",
-                    "kore-forall-elim.2",
-                    "kore-forall-elim.3",
-                ],
-            ))
-
-        self.add_entity_info("prelude", "lemma", "kore-forall-elim-variant",
-            Lemma(
-                "kore-forall-elim-variant",
-                { "ph1", "ph2", "ph3", "ph4", "x", "y", "z", "w" },
-                [
-                    "kore-forall-elim-variant.1",
-                    "kore-forall-elim-variant.2",
-                    "kore-forall-elim-variant.3",
-                ],
-            ))
-
-        self.add_entity_info("prelude", "lemma", "kore-top-valid", Lemma("kore-top-valid", { "ph" }))
-
-        self.add_entity_info("prelude", KorePatternEncoder.FORALL, "pattern", Lemma("kore-forall-pattern", { "ph1", "x", "ph2" }))
-        self.add_entity_info("prelude", KorePatternEncoder.EXISTS, "pattern", Lemma("kore-exists-pattern", { "ph1", "x", "ph2" }))
-        self.add_entity_info("prelude", KorePatternEncoder.BOTTOM, "pattern", Lemma("kore-bot-pattern", { "ph1" }))
-        self.add_entity_info("prelude", KorePatternEncoder.TOP, "pattern", Lemma("kore-top-pattern", { "ph1" }))
-        self.add_entity_info("prelude", KorePatternEncoder.NOT, "pattern", Lemma("kore-not-pattern", { "ph1", "ph2" }))
-        self.add_entity_info("prelude", KorePatternEncoder.AND, "pattern", Lemma("kore-and-pattern", { "ph1", "ph2", "ph3" }))
-        self.add_entity_info("prelude", KorePatternEncoder.OR, "pattern", Lemma("kore-or-pattern", { "ph1", "ph2", "ph3" }))
-        self.add_entity_info("prelude", KorePatternEncoder.CEIL, "pattern", Lemma("kore-ceil-pattern", { "ph1", "ph2", "ph3" }))
-        self.add_entity_info("prelude", KorePatternEncoder.FLOOR, "pattern", Lemma("kore-floor-pattern", { "ph1", "ph2", "ph3" }))
-        self.add_entity_info("prelude", KorePatternEncoder.EQUALS, "pattern", Lemma("kore-equals-pattern", { "ph1", "ph2", "ph3", "ph4" }))
-        self.add_entity_info("prelude", KorePatternEncoder.IN, "pattern", Lemma("kore-in-pattern", { "ph1", "ph2", "ph3", "ph4" }))
-        self.add_entity_info("prelude", KorePatternEncoder.DV, "pattern", Lemma("kore-dv-pattern", { "ph1", "ph2" }))
-        self.add_entity_info("prelude", KorePatternEncoder.REWRITES, "pattern", Lemma("kore-rewrites-pattern", { "ph1", "ph2", "ph3" }))
-        self.add_entity_info("prelude", KorePatternEncoder.SORT, "pattern", Lemma("kore-sort-pattern", {}))
-
-        self.add_entity_info("prelude", KorePatternEncoder.FORALL, "substitution",
-            Lemma(
-                "kore-forall-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "xX", "y" },
-                [ "kore-forall-substitution.1", "kore-forall-substitution.2" ],
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.FORALL, "substitution-shadowed",
-            Lemma(
-                "kore-forall-substitution-shadowed",
-                { "ph1", "ph2", "ph3", "ph4", "x" },
-                [ "kore-forall-substitution-shadowed.1" ]
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.EXISTS, "substitution",
-            Lemma(
-                "kore-exists-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "xX", "y" },
-                [ "kore-exists-substitution.1", "kore-exists-substitution.2" ],
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.EXISTS, "substitution-shadowed",
-            Lemma(
-                "kore-exists-substitution-shadowed",
-                { "ph1", "ph2", "ph3", "ph4", "x" },
-                [ "kore-exists-substitution-shadowed.1" ]
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.BOTTOM, "substitution",
-            Lemma(
-                "kore-bot-substitution",
-                { "ph1", "ph2", "ph3", "xX" },
-                [ "kore-bot-substitution.1" ],
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.TOP, "substitution",
-            Lemma(
-                "kore-top-substitution",
-                { "ph1", "ph2", "ph3", "xX" },
-                [ "kore-top-substitution.1" ],
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.NOT, "substitution",
-            Lemma(
-                "kore-not-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "xX" },
-                [ "kore-not-substitution.1", "kore-not-substitution.2" ],
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.AND, "substitution",
-            Lemma(
-                "kore-and-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "ph6", "ph7", "xX" },
-                [ "kore-and-substitution.1", "kore-and-substitution.2", "kore-and-substitution.3" ],
-            ))
-
-        self.add_entity_info("prelude", KorePatternEncoder.OR, "substitution",
-            Lemma(
-                "kore-or-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "ph6", "ph7", "xX" },
-                [ "kore-or-substitution.1", "kore-or-substitution.2", "kore-or-substitution.3" ],
-            ))
+    def postvisit_application(self, application: kore.Application) -> Proof:
+        assert application.symbol in self.gen.functional_axioms, \
+               "cannot find a functional axiom for symbol instance {}".format(application.symbol)
         
-        self.add_entity_info("prelude", KorePatternEncoder.CEIL, "substitution",
-            Lemma(
-                "kore-ceil-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "ph6", "ph7", "xX" },
-                [ "kore-ceil-substitution.1", "kore-ceil-substitution.2", "kore-ceil-substitution.3" ],
-            ))
+        axiom, stmt = self.gen.functional_axioms[application.symbol]
+        ordered_substitution = self.get_order_of_substitution(axiom, application)
 
-        self.add_entity_info("prelude", KorePatternEncoder.FLOOR, "substitution",
-            Lemma(
-                "kore-floor-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "ph6", "ph7", "xX" },
-                [ "kore-floor-substitution.1", "kore-floor-substitution.2", "kore-floor-substitution.3" ],
-            ))
+        # take the statement itself as a proof
+        proof = self.gen.as_proof(stmt)
+        current_pattern = axiom.pattern
 
-        self.add_entity_info("prelude", KorePatternEncoder.EQUALS, "substitution",
-            Lemma(
-                "kore-equals-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "ph6", "ph7", "ph8", "ph9", "xX" },
-                [ "kore-equals-substitution.1", "kore-equals-substitution.2", "kore-equals-substitution.3", "kore-equals-substitution.4" ],
-            ))
+        for var, term in ordered_substitution:
+            arg_subproof = self.visit(term)
 
-        self.add_entity_info("prelude", KorePatternEncoder.IN, "substitution",
-            Lemma(
-                "kore-in-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "ph6", "ph7", "ph8", "ph9", "xX" },
-                [ "kore-in-substitution.1", "kore-in-substitution.2", "kore-in-substitution.3", "kore-in-substitution.4" ],
-            ))
+            assert current_pattern.get_binding_variable() == var
+            current_pattern = current_pattern.arguments[1]
+            subst_subproof = SingleSubstitutionProofGenerator(self.gen, var, term).visit(current_pattern)
 
-        self.add_entity_info("prelude", KorePatternEncoder.DV, "substitution",
-            Lemma(
-                "kore-dv-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "xX" },
-                [ "kore-dv-substitution.1", "kore-dv-substitution.2" ],
-            ))
+            current_pattern = KoreUtils.copy_and_substitute(self.gen.module, current_pattern, { var: term })
 
-        self.add_entity_info("prelude", KorePatternEncoder.REWRITES, "substitution",
-            Lemma(
-                "kore-rewrites-substitution",
-                { "ph1", "ph2", "ph3", "ph4", "ph5", "ph6", "ph7", "xX" },
-                [ "kore-rewrites-substitution.1", "kore-rewrites-substitution.2", "kore-rewrites-substitution.3" ],
-            ))
-            
-        self.add_entity_info("prelude", KorePatternEncoder.SORT, "substitution", Lemma("kore-sort-substitution"))
-
-        self.add_entity_info("prelude", "substitution", "variable-substitution", Lemma("sb", { "ph", "xX" }))
-        self.add_entity_info("prelude", "substitution", "disjoint-variable-substitution", Lemma("sbv", { "ph", "yY", "xX" }))
-
-        self.init_metavariable_ordering()
-
-    def add_entity_info(self, kind: str, entity: str, key: str, info):
-        if (kind, entity) not in self.entity_info:
-            self.entity_info[kind, entity] = {}
-        assert key not in self.entity_info[kind, entity]
-        self.entity_info[kind, entity][key] = info
-
-    def get_entity_info(self, kind: str, entity: str, key: str) -> Optional:
-        if (kind, entity) not in self.entity_info: return None
-        if key not in self.entity_info[kind, entity]: return None
-        return self.entity_info[kind, entity][key]
-
-    """
-    Initialize the order of variables present in the prelude.
-    This will be used to reorder proofs of mandatory hypotheses
-    so that they match the order required by metamath
-    """
-    def init_metavariable_ordering(self):
-        if self.prelude is None:
-            return
-
-        # TODO: this is a bit hacky
-        mandatory_hypothesis_pattern = r"([^\s]+)\s+\$f\s+([^\s]+)\s+([^\s]+)\s+\$\."
-
-        for match in re.finditer(mandatory_hypothesis_pattern, self.prelude):
-            label = match.group(1)
-            meta_var = match.group(3)
-            self.add_entity_info("variable", meta_var, "index", self.num_metavariables)
-            self.add_entity_info("variable", meta_var, "type", label)
-            self.num_metavariables += 1
-
-    """
-    Given a map from meta variables to proof of mandatory hypotheses,
-    reorder them to the order required by metamath and return a full proof
-    for the substitution
-    """
-    def gen_metavariable_substitution(self, meta_vars: Mapping[str, List[str]]) -> List[str]:
-        ordered_meta_vars = []
-
-        for var in meta_vars:
-            index = self.get_entity_info("variable", var, "index")
-            ordered_meta_vars.append((index, var, meta_vars[var]))
-
-        ordered_meta_vars.sort(key=lambda t: t[0])
-
-        proof = []
-        for _, _, subproof in ordered_meta_vars:
-            proof += subproof
+            # these info should be enough for the composer to infer all variables
+            proof = self.gen.composer.theorems["kore-forall-elim-variant"].apply(
+                proof,
+                arg_subproof,
+                subst_subproof,
+            )
+        
         return proof
 
-    def is_rewrite_axiom(self, axiom: Axiom):
+    def postvisit_ml_pattern(self, ml_pattern: kore.MLPattern) -> Proof:
+        assert ml_pattern.construct == kore.MLPattern.DV, \
+               "unnable to prove functional property for {}".format(ml_pattern)
+
+        sort, literal = ml_pattern.sorts[0], ml_pattern.arguments[0]
+
+        assert (sort, literal) in self.gen.domain_value_functional_axioms, \
+               "cannot find functional axiom for domain value {}".format(ml_pattern)
+        
+        functional_axiom = self.gen.domain_value_functional_axioms[sort, literal]
+
+        return self.gen.as_proof(functional_axiom)
+
+
+class ProofGenerator:
+    def __init__(self, module: kore.Module, prelude: mm.Database=None):
+        self.module = module
+
+        #################################
+        # theorems sorted into categories
+        #################################
+        self.functional_axioms = {} # symbol instance -> (kore axiom, statement)
+        self.domain_value_functional_axioms = {} # (sort, literal) -> statement
+        self.rewrite_axioms = {} # unique id -> (kore axiom, statement)
+        self.substitution_axioms = {} # constant symbol (in metamath) -> statement
+
+        self.generated_metavars = {} # var -> typecode
+
+        self.composer = Composer()
+        self.encoder = KorePatternEncoder()
+
+        # load all theorems in the prelude
+        if prelude is not None:
+            self.composer.load(prelude)
+
+    """
+    A wrapper method for Theorem.apply to make life easier
+    """
+    def apply(self, statement: mm.StructuredStatement, *args, **kwargs) -> Proof:
+        assert statement.label in self.composer.theorems, "theorem {} not found".format(statement.label)
+        return self.composer.theorems[statement.label].apply(*args, **kwargs)
+
+    """
+    A wrapper method for Theorem.unify_and_apply
+    """
+    def unify_and_apply(self, statement: mm.StructuredStatement, target: mm.StructuredStatement, *args, **kwargs) -> Proof:
+        assert statement.label in self.composer.theorems, "theorem {} not found".format(statement.label)
+        return self.composer.theorems[statement.label].unify_and_apply(target, *args, **kwargs)
+
+    """
+    A wrapper method for Theorem.as_proof
+    """
+    def as_proof(self, statement: mm.StructuredStatement) -> Proof:
+        assert statement.label in self.composer.theorems, "theorem {} not found".format(statement.label)
+        return self.composer.theorems[statement.label].as_proof()
+
+    def gen_metavariables(self, typecode: str, n: int) -> List[str]:
+        metavars = [ "var-{}-{}".format(typecode.replace("#", "").lower(), i) for i in range(n) ]
+
+        for var in metavars:
+            if var not in self.generated_metavars:
+                self.generated_metavars[var] = typecode
+            else:
+                assert self.generated_metavars[var] == typecode
+
+        return metavars
+
+    """
+    Get the content of the attribute UNIQUE'Unds'ID{}(...)
+    """
+    def get_axiom_unique_id(self, axiom: kore.Axiom) -> Optional[str]:
+        id_term = axiom.get_attribute_by_symbol("UNIQUE'Unds'ID")
+        if id_term is None: return None
+        assert len(id_term.arguments) == 1 and isinstance(id_term.arguments[0], kore.StringLiteral)
+        return id_term.arguments[0].content
+
+    def is_rewrite_axiom(self, axiom: kore.Axiom) -> bool:
         # get the longest subpattern that doesn't begin with a universal quantifier
         inner_pattern = axiom.pattern
-        while isinstance(inner_pattern, MLPattern) and inner_pattern.construct == MLPattern.FORALL:
+        while isinstance(inner_pattern, kore.MLPattern) and inner_pattern.construct == kore.MLPattern.FORALL:
             inner_pattern = inner_pattern.arguments[1]
 
-        return isinstance(inner_pattern, MLPattern) and inner_pattern.construct == MLPattern.REWRITES
+        return isinstance(inner_pattern, kore.MLPattern) and inner_pattern.construct == kore.MLPattern.REWRITES
 
-    def should_include_axiom(self, axiom: Axiom):
-        if axiom.get_attribute_by_symbol("functional") is not None or \
-           axiom.get_attribute_by_symbol("subsort") is not None:
-            return True
-        
-        return self.is_rewrite_axiom(axiom)
+    def is_functional_axiom(self, axiom: kore.Axiom) -> bool:
+        return axiom.get_attribute_by_symbol("functional") is not None or \
+               axiom.get_attribute_by_symbol("subsort") is not None
 
     """
-    Parse and add a functional axiom (which essentially says what
-    sort does a functional term has)
-
-    All functional axioms should have the structure:
-    kore-forall kore-sort R ( kore-forall Sort1 arg_1 ... ( kore-exists SortOut Val ( kore-equals SortOut R Val <some term> ) ) )
+    Get the corresponding symbol instance of the given functional axiom
     """
-    def add_functional_axiom(self, axiom: Axiom, generated_lemma: Lemma):
-        assert isinstance(axiom.pattern, MLPattern)
+    def get_functional_axiom_symbol(self, axiom: kore.Axiom) -> kore.SymbolInstance:
+        assert isinstance(axiom.pattern, kore.MLPattern)
 
-        argument_vars = []
         inner_existential = axiom.pattern
 
-        while inner_existential.construct == MLPattern.FORALL:
-            var = inner_existential.get_binding_variable()
-            argument_vars.append(var)
+        # get to the inner existential pattern
+        while inner_existential.construct == kore.MLPattern.FORALL:
             inner_existential = inner_existential.arguments[1]
-            assert isinstance(inner_existential, MLPattern)
+            assert isinstance(inner_existential, kore.MLPattern)
 
-        assert inner_existential.construct == MLPattern.EXISTS
+        assert inner_existential.construct == kore.MLPattern.EXISTS
 
-        output_var = inner_existential.get_binding_variable()
         equality = inner_existential.arguments[1]
+        assert isinstance(equality, kore.MLPattern) and equality.construct == kore.MLPattern.EQUALS
 
-        assert isinstance(equality, MLPattern) and equality.construct == MLPattern.EQUALS
-        assert equality.arguments[0] == output_var
-        assert isinstance(equality.arguments[1], Application)
-
-        # extract the RHS and put it in the functional lemma map
-        # the map sends lists of sort arguments to the corresponding functional lemma
         rhs = equality.arguments[1]
-        constant_symbol = KorePatternEncoder.encode_symbol(rhs.symbol)
+        assert isinstance(rhs, kore.Application)
 
-        functional_lemmas = self.get_entity_info("constant", constant_symbol, "functional")
-        if functional_lemmas is None:
-            functional_lemmas = {}
-            self.add_entity_info("constant", constant_symbol, "functional", functional_lemmas)
+        return rhs.symbol
 
-        functional_lemmas[tuple(rhs.symbol.sort_arguments)] = generated_lemma, argument_vars, output_var, axiom
+    def encode_kore_pattern(self, pattern_or_axiom: Union[kore.Pattern, kore.Axiom]) -> mm.Term:
+        return self.encoder.visit(pattern_or_axiom)
 
-    def add_rewrite_axiom(self, axiom: Axiom, lemma: Lemma):
-        rewrite_axioms = self.get_entity_info("module", "rewrite", "axioms")
-        if rewrite_axioms is None:
-            rewrite_axioms = []
-            self.add_entity_info("module", "rewrite", "axioms", rewrite_axioms)
+    """
+    Encode all relavent axioms
+    """
+    def encode_module_axioms(self, module: kore.Module) -> List[mm.Statement]:
+        stmts = []
 
-        rewrite_axioms.append((axiom, lemma))
-
-    # emit a single module
-    def emit_module(self, composer: Composer, module: Module):
         # visit all imported modules
         for import_stmt in module.imports:
-            self.emit_module(composer, import_stmt.module)
+            stmts += self.encode_module_axioms(import_stmt.module)
 
-        axiom_number = 0
-        for axiom in module.axioms:
-            if self.should_include_axiom(axiom):
-                # find all variables and declare them distinct
-                # sort_vars = axiom.sort_variables
-                # pattern_vars = axiom.visit(PatternVariableVisitor())
-                # all_vars = list(enumerate(sort_vars + list(pattern_vars)))
-                # block = composer.add_block()
+        for axiom_number, axiom in enumerate(module.axioms):
+            is_functional = self.is_functional_axiom(axiom)
+            is_rewrite = self.is_rewrite_axiom(axiom)
 
-                # for i, var1 in all_vars:
-                #     for j, var2 in all_vars:
-                #         if i < j:
-                #             block.add_statement("d") \
-                #                  .add_kore_pattern(var1) \
-                #                  .add_kore_pattern(var2) \
-                #                  .done()
+            if is_functional or is_rewrite:
+                mm_axiom_term = self.encode_kore_pattern(axiom)
+                stmt = mm.StructuredStatement(mm.Statement.AXIOM, [
+                    mm.Application("|-"),
+                    mm_axiom_term,
+                ], label="{}-axiom-{}".format(module.name, axiom_number))
 
-                lemma = composer.add_statement("a", "{}-axiom-{}".format(module.name, axiom_number)) \
-                                .add_token("|-") \
-                                .add_kore_pattern(axiom) \
-                                .done()
+                stmts.append(stmt)
 
-                # subsort lemmas are for a specific symbol (inj)
-                # it has the same form as functional lemmas
-                if axiom.get_attribute_by_symbol("functional") is not None or \
-                   axiom.get_attribute_by_symbol("subsort") is not None:
-                    self.add_functional_axiom(axiom, lemma)
+                # record these statements for later use
+                if is_functional:
+                    symbol = self.get_functional_axiom_symbol(axiom)
+                    self.functional_axioms[symbol] = axiom, stmt
+                elif is_rewrite:
+                    uid = self.get_axiom_unique_id(axiom)
+                    self.rewrite_axioms[uid] = axiom, stmt
+        
+        return stmts
 
-                if self.is_rewrite_axiom(axiom):
-                    self.add_rewrite_axiom(axiom, lemma)
+    """
+    Encode all statements about variables
+    """
+    def encode_variable_axioms(self) -> List[mm.Statement]:
+        assert set(self.encoder.metavariables.keys()).isdisjoint(self.generated_metavars.keys())
 
-                # block.done()
-                axiom_number += 1
+        all_metavariables = {
+            **self.encoder.metavariables,
+            **self.generated_metavars,
+        }
 
-    def emit_constants(self, composer: Composer):
-        # write all constant symbols
-        composer.add_statement("c") \
-                .add_tokens(composer.constants) \
-                .done()
+        stmts = []
 
-        composer.write_line()
+        # add all variables
+        stmts.append(mm.RawStatement(mm.Statement.VARIABLE, list(all_metavariables.keys())))
 
-        # decide on a order of constants
-        ordered_constants = list(enumerate(composer.constants.items()))
+        # assert typecodes for variables
+        variable_index = 0
+        for metavar, typecode in all_metavariables.items():
+            stmts.append(mm.StructuredStatement(
+                mm.Statement.FLOATING,
+                [
+                    mm.Application(typecode),
+                    mm.Metavariable(metavar),
+                ],
+                label="variable-{}-type".format(variable_index),
+            ))
+            variable_index += 1
 
-        for i, (symbol, arity) in ordered_constants:
-            self.add_entity_info("constant", symbol, "index", i)
-            self.add_entity_info("constant", symbol, "arity", arity)
+        # assert that #ElementVariable's are disjoin
+        element_vars = list(enumerate([
+            metavar for metavar, typecode in all_metavariables.items() if typecode == "#ElementVariable"
+        ]))
 
-        # assert well-formedness of all constant symbols
-        for i, (symbol, arity) in ordered_constants:
-            pattern_lemma_name = "constant-{}-pattern".format(i)
-            variables = composer.gen_variables("#Pattern", arity)
-            lemma = composer.add_statement("a", pattern_lemma_name) \
-                            .add_token("#Pattern") \
-                            .add_term(Constant(symbol, *map(Metavariable, variables))) \
-                            .done()
-            
-            self.add_entity_info("constant", symbol, "pattern", lemma)
+        for i, var1 in element_vars:
+            for j, var2 in element_vars:
+                if i < j:
+                    stmts.append(mm.StructuredStatement(
+                        mm.Statement.DISJOINT,
+                        [
+                            mm.Metavariable(var1),
+                            mm.Metavariable(var2),
+                        ]
+                    ))
 
-        composer.write_line()
+        return stmts
 
-        # emit extra sort axioms for domain values
-        for index, (sort, literal) in enumerate(composer.domain_values):
-            dv_lemma_name = "domain-value-{}".format(index)
+    """
+    Encode all statements about constant symbols
+    """
+    def encode_constant_axioms(self) -> List[mm.Statement]:
+        stmts = []
 
-            functional_lemmas = self.get_entity_info("prelude", KorePatternEncoder.DV, "functional")
-            if functional_lemmas is None:
-                functional_lemmas = {}
-                self.add_entity_info("prelude", KorePatternEncoder.DV, "functional", functional_lemmas)
+        stmts.append(mm.RawStatement(
+            mm.Statement.CONSTANT,
+            [ symbol for symbol in self.encoder.constant_symbols ]
+        ))
 
-            domain_var, sort_var = composer.gen_variables("#ElementVariable", 2)
+        # assert pattern types
+        # NOTE: no need to log them since the composer
+        # should be able to figure out how to prove
+        # these facts
+        for index, (symbol, arity) in enumerate(self.encoder.constant_symbols.items()):
+            pattern_vars = self.gen_metavariables("#Pattern", arity)
+            stmts.append(mm.StructuredStatement(
+                mm.Statement.AXIOM,
+                [
+                    mm.Application("#Pattern"),
+                    mm.Application(symbol, [ mm.Metavariable(var) for var in pattern_vars ]),
+                ],
+                label="constant-symbol-{}-pattern".format(index),
+            ))
 
-            sort_encoded = sort.visit(KorePatternEncoder(composer))
-            dv_encoded = MLPattern(MLPattern.DV, [sort], [literal]).visit(KorePatternEncoder(composer))
+        return stmts
 
-            # TODO: don't encode this manually
-            axiom = Constant(
-                KorePatternEncoder.FORALL,
-                Constant(KorePatternEncoder.SORT),
-                Metavariable(sort_var),
-                Constant(
-                    KorePatternEncoder.EXISTS,
-                    sort_encoded,
-                    Metavariable(domain_var),
-                    Constant(
-                        KorePatternEncoder.EQUALS,
-                        sort_encoded,
-                        Metavariable(sort_var),
-                        Metavariable(domain_var),
-                        dv_encoded,
-                    ),
-                ),
-            )
+    def encode_substitution_axioms(self) -> List[mm.StructuredStatement]:
+        stmts = []
 
-            lemma = composer.add_statement("a", dv_lemma_name) \
-                            .add_token("|-") \
-                            .add_term(axiom) \
-                            .done()
+        for index, (symbol, arity) in enumerate(self.encoder.constant_symbols.items()):
+            name = "constant-symbol-{}-substitution".format(index)
 
-            functional_lemmas[sort, literal] = lemma
+            var, = self.gen_metavariables("#Variable", 1)
+            pattern_var, *subpattern_vars = self.gen_metavariables("#Pattern", arity * 2 + 1)
 
-        # assert substitution rules for each constant symbols
-        # ${
-        #   s.1 $e #Substitution ph1 ph1' t x $.
-        #   s.2 $e #Substitution ph2 ph2' t x $.
-        #   ...
-        #   s $a #Substitution ( s ph1 ... phk ) ( s ph1' ... phk' ) t x $.
-        # $}
-        for i, (symbol, arity) in ordered_constants:
-            substitution_lemma_name = "constant-{}-substitution".format(i)
-
-            # we need these (new) variables
-            x, = composer.gen_variables("#Variable", 1)
-            subpatterns = composer.gen_variables("#Pattern", arity * 2 + 1)
-            t = subpatterns[-1]
-            subpatterns = subpatterns[:-1]
-
-            block = composer.add_block()
-
+            essentials = []
             for i in range(arity):
-                block.add_statement("e", "{}.{}".format(substitution_lemma_name, i)) \
-                     .add_token("#Substitution") \
-                     .add_term(Metavariable(subpatterns[i])) \
-                     .add_term(Metavariable(subpatterns[i + arity])) \
-                     .add_term(Metavariable(t)) \
-                     .add_term(Metavariable(x)) \
-                     .done()
+                after = subpattern_vars[i]
+                before = subpattern_vars[i + arity]
 
-            lemma = block.add_statement("a", substitution_lemma_name) \
-                         .add_token("#Substitution") \
-                         .add_term(Constant(symbol, *[ Metavariable(subpatterns[i]) for i in range(arity) ])) \
-                         .add_term(Constant(symbol, *[ Metavariable(subpatterns[i + arity]) for i in range(arity) ])) \
-                         .add_term(Metavariable(t)) \
-                         .add_term(Metavariable(x)) \
-                         .done()
+                essentials.append(mm.StructuredStatement(mm.Statement.ESSENTITAL, [
+                    mm.Application("#Substitution"),
+                    mm.Metavariable(after),
+                    mm.Metavariable(before),
+                    mm.Metavariable(pattern_var),
+                    mm.Metavariable(var),
+                ], label="{}.{}".format(name, i)))
+
+            conclusion = mm.StructuredStatement(mm.Statement.AXIOM, [
+                mm.Application("#Substitution"),
+                mm.Application(symbol, list(map(mm.Metavariable, subpattern_vars[:arity]))),
+                mm.Application(symbol, list(map(mm.Metavariable, subpattern_vars[arity:]))),
+                mm.Metavariable(pattern_var),
+                mm.Metavariable(var),
+            ], label=name)
+
+            stmts.append(mm.Block(essentials + [ conclusion ]))
+
+            self.substitution_axioms[symbol] = conclusion
+
+        return stmts
+
+    def encode_domain_value_axioms(self) -> List[mm.StructuredStatement]:
+        stmts = []
+
+        for index, (sort, literal) in enumerate(self.encoder.domain_values):
+            name = "domain-value-{}-functional".format(index)
+
+            # TODO: check the literal is actually correct
+
+            sort_var, functional_var = self.gen_metavariables("#ElementVariable", 2)
             
-            self.add_entity_info("constant", symbol, "substitution", lemma)
+            sort_encoded = self.encoder.visit(sort)
 
-            block.done()
+            # <functional_var> = ( \kore-dv ... )
+            equality = mm.Application(
+                KorePatternEncoder.EQUALS,
+                [
+                    sort_encoded,
+                    mm.Metavariable(sort_var),
+                    mm.Metavariable(functional_var),
+                    self.encoder.visit(kore.MLPattern(kore.MLPattern.DV, [sort], [literal])),
+                ],
+            )
 
-    def emit_variables(self, composer: Composer):
-        # write all metavariables
-        composer.add_statement("v") \
-                .add_tokens([
-                    meta_var
-                    for meta_type in composer.variables
-                    for meta_var in composer.variables[meta_type]
-                ]) \
-                .done()
-        composer.write_line()
+            stmt = mm.StructuredStatement(mm.Statement.AXIOM, [
+                mm.Application("|-"),
+                mm.Application(
+                    KorePatternEncoder.FORALL,
+                    [
+                        mm.Application(KorePatternEncoder.SORT),
+                        mm.Metavariable(sort_var),
+                        mm.Application(
+                            KorePatternEncoder.EXISTS,
+                            [
+                                sort_encoded,
+                                mm.Metavariable(functional_var),
+                                equality,
+                            ],
+                        ),
+                    ],
+                ),
+            ], label=name)
 
-        # assert types of all metavariables
-        meta_var_index = self.num_metavariables
-        for meta_type in composer.variables:
-            for meta_var in composer.variables[meta_type]:
-                variable_type_assertion = "metavariable-{}".format(meta_var_index)
-                lemma = composer.add_statement("f", variable_type_assertion) \
-                                .add_token(meta_type) \
-                                .add_token(meta_var) \
-                                .done()
-                
-                self.add_entity_info("variable", meta_var, "index", meta_var_index)
-                self.add_entity_info("variable", meta_var, "type", lemma)
+            self.domain_value_functional_axioms[sort, literal] = stmt
 
-                meta_var_index += 1
-        self.num_metavariables = meta_var_index
-        
-        for meta_var1 in composer.variables["#ElementVariable"]:
-            for meta_var2 in composer.variables["#ElementVariable"]:
-                if meta_var1 != meta_var2:
-                    composer.add_statement("d") \
-                            .add_token(meta_var1) \
-                            .add_token(meta_var2) \
-                            .done()
+            stmts.append(stmt)
 
-    def emit_snapshots(self, composer: Composer, snapshots: List[Pattern]=[]):
-        for i, step in enumerate(snapshots):
-            composer.add_constant("cfg-{}".format(i), 0)
+        return stmts
 
-            composer.add_statement("a", "cfg-{}-def".format(i)) \
-                    .add_token("#Equal") \
-                    .add_token("cfg-{}".format(i)) \
-                    .add_kore_pattern(step) \
-                    .done()
+    """
+    Expand all aliases and quantify all free variables
+    """
+    def preprocess_module(self, module: kore.Module):
+        print("preprocessing module {}".format(module.name))
 
-    def emit_single_step_proof(self, composer: Composer, lhs: Pattern, rhs: Pattern, hint: Hint):
-        # apply kore-forall-elim to substitute variables
-        # apply kore-rewrites-conditional to eliminate side conditions
-        
-        # find the corresponding lemma
-        all_rewrite_axioms = self.get_entity_info("module", "rewrite", "axioms")
-        for axiom, lemma in all_rewrite_axioms:
-            if id(hint.axiom) == id(axiom):
-                generated_lemma = lemma
-                break
-        else:
-            raise Exception("no corresponding lemma for {}".format(hint.axiom))
+        for import_stmt in module.imports:
+            self.preprocess_module(import_stmt.module)
 
-        # check the axiom is in the expected form: forall v1 forall v2 ... forall vn rewrites ... ...
-        # and figure out which order should we do the substitution
-        substitution_order = []
+        KoreUtils.instantiate_all_alias_uses(module)
+        KoreUtils.quantify_all_free_variables(module)
 
-        unquantified_axiom = hint.axiom.pattern
-        while len(substitution_order) < len(hint.substitution):
-            assert isinstance(unquantified_axiom, MLPattern) and \
-                   unquantified_axiom.construct == MLPattern.FORALL
+    """
+    Translate all axioms in the kore module
+    """
+    def init_module(self):
+        self.preprocess_module(self.module)
 
-            var = unquantified_axiom.get_binding_variable()
-            unquantified_axiom = unquantified_axiom.arguments[1]
+        # we have to do two passes here since
+        # the variables and constant symbols have to be
+        # declared before these axioms in the composer
+        encoded_module_axioms = self.encode_module_axioms(self.module)
+        encoded_constant_axioms = self.encode_constant_axioms()
+        encoded_domain_value_axioms = self.encode_domain_value_axioms()
+        encoded_substitution_axioms = self.encode_substitution_axioms()
+        encoded_variable_axioms = self.encode_variable_axioms()
 
-            assert var.name in hint.substitution
+        for stmt in encoded_variable_axioms + \
+                    encoded_constant_axioms + \
+                    encoded_domain_value_axioms + \
+                    encoded_substitution_axioms + \
+                    encoded_module_axioms:
+            self.composer.load(stmt)
 
-            substitution_order.append((var, hint.substitution[var.name]))
+    def prove_step(
+        self,
+        from_pattern: kore.Pattern,
+        to_pattern: kore.Pattern,
+        axiom_id: str,
+        substitution: Mapping[str, kore.Pattern],
+    ):
+        # iteratively apply each item in the substitution
+        # NOTE: here we are assuming the terms in the substitution
+        # are all concrete so that iterative substitution is equivalent
+        # to a one-time simultaneous substitution
 
-        assert isinstance(unquantified_axiom, MLPattern) and \
-               unquantified_axiom.construct == MLPattern.REWRITES
+        assert axiom_id in self.rewrite_axioms, \
+               "unable to find rewrite axiom {}".format(axiom_id)
 
-        # repeatedly apply kore-forall-elim to substitute variables
-        # to get the concrete rewrite axiom
+        rewrite_axiom, rewrite_axiom_in_mm = self.rewrite_axioms[axiom_id]
 
-        current_axiom_pattern = hint.axiom.pattern
+        instantiated_rewrite_axiom = self.as_proof(rewrite_axiom_in_mm)
+        current_axiom_pattern = rewrite_axiom.pattern
 
-        # build a initial proof for kore-forall-elim.1
-        init_meta_subst = {}
+        while isinstance(current_axiom_pattern, kore.MLPattern) and \
+              current_axiom_pattern.construct == kore.MLPattern.FORALL:
+            var = current_axiom_pattern.get_binding_variable()
 
-        for var, _ in substitution_order:
-            var_encoded = KorePatternEncoder.encode_variable(var)
-            var_encoded_type = self.get_entity_info("variable", var_encoded, "type").apply(self)
-            init_meta_subst[var_encoded] = var_encoded_type
+            assert var.name in substitution, \
+                   "variable {} not instantiated".format(var)
+            
+            term = substitution[var.name]
 
-        rewrite_axiom_instance = generated_lemma.apply(
-            self,
-            **init_meta_subst,
-        )
+            # prove that the term is interpreted to a singleton in some domain
+            functional_term_subproof = FunctionalProofGenerator(self).visit(term)
 
-        for var, pattern in substitution_order:
-            meta_subst, subproof = pattern.visit(FunctionalPatternProofGenerator(self, composer))
-
-            # x in kore-forall-elim.1
-            var_encoded = KorePatternEncoder.encode_variable(var)
-            var_encoded_type = self.get_entity_info("variable", var_encoded, "type").apply(self)
-
-            # ph1 in kore-forall-elim.1
-            var_sort_pattern_type = var.sort.visit(TypePatternProofGenerator(self, composer))
-
+            # remove one layer of quantification
             current_axiom_pattern = current_axiom_pattern.arguments[1]
-            subst_proof = current_axiom_pattern.visit(SingleSubstitutionProofGenerator(self, composer, var, pattern))
 
-            # ph2 in kore-forall-elim.1
-            current_axiom_pattern_type = current_axiom_pattern.visit(TypePatternProofGenerator(self, composer))
+            # prove the substitution
+            subst_subproof = SingleSubstitutionProofGenerator(self, var, term).visit(current_axiom_pattern)
 
-            # ph4 in kore-forall-elim.3
-            current_axiom_pattern = KoreUtils.copy_and_substitute(self.module, current_axiom_pattern, {
-                var: pattern,
-            })
-            substituted_pattern_type = current_axiom_pattern.visit(TypePatternProofGenerator(self, composer))
+            # and actually do the substitution so that the current pattern
+            # stays consistent with the instance
+            current_axiom_pattern = KoreUtils.copy_and_substitute(self.module, current_axiom_pattern, { var: term })
 
-            rewrite_axiom_instance = self.get_entity_info("prelude", "lemma", "kore-forall-elim").apply(
-                self,
-                rewrite_axiom_instance,
-                subproof,
-                subst_proof,
-                **{
-                    "x": var_encoded_type,
-                    "ph1": var_sort_pattern_type,
-                    "ph2": current_axiom_pattern_type,
-                    "ph4": substituted_pattern_type,
-                    **meta_subst,
-                },
+            instantiated_rewrite_axiom = self.composer.theorems["kore-forall-elim"].apply(
+                instantiated_rewrite_axiom,
+                functional_term_subproof,
+                subst_subproof
             )
 
-        # now we should have a proof for a statement of the form
-        # |- \kore-rewrites ... ( \kore-and <requires> ... ) ( \kore-and <ensures> ... )
-        # we now want to eliminate the <requires> and <ensures> clauses
-        # provided that they are provable
+        # get rid of valid conditionals
+        assert isinstance(current_axiom_pattern, kore.MLPattern) and \
+               current_axiom_pattern.construct == kore.MLPattern.REWRITES
 
-        assert isinstance(current_axiom_pattern, MLPattern) and current_axiom_pattern.construct == MLPattern.REWRITES
+        lhs, rhs = current_axiom_pattern.arguments
+        lhs_requires, _ = lhs.arguments
+        rhs_ensures, _ = rhs.arguments
 
-        lhs = current_axiom_pattern.arguments[0]
-        rhs = current_axiom_pattern.arguments[1]
-
-        assert isinstance(lhs, MLPattern) and lhs.construct == MLPattern.AND
-        assert isinstance(rhs, MLPattern) and rhs.construct == MLPattern.AND
-
-        requires = lhs.arguments[0]
-        ensures = rhs.arguments[0]
-
-        if isinstance(requires, MLPattern) and requires.construct == MLPattern.TOP and \
-           isinstance(ensures, MLPattern) and ensures.construct == MLPattern.TOP:
-            # use kore-top-valid and kore-rewrites-conditional to eliminate the clauses
-            assert requires.sorts == ensures.sorts
-
-            top_sort_type = requires.sorts[0].visit(TypePatternProofGenerator(self, composer))
-            top_valid_proof = self.get_entity_info("prelude", "lemma", "kore-top-valid").apply(
-                self,
-                ph=top_sort_type,
+        if lhs_requires.construct == kore.MLPattern.TOP and rhs_ensures.construct == kore.MLPattern.TOP:
+            top_valid_proof = self.composer.theorems["kore-top-valid"].apply(
+                ph=self.encoder.visit(current_axiom_pattern.sorts[0]),
             )
-
-            rewrite_sort = current_axiom_pattern.sorts[0]
-            rewrite_sort_type = rewrite_sort.visit(TypePatternProofGenerator(self, composer))
-
-            lhs_pattern_type = lhs.arguments[1].visit(TypePatternProofGenerator(self, composer))
-            rhs_pattern_type = rhs.arguments[1].visit(TypePatternProofGenerator(self, composer))
-
-            requires_type = requires.visit(TypePatternProofGenerator(self, composer))
-            ensures_type = ensures.visit(TypePatternProofGenerator(self, composer))
-
-            proof = self.get_entity_info("prelude", "lemma", "kore-rewrites-conditional").apply(
-                self,
-                rewrite_axiom_instance,
+            
+            step_proof = self.composer.theorems["kore-rewrites-conditional"].apply(
+                instantiated_rewrite_axiom,
                 top_valid_proof,
                 top_valid_proof,
-                ph1=rewrite_sort_type,
-                ph2=requires_type,
-                ph3=lhs_pattern_type,
-                ph4=ensures_type,
-                ph5=rhs_pattern_type,
             )
 
-            final_rewrite_instance = MLPattern(MLPattern.REWRITES, [rewrite_sort], [lhs.arguments[1], rhs.arguments[1]])
+            print(step_proof)
         else:
-            raise Exception("unsupported requires and ensures clauses: {} {}".format(requires, ensures))
+            raise Exception("unable to prove requires {} and/or ensures {}".format(lhs_requires, rhs_ensures))
 
-        composer.add_statement("p", "step") \
-                .add_token("|-") \
-                .add_kore_pattern(final_rewrite_instance) \
-                .add_token("$=") \
-                .add_tokens(proof) \
-                .done()
+        # print(from_pattern)
+        # print(FunctionalProofGenerator(self).visit(from_pattern))
 
-    # emit a full metamath proof
-    def emit(self, stream: TextIO, snapshots: List[Pattern]=[], hints: List[Hint]=[]):
-        # assert len(snapshots) == 0 or len(snapshots) + 1 == len(hints)
-
-        variable_buffer = StringIO()
-        constant_buffer = StringIO()
-        main_buffer = StringIO()
-
-        composer = Composer()
-
-        self.emit_module(composer, self.module)
-        composer.write_line()
-        self.emit_snapshots(composer, snapshots)
-        composer.dump(main_buffer)
-
-        self.emit_constants(composer)
-        composer.dump(constant_buffer)
-
-        self.emit_variables(composer)
-        composer.dump(variable_buffer)
-
-        # write everything back to the main stream
-        if self.prelude is not None:
-            stream.write(self.prelude); stream.write("\n")
-
-        stream.write("$( Auto-generated $)\n\n")
-
-        stream.write(variable_buffer.getvalue()); stream.write("\n")
-        stream.write(constant_buffer.getvalue()); stream.write("\n")
-        stream.write(main_buffer.getvalue())
-
-        ############################
-        # Single step rewrite proofs
-        ############################
-
-        # _, proof = snapshots[0].visit(FunctionalPatternProofGenerator(self, composer))
-        # print(" ".join(proof))
-
-        if len(snapshots):
-            stream.write("\n")
-            for axiom in self.module.axioms:
-                if self.is_rewrite_axiom(axiom):
-                    the_axiom = axiom
-                    break
-            # print(the_axiom)
-            self.emit_single_step_proof(composer, snapshots[0], snapshots[1], Hint(the_axiom, {
-                "Var'Unds'DotVar0": snapshots[0].arguments[0].arguments[1],
-                "Var'Unds'DotVar1": snapshots[0].arguments[0].arguments[0].arguments[0].arguments[1],
-                "VarX": snapshots[0].arguments[0].arguments[0].arguments[0].arguments[0].arguments[0].arguments[0],
-            }))
-            composer.dump(stream)
-
-        # substituted, proof = Variable("VarN", None).visit(
-        #     SingleSubstitutionProofGenerator(self, composer, Variable("VarM", None), Variable("Val", None))
-        # )
-        # print(" ".join(proof))
-        # def gen_full_statement(pattern, x, t):
-        #     stream.write("test $p\n#Substitution\n")
-            
-        #     buffer = StringIO()
-        #     substituted = KoreUtils.copy_and_substitute(self.module, pattern, { x: t })
-        #     substituted.visit(KorePatternEncoder(composer)).encode(buffer)
-        #     stream.write(buffer.getvalue())
-
-        #     stream.write("\n")
-            
-        #     buffer = StringIO()
-        #     pattern.visit(KorePatternEncoder(composer)).encode(buffer)
-        #     stream.write(buffer.getvalue())
-
-        #     stream.write("\n")
-
-        #     buffer = StringIO()
-        #     t.visit(KorePatternEncoder(composer)).encode(buffer)
-        #     stream.write(buffer.getvalue())
-
-        #     stream.write(" ")
-
-        #     buffer = StringIO()
-        #     x.visit(KorePatternEncoder(composer)).encode(buffer)
-        #     stream.write(buffer.getvalue())
-
-        #     proof = pattern.visit(SingleSubstitutionProofGenerator(self, composer, x,t ))
-
-        #     stream.write("\n$= {} $.\n".format(" ".join(proof)))
-
-        # stream.write("\n")
-        # sort = SortInstance("SortInt", [])
-        # sort.resolve(self.module)
-        
-        # gen_full_statement(self.module.axioms[113].pattern.arguments[0].arguments[0], Variable("VarM", sort), Variable("Val", None))
-
-        # stream.write("\n")
-
-        # gen_full_statement(self.module.axioms[113].pattern.arguments[0].arguments[1], Variable("VarM", sort), Variable("Val", None))
-
-        # stream.write("\n")
-
-        # rewrite_pattern = self.module.axioms[113].pattern
-
-        # free_vars = rewrite_pattern.visit(FreePatternVariableVisitor())
-
-        # for var in free_vars:
-        #     rewrite_pattern = MLPattern(MLPattern.FORALL, [], [var, rewrite_pattern])
-
-        # gen_full_statement(rewrite_pattern, Variable("VarM", sort), Variable("Val", None))
-
-        # sort = SortInstance("SortKItem", [])
-        # sort.resolve(self.module)
-        # pattern = MLPattern(MLPattern.AND, [sort], [Variable("VarM", sort), Variable("VarN", sort)])
-
-        # buffer = StringIO()
-        # pattern.visit(KorePatternEncoder(composer)).encode(buffer)
-        # print(buffer.getvalue())
-
-        # proof = pattern.visit(
-        #     SingleSubstitutionProofGenerator(self, composer, Variable("VarM", sort), Variable("Val", sort))
-        # )
-        # print(" ".join(proof))
+        # for axiom in self.module.axioms:
+        #     if self.is_rewrite_axiom(axiom):
+        #         rewrite_axiom = axiom
+        #         break
+        # test_term = encoded_module_axioms[-1].terms[1]
+        # test_pattern = rewrite_axiom.pattern.arguments[1]
+        # subst_proof_gen = SingleSubstitutionProofGenerator(self, rewrite_axiom.pattern.get_binding_variable(), test_pattern.get_binding_variable())
+        # print(test_pattern)
+        # print(subst_proof_gen.visit(test_pattern))
+        # print(self.composer.try_prove_typecode("#Pattern", encoded_module_axioms[-1].terms[1]))
+        # print(encoded_module_axioms[-1].terms[1])

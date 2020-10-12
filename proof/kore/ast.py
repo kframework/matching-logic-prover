@@ -327,6 +327,15 @@ class SymbolInstance(Sentence):
         symbol = self.definition.symbol if isinstance(self.definition, SymbolDefinition) else "<?" + self.definition + ">"
         return "{}{{{}}}".format(symbol, ", ".join(map(str, self.sort_arguments)))
 
+    def __eq__(self, other):
+        if isinstance(other, SymbolInstance):
+            return (self.definition == other.definition and
+                    self.sort_arguments == other.sort_arguments)
+        return False
+
+    def __hash__(self):
+        return hash(self.definition) ^ hash(tuple(self.sort_arguments))
+
 
 class Axiom(Sentence):
     def __init__(self, sort_variables: List[SortVariable], pattern: Pattern, attributes: List[Application], is_claim=False):
