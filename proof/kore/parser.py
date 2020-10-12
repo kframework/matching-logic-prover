@@ -152,7 +152,7 @@ syntax = r"""
 // for more info
 
 INLINE_COMMENT: /\/\/[^\n]*/
-BLOCK_COMMENT: /\/\*[.\n]*(?<!\*\/)\*\//
+BLOCK_COMMENT: /\/\*((.|\n)(?<!\*\/))*\*\//
 
 %ignore INLINE_COMMENT
 %ignore BLOCK_COMMENT
