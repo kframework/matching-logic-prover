@@ -289,17 +289,42 @@ class ProofGenerator:
         assert len(id_term.arguments) == 1 and isinstance(id_term.arguments[0], kore.StringLiteral)
         return id_term.arguments[0].content
 
-    def is_rewrite_axiom(self, axiom: kore.Axiom) -> bool:
-        # get the longest subpattern that doesn't begin with a universal quantifier
-        inner_pattern = axiom.pattern
-        while isinstance(inner_pattern, kore.MLPattern) and inner_pattern.construct == kore.MLPattern.FORALL:
-            inner_pattern = inner_pattern.arguments[1]
+    """
+    Remove all universal quantifiers
+    """
+    def strip_forall(self, pattern: kore.Pattern) -> kore.Pattern:
+        while isinstance(pattern, kore.MLPattern) and pattern.construct == kore.MLPattern.FORALL:
+            pattern = pattern.arguments[1]
+        return pattern
 
+    """
+    Strip call outermost injection calls
+    """
+    def strip_inj(self, pattern: kore.Pattern) -> kore.Pattern:
+        while isinstance(pattern, kore.Application) and pattern.symbol.definition.symbol == "inj":
+            assert len(pattern.arguments) == 1
+            pattern = pattern.arguments[0]
+        return pattern
+
+    def is_rewrite_axiom(self, axiom: kore.Axiom) -> bool:
+        inner_pattern = self.strip_forall(axiom.pattern)
         return isinstance(inner_pattern, kore.MLPattern) and inner_pattern.construct == kore.MLPattern.REWRITES
 
     def is_functional_axiom(self, axiom: kore.Axiom) -> bool:
         return axiom.get_attribute_by_symbol("functional") is not None or \
                axiom.get_attribute_by_symbol("subsort") is not None
+
+    def is_equational_axiom(self, axiom: kore.Axiom) -> bool:
+        inner_pattern = self.strip_forall(axiom.pattern)
+        if not (isinstance(inner_pattern, kore.MLPattern) and inner_pattern.construct == kore.MLPattern.IMPLIES):
+            return False
+
+        rhs = inner_pattern.arguments[1]
+        if not (isinstance(rhs, kore.MLPattern) and rhs.construct == kore.MLPattern.AND):
+            return False
+
+        equation = rhs.arguments[0]
+        return isinstance(equation, kore.MLPattern) and equation.construct == kore.MLPattern.EQUALS
 
     """
     Get the corresponding symbol instance of the given functional axiom
@@ -340,8 +365,9 @@ class ProofGenerator:
         for axiom_number, axiom in enumerate(module.axioms):
             is_functional = self.is_functional_axiom(axiom)
             is_rewrite = self.is_rewrite_axiom(axiom)
+            is_equational = self.is_equational_axiom(axiom)
 
-            if is_functional or is_rewrite:
+            if is_functional or is_rewrite or is_equational:
                 mm_axiom_term = self.encode_kore_pattern(axiom)
                 stmt = mm.StructuredStatement(mm.Statement.AXIOM, [
                     mm.Application("|-"),
@@ -390,20 +416,14 @@ class ProofGenerator:
             variable_index += 1
 
         # assert that #ElementVariable's are disjoin
-        element_vars = list(enumerate([
-            metavar for metavar, typecode in all_metavariables.items() if typecode == "#ElementVariable"
-        ]))
+        stmts.append(mm.StructuredStatement(
+            mm.Statement.DISJOINT,
+            [
 
-        for i, var1 in element_vars:
-            for j, var2 in element_vars:
-                if i < j:
-                    stmts.append(mm.StructuredStatement(
-                        mm.Statement.DISJOINT,
-                        [
-                            mm.Metavariable(var1),
-                            mm.Metavariable(var2),
-                        ]
-                    ))
+                mm.Metavariable(metavar)
+                for metavar, typecode in all_metavariables.items() if typecode == "#ElementVariable"
+            ]
+        ))
 
         return stmts
 
@@ -553,22 +573,60 @@ class ProofGenerator:
                     encoded_module_axioms:
             self.composer.load(stmt)
 
-    def prove_step(
+    """
+    Returns (lhs, lhs requires, rhs, rhs ensures)
+    """
+    def decompose_rewrite_axiom(self, pattern: kore.Pattern) -> (kore.Pattern, kore.Pattern, kore.Pattern, kore.Pattern):
+        rewrite_pattern = self.strip_forall(pattern)
+
+        assert isinstance(rewrite_pattern, kore.MLPattern) and \
+               rewrite_pattern.construct == kore.MLPattern.REWRITES
+
+        lhs, rhs = rewrite_pattern.arguments
+        lhs_requires, lhs_body = lhs.arguments
+        rhs_ensures, rhs_body = rhs.arguments
+        return (lhs_body, lhs_requires, rhs_body, rhs_ensures)
+
+    def prove_rewrite_step(
         self,
         from_pattern: kore.Pattern,
         to_pattern: kore.Pattern,
-        axiom_id: str,
-        substitution: Mapping[str, kore.Pattern],
+        axiom_id: Optional[str]=None,
     ):
+        # strip the outermost inj
+        # TODO: readd these in the end
+        from_pattern = self.strip_inj(from_pattern)
+        to_pattern = self.strip_inj(to_pattern)
+
+        from_pattern_encoded = self.encoder.visit(from_pattern)
+        to_pattern_encoded = self.encoder.visit(to_pattern)
+
+        if axiom_id is not None:
+            # lookup the selected axiom if given
+            assert axiom_id in self.rewrite_axioms, \
+                "unable to find rewrite axiom {}".format(axiom_id)
+
+            rewrite_axiom, rewrite_axiom_in_mm = self.rewrite_axioms[axiom_id]
+
+            # unify `from_pattern` with the lhs of the selected axiom
+            lhs, _, _, _ = self.decompose_rewrite_axiom(rewrite_axiom.pattern)
+            substitution = KoreUtils.unify_patterns_as_instance(lhs, from_pattern)
+            assert substitution is not None, \
+                "`{}` is not an instance of the RHS `{}`".format(from_pattern, lhs)
+        else:
+            # if no axiom given, try to find one by brute force
+            for _, (rewrite_axiom, rewrite_axiom_in_mm) in self.rewrite_axioms.items():
+                lhs, _, _, _ = self.decompose_rewrite_axiom(rewrite_axiom.pattern)
+                substitution = KoreUtils.unify_patterns_as_instance(lhs, from_pattern)
+                if substitution is not None:
+                    break
+            else:
+                assert False, "unable to find axiom to rewrite `{}`".format(from_pattern)
+
         # iteratively apply each item in the substitution
         # NOTE: here we are assuming the terms in the substitution
         # are all concrete so that iterative substitution is equivalent
         # to a one-time simultaneous substitution
-
-        assert axiom_id in self.rewrite_axioms, \
-               "unable to find rewrite axiom {}".format(axiom_id)
-
-        rewrite_axiom, rewrite_axiom_in_mm = self.rewrite_axioms[axiom_id]
 
         instantiated_rewrite_axiom = self.as_proof(rewrite_axiom_in_mm)
         current_axiom_pattern = rewrite_axiom.pattern
@@ -577,10 +635,10 @@ class ProofGenerator:
               current_axiom_pattern.construct == kore.MLPattern.FORALL:
             var = current_axiom_pattern.get_binding_variable()
 
-            assert var.name in substitution, \
+            assert var in substitution, \
                    "variable {} not instantiated".format(var)
             
-            term = substitution[var.name]
+            term = substitution[var]
 
             # prove that the term is interpreted to a singleton in some domain
             functional_term_subproof = FunctionalProofGenerator(self).visit(term)
@@ -602,14 +660,10 @@ class ProofGenerator:
             )
 
         # get rid of valid conditionals
-        assert isinstance(current_axiom_pattern, kore.MLPattern) and \
-               current_axiom_pattern.construct == kore.MLPattern.REWRITES
+        _, requires, _, ensures = self.decompose_rewrite_axiom(current_axiom_pattern)
 
-        lhs, rhs = current_axiom_pattern.arguments
-        lhs_requires, _ = lhs.arguments
-        rhs_ensures, _ = rhs.arguments
-
-        if lhs_requires.construct == kore.MLPattern.TOP and rhs_ensures.construct == kore.MLPattern.TOP:
+        if requires.construct == kore.MLPattern.TOP and \
+           ensures.construct == kore.MLPattern.TOP:
             top_valid_proof = self.composer.theorems["kore-top-valid"].apply(
                 ph=self.encoder.visit(current_axiom_pattern.sorts[0]),
             )
@@ -620,21 +674,14 @@ class ProofGenerator:
                 top_valid_proof,
             )
 
-            print(step_proof)
+            # check that the proven statement is actually what we want
+            _, lhs_concrete, rhs_concrete = step_proof.statement.terms[1].subterms
+
+            assert lhs_concrete == from_pattern_encoded, \
+                   "LHS is not we expected: {} vs {}".format(lhs_concrete, from_pattern_encoded)
+            assert rhs_concrete == to_pattern_encoded, \
+                   "RHS is not we expected: {} vs {}".format(rhs_concrete, to_pattern_encoded)
+
+            return step_proof
         else:
-            raise Exception("unable to prove requires {} and/or ensures {}".format(lhs_requires, rhs_ensures))
-
-        # print(from_pattern)
-        # print(FunctionalProofGenerator(self).visit(from_pattern))
-
-        # for axiom in self.module.axioms:
-        #     if self.is_rewrite_axiom(axiom):
-        #         rewrite_axiom = axiom
-        #         break
-        # test_term = encoded_module_axioms[-1].terms[1]
-        # test_pattern = rewrite_axiom.pattern.arguments[1]
-        # subst_proof_gen = SingleSubstitutionProofGenerator(self, rewrite_axiom.pattern.get_binding_variable(), test_pattern.get_binding_variable())
-        # print(test_pattern)
-        # print(subst_proof_gen.visit(test_pattern))
-        # print(self.composer.try_prove_typecode("#Pattern", encoded_module_axioms[-1].terms[1]))
-        # print(encoded_module_axioms[-1].terms[1])
+            raise Exception("unable to prove requires {} and/or ensures {}".format(requires, ensures))

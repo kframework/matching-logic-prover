@@ -21,10 +21,9 @@ class ASTTransformer(Transformer):
         return RawStatement(Statement.CONSTANT, args)
 
     def disjoint_stmt(self, args):
-        var1, var2 = args
-        assert var1 in self.metavariables, "variable {} used before declaration".format(var1)
-        assert var2 in self.metavariables, "variable {} used before declaration".format(var2)
-        return StructuredStatement(Statement.DISJOINT, [ Metavariable(var1), Metavariable(var2) ])
+        for var in args:
+            assert var in self.metavariables, "variable {} used before declaration".format(var)
+        return StructuredStatement(Statement.DISJOINT, list(map(Metavariable, args)))
 
     def floating_stmt(self, args):
         label, typecode, variable = args
@@ -116,7 +115,7 @@ database: stmt*
 
 stmt: "$c" token+ "$."                   -> constant_stmt
     | "$v" token+ "$."                   -> variable_stmt
-    | "$d" token token "$."              -> disjoint_stmt
+    | "$d" token+ "$."                   -> disjoint_stmt
     | token "$f" token token "$."        -> floating_stmt
     | token "$e" token+ "$."             -> essential_stmt
     | token "$a" token+ "$."             -> axiom_stmt

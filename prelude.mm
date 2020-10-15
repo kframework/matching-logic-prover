@@ -492,7 +492,7 @@ $(
     KORE logical symbols and constructs
 $)
 
-$c \kore-bot \kore-top \kore-not \kore-and \kore-or \kore-exists \kore-forall $.
+$c \kore-bot \kore-top \kore-not \kore-and \kore-or \kore-implies \kore-exists \kore-forall $.
 $c \kore-ceil \kore-floor \kore-equals \kore-in \kore-rewrites \kore-dv \kore-sort $.
 
 kore-exists-pattern $a #Pattern ( \kore-exists ph1 x ph2 ) $.
@@ -503,6 +503,7 @@ kore-top-pattern $a #Pattern ( \kore-top ph1 ) $.
 kore-not-pattern $a #Pattern ( \kore-not ph1 ph2 ) $.
 kore-and-pattern $a #Pattern ( \kore-and ph1 ph2 ph3 ) $.
 kore-or-pattern $a #Pattern ( \kore-or ph1 ph2 ph3 ) $.
+kore-implies-pattern $a #Pattern ( \kore-implies ph1 ph2 ph3 ) $.
 
 kore-ceil-pattern   $a #Pattern ( \kore-ceil ph1 ph2 ph3 ) $.
 kore-floor-pattern  $a #Pattern ( \kore-floor ph1 ph2 ph3 ) $.
@@ -570,6 +571,13 @@ ${
     kore-or-substitution.2 $e #Substitution ph2 ph5 ph7 xX $.
     kore-or-substitution.3 $e #Substitution ph3 ph6 ph7 xX $.
     kore-or-substitution $a #Substitution ( \kore-or ph1 ph2 ph3 ) ( \kore-or ph4 ph5 ph6 ) ph7 xX $.
+$}
+
+${
+    kore-implies-substitution.1 $e #Substitution ph1 ph4 ph7 xX $.
+    kore-implies-substitution.2 $e #Substitution ph2 ph5 ph7 xX $.
+    kore-implies-substitution.3 $e #Substitution ph3 ph6 ph7 xX $.
+    kore-implies-substitution $a #Substitution ( \kore-implies ph1 ph2 ph3 ) ( \kore-implies ph4 ph5 ph6 ) ph7 xX $.
 $}
 
 ${
@@ -664,6 +672,12 @@ ${
     kore-forall-elim-variant.2 $e |- ( \kore-forall \kore-sort z ( \kore-exists ph1 y ( \kore-equals ph1 z y ph3 ) ) ) $.
     kore-forall-elim-variant.3 $e #Substitution ph4 ph2 ph3 x $.
     kore-forall-elim-variant $p |- ( \kore-forall \kore-sort w ph4 ) $= ? $.
+$}
+
+${
+    kore-implies-elim.1 $e |- ( \kore-forall \kore-sort z ( \kore-implies ph1 ph2 ph3 ) ) $.
+    kore-implies-elim.2 $e |- ( \kore-forall \kore-sort z ph2 ) $.
+    kore-implies-elim $p |- ( \kore-forall \kore-sort z ph3 ) $= ? $.
 $}
 
 ${

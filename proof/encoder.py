@@ -17,6 +17,7 @@ class KorePatternEncoder(KoreVisitor):
     NOT = "\\kore-not"
     AND = "\\kore-and"
     OR = "\\kore-or"
+    IMPLIES = "\\kore-implies"
     CEIL = "\\kore-ceil"
     FLOOR = "\\kore-floor"
     EQUALS = "\\kore-equals"
@@ -49,6 +50,7 @@ class KorePatternEncoder(KoreVisitor):
             kore.MLPattern.NOT: KorePatternEncoder.NOT,
             kore.MLPattern.AND: KorePatternEncoder.AND,
             kore.MLPattern.OR: KorePatternEncoder.OR,
+            kore.MLPattern.IMPLIES: KorePatternEncoder.IMPLIES,
             kore.MLPattern.CEIL: KorePatternEncoder.CEIL,
             kore.MLPattern.FLOOR: KorePatternEncoder.FLOOR,
             kore.MLPattern.EQUALS: KorePatternEncoder.EQUALS,

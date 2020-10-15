@@ -1,1 +1,1 @@
-id(foo(13))
+bar(id(foo(13)), id(foo(12)))

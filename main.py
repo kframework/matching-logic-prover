@@ -11,6 +11,7 @@ from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KoreUtils
 
 from proof.metamath.parser import parse_database
+from proof.metamath.ast import Statement, StructuredStatement
 
 from proof.generator import ProofGenerator
 
@@ -75,17 +76,14 @@ if __name__ == "__main__":
 
         gen.init_module()
 
+        if len(snapshots) >= 2:
+            for step, (from_pattern, to_pattern) in enumerate(zip(snapshots[:-1], snapshots[1:])):
+                print("trying to prove rewrite step {}".format(step))
+                # search for the axiom to use and try to get a proof
+                proof = gen.prove_rewrite_step(from_pattern, to_pattern)
+                proof.statement.label = "step-{}".format(step)
+                gen.composer.load(proof.statement)
+
+        print("dumping everything to {}".format(args.output))
         with open(args.output, "w") as out:
             gen.composer.encode(out)
-
-        if len(snapshots) >= 2:
-            gen.prove_step(
-                snapshots[0],
-                snapshots[1],
-                "9df58d519f0ac3563b432908d0958fe2843cb60c17168d6ac902920da21191aa",
-                {
-                    "Var'Unds'DotVar0": snapshots[0].arguments[0].arguments[1],
-                    "Var'Unds'DotVar1": snapshots[0].arguments[0].arguments[0].arguments[0].arguments[1],
-                    "VarX": snapshots[0].arguments[0].arguments[0].arguments[0].arguments[0].arguments[0].arguments[0],
-                }
-            )

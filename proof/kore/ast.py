@@ -285,10 +285,10 @@ class SymbolDefinition(Sentence):
         self.output_sort = output_sort
         self.hooked = hooked
 
-        self.users = set() # a set of patterns that uses this symbol
+        self.users = [] # a set of patterns that uses this symbol
 
     def add_user(self, user: Pattern):
-        self.users.add(user)
+        self.users.append(user)
 
     def resolve(self, module: Module):
         # resolve input and output sorts
@@ -395,6 +395,9 @@ class Pattern(BaseAST):
     def get_sort(self) -> Sort:
         raise NotImplementedError()
 
+    def __eq__(self, other):
+        raise NotImplementedError()
+
 
 class Variable(Pattern):
     def __init__(self, name: str, sort: Sort, is_set_variable=False):
@@ -467,6 +470,11 @@ class Application(Pattern):
     def get_sort(self) -> Sort:
         return self.symbol.definition.output_sort
 
+    def __eq__(self, other):
+        if isinstance(other, Application):
+            return self.symbol == other.symbol and self.arguments == other.arguments
+        return False
+
     def __str__(self) -> str:
         return "{}({})".format(self.symbol, ", ".join(map(str, self.arguments)))
 
@@ -528,6 +536,13 @@ class MLPattern(Pattern):
     def get_sort(self) -> Sort:
         assert len(self.sorts)
         return self.sorts[0]
+
+    def __eq__(self, other):
+        if isinstance(other, MLPattern):
+            return self.construct == other.construct and \
+                   self.sorts == other.sorts and \
+                   self.arguments == other.arguments
+        return False
 
     def __str__(self) -> str:
         return "{}{{{}}}({})".format(self.construct, ", ".join(map(str, self.sorts)), ", ".join(map(str, self.arguments)))

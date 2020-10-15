@@ -264,6 +264,7 @@ class Composer(MetamathVisitor):
 
     """
     Attempts to unify two terms and return a mapping of subterms
+    NOTE: this does not check the consistency of the resulting substitution
     """
     def unify_terms(self, term1: Term, term2: Term) -> Optional[List[Tuple[Term, Term]]]:
         if isinstance(term1, Application) and isinstance(term2, Application):
@@ -285,6 +286,7 @@ class Composer(MetamathVisitor):
 
     """
     Attempts to unify two statements
+    NOTE: this does not check the consistency of the resulting substitution
     """
     def unify_statements(self, stmt1: StructuredStatement, stmt2: StructuredStatement) -> Optional[List[Tuple[Term, Term]]]:
         solution = []
@@ -312,6 +314,12 @@ class Composer(MetamathVisitor):
         for lhs, rhs in solution:
             if not isinstance(lhs, Metavariable):
                 return None
+
+            if lhs.name in substitution:
+                if substitution[lhs.name] == rhs:
+                    continue
+                else:
+                    return None
 
             substitution[lhs.name] = rhs
 

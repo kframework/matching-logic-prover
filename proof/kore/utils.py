@@ -1,3 +1,5 @@
+from typing import Mapping, List, Tuple, Optional
+
 from .ast import *
 from .visitors import PatternVariableAssignmentVisitor, CopyVisitor, FreePatternVariableVisitor
 
@@ -84,3 +86,74 @@ class KoreUtils:
                 body = MLPattern(MLPattern.FORALL, [], [ free_var, body ])
 
             axiom.pattern = body
+
+    """
+    Unify two patterns (without modulo any equational axiom)
+    NOTE: this does not unify the sorts
+    NOTE: this does not check the consistency of the resulting substitution
+
+    Returns pairs of patterns
+    """
+    @staticmethod
+    def unify_patterns(
+        pattern1: Pattern,
+        pattern2: Pattern,
+    ) -> Optional[List[Tuple[Pattern, Pattern]]]:
+        if isinstance(pattern1, Variable) or isinstance(pattern2, Variable):
+            return [ ( pattern1, pattern2 ) ]
+        
+        if isinstance(pattern1, MLPattern) and isinstance(pattern2, MLPattern):
+            if pattern1.construct == pattern2.construct and \
+               pattern1.sorts == pattern2.sorts and \
+               len(pattern1.arguments) == len(pattern2.arguments):
+                # unify subpatterns
+                unification = []
+                for subpattern1, subpattern2 in zip(pattern1.arguments, pattern2.arguments):
+                    subunification = KoreUtils.unify_patterns(subpattern1, subpattern2)
+                    if subunification is None:
+                        return None
+                    unification += subunification
+                return unification
+            else:
+                return None
+
+        if isinstance(pattern1, Application) and isinstance(pattern2, Application):
+            if pattern1.symbol == pattern2.symbol and \
+               len(pattern1.arguments) == len(pattern2.arguments):
+                # unify subpatterns
+                unification = []
+                for subpattern1, subpattern2 in zip(pattern1.arguments, pattern2.arguments):
+                    subunification = KoreUtils.unify_patterns(subpattern1, subpattern2)
+                    if subunification is None:
+                        return None
+                    unification += subunification
+                return unification
+            else:
+                return None
+            
+        if isinstance(pattern1, StringLiteral) and isinstance(pattern2, StringLiteral):
+            if pattern1 == pattern2: return []
+            else: return None
+        
+        return None
+
+    @staticmethod
+    def unify_patterns_as_instance(pattern1: Pattern, pattern2: Pattern) -> Optional[Mapping[Variable, Pattern]]:
+        unification = KoreUtils.unify_patterns(pattern1, pattern2)
+        if unification is None:
+            return None
+
+        substitution = {}
+        for lhs, rhs in unification:
+            if not isinstance(lhs, Variable):
+                return None
+            
+            if lhs in substitution:
+                if substitution[lhs] == rhs:
+                    continue
+                else:
+                    return None
+
+            substitution[lhs] = rhs
+
+        return substitution
