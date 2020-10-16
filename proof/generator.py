@@ -599,6 +599,49 @@ class ProofGenerator:
         rhs_ensures, rhs_body = rhs.arguments
         return (lhs_body, lhs_requires, rhs_body, rhs_ensures)
 
+    """
+    Repeatedly apply kore-forall-elim to instantiate an axiom with function-like patterns.
+    Return the substituted pattern (in kore) and the proof for that pattern
+    """
+    def apply_forall_elim(
+        self,
+        axiom: kore.Axiom,
+        proof: Proof, # proof in mm for the axiom above
+        substitution: Mapping[kore.Variable, kore.Pattern],
+        elim_axiom="kore-forall-elim", # or kore-forall-elim-variant
+    ) -> Tuple[kore.Pattern, Proof]:
+        current_proof = proof
+        current_axiom_pattern = axiom.pattern
+
+        while isinstance(current_axiom_pattern, kore.MLPattern) and \
+              current_axiom_pattern.construct == kore.MLPattern.FORALL:
+            var = current_axiom_pattern.get_binding_variable()
+
+            assert var in substitution, "variable {} not instantiated".format(var)
+            
+            term = substitution[var]
+
+            # prove that the term is interpreted to a singleton in some domain
+            functional_term_subproof = FunctionalProofGenerator(self).visit(term)
+
+            # remove one layer of quantification
+            current_axiom_pattern = current_axiom_pattern.arguments[1]
+
+            # prove the substitution
+            subst_subproof = SingleSubstitutionProofGenerator(self, var, term).visit(current_axiom_pattern)
+
+            # and actually do the substitution so that the current pattern
+            # stays consistent with the instance
+            current_axiom_pattern = KoreUtils.copy_and_substitute_pattern(self.module, current_axiom_pattern, { var: term })
+
+            current_proof = self.composer.theorems[elim_axiom].apply(
+                current_proof,
+                functional_term_subproof,
+                subst_subproof
+            )
+
+        return current_axiom_pattern, current_proof
+
     def prove_rewrite_step(
         self,
         from_pattern: kore.Pattern,
@@ -640,48 +683,20 @@ class ProofGenerator:
         # are all concrete so that iterative substitution is equivalent
         # to a one-time simultaneous substitution
 
-        instantiated_rewrite_axiom = self.as_proof(rewrite_axiom_in_mm)
-        current_axiom_pattern = rewrite_axiom.pattern
-
-        while isinstance(current_axiom_pattern, kore.MLPattern) and \
-              current_axiom_pattern.construct == kore.MLPattern.FORALL:
-            var = current_axiom_pattern.get_binding_variable()
-
-            assert var in substitution, \
-                   "variable {} not instantiated".format(var)
-            
-            term = substitution[var]
-
-            # prove that the term is interpreted to a singleton in some domain
-            functional_term_subproof = FunctionalProofGenerator(self).visit(term)
-
-            # remove one layer of quantification
-            current_axiom_pattern = current_axiom_pattern.arguments[1]
-
-            # prove the substitution
-            subst_subproof = SingleSubstitutionProofGenerator(self, var, term).visit(current_axiom_pattern)
-
-            # and actually do the substitution so that the current pattern
-            # stays consistent with the instance
-            current_axiom_pattern = KoreUtils.copy_and_substitute_pattern(self.module, current_axiom_pattern, { var: term })
-
-            instantiated_rewrite_axiom = self.composer.theorems["kore-forall-elim"].apply(
-                instantiated_rewrite_axiom,
-                functional_term_subproof,
-                subst_subproof
-            )
+        instantiated_axiom_pattern, instantiated_proof = \
+            self.apply_forall_elim(rewrite_axiom, self.as_proof(rewrite_axiom_in_mm), substitution)
 
         # get rid of valid conditionals
-        _, requires, _, ensures = self.decompose_rewrite_axiom(current_axiom_pattern)
+        _, requires, _, ensures = self.decompose_rewrite_axiom(instantiated_axiom_pattern)
 
         if requires.construct == kore.MLPattern.TOP and \
            ensures.construct == kore.MLPattern.TOP:
             top_valid_proof = self.composer.theorems["kore-top-valid"].apply(
-                ph=self.encoder.visit(current_axiom_pattern.sorts[0]),
+                ph=self.encoder.visit(instantiated_axiom_pattern.sorts[0]),
             )
             
             step_proof = self.composer.theorems["kore-rewrites-conditional"].apply(
-                instantiated_rewrite_axiom,
+                instantiated_proof,
                 top_valid_proof,
                 top_valid_proof,
             )
