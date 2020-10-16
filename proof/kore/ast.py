@@ -391,10 +391,6 @@ class Pattern(BaseAST):
     def resolve(self, module: Module):
         pass
 
-    # make this a sort check
-    def get_sort(self) -> Sort:
-        raise NotImplementedError()
-
     def __eq__(self, other):
         raise NotImplementedError()
 
@@ -411,9 +407,6 @@ class Variable(Pattern):
 
     def visit(self, visitor: KoreVisitor) -> Any:
         return visitor.proxy_visit_variable(self)
-
-    def get_sort(self) -> Sort:
-        return self.sort
 
     def __eq__(self, other):
         if isinstance(other, Variable):
@@ -466,9 +459,6 @@ class Application(Pattern):
 
     def visit(self, visitor: KoreVisitor) -> Any:
         return visitor.proxy_visit_application(self)
-
-    def get_sort(self) -> Sort:
-        return self.symbol.definition.output_sort
 
     def __eq__(self, other):
         if isinstance(other, Application):
@@ -531,11 +521,6 @@ class MLPattern(Pattern):
 
     def visit(self, visitor: KoreVisitor) -> Any:
         return visitor.proxy_visit_ml_pattern(self)
-
-    # as a convention, first of the sort arguments is the sort of the pattern
-    def get_sort(self) -> Sort:
-        assert len(self.sorts)
-        return self.sorts[0]
 
     def __eq__(self, other):
         if isinstance(other, MLPattern):

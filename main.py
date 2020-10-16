@@ -6,7 +6,7 @@ import argparse
 from io import StringIO
 
 from proof.kore.parser import parse_definition, parse_pattern
-from proof.kore.visitors import FreePatternVariableVisitor, PatternVariableAssignmentVisitor
+from proof.kore.visitors import FreePatternVariableVisitor, PatternSubstitutionVisitor
 from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KoreUtils
 

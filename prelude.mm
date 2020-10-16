@@ -521,6 +521,7 @@ $)
 
 ${
     $d xX y $.
+    $d y ph5 $.
     kore-exists-substitution.1 $e #Substitution ph1 ph3 ph5 xX $.
     kore-exists-substitution.2 $e #Substitution ph2 ph4 ph5 xX $.
     kore-exists-substitution $a #Substitution ( \kore-exists ph1 y ph2 ) ( \kore-exists ph3 y ph4 ) ph5 xX $.
@@ -533,6 +534,7 @@ $}
 
 ${
     $d xX y $.
+    $d y ph5 $.
     kore-forall-substitution.1 $e #Substitution ph1 ph3 ph5 xX $.
     kore-forall-substitution.2 $e #Substitution ph2 ph4 ph5 xX $.
     kore-forall-substitution $a #Substitution ( \kore-forall ph1 y ph2 ) ( \kore-forall ph3 y ph4 ) ph5 xX $.

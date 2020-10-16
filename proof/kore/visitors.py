@@ -246,7 +246,6 @@ class PatternVariableVisitor(UnionVisitor, PatternOnlyVisitorStructure):
         return { var }
 
 
-
 """
 Collect all variables used in a pattern (in order of visit)
 """
@@ -261,18 +260,18 @@ class OrderedPatternVariableVisitor(UnionVisitor, PatternOnlyVisitorStructure):
 
 
 """
-In place substitution of variables
+In place substitution of pattern variables
 Note: this visitor does not detect free variable capturing
 """
-class PatternVariableAssignmentVisitor(KoreVisitor, PatternOnlyVisitorStructure):
-    def __init__(self, assignment: Dict[Variable, Pattern]):
+class PatternSubstitutionVisitor(KoreVisitor, PatternOnlyVisitorStructure):
+    def __init__(self, substitution: Mapping[Variable, Pattern]):
         super().__init__()
-        self.assignment = assignment
+        self.substitution = substitution
         self.shadowing_stack = []
 
     def postvisit_variable(self, var) -> Pattern:
-        if var in self.assignment:
-            return self.assignment[var]
+        if var in self.substitution:
+            return self.substitution[var]
         return var
 
     # need to update everything that are potentially
@@ -284,25 +283,25 @@ class PatternVariableAssignmentVisitor(KoreVisitor, PatternOnlyVisitorStructure)
 
     def previsit_alias_definition(self, alias_def: AliasDefinition):
         binding_variables = alias_def.get_binding_variables()
-        overlap = set(binding_variables).intersection(set(self.assignment.keys()))
+        overlap = set(binding_variables).intersection(set(self.substitution.keys()))
         if len(overlap):
-            shadowed_assignment = {}
+            shadowed_substitution = {}
             for key in overlap:
-                shadowed_assignment[key] = self.assignment[key]
-                del self.assignment[key]
-            self.shadowing_stack.append(shadowed_assignment)
+                shadowed_substitution[key] = self.substitution[key]
+                del self.substitution[key]
+            self.shadowing_stack.append(shadowed_substitution)
 
     def postvisit_alias_definition(self, alias_def: AliasDefinition, rhs) -> AliasDefinition:
         alias_def.rhs = rhs
 
-        # restore the assignment
+        # restore the substitution
         binding_variables = alias_def.get_binding_variables()
-        overlap = set(binding_variables).intersection(set(self.assignment.keys()))
+        overlap = set(binding_variables).intersection(set(self.substitution.keys()))
         if len(overlap):
-            shadowed_assignment = self.shadowing_stack.pop()
-            assert set(shadowed_assignment.keys()) == overlap
-            for key in shadowed_assignment:
-                self.assignment[key] = shadowed_assignment[key]
+            shadowed_substitution = self.shadowing_stack.pop()
+            assert set(shadowed_substitution.keys()) == overlap
+            for key in shadowed_substitution:
+                self.substitution[key] = shadowed_substitution[key]
 
         return alias_def
 
@@ -313,18 +312,51 @@ class PatternVariableAssignmentVisitor(KoreVisitor, PatternOnlyVisitorStructure)
     def previsit_ml_pattern(self, ml_pattern: MLPattern):
         # shadow the binded variable
         binding_variable = ml_pattern.get_binding_variable()
-        if binding_variable is not None and binding_variable in self.assignment:
-            self.shadowing_stack.append((binding_variable, self.assignment[binding_variable]))
-            del self.assignment[binding_variable]
+        if binding_variable is not None and binding_variable in self.substitution:
+            self.shadowing_stack.append((binding_variable, self.substitution[binding_variable]))
+            del self.substitution[binding_variable]
 
     def postvisit_ml_pattern(self, ml_pattern: MLPattern, arguments: List[Pattern]) -> Application:
-        # restore the assignment
+        # restore the substitution
         binding_variable = ml_pattern.get_binding_variable()
-        if binding_variable is not None and binding_variable in self.assignment:
+        if binding_variable is not None and binding_variable in self.substitution:
             variable, assigned = self.shadowing_stack.pop()
             assert variable == binding_variable
-            self.assignment[variable] = assigned
+            self.substitution[variable] = assigned
 
+        # update arguments
+        ml_pattern.arguments = arguments
+        return ml_pattern
+
+
+"""
+In place substitution of sort variables
+"""
+class SortSubstitutionVisitor(KoreVisitor, PatternAndSortVisitorStructure):
+    def __init__(self, substitution: Mapping[SortVariable, Sort]):
+        super().__init__()
+        self.substitution = substitution
+
+    def postvisit_sort_instance(self, sort_instance: SortInstance, arguments: List[Sort]) -> SortInstance:
+        sort_instance.arguments = arguments
+        return sort_instance
+
+    def postvisit_sort_variable(self, sort_variable: SortVariable) -> Sort:
+        if sort_variable in self.substitution:
+            return self.substitution[sort_variable]
+        else:
+            return sort_variable
+
+    def postvisit_symbol_instance(self, symbol_instance: SymbolInstance, sort_arguments: List[Sort]) -> SymbolInstance:
+        symbol_instance.sort_arguments = sort_arguments
+        return symbol_instance
+
+    def postvisit_variable(self, variable: Variable, sort: Sort) -> Variable:
+        variable.sort = sort
+        return variable
+
+    def postvisit_ml_pattern(self, ml_pattern: MLPattern, sorts: List[Sort], arguments: List[Pattern]) -> Pattern:
+        ml_pattern.sorts = sorts
         return ml_pattern
 
 

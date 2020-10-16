@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Optional, Union, List, Tuple, Mapping
+from typing import Optional, Union, List, Tuple, Mapping, Set
 
 from .kore import ast as kore
 from .kore.utils import KoreUtils
+from .kore.visitors import PatternVariableVisitor
 
 from .metamath import ast as mm
 from .metamath.composer import Composer, Proof
@@ -202,7 +203,7 @@ class FunctionalProofGenerator(kore.KoreVisitor):
             current_pattern = current_pattern.arguments[1]
             subst_subproof = SingleSubstitutionProofGenerator(self.gen, var, term).visit(current_pattern)
 
-            current_pattern = KoreUtils.copy_and_substitute(self.gen.module, current_pattern, { var: term })
+            current_pattern = KoreUtils.copy_and_substitute_pattern(self.gen.module, current_pattern, { var: term })
 
             # these info should be enough for the composer to infer all variables
             proof = self.gen.composer.theorems["kore-forall-elim-variant"].apply(
@@ -279,6 +280,17 @@ class ProofGenerator:
                 assert self.generated_metavars[var] == typecode
 
         return metavars
+
+    """
+    Generate n fresh variables other than the variables in `other_than`
+    """
+    def gen_fresh_metavariables(self, typecode: str, n: int, other_than: Set[str]) -> List[str]:
+        metavars = set()
+        current_extra = 0
+        while len(metavars.difference(other_than)) < n:
+            metavars = set(self.gen_metavariables(typecode, current_extra + n))
+            current_extra += 1 
+        return list(metavars.difference(other_than))
 
     """
     Get the content of the attribute UNIQUE'Unds'ID{}(...)
@@ -651,7 +663,7 @@ class ProofGenerator:
 
             # and actually do the substitution so that the current pattern
             # stays consistent with the instance
-            current_axiom_pattern = KoreUtils.copy_and_substitute(self.module, current_axiom_pattern, { var: term })
+            current_axiom_pattern = KoreUtils.copy_and_substitute_pattern(self.module, current_axiom_pattern, { var: term })
 
             instantiated_rewrite_axiom = self.composer.theorems["kore-forall-elim"].apply(
                 instantiated_rewrite_axiom,
