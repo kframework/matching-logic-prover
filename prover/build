@@ -62,7 +62,7 @@ prover_smt  = prover('prover-smt',  '--main-module DRIVER-SMT  --syntax-module D
 # ----------------
 
 prover_kore.tests(inputs = glob('t/**/*.kore'), implicit_inputs = glob('t/definitions/*.kore'), flags = '-cCOMMANDLINE=.CommandLine')
-prover_smt .tests(inputs = glob('t/sl/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
+prover_smt .tests(inputs = glob('t/**/*.smt2'), flags = '-cCOMMANDLINE=.CommandLine')
 
 def log_on_success(file, message):
     return proj.rule( 'log-to-success'
