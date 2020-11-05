@@ -7,6 +7,14 @@ module STRATEGY-KNASTER-TARSKI
   imports STRATEGY-MATCHING
 ```
 
+
+```k
+  syntax Strategy ::= trace(String)
+  rule <claim> Claim </claim>
+       <k> trace(S) => noop ... </k>
+       <trace> .K => S ~> Claim ... </trace>
+```
+
 ### Knaster Tarski (Least Fixed Point)
 
 this high-level implementation of the knaster tarski rule attempts the applying
