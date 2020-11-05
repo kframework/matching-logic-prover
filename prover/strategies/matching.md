@@ -519,8 +519,8 @@ Instantiate existentials using matching on the spatial part of goals:
   syntax Patterns ::= getPartiallyInstantiatedPtos(Patterns, Patterns) [function]
   rule getPartiallyInstantiatedPtos((pto(L, R), Ps), Vs)
     => pto(L, R), getPartiallyInstantiatedPtos(Ps, Vs)
-    requires notBool L in Vs
-     andBool getFreeVariables(R) intersect Vs =/=K .Patterns
+    requires L in Vs
+      orBool getFreeVariables(R) intersect Vs =/=K .Patterns
   rule getPartiallyInstantiatedPtos((P, Ps), Vs) => getPartiallyInstantiatedPtos(Ps, Vs)
     [owise]
   rule getPartiallyInstantiatedPtos(.Patterns, Vs) => .Patterns
