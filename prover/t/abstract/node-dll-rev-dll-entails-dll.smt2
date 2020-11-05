@@ -126,7 +126,7 @@
             . right-unfold-Nth(0, 1)
             . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
             . match-pto . frame
-            . kt
+            . kt # head(Rpred)
             . ( ( right-unfold-Nth(0, 1)
                 . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
