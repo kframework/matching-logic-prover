@@ -51,12 +51,7 @@
 
 	)
 	(or 
-		(and 
-			(= hd tl)
-			(sep (pto hd (c_DLL_t p n )) )
-		)
-
-	(exists ((x RefDLL_t))
+   (exists ((x RefDLL_t))
 	 
 		(sep 
 			(pto tl (c_DLL_t x n ))
@@ -64,6 +59,11 @@
 		)
 
 		)
+       (and 
+           (= hd tl)
+           (sep (pto hd (c_DLL_t p n )) )
+       )
+
 
 	)
 		)
