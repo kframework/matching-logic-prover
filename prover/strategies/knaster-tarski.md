@@ -166,12 +166,38 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   syntax Strategy ::= "kt-wrap" "(" Pattern ")"
-  rule <claim> \implies(LHS, RHS)
-            => \implies(LRP, implicationContext(subst(LHS, LRP, #hole { getReturnSort(LRP) } ), RHS))
+  rule <claim> \implies(\and(LHS), RHS)
+            => #fun( Substitution =>
+                       \implies( S(fst(Substitution))
+                               , implicationContext(subst(\and(LHS ++Patterns makeEqualities(Substitution)), LRP, #hole { getReturnSort(LRP) } )
+                                                   , RHS)
+                               )
+                   )(destructureArgs(ARGs))
        </claim>
-       <k> kt-wrap(LRP) => noop ... </k>
-    requires #hole { getReturnSort(LRP) } in getFreeVariables(subst(LHS, LRP, #hole { getReturnSort(LRP) }))
+       <k> kt-wrap((S:Symbol (ARGs:Patterns)) #as LRP) => noop ... </k>
+       <trace> .K => #fun( Substitution =>
+                       \implies( S(fst(Substitution))
+                               , implicationContext(subst(\and(LHS ++Patterns makeEqualities(Substitution)), LRP, #hole { getReturnSort(LRP) } )
+                                                   , RHS)
+                               )
+                   )(destructureArgs(ARGs))
+               ...
+                </trace>
+    requires #hole { getReturnSort(LRP) } in getFreeVariables(subst(\and(LHS), LRP, #hole { getReturnSort(LRP) }))
 ```
+
+```k
+    syntax Pair ::= destructureArgs(Patterns) [function]
+    rule destructureArgs(V:Variable, ARGs) => concatenatePair(pair(V, V),                         destructureArgs(ARGs))
+    rule destructureArgs(ARG       , ARGs) => concatenatePair(pair(!_ {getReturnSort(ARG)}, ARG), destructureArgs(ARGs)) requires notBool isVariable(ARG)
+    rule destructureArgs(.Patterns)        => pair(.Patterns, .Patterns)
+
+    syntax Patterns ::= makeEqualities(Pair) [function]
+    rule makeEqualities(pair((L:Variable, Ls), (L, Rs))) =>                makeEqualities(pair(Ls, Rs))
+    rule makeEqualities(pair((L:Variable, Ls), (R, Rs))) => \equals(L, R), makeEqualities(pair(Ls, Rs)) requires L =/=K R
+    rule makeEqualities(pair(.Patterns, .Patterns)) => .Patterns
+```
+
 
 >   phi(x) -> \forall y. psi(x, y)
 >   ------------------------------
@@ -214,7 +240,7 @@ for guessing an instantiation of the inductive hypothesis.
                 . kt-subst(filterByConstructor(getUnfoldables(UNFOLDED_LHS), LRP), ARGS)
                   ...
        </k>
-    requires removeDuplicates(ARGS) ==K ARGS
+    requires removeDuplicates(getFreeVariables(ARGS)) ==K ARGS
      andBool isUnfoldable(LRP)
   rule <claim> \implies(LRP(ARGS), RHS) </claim>
        <k> kt-unfold => fail ... </k>
