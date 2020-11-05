@@ -90,7 +90,8 @@ for guessing an instantiation of the inductive hypothesis.
                     . kt-unfold . remove-lhs-existential
                     . kt-unwrap
                     . simplify . normalize . or-split-rhs. lift-constraints
-                    . ( with-each-implication-context( simplify . normalize . or-split-rhs. lift-constraints
+                    . ( with-each-implication-context( trace("with-each-implication-context")
+                                                     . simplify . normalize . or-split-rhs. lift-constraints
                                                      . remove-lhs-existential
                                                      . normalize-implication-context
                                                      . kt-collapse
@@ -101,6 +102,7 @@ for guessing an instantiation of the inductive hypothesis.
                   )
                  ~> REST
        </k>
+       <trace> .K => "kt" ~> LRP ... </trace>
 ```
 
 ```k
@@ -484,7 +486,7 @@ of heaps.
        <k> kt-collapse
                => with-each-match( #match(terms: LSPATIAL, pattern: CTXLHS, variables: UNIVs)
                                  , kt-collapse
-                                 , kt-collapse-no-match
+                                 , trace("collapse no match") . kt-collapse-no-match
                                  )
                   ...
        </k>
@@ -593,10 +595,10 @@ REST is obtained via matching:
     rule <claim> \implies(\and(LHS), RHS) </claim>
          <k> ( case-analysis(P, NEG, POS) ~> #hole . REST )
           => subgoal( \implies(\and(\not(P), LHS ), RHS)
-                    , NEG . REST
+                    , trace("case analsysis: neg") . NEG . REST
                     )
            & subgoal( \implies(\and(#flattenAnds(LHS ++Patterns P)), RHS)
-                    , POS . REST
+                    , trace("case analsysis: pos") . POS . REST
                     )
          </k>
     rule <k> case-analysis(_, _, _)
