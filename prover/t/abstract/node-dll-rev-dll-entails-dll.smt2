@@ -115,30 +115,26 @@
 
 (set-info :mlprover-strategy
           canonicalize
-        . kt-unf # head(DLL_plus_rev) . canonicalize
-        . ( ( canonicalize
-            . check-lhs-constraint-unsat
+        . kt-wrap(head: DLL_plus_rev) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+        . with-each-implication-context( normalize-implication-context . imp-ctx-unfold . instantiate-existentials-implication-context . kt-collapse . remove-lhs-existential . lift-constraints )
+        . ( ( check-lhs-constraint-unsat
             . prune(67)
             . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
             )
-          | ( canonicalize
-            . right-unfold-Nth(0, 1)
-            . canonicalize
+          | ( right-unfold-Nth(0, 1) . canonicalize
             . match-pto . frame
-            . kt # head(Rpred)
-            . ( ( right-unfold-Nth(0, 1)
-                . canonicalize
+            . kt-wrap(head: Rpred) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+            . with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
+            . ( ( right-unfold-Nth(0, 1) . canonicalize
                 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                 )
-              | ( check-lhs-constraint-unsat
-                . canonicalize
+              | ( check-lhs-constraint-unsat . canonicalize
                 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                 )
               )
             )
           )
 )
-
 
 (check-sat)
 

@@ -43,7 +43,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "canonicalize" | "remove-lhs-existential" | "normalize" | "lift-or"
                     | "purify" | "abstract" | "abstract-Nth" "(" Int ")" | "abstract-nil"
                     | "simplify" | "substitute-equals-for-equals"
-                    | "instantiate-existentials" | "instantiate-existentials-implication-context" 
+                    | "instantiate-existentials"
                     | "lift-constraints"
                     | "direct-proof"
                     | "check-lhs-constraint-unsat" | "check-lhs-constraint-unsat-debug"
@@ -95,6 +95,13 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "propagate-exists-through-application" Int
                     | "propagate-predicate-through-application" "(" Pattern "," Int ")"
                     | "propagate-conjunct-through-exists" "(" Int "," Int ")"
+
+  syntax Strategy ::= "kt-wrap" "(" "head:" Symbol ")"
+                    | "kt-wrap" "(" Pattern ")" | "kt-unwrap"
+                    | "kt-forall-intro" | "kt-forall-elim"
+                    | "kt-unfold"
+                    | "with-each-implication-context" "(" Strategy ")" | "normalize-implication-context" | "kt-collapse"
+                    | "instantiate-existentials-implication-context"  | "imp-ctx-unfold" // TODO: These strategies should be in terms of `instantiate-existentials` and `right-unfold`
 
   syntax RewriteDirection ::= "->" | "<-"
 

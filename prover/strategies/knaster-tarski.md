@@ -167,7 +167,11 @@ for guessing an instantiation of the inductive hypothesis.
 ## kt-wrap
 
 ```k
-  syntax Strategy ::= "kt-wrap" "(" Pattern ")"
+    rule <claim> \implies(LHS, _) </claim>
+         <k> kt-wrap(head: S) => kt-wrap(getMember(0, filterByConstructor(getUnfoldables(LHS), S))) ... </k>
+```
+
+```k
   rule <claim> \implies(\and(LHS), RHS)
             => #fun( Substitution =>
                        \implies( S(fst(Substitution))
@@ -206,7 +210,6 @@ for guessing an instantiation of the inductive hypothesis.
 >         phi(x) -> psi(x, y)
 
 ```k
-  syntax Strategy ::= "kt-forall-intro"
   rule <claim> \implies(LHS, RHS) #as GOAL
         => \implies( LHS
                    , \forall { getUniversalVariables(GOAL) -Patterns getFreeVariables(LHS, .Patterns) }
@@ -221,7 +224,6 @@ for guessing an instantiation of the inductive hypothesis.
 >   phi(x) -> \forall y. psi(x, y)
 
 ```k
-  syntax Strategy ::= "kt-forall-elim"
   rule <claim> \implies(LHS, \forall { Vs } RHS) => \implies(LHS, RHS) </claim>
        <k> kt-forall-elim => noop ... </k>
     requires getFreeVariables(LHS) -Patterns Vs ==K getFreeVariables(LHS)
@@ -231,7 +233,7 @@ for guessing an instantiation of the inductive hypothesis.
 // unfold+lfp
 
 ```k
-  syntax Strategy ::= "kt-unfold" | "kt-unfold" "(" Pattern ")"
+  syntax Strategy ::= "kt-unfold" "(" Pattern ")"
   rule <claim> \implies(LHS, RHS) </claim>
        <k> kt-unfold => kt-unfold(unfold(LHS)) ... </k>
   rule <claim> \implies(LRP(ARGS) #as LHS, RHS)
@@ -302,7 +304,6 @@ for guessing an instantiation of the inductive hypothesis.
 ```
 
 ```k
-  syntax Strategy ::= "kt-unwrap"
   rule <claim> \implies(LHS, \forall { UNIV } implicationContext(CTX, RHS))
         => \implies(subst(CTX, #hole, LHS), RHS)
        </claim>
@@ -311,10 +312,6 @@ for guessing an instantiation of the inductive hypothesis.
 
 
 ### `with-each-implication-context`
-
-```k
-  syntax Strategy ::= "with-each-implication-context" "(" Strategy ")"
-```
 
 If there are no implication contexts to collapse, we are done:
 
@@ -331,10 +328,6 @@ If there are no implication contexts to collapse, we are done:
 
 This strategy exercises various commutativity axioms and brings an
 `implicationContext` and its `#hole` to the first leaf position of the formula.
-
-```k
-  syntax Strategy ::= "normalize-implication-context"
-```
 
 ```k
   // FOL case
@@ -410,10 +403,6 @@ Move #holes to the front
 
 ### `kt-collapse`
 
-
-```k
-  syntax Strategy ::= "kt-collapse"
-```
 
 #### Collapsing contexts (FOL)
 
@@ -577,9 +566,7 @@ REST is obtained via matching:
                        , RHS:Pattern
                        )
        </claim>
-       <k> kt-collapse-no-match => noop
-                  ...
-       </k>
+       <k> kt-collapse-no-match => noop ... </k>
 ```
 
 ### Case analysis
@@ -653,10 +640,6 @@ REST is obtained via matching:
 ```
 
 ### Unfolding within the implication context
-
-```k
-  syntax Strategy ::= "imp-ctx-unfold"
-```
 
 ```k
   rule <claim> \implies(\and( sep ( \forall { UNIVs }
