@@ -114,25 +114,24 @@
 )
 
 (set-info :mlprover-strategy
-          normalize . or-split-rhs . lift-constraints . instantiate-existentials
-        ; We use KT with unfolding inside the implication context
-        . kt-unf # head(DLL_plus_rev) . normalize . or-split-rhs . lift-constraints . instantiate-existentials
-        . ( ( normalize . or-split-rhs . lift-constraints . instantiate-existentials
+          canonicalize
+        . kt-unf # head(DLL_plus_rev) . canonicalize
+        . ( ( canonicalize
             . check-lhs-constraint-unsat
             . prune(67)
             . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
             )
-          | ( normalize . or-split-rhs . lift-constraints . instantiate-existentials
+          | ( canonicalize
             . right-unfold-Nth(0, 1)
-            . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+            . canonicalize
             . match-pto . frame
             . kt # head(Rpred)
             . ( ( right-unfold-Nth(0, 1)
-                . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                . canonicalize
                 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                 )
               | ( check-lhs-constraint-unsat
-                . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+                . canonicalize
                 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                 )
               )

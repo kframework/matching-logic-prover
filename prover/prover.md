@@ -40,7 +40,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "reflexivity"
                     | "alternate-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
                     | "kt-unfold-search-sl" "(" "kt-bound" ":" Int "," "unfold-bound" ":" Int ")"
-                    | "remove-lhs-existential" | "normalize" | "lift-or"
+                    | "canonicalize" | "remove-lhs-existential" | "normalize" | "lift-or"
                     | "purify" | "abstract" | "abstract-Nth" "(" Int ")" | "abstract-nil"
                     | "simplify" | "substitute-equals-for-equals"
                     | "instantiate-existentials" | "instantiate-existentials-implication-context" 

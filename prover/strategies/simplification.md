@@ -50,6 +50,10 @@ module STRATEGY-SIMPLIFICATION
   rule #lhsRemoveExistentials(P) => P [owise]
 ```
 
+```k
+    rule <k> canonicalize => normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals ... </k>
+```
+
 Normalize:
 
  - convert claim to implication
