@@ -69,17 +69,17 @@
 		)
 )
 
-(define-fun-rec Rpred ((x RefDLL_t)(v RefDLL_t)(y RefDLL_t)(w RefDLL_t)) Bool
-    (or (sep (pto x (c_DLL_t v y))
-             (DLL_plus y x w (as nil RefDLL_t))
-        )
-        (exists ((t RefDLL_t))
-            (sep (pto x (c_DLL_t v t))
-                 (Rpred t x y w)
-            )
-        )
-    )
-)
+; (define-fun-rec Rpred ((x RefDLL_t)(v RefDLL_t)(y RefDLL_t)(w RefDLL_t)) Bool
+;     (or (sep (pto x (c_DLL_t v y))
+;              (DLL_plus y x w (as nil RefDLL_t))
+;         )
+;         (exists ((t RefDLL_t))
+;             (sep (pto x (c_DLL_t v t))
+;                  (Rpred t x y w)
+;             )
+;         )
+;     )
+; )
 
 (check-sat)
 ;; variables
@@ -91,38 +91,45 @@
 (declare-const y RefDLL_t)
 
 
+(assert (sep
+            (pto x (c_DLL_t b n ))
+            (DLL_plus_rev a (as nil RefDLL_t) b x )
+            (DLL_plus n x c (as nil RefDLL_t) )
+        )
+)
+
 ; (assert
+;     (and
 ;         (sep
-;             (pto x (c_DLL_t b n ))
-;             (DLL_plus_rev a (as nil RefDLL_t) b x )
-;             (DLL_plus n x c (as nil RefDLL_t) )
+;             (DLL_plus_rev a y b x )
+;             (Rpred x b n c)
 ;         )
+;         ( = y (as nil RefDLL_t) )
+;     )
 ; )
 
-(assert
-    (and
-        (sep
-            (DLL_plus_rev a y b x )
-            (Rpred x b n c)
-        )
-        ( = y (as nil RefDLL_t) )
-    )
-)
 
-(assert (not (DLL_plus a (as nil RefDLL_t) c (as nil RefDLL_t) )
-        )
-)
+
+(assert (not (DLL_plus a (as nil RefDLL_t) c (as nil RefDLL_t) ) ) )
 
 (set-info :mlprover-strategy
           canonicalize
-        . kt-wrap(head: DLL_plus_rev) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
-        . with-each-implication-context( normalize-implication-context . imp-ctx-unfold . instantiate-existentials-implication-context . kt-collapse . remove-lhs-existential . lift-constraints )
+        . kt-wrap(head: DLL_plus_rev)
+        . kt-abstract(Rpred)
+        . kt-forall-intro . kt-unfold
+        . remove-lhs-existential . kt-unwrap . canonicalize
+        . with-each-implication-context( normalize-implication-context
+                                       . instantiate-context(F46{RefDLL_t}, Vn{RefDLL_t})
+                                       . instantiate-context(F47{RefDLL_t}, Vc{RefDLL_t})
+                                       . context-case-analysis
+                                       . kt-abstract-refine
+                                       )
         . ( ( check-lhs-constraint-unsat
-            . prune(67)
             . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
             )
           | ( right-unfold-Nth(0, 1) . canonicalize
             . match-pto . frame
+            . kt-abstract-finalize(Rpred)
             . kt-wrap(head: Rpred) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
             . with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
             . ( ( right-unfold-Nth(0, 1) . canonicalize

@@ -305,7 +305,7 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
   rule <claim> \implies(LHS, \forall { UNIV } implicationContext(CTX, RHS))
-        => \implies(subst(CTX, #hole, LHS), RHS)
+            => \implies(subst(CTX, #hole, LHS), RHS)
        </claim>
        <k> kt-unwrap => noop ... </k>
 ```
@@ -776,6 +776,87 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
        </claim>
 ```
 
+### `kt-abstract`
+
+```k
+  syntax Pattern ::= "META-VARIABLE"
+  rule subst(META-VARIABLE, _, _) => META-VARIABLE
+  rule alphaRename(META-VARIABLE) => META-VARIABLE
+  rule getFreeVariables(META-VARIABLE) => .Patterns
+
+  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS))
+            => \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(#hole { Heap }, S(removeDuplicates(getFreeVariables(\and(sep(CTXLSPATIAL)))) -Patterns #hole { Heap })), CTXLHS), CTXRHS))
+       </claim>
+       <k> kt-abstract(S) => noop ... </k>
+       <declarations>
+          .Bag
+       => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(sep(CTXLSPATIAL)))-Patterns #hole { Heap })) : Heap </declaration>
+            <declaration> axiom !_:AxiomName : alphaRename( \forall {getFreeVariables(\and(sep(CTXLSPATIAL))) -Patterns #hole { Heap }}
+                                                            \iff-lfp( S(getFreeVariables(\and(sep(CTXLSPATIAL))) -Patterns #hole { Heap })
+                                                                    , \or(META-VARIABLE, \and(sep(CTXLSPATIAL -Patterns #hole { Heap })))
+                                                          )         )
+            </declaration>
+          )
+         ...
+       </declarations>
+    requires #hole { Heap } in CTXLSPATIAL
+```
+
+```k
+  rule <claim> \implies(\and( sep( \forall { .Patterns }
+                                   implicationContext( \and(sep(#hole{Heap}, S:Symbol(ARGs:Patterns)))
+                                                     , \exists {_} \and(sep(CTXRHS:Patterns))
+                                                     )
+                                 , LSPATIAL)
+                            , LHS:Patterns
+                            )
+                       , RHS
+                       )
+            => \implies(\and(sep(CTXRHS)), RHS)
+       </claim>
+       <k> kt-abstract-refine => noop ... </k>
+       <declaration> axiom _ : \forall {DefnArgs}
+                               \iff-lfp( S(DefnArgs)
+                                       , ( \or( META-VARIABLE, Rest)
+                                        => \or( META-VARIABLE
+                                              , alphaRename(\exists { getFreeVariables(\and(sep(LSPATIAL), getPredicatePatterns(LHS))) -Patterns ARGs }
+                                                            substMap(\and(sep(LSPATIAL), getPredicatePatterns(LHS)), zip(ARGs, DefnArgs)))
+                                              , Rest)
+                                         )
+                                       )
+       </declaration>
+```
+
+```k
+  rule <k> kt-abstract-finalize(S) => noop ... </k>
+       <declaration> axiom _ : \forall {_} \iff-lfp(S(_), (\or(META-VARIABLE, Rest) => \or(Rest))) </declaration>
+```
+
+```k
+    rule <claim> \implies(\and(sep(\forall{ Vs => Vs -Patterns X } (P => subst(P, X, Val)), _), _), _) </claim>
+         <k> instantiate-context(X, Val) => noop ... </k>
+      requires X in Vs
+```
+
+```k
+  rule <claim> \implies(\and( sep( \forall { .Patterns }
+                                   implicationContext( \and(CTXLHS => CTXLHS -Patterns getPredicatePatterns(CTXLHS)) , _ )
+                                 , _)
+                            , _
+                            )
+                       , _
+                       )
+       </claim>
+       <k> context-case-analysis
+        => case-analysis( \and(getPredicatePatterns(CTXLHS))
+                        , check-lhs-constraint-unsat
+                        , noop
+                        )
+           ...
+       </k>
+```
+
 ```k
 endmodule
 ```
+

@@ -100,7 +100,14 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "kt-forall-intro" | "kt-forall-elim"
                     | "kt-unfold"
                     | "with-each-implication-context" "(" Strategy ")" | "normalize-implication-context" | "kt-collapse"
+
+                    | "instantiate-context" "(" Variable "," Pattern ")"
+                    | "context-case-analysis"
+
                     | "instantiate-existentials-implication-context"  | "imp-ctx-unfold" // TODO: These strategies should be in terms of `instantiate-existentials` and `right-unfold`
+
+                    | "kt-abstract" "(" Symbol ")" | "kt-abstract-refine" | "kt-abstract-finalize" "(" Symbol ")"
+
 
   syntax RewriteDirection ::= "->" | "<-"
 

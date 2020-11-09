@@ -325,7 +325,7 @@ We define a similar strategy for quantified implication contexts:
        </k>
 
   rule <k> substitute-equals-for-equals(.Map)
-        => noop
+        => remove-trivial-equalities
            ...
        </k>
 
@@ -344,6 +344,13 @@ We define a similar strategy for quantified implication contexts:
   rule makeEqualitySubstitution(\equals(T, X:Variable), Ps) => (X |-> T) .Map
     requires notBool(isVariable(T)) andBool X =/=K T
   rule makeEqualitySubstitution((P, Ps:Patterns)) => makeEqualitySubstitution(Ps) [owise]
+
+  syntax Strategy ::= "remove-trivial-equalities"
+  rule <claim> \implies( \and(Ls => removeTrivialEqualities(Ls))
+                       , \exists{Vs} \and(Rs => removeTrivialEqualities(Rs))
+                       )
+       </claim>
+       <k> remove-trivial-equalities => noop ... </k>
 
   syntax Patterns ::= removeTrivialEqualities(Patterns) [function]
   rule removeTrivialEqualities(.Patterns) => .Patterns

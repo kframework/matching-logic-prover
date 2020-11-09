@@ -9,7 +9,7 @@ module STRATEGY-UNFOLDING
   rule [[ unfold(S:Symbol(ARGs)) => alphaRename(substMap(alphaRename(DEF), zip(Vs, ARGs))) ]]
        <declaration> axiom _: \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
     requires getFreeVariables(DEF) -Patterns Vs ==K .Patterns
-  rule [[ unfold(S:Symbol(ARGs)) => {("ifflfp axiom has free variables!" ~> S ~> (getFreeVariables(DEF) -Patterns Vs))}:>Pattern ]]
+  rule [[ unfold(S:Symbol(ARGs)) => {("ifflfp axiom has free variables!" ~> S ~> (getFreeVariables(DEF) -Patterns Vs) ~> \iff-lfp(S(Vs), DEF))}:>Pattern ]]
        <declaration> axiom _: \forall { Vs } \iff-lfp(S(Vs), DEF) </declaration>
     requires getFreeVariables(DEF) -Patterns Vs =/=K .Patterns
 
