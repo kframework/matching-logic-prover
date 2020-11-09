@@ -16,7 +16,7 @@ module TOKENS
   syntax VariableName ::= UpperName
   syntax Sort ::= UpperName | LowerName
 
-  syntax CheckSATResult ::= "sat"       [token] 
+  syntax CheckSATResult ::= "sat"       [token]
                           | "unsat"     [token]
                           | "unknown"   [token]
 
@@ -324,6 +324,10 @@ module KORE-HELPERS
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <local-decl> symbol R ( _ ) : S </local-decl>
 
+  syntax Sorts ::= getReturnSorts(Patterns) [function]
+  rule getReturnSorts(P, Ps) => getReturnSort(P), getReturnSorts(Ps)
+  rule getReturnSorts(.Patterns) => .Sorts
+
   syntax Bool ::= sameSortOrPredicate(Sort, Patterns) [function]
 
   rule sameSortOrPredicate(_, .Patterns) => true
@@ -487,9 +491,13 @@ and values, passed to K's substitute.
 
 ```k
   syntax String ::= VariableName2String(VariableName) [function, functional, hook(STRING.token2string)]
-  syntax VariableName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
+  syntax UpperName ::= String2VariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= freshVariableName(Int) [freshGenerator, function, functional]
   rule freshVariableName(I:Int) => String2VariableName("F" +String Int2String(I))
+
+  syntax UpperName ::= String2Symbol(String) [function, functional, hook(STRING.string2token)]
+  syntax Symbol ::= freshSymbol(Int) [freshGenerator, function, functional]
+  rule freshSymbol(I:Int) => String2Symbol("F" +String Int2String(I))
 
   syntax SetVariable ::= String2SetVariable(String) [function, functional, hook(STRING.string2token)]
   syntax SetVariable ::= freshSetVariable(Int) [freshGenerator, function, functional]
@@ -578,6 +586,8 @@ where the term being unfolded has been replace by `#hole`.
   rule subst(\or(ARG):Pattern, X, V)  => \or(substPatternsMap(ARG, X |-> V)):Pattern
   rule subst(\implies(LHS, RHS):Pattern, X, V)
     => \implies(subst(LHS, X, V), subst(RHS, X, V)):Pattern
+  rule subst(\iff-lfp(LHS, RHS):Pattern, X, V)
+    => \iff-lfp(subst(LHS, X, V), subst(RHS, X, V)):Pattern
   rule subst(\member(LHS, RHS):Pattern, X, V)
     => \member(subst(LHS, X, V), subst(RHS, X, V))
   rule subst(\subseteq(LHS, RHS):Pattern, X, V)
@@ -651,6 +661,7 @@ Alpha renaming: Rename all bound variables. Free variables are left unchanged.
   rule alphaRename(\and(Ps)) => \and(alphaRenamePs(Ps))
   rule alphaRename(\or(Ps)) => \or(alphaRenamePs(Ps))
   rule alphaRename(\implies(L,R)) => \implies(alphaRename(L), alphaRename(R))
+  rule alphaRename(\iff-lfp(L,R)) => \iff-lfp(alphaRename(L), alphaRename(R))
   rule alphaRename(\member(P1, P2)) => \member(alphaRename(P1), alphaRename(P2))
   rule alphaRename(\subseteq(P1, P2)) => \subseteq(alphaRename(P1), alphaRename(P2))
   rule alphaRename(S:Symbol(ARGs)) => S(alphaRenamePs(ARGs))
@@ -713,7 +724,7 @@ Simplifications
   rule #exists(.Patterns, _) => .Patterns
   rule #exists((\and(Ps1), Ps2), Vs) => \exists{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #exists(Ps2, Vs)
   rule #exists((\exists{Es} P, Ps2), Vs) => \exists{removeDuplicates(Es ++Patterns (Vs intersect getFreeVariables(P)))} P, #exists(Ps2, Vs)
-  
+
   syntax Patterns ::= #forall(Patterns, Patterns) [function]
   rule #forall(.Patterns, _) => .Patterns
   rule #forall((\and(Ps1), Ps2), Vs) => \forall{removeDuplicates(Vs intersect getFreeVariables(Ps1))} \and(Ps1), #forall(Ps2, Vs)
@@ -1073,8 +1084,6 @@ assume a pattern of the form:
   rule #collectSymbolsS( (symbol S ( _ ) : _) Ds)
        => SetItem(SymbolToString(S)) #collectSymbolsS(Ds)
   rule #collectSymbolsS(_ Ds) => #collectSymbolsS(Ds) [owise]
-
-  syntax Symbol ::= StringToSymbol(String) [function, functional, hook(STRING.string2token)]
 
   syntax Symbol ::= getFreshSymbol(GoalId, String) [function]
   rule getFreshSymbol(GId, Base)

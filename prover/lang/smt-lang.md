@@ -116,8 +116,7 @@ module SMTLIB2-HELPERS
   rule .SMTLIB2Script ++SMTLIB2Script SCRIPT2 => SCRIPT2
 
 // Converting between Sorts:
-
-  syntax VariableName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
+  syntax UpperName ::= StringToVariableName(String) [function, functional, hook(STRING.string2token)]
   syntax VariableName ::= SMTLIB2SimpleSymbolToVariableName(SMTLIB2SimpleSymbol) [function]
   rule SMTLIB2SimpleSymbolToVariableName(SYMBOL) => StringToVariableName("V" +String SMTLIB2SimpleSymbolToString(SYMBOL))
 
