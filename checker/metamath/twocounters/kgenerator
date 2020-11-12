@@ -1,0 +1,90 @@
+#!/bin/bash
+
+language="twocounters"
+language_definition=$language.k
+program="100".$language
+maxstep=100
+output_file_reachability_proof=$program-reachability-proof.mm
+
+function generate_snapshots() {
+    step=0
+    mkdir -p snapshots
+    while [ "$step" -le "$maxstep" ]; do
+        echo "generating snapshot_$step.kore"
+        krun $program --depth $step --output kore >> snapshots/snapshot_$step.kore
+        step=$(($step + 1))
+    done
+}
+
+function generate_reachability_proof {
+	rm $output_file_reachability_proof
+    generate_cfg_tokens
+    generate_cfg_axioms
+    generate_one_step_rewrites
+    generate_multi_step_rewrites
+}
+
+### subprocedure of generate_reachability_proof
+
+function generate_cfg_tokens {
+	echo "\$c" >> $output_file_reachability_proof
+	i=0
+	while [ "$i" -le "$maxstep" ]; do
+		echo "  cfg-$i" >> $output_file_reachability_proof
+    	i=$(($i + 1))
+    done
+    echo "\$." >> $output_file_reachability_proof
+}
+
+### subprocedure of generate_reachability_proof
+
+function generate_cfg_axioms {
+    # generate #Pattern axioms
+    i=0
+    while [ "$i" -le "$maxstep" ]; do
+		echo "pattern-cfg-$i \$a #Pattern cfg-$i \$." >> $output_file_reachability_proof
+    	i=$(($i + 1))
+	done
+}
+
+### subprocedure of generate_reachability_proof
+
+function generate_one_step_rewrites {
+	i=0
+    while [ "$i" -le "$(($maxstep - 1))" ]; do
+		echo "cfg-rewrites-$i-$(($i + 1)) \$p |- ( \\rewrites cfg-$i cfg-$(($i + 1)) ) \$= ? \$." >> $output_file_reachability_proof
+    	i=$(($i + 1))
+	done
+}
+
+### subprocedure of generate_reachability_proof
+
+function generate_multi_step_rewrites {
+	i=2
+    while [ "$i" -le "$maxstep" ]; do
+		echo "cfg-rewrites-0-$i \$p |- ( \\rewrites cfg-0 cfg-$i ) \$= pattern-cfg-0 pattern-cfg-$(($i - 1)) pattern-cfg-$i cfg-rewrites-0-$(($i - 1)) cfg-rewrites-$(($i - 1))-$i rewrites-transitivity \$." >> $output_file_reachability_proof
+    	i=$(($i + 1))
+	done
+}
+
+#### Main Entry
+
+arg1=$1
+
+if [ "$arg1" = "snapshots" ]; 
+then
+    echo "generating snapshots..."
+    generate_snapshots
+else if [ "$arg1" = "convert" ];
+then
+    echo "converting snapshots..."
+    convert_snapshots
+else if [ "$arg1" = "reachability-proof" ];
+then
+    generate_reachability_proof
+else if [ "$arg1" = "clear" ];
+then 
+    rm -rf snapshots/
+else 
+    echo "unknown options."
+fi fi fi fi

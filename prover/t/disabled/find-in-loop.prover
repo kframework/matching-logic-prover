@@ -1,0 +1,28 @@
+claim 
+\implies( \and( find-list-seg( H0 { ArrayIntInt }
+                             , OLDX { Int }
+                             , X { Int }
+                             , F1 { SetInt }
+                             )
+              , find-list(H0 { ArrayIntInt }, X { Int }, F2 { SetInt })
+              , disjoint(F1 { SetInt }, F2 { SetInt })
+              , \not(isMember(DATA { Int }, F1 { SetInt }))
+              , gt(X { Int }, 0)
+              , gt(X { Int }, DATA { Int })
+              , \equals(X2 { Int }, select(H0 { ArrayIntInt }, plus(X { Int }, 1)))
+              , \equals(F3 { SetInt }, add(F1 { SetInt }, X { Int }))
+              , \equals(F4 { SetInt }, del(F2 { SetInt }, X { Int }))
+              )
+        , \and( find-list-seg( H0 { ArrayIntInt }
+                             , OLDX { Int }
+                             , X2 { Int }
+                             , F3 { SetInt }
+                             )
+              , find-list(H0 { ArrayIntInt }, X2 { Int }, F4 { SetInt })
+              , disjoint(F3 { SetInt }, F4 { SetInt })
+              , \not(isMember(DATA { Int }, F3 { SetInt }))
+               )
+        )
+// strategy search-bound(3)
+strategy simplify ; right-unfold-Nth(0,1)  ; simplify ; left-unfold-Nth(1) 
+       ; simplify ; instantiate-existentials ; smt-cvc4

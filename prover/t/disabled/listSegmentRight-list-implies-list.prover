@@ -1,0 +1,29 @@
+claim \implies( \and( listSegmentRight( H { ArrayIntInt }
+                                      , X { Int }
+                                      , Y { Int }
+                                      , G1 { SetInt }
+                                      )
+                    , list( H { ArrayIntInt }
+                          , Y { Int }
+                          , G2 { SetInt }
+                          )
+                    , disjoint(G1 { SetInt }, G2 { SetInt })
+                    , \equals(F { SetInt }, union(G1 { SetInt }, G2 { SetInt }))
+                     )
+              , \and( list( H { ArrayIntInt }
+                          , X { Int }
+                          , F { SetInt }
+                          )
+                     )
+              )
+strategy kt # head(listSegmentRight) # freshPositions(1) ; search-bound(4)
+/* 
+strategy kt # head(listSegmentRight) # freshPositions(1)
+       ; ( ( simplify ; instantiate-existentials ; smt-cvc4 )
+         | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials  )
+         | noop
+         )
+       ; ( ( simplify ; instantiate-existentials ; smt-cvc4 )
+         | ( right-unfold-Nth(0, 1) ; simplify ; instantiate-existentials ; smt-cvc4 )
+         )
+*/

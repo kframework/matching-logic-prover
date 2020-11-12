@@ -1,0 +1,24 @@
+imports "t/definitions/listSortedLength.kore" 
+imports "t/definitions/listLength.kore" 
+
+claim \implies( \and( listSortedLength( H { ArrayIntInt }
+                                      , X { Int }
+                                      , K { SetInt }
+                                      , MIN { Int }
+                                      , Length { Int }
+                                      )
+                    )
+              , \and( listLength( H { ArrayIntInt }
+                                , X { Int }
+                                , K { SetInt }
+                                , Length { Int }
+                                )
+                    )
+              )
+strategy search-fol(bound: 5)
+/*
+strategy kt . ( (right-unfold-Nth(0, 0) . simplify . direct-proof)
+              | simplify . direct-proof
+              | (right-unfold-Nth(0, 1) . simplify . direct-proof)
+              )
+*/

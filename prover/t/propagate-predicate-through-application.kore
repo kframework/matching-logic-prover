@@ -1,0 +1,7 @@
+symbol foo(Int, Int) : Int
+
+axiom a: \exists{X{Int}} \and(gte(X{Int}, 1), foo(\and(X{Int}, gte(X{Int}, 0)), X{Int}))
+
+claim \exists{X{Int}} foo(\and(X{Int}, gte(X{Int}, 0)), \and(gte(X{Int}, 1), X{Int}))
+strategy propagate-predicate-through-application(gte(#A, #B), 1)
+       . apply(a, fail)

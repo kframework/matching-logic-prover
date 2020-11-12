@@ -1,0 +1,32 @@
+symbol listSortedLength(ArrayIntInt, Int, SetInt, Int, Int) : Bool
+axiom functional(listSortedLength)
+
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int }, LENGTH { Int } }
+      \iff-lfp( listSortedLength(H { ArrayIntInt }, X { Int }, F { SetInt }, PREV_VAL { Int }, LENGTH { Int })
+              , \or( \exists { }
+                     \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, emptyset)
+                         , \equals(LENGTH { Int }, 0)
+                         )
+                   , \exists { F_I { SetInt } , LENGTH_I { Int } , VAL_I { Int } , X_I { Int } }
+                     \and( listSortedLength( H { ArrayIntInt }
+                                           , X_I { Int }
+                                           , F_I { SetInt }
+                                           , VAL_I { Int }
+                                           , LENGTH_I { Int }
+                                           )
+                         , gt(X { Int }, 0)
+                         , \equals(select(H { ArrayIntInt }, X { Int }) , X_I { Int })
+                         , \equals(F { SetInt } , union(F_I { SetInt }, singleton(X { Int })))
+                         , disjoint(F_I { SetInt }, singleton(X { Int }))
+                         , \equals(VAL_I { Int } , select(H { ArrayIntInt }, plus(X { Int }, 1)))
+                         , gt(VAL_I { Int }, PREV_VAL { Int })
+                         , gt(LENGTH { Int }, 0)
+                         , \equals(LENGTH_I { Int }, minus(LENGTH { Int }, 1))
+                         )
+                   )
+              )
+
+
+
+

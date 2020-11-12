@@ -1,0 +1,30 @@
+<prover>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      id: ., parent: .
+      <claim>
+        \and ( .Patterns )
+      </claim>
+      <k>
+        .
+      </k>n<expected>
+        .
+      </expected>
+      <local-context>
+        .LocalDeclCellSet
+      </local-context>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom a : \or ( \exists { A { Int } , .Patterns } \and ( A { Int } , .Patterns ) , \exists { X { Int } , .Patterns } \and ( gte ( X { Int } , 2 , .Patterns ) , \exists { Y { Int } , .Patterns } gte ( Y { Int } , 1 , .Patterns ) , .Patterns ) , .Patterns )
+    </declaration> <declaration>
+      axiom ax0 : \or ( \exists { A { Int } , .Patterns } \and ( A { Int } , .Patterns ) , \exists { X { Int } , Y { Int } , .Patterns } \and ( gte ( Y { Int } , 1 , .Patterns ) , gte ( X { Int } , 2 , .Patterns ) , .Patterns ) , .Patterns )
+    </declaration>
+  </declarations>
+</prover>

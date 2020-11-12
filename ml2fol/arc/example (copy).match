@@ -1,0 +1,255 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; An Example of Matching Logic System Specifications.
+; Xiaohong Chen
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare-sort MLSeq)
+(declare-sort Map)
+
+(declare-func Int2MLSeq (Int) MLSeq)
+(declare-func epsilon () MLSeq)
+(declare-func cncat (MLSeq MLSeq) MLSeq)
+
+(declare-func mem (Int MLSeq) Bool)
+
+(declare-func emp () Map)
+(declare-symb mapsto (Int Int) Map)
+(declare-symb mapstoseq (Int MLSeq) Map)
+(declare-symb merge (Map Map) Map)
+(declare-symb list (Int MLSeq) Map)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(declare-func rev (MLSeq) MLSeq)
+;(declare-func fib (Int) MLSeq)
+;(declare-func aux (Int MLSeq) MLSeq)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(declare-func emp () Map)
+;(declare-symb mapsto (Int Int) Map)
+;(declare-symb merge (Map Map) Map)
+;(declare-func mapstoseq (Int MLSeq) Map)
+;(declare-symb list (Int MLSeq) Map)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Int2MLSeq is injective.
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((M Int) (N Int))
+  (-> (= (Int2MLSeq M) (Int2MLSeq N))
+      (= M N))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; epsilon is the unit of cncat.
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((S MLSeq)) (= (cncat epsilon S) S)))
+(assert (forall ((S MLSeq)) (= (cncat S epsilon) S)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; cncat is assoc.
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((X MLSeq) (Y MLSeq) (Z MLSeq))
+  (= (cncat (cncat X Y) Z)
+     (cncat X (cncat Y Z)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; A sequence is either empty, or built by applying cncat.
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (or epsilon
+  (exists ((M Int) (S MLSeq)) (cncat (Int2MLSeq M) S))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Two nonempty sequences are equal iff they have the same head and tail.
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((X Int) (Y Int) (S MLSeq) (T MLSeq))
+  (= (= (cncat (Int2MLSeq X) S) (cncat (Int2MLSeq Y) T))
+     (and (= X Y) (= S T)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Example: ((((((1^2)^3)^4)^5)^6)^7) = (1^(2^(3^(4^(5^(6^7)))))).
+; Proof found!
+; Example: ((((((1^2)^3)^4)^5)^6)^7) <> (1^(2^(3^(4^(5^(5^7)))))).
+; Proof found!
+;(assert (not (=
+;  (cncat (cncat (cncat (cncat (cncat (cncat (Int2MLSeq 1) (Int2MLSeq 2)) 
+;                                     (Int2MLSeq 3)) 
+;                              (Int2MLSeq 4)) 
+;                       (Int2MLSeq 5)) 
+;                (Int2MLSeq 6)) 
+;         (Int2MLSeq 7))
+;  (cncat (Int2MLSeq 1) 
+;         (cncat (Int2MLSeq 2) 
+;                (cncat (Int2MLSeq 3) 
+;                       (cncat (Int2MLSeq 4) 
+;                              (cncat (Int2MLSeq 5) 
+;                                     (cncat (Int2MLSeq 6) (Int2MLSeq 7))))))))))
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Nothing is in an empty sequence. 
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((X Int))
+  (= false (mem X epsilon))))
+
+(assert (forall ((X Int) (S MLSeq))
+  (= true (mem X (cncat (Int2MLSeq X) S)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; X is in [Y S] iff X = Y or X is in S
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((X Int) (Y Int) (S MLSeq))
+  (= (= true (mem X (cncat (Int2MLSeq Y) S)))
+     (or (= X Y) (= true (mem X S))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Example: 5 is in ((((((1^2)^3)^4)^5)^6)^7)
+; Proof found!
+; (assert (not (mem 5
+;   (cncat (cncat (cncat (cncat (cncat (cncat (Int2MLSeq 1) (Int2MLSeq 2)) 
+;                                      (Int2MLSeq 3)) 
+;                               (Int2MLSeq 4)) 
+;                        (Int2MLSeq 5)) 
+;                 (Int2MLSeq 6)) 
+;          (Int2MLSeq 7)))))
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; Example: 5 does not in ((((((1^2)^3)^4)^6)^6)^7)
+; (assert (mem 5
+;   (cncat (cncat (cncat (cncat (cncat (cncat (Int2MLSeq 1) (Int2MLSeq 2)) 
+;                                      (Int2MLSeq 3)) 
+;                               (Int2MLSeq 4)) 
+;                        (Int2MLSeq 6)) 
+;                 (Int2MLSeq 6)) 
+;          (Int2MLSeq 7))))
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; mapsto _|->_ is a partial function
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((X Int) (Y Int))
+  (or (exists ((H Map)) (= H (mapsto X Y)))
+      (= bottom (mapsto X Y)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; 0 |-> a = bottom
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((X Int))
+  (= bottom (mapsto 0 X))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; merge _*_ is a partial function
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((H1 Map) (H2 Map))
+  (or (exists ((H Map)) (= H (merge H1 H2)))
+      (= bottom (merge H1 H2)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; emp is the unit of merge _*_
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((H Map))
+  (= (merge emp H) H)))
+
+(assert (forall ((H Map))
+  (= (merge H emp) H)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; merge _*_ is comm and assoc
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((H1 Map) (H2 Map))
+  (= (merge H1 H2) (merge H2 H1))))
+
+(assert (forall ((H1 Map) (H2 Map) (H3 Map))
+  (= (merge (merge H1 H2) H3)
+     (merge H1 (merge H2 H3)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; x |-> a * x |-> b = bottom
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (forall ((X Int) (A Int) (B Int))
+  (= bottom
+     (merge (mapsto X A)
+            (mapsto X B)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Example: (1 |-> 2 * (3 |-> 4 * 5 |-> 6))
+;        = ((3 |-> 4 * 1 |-> 2) * 5 |-> 6)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(assert (not (=
+  (merge (mapsto 1 2) (merge (mapsto 3 4) (mapsto 5 6)))
+  (merge (merge (mapsto 3 4) (mapsto 1 2)) (mapsto 5 6)))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(assert (= (rev epsilon) epsilon))
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(assert (forall ((X Int) (S MLSeq))
+;  (= (rev (cncat (Int2MLSeq X) S))
+;     (cncat (rev S) (Int2MLSeq X)))))
+;
+;
+;(assert (forall ((H1 Map) (H2 Map))
+;  (= (merge H1 H2) (merge H2 H1))))
+;
+;(assert (forall ((H1 Map) (H2 Map) (H3 Map))
+; (= (merge H1 (merge H2 H3))
+;     (merge (merge H1 H2) H3))))
+;
+;(assert (forall ((H Map)) (= H (merge emp H))))
+;
+;(assert (forall ((X Int))
+;  (= bottom (mapsto 0 X))))
+;
+;(assert (forall ((X Int) (A Int) (B Int))
+;  (= bottom (merge (mapsto X A) (mapsto X B)))))
+;
+;(assert (forall ((X Int))
+;  (= emp (mapstoseq X epsilon))))
+;
+;(assert (forall ((X Int) (A Int) (S MLSeq))
+;  (= (mapstoseq X (cncat (Int2MLSeq A) S))
+;     (merge (mapsto X A) (mapstoseq (+ X 1) S)))))
+;
+;(assert (forall ((X Int))
+;  (= (list X epsilon)
+;     (and (= X 0) emp))))
+;
+;(assert (forall ((X Int) (N Int) (S MLSeq))
+;  (= (list X (cncat (Int2MLSeq N) S))
+;     (exists ((Z Int)) (merge (mapstoseq X (cncat (Int2MLSeq N) (Int2MLSeq Z))) (list Z S))))))
+;
+;
+;(assert (forall ((N Int))
+;  (= (and (fib N) (= true (> N 0)))
+;     (aux N (cncat (Int2MLSeq 0) (Int2MLSeq 1))))))
+;
+;(assert (forall ((S MLSeq))
+;  (= S (aux 1 S))))
+;
+;(assert (forall ((N Int) (S MLSeq) (X Int) (Y Int))
+;  (= (and (aux N (cncat (cncat S (Int2MLSeq X)) (Int2MLSeq Y))) (= true (>= N 2)))
+;     (aux (- N 1) (cncat (cncat (cncat S (Int2MLSeq X)) (Int2MLSeq Y)) (Int2MLSeq (+ X Y)))))))
+;
+;(assert (not (= true
+;  (mem 4 (cncat (cncat (Int2MLSeq 8) (Int2MLSeq 6))
+;                (cncat (Int2MLSeq 5) (Int2MLSeq 2)))))))
+;
+;
+;
+;
+;
+;

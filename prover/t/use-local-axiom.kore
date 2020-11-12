@@ -1,0 +1,4 @@
+// Tests that we can use local axioms.
+symbol f(Int) : Int
+claim \implies(\equals(f(1), 1), \equals(f(1), 1))
+strategy intros H . apply-equation -> H at 0 by [] . reflexivity

@@ -1,0 +1,43 @@
+symbol plus(Int, Int) : Int
+symbol minus(Int, Int) : Int
+symbol select(ArrayIntInt, Int) : Int
+symbol union(SetInt, SetInt) : SetInt
+symbol singleton() : SetInt
+symbol emptyset() : SetInt
+symbol disjoint(SetInt, SetInt) : Bool
+symbol lt(Int, Int) : Bool
+symbol gt(Int, Int) : Bool
+symbol lte(Int, Int) : Bool
+symbol gte(Int, Int) : Bool
+symbol max(Int, Int) : Int
+symbol isMember(Int, SetInt) : Bool
+
+axiom functional(plus)
+axiom functional(minus)
+axiom functional(select)
+axiom functional(union)
+axiom functional(singleton)
+axiom functional(emptyset)
+
+axiom hook-smt-sort(SetInt, SetInt)
+axiom hook-smt-sort(ArrayIntInt, (Array Int Int))
+
+axiom hook-smt-symbol(emptyset, emptysetx)
+axiom hook-smt-symbol(singleton, singleton)
+axiom hook-smt-symbol(lt, < )
+axiom hook-smt-symbol(gt, >)
+axiom hook-smt-symbol(lte, <=)
+axiom hook-smt-symbol(gte, >=)
+axiom hook-smt-symbol(plus, +)
+axiom hook-smt-symbol(max, max)
+axiom hook-smt-symbol(minus, -)
+axiom hook-smt-symbol(mult, *)
+axiom hook-smt-symbol(div, /)
+axiom hook-smt-symbol(select, select)
+axiom hook-smt-symbol(isMember, in)
+axiom hook-smt-symbol(add, setAdd)
+axiom hook-smt-symbol(del, setDel)
+axiom hook-smt-symbol(union, unionx)
+axiom hook-smt-symbol(disjoint, disjointx)
+axiom hook-smt-symbol(store, store)
+

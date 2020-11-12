@@ -1,0 +1,18 @@
+symbol list(ArrayIntInt, Int, SetInt) : Bool
+axiom functional(list)
+
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt } }
+      \iff-lfp( list(H { ArrayIntInt }, X { Int }, F { SetInt })
+              , \or( \exists {}
+                     \and( \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, emptyset)
+                         )
+                   , \exists {F1 { SetInt }, X1 { Int }}
+                     \and( list(H { ArrayIntInt },X1 { Int },F1 { SetInt })
+                         , gt(X { Int },0)
+                         , \equals(select(H { ArrayIntInt }, X { Int }) , X1 { Int })
+                         , \equals(F { SetInt } , union(F1 { SetInt }, singleton(X { Int })))
+                         , disjoint(F1 { SetInt }, singleton(X { Int }))
+                         )
+                   )
+              )

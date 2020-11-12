@@ -1,0 +1,33 @@
+<prover>
+  <k>
+    .
+  </k>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      active: true, id: root, parent: .
+      <k>
+        \implies ( \and ( \equals ( S { SetInt } , emptyset ) , .Patterns ) , \exists { .Patterns } \and ( isEmpty ( S { SetInt } , .Patterns ) , .Patterns ) )
+      </k>
+      <strategy>
+        success
+      </strategy>
+      <expected>
+        success
+      </expected>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom \forall { S { SetInt } , .Patterns } \iff-lfp ( isEmpty ( S { SetInt } , .Patterns ) , \or ( \exists { .Patterns } \and ( \equals ( S { SetInt } , emptyset ) , .Patterns ) , .Patterns ) )
+    </declaration> <declaration>
+      axiom functional ( isEmpty )
+    </declaration> <declaration>
+      symbol isEmpty ( SetInt , .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>

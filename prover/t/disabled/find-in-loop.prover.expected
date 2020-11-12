@@ -1,0 +1,22 @@
+<prover>
+  <goal>
+    <id>
+      root
+    </id>
+    <active>
+      true
+    </active>
+    <parent>
+      .
+    </parent>
+    <k>
+      \implies ( \and ( find-list-seg ( H0 { ArrayIntInt } , OLDX { Int } , X { Int } , F1 { SetInt } , .Patterns ) , find-list ( H0 { ArrayIntInt } , X { Int } , F2 { SetInt } , .Patterns ) , disjoint ( F1 { SetInt } , F2 { SetInt } , .Patterns ) , \not ( isMember ( DATA { Int } , F1 { SetInt } , .Patterns ) ) , gt ( X { Int } , 0 , .Patterns ) , gt ( X { Int } , DATA { Int } , .Patterns ) , \equals ( X2 { Int } , select ( H0 { ArrayIntInt } , plus ( X { Int } , 1 , .Patterns ) , .Patterns ) ) , \equals ( F3 { SetInt } , add ( F1 { SetInt } , X { Int } , .Patterns ) ) , \equals ( F4 { SetInt } , del ( F2 { SetInt } , X { Int } , .Patterns ) ) , .Patterns ) , \exists { Y" , 1 ) { Int } , F" , 0 ) { SetInt } , .Patterns } \and ( find-list ( H0 { ArrayIntInt } , X2 { Int } , F4 { SetInt } , .Patterns ) , disjoint ( F3 { SetInt } , F4 { SetInt } , .Patterns ) , \not ( isMember ( DATA { Int } , F3 { SetInt } , .Patterns ) ) , find-list-seg ( H0 { ArrayIntInt } , OLDX { Int } , Y" , 1 ) { Int } , F" , 0 ) { SetInt } , .Patterns ) , gt ( Y" , 1 ) { Int } , 0 , .Patterns ) , \equals ( X2 { Int } , select ( H0 { ArrayIntInt } , plus ( Y" , 1 ) { Int } , 1 , .Patterns ) , .Patterns ) ) , \equals ( F3 { SetInt } , add ( F" , 0 ) { SetInt } , Y" , 1 ) { Int } , .Patterns ) ) , \not ( isMember ( Y" , 1 ) { Int } , F" , 0 ) { SetInt } , .Patterns ) ) , .Patterns ) )
+    </k>
+    <strategy>
+      success ~> #hole ; simplify ; instantiate-existentials ; smt
+    </strategy>
+    <trace>
+      right-unfold-oneBody ( find-list-seg ( H0 { ArrayIntInt } , OLDX { Int } , X2 { Int } , F3 { SetInt } , .Patterns ) , \exists { Y" , 1 ) { Int } , F" , 0 ) { SetInt } , .Patterns } \and ( find-list-seg ( H0 { ArrayIntInt } , OLDX { Int } , Y" , 1 ) { Int } , F" , 0 ) { SetInt } , .Patterns ) , gt ( Y" , 1 ) { Int } , 0 , .Patterns ) , \equals ( X2 { Int } , select ( H0 { ArrayIntInt } , plus ( Y" , 1 ) { Int } , 1 , .Patterns ) , .Patterns ) ) , \equals ( F3 { SetInt } , add ( F" , 0 ) { SetInt } , Y" , 1 ) { Int } , .Patterns ) ) , \not ( isMember ( Y" , 1 ) { Int } , F" , 0 ) { SetInt } , .Patterns ) ) , .Patterns ) )
+    </trace>
+  </goal>
+</prover>
