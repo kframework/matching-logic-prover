@@ -228,6 +228,39 @@ class FunctionalProofGenerator(kore.KoreVisitor):
         return self.gen.as_proof(functional_axiom)
 
 
+"""
+Given the following data:
+ - a pattern phi
+ - a path pointing to a subpattern psi of phi
+ - an unconditional equation in the form
+    forall sort R. equals { S, R } ( psi, psi' )
+
+Returns a proof using (primarily) `kore-equality`
+for phi with psi replaced by psi'
+"""
+class EqualityProofGenerator:
+    def __init__(self, gen: ProofGenerator):
+        self.gen = gen
+
+    def prove(self, pattern: kore.Pattern, path: List[int], replacement: kore.Pattern, uncond_equation: mm.StructuredStatement):
+        assert len(path)
+        original = KoreUtils.get_subpattern_by_path(pattern, path)
+
+        # TODO: we are generating a mm fresh variable for a kore variable
+        # this might cause some problems in the future
+        all_metavars = { KorePatternEncoder.encode_variable(var) for var in PatternVariableVisitor().visit(pattern) }
+        fresh_var = self.gen.gen_fresh_metavariables("#ElementVariable", 1, all_metavars)
+
+        sort = KoreUtils.get_sort(self.gen.module, original)
+        assert sort == KoreUtils.get_sort(self.gen.module, replacement)
+
+        var = kore.Variable(fresh_var, sort)
+        template_pattern = KoreUtils.copy_and_replace_path_by_pattern(self.gen.module, pattern, path, var)
+
+        subst_proof1 = SingleSubstitutionProofGenerator(self.gen, var, original)
+        subst_proof2 = SingleSubstitutionProofGenerator(self.gen, var, original)
+
+
 class ProofGenerator:
     def __init__(self, module: kore.Module, prelude: mm.Database=None):
         self.module = module
