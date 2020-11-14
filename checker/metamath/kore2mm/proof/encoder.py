@@ -13,7 +13,7 @@ and constant symbols
 """
 class KorePatternEncoder(KoreVisitor):
     TOP = "\\kore-top"
-    BOTTOM = "\\kore-bot"
+    BOTTOM = "\\kore-bottom"
     NOT = "\\kore-not"
     AND = "\\kore-and"
     OR = "\\kore-or"

@@ -10,7 +10,7 @@ from proof.kore.visitors import FreePatternVariableVisitor, PatternSubstitutionV
 from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KoreUtils
 
-from proof.metamath.parser import parse_database
+from proof.metamath.parser import load_database
 from proof.metamath.ast import Statement, StructuredStatement
 
 from proof.generator import ProofGenerator
@@ -32,8 +32,7 @@ if __name__ == "__main__":
         definition.resolve()
 
         if args.prelude is not None:
-            with open(args.prelude) as prelude_file:
-                prelude = parse_database(prelude_file.read())
+            prelude = load_database(args.prelude)
         else:
             prelude = None
 

@@ -53,22 +53,22 @@ class SingleSubstitutionProofGenerator(kore.KoreVisitor):
 
     def postvisit_sort_variable(self, sort_variable: kore.SortVariable) -> Proof:
         assert sort_variable.name != self.var.name
-        return self.gen.composer.theorems["sbv"].apply(
+        return self.gen.composer.theorems["substitution-distinct-var"].apply(
             yY=self.gen.encoder.visit(sort_variable),
-            ph=self.pattern_encoded,
+            ph1=self.pattern_encoded,
             xX=self.var_encoded,
         )
 
     def postvisit_variable(self, var: kore.Variable) -> Proof:
         if var == self.var:
-            return self.gen.composer.theorems["sb"].apply(
-                ph=self.pattern_encoded,
+            return self.gen.composer.theorems["substitution-var"].apply(
+                ph1=self.pattern_encoded,
                 xX=self.var_encoded
             )
         else:
-            return self.gen.composer.theorems["sbv"].apply(
+            return self.gen.composer.theorems["substitution-distinct-var"].apply(
                 yY=self.gen.encoder.visit(var),
-                ph=self.pattern_encoded,
+                ph1=self.pattern_encoded,
                 xX=self.var_encoded,
             )
 
@@ -87,7 +87,7 @@ class SingleSubstitutionProofGenerator(kore.KoreVisitor):
     def postvisit_ml_pattern(self, ml_pattern: kore.MLPattern) -> Proof:
         substitution_axiom_map = {
             kore.MLPattern.TOP: "kore-top-substitution",
-            kore.MLPattern.BOTTOM: "kore-bot-substitution",
+            kore.MLPattern.BOTTOM: "kore-bottom-substitution",
             kore.MLPattern.NOT: "kore-not-substitution",
             kore.MLPattern.AND: "kore-and-substitution",
             kore.MLPattern.OR: "kore-or-substitution",
@@ -725,7 +725,7 @@ class ProofGenerator:
         if requires.construct == kore.MLPattern.TOP and \
            ensures.construct == kore.MLPattern.TOP:
             top_valid_proof = self.composer.theorems["kore-top-valid"].apply(
-                ph=self.encoder.visit(instantiated_axiom_pattern.sorts[0]),
+                ph1=self.encoder.visit(instantiated_axiom_pattern.sorts[0]),
             )
             
             step_proof = self.composer.theorems["kore-rewrites-conditional"].apply(

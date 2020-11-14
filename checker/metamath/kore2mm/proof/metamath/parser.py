@@ -1,5 +1,8 @@
 from typing import Tuple
 
+import os
+import re
+
 from lark import Lark, Transformer
 from lark.visitors import v_args
 from .ast import *
@@ -147,3 +150,35 @@ statement_parser = Lark(
 def parse_database(src: str) -> Database:
     tree = database_parser.parse(src)
     return ASTTransformer().transform(tree)
+
+
+"""
+Load a file and resolve all includes
+"""
+def flatten_includes(path: str, trace: List[str]=[]) -> str:
+    path = os.path.realpath(path)
+
+    if path in trace:
+        raise Exception(f"recursivly loading {path}")
+
+    with open(path) as mm_file:
+        source = mm_file.read()
+        
+        while True:
+            match = re.search(r"\$\[\s+([^\s]+)\s+\$\]", source)
+            if match is None:
+                break
+
+            include_path = match.group(1)
+
+            # if not os.path.isabs(include_path):
+            #     include_path = os.path.join(os.path.dirname(path), include_path)
+
+            included_source = flatten_includes(include_path, trace=trace + [path])
+            source = source[:match.start()] + included_source + source[match.end():]
+
+    return source
+
+
+def load_database(path: str) -> Database:
+    return parse_database(flatten_includes(path))
