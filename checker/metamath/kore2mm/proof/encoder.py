@@ -34,6 +34,8 @@ class KorePatternEncoder(KoreVisitor):
     def encode_symbol(symbol: Union[kore.SymbolInstance, str]) -> str:
         if type(symbol) is str:
             return symbol
+        elif type(symbol.definition) is str:
+            return symbol.definition
         else:
             return symbol.definition.symbol
 
@@ -41,6 +43,8 @@ class KorePatternEncoder(KoreVisitor):
     def encode_sort(sort: Union[kore.SortInstance, str]) -> str:
         if type(sort) is str:
             return sort
+        elif type(sort.definition) is str:
+            return sort.definition
         else:
             return sort.definition.sort_id
 

@@ -68,6 +68,8 @@ if __name__ == "__main__":
         snapshots = []
 
     if len(snapshots) >= 2:
+        step_proofs = []
+
         for step, (from_pattern, to_pattern) in enumerate(zip(snapshots[:-1], snapshots[1:])):
             print("trying to prove rewriting step {}".format(step))
             # search for the axiom to use and try to get a proof
@@ -75,6 +77,14 @@ if __name__ == "__main__":
             proof = gen.prove_rewrite_step(from_pattern, to_pattern)
             proof.statement.label = f"step-{step}"
             gen.composer.load(proof.statement)
+
+            step_proofs.append(proof)
+
+        print("chaining steps to prove the final goal")
+        gen.composer.load(Comment(f"\nfinal goal:\n{snapshots[0]}\n=>\n{snapshots[-1]}\n"))
+        multiple_steps_proof = gen.chain_rewrite_steps(step_proofs)
+        multiple_steps_proof.statement.label = "goal"
+        gen.composer.load(multiple_steps_proof.statement)
 
     print("dumping everything to {}".format(args.output))
     with open(args.output, "w") as out:

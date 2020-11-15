@@ -207,4 +207,13 @@ ${
     kore-equality $p |- ph6 $= ? $.
 $}
 
-kore-reflexivity $p |- ( \kore-forall \kore-sort z ( \kore-equals ph1 z ph2 ph2 ) ) $= ? $.
+kore-reflexivity $p |- ( \kore-forall \kore-sort x ( \kore-equals ph1 x ph2 ph2 ) ) $= ? $.
+
+$( ph /\ ph = ph $)
+kore-dup-and $p |- ( \kore-forall \kore-sort x ( \kore-equals ph1 x ( \kore-and ph1 ph2 ph2 ) ph2 ) ) $= ? $.
+
+${
+    kore-rewrites-trans.1 $e |- ( \kore-rewrites ph1 ph2 ph3 ) $.
+    kore-rewrites-trans.2 $e |- ( \kore-rewrites ph1 ph3 ph4 ) $.
+    kore-rewrites-trans $p |- ( \kore-rewrites ph1 ph2 ph4 ) $= ? $.
+$}
