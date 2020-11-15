@@ -207,7 +207,12 @@ ${
     kore-equality $p |- ph6 $= ? $.
 $}
 
-kore-reflexivity $p |- ( \kore-forall \kore-sort x ( \kore-equals ph1 x ph2 ph2 ) ) $= ? $.
+kore-equals-reflexivity $p |- ( \kore-forall \kore-sort x ( \kore-equals ph1 x ph2 ph2 ) ) $= ? $.
+
+${
+    kore-equals-symmetry.1 $e |- ( \kore-forall \kore-sort x ( \kore-equals ph1 x ph2 ph3 ) ) $.
+    kore-equals-symmetry $p |- ( \kore-forall \kore-sort x ( \kore-equals ph1 x ph3 ph2 ) ) $= ? $.
+$}
 
 $( ph /\ ph = ph $)
 kore-dup-and $p |- ( \kore-forall \kore-sort x ( \kore-equals ph1 x ( \kore-and ph1 ph2 ph2 ) ph2 ) ) $= ? $.

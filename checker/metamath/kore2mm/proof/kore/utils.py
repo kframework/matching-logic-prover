@@ -365,3 +365,12 @@ class KoreUtils:
             return pattern.sorts[0]
 
         assert False, "unable to get the sort of pattern `{}`".format(pattern)
+
+    """
+    Remove all universal quantifiers
+    """
+    @staticmethod
+    def strip_forall(pattern: Pattern) -> Pattern:
+        while isinstance(pattern, MLPattern) and pattern.construct == MLPattern.FORALL:
+            pattern = pattern.arguments[1]
+        return pattern
