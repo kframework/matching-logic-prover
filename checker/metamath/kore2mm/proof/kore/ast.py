@@ -303,7 +303,7 @@ class SymbolDefinition(Sentence):
         return "symbol {}({}): {}".format(self.symbol, ", ".join(map(str, self.input_sorts)), self.output_sort)
 
 
-class SymbolInstance(Sentence):
+class SymbolInstance(BaseAST):
     def __init__(self, definition: Union[str, SymbolDefinition], sort_arguments: List[Sort]):
         super().__init__()
         self.definition = definition

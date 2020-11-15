@@ -31,12 +31,18 @@ class KorePatternEncoder(KoreVisitor):
     EXISTS = "\\kore-exists"
 
     @staticmethod
-    def encode_symbol(symbol: kore.SymbolInstance) -> str:
-        return symbol.definition.symbol
+    def encode_symbol(symbol: Union[kore.SymbolInstance, str]) -> str:
+        if type(symbol) is str:
+            return symbol
+        else:
+            return symbol.definition.symbol
 
     @staticmethod
-    def encode_sort_instance(sort: kore.SortInstance) -> str:
-        return sort.definition.sort_id
+    def encode_sort(sort: Union[kore.SortInstance, str]) -> str:
+        if type(sort) is str:
+            return sort
+        else:
+            return sort.definition.sort_id
 
     @staticmethod
     def encode_string_literal(literal: kore.StringLiteral) -> str:
@@ -84,7 +90,7 @@ class KorePatternEncoder(KoreVisitor):
         return term
 
     def postvisit_sort_instance(self, sort_instance: kore.SortInstance) -> mm.Term:
-        encoded = KorePatternEncoder.encode_sort_instance(sort_instance)
+        encoded = KorePatternEncoder.encode_sort(sort_instance)
         self.constant_symbols[encoded] = len(sort_instance.arguments)
         return mm.Application(encoded, [ arg.visit(self) for arg in sort_instance.arguments ])
 

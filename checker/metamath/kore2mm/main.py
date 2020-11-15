@@ -11,7 +11,7 @@ from proof.kore.ast import StringLiteral, MLPattern
 from proof.kore.utils import KoreUtils
 
 from proof.metamath.parser import load_database
-from proof.metamath.ast import Statement, StructuredStatement
+from proof.metamath.ast import Statement, StructuredStatement, Comment
 
 from proof.generator import ProofGenerator
 
@@ -31,58 +31,51 @@ if __name__ == "__main__":
         definition = parse_definition(f.read())
         definition.resolve()
 
-        if args.prelude is not None:
-            prelude = load_database(args.prelude)
-        else:
-            prelude = None
+    if args.prelude is not None:
+        prelude = load_database(args.prelude)
+    else:
+        prelude = None
 
-        module = definition.module_map[args.module]
-        gen = ProofGenerator(module, prelude)
+    module = definition.module_map[args.module]
+    gen = ProofGenerator(module, prelude)
 
-        print("loading snapshots")
+    print("loading snapshots")
 
-        # emit claims about each rewriting step if shapshots are given
-        if args.snapshots is not None:
-            snapshots = {}
-            max_step = 0
+    # emit claims about each rewriting step if shapshots are given
+    if args.snapshots is not None:
+        snapshots = {}
+        max_step = 0
 
-            for file_name in os.listdir(args.snapshots):
-                match = re.match(r".*_(\d+)\.kore", file_name)
-                if match is not None:
-                    step = int(match.group(1))
-                    assert step not in snapshots, "duplicated snapshot for step {}".format(step)
+        for file_name in os.listdir(args.snapshots):
+            match = re.match(r".*_(\d+)\.kore", file_name)
+            if match is not None:
+                step = int(match.group(1))
+                assert step not in snapshots, "duplicated snapshot for step {}".format(step)
 
-                    max_step = max(max_step, step)
+                max_step = max(max_step, step)
 
-                    full_path = os.path.join(args.snapshots, file_name)
-                    with open(full_path) as snapshot:
-                        # parse each snapshot
-                        snapshot_pattern = parse_pattern(snapshot.read())
+                full_path = os.path.join(args.snapshots, file_name)
+                with open(full_path) as snapshot:
+                    # parse each snapshot
+                    snapshot_pattern = parse_pattern(snapshot.read())
 
-                        # resolve all references in the specified module
-                        snapshot_pattern.resolve(module)
-                        snapshots[step] = snapshot_pattern
+                    # resolve all references in the specified module
+                    snapshot_pattern.resolve(module)
+                    snapshots[step] = snapshot_pattern
 
-            snapshots = [ snapshots[i] for i in range(max_step + 1) ]
-        else:
-            snapshots = []
+        snapshots = [ snapshots[i] for i in range(max_step + 1) ]
+    else:
+        snapshots = []
 
-        # load all snapshots into the encoder before init_module()
-        # so that the encoder has all information about
-        # the domain values and constants in the snapshots
-        for snapshot in snapshots:
-            gen.encoder.visit(snapshot)
+    if len(snapshots) >= 2:
+        for step, (from_pattern, to_pattern) in enumerate(zip(snapshots[:-1], snapshots[1:])):
+            print("trying to prove rewriting step {}".format(step))
+            # search for the axiom to use and try to get a proof
+            gen.composer.load(Comment(f"\nrewriting step {step}:\n{from_pattern}\n=>\n{to_pattern}\n"))
+            proof = gen.prove_rewrite_step(from_pattern, to_pattern)
+            proof.statement.label = f"step-{step}"
+            gen.composer.load(proof.statement)
 
-        gen.init_module()
-
-        if len(snapshots) >= 2:
-            for step, (from_pattern, to_pattern) in enumerate(zip(snapshots[:-1], snapshots[1:])):
-                print("trying to prove rewrite step {}".format(step))
-                # search for the axiom to use and try to get a proof
-                proof = gen.prove_rewrite_step(from_pattern, to_pattern)
-                proof.statement.label = "step-{}".format(step)
-                gen.composer.load(proof.statement)
-
-        print("dumping everything to {}".format(args.output))
-        with open(args.output, "w") as out:
-            gen.composer.encode(out)
+    print("dumping everything to {}".format(args.output))
+    with open(args.output, "w") as out:
+        gen.composer.encode(out)

@@ -127,7 +127,7 @@ class Theorem:
 
                 assert typecode_proof is not None, \
                        "a term `{}` is given for metavariable `{}`, " \
-                       "but we couldn't prove that `{} {}`".format(metavar_substituted, var, typecode, var)
+                       "but we couldn't prove that `{} {}`".format(metavar_substituted, var, typecode, metavar_substituted)
             else:
                 # should be a proof
                 typecode_proof = metavar_substituted

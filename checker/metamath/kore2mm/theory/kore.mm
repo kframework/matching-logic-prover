@@ -206,3 +206,5 @@ ${
     kore-equality.4 $e #Substitution ph6 ph5 ph3 x $.
     kore-equality $p |- ph6 $= ? $.
 $}
+
+kore-reflexivity $p |- ( \kore-forall \kore-sort z ( \kore-equals ph1 z ph2 ph2 ) ) $= ? $.

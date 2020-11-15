@@ -135,6 +135,27 @@ class Statement(BaseAST):
         raise NotImplementedError()
 
 
+class Comment(Statement):
+    def __init__(self, text: str):
+        super().__init__()
+        self.text = text
+        assert "$(" not in text and "$)" not in text
+
+    def encode(self, stream: TextIO):
+        stream.write("\n$(")
+        if not self.text[:-1].isspace():
+            stream.write(" ")
+
+        stream.write(self.text)
+
+        if not self.text[-1:].isspace():
+            stream.write(" ")
+        stream.write("$)")
+
+    def visit(self, visitor: MetamathVisitor):
+        return visitor.proxy_visit_comment(self)
+
+
 """
 A list of tokens without any structures.
 Constant and variable statements are of this kind
