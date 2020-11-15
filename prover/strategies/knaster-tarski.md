@@ -830,6 +830,9 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
 ```k
   rule <k> kt-abstract-finalize(S) => noop ... </k>
        <declaration> axiom _ : \forall {_} \iff-lfp(S(_), (\or(META-VARIABLE, Rest) => \or(Rest))) </declaration>
+  rule <k> kt-abstract-finalize(S) => noop ... </k>
+       <declaration> axiom _ : \forall {_} \iff-lfp(S(_), (\or(P, Rest))) </declaration>
+    requires P =/=K META-VARIABLE
 ```
 
 ```k
