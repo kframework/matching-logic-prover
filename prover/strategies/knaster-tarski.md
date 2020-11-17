@@ -785,15 +785,15 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   rule getFreeVariables(META-VARIABLE) => .Patterns
 
   rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS))
-            => \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(#hole { Heap }, S(removeDuplicates(getFreeVariables(\and(sep(CTXLSPATIAL)))) -Patterns #hole { Heap })), CTXLHS), CTXRHS))
+            => \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(#hole { Heap }, S(getFreeVariables((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }))), CTXLHS), CTXRHS))
        </claim>
        <k> kt-abstract(S) => noop ... </k>
        <declarations>
           .Bag
-       => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(sep(CTXLSPATIAL)))-Patterns #hole { Heap })) : Heap </declaration>
-            <declaration> axiom !_:AxiomName : alphaRename( \forall {getFreeVariables(\and(sep(CTXLSPATIAL))) -Patterns #hole { Heap }}
-                                                            \iff-lfp( S(getFreeVariables(\and(sep(CTXLSPATIAL))) -Patterns #hole { Heap })
-                                                                    , \or(META-VARIABLE, \and(sep(CTXLSPATIAL -Patterns #hole { Heap })))
+       => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(sep(getFreeVariables(\and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap })))))))) : Heap </declaration>
+            <declaration> axiom !_:AxiomName : alphaRename( \forall {getFreeVariables(\and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap })))}
+                                                            \iff-lfp( S(getFreeVariables(\and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }))))
+                                                                    , \or(META-VARIABLE, \and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap })))
                                                           )         )
             </declaration>
           )
