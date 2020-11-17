@@ -435,7 +435,7 @@ If matching fails, we replace the implication context with a symbolic heap and
 continue (`kt-collapse-no-match`). This allows the proof to proceed even if
 we cannot infer any additional information about that part of the heap.
 
-If we do match, we perform a `case-analsysis` over the constraints on the left-hand-side
+If we do match, we perform a `case-analysis` over the constraints on the left-hand-side
 of the implication context.
 
 1. Assuming the constraints on the LHS of the implication context do not hold, prove RHS.
@@ -573,7 +573,7 @@ REST is obtained via matching:
 
 ```
     PHI /\ P -> PSI        PHI /\ not(P) -> PSI
-    -------------------------------------------    case-analsysis(P)
+    -------------------------------------------    case-analysis(P)
                       PHI -> PSI
 ```
 
@@ -582,10 +582,10 @@ REST is obtained via matching:
     rule <claim> \implies(\and(LHS), RHS) </claim>
          <k> ( case-analysis(P, NEG, POS) ~> #hole . REST )
           => subgoal( \implies(\and(\not(P), LHS ), RHS)
-                    , trace("case analsysis: neg") . NEG . REST
+                    , trace("case analysis: neg") . NEG . REST
                     )
            & subgoal( \implies(\and(#flattenAnds(LHS ++Patterns P)), RHS)
-                    , trace("case analsysis: pos") . POS . REST
+                    , trace("case analysis: pos") . POS . REST
                     )
          </k>
     rule <k> case-analysis(_, _, _)
@@ -835,11 +835,20 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
     requires P =/=K META-VARIABLE
 ```
 
+## `instantiate-context`
+
+Instantiate universally quantified clauses in the LHS's first spatial part.
+
 ```k
     rule <claim> \implies(\and(sep(\forall{ Vs => Vs -Patterns X } (P => subst(P, X, Val)), _), _), _) </claim>
          <k> instantiate-context(X, Val) => noop ... </k>
       requires X in Vs
 ```
+
+## `context-case-analysis`
+
+Case analysis for removing FOL clauses on the LCTX.
+TODO: Change `kt-collapse` to use this.
 
 ```k
   rule <claim> \implies(\and( sep( \forall { .Patterns }
