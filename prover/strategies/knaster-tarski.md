@@ -194,9 +194,12 @@ for guessing an instantiation of the inductive hypothesis.
 
 ```k
     syntax Pair ::= destructureArgs(Patterns) [function]
-    rule destructureArgs(V:Variable, ARGs) => concatenatePair(pair(V, V),                         destructureArgs(ARGs))
-    rule destructureArgs(ARG       , ARGs) => concatenatePair(pair(!_ {getReturnSort(ARG)}, ARG), destructureArgs(ARGs)) requires notBool isVariable(ARG)
-    rule destructureArgs(.Patterns)        => pair(.Patterns, .Patterns)
+    rule destructureArgs(Ps) => destructureArgs(Ps ; .Patterns)
+    
+    syntax Pair ::= "destructureArgs" "(" input: Patterns ";" usedVars: Patterns ")" [function]
+    rule destructureArgs(V:Variable, ARGs ; Used) => concatenatePair(pair(V, V),                         destructureArgs(ARGs; V, Used)) requires notBool V in Used
+    rule destructureArgs(ARG       , ARGs ; Used) => concatenatePair(pair(!_ {getReturnSort(ARG)}, ARG), destructureArgs(ARGs; Used   )) requires (ARG in Used) orBool notBool isVariable(ARG)
+    rule destructureArgs(.Patterns        ; _   ) => pair(.Patterns, .Patterns)
 
     syntax Patterns ::= makeEqualities(Pair) [function]
     rule makeEqualities(pair((L:Variable, Ls), (L, Rs))) =>                makeEqualities(pair(Ls, Rs))
