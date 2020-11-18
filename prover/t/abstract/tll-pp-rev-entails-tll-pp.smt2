@@ -119,32 +119,41 @@
 
 (set-info :mlprover-strategy
            canonicalize
-         . kt-wrap(head: TLL_plus_rev)
-         . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize 
-         . with-each-implication-context( normalize-implication-context
-                                        . kt-collapse
-                                        )
-         . canonicalize
-         . ( ( right-unfold-Nth(0,0) . canonicalize
+         . left-unfold-Nth(0) . canonicalize
+         . ( ( right-unfold-Nth(0,0) . canonicalize 
              . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-           | ( kt-wrap(head: TLL_aux) 
-             . kt-abstract(Rpred) . wait    // there is an issue at this point
-             //
-             //
-             . kt-forall-intro . kt-unfold 
-             . remove-lhs-existential . kt-unwrap . canonicalize 
-             . with-each-implication-context( normalize-implication-context
-                                            . kt-abstract-refine . wait
-                                            )
-             . ( wait | wait )
-             . ( ( check-lhs-constraint-unsat
-                 . wait 
-                 . match . spatial-patterns-equal . spatial-patterns-match . smt-debug . wait )
+           | ( left-unfold-Nth(0) . canonicalize
+             . ( ( kt-wrap(head: TLL_aux)
+                 . kt-abstract(Rpred) 
+                 . kt-forall-intro . kt-unfold
+                 . remove-lhs-existential . kt-unwrap . canonicalize
+                 . with-each-implication-context( normalize-implication-context
+                        . instantiate-context(F138 {RefTLL_t}, F22 { RefTLL_t} )
+                        . instantiate-context(F137 {RefTLL_t}, F137 { RefTLL_t} )
+                        . instantiate-context(F136 {RefTLL_t}, F136 { RefTLL_t} )
+                        . kt-abstract-refine )
+                 . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                   | ( right-unfold-Nth(0, 1) . canonicalize 
+                     . kt-abstract-finalize(Rpred)
+                     . kt-wrap(head: Rpred)
+                     . kt-forall-intro . kt-unfold 
+                     . remove-lhs-existential . kt-unwrap . canonicalize
+                     . with-each-implication-context( normalize-implication-context
+                                                    . kt-collapse
+                                                    )
+                     . canonicalize
+                     . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                       | ( right-unfold-Nth(0,1) . canonicalize
+                         . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+		       | ( wait )
+		       )
+                     )
+                   | ( wait . wait )
+                   )
+                 )
                | ( wait )
-               )
+               )          
              )
            )
-         . wait
 )
-
 (check-sat)
