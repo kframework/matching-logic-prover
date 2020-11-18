@@ -145,7 +145,12 @@
                      . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
                        | ( right-unfold-Nth(0,1) . canonicalize
                          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-		       | ( wait )
+		       | ( right-unfold-Nth(0,1) . canonicalize 
+                         . right-unfold-Nth(1,0) . canonicalize 
+                         . left-unfold-Nth(0) . canonicalize 
+                         . right-unfold-Nth(0,0) . canonicalize
+                         . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+                         )
 		       )
                      )
                    | ( wait . wait )
