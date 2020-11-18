@@ -119,8 +119,8 @@
         . kt-forall-intro . kt-unfold
         . remove-lhs-existential . kt-unwrap . canonicalize
         . with-each-implication-context( normalize-implication-context
-                                       . instantiate-context(F43{RefDLL_t}, Vn{RefDLL_t})
-                                       . instantiate-context(F44{RefDLL_t}, Vc{RefDLL_t})
+                                       . instantiate-context(F40{RefDLL_t}, Vn{RefDLL_t})
+                                       . instantiate-context(F41{RefDLL_t}, Vc{RefDLL_t})
                                        . context-case-analysis
                                        . kt-abstract-refine
                                        )
@@ -131,10 +131,8 @@
             . match-pto . frame
             . kt-abstract-finalize(Rpred)
             . kt-wrap(head: Rpred) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
-            . with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . wait . kt-collapse )
-            . ( ( wait
-                )
-              | ( right-unfold-Nth(0, 1) . canonicalize
+            . with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
+            . ( ( right-unfold-Nth(0, 1) . canonicalize
                 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                 )
               | ( check-lhs-constraint-unsat . canonicalize

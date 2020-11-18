@@ -787,16 +787,22 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   rule alphaRename(META-VARIABLE) => META-VARIABLE
   rule getFreeVariables(META-VARIABLE) => .Patterns
 
+  syntax Strategies ::= "kt-abstract" "(" Symbol "," args: Patterns "," body: Pattern ")"
+  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS)) </claim>
+       <k> kt-abstract(S) => kt-abstract(S, getFreeVariables(CTXLSPATIAL -Patterns #hole { Heap }), \and(sep(CTXLSPATIAL -Patterns #hole { Heap }))) ... </k>
+  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS)) </claim>
+       <k> kt-abstract-full(S) => kt-abstract(S, getFreeVariables((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }), \and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }))) ... </k>
+
   rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS))
-            => \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(#hole { Heap }, S(getFreeVariables((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }))), CTXLHS), CTXRHS))
+            => \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(#hole { Heap }, S(VARs)), CTXLHS), CTXRHS))
        </claim>
-       <k> kt-abstract(S) => noop ... </k>
+       <k> kt-abstract(S, VARs, Body) => noop ... </k>
        <declarations>
           .Bag
-       => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(sep(getFreeVariables(\and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap })))))))) : Heap </declaration>
-            <declaration> axiom !_:AxiomName : alphaRename( \forall {getFreeVariables(\and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap })))}
-                                                            \iff-lfp( S(getFreeVariables(\and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }))))
-                                                                    , \or(META-VARIABLE, \and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap })))
+       => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(sep(VARs))))) : Heap </declaration>
+            <declaration> axiom !_:AxiomName : alphaRename( \forall {VARs}
+                                                            \iff-lfp( S(VARs)
+                                                                    , \or(META-VARIABLE, Body)
                                                           )         )
             </declaration>
           )

@@ -106,7 +106,8 @@ module STRATEGIES-EXPORTED-SYNTAX
 
                     | "instantiate-existentials-implication-context"  | "imp-ctx-unfold" // TODO: These strategies should be in terms of `instantiate-existentials` and `right-unfold`
 
-                    | "kt-abstract" "(" Symbol ")" | "kt-abstract-refine" | "kt-abstract-finalize" "(" Symbol ")"
+                    | "kt-abstract" "(" Symbol ")" | "kt-abstract-full" "(" Symbol ")"
+                    | "kt-abstract-refine" | "kt-abstract-finalize" "(" Symbol ")"
 
 
   syntax RewriteDirection ::= "->" | "<-"
