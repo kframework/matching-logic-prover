@@ -169,6 +169,11 @@ for guessing an instantiation of the inductive hypothesis.
 ```k
     rule <claim> \implies(LHS, _) </claim>
          <k> kt-wrap(head: S) => kt-wrap(getMember(0, filterByConstructor(getUnfoldables(LHS), S))) ... </k>
+      requires getLength(filterByConstructor(getUnfoldables(LHS), S)) >Int 0
+    rule <claim> \implies(LHS, _) </claim>
+         <k> kt-wrap(head: S) => fail ... </k>
+      requires getLength(filterByConstructor(getUnfoldables(LHS), S)) ==Int 0
+```
 ```
 
 ```k
