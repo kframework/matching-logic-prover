@@ -854,6 +854,14 @@ Instantiate universally quantified clauses in the LHS's first spatial part.
       requires X in Vs
 ```
 
+## `instantiate-rhs`
+
+```k
+    rule <claim> \implies(_, \exists{Vs => Vs -Patterns X} (P => subst(P, X, Val))) </claim>
+         <k> instantiate-rhs(X, Val) => noop ... </k>
+      requires X in Vs
+```
+
 ## `context-case-analysis`
 
 Case analysis for removing FOL clauses on the LCTX.

@@ -101,6 +101,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "kt-unfold"
                     | "with-each-implication-context" "(" Strategy ")" | "normalize-implication-context" | "kt-collapse"
 
+                    | "instantiate-rhs" "(" Variable "," Pattern ")"
                     | "instantiate-context" "(" Variable "," Pattern ")"
                     | "context-case-analysis"
 
