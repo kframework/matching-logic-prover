@@ -16,10 +16,10 @@
 ; Types of cells in the heap
 
 (declare-datatypes (
-	(DLL_t 0)
-	) (
-	((c_DLL_t (prev RefDLL_t) (next RefDLL_t) ))
-	)
+        (DLL_t 0)
+        ) (
+        ((c_DLL_t (prev RefDLL_t) (next RefDLL_t) ))
+        )
 )
 
 ; Type of heap
@@ -28,76 +28,76 @@
 )
 ; User defined predicates
 (define-funs-rec (
-	(points_to ((a RefDLL_t)(b RefDLL_t)(c RefDLL_t)) Bool
-	)
+        (points_to ((a RefDLL_t)(b RefDLL_t)(c RefDLL_t)) Bool
+        )
 
-	(DLL_plus ((hd RefDLL_t)(p RefDLL_t)(tl RefDLL_t)(n RefDLL_t)) Bool
-	)
+        (DLL_plus ((hd RefDLL_t)(p RefDLL_t)(tl RefDLL_t)(n RefDLL_t)) Bool
+        )
 
-	(DLL_plus_rev ((hd RefDLL_t)(p RefDLL_t)(tl RefDLL_t)(n RefDLL_t)) Bool
-	)
+        (DLL_plus_rev ((hd RefDLL_t)(p RefDLL_t)(tl RefDLL_t)(n RefDLL_t)) Bool
+        )
 
-	(DLL_plus_mid ((hd RefDLL_t)(p RefDLL_t)(tl RefDLL_t)(n RefDLL_t)) Bool
-	)
-		)
-		(
-			(pto a (c_DLL_t c b ))
-	(or 
-	        (exists ((x RefDLL_t))
-	 
-		(sep 
-			(pto hd (c_DLL_t p x ))
-			(DLL_plus x hd tl n )
-		)
+        (DLL_plus_mid ((hd RefDLL_t)(p RefDLL_t)(tl RefDLL_t)(n RefDLL_t)) Bool
+        )
+                )
+                (
+                        (pto a (c_DLL_t c b ))
+        (or 
+                (exists ((x RefDLL_t))
+         
+                (sep 
+                        (pto hd (c_DLL_t p x ))
+                        (DLL_plus x hd tl n )
+                )
 
-		)
-		(and 
-			(= hd tl)
-			(pto hd (c_DLL_t p n ))
-		)
+                )
+                (and 
+                        (= hd tl)
+                        (pto hd (c_DLL_t p n ))
+                )
 
 
-	)
-	(or 
-		(and 
-			(= hd tl)
-			(pto hd (c_DLL_t p n ))
-		)
+        )
+        (or 
+                (and 
+                        (= hd tl)
+                        (pto hd (c_DLL_t p n ))
+                )
 
-	(exists ((x RefDLL_t))
-	 
-		(sep 
-			(pto tl (c_DLL_t x n ))
-			(DLL_plus_rev hd p x tl )
-		)
+        (exists ((x RefDLL_t))
+         
+                (sep 
+                        (pto tl (c_DLL_t x n ))
+                        (DLL_plus_rev hd p x tl )
+                )
 
-		)
+                )
 
-	)
-	(or 
-		(and 
-			(= hd tl)
-			(pto hd (c_DLL_t p n ))
-		)
+        )
+        (or 
+                (and 
+                        (= hd tl)
+                        (pto hd (c_DLL_t p n ))
+                )
 
-	
-		(sep 
-			(pto hd (c_DLL_t p tl ))
-			(points_to tl n hd )
-		)
+        
+                (sep 
+                        (pto hd (c_DLL_t p tl ))
+                        (points_to tl n hd )
+                )
 
-	(exists ((x RefDLL_t)(y RefDLL_t)(z RefDLL_t))
-	 
-		(sep 
-			(pto x (c_DLL_t z y ))
-			(DLL_plus y x tl n )
-			(DLL_plus_rev hd p z x )
-		)
+        (exists ((x RefDLL_t)(y RefDLL_t)(z RefDLL_t))
+         
+                (sep 
+                        (pto x (c_DLL_t z y ))
+                        (DLL_plus y x tl n )
+                        (DLL_plus_rev hd p z x )
+                )
 
-		)
+                )
 
-	)
-		)
+        )
+                )
 )
 
 
@@ -107,11 +107,11 @@
 (declare-const y RefDLL_t)
 
 (assert 
-			(DLL_plus_mid x (as nil RefDLL_t) y (as nil RefDLL_t) )
+                        (DLL_plus_mid x (as nil RefDLL_t) y (as nil RefDLL_t) )
 )
 
 (assert (not 
-			(DLL_plus_rev x (as nil RefDLL_t) y (as nil RefDLL_t) )
+                        (DLL_plus_rev x (as nil RefDLL_t) y (as nil RefDLL_t) )
 ))
 
 
@@ -128,24 +128,32 @@
              . kt-forall-intro . kt-unfold
              . remove-lhs-existential . kt-unwrap . canonicalize 
              . with-each-implication-context( normalize-implication-context
-                  . instantiate-context(F134 {RefDLL_t}, Vx { RefDLL_t } )
-                  . instantiate-context(F133 {RefDLL_t}, F133 { RefDLL_t } )
+                  . instantiate-context(F199 {RefDLL_t}, F33 { RefDLL_t } )
+                  . instantiate-context(F200 {RefDLL_t}, Vx { RefDLL_t } )
                   . context-case-analysis
-		  . kt-abstract-refine
+                  . kt-abstract-refine
                   )
-	     . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-	       | ( canonicalize
-	         . kt-abstract-finalize(Rpred)
-		 . kt-wrap(head: Rpred) . kt-forall-intro . kt-unfold 
+             . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+               | ( kt-abstract-finalize(Rpred)
+                 . right-unfold-Nth(0, 1)
+                 . canonicalize
+                 . match-pto . frame
+                 . kt-wrap(head: Rpred) . kt-forall-intro . kt-unfold 
                  . remove-lhs-existential . kt-unwrap . canonicalize 
                  . with-each-implication-context( normalize-implication-context 
-		                                . kt-collapse
-		                                )
-		 . wait )
-	       )
+                                                . kt-collapse
+                                                )
+                 . canonicalize
+                 . ( (match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4)
+                   | (right-unfold-Nth(0, 1) . canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4)
+                   | (wait)
+                   )
+                 )
+               | (wait . wait . wait . noop)
+               )
              )
+           | (wait . wait . noop )
            )
-         . wait
 )
 
 (check-sat)
