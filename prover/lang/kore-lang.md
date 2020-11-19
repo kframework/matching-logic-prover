@@ -524,6 +524,7 @@ and values, passed to K's substitute.
   rule getMember(0, (P:Pattern, Ps)) => P
   rule getMember(N, (P:Pattern, Ps)) => getMember(N -Int 1, Ps)
     requires N >Int 0
+  rule getMember(_, .Patterns) => {"getMember: Out of range"}:>Pattern
 
   syntax Patterns ::= getMembers(Ints, Patterns) [function]
   rule getMembers((I, Is), Ps) => getMember(I, Ps), getMembers(Is, Ps)
