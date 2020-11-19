@@ -133,34 +133,32 @@
                         . instantiate-context(F136 {RefTLL_t}, F136 { RefTLL_t} )
                         . kt-abstract-refine )
                  . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-                   | ( right-unfold-Nth(0, 1) . canonicalize 
+                   | ( canonicalize . 
+                       right-unfold-Nth(0,1) . canonicalize
+		     . match-pto . instantiate-rhs(F191 {RefTLL_t}, F81 {RefTLL_t} )
+		     . frame
                      . kt-abstract-finalize(Rpred)
                      . kt-wrap(head: Rpred)
                      . kt-forall-intro . kt-unfold 
                      . remove-lhs-existential . kt-unwrap . canonicalize
                      . with-each-implication-context( normalize-implication-context
-                                                    . kt-collapse
+						    . kt-collapse
                                                     )
-                     . canonicalize
-                     . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-                       | ( right-unfold-Nth(0,1) . canonicalize
-                         . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-		       | ( right-unfold-Nth(0,1) . canonicalize 
-                         . right-unfold-Nth(1,0) . canonicalize 
-                         . left-unfold-Nth(0) . canonicalize 
-                         . right-unfold-Nth(0,0) . canonicalize
-                         . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
-                         )
-		       | ( right-unfold-Nth(0,1) . canonicalize 
-                         . right-unfold-Nth(0,0) . canonicalize 
-                         . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
-                         )
-                       | ( wait . wait . wait )
+		     . canonicalize
+		     . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+		       | ( right-unfold-Nth(0, 1) . canonicalize
+			 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+		       | ( right-unfold-Nth(0, 1) . canonicalize
+                         . right-unfold-Nth(0, 0) . canonicalize
+			 . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+          	       | ( wait )
 		       )
                      )
                    | ( wait . wait )
                    )
                  )
+	       | ( right-unfold-Nth(0, 1) . right-unfold-Nth(0, 0) . canonicalize  
+	         . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
                | ( wait )
                )          
              )
