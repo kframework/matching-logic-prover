@@ -151,6 +151,11 @@
                          . right-unfold-Nth(0,0) . canonicalize
                          . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
                          )
+		       | ( right-unfold-Nth(0,1) . canonicalize 
+                         . right-unfold-Nth(0,0) . canonicalize 
+                         . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+                         )
+                       | ( wait . wait . wait )
 		       )
                      )
                    | ( wait . wait )
