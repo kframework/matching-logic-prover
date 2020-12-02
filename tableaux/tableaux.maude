@@ -1,0 +1,28 @@
+fmod MATCHING-LOGIC is
+    sort Pattern .
+    sort Symbol .
+    sort ElementVariable .
+    sort SetVariable .
+
+    ops a b c : -> Symbol .
+    ops x y z : -> ElementVariable .
+    ops X Y Z : -> SetVariable .
+
+    subsort Symbol ElementVariable SetVariable < Pattern .
+    op \top : -> Pattern .
+    op \bottom : -> Pattern .
+    op \not _ : Symbol -> Pattern .
+
+    --- We use Modal Mu Calculus application syntax for now.
+    op < _ > _ : Symbol Pattern -> Pattern .
+    op [ _ ] _ : Symbol Pattern -> Pattern .
+
+    op \and : Pattern Pattern -> Pattern [assoc comm id: \top] .
+    op \or  : Pattern Pattern -> Pattern [assoc comm id: \bottom] .
+
+    --- TODO: Plug in CINNI binders?
+    op \mu _ . _ : SetVariable Pattern -> Pattern .
+    op \nu _ . _ : SetVariable Pattern -> Pattern .
+endfm
+
+

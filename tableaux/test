@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -x
+
+maude tableaux.maude test.maude </dev/null

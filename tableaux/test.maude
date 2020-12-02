@@ -1,0 +1,16 @@
+parse \not a .
+parse \not \bottom .
+parse \not \top .
+
+parse < a > a .
+parse < a > X .
+parse < a > x .
+
+parse [ a ] a .
+parse [ a ] X .
+parse [ a ] x .
+
+parse \and(x, \and(y, z))  .
+parse \and(\and(y, z), z)  .
+
+red \and(\and(y, z), z)  .
