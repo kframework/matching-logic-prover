@@ -37,25 +37,47 @@ fmod MATCHING-LOGIC-PATTERN-SET is
     protecting SET{SetVariable} * (sort NeSet{SetVariable} to NeSetVariableSet,  sort Set{SetVariable} to SetVariableSet) .
 
     vars SVars SVars1 SVars2 : SetVariableSet .
+
+    op fresh : SetVariableSet -> SetVariable .
 endfm
 
+--- TODO: Should we move this to CINNI?
 fmod MATCHING-LOGIC-SUBSTITUTION is
     protecting MATCHING-LOGIC-PATTERN-SET .
 
     vars SVar SVar1 SVar2 : SetVariable .
     vars P P1 P2 : Pattern .
-    vars S Sy1 Sy2 : Symbol .
+    vars Sy Sy1 Sy2 : Symbol .
 
     op fv : Pattern -> SetVariableSet .
+   ------------------------------------
     eq fv(SVar) = SVar .
-
     eq fv(< Sy1 > P2) = P2 .
     eq fv([ Sy1 ] P2) = P2 .
-
    ceq fv(\and(P1, P2)) = fv(P1), fv(P2) if P1 =/= \top    /\ P2 =/= \top    .
    ceq fv(\or (P1, P2)) = fv(P1), fv(P2) if P1 =/= \bottom /\ P2 =/= \bottom .
-
     eq fv(\mu SVar . P) = fv(P) \ SVar .
     eq fv(\nu SVar . P) = fv(P) \ SVar .
+
+    op [_     := _] _ : SetVariable Pattern Pattern -> Pattern .
+   -------------------------------------------------------------
+    eq [SVar  := P] Sy    = Sy . 
+    eq [SVar  := P] SVar  = P .
+   ceq [SVar1 := P] SVar2 = SVar2 if SVar1 =/= SVar2 .
+    eq [SVar  := P] < Sy > P1 = < [SVar := P]Sy > [SVar := P]P1 . 
+    eq [SVar  := P] [ Sy ] P1 = [ [SVar := P]Sy ] [SVar := P]P1 . 
+   ceq [SVar  := P] \and(P1, P2) = \and([SVar := P]P1, [SVar := P]P2) if P1 =/= \top    /\ P2 =/= \top    . 
+   ceq [SVar  := P] \or (P1, P2) = \or ([SVar := P]P1, [SVar := P]P2) if P1 =/= \bottom /\ P2 =/= \bottom . 
+
+    eq [SVar  := P] \mu SVar  . P1 = \mu SVar  .             P1 .
+   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar /\ not SVar1 in fv(P1) .
+   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar /\ SVar1 in fv(P1)
+                                                                                 /\ SVar2 := fresh(union(fv(P), fv(P1))) .
+
+    eq [SVar  := P] \nu SVar  . P1 = \nu SVar  .             P1 .
+   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar /\ not SVar1 in fv(P1) .
+   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar /\ SVar1 in fv(P1)
+                                                                                 /\ SVar2 := fresh(union(fv(P), fv(P1))) .
+
 endfm
 

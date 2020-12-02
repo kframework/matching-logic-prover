@@ -23,3 +23,39 @@ reduce fv(\nu X . \and(X, Y)) .
 reduce fv(\mu X . X) .
 reduce fv(\mu X . Y) .
 reduce fv(\mu X . \and(X, Y)) .
+
+--- Substitution ---
+reduce [X := Y] a .
+
+reduce [X := Y] Z .
+reduce [X := Y] X .
+
+reduce [X := Y] < a > X .
+reduce [X := Y] < a > Y .
+reduce [X := Y] < a > Z .
+reduce [X := Y] [ a ] X .
+reduce [X := Y] [ a ] Y .
+reduce [X := Y] [ a ] Z .
+
+reduce [X := Y] \and(X, Y) .
+reduce [X := Y] \and(Y, X) .
+reduce [X := Y] \and(Z, Y) .
+reduce [X := Y] \or (X, Y) .
+reduce [X := Y] \or (Y, X) .
+reduce [X := Y] \or (Z, Y) .
+
+reduce [X := Y] \mu X . X .
+reduce [X := Y] \mu X . Y .
+reduce [X := Y] \mu Z . X .
+reduce [X := Y] \mu Z . Y .
+reduce [X := Y] \mu Z . Z .
+
+reduce [X := Y] \nu X . X .
+reduce [X := Y] \nu X . Y .
+reduce [X := Y] \nu Z . X .
+reduce [X := Y] \nu Z . Y .
+reduce [X := Y] \nu Z . Z .
+
+--- These aren't handled yet, but should be once we have full ML support
+parse  [X := Y] < X > a .
+parse  [X := Y] [ X ] a .
