@@ -1,4 +1,4 @@
-fmod MATCHING-LOGIC is
+fmod MATCHING-LOGIC-PATTERN is
     sort Pattern .
     sort Symbol .
     sort SetVariable .
@@ -21,6 +21,41 @@ fmod MATCHING-LOGIC is
     --- TODO: Plug in CINNI binders?
     op \mu _ . _ : SetVariable Pattern -> Pattern .
     op \nu _ . _ : SetVariable Pattern -> Pattern .
+
 endfm
 
+view Pattern from TRIV to MATCHING-LOGIC-PATTERN is
+    sort Elt to Pattern .
+endv
+
+view SetVariable from TRIV to MATCHING-LOGIC-PATTERN is
+    sort Elt to SetVariable .
+endv
+
+fmod MATCHING-LOGIC-PATTERN-SET is
+    protecting MATCHING-LOGIC-PATTERN .
+    protecting SET{SetVariable} * (sort NeSet{SetVariable} to NeSetVariableSet,  sort Set{SetVariable} to SetVariableSet) .
+
+    vars SVars SVars1 SVars2 : SetVariableSet .
+endfm
+
+fmod MATCHING-LOGIC-SUBSTITUTION is
+    protecting MATCHING-LOGIC-PATTERN-SET .
+
+    vars SVar SVar1 SVar2 : SetVariable .
+    vars P P1 P2 : Pattern .
+    vars S Sy1 Sy2 : Symbol .
+
+    op fv : Pattern -> SetVariableSet .
+    eq fv(SVar) = SVar .
+
+    eq fv(< Sy1 > P2) = P2 .
+    eq fv([ Sy1 ] P2) = P2 .
+
+   ceq fv(\and(P1, P2)) = fv(P1), fv(P2) if P1 =/= \top    /\ P2 =/= \top    .
+   ceq fv(\or (P1, P2)) = fv(P1), fv(P2) if P1 =/= \bottom /\ P2 =/= \bottom .
+
+    eq fv(\mu SVar . P) = fv(P) \ SVar .
+    eq fv(\nu SVar . P) = fv(P) \ SVar .
+endfm
 

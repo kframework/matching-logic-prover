@@ -1,16 +1,25 @@
+--- Pattern ---
 parse \not a .
 parse \not \bottom .
 parse \not \top .
-
 parse < a > a .
 parse < a > X .
-parse < a > x .
-
 parse [ a ] a .
 parse [ a ] X .
-parse [ a ] x .
+parse \and(X, \and(Y, Z))  .
+parse \and(\and(Y, Z), Z)  .
+reduce \and(\and(Y, Z), Z)  .
 
-parse \and(x, \and(y, z))  .
-parse \and(\and(y, z), z)  .
+--- SetVariable ---
+reduce X in (X,Y) .
+reduce X in (Y,Y) .
 
-red \and(\and(y, z), z)  .
+--- Free Variables ---
+reduce fv(\and(X, Y)) .
+reduce fv(\or(X, Y)) .
+reduce fv(\nu X . X) .
+reduce fv(\nu X . Y) .
+reduce fv(\nu X . \and(X, Y)) .
+reduce fv(\mu X . X) .
+reduce fv(\mu X . Y) .
+reduce fv(\mu X . \and(X, Y)) .
