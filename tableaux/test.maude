@@ -1,7 +1,5 @@
 --- Pattern ---
 parse \not a .
-parse \not \bottom .
-parse \not \top .
 parse < a > a .
 parse < a > X .
 parse [ a ] a .
@@ -9,6 +7,10 @@ parse [ a ] X .
 parse \and(X, \and(Y, Z))  .
 parse \and(\and(Y, Z), Z)  .
 reduce \and(\and(Y, Z), Z)  .
+
+--- Not allowed
+parse \not \bottom .
+parse \not \top .
 
 --- SetVariable ---
 reduce X in (X,Y) .

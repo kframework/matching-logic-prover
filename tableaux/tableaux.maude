@@ -78,6 +78,5 @@ fmod MATCHING-LOGIC-SUBSTITUTION is
    ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar /\ not SVar1 in fv(P1) .
    ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar /\ SVar1 in fv(P1)
                                                                                  /\ SVar2 := fresh(union(fv(P), fv(P1))) .
-
 endfm
 

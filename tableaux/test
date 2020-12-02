@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
-set -x
-
-maude tableaux.maude test.maude </dev/null
+set -e
+test_actual=$(mktemp -t tmp-tableaux-XXXXXX)
+maude tableaux.maude test.maude -no-banner -batch </dev/null > "$test_actual"
+git diff --no-index --word-diff "$test_actual" test.expected
