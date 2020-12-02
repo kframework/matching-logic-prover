@@ -1,4 +1,5 @@
 --- Pattern ---
+---------------
 parse \not a .
 parse < a > a .
 parse < a > X .
@@ -13,10 +14,12 @@ parse \not \bottom .
 parse \not \top .
 
 --- SetVariable ---
+-------------------
 reduce X in (X,Y) .
 reduce X in (Y,Y) .
 
 --- Free Variables ---
+----------------------
 reduce fv(\and(X, Y)) .
 reduce fv(\or(X, Y)) .
 reduce fv(\nu X . X) .
@@ -27,6 +30,7 @@ reduce fv(\mu X . Y) .
 reduce fv(\mu X . \and(X, Y)) .
 
 --- Substitution ---
+--------------------
 reduce [X := Y] a .
 
 reduce [X := Y] Z .
