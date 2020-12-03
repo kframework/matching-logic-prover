@@ -1,5 +1,8 @@
 --- Pattern ---
 ---------------
+
+select MATCHING-LOGIC-PATTERN .
+
 parse \not a .
 parse < a > a .
 parse < a > X .
@@ -13,13 +16,19 @@ reduce \and(\and(Y, Z), Z)  .
 parse \not \bottom .
 parse \not \top .
 
---- SetVariable ---
--------------------
+--- SetVariableSet ---
+----------------------
+
+select MATCHING-LOGIC-SUBSTITUTION .
+
 reduce X in (X,Y) .
 reduce X in (Y,Y) .
 
 --- Free Variables ---
 ----------------------
+
+select MATCHING-LOGIC-SUBSTITUTION .
+
 reduce fv(\and(X, Y)) .
 reduce fv(\or(X, Y)) .
 reduce fv(\nu X . X) .
@@ -31,6 +40,9 @@ reduce fv(\mu X . \and(X, Y)) .
 
 --- Substitution ---
 --------------------
+
+select MATCHING-LOGIC-SUBSTITUTION .
+
 reduce [X := Y] a .
 
 reduce [X := Y] Z .
@@ -65,3 +77,26 @@ reduce [X := Y] \nu Z . Z .
 --- These aren't handled yet, but should be once we have full ML support
 parse  [X := Y] < X > a .
 parse  [X := Y] [ X ] a .
+
+
+--- Tableaux ---
+----------------
+
+select MATCHING-LOGIC-TABLEAUX .
+
+reduce contract(X) .
+reduce contract(a) .
+reduce contract(\and(X, Y)) .
+
+reduce contract(\and( \mu X . \or(b, < a > X)
+                    , \mu Y . \or(b, < a > Y)
+                    )
+               ) .
+reduce contract(\and( \mu X . \or(b, < a > X)
+                    , \mu Y . \or(b, < c > Y)
+                    )
+               ) .
+reduce contract(\and( \mu X . \or(b, < a > X)
+                    , \mu X . \or(b, < a > X)
+                    )
+               ) .

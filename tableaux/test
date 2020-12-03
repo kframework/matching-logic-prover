@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 set -e
+
+# syntax check
+maude -no-banner -no-wrap tableaux.maude  </dev/null
+
 test_actual=$(mktemp -t tmp-tableaux-XXXXXX)
-maude tableaux.maude test.maude -no-banner -batch </dev/null > "$test_actual"
+maude tableaux.maude test.maude -no-banner -no-wrap -batch </dev/null &> "$test_actual"
 git diff --no-index --word-diff "$test_actual" test.expected

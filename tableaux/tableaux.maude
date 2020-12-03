@@ -1,10 +1,17 @@
 fmod MATCHING-LOGIC-PATTERN is
+    protecting NAT .
+
     sort Pattern .
     sort Symbol .
     sort SetVariable .
 
     ops a b c : -> Symbol .
+
     ops X Y Z : -> SetVariable .
+
+    --- We use special constructors for variables for DefinitionConstants
+    ops u : Nat -> SetVariable .
+    ops v : Nat -> SetVariable .
 
     subsort Symbol SetVariable < Pattern .
     op \top : -> Pattern .
@@ -34,10 +41,12 @@ endv
 
 fmod MATCHING-LOGIC-PATTERN-SET is
     protecting MATCHING-LOGIC-PATTERN .
-    protecting SET{SetVariable} * (sort NeSet{SetVariable} to NeSetVariableSet,  sort Set{SetVariable} to SetVariableSet) .
+    protecting SET{SetVariable} * (sort NeSet{SetVariable} to NeSetVariableSet, sort Set{SetVariable} to SetVariableSet) .
 
     vars SVars SVars1 SVars2 : SetVariableSet .
 
+    --- TODO: We should use TOSET-NEXT based implementation, as in Jose's notes.
+    --- For now, we will treat this as an uninterpreted function
     op fresh : SetVariableSet -> SetVariable .
 endfm
 
@@ -61,22 +70,100 @@ fmod MATCHING-LOGIC-SUBSTITUTION is
 
     op [_     := _] _ : SetVariable Pattern Pattern -> Pattern .
    -------------------------------------------------------------
-    eq [SVar  := P] Sy    = Sy . 
+    eq [SVar  := P] Sy    = Sy .
     eq [SVar  := P] SVar  = P .
    ceq [SVar1 := P] SVar2 = SVar2 if SVar1 =/= SVar2 .
-    eq [SVar  := P] < Sy > P1 = < [SVar := P]Sy > [SVar := P]P1 . 
-    eq [SVar  := P] [ Sy ] P1 = [ [SVar := P]Sy ] [SVar := P]P1 . 
-   ceq [SVar  := P] \and(P1, P2) = \and([SVar := P]P1, [SVar := P]P2) if P1 =/= \top    /\ P2 =/= \top    . 
-   ceq [SVar  := P] \or (P1, P2) = \or ([SVar := P]P1, [SVar := P]P2) if P1 =/= \bottom /\ P2 =/= \bottom . 
+    eq [SVar  := P] < Sy > P1 = < [SVar := P]Sy > [SVar := P]P1 .
+    eq [SVar  := P] [ Sy ] P1 = [ [SVar := P]Sy ] [SVar := P]P1 .
+   ceq [SVar  := P] \and(P1, P2) = \and([SVar := P]P1, [SVar := P]P2) if P1 =/= \top    /\ P2 =/= \top    .
+   ceq [SVar  := P] \or (P1, P2) = \or ([SVar := P]P1, [SVar := P]P2) if P1 =/= \bottom /\ P2 =/= \bottom .
 
     eq [SVar  := P] \mu SVar  . P1 = \mu SVar  .             P1 .
-   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar /\ not SVar1 in fv(P1) .
-   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar /\ SVar1 in fv(P1)
+   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar
+                                                                                 /\ not SVar1 in fv(P1) .
+   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar
+                                                                                 /\ SVar1 in fv(P1)
                                                                                  /\ SVar2 := fresh(union(fv(P), fv(P1))) .
 
     eq [SVar  := P] \nu SVar  . P1 = \nu SVar  .             P1 .
-   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar /\ not SVar1 in fv(P1) .
-   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar /\ SVar1 in fv(P1)
+   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar
+                                                                                 /\ not SVar1 in fv(P1) .
+   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar
+                                                                                 /\ SVar1 in fv(P1)
                                                                                  /\ SVar2 := fresh(union(fv(P), fv(P1))) .
+endfm
+
+
+--- TODO: Can we have DefinitionSet without resorting to a special module?
+fmod MATCHING-LOGIC-TABLEAUX-DEFINITION-CONSTANT is
+    protecting MATCHING-LOGIC-PATTERN-SET .
+    sort DefinitionConstant .
+    op ( _ := _ ) : SetVariable Pattern -> DefinitionConstant .
+endfm
+
+view DefinitionConstant from TRIV to MATCHING-LOGIC-TABLEAUX-DEFINITION-CONSTANT is
+    sort Elt to DefinitionConstant .
+endv
+
+fmod MATCHING-LOGIC-TABLEAUX-DEFINITION-LIST is
+    protecting MATCHING-LOGIC-TABLEAUX-DEFINITION-CONSTANT .
+    protecting MATCHING-LOGIC-PATTERN-SET .
+    protecting LIST{DefinitionConstant}
+             * ( sort NeList{DefinitionConstant} to NeDefinitionList
+               , sort List{DefinitionConstant}   to DefinitionList
+               ) .
+
+    vars SVar SVar1 SVar2 : SetVariable .
+    vars P P1 P2 : Pattern .
+    vars Sy Sy1 Sy2 : Symbol .
+    var DefList : DefinitionList .
+
+    op _ in image(_) : Pattern DefinitionList -> Bool .
+   ----------------------------------------------------
+    eq P in image(nil) = false .
+    eq P in image((SVar := P) DefList) = true .
+   ceq P1 in image((SVar := P2) DefList) = P1 in image(DefList) if P1 =/= P2 .
+
+    op reverseLookup : Pattern DefinitionList -> [SetVariable] .
+   -----------------------------------------------------------
+    eq reverseLookup(P, (SVar := P ) DefList) = SVar .
+   ceq reverseLookup(P, (SVar := P1) DefList) = reverseLookup(P, DefList) if P =/= P1 .
+
+endfm
+
+fmod MATCHING-LOGIC-TABLEAUX is
+    protecting MATCHING-LOGIC-TABLEAUX-DEFINITION-LIST .
+    protecting MATCHING-LOGIC-SUBSTITUTION .
+
+    vars SVar SVar1 SVar2 : SetVariable .
+    vars P P1 P2 : Pattern .
+    vars Sy Sy1 Sy2 : Symbol .
+
+    op contract : Pattern -> DefinitionList .
+   ------------------------------------------
+    eq contract(P) = contract(nil, 0, P) .
+
+    var Rank : Nat .
+    var DefList : DefinitionList .
+
+    op contract : DefinitionList Nat Pattern -> DefinitionList .
+   -------------------------------------------------------------
+    eq contract(DefList, Rank, Sy)           = nil .
+    eq contract(DefList, Rank, SVar)         = nil .
+    eq contract(DefList, Rank, < Sy > P) = contract(DefList, Rank, P) .
+    eq contract(DefList, Rank, [ Sy ] P) = contract(DefList, Rank, P) .
+   ceq contract(DefList, Rank, \and(P1, P2)) = merge(contract(DefList, Rank, P1), Rank, P2) if P1 =/= \top    /\ P2 =/= \top .
+   ceq contract(DefList, Rank, \or (P1, P2)) = merge(contract(DefList, Rank, P1), Rank, P2) if P1 =/= \bottom /\ P2 =/= \bottom .
+   ceq contract(DefList, Rank, \mu SVar . P) = (u(Rank) := \mu SVar . P)
+                                               contract(DefList (u(Rank) := \mu SVar . P),  Rank + 1, [SVar := u(Rank)] P)
+    if not \mu SVar . P in image(DefList)
+     .
+   ceq contract(DefList, Rank, \mu SVar . P) = contract(DefList,  Rank + 1, [SVar := reverseLookup(\mu SVar . P, DefList)] P)
+    if \mu SVar . P in image(DefList)
+     .
+
+    op merge : DefinitionList Nat Pattern -> DefinitionList .
+   -------------------------------------------------------------
+    eq merge(DefList, Rank, P) = append(DefList, contract(DefList, Rank + size(DefList), P)) .
 endfm
 

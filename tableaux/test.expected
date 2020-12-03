@@ -6,11 +6,11 @@ Pattern: [a]X
 Pattern: \and(X, \and(Y, Z))
 Pattern: \and(\and(Y, Z), Z)
 ==========================================
-reduce in MATCHING-LOGIC-SUBSTITUTION : \and(Z, \and(Y, Z)) .
+reduce in MATCHING-LOGIC-PATTERN : \and(Z, \and(Y, Z)) .
 rewrites: 0 in 0ms cpu (0ms real) (~ rewrites/second)
 result Pattern: \and(Y, Z, Z)
-[SetVariableSet,Pattern]: \not \bottom
-[SetVariableSet,Pattern]: \not \top
+[Pattern]: \not \bottom
+[Pattern]: \not \top
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : X in (X, Y) .
 rewrites: 1 in 0ms cpu (0ms real) (~ rewrites/second)
@@ -153,4 +153,28 @@ rewrites: 20 in 0ms cpu (0ms real) (~ rewrites/second)
 result Pattern: \nu fresh((Y, Z)) . fresh((Y, Z))
 [SetVariableSet,Pattern]: [X := Y]< X > a
 [SetVariableSet,Pattern]: [X := Y][X]a
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(X) .
+rewrites: 2 in 0ms cpu (0ms real) (~ rewrites/second)
+result DefinitionList: nil
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(a) .
+rewrites: 2 in 0ms cpu (0ms real) (~ rewrites/second)
+result DefinitionList: nil
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(X, Y)) .
+rewrites: 12 in 0ms cpu (0ms real) (~ rewrites/second)
+result DefinitionList: nil
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X), \mu Y . \or(b, < a > Y))) .
+rewrites: 88 in 0ms cpu (0ms real) (~ rewrites/second)
+result NeDefinitionList: (u(0) := \mu X . \or(b, < a > X)) (u(1) := \mu Y . \or(b, < a > Y))
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X), \mu Y . \or(b, < c > Y))) .
+rewrites: 88 in 0ms cpu (0ms real) (~ rewrites/second)
+result NeDefinitionList: (u(0) := \mu X . \or(b, < a > X)) (u(1) := \mu Y . \or(b, < c > Y))
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X), \mu X . \or(b, < a > X))) .
+rewrites: 88 in 0ms cpu (0ms real) (~ rewrites/second)
+result DefinitionConstant: u(0) := \mu X . \or(b, < a > X)
 Bye.
