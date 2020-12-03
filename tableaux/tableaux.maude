@@ -39,7 +39,7 @@ view SetVariable from TRIV to MATCHING-LOGIC-PATTERN is
     sort Elt to SetVariable .
 endv
 
-fmod MATCHING-LOGIC-PATTERN-SET is
+fmod MATCHING-LOGIC-VARIABLE-SET is
     protecting MATCHING-LOGIC-PATTERN .
     protecting SET{SetVariable} * (sort NeSet{SetVariable} to NeSetVariableSet, sort Set{SetVariable} to SetVariableSet) .
 
@@ -52,7 +52,7 @@ endfm
 
 --- TODO: Should we move this to CINNI?
 fmod MATCHING-LOGIC-SUBSTITUTION is
-    protecting MATCHING-LOGIC-PATTERN-SET .
+    protecting MATCHING-LOGIC-VARIABLE-SET .
 
     vars SVar SVar1 SVar2 : SetVariable .
     vars P P1 P2 : Pattern .
@@ -96,7 +96,7 @@ endfm
 
 --- TODO: Can we have DefinitionSet without resorting to a special module?
 fmod MATCHING-LOGIC-TABLEAUX-DEFINITION-CONSTANT is
-    protecting MATCHING-LOGIC-PATTERN-SET .
+    protecting MATCHING-LOGIC-VARIABLE-SET .
     sort DefinitionConstant .
     op ( _ := _ ) : SetVariable Pattern -> DefinitionConstant .
 endfm
@@ -107,7 +107,7 @@ endv
 
 fmod MATCHING-LOGIC-TABLEAUX-DEFINITION-LIST is
     protecting MATCHING-LOGIC-TABLEAUX-DEFINITION-CONSTANT .
-    protecting MATCHING-LOGIC-PATTERN-SET .
+    protecting MATCHING-LOGIC-VARIABLE-SET .
     protecting LIST{DefinitionConstant}
              * ( sort NeList{DefinitionConstant} to NeDefinitionList
                , sort List{DefinitionConstant}   to DefinitionList
@@ -163,7 +163,7 @@ fmod MATCHING-LOGIC-TABLEAUX is
      .
 
     op merge : DefinitionList Nat Pattern -> DefinitionList .
-   -------------------------------------------------------------
+   ----------------------------------------------------------
     eq merge(DefList, Rank, P) = append(DefList, contract(DefList, Rank + size(DefList), P)) .
 endfm
 
