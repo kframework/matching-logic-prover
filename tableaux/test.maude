@@ -100,3 +100,7 @@ reduce contract(\and( \mu X . \or(b, < a > X)
                     , \mu X . \or(b, < a > X)
                     )
                ) .
+
+reduce contract( \and( \mu X . \or ([ a ] X, \nu Y . \and([ a ] Y, c))
+                     , \nu X . \and(< a > X, \mu Y . \or (< a > Y, \not c))
+               )     ) .

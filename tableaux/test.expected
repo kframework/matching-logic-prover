@@ -151,8 +151,8 @@ result Pattern: \nu Z . Y
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\nu Z . Z .
 rewrites: 20 in 0ms cpu (0ms real) (~ rewrites/second)
 result Pattern: \nu fresh((Y, Z)) . fresh((Y, Z))
-[SetVariableSet,Pattern]: [X := Y]< X > a
-[SetVariableSet,Pattern]: [X := Y][X]a
+[PatternSet]: [X := Y]< X > a
+[PatternSet]: [X := Y][X]a
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(X) .
 rewrites: 2 in 0ms cpu (0ms real) (~ rewrites/second)
@@ -177,4 +177,8 @@ result NeDefinitionList: (u(0) := \mu X . \or(b, < a > X)) (u(1) := \mu Y . \or(
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X), \mu X . \or(b, < a > X))) .
 rewrites: 88 in 0ms cpu (0ms real) (~ rewrites/second)
 result DefinitionConstant: u(0) := \mu X . \or(b, < a > X)
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or([a]X, \nu Y . \and(c, [a]Y)), \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y)))) .
+rewrites: 273 in 0ms cpu (0ms real) (~ rewrites/second)
+result NeDefinitionList: (u(0) := \mu X . \or([a]X, \nu Y . \and(c, [a]Y))) (u(1) := \nu fresh((Y, u(0), fv(c))) . \and(c, [a]fresh((Y, u(0), fv(c))))) (u(2) := \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y))) (u(3) := \mu fresh((Y, v(2), fv(\not c))) . \or(\not c, < a > fresh((Y, v(2), fv(\not c)))))
 Bye.
