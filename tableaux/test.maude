@@ -106,3 +106,11 @@ reduce contract(\and( \mu X . \or(b, < a > X)
 reduce contract( \and( \mu X . \or ([ a ] X, \nu Y . \and([ a ] Y, c))
                      , \nu X . \and(< a > X, \mu Y . \or (< a > Y, \not c))
                )     ) .
+
+
+--- isConsistent 
+
+reduce isConsistent(\and(\mu X . \or([a]X, \nu Y . \and(c, [a]Y)), \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y)))) .
+reduce isConsistent(c, a, \not c) .
+reduce isConsistent(c, a) .
+reduce isConsistent(\not c, a) .

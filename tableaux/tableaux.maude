@@ -71,7 +71,8 @@ fmod MATCHING-LOGIC-SUBSTITUTION is
     op fv : Pattern -> SetVariableSet .
    ------------------------------------
     eq fv(SVar) = SVar .
-    eq fv(\not SVar) = SVar .
+    eq fv(Sy) = empty .
+    eq fv(\not Sy) = empty .
     eq fv(< Sy1 > P2) = P2 .
     eq fv([ Sy1 ] P2) = P2 .
    ceq fv(\and(P1, P2)) = fv(P1), fv(P2) if P1 =/= \top    /\ P2 =/= \top    .
@@ -190,6 +191,8 @@ mod MATCHING-LOGIC-TABLEAUX is
     protecting MATCHING-LOGIC-TABLEAUX-CONTRACT .
 
     sort Tableaux .
+    sort Sequent .
+    subsorts Sequent < Tableaux .
 
     var DefList DefList1 DefList2 : DefinitionList .
     var Tableaux : Tableaux .
@@ -200,52 +203,95 @@ mod MATCHING-LOGIC-TABLEAUX is
 
     op tableaux : Pattern -> Tableaux .
     -----------------------------------
-    eq tableaux(P) = sequent(P ; contract(P)) .
+    eq tableaux(P) = [ P ; contract(P) ] .
 
-    op sequent(_;_) : PatternSet DefinitionList -> Tableaux .
+    --- Is Inconsistent? ----
+    -------------------------
 
+    --- The various tableaux rules apply only if Gamma is consistent.
+    --- i.e. if there is no constant c and its negation in Gamma.
+    --- We implement this via the special sequent `[_;_]`.
+    --- This sequent equals an ordinary sequent only if Gamma is consistent.
+
+    op [_;_] : PatternSet DefinitionList -> Sequent .
+   --------------------------------------------------
+   ceq [ Gamma ; DefList ] = < Gamma ; DefList >
+    if isConsistent(Gamma)
+     .
+
+    op isConsistent(_) : PatternSet -> Bool .
+    --------------------------------------
+    eq isConsistent(empty)               = true .
+    eq isConsistent(Sy, \not Sy,  Gamma) = false .
+   ceq isConsistent(     Sy,      Gamma) = isConsistent(Gamma) if not (\not Sy) in Gamma .
+   ceq isConsistent(\not Sy,      Gamma) = isConsistent(Gamma) if not (     Sy) in Gamma .
+    eq isConsistent(\and(P1, P2), Gamma) = isConsistent(Gamma) .
+    eq isConsistent(\or (P1, P2), Gamma) = isConsistent(Gamma) .
+    eq isConsistent(\mu SVar . P, Gamma) = isConsistent(Gamma) .
+    eq isConsistent(\nu SVar . P, Gamma) = isConsistent(Gamma) .
+    eq isConsistent(SVar,         Gamma) = isConsistent(Gamma) [owise] .
 
     ---- Tableaux Rules -----
     -------------------------
 
+    op <_;_> : PatternSet DefinitionList -> Sequent .
 
-   ceq [and] : sequent(\and(P1, P2), Gamma ; DefList)
-             = ---------------------------------------
-               sequent(P1, P2, Gamma ; DefList)
+
+   crl [and] : < \and(P1, P2), Gamma ; DefList >
+             => ---------------------------------
+               [ P1, P2, Gamma ; DefList ]
        if P1 =/= \top /\ P2 =/= \top
      .
 
-   crl [or-l] : sequent(\or(P1, P2), Gamma ; DefList)
-             => --------------------------------------
-                sequent(P1, Gamma ; DefList)
+   crl [or-l] : < \or(P1, P2), Gamma ; DefList >
+             => --------------------------------
+                [ P1, Gamma ; DefList ]
        if P1 =/= \bottom /\ P2 =/= \bottom
      .
 
-   crl [or-r] : sequent(\or(P1, P2), Gamma ; DefList)
+   crl [or-r] : < \or(P1, P2), Gamma ; DefList >
              => --------------------------------------
-                sequent(P2, Gamma ; DefList)
+                [ P2, Gamma ; DefList ]
        if P1 =/= \bottom /\ P2 =/= \bottom
      .
 
-    rl [ons] : sequent(SVar1, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2)
-            => -----------------------------------------------------------------
-               sequent([SVar2 := SVar1]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2)
-             .
-
-    eq [mu] : sequent(\mu SVar . P, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2)
-            = ---------------------------------------
-              sequent(SVar1, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2)
-       .
-
-    eq [nu] : sequent(\nu SVar . P, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2)
-            = ---------------------------------------
-              sequent(SVar1, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2)
-       .
-
-    rl [all<>] : sequent(< Sy > P , Gamma ; DefList)
-              => -----------------------------------------------------------------
-                 sequent(P, getBetas(Sy ; Gamma) ; DefList)
+    rl [ons-mu] : < SVar1, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 >
+              => -------------------------------------------------------------------------
+                 [ [SVar2 := SVar1]P, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 ]
                .
+    rl [ons-nu] : < SVar1, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 >
+              => -------------------------------------------------------------------------
+                 [ [SVar2 := SVar1]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
+               .
+
+    rl [mu] : < \mu SVar . P, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 >
+           => -------------------------------------------------------------------
+              [ SVar1, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 ]
+       .
+
+    rl [nu] : < \nu SVar . P, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 >
+           => -------------------------------------------------------------------
+              [ SVar1, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 ]
+       .
+
+
+   crl [all<>] : < < Sy > P , Gamma ; DefList >
+              => -------------------------------------
+                 [ P, getBetas(Sy ; Gamma) ; DefList ]
+       if isReduced(Gamma)
+     .
+
+    op isReduced(_) : PatternSet -> Bool .
+    eq isReduced(empty) = true .
+   ceq isReduced(\and(P1, P2), Gamma) = false if P1 =/= \top /\ P1 =/= \top .
+   ceq isReduced(\or (P1, P2), Gamma) = false if P1 =/= \bottom /\ P1 =/= \bottom .
+    eq isReduced(\mu SVar1 . P, Gamma) = false .
+    eq isReduced(\nu SVar1 . P, Gamma) = false .
+    eq isReduced(< Sy > P, Gamma) = isReduced(Gamma) .
+    eq isReduced([ Sy ] P, Gamma) = isReduced(Gamma) .
+    eq isReduced(Sy, Gamma) = isReduced(Gamma) .
+    eq isReduced(SVar, Gamma) = isReduced(Gamma) .
+    eq isReduced(\not Sy, Gamma) = isReduced(Gamma) .
 
     op getBetas(_;_) : Symbol PatternSet -> PatternSet .
     eq getBetas(Sy ; empty ) = empty .
