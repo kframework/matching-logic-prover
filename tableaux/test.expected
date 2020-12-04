@@ -7,178 +7,178 @@ Pattern: \and(X, \and(Y, Z))
 Pattern: \and(\and(Y, Z), Z)
 ==========================================
 reduce in MATCHING-LOGIC-PATTERN : \and(Z, \and(Y, Z)) .
-rewrites: 0 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 0
 result Pattern: \and(Y, Z, Z)
 [Pattern]: \not \bottom
 [Pattern]: \not \top
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : X in (X, Y) .
-rewrites: 1 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 1
 result Bool: true
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : X in (Y, Y) .
-rewrites: 2 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 2
 result Bool: false
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\and(X, Y)) .
-rewrites: 6 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 6
 result NeSetVariableSet: X, Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\or(X, Y)) .
-rewrites: 9 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 9
 result NeSetVariableSet: X, Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\nu X . X) .
-rewrites: 13 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 13
 result SetVariableSet: empty
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\nu X . Y) .
-rewrites: 13 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 13
 result SetVariable: Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\nu X . \and(X, Y)) .
-rewrites: 21 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 21
 result SetVariable: Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\mu X . X) .
-rewrites: 13 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 13
 result SetVariableSet: empty
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\mu X . Y) .
-rewrites: 13 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 13
 result SetVariable: Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : fv(\mu X . \and(X, Y)) .
-rewrites: 21 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 21
 result SetVariable: Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]a .
-rewrites: 1 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 1
 result Symbol: a
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]Z .
-rewrites: 2 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 2
 result SetVariable: Z
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]X .
-rewrites: 1 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 1
 result SetVariable: Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]< a > X .
-rewrites: 3 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 3
 result Pattern: < a > Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]< a > Y .
-rewrites: 4 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 4
 result Pattern: < a > Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]< a > Z .
-rewrites: 4 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 4
 result Pattern: < a > Z
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y][a]X .
-rewrites: 3 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 3
 result Pattern: [a]Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y][a]Y .
-rewrites: 4 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 4
 result Pattern: [a]Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y][a]Z .
-rewrites: 4 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 4
 result Pattern: [a]Z
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\and(X, Y) .
-rewrites: 7 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 7
 result Pattern: \and(Y, Y)
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\and(X, Y) .
-rewrites: 7 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 7
 result Pattern: \and(Y, Y)
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\and(Y, Z) .
-rewrites: 8 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 8
 result Pattern: \and(Y, Z)
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\or(X, Y) .
-rewrites: 10 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 10
 result Pattern: \or(Y, Y)
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\or(X, Y) .
-rewrites: 10 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 10
 result Pattern: \or(Y, Y)
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\or(Y, Z) .
-rewrites: 11 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 11
 result Pattern: \or(Y, Z)
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\mu X . X .
-rewrites: 7 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 7
 result Pattern: \mu X . X
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\mu X . Y .
-rewrites: 7 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 7
 result Pattern: \mu X . Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\mu Z . X .
-rewrites: 13 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 13
 result Pattern: \mu Z . Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\mu Z . Y .
-rewrites: 14 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 14
 result Pattern: \mu Z . Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\mu Z . Z .
-rewrites: 20 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 20
 result Pattern: \mu fresh((Y, Z)) . fresh((Y, Z))
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\nu X . X .
-rewrites: 7 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 7
 result Pattern: \nu X . X
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\nu X . Y .
-rewrites: 7 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 7
 result Pattern: \nu X . Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\nu Z . X .
-rewrites: 13 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 13
 result Pattern: \nu Z . Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\nu Z . Y .
-rewrites: 14 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 14
 result Pattern: \nu Z . Y
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y]\nu Z . Z .
-rewrites: 20 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 20
 result Pattern: \nu fresh((Y, Z)) . fresh((Y, Z))
 [PatternSet]: [X := Y]< X > a
 [PatternSet]: [X := Y][X]a
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(X) .
-rewrites: 2 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 2
 result DefinitionList: nil
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(a) .
-rewrites: 2 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 2
 result DefinitionList: nil
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(X, Y)) .
-rewrites: 12 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 12
 result DefinitionList: nil
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X), \mu Y . \or(b, < a > Y))) .
-rewrites: 88 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 88
 result NeDefinitionList: (u(0) := \mu X . \or(b, < a > X)) (u(1) := \mu Y . \or(b, < a > Y))
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X), \mu Y . \or(b, < c > Y))) .
-rewrites: 88 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 88
 result NeDefinitionList: (u(0) := \mu X . \or(b, < a > X)) (u(1) := \mu Y . \or(b, < c > Y))
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X), \mu X . \or(b, < a > X))) .
-rewrites: 88 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 88
 result DefinitionConstant: u(0) := \mu X . \or(b, < a > X)
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or([a]X, \nu Y . \and(c, [a]Y)), \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y)))) .
-rewrites: 273 in 0ms cpu (0ms real) (~ rewrites/second)
+rewrites: 273
 result NeDefinitionList: (u(0) := \mu X . \or([a]X, \nu Y . \and(c, [a]Y))) (u(1) := \nu fresh((Y, u(0), fv(c))) . \and(c, [a]fresh((Y, u(0), fv(c))))) (u(2) := \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y))) (u(3) := \mu fresh((Y, v(2), fv(\not c))) . \or(\not c, < a > fresh((Y, v(2), fv(\not c)))))
 Bye.
