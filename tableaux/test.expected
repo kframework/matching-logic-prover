@@ -179,6 +179,22 @@ rewrites: 88
 result DefinitionConstant: u(0) := \mu X . \or(b, < a > X)
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or([a]X, \nu Y . \and(c, [a]Y)), \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y)))) .
-rewrites: 273
-result NeDefinitionList: (u(0) := \mu X . \or([a]X, \nu Y . \and(c, [a]Y))) (u(1) := \nu fresh((Y, u(0), fv(c))) . \and(c, [a]fresh((Y, u(0), fv(c))))) (u(2) := \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y))) (u(3) := \mu fresh((Y, v(2), fv(\not c))) . \or(\not c, < a > fresh((Y, v(2), fv(\not c)))))
+rewrites: 253
+result NeDefinitionList: (u(0) := \mu X . \or([a]X, \nu Y . \and(c, [a]Y))) (u(1) := \nu fresh((Y, u(0))) . \and(c, [a]fresh((Y, u(0))))) (u(2) := \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y))) (u(3) := \mu fresh((Y, v(2))) . \or(\not c, < a > fresh((Y, v(2)))))
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(\and(\mu X . \or([a]X, \nu Y . \and(c, [a]Y)), \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y)))) .
+rewrites: 2
+result Bool: true
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(c, a, \not c) .
+rewrites: 1
+result Bool: false
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(a, c) .
+rewrites: 9
+result Bool: true
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(a, \not c) .
+rewrites: 9
+result Bool: true
 Bye.
