@@ -93,8 +93,13 @@ fmod MATCHING-LOGIC-SUBSTITUTION is
 
     eq Subst \mu SVar1 . P1 = \mu SVar1 . [lift SVar1 Subst] P1 .
     eq Subst \nu SVar1 . P1 = \nu SVar1 . [lift SVar1 Subst] P1 .
-endfm
 
+    op * : -> SetVariable .
+   ------------------------
+   ceq \mu SVar1 . P1 = \mu * . [SVar1 := *{0} ][shift * ] P1 if SVar1 =/= * .
+   ceq \nu SVar1 . P1 = \nu * . [SVar1 := *{0} ][shift * ] P1 if SVar1 =/= * .
+
+endfm
 
 --- TODO: Can we have DefinitionSet without resorting to a special module?
 fmod MATCHING-LOGIC-TABLEAUX-DEFINITION-CONSTANT is

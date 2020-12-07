@@ -73,44 +73,44 @@ rewrites: 11
 result Pattern: \or(Y{0}, Z{0})
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \mu X . X{0} .
-rewrites: 8
-result Pattern: \mu X . X{0}
+rewrites: 15
+result Pattern: \mu * . *{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \mu X . Y{0} .
-rewrites: 13
-result Pattern: \mu X . Y{0}
+rewrites: 21
+result Pattern: \mu * . Y{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \mu Z . X{0} .
-rewrites: 12
-result Pattern: \mu Z . Y{0}
+rewrites: 20
+result Pattern: \mu * . Y{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \mu Z . Y{0} .
-rewrites: 13
-result Pattern: \mu Z . Y{0}
+rewrites: 21
+result Pattern: \mu * . Y{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \mu Z . Z{0} .
-rewrites: 8
-result Pattern: \mu Z . Z{0}
+rewrites: 15
+result Pattern: \mu * . *{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \nu X . X{0} .
-rewrites: 8
-result Pattern: \nu X . X{0}
+rewrites: 15
+result Pattern: \nu * . *{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \nu X . Y{0} .
-rewrites: 13
-result Pattern: \nu X . Y{0}
+rewrites: 21
+result Pattern: \nu * . Y{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \nu Z . X{0} .
-rewrites: 12
-result Pattern: \nu Z . Y{0}
+rewrites: 20
+result Pattern: \nu * . Y{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \nu Z . Y{0} .
-rewrites: 13
-result Pattern: \nu Z . Y{0}
+rewrites: 21
+result Pattern: \nu * . Y{0}
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \nu Z . Z{0} .
-rewrites: 8
-result Pattern: \nu Z . Z{0}
+rewrites: 15
+result Pattern: \nu * . *{0}
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(X{0}) .
 rewrites: 2
@@ -125,31 +125,31 @@ rewrites: 12
 result DefinitionList: nil
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X{0}), \mu Y . \or(b, < a > Y{0}))) .
-rewrites: 88
-result NeDefinitionList: (u(0) := \mu X . \or(b, < a > X{0})) (u(1) := \mu Y . \or(b, < a > Y{0}))
+rewrites: 140
+result DefinitionConstant: u(0) := \mu * . \or(b, < a > *{0})
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X{0}), \mu Y . \or(b, < c > Y{0}))) .
-rewrites: 88
-result NeDefinitionList: (u(0) := \mu X . \or(b, < a > X{0})) (u(1) := \mu Y . \or(b, < c > Y{0}))
+rewrites: 140
+result NeDefinitionList: (u(0) := \mu * . \or(b, < a > *{0})) (u(1) := \mu * . \or(b, < c > *{0}))
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X{0}), \mu X . \or(b, < a > X{0}))) .
-rewrites: 88
-result DefinitionConstant: u(0) := \mu X . \or(b, < a > X{0})
+rewrites: 114
+result DefinitionConstant: u(0) := \mu * . \or(b, < a > *{0})
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu Y . < a > Y{0})) .
-rewrites: 59
-result NeDefinitionList: (u(0) := \mu X . \or(b, \nu Y . < a > Y{0})) (u(1) := \nu Y . < a > Y{0})
+rewrites: 111
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{0})) (u(1) := \nu * . < a > *{0})
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\nu Y . < a > Y{0}) .
-rewrites: 17
-result DefinitionConstant: u(0) := \nu Y . < a > Y{0}
+rewrites: 27
+result DefinitionConstant: u(0) := \nu * . < a > *{0}
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0})), \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0})))) .
-rewrites: 185
-result NeDefinitionList: (u(0) := \mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0}))) (u(1) := \nu Y . \and(c, [a]Y{0})) (u(2) := \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0}))) (u(3) := \mu Y . \or(\not c, < a > Y{0}))
+rewrites: 349
+result NeDefinitionList: (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0}))
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(\and(\mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0})), \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0})))) .
-rewrites: 2
+rewrites: 164
 result Bool: true
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(c, a, \not c) .
