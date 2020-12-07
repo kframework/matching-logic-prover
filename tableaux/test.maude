@@ -7,110 +7,96 @@ select MATCHING-LOGIC-PATTERN .
 
 parse \not a .
 parse < a > a .
-parse < a > X .
+parse < a > X { 0 } .
 parse [ a ] a .
-parse [ a ] X .
-parse \and(X, \and(Y, Z))  .
-parse \and(\and(Y, Z), Z)  .
-reduce \and(\and(Y, Z), Z)  .
+parse [ a ] X { 0 } .
+parse \and(X { 0 }, \and(Y { 0 }, Z {0}))  .
+parse \and(\and(Y { 0 }, Z {0}), Z {0})  .
+reduce \and(\and(Y { 0 }, Z {0}), Z {0})  .
 
 --- Not allowed
 parse \not \bottom .
 parse \not \top .
-
---- SetVariableSet ---
-----------------------
-
-select MATCHING-LOGIC-SUBSTITUTION .
-
-reduce X in (X,Y) .
-reduce X in (Y,Y) .
-
---- Free Variables ---
-----------------------
-
-select MATCHING-LOGIC-SUBSTITUTION .
-
-reduce fv(\and(X, Y)) .
-reduce fv(\or(X, Y)) .
-reduce fv(\nu X . X) .
-reduce fv(\nu X . Y) .
-reduce fv(\nu X . \and(X, Y)) .
-reduce fv(\mu X . X) .
-reduce fv(\mu X . Y) .
-reduce fv(\mu X . \and(X, Y)) .
 
 --- Substitution ---
 --------------------
 
 select MATCHING-LOGIC-SUBSTITUTION .
 
-reduce [X := Y] a .
+reduce [X := Y {0}] a .
 
-reduce [X := Y] Z .
-reduce [X := Y] X .
+reduce [X := Y {0}] Z {0} .
+reduce [X := Y {0}] X {0} .
+ 
+reduce [X := Y{0}] < a > X{0} .
+reduce [X := Y{0}] < a > Y{0} .
+reduce [X := Y{0}] < a > Z{0} .
+reduce [X := Y{0}] [ a ] X{0} .
+reduce [X := Y{0}] [ a ] Y{0} .
+reduce [X := Y{0}] [ a ] Z{0} .
 
-reduce [X := Y] < a > X .
-reduce [X := Y] < a > Y .
-reduce [X := Y] < a > Z .
-reduce [X := Y] [ a ] X .
-reduce [X := Y] [ a ] Y .
-reduce [X := Y] [ a ] Z .
+reduce [X := Y{0}] \and(X{0}, Y{0}) .
+reduce [X := Y{0}] \and(Y{0}, X{0}) .
+reduce [X := Y{0}] \and(Z{0}, Y{0}) .
+reduce [X := Y{0}] \or (X{0}, Y{0}) .
+reduce [X := Y{0}] \or (Y{0}, X{0}) .
+reduce [X := Y{0}] \or (Z{0}, Y{0}) .
 
-reduce [X := Y] \and(X, Y) .
-reduce [X := Y] \and(Y, X) .
-reduce [X := Y] \and(Z, Y) .
-reduce [X := Y] \or (X, Y) .
-reduce [X := Y] \or (Y, X) .
-reduce [X := Y] \or (Z, Y) .
+reduce [X := Y{0}] \mu X . X{0} .
+reduce [X := Y{0}] \mu X . Y{0} .
+reduce [X := Y{0}] \mu Z . X{0} .
+reduce [X := Y{0}] \mu Z . Y{0} .
+reduce [X := Y{0}] \mu Z . Z{0} .
 
-reduce [X := Y] \mu X . X .
-reduce [X := Y] \mu X . Y .
-reduce [X := Y] \mu Z . X .
-reduce [X := Y] \mu Z . Y .
-reduce [X := Y] \mu Z . Z .
-
-reduce [X := Y] \nu X . X .
-reduce [X := Y] \nu X . Y .
-reduce [X := Y] \nu Z . X .
-reduce [X := Y] \nu Z . Y .
-reduce [X := Y] \nu Z . Z .
+reduce [X := Y{0}] \nu X . X{0} .
+reduce [X := Y{0}] \nu X . Y{0} .
+reduce [X := Y{0}] \nu Z . X{0} .
+reduce [X := Y{0}] \nu Z . Y{0} .
+reduce [X := Y{0}] \nu Z . Z{0} .
 
 --- These aren't handled yet, but should be once we have full ML support
-parse  [X := Y] < X > a .
-parse  [X := Y] [ X ] a .
-
+--- parse  [X := Y] < X > a .
+--- parse  [X := Y] [ X ] a .
 
 --- Tableaux ---
 ----------------
 
 select MATCHING-LOGIC-TABLEAUX .
 
-reduce contract(X) .
+reduce contract(X {0}) .
 reduce contract(a) .
-reduce contract(\and(X, Y)) .
+reduce contract(\and(X {0}, Y {0})) .
 
-reduce contract(\and( \mu X . \or(b, < a > X)
-                    , \mu Y . \or(b, < a > Y)
+reduce contract(\and( \mu X . \or(b, < a > X {0})
+                    , \mu Y . \or(b, < a > Y {0})
                     )
                ) .
-reduce contract(\and( \mu X . \or(b, < a > X)
-                    , \mu Y . \or(b, < c > Y)
+reduce contract(\and( \mu X . \or(b, < a > X {0})
+                    , \mu Y . \or(b, < c > Y {0})
                     )
                ) .
-reduce contract(\and( \mu X . \or(b, < a > X)
-                    , \mu X . \or(b, < a > X)
+reduce contract(\and( \mu X . \or(b, < a > X {0})
+                    , \mu X . \or(b, < a > X {0})
                     )
                ) .
 
-reduce contract( \and( \mu X . \or ([ a ] X, \nu Y . \and([ a ] Y, c))
-                     , \nu X . \and(< a > X, \mu Y . \or (< a > Y, \not c))
+reduce contract(\mu X . \or(b, \nu Y . < a > Y {0}) ) .
+reduce contract(\nu Y . < a > Y {0}) .
+
+reduce contract( \and( \mu X . \or ([ a ] X {0}, \nu Y . \and([ a ] Y {0}, c))
+                     , \nu X . \and(< a > X {0}, \mu Y . \or (< a > Y {0}, \not c))
                )     ) .
 
-
 --- isConsistent 
-
-reduce isConsistent(\and(\mu X . \or([a]X, \nu Y . \and(c, [a]Y)), \nu X . \and(< a > X, \mu Y . \or(\not c, < a > Y)))) .
+reduce isConsistent(\and( \mu X . \or([a]X {0}, \nu Y . \and(c, [a]Y{0}))
+                        , \nu X . \and( < a > X {0}
+                                      , \mu Y . \or(\not c, < a > Y {0})
+                                      )
+                        )
+                   ) .
 reduce isConsistent(c, a, \not c) .
 reduce isConsistent(c, a) .
 reduce isConsistent(\not c, a) .
+
+--- isReduced
+reduce isReduced(\not c, < a > u(2){0}, [a]u(0){0}) .

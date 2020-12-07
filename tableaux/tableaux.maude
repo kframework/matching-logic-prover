@@ -1,19 +1,28 @@
 fmod MATCHING-LOGIC-PATTERN is
     protecting NAT .
 
-    sort Pattern .
     sort Symbol .
-    sort SetVariable .
-
     ops a b c : -> Symbol .
 
+    --- SetVariable ---
+    -------------------
+
+    sort SetVariable .
     ops X Y Z : -> SetVariable .
+
+    sort IndexedSetVariable .
+    op _ { _ } : SetVariable Nat -> IndexedSetVariable .
 
     --- We use special constructors for variables for DefinitionConstants
     ops u : Nat -> SetVariable .
     ops v : Nat -> SetVariable .
 
-    subsort Symbol SetVariable < Pattern .
+    --- Pattern ---
+    ---------------
+
+    sort Pattern .
+
+    subsort Symbol IndexedSetVariable < Pattern .
     op \top : -> Pattern .
     op \bottom : -> Pattern .
     op \not _ : Symbol -> Pattern .
@@ -44,20 +53,6 @@ fmod MATCHING-LOGIC-PATTERN-SET is
 
     including SET{Pattern}
             * (sort NeSet{Pattern} to NePatternSet, sort Set{Pattern} to PatternSet) .
-
-    sorts SetVariableSet NeSetVariableSet .
-    subsorts SetVariable < NeSetVariableSet < SetVariableSet < PatternSet .
-    subsorts               NeSetVariableSet < NePatternSet .
-
-    var SVar SVar1 SVar2 : SetVariable .
-
-    op empty : -> SetVariableSet [ctor ditto] .
-    op _,_ : SetVariableSet SetVariableSet -> SetVariableSet [ctor ditto] .
-    op _,_ : NeSetVariableSet SetVariableSet -> NeSetVariableSet [ctor ditto] .
-
-    --- TODO: We should use TOSET-NEXT based implementation, as in Jose's notes.
-    --- For now, we will treat this as an uninterpreted function
-    op fresh : SetVariableSet -> SetVariable .
 endfm
 
 --- TODO: Should we move this to CINNI?
@@ -65,45 +60,39 @@ fmod MATCHING-LOGIC-SUBSTITUTION is
     protecting MATCHING-LOGIC-PATTERN-SET .
 
     vars SVar SVar1 SVar2 : SetVariable .
+    vars I : Nat .
     vars P P1 P2 : Pattern .
     vars Sy Sy1 Sy2 : Symbol .
+    vars Subst : Subst .
 
-    op fv : Pattern -> SetVariableSet .
-   ------------------------------------
-    eq fv(SVar) = SVar .
-    eq fv(Sy) = empty .
-    eq fv(\not Sy) = empty .
-    eq fv(< Sy1 > P2) = P2 .
-    eq fv([ Sy1 ] P2) = P2 .
-   ceq fv(\and(P1, P2)) = fv(P1), fv(P2) if P1 =/= \top    /\ P2 =/= \top    .
-   ceq fv(\or (P1, P2)) = fv(P1), fv(P2) if P1 =/= \bottom /\ P2 =/= \bottom .
-    eq fv(\mu SVar . P) = fv(P) \ SVar .
-    eq fv(\nu SVar . P) = fv(P) \ SVar .
+    sort Subst .
+    op _ _ : Subst Pattern -> Pattern .
 
-    op [_     := _] _ : SetVariable Pattern Pattern -> Pattern .
-   -------------------------------------------------------------
-    eq [SVar  := P] Sy    = Sy .
-    eq [SVar  := P] \not Sy = \not ([SVar  := P] Sy) .
-    eq [SVar  := P] SVar  = P .
-   ceq [SVar1 := P] SVar2 = SVar2 if SVar1 =/= SVar2 .
-    eq [SVar  := P] < Sy > P1 = < [SVar := P]Sy > [SVar := P]P1 .
-    eq [SVar  := P] [ Sy ] P1 = [ [SVar := P]Sy ] [SVar := P]P1 .
-   ceq [SVar  := P] \and(P1, P2) = \and([SVar := P]P1, [SVar := P]P2) if P1 =/= \top    /\ P2 =/= \top    .
-   ceq [SVar  := P] \or (P1, P2) = \or ([SVar := P]P1, [SVar := P]P2) if P1 =/= \bottom /\ P2 =/= \bottom .
+    op [_ := _]     : SetVariable Pattern -> Subst .
+    op [shift _ ]   : SetVariable         -> Subst .
+    op [lift _ _ ]  : SetVariable Subst   -> Subst .
+   -------------------------------------------------
 
-    eq [SVar  := P] \mu SVar  . P1 = \mu SVar  .             P1 .
-   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar
-                                                                                 /\ not SVar1 in fv(P1) .
-   ceq [SVar  := P] \mu SVar1 . P1 = \mu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar
-                                                                                 /\ SVar1 in fv(P1)
-                                                                                 /\ SVar2 := fresh(union(fv(P), fv(P1))) .
+    eq [SVar1 := P] SVar1 { 0 }    = P .
+    eq [SVar1 := P] SVar1 { s(I) } = SVar1 { I } .
+   ceq [SVar1 := P] SVar2 { I }    = SVar2 { I } if SVar1 =/= SVar2 .
 
-    eq [SVar  := P] \nu SVar  . P1 = \nu SVar  .             P1 .
-   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar1 . [SVar := P] P1                  if SVar1 =/= SVar
-                                                                                 /\ not SVar1 in fv(P1) .
-   ceq [SVar  := P] \nu SVar1 . P1 = \nu SVar2 . [SVar := P][SVar1 := SVar2 ] P1 if SVar1 =/= SVar
-                                                                                 /\ SVar1 in fv(P1)
-                                                                                 /\ SVar2 := fresh(union(fv(P), fv(P1))) .
+    eq [shift SVar1] SVar1 { I } = SVar1 { I + 1 } .
+   ceq [shift SVar1] SVar2 { I } = SVar2 { I }   if SVar1 =/= SVar2 .
+
+    eq [lift SVar Subst] SVar  { 0 }    = SVar { 0 } .
+    eq [lift SVar Subst] SVar  { s(I) } = [shift SVar] Subst SVar { I } .
+   ceq [lift SVar Subst] SVar1 { I }    = [shift SVar] Subst SVar1 { I } if SVar =/= SVar1 .
+
+    eq Subst Sy = Sy .
+    eq Subst \not Sy = \not (Subst Sy) .
+    eq Subst < Sy > P1 = < Subst Sy > Subst P1 .
+    eq Subst [ Sy ] P1 = [ Subst Sy ] Subst P1 .
+   ceq Subst \and(P1, P2) = \and(Subst P1, Subst P2) if P1 =/= \top    /\ P2 =/= \top    .
+   ceq Subst \or (P1, P2) = \or (Subst P1, Subst P2) if P1 =/= \bottom /\ P2 =/= \bottom .
+
+    eq Subst \mu SVar1 . P1 = \mu SVar1 . [lift SVar1 Subst] P1 .
+    eq Subst \nu SVar1 . P1 = \nu SVar1 . [lift SVar1 Subst] P1 .
 endfm
 
 
@@ -137,9 +126,9 @@ fmod MATCHING-LOGIC-TABLEAUX-DEFINITION-LIST is
     eq P in image((SVar := P) DefList) = true .
    ceq P1 in image((SVar := P2) DefList) = P1 in image(DefList) if P1 =/= P2 .
 
-    op reverseLookup : Pattern DefinitionList -> [SetVariable] .
-   -----------------------------------------------------------
-    eq reverseLookup(P, (SVar := P ) DefList) = SVar .
+    op reverseLookup : Pattern DefinitionList -> [IndexedSetVariable] .
+   -------------------------------------------------------------
+    eq reverseLookup(P, (SVar := P ) DefList) = SVar {0} .
    ceq reverseLookup(P, (SVar := P1) DefList) = reverseLookup(P, DefList) if P =/= P1 .
 
 endfm
@@ -151,6 +140,7 @@ fmod MATCHING-LOGIC-TABLEAUX-CONTRACT is
     vars SVar SVar1 SVar2 : SetVariable .
     vars P P1 P2 : Pattern .
     vars Sy Sy1 Sy2 : Symbol .
+    vars I : Nat .
 
     op contract : Pattern -> DefinitionList .
    ------------------------------------------
@@ -162,7 +152,7 @@ fmod MATCHING-LOGIC-TABLEAUX-CONTRACT is
     op contract : DefinitionList Nat Pattern -> DefinitionList .
    -------------------------------------------------------------
     eq contract(DefList, Rank, Sy)           = nil .
-    eq contract(DefList, Rank, SVar)         = nil .
+    eq contract(DefList, Rank, SVar { I })   = nil .
     eq contract(DefList, Rank, \not Sy)      = nil .
     eq contract(DefList, Rank, < Sy > P)     = contract(DefList, Rank, P) .
     eq contract(DefList, Rank, [ Sy ] P)     = contract(DefList, Rank, P) .
@@ -170,13 +160,13 @@ fmod MATCHING-LOGIC-TABLEAUX-CONTRACT is
    ceq contract(DefList, Rank, \or (P1, P2)) = merge(contract(DefList, Rank, P1), Rank, P2) if P1 =/= \bottom /\ P2 =/= \bottom .
 
    ceq contract(DefList, Rank, \mu SVar . P) = (u(Rank) := \mu SVar . P)
-                                               contract(DefList (u(Rank) := \mu SVar . P),  Rank + 1, [SVar := u(Rank)] P)
+                                               contract(DefList (u(Rank) := \mu SVar . P),  Rank + 1, [SVar := u(Rank) {0}] P)
     if not \mu SVar . P in image(DefList) .
    ceq contract(DefList, Rank, \mu SVar . P) = contract(DefList,  Rank + 1, [SVar := reverseLookup(\mu SVar . P, DefList)] P)
     if \mu SVar . P in image(DefList) .
 
    ceq contract(DefList, Rank, \nu SVar . P) = (u(Rank) := \nu SVar . P)
-                                               contract(DefList (v(Rank) := \nu SVar . P),  Rank + 1, [SVar := v(Rank)] P)
+                                               contract(DefList (v(Rank) := \nu SVar . P),  Rank + 1, [SVar := v(Rank) {0}] P)
     if not \nu SVar . P in image(DefList) .
    ceq contract(DefList, Rank, \nu SVar . P) = contract(DefList,  Rank + 1, [SVar := reverseLookup(\nu SVar . P, DefList)] P)
     if \nu SVar . P in image(DefList) .
@@ -200,6 +190,7 @@ mod MATCHING-LOGIC-TABLEAUX is
     vars Gamma Ps P1s P2s : PatternSet .
     vars SVar SVar1 SVar2 : SetVariable .
     vars Sy Sy1 Sy2 : Symbol .
+    vars I : Nat .
 
     op tableaux : Pattern -> Tableaux .
     -----------------------------------
@@ -229,7 +220,7 @@ mod MATCHING-LOGIC-TABLEAUX is
     eq isConsistent(\or (P1, P2), Gamma) = isConsistent(Gamma) .
     eq isConsistent(\mu SVar . P, Gamma) = isConsistent(Gamma) .
     eq isConsistent(\nu SVar . P, Gamma) = isConsistent(Gamma) .
-    eq isConsistent(SVar,         Gamma) = isConsistent(Gamma) [owise] .
+    eq isConsistent(SVar {I},     Gamma) = isConsistent(Gamma) .
 
     ---- Tableaux Rules -----
     -------------------------
@@ -238,7 +229,7 @@ mod MATCHING-LOGIC-TABLEAUX is
 
 
    crl [and] : < \and(P1, P2), Gamma ; DefList >
-             => ---------------------------------
+            => ---------------------------------
                [ P1, P2, Gamma ; DefList ]
        if P1 =/= \top /\ P2 =/= \top
      .
@@ -255,25 +246,24 @@ mod MATCHING-LOGIC-TABLEAUX is
        if P1 =/= \bottom /\ P2 =/= \bottom
      .
 
-    rl [ons-mu] : < SVar1, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 >
-              => -------------------------------------------------------------------------
-                 [ [SVar2 := SVar1]P, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 ]
+    rl [ons-mu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 >
+               => -----------------------------------------------------------------------------
+                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 ]
                .
-    rl [ons-nu] : < SVar1, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 >
+    rl [ons-nu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 >
               => -------------------------------------------------------------------------
-                 [ [SVar2 := SVar1]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
+                 [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
                .
 
     rl [mu] : < \mu SVar . P, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 >
            => -------------------------------------------------------------------
-              [ SVar1, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 ]
+              [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 ]
        .
 
     rl [nu] : < \nu SVar . P, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 >
            => -------------------------------------------------------------------
-              [ SVar1, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 ]
+              [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 ]
        .
-
 
    crl [all<>] : < < Sy > P , Gamma ; DefList >
               => -------------------------------------
@@ -283,14 +273,14 @@ mod MATCHING-LOGIC-TABLEAUX is
 
     op isReduced(_) : PatternSet -> Bool .
     eq isReduced(empty) = true .
-   ceq isReduced(\and(P1, P2), Gamma) = false if P1 =/= \top /\ P1 =/= \top .
-   ceq isReduced(\or (P1, P2), Gamma) = false if P1 =/= \bottom /\ P1 =/= \bottom .
+   ceq isReduced(\and(P1, P2), Gamma) = false if P1 =/= \top /\ P2 =/= \top .
+   ceq isReduced(\or (P1, P2), Gamma) = false if P1 =/= \bottom /\ P2 =/= \bottom .
     eq isReduced(\mu SVar1 . P, Gamma) = false .
     eq isReduced(\nu SVar1 . P, Gamma) = false .
     eq isReduced(< Sy > P, Gamma) = isReduced(Gamma) .
     eq isReduced([ Sy ] P, Gamma) = isReduced(Gamma) .
     eq isReduced(Sy, Gamma) = isReduced(Gamma) .
-    eq isReduced(SVar, Gamma) = isReduced(Gamma) .
+    eq isReduced(SVar {I}, Gamma) = isReduced(Gamma) .
     eq isReduced(\not Sy, Gamma) = isReduced(Gamma) .
 
     op getBetas(_;_) : Symbol PatternSet -> PatternSet .

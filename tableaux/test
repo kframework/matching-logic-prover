@@ -7,7 +7,7 @@ maude -no-banner -no-wrap tableaux.maude  </dev/null
 
 test_actual=$(mktemp -t tmp-tableaux-XXXXXX)
 maude tableaux.maude test.maude -no-banner -no-wrap -batch </dev/null &> "$test_actual"
-git --no-pager diff --no-index --word-diff "$test_actual" test.expected
+git --no-pager diff --ignore-all-space --no-index --word-diff "$test_actual" test.expected
 
 maude tableaux.maude test2.maude -no-banner -no-wrap -batch </dev/null
 
