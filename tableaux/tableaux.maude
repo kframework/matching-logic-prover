@@ -233,11 +233,11 @@ mod MATCHING-LOGIC-TABLEAUX is
     op <_;_> : PatternSet DefinitionList -> Sequent .
 
 
-   crl [and] : < \and(P1, P2), Gamma ; DefList >
-            => ---------------------------------
+   ceq [and] : < \and(P1, P2), Gamma ; DefList >
+             = ---------------------------------
                [ P1, P2, Gamma ; DefList ]
-       if P1 =/= \top /\ P2 =/= \top
-     .
+        if P1 =/= \top /\ P2 =/= \top
+      .
 
    crl [or-l] : < \or(P1, P2), Gamma ; DefList >
              => --------------------------------
@@ -260,14 +260,14 @@ mod MATCHING-LOGIC-TABLEAUX is
                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
                .
 
-    rl [mu] : < \mu SVar . P, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 >
-           => -------------------------------------------------------------------
-              [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 ]
+    eq [mu] : < \mu SVar . P, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 >
+           = -------------------------------------------------------------------
+             [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 ]
        .
 
-    rl [nu] : < \nu SVar . P, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 >
-           => -------------------------------------------------------------------
-              [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 ]
+    eq [nu] : < \nu SVar . P, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 >
+           = -------------------------------------------------------------------
+             [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 ]
        .
 
    crl [all<>] : < < Sy > P , Gamma ; DefList >
