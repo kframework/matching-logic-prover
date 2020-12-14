@@ -185,19 +185,16 @@ endfm
 mod MATCHING-LOGIC-TABLEAUX is
     protecting MATCHING-LOGIC-TABLEAUX-CONTRACT .
 
-    sort Tableaux .
     sort Sequent .
-    subsorts Sequent < Tableaux .
 
     var DefList DefList1 DefList2 : DefinitionList .
-    var Tableaux : Tableaux .
     vars P P1 P2 : Pattern .
     vars Gamma Ps P1s P2s : PatternSet .
     vars SVar SVar1 SVar2 : SetVariable .
     vars Sy Sy1 Sy2 : Symbol .
     vars I : Nat .
 
-    op tableaux : Pattern -> Tableaux .
+    op tableaux : Pattern -> Sequent .
     -----------------------------------
     eq tableaux(P) = [ P ; contract(P) ] .
 

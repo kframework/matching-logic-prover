@@ -1,167 +1,167 @@
 ==========================================
-search in MATCHING-LOGIC-TABLEAUX : tableaux(\and(\mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0})), \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0})))) =>* Tableaux .
+search in MATCHING-LOGIC-TABLEAUX : tableaux(\and(\mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0})), \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0})))) =>* Sequent:Sequent .
 
 Solution 1 (state 0)
-Tableaux --> < u(0){0}, u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(0){0}, u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 2 (state 1)
-Tableaux --> < u(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 3 (state 2)
-Tableaux --> < u(0){0}, u(3){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(0){0}, u(3){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 4 (state 3)
-Tableaux --> < u(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 5 (state 4)
-Tableaux --> < u(1){0}, u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(1){0}, u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 6 (state 5)
-Tableaux --> < u(3){0}, < a > u(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(3){0}, < a > u(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 7 (state 6)
-Tableaux --> < u(0){0}, < a > u(2){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(0){0}, < a > u(2){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 8 (state 7)
-Tableaux --> < u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 9 (state 8)
-Tableaux --> < u(3){0}, < a > u(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(3){0}, < a > u(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 10 (state 9)
-Tableaux --> < c, u(2){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, u(2){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 11 (state 10)
-Tableaux --> < u(1){0}, u(3){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(1){0}, u(3){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 12 (state 11)
-Tableaux --> < < a > u(2){0}, \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(2){0}, \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 13 (state 12)
-Tableaux --> < \not c, u(0){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, u(0){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 14 (state 13)
-Tableaux --> < u(0){0}, < a > u(2){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(0){0}, < a > u(2){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 15 (state 14)
-Tableaux --> < u(3){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(3){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 16 (state 15)
-Tableaux --> < < a > u(2){0}, [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(2){0}, [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 17 (state 16)
-Tableaux --> < c, u(3){0}, < a > u(2){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, u(3){0}, < a > u(2){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 18 (state 17)
-Tableaux --> < u(1){0}, < a > u(2){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(1){0}, < a > u(2){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 19 (state 18)
-Tableaux --> < \not c, < a > u(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, < a > u(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 20 (state 19)
-Tableaux --> < < a > u(2){0}, < a > u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(2){0}, < a > u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 21 (state 20)
-Tableaux --> < u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 22 (state 21)
-Tableaux --> < < a > u(2){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(2){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 23 (state 22)
-Tableaux --> < \not c, < a > u(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, < a > u(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 24 (state 23)
-Tableaux --> < < a > u(2){0}, < a > u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(2){0}, < a > u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 25 (state 24)
-Tableaux --> < c, < a > u(2){0}, [a]u(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, < a > u(2){0}, [a]u(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 26 (state 25)
-Tableaux --> < \not c, u(1){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, u(1){0}, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 27 (state 26)
-Tableaux --> < u(1){0}, < a > u(2){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(1){0}, < a > u(2){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 28 (state 27)
-Tableaux --> < \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 29 (state 28)
-Tableaux --> < \not c, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, < a > u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 30 (state 29)
-Tableaux --> < < a > u(2){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(2){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 31 (state 30)
-Tableaux --> < u(0){0}, u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(0){0}, u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 32 (state 31)
-Tableaux --> [c, \not c, < a > u(2){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0}))]
+Sequent:Sequent --> [c, \not c, < a > u(2){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0}))]
 
 Solution 33 (state 32)
-Tableaux --> < c, < a > u(2){0}, < a > u(3){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, < a > u(2){0}, < a > u(3){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 34 (state 33)
-Tableaux --> < \not c ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 35 (state 34)
-Tableaux --> < < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 36 (state 35)
-Tableaux --> < u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 37 (state 36)
-Tableaux --> < u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 38 (state 37)
-Tableaux --> < u(1){0}, u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(1){0}, u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 39 (state 38)
-Tableaux --> < u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 40 (state 39)
-Tableaux --> < \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 41 (state 40)
-Tableaux --> < \not c, u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 42 (state 41)
-Tableaux --> < u(0){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(0){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 43 (state 42)
-Tableaux --> < u(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 44 (state 43)
-Tableaux --> < c, u(3){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, u(3){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 45 (state 44)
-Tableaux --> < [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 46 (state 45)
-Tableaux --> < \not c, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 47 (state 46)
-Tableaux --> < < a > u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 48 (state 47)
-Tableaux --> < \not c, u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 49 (state 48)
-Tableaux --> < u(1){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < u(1){0}, < a > u(3){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 50 (state 49)
-Tableaux --> < c, [a]u(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, [a]u(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 51 (state 50)
-Tableaux --> < \not c, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 52 (state 51)
-Tableaux --> < < a > u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a > u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 Solution 53 (state 52)
-Tableaux --> [c, \not c, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0}))]
+Sequent:Sequent --> [c, \not c, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0}))]
 
 Solution 54 (state 53)
-Tableaux --> < c, < a > u(3){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, < a > u(3){0}, [a]u(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
 
 No more solutions.
 state 0, Sequent: < u(0){0}, u(2){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (u(1) := \nu * . \and(c, [a]*{0})) (u(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
