@@ -2,13 +2,45 @@
 
 set -e
 
-# syntax check
-maude -no-banner -no-wrap tableaux.maude  </dev/null
+runmaude()  {
+  maude </dev/null -no-banner -no-wrap <(echo 'set show stats off . set show timing off .') "$@"
+}
 
-test_actual=$(mktemp -t tmp-tableaux-XXXXXX)
-maude tableaux.maude test.maude -no-banner -no-wrap -batch </dev/null &> "$test_actual"
-git --no-pager diff --ignore-all-space --no-index --word-diff "$test_actual" test.expected
+dodiff() {
+  git --no-pager diff --no-index --word-diff "$@"
+}
 
-maude tableaux.maude test2.maude -no-banner -no-wrap -batch </dev/null
+test_main() {
+  for t in t/*.maude; do
+    test_actual=$(mktemp -t maude-run-XXXXXX)
+    runmaude "$t" &> "$test_actual"
+    dodiff "$test_actual" "$t.expected"
+  done
+  echo 'Passed.'
+}
 
-echo 'Passed.'
+update_expected() {
+    for t in "$@"; do
+        runmaude "$t" &> "$t.expected"
+    done
+}
+
+print_usage() {
+    echo """
+    Usage:
+
+        $0
+            run tests
+
+        $0 update test_file1 [test_file2...]
+            update expected output
+    """
+}
+
+
+  if [[ "$#" = 0        ]] ; then test_main;
+elif [[ "$1" = "run"    ]] ; then shift; runmaude "$@" ;
+elif [[ "$1" = "update" ]] ; then shift; update_expected "$@" ;
+elif [[ "$1" = "help"   ]] ; then shift; print_usage     "$@" ;
+else print_usage "$@" ; echo >&2 "Unknown argument: $1"; exit 1;
+fi

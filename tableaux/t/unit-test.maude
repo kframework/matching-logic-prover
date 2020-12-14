@@ -1,3 +1,5 @@
+in "../tableaux.maude" .
+
 set show timing off .
 
 --- Pattern ---
