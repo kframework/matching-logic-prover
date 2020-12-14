@@ -83,7 +83,9 @@ reduce contract(\and( \mu X . \or(b, < a > X {0})
                ) .
 
 reduce contract(\mu X . \or(b, \nu Y . < a > Y {0}) ) .
+
 reduce contract(\nu Y . < a > Y {0}) .
+
 
 reduce contract( \and( \mu X . \or ([ a ] X {0}, \nu Y . \and([ a ] Y {0}, c))
                      , \nu X . \and(< a > X {0}, \mu Y . \or (< a > Y {0}, \not c))
@@ -101,4 +103,4 @@ reduce isConsistent(c, a) .
 reduce isConsistent(\not c, a) .
 
 --- isReduced
-reduce isReduced(\not c, < a > u(2){0}, [a]u(0){0}) .
+reduce isReduced(\not c, < a > u(2){0}, [a]u(0){0} ; nil ) .

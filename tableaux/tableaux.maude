@@ -131,6 +131,11 @@ fmod MATCHING-LOGIC-TABLEAUX-DEFINITION-LIST is
     eq P in image((SVar := P) DefList) = true .
    ceq P1 in image((SVar := P2) DefList) = P1 in image(DefList) if P1 =/= P2 .
 
+    op _ in domain(_) : SetVariable DefinitionList -> Bool .
+   ----------------------------------------------------
+    eq SVar in domain((SVar := P) DefList) = true .
+    eq SVar in domain(            DefList) = false [owise] .
+
     op reverseLookup : Pattern DefinitionList -> [IndexedSetVariable] .
    -------------------------------------------------------------
     eq reverseLookup(P, (SVar := P ) DefList) = SVar {0} .
@@ -270,20 +275,21 @@ mod MATCHING-LOGIC-TABLEAUX is
    crl [all<>] : < < Sy > P , Gamma ; DefList >
               => -------------------------------------
                  [ P, getBetas(Sy ; Gamma) ; DefList ]
-       if isReduced(Gamma)
+       if isReduced(Gamma ; DefList)
      .
 
-    op isReduced(_) : PatternSet -> Bool .
-    eq isReduced(empty) = true .
-   ceq isReduced(\and(P1, P2), Gamma) = false if P1 =/= \top /\ P2 =/= \top .
-   ceq isReduced(\or (P1, P2), Gamma) = false if P1 =/= \bottom /\ P2 =/= \bottom .
-    eq isReduced(\mu SVar1 . P, Gamma) = false .
-    eq isReduced(\nu SVar1 . P, Gamma) = false .
-    eq isReduced(< Sy > P, Gamma) = isReduced(Gamma) .
-    eq isReduced([ Sy ] P, Gamma) = isReduced(Gamma) .
-    eq isReduced(Sy, Gamma) = isReduced(Gamma) .
-    eq isReduced(SVar {I}, Gamma) = isReduced(Gamma) .
-    eq isReduced(\not Sy, Gamma) = isReduced(Gamma) .
+    op isReduced(_ ; _) : PatternSet DefinitionList -> Bool .
+    eq isReduced(empty ; DefList) = true .
+   ceq isReduced(\and(P1, P2), Gamma ; DefList) = false if P1 =/= \top /\ P2 =/= \top .
+   ceq isReduced(\or (P1, P2), Gamma ; DefList) = false if P1 =/= \bottom /\ P2 =/= \bottom .
+    eq isReduced(\mu SVar1 . P, Gamma ; DefList) = false .
+    eq isReduced(\nu SVar1 . P, Gamma ; DefList) = false .
+    eq isReduced(< Sy > P, Gamma ; DefList) = isReduced(Gamma ; DefList) .
+    eq isReduced([ Sy ] P, Gamma ; DefList) = isReduced(Gamma ; DefList) .
+    eq isReduced(Sy, Gamma ; DefList) = isReduced(Gamma ; DefList) .
+   ceq isReduced(SVar {I}, Gamma ; DefList) = isReduced(Gamma ; DefList) if not SVar in domain(DefList) .
+    eq isReduced(SVar {0}, Gamma ; (SVar := P) DefList) = false .
+    eq isReduced(\not Sy, Gamma ; DefList) = isReduced(Gamma ; DefList) .
 
     op getBetas(_;_) : Symbol PatternSet -> PatternSet .
     eq getBetas(Sy ; empty ) = empty .

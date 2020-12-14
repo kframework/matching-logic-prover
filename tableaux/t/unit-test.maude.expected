@@ -125,6 +125,6 @@ result Bool: true
 reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(a, \not c) .
 result Bool: true
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : isReduced(\not c, < a > u(2){0}, [a]u(0){0}) .
+reduce in MATCHING-LOGIC-TABLEAUX : isReduced(\not c, < a > u(2){0}, [a]u(0){0} ; nil) .
 result Bool: true
 Bye.
