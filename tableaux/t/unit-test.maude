@@ -84,6 +84,10 @@ reduce contract(\and( \mu X . \or(b, < a > X {0})
 
 reduce contract(\mu X . \or(b, \nu Y . < a > Y {0}) ) .
 
+reduce contract(\mu X . \or(b, \nu X . < a > X {0}) ) .
+reduce contract(\mu X . \or(b, \nu X . < a > X {1}) ) .
+reduce contract(\mu X . \or(b, \nu Y . < a > X {0}) ) .
+
 reduce contract(\nu Y . < a > Y {0}) .
 
 

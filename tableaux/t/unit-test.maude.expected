@@ -107,6 +107,15 @@ result DefinitionConstant: u(0) := \mu * . \or(b, < a > *{0})
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu Y . < a > Y{0})) .
 result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{0})) (u(1) := \nu * . < a > *{0})
 ==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu X . < a > X{0})) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{0})) (u(1) := \nu * . < a > *{0})
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu X . < a > X{1})) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{1})) (u(1) := \nu * . < a > u(0){0})
+==========================================
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu Y . < a > X{0})) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{1})) (u(1) := \nu * . < a > u(0){0})
+==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\nu Y . < a > Y{0}) .
 result DefinitionConstant: u(0) := \nu * . < a > *{0}
 ==========================================
