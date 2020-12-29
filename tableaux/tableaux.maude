@@ -175,7 +175,7 @@ fmod MATCHING-LOGIC-TABLEAUX-CONTRACT is
    ceq contract(DefList, Rank, \mu SVar . P) = contract(DefList,  Rank + 1, [SVar := reverseLookup(\mu SVar . P, DefList)] P)
     if \mu SVar . P in image(DefList) .
 
-   ceq contract(DefList, Rank, \nu SVar . P) = (u(Rank) := \nu SVar . P)
+   ceq contract(DefList, Rank, \nu SVar . P) = (v(Rank) := \nu SVar . P)
                                                contract(DefList (v(Rank) := \nu SVar . P),  Rank + 1, [SVar := v(Rank) {0}] P)
     if not \nu SVar . P in image(DefList) .
    ceq contract(DefList, Rank, \nu SVar . P) = contract(DefList,  Rank + 1, [SVar := reverseLookup(\nu SVar . P, DefList)] P)
@@ -246,7 +246,6 @@ mod MATCHING-LOGIC-TABLEAUX is
                 [ P1, Gamma ; DefList ]
        if P1 =/= \bottom /\ P2 =/= \bottom
      .
-
    crl [or-r] : < \or(P1, P2), Gamma ; DefList >
              => --------------------------------------
                 [ P2, Gamma ; DefList ]
