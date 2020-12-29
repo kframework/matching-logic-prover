@@ -262,14 +262,9 @@ mod MATCHING-LOGIC-TABLEAUX is
                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
                .
 
-    eq [mu] : < \mu SVar . P, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 >
-           = -------------------------------------------------------------------
-             [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar . P) DefList2 ]
-       .
-
-    eq [nu] : < \nu SVar . P, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 >
-           = -------------------------------------------------------------------
-             [ SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar . P) DefList2 ]
+    eq [nu/mu] : < P, Gamma         ; DefList1 (SVar1 := P) DefList2 >
+              = -------------------------------------------------------------------
+                 [ SVar1 {0}, Gamma ; DefList1 (SVar1 := P) DefList2 ]
        .
 
    crl [all<>] : < < Sy > P , Gamma ; DefList >
