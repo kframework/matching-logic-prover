@@ -241,6 +241,7 @@ mod MATCHING-LOGIC-TABLEAUX is
         if P1 =/= \top /\ P2 =/= \top
       .
 
+   --- The "or" rules are non-deterministic, so use a rule rather than an equation
    crl [or-l] : < \or(P1, P2), Gamma ; DefList >
              => --------------------------------
                 [ P1, Gamma ; DefList ]
@@ -252,20 +253,20 @@ mod MATCHING-LOGIC-TABLEAUX is
        if P1 =/= \bottom /\ P2 =/= \bottom
      .
 
-    rl [ons-mu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 >
-               => -----------------------------------------------------------------------------
+    eq [ons-mu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 >
+                = -----------------------------------------------------------------------------
                   [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 ]
                .
-    rl [ons-nu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 >
-              => -------------------------------------------------------------------------
-                 [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
+    eq [ons-nu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 >
+                = -------------------------------------------------------------------------
+                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
                .
-
     eq [nu/mu] : < P, Gamma         ; DefList1 (SVar1 := P) DefList2 >
-              = -------------------------------------------------------------------
+               = -------------------------------------------------------------------
                  [ SVar1 {0}, Gamma ; DefList1 (SVar1 := P) DefList2 ]
-       .
+     .
 
+   --- The "all<>" rule is non-deterministic, so use a rule rather than an equation
    crl [all<>] : < < Sy > P , Gamma ; DefList >
               => -------------------------------------
                  [ P, getBetas(Sy ; Gamma) ; DefList ]
