@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+import sys
+import re
+from graphviz import Digraph
+
+reached_graph = False
+state_num = None
+
+g = Digraph()
+
+for line in sys.stdin:
+    line = line.strip()
+    if line == "No more solutions.": reached_graph = True; continue
+    if not reached_graph: continue 
+
+    if line == "": continue
+    if line == "Bye.": continue
+
+    state_re = re.compile(r'state (\d*), Sequent: (< |.)(.*) ; .*>')
+    state_match = state_re.match(line)
+    if state_match:
+        state_num   = "n" + state_match.groups()[0]
+        state_label = state_match.groups()[2]
+        g.node(state_num, state_label.replace("\\", "\\\\"), shape='rectangle')
+        continue
+
+    arcre = re.compile(r'arc \d* ===> state (\d*) .*')
+    arc_match = arcre.match(line)
+    if arc_match:
+        arc_target = "n" +  arc_match.groups()[0]
+        g.edge(state_num, arc_target)
+        continue
+
+    print("ERROR: Unrecognized maude output")
+    print(line)
+    sys.exit(1)
+
+g.unflatten()
+g.view()
