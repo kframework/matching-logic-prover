@@ -28,6 +28,6 @@ ENV PATH="/home/user/z3-4.8.7-x64-ubuntu-16.04/bin:${PATH}"
 
 ADD --chown=user . /home/user/matching-logic-prover
 WORKDIR /home/user/matching-logic-prover/prover
-RUN ./build -v unit-tests smoke-tests
+RUN ./build -v prover-smt
 
 ENV LC_ALL=C.UTF-8

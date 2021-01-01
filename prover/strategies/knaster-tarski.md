@@ -7,7 +7,6 @@ module STRATEGY-KNASTER-TARSKI
   imports STRATEGY-MATCHING
 ```
 
-
 ```k
   syntax Strategy ::= trace(String)
   rule <claim> Claim </claim>
@@ -793,11 +792,23 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   rule getFreeVariables(META-VARIABLE) => .Patterns
 
   syntax Strategies ::= "kt-abstract" "(" Symbol "," args: Patterns "," body: Pattern ")"
+```
+
+Pick the variaable 
+
+```k
   rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS)) </claim>
        <k> kt-abstract(S) => kt-abstract(S, getFreeVariables(CTXLSPATIAL -Patterns #hole { Heap }), \and(sep(CTXLSPATIAL -Patterns #hole { Heap }))) ... </k>
-  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS)) </claim>
-       <k> kt-abstract-full(S) => kt-abstract(S, getFreeVariables((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }), \and(sep((CTXLSPATIAL ++Patterns CTXRHS) -Patterns #hole { Heap }))) ... </k>
+```
 
+FOL Version:
+
+```k
+  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(CTXLHS), CTXRHS)) </claim>
+       <k> kt-abstract(S) => kt-abstract(S, getFreeVariables(CTXLHS -Patterns #hole { Bool }), \and(CTXLHS -Patterns #hole { Bool })) ... </k>
+```
+
+```k
   rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS))
             => \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(#hole { Heap }, S(VARs)), CTXLHS), CTXRHS))
        </claim>
@@ -814,6 +825,27 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
          ...
        </declarations>
     requires #hole { Heap } in CTXLSPATIAL
+```
+
+FOL version:
+
+```k
+  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(CTXLHS:Patterns), CTXRHS))
+            => \implies(LRP:Symbol(ARGs), implicationContext(\and(#hole { Bool }, S(VARs)), CTXRHS))
+       </claim>
+       <k> kt-abstract(S, VARs, Body) => noop ... </k>
+       <declarations>
+          .Bag
+       => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(VARs)))) : Bool </declaration>
+            <declaration> axiom !_:AxiomName : alphaRename( \forall {VARs}
+                                                            \iff-lfp( S(VARs)
+                                                                    , \or(META-VARIABLE, Body)
+                                                          )         )
+            </declaration>
+          )
+         ...
+       </declarations>
+    requires #hole { Bool } in CTXLHS
 ```
 
 ```k
@@ -840,6 +872,33 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
                                        )
        </declaration>
 ```
+
+FOL Version:
+
+```k
+  rule <claim> \implies(\and( \forall { .Patterns }
+                              implicationContext( \and(#hole{Bool}, S:Symbol(ARGs:Patterns))
+                                                , \exists {_} \and(CTXRHS:Patterns)
+                                                )
+                            , LHS:Patterns
+                            )
+                       , RHS
+                       )
+            => \implies(\and(\and(CTXRHS), LHS), RHS)
+       </claim>
+       <k> kt-abstract-refine => noop ... </k>
+       <declaration> axiom _ : \forall {DefnArgs}
+                               \iff-lfp( S(DefnArgs)
+                                       , ( \or( META-VARIABLE, Rest)
+                                        => \or( META-VARIABLE
+                                              , alphaRename(\exists { getFreeVariables(\and(LHS)) -Patterns ARGs }
+                                                            substMap(\and(LHS), zip(ARGs, DefnArgs)))
+                                              , Rest)
+                                         )
+                                       )
+       </declaration>
+```
+
 
 ```k
   rule <k> kt-abstract-finalize(S) => noop ... </k>
