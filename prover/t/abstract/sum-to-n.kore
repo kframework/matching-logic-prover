@@ -69,13 +69,13 @@ strategy canonicalize
         . kt-wrap(head: reachableInNSteps)
         . kt-abstract(Rpred)
         . kt-forall-intro . kt-unfold
-        . remove-lhs-existential . kt-unwrap . canonicalize . wait
+        . remove-lhs-existential . kt-unwrap . canonicalize 
         . with-each-implication-context( normalize-implication-context . context-case-analysis . kt-abstract-refine
                                        )
-        . ( ( check-lhs-constraint-unsat
+        . ( ( wait . check-lhs-constraint-unsat
             . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
             )
-          | ( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
+          | ( wait . canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4
             )
           )
 
