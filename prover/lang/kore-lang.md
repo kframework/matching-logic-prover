@@ -318,6 +318,7 @@ module KORE-HELPERS
   rule getReturnSort( lte ( ARGS ) ) => Bool
   rule getReturnSort( gte ( ARGS ) ) => Bool
   rule getReturnSort( isMember ( _ ) ) => Bool
+  rule getReturnSort( store ( _ ) ) => ArrayIntInt
   rule getReturnSort( nil { SORT } ( _ ) ) => SORT
   rule [[ getReturnSort( R ( ARGS ) )  => S ]]
        <declaration> symbol R ( _ ) : S </declaration>
@@ -557,6 +558,11 @@ and values, passed to K's substitute.
   rule PatternsToVariableNameSet(.Patterns) => .Set
   rule PatternsToVariableNameSet(N{_}, Ps)
        => SetItem(N) PatternsToVariableNameSet(Ps)
+```
+
+```k
+  syntax Patterns ::= getArgs(Pattern) [function]
+  rule getArgs(S:Symbol(Ps)) => Ps
 ```
 
 Capture-free substitution: Substitute term or variable.

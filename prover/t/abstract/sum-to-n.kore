@@ -70,7 +70,7 @@ strategy canonicalize
         . kt-abstract(Rpred)
         . kt-forall-intro . kt-unfold
         . remove-lhs-existential . kt-unwrap . canonicalize 
-        . with-each-implication-context( normalize-implication-context . context-case-analysis . kt-abstract-refine
+        . with-each-implication-context( normalize-implication-context . context-destructure(head: Rpred) . context-case-analysis . kt-abstract-refine
                                        )
         . ( ( wait . check-lhs-constraint-unsat
             . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4

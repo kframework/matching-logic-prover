@@ -173,7 +173,6 @@ for guessing an instantiation of the inductive hypothesis.
          <k> kt-wrap(head: S) => fail ... </k>
       requires getLength(filterByConstructor(getUnfoldables(LHS), S)) ==Int 0
 ```
-```
 
 ```k
   rule <claim> \implies(\and(LHS), RHS)
@@ -235,7 +234,6 @@ for guessing an instantiation of the inductive hypothesis.
        <k> kt-forall-elim => noop ... </k>
     requires getFreeVariables(LHS) -Patterns Vs ==K getFreeVariables(LHS)
 ```
-
 
 // unfold+lfp
 
@@ -877,7 +875,7 @@ FOL Version:
 
 ```k
   rule <claim> \implies(\and( \forall { .Patterns }
-                              implicationContext( \and(#hole{Bool}, S:Symbol(ARGs:Patterns))
+                              implicationContext( \and( #hole { Bool }, S:Symbol(ARGs:Patterns))
                                                 , \exists {_} \and(CTXRHS:Patterns)
                                                 )
                             , LHS:Patterns
@@ -887,13 +885,13 @@ FOL Version:
             => \implies(\and(\and(CTXRHS), LHS), RHS)
        </claim>
        <k> kt-abstract-refine => noop ... </k>
-       <declaration> axiom _ : \forall {DefnArgs}
+       <declaration> axiom _ : \forall { DefnArgs }
                                \iff-lfp( S(DefnArgs)
-                                       , ( \or( META-VARIABLE, Rest)
+                                       , ( \or( META-VARIABLE, Rest:Patterns)
                                         => \or( META-VARIABLE
-                                              , alphaRename(\exists { getFreeVariables(\and(LHS)) -Patterns ARGs }
-                                                            substMap(\and(LHS), zip(ARGs, DefnArgs)))
-                                              , Rest)
+                                              , alphaRename(\exists { getFreeVariables(\and(LHS:Patterns)) -Patterns ARGs:Patterns }
+                                                            substMap(\and(LHS:Patterns), zip(ARGs:Patterns, DefnArgs:Patterns)))
+                                              , Rest:Patterns)
                                          )
                                        )
        </declaration>
@@ -947,6 +945,42 @@ TODO: Change `kt-collapse` to use this.
                         )
            ...
        </k>
+```
+
+## context-destructure
+
+// FOL
+
+```k
+  rule <claim> \implies(\and( \forall { _ }
+                              implicationContext( ( \and(CTXLHS)
+                                                 => #fun( Substitution
+                                                       => \and((CTXLHS
+                                                       -Patterns getMember(0, filterByConstructor(CTXLHS, S)))
+                                                      ++Patterns S(fst(Substitution))
+                                                      ++Patterns makeEqualities(Substitution)
+                                                        )
+                                                    )(destructureArgs(getArgs(getMember(0, filterByConstructor(CTXLHS, S)))))
+                                                  )
+                                                , _ )
+                            , _
+                            )
+                       , _
+                       )
+       </claim>
+       <k> context-destructure(head: S:Symbol)
+        => noop
+           ...
+       </k>
+    requires lengthPatterns(filterByConstructor(CTXLHS, S)) ==Int 1
+    
+  rule <claim> \implies(\and( \forall { _ } implicationContext( \and(CTXLHS) , _ ) , _ ) , _ )
+       </claim>
+       <k> context-destructure(head: S:Symbol)
+        => "Cannot find pattern to destructure" ~> filterByConstructor(CTXLHS, S)
+           ...
+       </k>
+    requires lengthPatterns(filterByConstructor(CTXLHS, S)) =/=Int 1
 ```
 
 ```k
