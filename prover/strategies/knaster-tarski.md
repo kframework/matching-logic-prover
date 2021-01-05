@@ -835,6 +835,7 @@ FOL version:
        <declarations>
           .Bag
        => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(VARs)))) : Bool </declaration>
+            <declaration> axiom !_:AxiomName : functional(S) </declaration>
             <declaration> axiom !_:AxiomName : alphaRename( \forall {VARs}
                                                             \iff-lfp( S(VARs)
                                                                     , \or(META-VARIABLE, Body)
