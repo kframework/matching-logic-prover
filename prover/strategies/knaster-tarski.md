@@ -926,8 +926,7 @@ Instantiate universally quantified clauses in the LHS's first spatial part.
 
 ## `context-case-analysis`
 
-Case analysis for removing FOL clauses on the LCTX.
-TODO: Change `kt-collapse` to use this.
+Case analysis for removing predicates we are not interested in on the LCTX.
 
 ```k
   rule <claim> \implies(\and( sep( \forall { .Patterns }
@@ -941,6 +940,25 @@ TODO: Change `kt-collapse` to use this.
        <k> context-case-analysis
         => case-analysis( \and(getPredicatePatterns(CTXLHS))
                         , check-lhs-constraint-unsat
+                        , noop
+                        )
+           ...
+       </k>
+```
+
+FOL version:
+
+```k
+  rule <claim> \implies(\and( \forall { .Patterns }
+                              implicationContext( \and(CTXLHS => CTXLHS -Patterns getPredicatePatterns(CTXLHS)) , _ )
+                            , _
+                            )
+                       , _
+                       )
+       </claim>
+       <k> context-case-analysis
+        => case-analysis( \and(getPredicatePatterns(CTXLHS) -Patterns #hole {Bool}) // TODO: getPredicatePatterns is a bit of a mess we shouldn't need special criteria for #hole
+                        , noop
                         , noop
                         )
            ...
