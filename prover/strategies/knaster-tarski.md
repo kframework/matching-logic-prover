@@ -883,7 +883,7 @@ FOL Version:
                             )
                        , RHS
                        )
-            => \implies(\and(\and(CTXRHS), LHS), RHS)
+            => \implies(\and(CTXRHS), RHS)
        </claim>
        <k> kt-abstract-refine => noop ... </k>
        <declaration> axiom _ : \forall { DefnArgs }
