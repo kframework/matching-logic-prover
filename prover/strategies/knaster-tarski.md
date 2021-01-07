@@ -883,7 +883,7 @@ FOL Version:
                             )
                        , RHS
                        )
-            => \implies(\and(CTXRHS), RHS)
+            => \implies(\and(\and(LHS -Patterns filterByConstructor(S, LHS)), CTXRHS), RHS)
        </claim>
        <k> kt-abstract-refine => noop ... </k>
        <declaration> axiom _ : \forall { DefnArgs }
