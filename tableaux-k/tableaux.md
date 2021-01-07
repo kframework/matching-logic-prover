@@ -231,7 +231,7 @@ Check for mu/nu traces
          <defnList> DefnList </defnList>
       requires sequentHasRecurred()
        andBool C in Generated
-       andBool isNuConstant(getOldestRegnerated(Generated))
+       andBool isNuConstant(getOldestRegnerated(Generated)) // If there is no mu trace, there must be a nu trace, so this is redundant
                [owise]
 ```
 
