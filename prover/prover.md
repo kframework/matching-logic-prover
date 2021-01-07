@@ -105,7 +105,6 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "instantiate-context" "(" Variable "," Pattern ")"
                     
                     | "context-destructure" "(" "head:" Symbol ")"
-                    | "context-destructure-simplify"
                     | "context-case-analysis"
 
                     | "instantiate-existentials-implication-context"  | "imp-ctx-unfold" // TODO: These strategies should be in terms of `instantiate-existentials` and `right-unfold`
