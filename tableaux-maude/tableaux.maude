@@ -214,12 +214,19 @@ mod MATCHING-LOGIC-TABLEAUX is
 
     op [_;_] : PatternSet DefinitionList -> Sequent [ctor] .
    --------------------------------------------------
-   ceq [ Gamma ; DefList ] = < Gamma ; DefList >
-    if isConsistent(Gamma)
-     .
+    eq [ Gamma ; DefList ] = consistent?(< Gamma ; DefList >) .
+
+    op consistent? : Sequent -> Sequent [frozen] .
+    -------------------------------------
+   ceq consistent?(< Gamma ; DefList >) = < Gamma ; DefList > if     isConsistent(Gamma) .
+   ceq consistent?(< Gamma ; DefList >) = unsat( Gamma )      if not isConsistent(Gamma) .
+    op unsat : PatternSet -> [Sequent] [ctor] .
+
+   --- TODO: Something is broken in the frozen attributes
+    eq consistent?(unsat(Gamma)) = unsat( Gamma ).
 
     op isConsistent(_) : PatternSet -> Bool .
-    --------------------------------------
+    -----------------------------------------
     eq isConsistent(empty)               = true .
     eq isConsistent(Sy, \not Sy,  Gamma) = false .
    ceq isConsistent(     Sy,      Gamma) = isConsistent(Gamma) if not (\not Sy) in Gamma .
