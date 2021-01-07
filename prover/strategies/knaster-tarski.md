@@ -1003,6 +1003,27 @@ FOL version:
 ```
 
 ```k
+  rule <claim> \implies(\and( \forall { .Patterns }
+                              implicationContext( \and ( #hole { Bool }, S:Symbol(ARGs:Patterns), \equals(L,R))
+                                                , \exists { .Patterns } \and(CTXRHS:Patterns)
+                                                )
+                            , LHS:Patterns
+                            )
+                       , RHS
+                       )
+            => \implies(\and( \forall { .Patterns }
+                              implicationContext( \and( #hole { Bool }, S(ARGs))
+                                                , \exists { .Patterns } \and(CTXRHS)
+                                                )
+                            , \and (\equals(L,R), LHS)
+                            )
+                       , RHS
+                       )
+       </claim>
+       <k> context-destructure-simplify => noop ... </k>
+```
+
+```k
 endmodule
 ```
 

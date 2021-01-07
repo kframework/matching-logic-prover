@@ -69,13 +69,10 @@ strategy canonicalize
         . kt-wrap(head: reachableInNSteps)
         . kt-abstract(Rpred)
         . kt-forall-intro . kt-unfold
-        . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials
-        . with-each-implication-context( normalize-implication-context . kt-abstract-refine )
-        . kt-abstract-finalize(Rpred)
-        . canonicalize
-        . ( ( check-lhs-constraint-unsat . smt-debug )
-          | ( smt-debug )
-          )
+        . remove-lhs-existential . kt-unwrap . canonicalize
+        . with-each-implication-context( normalize-implication-context . context-destructure(head: Rpred) 
+                                          . context-destructure-simplify . kt-abstract-refine ) 
+        . ( smt-cvc4 | wait )
 
 
 
