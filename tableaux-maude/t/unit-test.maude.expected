@@ -1,8 +1,8 @@
 Pattern: \not a
-Pattern: < a > a
-Pattern: < a > X{0}
-Pattern: [a]a
-Pattern: [a]X{0}
+Pattern: < a a >
+Pattern: < a (X{0}) >
+Pattern: [a a]
+Pattern: [a (X{0})]
 Pattern: \and(X{0}, \and(Y{0}, Z{0}))
 Pattern: \and(\and(Y{0}, Z{0}), Z{0})
 ==========================================
@@ -20,23 +20,23 @@ result IndexedSetVariable: Z{0}
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] X{0} .
 result IndexedSetVariable: Y{0}
 ==========================================
-reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] < a > X{0} .
-result Pattern: < a > Y{0}
+reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] < a (X{0}) > .
+result Pattern: < a (Y{0}) >
 ==========================================
-reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] < a > Y{0} .
-result Pattern: < a > Y{0}
+reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] < a (Y{0}) > .
+result Pattern: < a (Y{0}) >
 ==========================================
-reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] < a > Z{0} .
-result Pattern: < a > Z{0}
+reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] < a (Z{0}) > .
+result Pattern: < a (Z{0}) >
 ==========================================
-reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] [a]X{0} .
-result Pattern: [a]Y{0}
+reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] [a (X{0})] .
+result Pattern: [a (Y{0})]
 ==========================================
-reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] [a]Y{0} .
-result Pattern: [a]Y{0}
+reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] [a (Y{0})] .
+result Pattern: [a (Y{0})]
 ==========================================
-reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] [a]Z{0} .
-result Pattern: [a]Z{0}
+reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] [a (Z{0})] .
+result Pattern: [a (Z{0})]
 ==========================================
 reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \and(X{0}, Y{0}) .
 result Pattern: \and(Y{0}, Y{0})
@@ -95,34 +95,34 @@ result DefinitionList: nil
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(X{0}, Y{0})) .
 result DefinitionList: nil
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X{0}), \mu Y . \or(b, < a > Y{0}))) .
-result DefinitionConstant: u(0) := \mu * . \or(b, < a > *{0})
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a (X{0}) >), \mu Y . \or(b, < a (Y{0}) >))) .
+result DefinitionConstant: u(0) := \mu * . \or(b, < a (*{0}) >)
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X{0}), \mu Y . \or(b, < c > Y{0}))) .
-result NeDefinitionList: (u(0) := \mu * . \or(b, < a > *{0})) (u(1) := \mu * . \or(b, < c > *{0}))
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a (X{0}) >), \mu Y . \or(b, < c (Y{0}) >))) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, < a (*{0}) >)) (u(1) := \mu * . \or(b, < c (*{0}) >))
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a > X{0}), \mu X . \or(b, < a > X{0}))) .
-result DefinitionConstant: u(0) := \mu * . \or(b, < a > *{0})
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a (X{0}) >), \mu X . \or(b, < a (X{0}) >))) .
+result DefinitionConstant: u(0) := \mu * . \or(b, < a (*{0}) >)
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu Y . < a > Y{0})) .
-result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{0})) (v(1) := \nu * . < a > *{0})
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu Y . < a (Y{0}) >)) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a (*{0}) >)) (v(1) := \nu * . < a (*{0}) >)
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu X . < a > X{0})) .
-result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{0})) (v(1) := \nu * . < a > *{0})
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu X . < a (X{0}) >)) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a (*{0}) >)) (v(1) := \nu * . < a (*{0}) >)
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu X . < a > X{1})) .
-result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{1})) (v(1) := \nu * . < a > u(0){0})
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu X . < a (X{1}) >)) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a (*{1}) >)) (v(1) := \nu * . < a (u(0){0}) >)
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu Y . < a > X{0})) .
-result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a > *{1})) (v(1) := \nu * . < a > u(0){0})
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\mu X . \or(b, \nu Y . < a (X{0}) >)) .
+result NeDefinitionList: (u(0) := \mu * . \or(b, \nu * . < a (*{1}) >)) (v(1) := \nu * . < a (u(0){0}) >)
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\nu Y . < a > Y{0}) .
-result DefinitionConstant: v(0) := \nu * . < a > *{0}
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\nu Y . < a (Y{0}) >) .
+result DefinitionConstant: v(0) := \nu * . < a (*{0}) >
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0})), \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0})))) .
-result NeDefinitionList: (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0}))
+reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or([a (X{0})], \nu Y . \and(c, [a (Y{0})])), \nu X . \and(< a (X{0}) >, \mu Y . \or(\not c, < a (Y{0}) >)))) .
+result NeDefinitionList: (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >))
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(\and(\mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0})), \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0})))) .
+reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(\and(\mu X . \or([a (X{0})], \nu Y . \and(c, [a (Y{0})])), \nu X . \and(< a (X{0}) >, \mu Y . \or(\not c, < a (Y{0}) >)))) .
 result Bool: true
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(c, a, \not c) .
@@ -134,6 +134,6 @@ result Bool: true
 reduce in MATCHING-LOGIC-TABLEAUX : isConsistent(a, \not c) .
 result Bool: true
 ==========================================
-reduce in MATCHING-LOGIC-TABLEAUX : isReduced(\not c, < a > u(2){0}, [a]u(0){0} ; nil) .
+reduce in MATCHING-LOGIC-TABLEAUX : isReduced(\not c, < a (u(2){0}) >, [a (u(0){0})] ; nil) .
 result Bool: true
 Bye.

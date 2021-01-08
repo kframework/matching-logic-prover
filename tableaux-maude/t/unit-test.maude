@@ -8,10 +8,10 @@ set show timing off .
 select MATCHING-LOGIC-PATTERN .
 
 parse \not a .
-parse < a > a .
-parse < a > X { 0 } .
-parse [ a ] a .
-parse [ a ] X { 0 } .
+parse < a ( a ) > .
+parse < a ( X { 0 } ) > .
+parse [ a ( a ) ] .
+parse [ a ( X { 0 } ) ] .
 parse \and(X { 0 }, \and(Y { 0 }, Z {0}))  .
 parse \and(\and(Y { 0 }, Z {0}), Z {0})  .
 reduce \and(\and(Y { 0 }, Z {0}), Z {0})  .
@@ -30,12 +30,12 @@ reduce [X := Y {0}] a .
 reduce [X := Y {0}] Z {0} .
 reduce [X := Y {0}] X {0} .
  
-reduce [X := Y{0}] < a > X{0} .
-reduce [X := Y{0}] < a > Y{0} .
-reduce [X := Y{0}] < a > Z{0} .
-reduce [X := Y{0}] [ a ] X{0} .
-reduce [X := Y{0}] [ a ] Y{0} .
-reduce [X := Y{0}] [ a ] Z{0} .
+reduce [X := Y{0}] < a ( X{0} ) > .
+reduce [X := Y{0}] < a ( Y{0} ) > .
+reduce [X := Y{0}] < a ( Z{0} ) > .
+reduce [X := Y{0}] [ a ( X{0} ) ] .
+reduce [X := Y{0}] [ a ( Y{0} ) ] .
+reduce [X := Y{0}] [ a ( Z{0} ) ] .
 
 reduce [X := Y{0}] \and(X{0}, Y{0}) .
 reduce [X := Y{0}] \and(Y{0}, X{0}) .
@@ -69,36 +69,36 @@ reduce contract(X {0}) .
 reduce contract(a) .
 reduce contract(\and(X {0}, Y {0})) .
 
-reduce contract(\and( \mu X . \or(b, < a > X {0})
-                    , \mu Y . \or(b, < a > Y {0})
+reduce contract(\and( \mu X . \or(b, < a ( X {0}) > )
+                    , \mu Y . \or(b, < a ( Y {0}) > )
                     )
                ) .
-reduce contract(\and( \mu X . \or(b, < a > X {0})
-                    , \mu Y . \or(b, < c > Y {0})
+reduce contract(\and( \mu X . \or(b, < a ( X {0}) > )
+                    , \mu Y . \or(b, < c ( Y {0}) > )
                     )
                ) .
-reduce contract(\and( \mu X . \or(b, < a > X {0})
-                    , \mu X . \or(b, < a > X {0})
+reduce contract(\and( \mu X . \or(b, < a ( X {0}) > )
+                    , \mu X . \or(b, < a ( X {0}) > )
                     )
                ) .
 
-reduce contract(\mu X . \or(b, \nu Y . < a > Y {0}) ) .
+reduce contract(\mu X . \or(b, \nu Y . < a ( Y {0}) > ) ) .
 
-reduce contract(\mu X . \or(b, \nu X . < a > X {0}) ) .
-reduce contract(\mu X . \or(b, \nu X . < a > X {1}) ) .
-reduce contract(\mu X . \or(b, \nu Y . < a > X {0}) ) .
+reduce contract(\mu X . \or(b, \nu X . < a ( X {0}) > ) ) .
+reduce contract(\mu X . \or(b, \nu X . < a ( X {1}) > ) ) .
+reduce contract(\mu X . \or(b, \nu Y . < a ( X {0}) > ) ) .
 
-reduce contract(\nu Y . < a > Y {0}) .
+reduce contract(\nu Y . < a ( Y {0} ) > ) .
 
 
-reduce contract( \and( \mu X . \or ([ a ] X {0}, \nu Y . \and([ a ] Y {0}, c))
-                     , \nu X . \and(< a > X {0}, \mu Y . \or (< a > Y {0}, \not c))
+reduce contract( \and( \mu X . \or ([ a  ( X {0}) ] , \nu Y . \and([ a  ( Y {0}) ] , c))
+                     , \nu X . \and(< a ( X {0}) >, \mu Y . \or (< a ( Y {0}) >, \not c))
                )     ) .
 
 --- isConsistent 
-reduce isConsistent(\and( \mu X . \or([a]X {0}, \nu Y . \and(c, [a]Y{0}))
-                        , \nu X . \and( < a > X {0}
-                                      , \mu Y . \or(\not c, < a > Y {0})
+reduce isConsistent(\and( \mu X . \or([a (X {0}) ] , \nu Y . \and(c, [a (Y{0}) ] ))
+                        , \nu X . \and( < a ( X {0}) >
+                                      , \mu Y . \or(\not c, < a (Y {0}) >)
                                       )
                         )
                    ) .
@@ -107,4 +107,4 @@ reduce isConsistent(c, a) .
 reduce isConsistent(\not c, a) .
 
 --- isReduced
-reduce isReduced(\not c, < a > u(2){0}, [a]u(0){0} ; nil ) .
+reduce isReduced(\not c, < a (u(2){0}) >, [a (u(0){0}) ] ; nil ) .

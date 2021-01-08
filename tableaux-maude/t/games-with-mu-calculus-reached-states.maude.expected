@@ -1,119 +1,119 @@
 ==========================================
-search in MATCHING-LOGIC-TABLEAUX : tableaux(\and(\mu X . \or([a]X{0}, \nu Y . \and(c, [a]Y{0})), \nu X . \and(< a > X{0}, \mu Y . \or(\not c, < a > Y{0})))) =>* Sequent:Sequent .
+search in MATCHING-LOGIC-TABLEAUX : tableaux(\and(\mu X . \or([a (X{0})], \nu Y . \and(c, [a (Y{0})])), \nu X . \and(< a (X{0}) >, \mu Y . \or(\not c, < a (Y{0}) >)))) =>* Sequent:Sequent .
 
 Solution 1 (state 0)
-Sequent:Sequent --> < < a > v(2){0}, \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a (v(2){0}) >, \or(\not c, < a (u(3){0}) >), \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 2 (state 1)
-Sequent:Sequent --> < \not c, < a > v(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, < a (v(2){0}) >, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 3 (state 2)
-Sequent:Sequent --> < < a > u(3){0}, < a > v(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a (u(3){0}) >, < a (v(2){0}) >, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 4 (state 3)
-Sequent:Sequent --> < < a > v(2){0}, [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a (v(2){0}) >, [a (u(0){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 5 (state 4)
-Sequent:Sequent --> < c, < a > v(2){0}, [a]v(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, < a (v(2){0}) >, [a (v(1){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 6 (state 5)
-Sequent:Sequent --> < \not c, < a > v(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, < a (v(2){0}) >, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 7 (state 7)
-Sequent:Sequent --> < < a > u(3){0}, < a > v(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a (u(3){0}) >, < a (v(2){0}) >, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 8 (state 8)
-Sequent:Sequent --> < c, < a > u(3){0}, < a > v(2){0}, [a]v(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, < a (u(3){0}) >, < a (v(2){0}) >, [a (v(1){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 9 (state 9)
-Sequent:Sequent --> < \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \or(\not c, < a (u(3){0}) >), \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 10 (state 10)
-Sequent:Sequent --> < c, [a]v(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, [a (v(1){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 11 (state 11)
-Sequent:Sequent --> < \not c, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 12 (state 12)
-Sequent:Sequent --> < < a > u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a (u(3){0}) >, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 13 (state 13)
-Sequent:Sequent --> < [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < [a (u(0){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 14 (state 15)
-Sequent:Sequent --> < c, < a > u(3){0}, [a]v(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < c, < a (u(3){0}) >, [a (v(1){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 15 (state 16)
-Sequent:Sequent --> < \not c, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < \not c, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 Solution 16 (state 17)
-Sequent:Sequent --> < < a > u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+Sequent:Sequent --> < < a (u(3){0}) >, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
 No more solutions.
-state 0, Sequent: < < a > v(2){0}, \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 0, Sequent: < < a (v(2){0}) >, \or(\not c, < a (u(3){0}) >), \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 1 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 2 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 2 ===> state 3 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 3 ===> state 4 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 1, Sequent: < \not c, < a > v(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 1, Sequent: < \not c, < a (v(2){0}) >, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 5 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 6 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 2, Sequent: < < a > u(3){0}, < a > v(2){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 2, Sequent: < < a (u(3){0}) >, < a (v(2){0}) >, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 7 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 8 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 3, Sequent: < < a > v(2){0}, [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 3, Sequent: < < a (v(2){0}) >, [a (u(0){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 5 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 7 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 4, Sequent: < c, < a > v(2){0}, [a]v(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 4, Sequent: < c, < a (v(2){0}) >, [a (v(1){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 6 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 8 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 5, Sequent: < \not c, < a > v(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
-arc 0 ===> state 0 (crl < Gamma, < Sy > P ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
+state 5, Sequent: < \not c, < a (v(2){0}) >, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
+arc 0 ===> state 0 (crl < Gamma, < Sy P > ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
 
-state 6, [Sequent]: unsat((c, \not c, < a > v(2){0}, [a]v(1){0}))
+state 6, [Sequent]: unsat((c, \not c, < a (v(2){0}) >, [a (v(1){0})]))
 
-state 7, Sequent: < < a > u(3){0}, < a > v(2){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
-arc 0 ===> state 0 (crl < Gamma, < Sy > P ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
-arc 1 ===> state 9 (crl < Gamma, < Sy > P ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
+state 7, Sequent: < < a (u(3){0}) >, < a (v(2){0}) >, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
+arc 0 ===> state 0 (crl < Gamma, < Sy P > ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
+arc 1 ===> state 9 (crl < Gamma, < Sy P > ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
 
-state 8, Sequent: < c, < a > u(3){0}, < a > v(2){0}, [a]v(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
-arc 0 ===> state 4 (crl < Gamma, < Sy > P ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
-arc 1 ===> state 10 (crl < Gamma, < Sy > P ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
+state 8, Sequent: < c, < a (u(3){0}) >, < a (v(2){0}) >, [a (v(1){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
+arc 0 ===> state 4 (crl < Gamma, < Sy P > ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
+arc 1 ===> state 10 (crl < Gamma, < Sy P > ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
 
-state 9, Sequent: < \or(\not c, < a > u(3){0}), \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 9, Sequent: < \or(\not c, < a (u(3){0}) >), \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 10 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 11 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 2 ===> state 12 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 3 ===> state 13 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 10, Sequent: < c, [a]v(1){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 10, Sequent: < c, [a (v(1){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 14 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 15 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 11, Sequent: < \not c, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 11, Sequent: < \not c, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 14 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 16 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 12, Sequent: < < a > u(3){0}, \or([a]u(0){0}, \nu * . \and(c, [a]*{0})) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 12, Sequent: < < a (u(3){0}) >, \or([a (u(0){0})], \nu * . \and(c, [a (*{0})])) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 15 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 17 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 13, Sequent: < [a]u(0){0}, \or(\not c, < a > u(3){0}) ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 13, Sequent: < [a (u(0){0})], \or(\not c, < a (u(3){0}) >) ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 arc 0 ===> state 16 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 arc 1 ===> state 17 (crl < Gamma, \or(P1, P2) ; DefList > => [P1, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-l] .) (crl < Gamma, \or(P1, P2) ; DefList > => [P2, Gamma ; DefList] if P1 =/= \bottom = true /\ P2 =/= \bottom = true [label or-r] .)
 
-state 14, [Sequent]: unsat((c, \not c, [a]v(1){0}))
+state 14, [Sequent]: unsat((c, \not c, [a (v(1){0})]))
 
-state 15, Sequent: < c, < a > u(3){0}, [a]v(1){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
-arc 0 ===> state 10 (crl < Gamma, < Sy > P ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
+state 15, Sequent: < c, < a (u(3){0}) >, [a (v(1){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
+arc 0 ===> state 10 (crl < Gamma, < Sy P > ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
 
-state 16, Sequent: < \not c, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
+state 16, Sequent: < \not c, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
 
-state 17, Sequent: < < a > u(3){0}, [a]u(0){0} ; (u(0) := \mu * . \or([a]*{0}, \nu * . \and(c, [a]*{0}))) (v(1) := \nu * . \and(c, [a]*{0})) (v(2) := \nu * . \and(< a > *{0}, \mu * . \or(\not c, < a > *{0}))) (u(3) := \mu * . \or(\not c, < a > *{0})) >
-arc 0 ===> state 9 (crl < Gamma, < Sy > P ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
+state 17, Sequent: < < a (u(3){0}) >, [a (u(0){0})] ; (u(0) := \mu * . \or([a (*{0})], \nu * . \and(c, [a (*{0})]))) (v(1) := \nu * . \and(c, [a (*{0})])) (v(2) := \nu * . \and(< a (*{0}) >, \mu * . \or(\not c, < a (*{0}) >))) (u(3) := \mu * . \or(\not c, < a (*{0}) >)) >
+arc 0 ===> state 9 (crl < Gamma, < Sy P > ; DefList > => [P, getBetas(Sy ; Gamma) ; DefList] if isReduced(Gamma ; DefList) = true [label all<>] .)
 Bye.

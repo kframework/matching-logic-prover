@@ -2,7 +2,7 @@ fmod MATCHING-LOGIC-PATTERN is
     protecting NAT .
 
     sort Symbol .
-    ops a b c : -> Symbol [ctor] .
+    ops a b c next : -> Symbol [ctor] .
 
     --- SetVariable ---
     -------------------
@@ -28,8 +28,8 @@ fmod MATCHING-LOGIC-PATTERN is
     op \not _  : Symbol -> Pattern [ctor] .
 
     --- We use Modal Mu Calculus application syntax for now.
-    op < _ > _ : Symbol Pattern -> Pattern [ctor] .
-    op [ _ ] _ : Symbol Pattern -> Pattern [ctor] .
+    op < _  _ > : Symbol Pattern -> Pattern [ctor] .
+    op [ _  _ ] : Symbol Pattern -> Pattern [ctor] .
 
     op \and : Pattern Pattern -> Pattern [ctor assoc comm id: \top] .
     op \or  : Pattern Pattern -> Pattern [ctor assoc comm id: \bottom] .
@@ -85,8 +85,8 @@ fmod MATCHING-LOGIC-SUBSTITUTION is
 
     eq Subst Sy = Sy .
     eq Subst \not Sy = \not (Subst Sy) .
-    eq Subst < Sy > P1 = < Subst Sy > Subst P1 .
-    eq Subst [ Sy ] P1 = [ Subst Sy ] Subst P1 .
+    eq Subst < Sy P1 > = < (Subst Sy) (Subst P1) > .
+    eq Subst [ Sy P1 ] = [ (Subst Sy) (Subst P1) ] .
    ceq Subst \and(P1, P2) = \and(Subst P1, Subst P2) if P1 =/= \top    /\ P2 =/= \top    .
    ceq Subst \or (P1, P2) = \or (Subst P1, Subst P2) if P1 =/= \bottom /\ P2 =/= \bottom .
 
@@ -163,8 +163,8 @@ fmod MATCHING-LOGIC-TABLEAUX-CONTRACT is
     eq contract(DefList, Rank, Sy)           = nil .
     eq contract(DefList, Rank, SVar { I })   = nil .
     eq contract(DefList, Rank, \not Sy)      = nil .
-    eq contract(DefList, Rank, < Sy > P)     = contract(DefList, Rank, P) .
-    eq contract(DefList, Rank, [ Sy ] P)     = contract(DefList, Rank, P) .
+    eq contract(DefList, Rank, < Sy  P > )   = contract(DefList, Rank, P) .
+    eq contract(DefList, Rank, [ Sy  P ] )   = contract(DefList, Rank, P) .
    ceq contract(DefList, Rank, \and(P1, P2)) = merge(contract(DefList, Rank, P1), Rank, P2) if P1 =/= \top    /\ P2 =/= \top .
    ceq contract(DefList, Rank, \or (P1, P2)) = merge(contract(DefList, Rank, P1), Rank, P2) if P1 =/= \bottom /\ P2 =/= \bottom .
 
@@ -231,6 +231,8 @@ mod MATCHING-LOGIC-TABLEAUX is
     eq isConsistent(Sy, \not Sy,  Gamma) = false .
    ceq isConsistent(     Sy,      Gamma) = isConsistent(Gamma) if not (\not Sy) in Gamma .
    ceq isConsistent(\not Sy,      Gamma) = isConsistent(Gamma) if not (     Sy) in Gamma .
+    eq isConsistent([ P1 P2 ],    Gamma) = isConsistent(Gamma) .
+    eq isConsistent(< P1 P2 >,    Gamma) = isConsistent(Gamma) .
     eq isConsistent(\and(P1, P2), Gamma) = isConsistent(Gamma) .
     eq isConsistent(\or (P1, P2), Gamma) = isConsistent(Gamma) .
     eq isConsistent(\mu SVar . P, Gamma) = isConsistent(Gamma) .
@@ -274,7 +276,7 @@ mod MATCHING-LOGIC-TABLEAUX is
      .
 
    --- The "all<>" rule is non-deterministic, so use a rule rather than an equation
-   crl [all<>] : < < Sy > P , Gamma ; DefList >
+   crl [all<>] : < < Sy P > , Gamma ; DefList >
               => -------------------------------------
                  [ P, getBetas(Sy ; Gamma) ; DefList ]
        if isReduced(Gamma ; DefList)
@@ -286,8 +288,8 @@ mod MATCHING-LOGIC-TABLEAUX is
    ceq isReduced(\or (P1, P2), Gamma ; DefList) = false if P1 =/= \bottom /\ P2 =/= \bottom .
     eq isReduced(\mu SVar1 . P, Gamma ; DefList) = false .
     eq isReduced(\nu SVar1 . P, Gamma ; DefList) = false .
-    eq isReduced(< Sy > P, Gamma ; DefList) = isReduced(Gamma ; DefList) .
-    eq isReduced([ Sy ] P, Gamma ; DefList) = isReduced(Gamma ; DefList) .
+    eq isReduced(< Sy P >, Gamma ; DefList) = isReduced(Gamma ; DefList) .
+    eq isReduced([ Sy P ], Gamma ; DefList) = isReduced(Gamma ; DefList) .
     eq isReduced(Sy, Gamma ; DefList) = isReduced(Gamma ; DefList) .
    ceq isReduced(SVar {I}, Gamma ; DefList) = isReduced(Gamma ; DefList) if not SVar in domain(DefList) .
     eq isReduced(SVar {0}, Gamma ; (SVar := P) DefList) = false .
@@ -295,7 +297,7 @@ mod MATCHING-LOGIC-TABLEAUX is
 
     op getBetas(_;_) : Symbol PatternSet -> PatternSet .
     eq getBetas(Sy ; empty ) = empty .
-    eq getBetas(Sy ; [ Sy ] P , Gamma ) = P, getBetas(Sy ; Gamma ) .
+    eq getBetas(Sy ; [ Sy P ] , Gamma ) = P, getBetas(Sy ; Gamma ) .
     eq getBetas(Sy ; P , Gamma ) = getBetas(Sy ; Gamma ) [owise] .
 
 endm
