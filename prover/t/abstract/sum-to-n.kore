@@ -70,7 +70,7 @@ strategy canonicalize
         . kt-abstract(Rpred)
         . kt-forall-intro . kt-unfold
         . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials
-        . with-each-implication-context( normalize-implication-context . kt-abstract-refine )
+        . with-each-implication-context( normalize-implication-context . context-destructure(head: Rpred) . kt-abstract-refine )
         . wait . ( ( check-lhs-constraint-unsat . smt-debug )
           | ( smt-debug )
           )

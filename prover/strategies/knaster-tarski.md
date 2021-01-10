@@ -971,23 +971,31 @@ FOL version:
 // FOL
 
 ```k
+  syntax Strategy ::= "context-destructure" "(" Pattern "," Pair ")"
+
+  rule <claim> \implies(\and( \forall { _ } implicationContext( \and(CTXLHS) , _ ) , LHS ) , _ ) </claim>
+       <k> context-destructure(head: S:Symbol)
+        => context-destructure( getMember(0, filterByConstructor(CTXLHS, S))
+                              , (destructureArgs(getArgs(getMember(0, filterByConstructor(CTXLHS, S)))))
+                              )
+           ...
+       </k>
+    requires lengthPatterns(filterByConstructor(CTXLHS, S)) ==Int 1
+
   rule <claim> \implies(\and( \forall { _ }
                               implicationContext( ( \and(CTXLHS)
-                                                 => #fun( Substitution
-                                                       => \and((CTXLHS
-                                                       -Patterns getMember(0, filterByConstructor(CTXLHS, S)))
+                                                 => \and((CTXLHS
+                                                       -Patterns S(Args))
                                                       ++Patterns S(fst(Substitution))
-                                                      ++Patterns makeEqualities(Substitution)
                                                         )
-                                                    )(destructureArgs(getArgs(getMember(0, filterByConstructor(CTXLHS, S)))))
                                                   )
                                                 , _ )
-                            , _
+                            , (LHS => LHS ++Patterns makeEqualities(Substitution))
                             )
                        , _
                        )
        </claim>
-       <k> context-destructure(head: S:Symbol)
+       <k> context-destructure(S(Args), Substitution)
         => noop
            ...
        </k>
