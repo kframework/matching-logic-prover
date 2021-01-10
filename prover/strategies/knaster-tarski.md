@@ -881,13 +881,13 @@ FOL Version:
                                                 )
                             , LHS:Patterns
                             )
-                       , RHS
+                       , RHS:Pattern
                        )
-            => \implies(\and(\and(LHS -Patterns filterByConstructor(S, LHS)), CTXRHS), RHS)
+            => \implies(\and((LHS -Patterns filterByConstructor(LHS, S)) ++Patterns CTXRHS), RHS)
        </claim>
        <k> kt-abstract-refine => noop ... </k>
        <declaration> axiom _ : \forall { DefnArgs }
-                               \iff-lfp( S(DefnArgs)
+                               \iff-lfp( S(DefnArgs:Patterns)
                                        , ( \or( META-VARIABLE, Rest:Patterns)
                                         => \or( META-VARIABLE
                                               , alphaRename(\exists { getFreeVariables(\and(LHS:Patterns)) -Patterns ARGs:Patterns }
