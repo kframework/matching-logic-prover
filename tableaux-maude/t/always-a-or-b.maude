@@ -1,8 +1,0 @@
-in "../tableaux.maude" .
-
-search tableaux( \nu X . \and(\or(a, b), < next (X{0}) >) )
-   =>* Sequent:Sequent
-    .
-
-show search graph .
-
