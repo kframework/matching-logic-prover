@@ -199,6 +199,7 @@ mod MATCHING-LOGIC-TABLEAUX is
     vars SVar SVar1 SVar2 : SetVariable .
     vars Sy Sy1 Sy2 : Symbol .
     vars I : Nat .
+    vars Seq : Sequent .
 
     op tableaux : Pattern -> Sequent .
     -----------------------------------
@@ -276,11 +277,20 @@ mod MATCHING-LOGIC-TABLEAUX is
      .
 
    --- The "all<>" rule is non-deterministic, so use a rule rather than an equation
-   crl [all<>] : < < Sy P > , Gamma ; DefList >
+   crl [all<>] : < Gamma ; DefList >
               => -------------------------------------
-                 [ P, getBetas(Sy ; Gamma) ; DefList ]
+                 all<>(Gamma ; DefList)
        if isReduced(Gamma ; DefList)
      .
+
+    op  . : -> Sequent [ctor] .
+    op _ && _ : Sequent Sequent -> Sequent [assoc comm id: . idem] .
+
+    op all<>(_; _) : PatternSet DefinitionList -> Sequent .
+    eq all<>(< Sy P > , Gamma ; DefList)
+     = [ P , getBetas(Sy ; Gamma) ; DefList ] && all<>( Gamma ; DefList)
+       .
+    eq all<>(Gamma ; DefList) = . [owise] .
 
     op isReduced(_ ; _) : PatternSet DefinitionList -> Bool .
     eq isReduced(empty ; DefList) = true .
