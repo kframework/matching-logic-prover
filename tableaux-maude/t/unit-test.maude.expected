@@ -87,13 +87,13 @@ reduce in MATCHING-LOGIC-SUBSTITUTION : [X := Y{0}] \nu Z . Z{0} .
 result Pattern: \nu * . *{0}
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(X{0}) .
-result DefinitionList: nil
+result DefinitionList: (nil).DefinitionList
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(a) .
-result DefinitionList: nil
+result DefinitionList: (nil).DefinitionList
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(X{0}, Y{0})) .
-result DefinitionList: nil
+result DefinitionList: (nil).DefinitionList
 ==========================================
 reduce in MATCHING-LOGIC-TABLEAUX : contract(\and(\mu X . \or(b, < a (X{0}) >), \mu Y . \or(b, < a (Y{0}) >))) .
 result DefinitionConstant: u(0) := \mu * . \or(b, < a (*{0}) >)

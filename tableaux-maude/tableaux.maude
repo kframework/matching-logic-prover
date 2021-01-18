@@ -54,6 +54,17 @@ fmod MATCHING-LOGIC-PATTERN-SET is
             * (sort NeSet{Pattern} to NePatternSet, sort Set{Pattern} to PatternSet) .
 endfm
 
+
+view PatternSet from TRIV to MATCHING-LOGIC-PATTERN-SET is
+    sort Elt to PatternSet .
+endv
+
+fmod MATCHING-LOGIC-PATTERN-SET-LIST is
+    protecting MATCHING-LOGIC-PATTERN .
+    including LIST{PatternSet}
+            * (sort NeList{PatternSet} to NePatternSetList, sort List{PatternSet} to PatternSetList) .
+endfm
+
 --- TODO: Should we move this to CINNI?
 fmod MATCHING-LOGIC-SUBSTITUTION is
     protecting MATCHING-LOGIC-PATTERN-SET .
@@ -190,8 +201,10 @@ endfm
 
 mod MATCHING-LOGIC-TABLEAUX is
     protecting MATCHING-LOGIC-TABLEAUX-CONTRACT .
+    protecting MATCHING-LOGIC-PATTERN-SET-LIST .
 
     sort Sequent .
+
 
     var DefList DefList1 DefList2 : DefinitionList .
     vars P P1 P2 : Pattern .
@@ -200,10 +213,11 @@ mod MATCHING-LOGIC-TABLEAUX is
     vars Sy Sy1 Sy2 : Symbol .
     vars I : Nat .
     vars Seq : Sequent .
+    vars Hist : PatternSetList .
 
     op tableaux : Pattern -> Sequent .
     -----------------------------------
-    eq tableaux(P) = [ P ; contract(P) ] .
+    eq tableaux(P) = [ P ; contract(P) ; nil ] .
 
     --- Is Inconsistent? ----
     -------------------------
@@ -213,18 +227,19 @@ mod MATCHING-LOGIC-TABLEAUX is
     --- We implement this via the special sequent `[_;_]`.
     --- This sequent equals an ordinary sequent only if Gamma is consistent.
 
-    op [_;_] : PatternSet DefinitionList -> Sequent [ctor] .
+
+    op [_;_;_] : PatternSet DefinitionList PatternSetList -> Sequent [ctor] .
    --------------------------------------------------
-    eq [ Gamma ; DefList ] = consistent?(< Gamma ; DefList >) .
+    eq [ Gamma ; DefList ; Hist ] = continue?(Gamma ; DefList ; Hist) .
 
-    op consistent? : Sequent -> Sequent [frozen] .
-    -------------------------------------
-   ceq consistent?(< Gamma ; DefList >) = < Gamma ; DefList > if     isConsistent(Gamma) .
-   ceq consistent?(< Gamma ; DefList >) = unsat( Gamma )      if not isConsistent(Gamma) .
-    op unsat : PatternSet -> [Sequent] [ctor] .
+    op continue?(_;_;_) : PatternSet DefinitionList PatternSetList -> Sequent [frozen] .
+    ----------------------------------------------
+   ceq continue?(Gamma ; DefList ; Hist) = < Gamma ; DefList ; Hist Gamma >
+    if isConsistent(Gamma) and not occurs(Gamma, Hist) .
+   ceq continue?(Gamma ; DefList ; Hist) = unsat( Gamma ; Hist )
+    if not isConsistent(Gamma) .
 
-   --- TODO: Something is broken in the frozen attributes
-    eq consistent?(unsat(Gamma)) = unsat( Gamma ).
+    op unsat(_;_) : PatternSet PatternSetList -> [Sequent] [ctor] .
 
     op isConsistent(_) : PatternSet -> Bool .
     -----------------------------------------
@@ -243,54 +258,55 @@ mod MATCHING-LOGIC-TABLEAUX is
     ---- Tableaux Rules -----
     -------------------------
 
-    op <_;_> : PatternSet DefinitionList -> Sequent [ctor] .
+    op <_;_;_> : PatternSet DefinitionList PatternSetList -> Sequent [ctor] .
 
-   ceq [and] : < \and(P1, P2), Gamma ; DefList >
+   ceq [and] : < \and(P1, P2), Gamma ; DefList ; Hist >
              = ---------------------------------
-               [ P1, P2, Gamma ; DefList ]
+               [ P1, P2, Gamma ; DefList ; Hist ]
         if P1 =/= \top /\ P2 =/= \top
       .
 
    --- The "or" rules are non-deterministic, so use a rule rather than an equation
-   crl [or-l] : < \or(P1, P2), Gamma ; DefList >
+   crl [or-l] : < \or(P1, P2), Gamma ; DefList ; Hist >
              => --------------------------------
-                [ P1, Gamma ; DefList ]
+                [ P1, Gamma ; DefList ; Hist ]
        if P1 =/= \bottom /\ P2 =/= \bottom
      .
-   crl [or-r] : < \or(P1, P2), Gamma ; DefList >
+   crl [or-r] : < \or(P1, P2), Gamma ; DefList ; Hist >
              => --------------------------------------
-                [ P2, Gamma ; DefList ]
+                [ P2, Gamma ; DefList ; Hist ]
        if P1 =/= \bottom /\ P2 =/= \bottom
      .
 
-    eq [ons-mu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 >
+    eq [ons-mu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 ; Hist >
                 = -----------------------------------------------------------------------------
-                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 ]
-               .
-    eq [ons-nu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 >
+                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \mu SVar2 . P) DefList2 ; Hist]
+     .
+    eq [ons-nu] : < SVar1 {0}, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ; Hist >
                 = -------------------------------------------------------------------------
-                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ]
-               .
-    eq [nu/mu] : < P, Gamma         ; DefList1 (SVar1 := P) DefList2 >
+                  [ [SVar2 := SVar1 {0}]P, Gamma ; DefList1 (SVar1 := \nu SVar2 . P) DefList2 ; Hist]
+     .
+    eq [nu/mu] : < P, Gamma         ; DefList1 (SVar1 := P) DefList2 ; Hist >
                = -------------------------------------------------------------------
-                 [ SVar1 {0}, Gamma ; DefList1 (SVar1 := P) DefList2 ]
+                 [ SVar1 {0}, Gamma ; DefList1 (SVar1 := P) DefList2 ; Hist ]
      .
 
    --- The "all<>" rule is non-deterministic, so use a rule rather than an equation
-   crl [all<>] : < Gamma ; DefList >
-              => -------------------------------------
-                 all<>(Gamma ; DefList)
+   ceq [all<>] : < Gamma ; DefList ; Hist >
+               = -------------------------------------
+                 all<>( Gamma ; DefList ; Hist )
        if isReduced(Gamma ; DefList)
      .
 
-    op  . : -> Sequent [ctor] .
-    op _ && _ : Sequent Sequent -> Sequent [assoc comm id: . idem] .
+    op  trueSequent : -> Sequent [ctor] .
+    op _ && _ : Sequent Sequent -> Sequent [assoc comm id: trueSequent] .
 
-    op all<>(_; _) : PatternSet DefinitionList -> Sequent .
-    eq all<>(< Sy P > , Gamma ; DefList)
-     = [ P , getBetas(Sy ; Gamma) ; DefList ] && all<>( Gamma ; DefList)
+    op all<>(_;_;_) : PatternSet DefinitionList PatternSetList -> Sequent .
+    eq all<>(< Sy P > , Gamma ; DefList ; Hist )
+     = [ P , getBetas(Sy ; Gamma) ; DefList ; Hist ] && all<>( Gamma ; DefList ; Hist)
        .
-    eq all<>(Gamma ; DefList) = . [owise] .
+    eq all<>(Gamma ; DefList ; Hist) = trueSequent [owise] .
+
 
     op isReduced(_ ; _) : PatternSet DefinitionList -> Bool .
     eq isReduced(empty ; DefList) = true .
