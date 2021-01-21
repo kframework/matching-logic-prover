@@ -65,14 +65,14 @@ claim \implies ( \and ( \equals(N_INIT { Int }, select(H_INIT { ArrayIntInt }, 2
                )
 
 // strategy search-fol(bound: 2)
-strategy canonicalize
+strategy canonicalize . wait
         . kt-wrap(head: reachableInNSteps)
         . kt-abstract(Rpred)
         . kt-forall-intro . kt-unfold
         . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials
-        . with-each-implication-context( normalize-implication-context . context-destructure(head: Rpred) . kt-abstract-refine )
-        . wait . ( ( check-lhs-constraint-unsat . smt-debug )
-          | ( smt-debug )
+        . with-each-implication-context( normalize-implication-context . kt-abstract-refine )
+        . ( ( check-lhs-constraint-unsat . smt-debug )
+          | ( smt-cvc4 ) | wait
           )
 
 
