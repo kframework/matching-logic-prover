@@ -1,0 +1,44 @@
+<prover>
+  <exit-code>
+    0
+  </exit-code>
+  <goals>
+    <goal>
+      id: ., parent: .
+      <claim>
+        \and ( .Patterns )
+      </claim>
+      <k>
+        .
+      </k>n<expected>
+        .
+      </expected>
+      <local-context>
+        .LocalDeclCellSet
+      </local-context>
+    <trace>
+      .
+    </trace>
+  </goals>
+  <declarations>
+    <declaration>
+      axiom ax0 : \and ( Q ( .Patterns ) , R ( .Patterns ) , S ( .Patterns ) , .Patterns )
+    </declaration> <declaration>
+      axiom p : P ( .Patterns )
+    </declaration> <declaration>
+      axiom q : \equals ( Q ( .Patterns ) , P ( .Patterns ) )
+    </declaration> <declaration>
+      axiom r : \equals ( R ( .Patterns ) , P ( .Patterns ) )
+    </declaration> <declaration>
+      axiom s : \equals ( S ( .Patterns ) , P ( .Patterns ) )
+    </declaration> <declaration>
+      symbol P ( .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol Q ( .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol R ( .Sorts ) : Bool
+    </declaration> <declaration>
+      symbol S ( .Sorts ) : Bool
+    </declaration>
+  </declarations>
+</prover>

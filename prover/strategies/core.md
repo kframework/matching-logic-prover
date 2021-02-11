@@ -23,8 +23,15 @@ module PROVER-CORE-SYNTAX
   syntax SequenceStrategy ::= Strategy "." Strategy [right]
   syntax ResultStrategy ::= "noop"
                           | TerminalStrategy
+                          | IntroduceBranchStrategy
+                          | ResolveBranchStrategy
                           | Strategy "&" Strategy [right, format(%1%n%2  %3)]
                           | Strategy "|" Strategy [right, format(%1%n%2  %3)]
+
+  syntax IntroduceBranchStrategy ::= Strategy "&>" Strategy [right, format(%1%n%2  %3)]
+
+  syntax ResolveBranchStrategy ::= Strategy "<|" Strategy [right, format(%1%n%2  %3)]
+
   syntax Strategy ::= "or-split" | "and-split" | "or-split-rhs"
   syntax Strategy ::= "prune" "(" Patterns ")"
 
@@ -53,10 +60,6 @@ module PROVER-CORE
 
 `Strategy`s can be sequentially composed via the `.` operator.
 
-```k
-  rule <k> (S . T) . U => S . (T . U) ... </k>
-```
-
 Since strategies do not live in the K cell, we must manually heat and cool.
 `ResultStrategy`s are strategies that can only be simplified when they are
 cooled back into the sequence strategy.
@@ -65,7 +68,7 @@ cooled back into the sequence strategy.
   syntax ResultStrategy ::= "#hole"
   rule <k> S1 . S2 => S1 ~> #hole . S2 ... </k>
     requires notBool(isResultStrategy(S1))
-     andBool notBool(isSequenceStrategy(S1))
+
   rule <k> S1:ResultStrategy ~> #hole . S2 => S1 . S2 ... </k>
 ```
 
@@ -185,6 +188,33 @@ approach succeeds:
      andBool notBool(isTerminalStrategy(S2))
 ```
 
+The `<|` strategy allows us to choose different strategies
+for different subgoals.
+
+```k
+
+  rule <k> S &> fail => fail ... </k>
+  rule <k> fail &> S => fail ... </k>
+  rule <k> S &> success => S ... </k>
+  rule <k> success &> S => S ... </k>
+
+  // we could achieve the same result using &> on RHS
+  rule ((I1 &> Is) . (O1 <| Os)) => ((I1 . O1) & (Is . Os))
+
+  rule (I1 &> Is) . S => (I1 . S) &> (Is . S)
+    requires notBool isResolveBranchStrategy(S)
+
+  rule <k> T:TerminalStrategy ~> #hole &> S2
+           => T &> S2
+           ...
+       </k>
+
+  rule <k> ((S1 &> S2) => subgoal(GOAL, S1) ~> #hole &> S2) </k>
+       <claim> GOAL:Pattern </claim>
+    requires notBool(isTerminalStrategy(S1))
+     andBool notBool(isTerminalStrategy(S2))
+```
+
 The S { N } construct allows us to repeat a strategy S N times
 
 ```k
@@ -262,7 +292,7 @@ Internal strategy used to implement `or-split` and `and-split`.
   syntax Strategy ::= "#andSplit" "(" Patterns ")" [function]
   rule #andSplit(.Patterns) => noop
   rule #andSplit(P:Pattern, .Patterns) => replace-goal(P)
-  rule #andSplit(P:Pattern, Ps) => replace-goal(P) & #andSplit(Ps) [owise]
+  rule #andSplit(P:Pattern, Ps) => replace-goal(P) &> #andSplit(Ps) [owise]
 ```
 
 If-then-else-fi strategy is useful for implementing other strategies:

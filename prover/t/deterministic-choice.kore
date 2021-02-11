@@ -1,0 +1,16 @@
+symbol P() : Bool
+symbol Q() : Bool
+symbol R() : Bool
+symbol S() : Bool
+
+axiom p: P()
+axiom q: \equals(Q(), P())
+axiom r: \equals(R(), P())
+axiom s: \equals(S(), P())
+
+claim \and(Q(), R(), S())
+strategy (and-split
+      .( apply-equation -> q at 0 by []
+      <| apply-equation -> r at 0 by []
+      <| apply-equation -> s at 0 by []
+       )) . apply(p, fail)
