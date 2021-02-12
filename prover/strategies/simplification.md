@@ -336,6 +336,7 @@ We define a similar strategy for quantified implication contexts:
         => substitute-equals-for-equals
            ...
        </k>
+       requires notBool(isConcrete(T))
 
   syntax Map ::= makeEqualitySubstitution(Patterns) [function]
   rule makeEqualitySubstitution(.Patterns) => .Map
