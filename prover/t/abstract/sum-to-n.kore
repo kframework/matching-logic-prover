@@ -65,7 +65,7 @@ claim \implies ( \and ( \equals(N_INIT { Int }, select(H_INIT { ArrayIntInt }, 2
                )
 
 // strategy search-fol(bound: 2)
-strategy canonicalize . wait
+strategy canonicalize . merge-variable-aliases
         . kt-wrap(head: reachableInNSteps)
         . kt-abstract(Rpred)
         . kt-forall-intro . kt-unfold

@@ -336,7 +336,6 @@ We define a similar strategy for quantified implication contexts:
         => substitute-equals-for-equals
            ...
        </k>
-       requires notBool(isConcrete(T))
 
   syntax Map ::= makeEqualitySubstitution(Patterns) [function]
   rule makeEqualitySubstitution(.Patterns) => .Map
@@ -358,6 +357,24 @@ We define a similar strategy for quantified implication contexts:
   rule removeTrivialEqualities(\equals(X, X), Ps) => removeTrivialEqualities(Ps)
   rule removeTrivialEqualities(P, Ps) => P, removeTrivialEqualities(Ps) [owise]
 ```
+
+```k
+  rule <claim> \implies(\and(LHS), _) </claim>
+       <k> merge-variable-aliases
+        => substitute-equals-for-equals(getVariableAliases(LHS))
+           ...
+       </k>
+
+  syntax Map ::= getVariableAliases(Patterns) [function]
+  rule getVariableAliases(.Patterns) => .Map
+  rule getVariableAliases(\equals(X:Variable, Y:Variable), Ps)
+    => (X |-> Y) getVariableAliases(subst(Ps, X, Y))
+    requires X =/=K Y
+  rule getVariableAliases((P, Ps:Patterns)) => getVariableAliases(Ps) [owise]
+  rule getVariableAliases(.Patterns) => .Map [owise]
+
+```
+
 
 ### Universal generalization
 
