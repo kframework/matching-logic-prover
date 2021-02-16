@@ -367,7 +367,7 @@ We define a similar strategy for quantified implication contexts:
 
   syntax Map ::= getVariableAliases(Patterns) [function]
   rule getVariableAliases(.Patterns) => .Map
-  rule getVariableAliases(\equals(X:Variable, Y:Variable), Ps)
+  rule getVariableAliases(\equals(X:Variable, Y), Ps)
     => (X |-> Y) getVariableAliases(subst(Ps, X, Y))
     requires X =/=K Y
   rule getVariableAliases((P, Ps:Patterns)) => getVariableAliases(Ps) [owise]
