@@ -915,6 +915,9 @@ Instantiate universally quantified clauses in the LHS's first spatial part.
     rule <claim> \implies(\and(sep(\forall{ Vs => Vs -Patterns X } (P => subst(P, X, Val)), _), _), _) </claim>
          <k> instantiate-context(X, Val) => noop ... </k>
       requires X in Vs
+    rule <claim> \implies(\and(sep(\forall{ Vs } _, _), _), _) </claim>
+         <k> instantiate-context(X, Val) => fail ... </k>
+      requires notBool(X in Vs)
 ```
 
 ## `instantiate-rhs`
