@@ -923,6 +923,9 @@ Instantiate universally quantified clauses in the LHS's first spatial part.
     rule <claim> \implies(_, \exists{Vs => Vs -Patterns X} (P => subst(P, X, Val))) </claim>
          <k> instantiate-rhs(X, Val) => noop ... </k>
       requires X in Vs
+    rule <claim> \implies(_, \exists{Vs} _) </claim>
+         <k> instantiate-rhs(X, Val) => fail ... </k>
+      requires notBool(X in Vs)
 ```
 
 ## `context-case-analysis`

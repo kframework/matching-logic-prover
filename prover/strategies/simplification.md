@@ -694,6 +694,13 @@ Gamma |- C[\exists X. Pi /\ Psi]
 ```
 
 ```k
+  rule <claim> \implies(\and(S, Ss), RHS)
+            => \implies(\and(Ss), RHS)
+       </claim>
+       <k> remove-head => noop ... </k>
+```
+
+```k
 endmodule
 ```
 
