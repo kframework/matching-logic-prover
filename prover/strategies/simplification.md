@@ -701,6 +701,13 @@ Gamma |- C[\exists X. Pi /\ Psi]
 ```
 
 ```k
+  rule <claim> \implies(\and(sep(S, Ss), LHS), RHS)
+            => \implies(\and(sep(Ss ++Patterns S), LHS), RHS)
+       </claim>
+       <k> move-tail => noop ... </k>
+```
+
+```k
 endmodule
 ```
 

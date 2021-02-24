@@ -815,6 +815,23 @@ things, so the LHS becomes unsat.
 ```
 
 ```k
+    rule <claim> \implies( \and(sep( P, Ps1 ) , _ )
+                         , \exists {_}
+                           \and(sep( Q, Ps2 ) , _ )
+                         )
+         </claim>
+         <k> frame-one => frame(P) ... </k>
+      requires P ==K Q
+    rule <claim> \implies( \and(sep( P, Ps1 ) , _ )
+                         , \exists {_}
+                           \and(sep( Q, Ps2 ) , _ )
+                         )
+         </claim>
+         <k> frame-one => fail ... </k>
+      requires notBool P ==K Q
+```
+
+```k
     syntax Strategy ::= "frame" "(" Patterns ")"
     rule <claim> \implies( LHS
                          , \exists { .Patterns }
@@ -826,7 +843,7 @@ things, so the LHS becomes unsat.
                                      , \and(filterClausesInvolvingVariable(LOC, RCONSTRAINTs))
                                      )
                            , normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-                           . ( noop | left-unfold-Nth(0) | left-unfold-Nth(1) | left-unfold-Nth(2) )
+                           . ( noop | left-unfold-Nth(0) | left-unfold-Nth(1) | ( left-unfold-Nth(2) . left-unfold-Nth(1) ) | left-unfold-Nth(3) )
                            . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
                            . instantiate-separation-logic-axioms . spatial-patterns-match . (smt-cvc4)
                            )
