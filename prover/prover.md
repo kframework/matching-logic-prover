@@ -64,7 +64,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "match" | "match-debug" | "match-pto"
                     | "frame" | "frame-one"
                     | "footprint-analysis" | "nullity-analysis" "(" Strategy ")"
-                    | "remove-constraints" | "remove-head"
+                    | "remove-constraints" | "keep-head"
                     | "unfold-mut-recs"
                     | "apply-equation"
                         RewriteDirection AxiomOrClaimName

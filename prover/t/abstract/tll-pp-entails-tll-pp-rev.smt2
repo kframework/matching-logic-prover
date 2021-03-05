@@ -122,27 +122,92 @@
     . with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
     . (   ( right-unfold-Nth(0,0) . canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
         | ( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-        | ( canonicalize . remove-head . remove-head . remove-head . left-unfold-Nth(0) . canonicalize
+        | ( canonicalize . keep-head . left-unfold-Nth(0) . canonicalize
           . (
               ( right-unfold-Nth(0,1) . canonicalize . match-pto . frame . canonicalize 
-                . right-unfold-Nth(0,1) . canonicalize . match-pto . canonicalize 
-                . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4            
+                . right-unfold-Nth(0,1) . canonicalize . match-pto . frame . canonicalize 
+                . left-unfold-Nth(0) . canonicalize
+                . (   ( right-unfold-Nth(0,0) . canonicalize 
+                        . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                    | ( left-unfold-Nth(0) . canonicalize
+                        . ( ( right-unfold-Nth(0, 1) . right-unfold-Nth(0, 0) . canonicalize  
+                            . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                          | ( kt-wrap(head: TLL_aux) . kt-abstract(Rpred) . kt-forall-intro 
+                            . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+                            . with-each-implication-context( normalize-implication-context
+                                . instantiate-context( F524 {RefTLL_t}, F524 { RefTLL_t} )
+                                . instantiate-context( F525 {RefTLL_t}, F525 { RefTLL_t} )
+                                . instantiate-context( F526 {RefTLL_t}, F377 { RefTLL_t} )
+                                . kt-abstract-refine )
+                            . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                              | ( canonicalize . right-unfold-Nth(0,1) . canonicalize
+                                . match-pto . instantiate-rhs( F578 {RefTLL_t}, F436 {RefTLL_t} )
+                                . frame . kt-abstract-finalize(Rpred) . kt-wrap(head: Rpred)
+                                . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+                                . with-each-implication-context( normalize-implication-context . kt-collapse )
+                                . canonicalize
+                                . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                                  | ( right-unfold-Nth(0, 1) . canonicalize
+                                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                                  | ( right-unfold-Nth(0, 1) . canonicalize
+                                    . right-unfold-Nth(0, 0) . canonicalize
+                                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                                )
+                              )
+                            )
+                          )
+                        )          
+                    )
+                )
               )	
             | ( right-unfold-Nth(0,1) . canonicalize . match-pto . frame . canonicalize
                 . kt-wrap(head: TLL_aux) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
                 . with-each-implication-context( remove-lhs-existential . normalize-implication-context
-                    . instantiate-context( F492 {RefTLL_t}, F31 { RefTLL_t} )
-                    . instantiate-context( F493 {RefTLL_t}, Vy { RefTLL_t} )
-                    . instantiate-context( F494 {RefTLL_t}, Vv { RefTLL_t} )
+                    . instantiate-context( F1084 {RefTLL_t}, F31 { RefTLL_t} )
+                    . instantiate-context( F1085 {RefTLL_t}, Vy { RefTLL_t} )
+                    . instantiate-context( F1086 {RefTLL_t}, Vv { RefTLL_t} )
                     . kt-collapse ) 
                 . (
                     ( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
                   | ( right-unfold-Nth(0,0) . canonicalize . match-pto
-                    . instantiate-rhs( F529 {RefTLL_t}, F486 {RefTLL_t} )
+                    . instantiate-rhs( F1121 {RefTLL_t}, F1078 {RefTLL_t} )
                     . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
                   | ( right-unfold-Nth(0,0) . canonicalize . right-unfold-Nth(0,1) . canonicalize . match-pto
-                    . instantiate-rhs( F592 {RefTLL_t}, F32 {RefTLL_t} )
-                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                    . instantiate-rhs( F1184 {RefTLL_t}, F32 {RefTLL_t} ) . frame . canonicalize
+                    . left-unfold-Nth(0) . canonicalize
+                    . (   ( right-unfold-Nth(0,0) . canonicalize 
+                            . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                        | ( left-unfold-Nth(0) . canonicalize
+                            . ( ( right-unfold-Nth(0, 1) . right-unfold-Nth(0, 0) . canonicalize  
+                                . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                            | ( kt-wrap(head: TLL_aux) . kt-abstract(Rpredd) . kt-forall-intro 
+                                . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+                                . with-each-implication-context( normalize-implication-context
+                                    . instantiate-context( F1400 {RefTLL_t}, F1400 { RefTLL_t} )
+                                    . instantiate-context( F1401 {RefTLL_t}, F1401 { RefTLL_t} )
+                                    . instantiate-context( F1402 {RefTLL_t}, F1253 { RefTLL_t} )
+                                    . kt-abstract-refine )
+                                . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                                | ( canonicalize . right-unfold-Nth(0,1) . canonicalize
+                                    . match-pto . instantiate-rhs( F1454 {RefTLL_t}, F1312 {RefTLL_t} )
+                                    . frame . kt-abstract-finalize(Rpredd) . kt-wrap(head: Rpredd)
+                                    . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+                                    . with-each-implication-context( normalize-implication-context . kt-collapse )
+                                    . canonicalize
+                                    . ( ( match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                                    | ( right-unfold-Nth(0, 1) . canonicalize
+                                        . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                                    | ( right-unfold-Nth(0, 1) . canonicalize
+                                        . right-unfold-Nth(0, 0) . canonicalize
+                                        . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                                    )
+                                )
+                                )
+                            )
+                            )          
+                        )
+                      )
+                    )
                   | ( wait )
                 )
               )

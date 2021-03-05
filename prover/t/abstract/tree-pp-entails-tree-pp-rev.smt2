@@ -133,21 +133,16 @@
     . with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
     . (   ( right-unfold-Nth(0,0) . canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
         | ( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-        | ( canonicalize . remove-head . remove-head . remove-head . left-unfold-Nth(0) . canonicalize
+        | ( canonicalize . keep-head . left-unfold-Nth(0) . canonicalize
           . (
               ( right-unfold-Nth(0,1) . canonicalize . match-pto . frame . canonicalize
-                . right-unfold-Nth(0,2) . canonicalize . match-pto . canonicalize 
-                . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4            
-              )	
-            | ( right-unfold-Nth(0,1) . canonicalize . match-pto . frame . canonicalize
                 . kt-wrap(head: TPP_aux) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
                 . with-each-implication-context( remove-lhs-existential . normalize-implication-context
-                    . (( 
-						instantiate-context( F410 {RefTPP_t}, F23 { RefTPP_t} )
-                    	. instantiate-context( F411 {RefTPP_t}, Vy { RefTPP_t} )
+                    . (( instantiate-context( F759 {RefTPP_t}, F23 { RefTPP_t} )
+                    	. instantiate-context( F760 {RefTPP_t}, Vy { RefTPP_t} )
 					)
-					| ( instantiate-context( F474 {RefTPP_t}, F23 { RefTPP_t} )
-                    	. instantiate-context( F475 {RefTPP_t}, Vy { RefTPP_t} )
+					| ( instantiate-context( F823 {RefTPP_t}, F23 { RefTPP_t} )
+                    	. instantiate-context( F824 {RefTPP_t}, Vy { RefTPP_t} )
 					))
                     . kt-collapse ) 
                 . (
@@ -156,14 +151,86 @@
                     . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
                   | ( right-unfold-Nth(0,1) . canonicalize . match-pto
                     . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-                  | ( right-unfold-Nth(0,0) . canonicalize . match-pto . frame . right-unfold-Nth(0,2) .  match-pto . canonicalize
-                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
-                  | ( right-unfold-Nth(0,1) . canonicalize . match-pto . frame . right-unfold-Nth(0,2) .  match-pto . canonicalize
-                    . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+                  | ( right-unfold-Nth(0,0) . canonicalize . match-pto . frame . right-unfold-Nth(0,2) 
+				  	. canonicalize . match-pto . frame . canonicalize . left-unfold-Nth(0) . canonicalize
+					. ( ( right-unfold-Nth(0,0) . canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 ) 
+					| ( kt-wrap(head: TPP_aux) . kt-abstract(Rpred1) . kt-forall-intro 
+						. kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+						. with-each-implication-context( normalize-implication-context . kt-abstract-refine )
+						. ( ( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+						| ( canonicalize . right-unfold-Nth(0, 1) . canonicalize . match-pto . frame . canonicalize
+							. kt-abstract-finalize(Rpred1)
+							. kt-wrap(head: Rpred1) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+							. with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
+							. (
+								( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+							| ( right-unfold-Nth(0, 1) . canonicalize 
+									. match. spatial-patterns-equal . spatial-patterns-match . smt-cvc4 
+								)
+							| ( right-unfold-Nth(0, 0) . canonicalize 
+									. match. spatial-patterns-equal . spatial-patterns-match . smt-cvc4 
+								)
+							)
+						  )
+						)
+					  )
+					)
+				  )
+                  | ( right-unfold-Nth(0,1) . canonicalize . match-pto . frame . right-unfold-Nth(0,2)
+				  	. canonicalize . match-pto . frame . canonicalize . left-unfold-Nth(0) . canonicalize
+					. ( ( right-unfold-Nth(0,0) . canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 ) 
+					| ( kt-wrap(head: TPP_aux) . kt-abstract(Rpred2) . kt-forall-intro 
+						. kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+						. with-each-implication-context( normalize-implication-context . kt-abstract-refine )
+						. ( ( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+						| ( canonicalize . right-unfold-Nth(0, 1) . canonicalize . match-pto . frame . canonicalize
+							. kt-abstract-finalize(Rpred2)
+							. kt-wrap(head: Rpred2) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+							. with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
+							. (
+								( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+							| ( right-unfold-Nth(0, 1) . canonicalize 
+									. match. spatial-patterns-equal . spatial-patterns-match . smt-cvc4 
+								)
+							| ( right-unfold-Nth(0, 0) . canonicalize 
+									. match. spatial-patterns-equal . spatial-patterns-match . smt-cvc4 
+								)
+							)
+						  )
+						)
+					  )
+					)
+				  )
                   | ( wait )
                 )
+              )	
+            | ( right-unfold-Nth(0,1) . canonicalize . match-pto . frame . canonicalize
+                . right-unfold-Nth(0,2) . canonicalize . match-pto . canonicalize 
+                . frame . canonicalize . left-unfold-Nth(0) . canonicalize
+				. ( ( right-unfold-Nth(0,0) . canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 ) 
+				  | ( kt-wrap(head: TPP_aux) . kt-abstract(Rpred) . kt-forall-intro 
+					. kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+					. with-each-implication-context( normalize-implication-context . kt-abstract-refine )
+					. ( ( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+					  | ( canonicalize . right-unfold-Nth(0, 1) . canonicalize . match-pto . frame . canonicalize
+						. kt-abstract-finalize(Rpred)
+						. kt-wrap(head: Rpred) . kt-forall-intro . kt-unfold . remove-lhs-existential . kt-unwrap . canonicalize
+						. with-each-implication-context( canonicalize . remove-lhs-existential . normalize-implication-context . kt-collapse )
+						. (
+							( canonicalize . match . spatial-patterns-equal . spatial-patterns-match . smt-cvc4 )
+						  | ( right-unfold-Nth(0, 1) . canonicalize 
+								. match. spatial-patterns-equal . spatial-patterns-match . smt-cvc4 
+							)
+						  | ( right-unfold-Nth(0, 0) . canonicalize 
+								. match. spatial-patterns-equal . spatial-patterns-match . smt-cvc4 
+							)
+						)
+					  )
+					)
+				  )
+				)
               )
-            )		
+		  	)
         )
         | ( wait )
     )            
