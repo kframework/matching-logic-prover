@@ -77,6 +77,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                       ")"
                     | "intros" AxiomName
                     | "replace-evar-with-func-constant" Variables
+                    | "purify" | "move-nil" | "reverse" | "rewrite-nil"
                     | "duplicate" AxiomOrClaimName "as" AxiomName
                     | "instantiate-universals" "("
                         "in:" AxiomName ","
@@ -111,6 +112,7 @@ module STRATEGIES-EXPORTED-SYNTAX
 
                     | "kt-abstract" "(" Symbol ")" | "kt-abstract-full" "(" Symbol ")"
                     | "kt-abstract-refine" | "kt-abstract-finalize" "(" Symbol ")"
+                    | "kt-abstract-constraint" "(" Symbol ")" | "kt-abstract-refine-constraint"
 
 
   syntax RewriteDirection ::= "->" | "<-"

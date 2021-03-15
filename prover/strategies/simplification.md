@@ -133,7 +133,7 @@ Bring predicate constraints to the top of a term.
     requires notBool isPredicatePattern(\and(Ps))
   // note the rule below assumes we hever have a pure predicate pattern inside a sep
   rule #liftConstraintsPs(sep((P, Ps) #as SEPs), REST)
-    => #liftConstraintsPs( sep(            (SEPs -Patterns #getSpatialPatterns(SEPs))
+    => #liftConstraintsPs( sep( (SEPs -Patterns #getSpatialPatterns(SEPs))
                                 ++Patterns #getSpatialPatterns(SEPs)
                               )
                          , REST
@@ -705,6 +705,69 @@ Gamma |- C[\exists X. Pi /\ Psi]
             => \implies(\and(sep(Ss ++Patterns S), LHS), RHS)
        </claim>
        <k> move-tail => noop ... </k>
+```
+
+### purify
+
+LHS terms of the form S(T, Vs) become S(V, Vs) /\ V = T
+
+```k
+  rule <claim> \implies(LHS => #purify(LHS), \exists {_} (RHS => #purify(RHS))) </claim>
+       <k> purify => noop ... </k>
+
+  syntax Pattern ::= #purify(Pattern) [function]
+  syntax Patterns ::= #purifyPs(Patterns) [function]
+  rule #purify(S(ARGs))
+    => #fun( VARs
+          => \and( S(VARs), #makeEqualities(VARs, ARGs) )
+           )( makePureVariables(ARGs) )
+    requires isUnfoldable(S)
+  rule #purify(\and(Ps)) => \and(#purifyPs(Ps))
+  rule #purify(sep(Ps)) => sep(#purifyPs(Ps))
+  rule #purify(\not(P)) => \not(#purify(P))
+  rule #purify(\equals(P1, P2)) => \equals(P1, P2)
+  rule #purify(S:Symbol(Ps)) => S(Ps)
+    [owise]
+  rule #purifyPs(.Patterns) => .Patterns
+  rule #purifyPs(P, Ps) => #purify(P), #purifyPs(Ps)
+
+  syntax Patterns ::= makePureVariables(Patterns) [function]
+  rule makePureVariables(V:Variable, REST) => V, makePureVariables(REST)
+  rule makePureVariables(P, REST) => !V1:VariableName { getReturnSort(P) }, makePureVariables(REST)
+    requires notBool isVariable(P)
+  rule makePureVariables(.Patterns) => .Patterns
+
+  syntax Patterns ::= #getNonVariables(Patterns) [function]
+  rule #getNonVariables(.Patterns) => .Patterns
+  rule #getNonVariables(V:Variable, Ps) => #getNonVariables(Ps)
+  rule #getNonVariables(P, Ps) => P, #getNonVariables(Ps)
+    requires notBool isVariable(P)
+
+  syntax Patterns ::= #makeEqualities(Patterns, Patterns) [function]
+  rule #makeEqualities(.Patterns, .Patterns) => .Patterns
+  rule #makeEqualities((V, Vs), (V, Ps)) => #makeEqualities(Vs, Ps)
+  rule #makeEqualities((V, Vs), (P, Ps)) => \equals(V, P), #makeEqualities(Vs, Ps)
+    requires V =/=K P
+```
+
+```k
+  rule <claim> \implies(LHS, \exists { Vs } \and(S, Ss))
+            => \implies(\and(LHS, Ss), \exists { Vs } \and(S))
+       </claim>
+       <k> move-nil => noop ... </k>
+```
+
+```k
+  rule <claim> \implies(\and(sep(Ps => #reverse(Ps)),LHS), \exists { Vs } \and(sep(Ss => #reverse(Ss)),RHS)) </claim>
+       <k> reverse => noop ... </k>
+
+  syntax Patterns ::= #reverse(Patterns) [function]
+  rule #reverse(.Patterns) => .Patterns
+  rule #reverse(P, Ps) => #reverse(Ps) ++Patterns P
+```
+
+```k
+    rule <k> rewrite-nil => purify . lift-constraints . move-nil . normalize . reverse  ... </k>
 ```
 
 ```k

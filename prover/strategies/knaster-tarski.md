@@ -790,6 +790,87 @@ If the subgoal in the first argument succeeds add the second argument to the LHS
   rule getFreeVariables(META-VARIABLE) => .Patterns
 
   syntax Strategies ::= "kt-abstract" "(" Symbol "," args: Patterns "," body: Pattern ")"
+  syntax Strategies ::= "kt-abstract-constraint" "(" Symbol "," args: Patterns "," body: Pattern ")"
+```
+
+```k
+  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS)) </claim>
+       <k> kt-abstract-constraint(S) => kt-abstract-constraint(S, getFreeVariables(CTXLHS), \and(sep(.Patterns),CTXLHS)) ... </k>
+```
+
+```k
+  rule <claim> \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL:Patterns), CTXLHS), CTXRHS))
+            => \implies(LRP:Symbol(ARGs), implicationContext(\and(sep(CTXLSPATIAL), S(VARs)), CTXRHS))
+       </claim>
+       <k> kt-abstract-constraint(S, VARs, Body) => noop ... </k>
+       <declarations>
+          .Bag
+       => ( <declaration> symbol S(getReturnSorts(getFreeVariables(\and(sep(VARs))))) : Bool </declaration>
+            <declaration> axiom !_:AxiomName : alphaRename( \forall {VARs}
+                                                            \iff-lfp( S(VARs)
+                                                                    , \or(META-VARIABLE, Body)
+                                                          )         )
+            </declaration>
+          )
+         ...
+       </declarations>
+    requires #hole { Heap } in CTXLSPATIAL
+```
+
+```k
+  rule <claim> \implies(\and( sep( \forall { .Patterns }
+                                   implicationContext( \and(sep(#hole { Heap },.Patterns), S:Symbol(ARGs:Patterns))
+                                                     , \exists {.Patterns} \and(sep(CTXRHS:Patterns))
+                                                     )
+                                 , LSPATIAL)
+                            , LHS
+                            )
+                       , RHS
+                       )
+          => \implies(\and(sep(CTXRHS ++Patterns LSPATIAL), LHS), RHS)
+       </claim>
+       <k> kt-abstract-refine-constraint => noop ... </k>
+       <declaration> axiom _ : \forall {DefnArgs}
+                               \iff-lfp( S(DefnArgs)
+                                       , ( \or( \and(Ss))
+                                        => \or( alphaRename(\and(sep(.Patterns), makeEqualities(makePairs(getVariableAliasNil(Ss))))))
+                                         )
+                                       )
+       </declaration>
+      requires lengthPatterns(filterByConstructor(LHS, S)) ==Int 1
+      andBool lengthPatterns(getPredicatePatterns(LHS)) ==Int 1
+
+  rule <claim> \implies(\and( sep( \forall { .Patterns }
+                                   implicationContext( (\and(sep(CTXLSPATIAL), S:Symbol(ARGs:Patterns)) => \and(sep(CTXLSPATIAL)))
+                                                     , \exists {_} \and(sep(CTXRHS:Patterns))
+                                                     )
+                                 , LSPATIAL)
+                            , LHS
+                            )
+                       , RHS
+                       )
+       </claim>
+       <k> kt-abstract-refine-constraint => noop ... </k>
+       <declaration> axiom _ : \forall {DefnArgs}
+                               \iff-lfp( S(DefnArgs)
+                                       , ( \or( \and(Ss))
+                                        => \or( alphaRename(\and(sep(.Patterns), makeEqualities(makePairs(getVariableAliasNil(Ss))))))
+                                         )
+                                       )
+       </declaration>
+      requires lengthPatterns(filterByConstructor(LHS, S)) ==Int 1
+      andBool lengthPatterns(getPredicatePatterns(LHS)) ==Int 1
+
+  syntax Patterns ::= getVariableAliasNil(Patterns) [function]
+  rule getVariableAliasNil(.Patterns) => .Patterns
+  rule getVariableAliasNil(\equals(X:Variable, Y), Ps) 
+    => X, getVariableAliasNil(Ps)
+  rule getVariableAliasNil((P, Ps:Patterns)) => getVariableAliasNil(Ps) [owise]
+
+  syntax Pair ::= makePairs(Patterns) [function]
+  rule makePairs(.Patterns) => pair(.Patterns, .Patterns)
+  rule makePairs(L, .Patterns) => pair(.Patterns, .Patterns)
+  rule makePairs(L, (R, REST:Patterns)) => concatenatePair(concatenatePair(pair((L, .Patterns), (R, .Patterns)), makePairs(L,REST)), makePairs(R,REST))
 ```
 
 Pick the variaable 
@@ -902,7 +983,7 @@ FOL Version:
 ```k
   rule <k> kt-abstract-finalize(S) => noop ... </k>
        <declaration> axiom _ : \forall {_} \iff-lfp(S(_), (\or(META-VARIABLE, Rest) => \or(Rest))) </declaration>
-  rule <k> kt-abstract-finalize(S) => noop ... </k>
+  rule <k> kt-abstract-finalize(S) => fail ... </k>
        <declaration> axiom _ : \forall {_} \iff-lfp(S(_), (\or(P, Rest))) </declaration>
     requires P =/=K META-VARIABLE
 ```
