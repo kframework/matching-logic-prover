@@ -1,0 +1,114 @@
+imports "t/fol/definitions/list.kore"
+
+/* Search for an element in a list */
+symbol listpos( ArrayIntInt  // Heap
+              , Int          // Head address
+              , SetInt       // Footprint
+              , Int          // Element
+              , Int          // Index
+              ) : Bool
+axiom functional(listpos)
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, E { Int }, I { Int } }
+      \iff-lfp( listpos(H { ArrayIntInt }, X { Int }, F { SetInt }, E { Int }, I { Int })
+              , \or( \exists {}
+                     \and( \equals(X { Int }, E { Int })
+                         , \equals(I { Int }, 0)
+                         , list(H { ArrayIntInt }, X { Int }, F { SetInt })
+                         )
+                   , \exists {}
+                     \and( \not(\equals(X { Int }, E { Int }))
+                         , \equals(X { Int }, 0)
+                         , \equals(F { SetInt }, emptyset)
+                         , \equals(I { Int }, -1)
+                         )
+                   , \exists {F1 { SetInt }, X1 { Int }}
+                     \and( listpos(H { ArrayIntInt }, X1 { Int }, F1 { SetInt }, E { Int }, minus(I { Int }, 1))
+                         , gt(X { Int },0)
+                         , \equals(select(H { ArrayIntInt }, X { Int }) , X1 { Int })
+                         , \equals(F { SetInt } , union(F1 { SetInt }, singleton(X { Int })))
+                         , disjoint(F1 { SetInt }, singleton(X { Int }))
+                         , \not(\equals(X { Int} , E { Int }))
+                         )
+                   )
+              )
+
+
+                // State,       Memory
+symbol finalState( ArrayIntInt, ArrayIntInt // Initial
+                 , ArrayIntInt, ArrayIntInt // Final
+                 , Int
+                 ) : Bool
+axiom functional(finalState)
+axiom \forall { S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
+              , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
+              , N { Int }
+              }
+      \iff-lfp( finalState( S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
+                          , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
+                          , N { Int }
+                          )
+              , \or( \exists { S_NEXT { ArrayIntInt }, M_NEXT { ArrayIntInt } }
+                     \and( \not(\equals(select(S_CURR { ArrayIntInt }, 0), select(S_CURR { ArrayIntInt }, 1)))
+                         , \not(\equals(select(S_CURR { ArrayIntInt }, 0), 0)) 
+                         , \equals( S_NEXT { ArrayIntInt }   
+                                  , store( store( S_CURR { ArrayIntInt }
+                                        // X = X->Next
+                                         , 0,          select(M_CURR { ArrayIntInt }, select(S_CURR { ArrayIntInt }, 0) ) )
+                                        // I = I+1
+                                         , 2, plus(1,  select(S_CURR { ArrayIntInt }, 2))
+                                         )
+                                  )
+                         , \equals( M_NEXT { ArrayIntInt }, M_CURR { ArrayIntInt })
+                         , finalState( S_NEXT  { ArrayIntInt }, M_NEXT { ArrayIntInt }
+                                     , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
+                                     , minus(N { Int }, 1)
+                                     )
+                         )
+		           , \exists { }
+                     \and( \equals(select(S_CURR { ArrayIntInt }, 0), select(S_CURR { ArrayIntInt }, 1)) // X == E 
+                         , \equals(S_CURR { ArrayIntInt }, S_FINAL { ArrayIntInt })
+                         , \equals(M_CURR { ArrayIntInt }, M_FINAL { ArrayIntInt })
+                         , \equals(N { Int }, 0)
+                         )
+		           , \exists { }
+                     \and( \equals(select(S_CURR { ArrayIntInt }, 0), 0) // Not found
+                         , \equals(S_FINAL { ArrayIntInt }, store (S_CURR { ArrayIntInt }, 2, -1))
+                         , \equals(M_CURR { ArrayIntInt }, M_FINAL { ArrayIntInt })
+                         , \equals(N { Int }, 0)
+                         )
+                   )
+              )
+
+claim \implies ( \and ( \equals(X_INIT { Int }, select(S_INIT { ArrayIntInt }, 0))
+                      , \equals(E_INIT { Int }, select(S_INIT { ArrayIntInt }, 1))
+                      , \equals(I_INIT { Int }, select(S_INIT { ArrayIntInt }, 2))
+                      , list(M_INIT { ArrayIntInt }, X_INIT { Int }, FOOTPRINT { SetInt })
+
+                      , \equals(X_FINAL { Int }, select(S_FINAL { ArrayIntInt }, 0))
+                      , \equals(E_FINAL { Int }, select(S_FINAL { ArrayIntInt }, 1))
+                      , \equals(I_FINAL { Int }, select(S_FINAL { ArrayIntInt }, 2))
+
+                      , finalState( S_INIT { ArrayIntInt },  M_INIT {ArrayIntInt}
+                                  , S_FINAL { ArrayIntInt }, M_FINAL {ArrayIntInt}
+                                  , STEPS { Int }
+                                  )
+                      )
+               , \and ( listpos( M_FINAL { ArrayIntInt }, X_INIT { Int }, FOOTPRINT { SetInt }
+                               , E_FINAL { Int }, I_FINAL { Int }
+                               )
+                      , \equals(X_FINAL { Int }, 0)
+                      , \equals(M_INIT { ArrayIntInt }, M_FINAL { ArrayIntInt })
+                      )
+               )
+
+strategy  normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+        . kt-wrap(head: finalState)
+        . kt-forall-intro  . kt-unfold
+        . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+        . left-unfold-Nth(0)  . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals // list(X)
+        . with-each-implication-context( normalize-implication-context . instantiate-context(F34{SetInt}, F59{SetInt} ) . kt-collapse )
+        . check-lhs-constraint-unsat
+        . ( ( right-unfold-Nth(0, 2) . substitute-equals-for-equals . smt-debug )
+          | ( wait . right-unfold-Nth(0, 0) . smt-debug )
+          | (wait)
+          )
