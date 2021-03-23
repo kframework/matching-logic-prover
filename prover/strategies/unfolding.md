@@ -53,6 +53,8 @@ module STRATEGY-UNFOLDING
     => getUnfoldables(LHS) ++Patterns
        getUnfoldables(RHS) ++Patterns
        getUnfoldables(REST)
+  rule getUnfoldables(implicationContext(LHS, RHS), REST)
+    => getUnfoldables(REST)
   rule getUnfoldables(\equals(LHS, RHS), REST)
     => getUnfoldables(LHS) ++Patterns
        getUnfoldables(RHS) ++Patterns
