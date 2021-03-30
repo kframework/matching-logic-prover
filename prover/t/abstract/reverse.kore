@@ -1,0 +1,118 @@
+symbol reachableInNSteps(ArrayIntInt, ArrayIntInt, ArrayIntInt, ArrayIntInt, Int) : Bool
+axiom functional(reachableInNSteps)
+
+symbol lst(ArrayIntInt, Int, ArrayIntInt, Int) : Bool
+symbol rev(ArrayIntInt, Int, ArrayIntInt, Int) : Bool
+symbol rev2(ArrayIntInt, Int, Int, ArrayIntInt, Int, Int) : Bool
+axiom functional(lst)
+axiom functional(rev)
+axiom functional(rev2)
+
+// addr_N = 1
+// addr_P = 2
+// addr_C = 3
+
+axiom \forall { H { ArrayIntInt } 
+              , HD { Int }
+              , FP { ArrayIntInt }
+              , LEN { Int }
+              }
+      \iff-lfp( lst( H { ArrayIntInt } 
+                   , HD { Int }
+                   , FP { ArrayIntInt }  // store the footprints backward
+                                         // that is, FP[LEN] is HD
+                   , LEN { Int } 
+                   )
+              , \or( \and( \equals( HD { ArrayIntInt } , 0 )
+                         , \equals( FP { ArrauIntInt } , emp )
+                         )
+                   , \exists { HD' { Int } , FP' { ArrayIntInt } , LEN' { Int } }
+                     \and( \equals( HD' { Int } , select ( H { ArrayIntInt } , HD { Int } ))
+                         , \equals( FP { ArrayIntInt } , store ( FP' { ArrayIntInt } , LEN { Int } , HD { Int } ) )
+                         , \equals( LEN { Int } , plus( LEN' { Int } , 1 ) )
+                         , lst( H { ArrayIntInt } , HD' { Int } , FP' { ArrayIntInt } , LEN' { Int })
+                         )
+                   )
+              )
+
+
+axiom \forall { FP1 { ArrayIntInt }
+              , FST1 { Int }
+              , LST1 { Int } 
+              , FP2 { ArrayIntInt }
+              , FST2 { Int }
+              , LST2 { Int } 
+              }
+      \iff-lfp( rev2( FP1 { ArrayIntInt }
+                    , FST1 { Int }
+                    , LST1 { Int } 
+                    , FP2 { ArrayIntInt }
+                    , FST2 { Int }
+                    , LST2 { Int } )
+              , \or( \and( \equals( FST1 { Int } , LST1 { Int } )
+                         , \equals( FST2 { Int } , LST2 { Int } )
+                         )
+                   , \exists { LST1' { Int } , FST2' { Int } }
+                     \and( \equals( plus( LST1' { Int } , 1 ) , LST1 { Int } )
+                         , \equals( FST2' { Int } , plus( FST2 { Int } , 1 ))
+                         , \equals( select( FP1 { ArrayIntInt } , LST1 { Int } )
+                                  , select( FP2 { ArrayIntInt } , FST1 { Int } )
+                                  )
+                         , rev2( FP1 { ArrayIntInt }
+                               , FST1 { Int }
+                               , LST1' { Int } 
+                               , FP2 { ArrayIntInt }
+                               , FST2' { Int }
+                               , LST2 { Int } )
+                         )
+                   )
+               )
+
+axiom \forall { FP1 { ArrayIntInt }
+              , LEN1 { Int } 
+              , FP2 { ArrayIntInt }
+              , LEN2 { Int }
+              }
+      \iff-lfp( rev( FP1 { ArrayIntInt }
+                   , LEN1 { Int } 
+                   , FP2 { ArrayIntInt }
+                   , LEN2 { Int }
+                   )
+              , \exists { Z1 { Int } , Z2 { Int } }
+                \and( \equals( Z1 { Int } , 0 )
+                    , \equals( Z2 { Int } , 0 )
+                    , rev2( FP1 { ArrayIntInt }
+                          , LEN1 { Int } 
+                          , FP2 { ArrayIntInt }
+                          , LEN2 { Int }
+                          )
+                    )
+               )
+
+
+// This lfp-predicate captures the behavior of the while loop.
+
+
+axiom \forall { STATE_INIT { ArrayIntInt }
+              , HEAP_INIT { ArrayIntInt }
+              , STATE_FINAL { ArrayIntInt }
+              , HEAP_FINAL { ArrayIntInt }
+              , N { Int } }
+      \iff-lfp( reachableInNSteps( STATE_INIT {ArrayIntInt}
+                                 , HEAP_INIT { ArrayIntInt }
+                                 , STATE_FINAL {ArrayIntInt}
+                                 , HEAP_FINAL { ArrayIntInt }
+                                 , N { Int }
+                                 )
+              , \or( \equals( 0 , 0 )
+                   , \and( \equals( N { Int } , 0 )
+                         , 
+                         )
+                   )  
+              )
+              
+
+claim \equals( 0 , 0 )
+
+strategy wait
+                   
