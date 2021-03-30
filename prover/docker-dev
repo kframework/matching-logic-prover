@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -e
+
+# docker build -t mlp ..
+docker run --rm \
+           -it \
+           --user 1000:1000 \
+           --volume="/etc/group:/etc/group:ro" \
+           --volume="/etc/passwd:/etc/passwd:ro" \
+           --volume="/etc/shadow:/etc/shadow:ro" \
+           --mount src=$HOME/dockerhome/,target=/home/$USER/,type=bind \
+           --mount src=$(cd ../; pwd),target=/home/matching-logic-prover/,type=bind \
+           --workdir="/home/matching-logic-prover" \
+           mlp "$@"
+

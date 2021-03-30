@@ -1,0 +1,81 @@
+imports "t/fol/definitions/list.kore"
+
+symbol reachableInNSteps(ArrayIntInt, ArrayIntInt, ArrayIntInt, ArrayIntInt, Int) : Bool
+axiom functional(reachableInNSteps)
+
+// addr_X = 1
+// addr_Y = 2
+// addr_L = 3
+
+axiom \forall { STATE_INIT { ArrayIntInt }, STATE_FINAL { ArrayIntInt }
+              , HEAP_INIT { ArrayIntInt }, HEAP_FINAL { ArrayIntInt }
+              , N { Int } }
+      \iff-lfp( reachableInNSteps( STATE_INIT { ArrayIntInt }
+                                 , STATE_FINAL { ArrayIntInt }
+                                 , HEAP_INIT { ArrayIntInt }
+                                 , HEAP_FINAL { ArrayIntInt }
+                                 , N { Int }
+                                 )
+              , \or( \exists { STATE_NEXT { ArrayIntInt } }
+                     \and( \equals(L, select (STATE_INIT { ArrayIntInt }, 3))
+                         , gt(select(HEAP_INIT { ArrayIntInt }, L), 0)
+                         , \equals( STATE_NEXT { ArrayIntInt }
+                                  , store ( STATE_INIT { ArrayIntInt }
+                                          , 3
+                                          , select(HEAP_INIT { ArrayIntInt }, L)
+                                          )
+                                  )
+                         , gt(N { Int }, 0)
+                         , reachableInNSteps( STATE_NEXT { ArrayIntInt }
+                                            , STATE_FINAL { ArrayIntInt }
+                                            , HEAP_INIT { ArrayIntInt }
+                                            , HEAP_FINAL { ArrayIntInt }
+                                            , minus(N { Int }, 1)
+                                            )
+                         )
+                   , \exists { }
+                     \and( \equals(L, select (STATE_INIT { ArrayIntInt }, 3))
+                         , \equals(select(HEAP_INIT { ArrayIntInt }, L), 0)
+                         , \equals(STATE_INIT { ArrayIntInt }, STATE_FINAL { ArrayIntInt })
+                         , \equals(HEAP_FINAL { ArrayIntInt }
+                                 , store ( HEAP_INIT { ArrayIntInt }
+                                         , L
+                                         , select (STATE_INIT { ArrayIntInt }, 2)
+                                         )
+                                )
+                         , \equals(N { Int }, 0)
+                         )
+                )
+            )
+
+claim \implies ( \and (   \equals(X_INIT { Int }, select(S_INIT { ArrayIntInt }, 1))
+                        , \equals(Y_INIT { Int }, select(S_INIT { ArrayIntInt }, 2))
+                        , list(H_INIT, X_INIT, FX_INIT)
+                        , list(H_INIT, Y_INIT, FY_INIT)
+                        , gt(Y_INIT { Int }, 0)
+                        , gt(X_INIT { Int }, 0)
+                        , \equals(select (S_INIT { ArrayIntInt }, 3) , X_INIT)
+                        , reachableInNSteps(  S_INIT { ArrayIntInt }
+                                            , S_FINAL { ArrayIntInt }
+                                            , H_INIT { ArrayIntInt }
+                                            , H_NEXT { ArrayIntInt }
+                                            , STEPS { Int }
+                                        )
+                    )
+               , \and ( list(H_FINAL, X_INIT, F_FINAL)
+                      , \equals(F_FINAL { SetInt } , union(FX_INIT { SetInt }, FY_INIT { SetInt }))
+                      )
+               )
+
+strategy  canonicalize . wait
+        . kt-wrap(head: reachableInNSteps)
+        . kt-abstract(Rpred)
+        . kt-forall-intro . kt-unfold
+        . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials
+        . with-each-implication-context( normalize-implication-context . kt-abstract-refine )
+        . ( ( check-lhs-constraint-unsat . smt-cvc4 )
+          | ( smt-cvc4 ) | wait
+          )
+
+
+
