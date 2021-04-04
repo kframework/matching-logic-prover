@@ -2,9 +2,11 @@ symbol reachableInNSteps(ArrayIntInt, ArrayIntInt, ArrayIntInt, ArrayIntInt, Int
 axiom functional(reachableInNSteps)
 
 symbol lst(ArrayIntInt, Int, ArrayIntInt, Int) : Bool
-symbol rev(ArrayIntInt, Int, ArrayIntInt, Int) : Bool
+symbol seq(ArrayIntInt, Int, Int, ArrayIntInt, Int) : Bool
+symbol rev(ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
 symbol rev2(ArrayIntInt, Int, Int, ArrayIntInt, Int, Int) : Bool
 axiom functional(lst)
+axiom functional(seq)
 axiom functional(rev)
 axiom functional(rev2)
 
@@ -23,8 +25,8 @@ axiom \forall { H { ArrayIntInt }
                                          // that is, FP[LEN] is HD
                    , LEN { Int } 
                    )
-              , \or( \and( \equals( HD { ArrayIntInt } , 0 )
-                         , \equals( FP { ArrauIntInt } , emp )
+              , \or( \and( \equals( HD { Int } , 0 )
+                         , \equals( LEN { Int } , 0 )
                          )
                    , \exists { HD' { Int } , FP' { ArrayIntInt } , LEN' { Int } }
                      \and( \equals( HD' { Int } , select ( H { ArrayIntInt } , HD { Int } ))
@@ -34,6 +36,40 @@ axiom \forall { H { ArrayIntInt }
                          )
                    )
               )
+
+axiom \forall { H { ArrayIntInt }
+              , HD { Int }
+              , TL { Int }
+              , FP { ArrayIntInt }
+              , LEN { Int }
+              }
+      \iff-lfp( seq( H { ArrayIntInt }
+                   , HD { Int }
+                   , TL { Int }
+                   , FP { ArrayIntInt }
+                   , LEN { Int }
+                   )
+              , \or( \and( \equals( HD { Int } , TL { Int } )
+                         , \equals( LEN { Int } , 0 )
+                         )
+                   , \exists { HD_NEXT { Int } , FP_NEXT { ArrayIntInt } , LEN_NEXT { Int } }
+                     \and( \equals( HD_NEXT { Int } , select( H { ArrayIntInt } , HD { Int } ))
+                         , \equals( FP { ArrayIntInt }
+                                  , store( FP_NEXT { ArrayIntInt }
+                                         , LEN { Int }
+                                         , HD { Int }
+                                         )
+                                  )
+                         , \equals( LEN_NEXT { Int } , minus( LEN { Int } , 1 ))
+                         , seq( H { ArrayIntInt }
+                              , HD_NEXT { Int }
+                              , TL { Int }
+                              , FP_NEXT { ArrayIntInt }
+                              , LEN_NEXT { Int }
+                              )
+                         )
+                   )
+             )
 
 
 axiom \forall { FP1 { ArrayIntInt }
@@ -91,6 +127,7 @@ axiom \forall { FP1 { ArrayIntInt }
 
 
 // This lfp-predicate captures the behavior of the while loop.
+// N { Int } is the number of times we enter the loop.
 
 
 axiom \forall { STATE_INIT { ArrayIntInt }
@@ -104,15 +141,80 @@ axiom \forall { STATE_INIT { ArrayIntInt }
                                  , HEAP_FINAL { ArrayIntInt }
                                  , N { Int }
                                  )
-              , \or( \equals( 0 , 0 )
-                   , \and( \equals( N { Int } , 0 )
-                         , 
+              , \or( \exists { STATE_NEXT { ArrayIntInt }
+                             , HEAP_NEXT { ArrayIntInt }
+                             }
+                     \and( gt( select( STATE_INIT { ArrayIntInt } , 3 )         // C
+                             , 0
+                             )
+                         , \equals( select( STATE_NEXT { ArrayIntInt } , 1 )    // N_NEXT
+                                  , select( HEAP_INIT { ArrayIntInt } , select( STATE_INIT { ArrayIntInt } , 3 ) ) // C->next
+                                  )
+                         , \equals( select( STATE_NEXT { ArrayIntInt } , 2 )    // P_NEXT
+                                  , select( STATE_INIT { ArrayIntInt } , 3 )    // C
+                                  )
+                         , \equals( select( STATE_NEXT { ArrayIntInt } , 3 )    // C_NEXT
+                                  , select( HEAP_INIT { ArrayIntInt } , select( STATE_INIT { ArrayIntInt } , 3 ) ) // C->next
+                                  )
+                         , \equals( HEAP_NEXT { ArrayIntInt } 
+                                  , store ( HEAP_INIT { ArrayIntInt }
+                                          , select( STATE_INIT { ArrayIntInt } , 3 )   // C
+                                          , select( STATE_INIT { ArrayIntInt } , 2 ) ) // P
+                                  )
+                         , gt( N { Int } , 0 )
+                         , reachableInNSteps( STATE_NEXT { ArrayIntInt }
+                                            , HEAP_NEXT { ArrayIntInt }
+                                            , STATE_FINAL { ArrayIntInt }
+                                            , HEAP_FINAL { ArrayIntInt }
+                                            , minus( N { Int } , 1 )
+                                            )
+                         )
+                   , \and( \equals( STATE_INIT { ArrayIntInt } , STATE_FINAL { ArrayIntInt } )
+                         , \equals( HEAP_INIT { ArrayIntInt } , HEAP_FINAL { ArrayIntInt } )
+                         , \equals( select( STATE_INIT { ArrayIntInt } , 3 ) , 0 )   // C is 0
+                         , \equals( N { Int } , 0 )
                          )
                    )  
               )
               
 
-claim \equals( 0 , 0 )
+claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )
+                            , select( STATE_INIT { ArrayIntInt } , 3 )
+                            )
+                   , \equals( select( STATE_INIT { ArrayIntInt } , 2 )
+                            , 0
+                            )
+                   , lst( HEAP_INIT { ArrayIntInt }
+                        , select( STATE_INIT { ArrayIntInt } , 3 )   // C_INIT
+                        , FP_C_INIT { ArrayIntInt }
+                        , LEN_C_INIT { ArrayIntInt }
+                        )
+                   , reachableInNSteps( STATE_INIT {ArrayIntInt}
+                                      , HEAP_INIT { ArrayIntInt }
+                                      , STATE_FINAL {ArrayIntInt}
+                                      , HEAP_FINAL { ArrayIntInt }
+                                      , N { Int }
+                                      )
+                   )
+              , \and( lst( HEAP_FINAL { ArrayIntInt }
+                         , select( STATE_FINAL { ArrayIntInt } , 2 )   // P_FINAL
+                         , FP_P_FINAL { ArrayIntInt }
+                         , LEN_P_FINAL { Int }
+                         )
+                    , \equals( select( STATE_FINAL { ArrayIntInt } , 3 ) , 0 )   // C_FINAL = 0
+                    , seq( HEAP_FINAL { ArrayIntInt }
+                         , select( STATE_FINAL { ArrayIntInt } , 2 )  // P_FINAL
+                         , select( STATE_INIT { ArrayIntInt } , 2 )   // P_INIT
+                         , FP_PP { ArrayIntInt }
+                         , LEN_PP { Int } 
+                         )
+                    , rev( FP_C_INIT { ArrayIntInt }
+                         , LEN_C_INIT { ArrayIntInt }
+                         , FP_PP { ArrayIntInt }
+                         , LEN_PP { Int }         
+                         )
+                    )
+)
 
 strategy wait
                    
