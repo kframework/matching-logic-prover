@@ -452,13 +452,15 @@ module KORE-HELPERS
 
 ```k
   syntax Patterns ::= getImplicationContexts(Patterns) [function]
-  rule getImplicationContexts(\forall {Vs} implicationContext(LCTX, RCTX), Ps)
-    => \forall {Vs} implicationContext(LCTX, RCTX), getImplicationContexts(Ps)
-  rule getImplicationContexts(S:Symbol(ARGs), Ps)
-    => getImplicationContexts(Ps)
-  rule getImplicationContexts(V:Variable, Ps)
-    => getImplicationContexts(Ps)
+  rule getImplicationContexts(\forall {Vs} implicationContext(LCTX, RCTX), Ps) => \forall {Vs} implicationContext(LCTX, RCTX), getImplicationContexts(Ps)
+  rule getImplicationContexts(implicationContext(LCTX, RCTX), Ps) => implicationContext(LCTX, RCTX), getImplicationContexts(Ps)
+  rule getImplicationContexts(P, Ps) => getImplicationContexts(Ps) [owise]
   rule getImplicationContexts(.Patterns)  => .Patterns
+```
+
+```k
+    syntax Patterns ::= removeImplicationContexts(Patterns) [function]
+    rule removeImplicationContexts(Ps) => Ps -Patterns getImplicationContexts(Ps)
 ```
 
 Filters a list of patterns, returning the ones that are applications of the symbol:

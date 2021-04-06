@@ -217,12 +217,12 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
   // TODO: -Patterns does not work here. We need to substitute RRP with BODY
   rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
             => \implies(LHS, \exists { E1 ++Patterns E2 }
-                             \and(substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))))
+                             \and(substPatternsMap(RHS, zip((RRP, .Patterns), (BODY, .Patterns)))))
        </claim>
-       <k> right-unfold-oneBody(RRP, \exists { E2 } \and(BODY)) => noop ... </k>
+       <k> right-unfold-oneBody(RRP, \exists { E2 } BODY) => noop ... </k>
        <trace> .K
-            => right-unfold-oneBody(RRP, \exists { E2 } \and(BODY))
-               ~> RHS ~> substPatternsMap(RHS, zip((RRP, .Patterns), (\and(BODY), .Patterns)))
+            => right-unfold-oneBody(RRP, \exists { E2 } BODY)
+               ~> RHS ~> substPatternsMap(RHS, zip((RRP, .Patterns), (BODY, .Patterns)))
                ...
        </trace>
     requires notBool hasImplicationContext(LHS)

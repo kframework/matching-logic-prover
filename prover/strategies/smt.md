@@ -227,11 +227,11 @@ module STRATEGY-SMT
   rule <claim> \implies(\and(LHS), _) </claim>
        <id> GId </id>
        <k> check-lhs-constraint-unsat
-               => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(getPredicatePatterns(LHS)), collectDeclarations(GId))) ==K unsat
-                  then success
-                  else noop
-                  fi
-                  ...
+        => if CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(removeImplicationContexts(getPredicatePatterns(LHS))), collectDeclarations(GId))) ==K unsat
+           then success
+           else noop
+           fi
+           ...
        </k>
        <trace> .K => check-lhs-constraint-unsat ... </trace>
 
@@ -239,8 +239,8 @@ module STRATEGY-SMT
   rule <claim> \implies(\and(LHS), _) </claim>
        <id> GId </id>
        <k> check-lhs-constraint-unsat-debug
-               => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(getPredicatePatterns(LHS)), collectDeclarations(GId)))
-                  ...
+        => wait ~> CVC4CheckSAT(CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(removeImplicationContexts(getPredicatePatterns(LHS))), collectDeclarations(GId)))
+           ...
        </k>
        <trace> .K => check-lhs-constraint-unsat-debug ~> CVC4Prelude ++SMTLIB2Script ML2SMTLIBDecls(GId, \and(getPredicatePatterns(LHS)), collectDeclarations(GId)) ... </trace>
 ```

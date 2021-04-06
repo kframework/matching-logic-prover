@@ -17,33 +17,39 @@ axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, E { Int }, I { Int }
                          )
                    , \exists {}
                      \and( \not(\equals(X { Int }, E { Int }))
+                         , \equals(I { Int }, -1)
                          , \equals(X { Int }, 0)
                          , \equals(F { SetInt }, emptyset)
-                         , \equals(I { Int }, -1)
                          )
+
                    , \exists {F1 { SetInt }, X1 { Int }}
-                     \and( listpos(H { ArrayIntInt }, X1 { Int }, F1 { SetInt }, E { Int }, minus(I { Int }, 1))
-                         , gt(X { Int },0)
+                     \and(\not(\equals(X { Int} , E { Int }))
+                         , gt(X { Int }, 0)
                          , \equals(select(H { ArrayIntInt }, X { Int }) , X1 { Int })
                          , \equals(F { SetInt } , union(F1 { SetInt }, singleton(X { Int })))
                          , disjoint(F1 { SetInt }, singleton(X { Int }))
-                         , \not(\equals(X { Int} , E { Int }))
+                         , \or( \and( gt(I { Int }, 0)
+                                    , listpos(H { ArrayIntInt }, X1 { Int }, F1 { SetInt }, E { Int }, minus(I { Int }, 1))
+                                    )
+                              , \and( \equals(I { Int }, -1)
+                                    , listpos(H { ArrayIntInt }, X1 { Int }, F1 { SetInt }, E { Int }, I { Int })
+                                    )
+                              )
                          )
                    )
               )
 
-
                 // State,       Memory
-symbol finalState( ArrayIntInt, ArrayIntInt // Initial
+symbol reachableInNSteps( ArrayIntInt, ArrayIntInt // Initial
                  , ArrayIntInt, ArrayIntInt // Final
                  , Int
                  ) : Bool
-axiom functional(finalState)
+axiom functional(reachableInNSteps)
 axiom \forall { S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
               , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
               , N { Int }
               }
-      \iff-lfp( finalState( S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
+      \iff-lfp( reachableInNSteps( S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
                           , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
                           , N { Int }
                           )
@@ -59,10 +65,11 @@ axiom \forall { S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
                                          )
                                   )
                          , \equals( M_NEXT { ArrayIntInt }, M_CURR { ArrayIntInt })
-                         , finalState( S_NEXT  { ArrayIntInt }, M_NEXT { ArrayIntInt }
+                         , reachableInNSteps( S_NEXT  { ArrayIntInt }, M_NEXT { ArrayIntInt }
                                      , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
                                      , minus(N { Int }, 1)
                                      )
+                         , gt(N { Int }, 0)
                          )
 		           , \exists { }
                      \and( \equals(select(S_CURR { ArrayIntInt }, 0), select(S_CURR { ArrayIntInt }, 1)) // X == E 
@@ -88,27 +95,29 @@ claim \implies ( \and ( \equals(X_INIT { Int }, select(S_INIT { ArrayIntInt }, 0
                       , \equals(E_FINAL { Int }, select(S_FINAL { ArrayIntInt }, 1))
                       , \equals(I_FINAL { Int }, select(S_FINAL { ArrayIntInt }, 2))
 
-                      , finalState( S_INIT { ArrayIntInt },  M_INIT {ArrayIntInt}
+                      , reachableInNSteps( S_INIT { ArrayIntInt },  M_INIT {ArrayIntInt}
                                   , S_FINAL { ArrayIntInt }, M_FINAL {ArrayIntInt}
                                   , STEPS { Int }
                                   )
                       )
-               , \and ( listpos( M_FINAL { ArrayIntInt }, X_INIT { Int }, FOOTPRINT { SetInt }
-                               , E_FINAL { Int }, I_FINAL { Int }
-                               )
-                      , \equals(X_FINAL { Int }, 0)
+               , \and ( \or( listpos( M_FINAL { ArrayIntInt }, X_INIT { Int }, FOOTPRINT { SetInt }
+                                    , E_FINAL { Int }, I_FINAL { Int }
+                                    )
+                           )
                       , \equals(M_INIT { ArrayIntInt }, M_FINAL { ArrayIntInt })
+                      , \equals(E_INIT { Int },         E_FINAL { Int })
                       )
                )
 
 strategy  normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-        . kt-wrap(head: finalState)
+        . kt-wrap(head: reachableInNSteps)
         . kt-forall-intro  . kt-unfold
         . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
         . left-unfold-Nth(0)  . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals // list(X)
-        . with-each-implication-context( normalize-implication-context . instantiate-context(F34{SetInt}, F59{SetInt} ) . kt-collapse )
         . check-lhs-constraint-unsat
-        . ( ( right-unfold-Nth(0, 2) . substitute-equals-for-equals . smt-debug )
+        . with-each-implication-context( normalize-implication-context . instantiate-context(F25{SetInt}, F39{SetInt} ) . kt-collapse )
+        . ( ( right-unfold-Nth(0, 2) . smt-debug )
           | ( wait . right-unfold-Nth(0, 0) . smt-debug )
-          | (wait)
+          | ( wait )
           )
+
