@@ -5,36 +5,30 @@ symbol listpos( ArrayIntInt  // Heap
               , Int          // Head address
               , SetInt       // Footprint
               , Int          // Element
-              , Int          // Index
+              , Int          // Value of I
+              , Int          // Expected Position
               ) : Bool
 axiom functional(listpos)
-axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, E { Int }, I { Int } }
-      \iff-lfp( listpos(H { ArrayIntInt }, X { Int }, F { SetInt }, E { Int }, I { Int })
+axiom \forall { H { ArrayIntInt }, X { Int }, F { SetInt }, E { Int }, I { Int }, Pos { Int } }
+      \iff-lfp( listpos(H { ArrayIntInt }, X { Int }, F { SetInt }, E { Int }, I { Int }, Pos { Int })
               , \or( \exists {}
-                     \and( \equals(X { Int }, E { Int })
-                         , \equals(I { Int }, 0)
-                         , list(H { ArrayIntInt }, X { Int }, F { SetInt })
-                         )
-                   , \exists {}
-                     \and( \not(\equals(X { Int }, E { Int }))
-                         , \equals(I { Int }, -1)
-                         , \equals(X { Int }, 0)
-                         , \equals(F { SetInt }, emptyset)
-                         )
-
+                     \or( \and( \equals(X { Int }, E { Int })
+                              , \equals(Pos { Int }, I { Int })
+                              , list(H { ArrayIntInt }, X { Int }, F { SetInt })
+                              )
+                        , \and( \not(\equals(X { Int }, E { Int }))
+                              , \equals(X { Int }, 0)
+                              , \equals(Pos { Int }, -1)
+                              , \equals(F { SetInt }, emptyset)
+                              )
+                        )
                    , \exists {F1 { SetInt }, X1 { Int }}
                      \and(\not(\equals(X { Int} , E { Int }))
                          , gt(X { Int }, 0)
                          , \equals(select(H { ArrayIntInt }, X { Int }) , X1 { Int })
                          , \equals(F { SetInt } , union(F1 { SetInt }, singleton(X { Int })))
                          , disjoint(F1 { SetInt }, singleton(X { Int }))
-                         , \or( \and( gt(I { Int }, 0)
-                                    , listpos(H { ArrayIntInt }, X1 { Int }, F1 { SetInt }, E { Int }, minus(I { Int }, 1))
-                                    )
-                              , \and( \equals(I { Int }, -1)
-                                    , listpos(H { ArrayIntInt }, X1 { Int }, F1 { SetInt }, E { Int }, I { Int })
-                                    )
-                              )
+                         , listpos(H { ArrayIntInt }, X1 { Int }, F1 { SetInt }, E { Int }, plus(I { Int }, 1), Pos { Int })
                          )
                    )
               )
@@ -50,9 +44,9 @@ axiom \forall { S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
               , N { Int }
               }
       \iff-lfp( reachableInNSteps( S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
-                          , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
-                          , N { Int }
-                          )
+                                 , S_FINAL { ArrayIntInt }, M_FINAL { ArrayIntInt }
+                                 , N { Int }
+                                 )
               , \or( \exists { S_NEXT { ArrayIntInt }, M_NEXT { ArrayIntInt } }
                      \and( \not(\equals(select(S_CURR { ArrayIntInt }, 0), select(S_CURR { ArrayIntInt }, 1)))
                          , \not(\equals(select(S_CURR { ArrayIntInt }, 0), 0)) 
@@ -73,12 +67,13 @@ axiom \forall { S_CURR  { ArrayIntInt }, M_CURR  { ArrayIntInt }
                          )
 		           , \exists { }
                      \and( \equals(select(S_CURR { ArrayIntInt }, 0), select(S_CURR { ArrayIntInt }, 1)) // X == E 
-                         , \equals(S_CURR { ArrayIntInt }, S_FINAL { ArrayIntInt })
+                         , \equals(S_FINAL { ArrayIntInt }, S_CURR { ArrayIntInt })
                          , \equals(M_CURR { ArrayIntInt }, M_FINAL { ArrayIntInt })
                          , \equals(N { Int }, 0)
                          )
 		           , \exists { }
-                     \and( \equals(select(S_CURR { ArrayIntInt }, 0), 0) // Not found
+                     \and( \not(\equals(select(S_CURR { ArrayIntInt }, 0), select(S_CURR { ArrayIntInt }, 1)))
+                         , \equals(select(S_CURR { ArrayIntInt }, 0), 0) // Not found
                          , \equals(S_FINAL { ArrayIntInt }, store (S_CURR { ArrayIntInt }, 2, -1))
                          , \equals(M_CURR { ArrayIntInt }, M_FINAL { ArrayIntInt })
                          , \equals(N { Int }, 0)
@@ -96,28 +91,29 @@ claim \implies ( \and ( \equals(X_INIT { Int }, select(S_INIT { ArrayIntInt }, 0
                       , \equals(I_FINAL { Int }, select(S_FINAL { ArrayIntInt }, 2))
 
                       , reachableInNSteps( S_INIT { ArrayIntInt },  M_INIT {ArrayIntInt}
-                                  , S_FINAL { ArrayIntInt }, M_FINAL {ArrayIntInt}
-                                  , STEPS { Int }
-                                  )
+                                         , S_FINAL { ArrayIntInt }, M_FINAL {ArrayIntInt}
+                                         , STEPS { Int }
+                                         )
                       )
-               , \and ( \or( listpos( M_FINAL { ArrayIntInt }, X_INIT { Int }, FOOTPRINT { SetInt }
-                                    , E_FINAL { Int }, I_FINAL { Int }
-                                    )
-                           )
+               , \and ( listpos( M_FINAL { ArrayIntInt }, X_INIT { Int }, FOOTPRINT { SetInt }
+                               , E_FINAL { Int }, I_INIT { Int }, I_FINAL { Int }
+                               )
                       , \equals(M_INIT { ArrayIntInt }, M_FINAL { ArrayIntInt })
                       , \equals(E_INIT { Int },         E_FINAL { Int })
                       )
                )
 
-strategy  normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-        . kt-wrap(head: reachableInNSteps)
-        . kt-forall-intro  . kt-unfold
-        . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
-        . left-unfold-Nth(0)  . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals // list(X)
-        . check-lhs-constraint-unsat
-        . with-each-implication-context( normalize-implication-context . instantiate-context(F25{SetInt}, F39{SetInt} ) . kt-collapse )
-        . ( ( right-unfold-Nth(0, 2) . smt-debug )
-          | ( wait . right-unfold-Nth(0, 0) . smt-debug )
-          | ( wait )
-          )
+strategy normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals
+       . kt-wrap(head: reachableInNSteps)
+       . kt-forall-intro  . kt-unfold
+       . remove-lhs-existential . kt-unwrap . normalize . or-split-rhs . lift-constraints . instantiate-existentials
+       . left-unfold-Nth(0)  . normalize . or-split-rhs . lift-constraints . instantiate-existentials . substitute-equals-for-equals // list(X)
+       . check-lhs-constraint-unsat
+       . with-each-implication-context( normalize-implication-context . instantiate-context(F25{SetInt}, F39{SetInt} ) . kt-collapse )
+       . ( ( right-unfold-Nth(0, 1) . smt-cvc4)
+         | ( right-unfold-Nth(0, 0) . right-unfold-Nth(0, 0) . smt-cvc4 )
+         | ( right-unfold-Nth(0, 0) . right-unfold-Nth(0, 1) . smt-cvc4 )
+         | ( right-unfold-Nth(0, 0) . right-unfold-Nth(0, 0) . wait )
+         | ( wait )
+         )
 

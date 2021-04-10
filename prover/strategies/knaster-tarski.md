@@ -583,7 +583,6 @@ REST is obtained via matching:
 ```
 
 ```k
-    syntax Strategy ::= "case-analysis" "(" Pattern "," negative: Strategy "," positive: Strategy ")"
     rule <claim> \implies(\and(LHS), RHS) </claim>
          <k> ( case-analysis(P, NEG, POS) ~> #hole . REST )
           => subgoal( \implies(\and(\not(P), LHS ), RHS)

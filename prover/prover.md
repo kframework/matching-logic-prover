@@ -96,6 +96,8 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "propagate-predicate-through-application" "(" Pattern "," Int ")"
                     | "propagate-conjunct-through-exists" "(" Int "," Int ")"
 
+                    | "case-analysis" "(" Pattern "," negative: Strategy "," positive: Strategy ")"
+
   syntax Strategy ::= "kt-wrap" "(" "head:" Symbol ")"
                     | "kt-wrap" "(" Pattern ")" | "kt-unwrap"
                     | "kt-forall-intro" | "kt-forall-elim"
