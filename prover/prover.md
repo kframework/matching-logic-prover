@@ -98,7 +98,7 @@ module STRATEGIES-EXPORTED-SYNTAX
 
                     | "case-analysis" "(" Pattern "," negative: Strategy "," positive: Strategy ")"
 
-  syntax Strategy ::= "kt-wrap" "(" "head:" Symbol ")"
+  syntax Strategy ::= "kt-wrap" "(" "head:" Symbol ")" | "kt-wrap" "(" "index:" Int ")"
                     | "kt-wrap" "(" Pattern ")" | "kt-unwrap"
                     | "kt-forall-intro" | "kt-forall-elim"
                     | "kt-unfold"

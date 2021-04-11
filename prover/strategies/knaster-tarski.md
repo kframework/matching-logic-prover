@@ -172,6 +172,10 @@ for guessing an instantiation of the inductive hypothesis.
     rule <claim> \implies(LHS, _) </claim>
          <k> kt-wrap(head: S) => fail ... </k>
       requires getLength(filterByConstructor(getUnfoldables(LHS), S)) ==Int 0
+
+    rule <claim> \implies(LHS, _) </claim>
+         <k> kt-wrap(index: I) => kt-wrap(getMember(I, getUnfoldables(LHS))) ... </k>
+      requires getLength(getUnfoldables(LHS)) >Int I
 ```
 
 ```k
