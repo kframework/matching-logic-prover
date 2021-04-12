@@ -1,129 +1,92 @@
 symbol reachableInNSteps(ArrayIntInt, ArrayIntInt, ArrayIntInt, ArrayIntInt, Int) : Bool
 axiom functional(reachableInNSteps)
 
-symbol lst(ArrayIntInt, Int, ArrayIntInt, Int) : Bool
-symbol seq(ArrayIntInt, Int, Int, ArrayIntInt, Int) : Bool
-symbol rev(ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int) : Bool
-symbol rev2(ArrayIntInt, Int, Int, ArrayIntInt, Int, Int) : Bool
+symbol lst(ArrayIntInt, Int, ArrayIntInt, Int, SetInt) : Bool
+symbol rev(ArrayIntInt, Int, ArrayIntInt, Int, Int) : Bool
 axiom functional(lst)
-axiom functional(seq)
 axiom functional(rev)
-axiom functional(rev2)
 
 // addr_N = 1
 // addr_P = 2
 // addr_C = 3
 
-axiom \forall { H { ArrayIntInt } 
-              , HD { Int }
-              , FP { ArrayIntInt }
-              , LEN { Int }
-              }
-      \iff-lfp( lst( H { ArrayIntInt } 
-                   , HD { Int }
-                   , FP { ArrayIntInt }  // store the footprints backward
-                                         // that is, FP[LEN] is HD
-                   , LEN { Int } 
-                   )
-              , \or( \and( \equals( HD { Int } , 0 )
-                         , \equals( LEN { Int } , 0 )
+// axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { ArrayIntInt } , START { Int } , END { Int } }
+//       \iff-lfp( lseg( H { ArrayIntInt }, X { Int }, Y { Int }, F { ArrayIntInt } , START { Int } , END { Int } )
+//               , \or( \exists { }
+//                      \and( \equals(X { Int }, Y { Int })
+//                          , \equals(START { Int }, END { Int })
+//                          )
+//                    , \exists { Z { Int } , FZ { ArrayIntInt } , SZ { Int } }
+//                      \and( gt(X { Int }, 0)
+//                          , gt(START { Int } , 0)
+//                          , lseg( H { ArrayIntInt }
+//                                , Z { Int }
+//                                , Y { Int }
+//                                , FZ { ArrayIntInt }
+//                                , SZ { Int }
+//                                , END { Int }
+//                                )
+//                          , \equals(select(H { ArrayIntInt }, X { Int }), Z { Int })
+//                          , \equals(select(F { ArrayIntInt }, START { Int }), SZ { Int })
+//                          )
+//                    )
+//               )
+
+axiom \forall { H { ArrayIntInt }, X { Int }, F { ArrayIntInt } , LEN { Int } , FSET { SetInt } }
+      \iff-lfp( lst( H { ArrayIntInt }, X { Int }, F { ArrayIntInt } , LEN { Int } , FSET { SetInt } )
+              , \or( \exists { }
+                     \and( \equals( X { Int }, 0 )
+                         , \equals( LEN { Int }, 0 )
+                         , \equals( FSET { SetInt } , emptyset )
                          )
-                   , \exists { HD' { Int } , FP' { ArrayIntInt } , LEN' { Int } }
-                     \and( \equals( HD' { Int } , select ( H { ArrayIntInt } , HD { Int } ))
-                         , \equals( FP { ArrayIntInt } , store ( FP' { ArrayIntInt } , LEN { Int } , HD { Int } ) )
-                         , \equals( LEN { Int } , plus( LEN' { Int } , 1 ) )
-                         , lst( H { ArrayIntInt } , HD' { Int } , FP' { ArrayIntInt } , LEN' { Int })
+                   , \exists { Z { Int } , FSET_Z { SetInt } }
+                     \and( gt(X { Int }, 0)
+                         , gt(LEN { Int } , 0)
+                         // , \equals( F , store( FZ , LEN, X ))
+                         , lst( H { ArrayIntInt }
+                              , Z { Int }
+                              , F { ArrayIntInt }
+                              , minus( LEN { Int } , 1 )
+                              , FSET_Z { SetInt }
+                              )
+                         , \equals( select(H { ArrayIntInt }, X { Int }), Z { Int } )
+                         , \equals( FSET { SetInt } , union( FSET_Z { SetInt } , singleton( X { Int } ) ) )
+                         , disjoint( FSET_Z { SetInt } , singleton( X { Int } ) )
                          )
                    )
               )
 
-axiom \forall { H { ArrayIntInt }
-              , HD { Int }
-              , TL { Int }
-              , FP { ArrayIntInt }
-              , LEN { Int }
-              }
-      \iff-lfp( seq( H { ArrayIntInt }
-                   , HD { Int }
-                   , TL { Int }
-                   , FP { ArrayIntInt }
-                   , LEN { Int }
-                   )
-              , \or( \and( \equals( HD { Int } , TL { Int } )
-                         , \equals( LEN { Int } , 0 )
+axiom \forall { FP_X { ArrayIntInt } 
+              , LEN_X { Int } 
+              , FP_Y { ArrayIntInt } 
+              , LEN_Y { Int }    
+              , END_Y { Int } }
+      \iff-lfp( rev( FP_X { ArrayIntInt } 
+              , LEN_X { Int } 
+              , FP_Y { ArrayIntInt } 
+              , LEN_Y { Int }    
+              , END_Y { Int } )
+              , \or( \exists { }
+                     \and( \equals( LEN_X { Int } , 0 )
+                         , \equals( LEN_Y { Int } , END_Y { Int } )
                          )
-                   , \exists { HD_NEXT { Int } , FP_NEXT { ArrayIntInt } , LEN_NEXT { Int } }
-                     \and( \equals( HD_NEXT { Int } , select( H { ArrayIntInt } , HD { Int } ))
-                         , \equals( FP { ArrayIntInt }
-                                  , store( FP_NEXT { ArrayIntInt }
-                                         , LEN { Int }
-                                         , HD { Int }
-                                         )
+                   , \exists { }
+                     \and( gt( LEN_X { Int } , 0 )
+                         , \equals( select(FP_X { ArrayIntInt } , LEN_X { Int } ) 
+                                  , select(FP_Y { ArrayIntInt } , END_Y { Int } )
                                   )
-                         , \equals( LEN_NEXT { Int } , minus( LEN { Int } , 1 ))
-                         , seq( H { ArrayIntInt }
-                              , HD_NEXT { Int }
-                              , TL { Int }
-                              , FP_NEXT { ArrayIntInt }
-                              , LEN_NEXT { Int }
+                         , rev( FP_X { ArrayIntInt } 
+                              , minus( LEN_X { Int } , 1 ) 
+                              , FP_Y { ArrayIntInt } 
+                              , LEN_Y { Int } 
+                              , plus( END_Y { Int } , 1 )
                               )
                          )
                    )
-             )
+              )
 
 
-axiom \forall { FP1 { ArrayIntInt }
-              , FST1 { Int }
-              , LST1 { Int } 
-              , FP2 { ArrayIntInt }
-              , FST2 { Int }
-              , LST2 { Int } 
-              }
-      \iff-lfp( rev2( FP1 { ArrayIntInt }
-                    , FST1 { Int }
-                    , LST1 { Int } 
-                    , FP2 { ArrayIntInt }
-                    , FST2 { Int }
-                    , LST2 { Int } )
-              , \or( \and( \equals( FST1 { Int } , LST1 { Int } )
-                         , \equals( FST2 { Int } , LST2 { Int } )
-                         )
-                   , \exists { LST1' { Int } , FST2' { Int } }
-                     \and( \equals( plus( LST1' { Int } , 1 ) , LST1 { Int } )
-                         , \equals( FST2' { Int } , plus( FST2 { Int } , 1 ))
-                         , \equals( select( FP1 { ArrayIntInt } , LST1 { Int } )
-                                  , select( FP2 { ArrayIntInt } , FST1 { Int } )
-                                  )
-                         , rev2( FP1 { ArrayIntInt }
-                               , FST1 { Int }
-                               , LST1' { Int } 
-                               , FP2 { ArrayIntInt }
-                               , FST2' { Int }
-                               , LST2 { Int } )
-                         )
-                   )
-               )
 
-axiom \forall { FP1 { ArrayIntInt }
-              , LEN1 { Int } 
-              , FP2 { ArrayIntInt }
-              , LEN2 { Int }
-              }
-      \iff-lfp( rev( FP1 { ArrayIntInt }
-                   , LEN1 { Int } 
-                   , FP2 { ArrayIntInt }
-                   , LEN2 { Int }
-                   )
-              , \exists { Z1 { Int } , Z2 { Int } }
-                \and( \equals( Z1 { Int } , 0 )
-                    , \equals( Z2 { Int } , 0 )
-                    , rev2( FP1 { ArrayIntInt }
-                          , LEN1 { Int } 
-                          , FP2 { ArrayIntInt }
-                          , LEN2 { Int }
-                          )
-                    )
-               )
 
 
 // This lfp-predicate captures the behavior of the while loop.
@@ -169,26 +132,40 @@ axiom \forall { STATE_INIT { ArrayIntInt }
                                             , minus( N { Int } , 1 )
                                             )
                          )
-                   , \and( \equals( STATE_INIT { ArrayIntInt } , STATE_FINAL { ArrayIntInt } )
+                   , \exists { }
+                     \and( \equals( STATE_INIT { ArrayIntInt } , STATE_FINAL { ArrayIntInt } )
                          , \equals( HEAP_INIT { ArrayIntInt } , HEAP_FINAL { ArrayIntInt } )
                          , \equals( select( STATE_INIT { ArrayIntInt } , 3 ) , 0 )   // C is 0
                          , \equals( N { Int } , 0 )
                          )
                    )  
               )
+
+
               
 
-claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )
-                            , select( STATE_INIT { ArrayIntInt } , 3 )
+claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )  // N_INIT
+                            , select( STATE_INIT { ArrayIntInt } , 3 )  // C_INIT
                             )
+                   , lst( HEAP_INIT { ArrayIntInt }
+                        , P_INIT { Int }
+                        , FP_P_INIT { ArrayIntInt }
+                        , LEN_P_INIT { Int }
+                        , FSET_P_INIT { SetInt }
+                        )
                    , \equals( select( STATE_INIT { ArrayIntInt } , 2 )
-                            , 0
+                            , P_INIT { Int }
                             )
+                   // , \equals( select( STATE_INIT { ArrayIntInt } , 2 )  // P_INIT
+                   //          , 0
+                   //          )
                    , lst( HEAP_INIT { ArrayIntInt }
                         , select( STATE_INIT { ArrayIntInt } , 3 )   // C_INIT
                         , FP_C_INIT { ArrayIntInt }
-                        , LEN_C_INIT { ArrayIntInt }
+                        , LEN_C_INIT { Int }
+                        , FSET_C_INIT { SetInt }
                         )
+                   , disjoint( FSET_P_INIT { SetInt } , FSET_C_INIT { SetInt } )
                    , reachableInNSteps( STATE_INIT {ArrayIntInt}
                                       , HEAP_INIT { ArrayIntInt }
                                       , STATE_FINAL {ArrayIntInt}
@@ -196,25 +173,134 @@ claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )
                                       , N { Int }
                                       )
                    )
-              , \and( lst( HEAP_FINAL { ArrayIntInt }
+              // P_INIT + C_INIT
+              // P_FINAL (= rev(C_INIT) @ P_INIT ) + C_FINAL (is empty)
+
+              , \exists { FP_P_FINAL { ArrayIntInt } }
+                \and( lst( HEAP_FINAL { ArrayIntInt }
                          , select( STATE_FINAL { ArrayIntInt } , 2 )   // P_FINAL
                          , FP_P_FINAL { ArrayIntInt }
-                         , LEN_P_FINAL { Int }
+                         , plus( LEN_P_INIT { Int } , LEN_C_INIT { Int } )
+                         , union( FSET_P_INIT { SetInt } , FSET_C_INIT { SetInt } )
                          )
                     , \equals( select( STATE_FINAL { ArrayIntInt } , 3 ) , 0 )   // C_FINAL = 0
-                    , seq( HEAP_FINAL { ArrayIntInt }
-                         , select( STATE_FINAL { ArrayIntInt } , 2 )  // P_FINAL
-                         , select( STATE_INIT { ArrayIntInt } , 2 )   // P_INIT
-                         , FP_PP { ArrayIntInt }
-                         , LEN_PP { Int } 
-                         )
                     , rev( FP_C_INIT { ArrayIntInt }
-                         , LEN_C_INIT { ArrayIntInt }
-                         , FP_PP { ArrayIntInt }
-                         , LEN_PP { Int }         
+                         , LEN_C_INIT { Int }
+                         , FP_P_FINAL { ArrayIntInt }
+                         , plus( LEN_P_INIT { Int } , LEN_C_INIT { Int } ) // LEN_P_FINAL
+                         , LEN_P_INIT { Int }
                          )
                     )
-)
+              )
 
-strategy wait
-                   
+strategy normalize . or-split-rhs . lift-constraints 
+       . instantiate-existentials . merge-variable-aliases 
+       . kt-wrap(index: 1) . kt-forall-intro  
+       . kt-unfold . remove-lhs-existential . kt-unwrap 
+       . normalize . or-split-rhs . lift-constraints 
+       . instantiate-existentials . merge-variable-aliases
+       . ( ( left-unfold-Nth(1) . check-lhs-constraint-unsat . right-unfold-Nth(1, 0) . smt-cvc4 )
+         | ( wait . wait ) 
+         ) 
+       . wait
+       . with-each-implication-context( normalize-implication-context . wait
+                                      . instantiate-context( F24 { Int } , P_INIT { Int } )
+                                      . instantiate-context( F25 { ArrayIntInt } , FP_P_INIT { ArrayIntInt } )
+                                      . instantiate-context( F26 { ArrayIntInt } , FP_C_INIT { ArrayIntInt } )
+                                      . instantiate-context( F27 { Int } , LEN_P_INIT { Int } )
+                                      . instantiate-context( F28 { Int } , LEN_C_INIT { Int } )
+                                      . instantiate-context( F29 { SetInt } , FSET_P_INIT { SetInt } )
+                                      . instantiate-context( F30 { SetInt } , FSET_C_INIT { SetInt } )
+                                      . kt-collapse )
+       . ( wait | wait )
+
+
+
+
+// axiom \forall { H { ArrayIntInt }
+//               , HD { Int }
+//               , TL { Int }
+//               , FP { ArrayIntInt }
+//               , LEN { Int }
+//               }
+//       \iff-lfp( seq( H { ArrayIntInt }
+//                    , HD { Int }
+//                    , TL { Int }
+//                    , FP { ArrayIntInt }
+//                    , LEN { Int }
+//                    )
+//               , \or( \and( \equals( HD { Int } , TL { Int } )
+//                          , \equals( LEN { Int } , 0 )
+//                          )
+//                    , \exists { HD_NEXT { Int } , FP_NEXT { ArrayIntInt } , LEN_NEXT { Int } }
+//                      \and( \equals( HD_NEXT { Int } , select( H { ArrayIntInt } , HD { Int } ))
+//                          , \equals( FP { ArrayIntInt }
+//                                   , store( FP_NEXT { ArrayIntInt }
+//                                          , LEN { Int }
+//                                          , HD { Int }
+//                                          )
+//                                   )
+//                          , \equals( LEN_NEXT { Int } , minus( LEN { Int } , 1 ))
+//                          , seq( H { ArrayIntInt }
+//                               , HD_NEXT { Int }
+//                               , TL { Int }
+//                               , FP_NEXT { ArrayIntInt }
+//                               , LEN_NEXT { Int }
+//                               )
+//                          )
+//                    )
+//              )
+
+
+// axiom \forall { FP1 { ArrayIntInt }
+//               , FST1 { Int }
+//               , LST1 { Int } 
+//               , FP2 { ArrayIntInt }
+//               , FST2 { Int }
+//               , LST2 { Int } 
+//               }
+//       \iff-lfp( rev2( FP1 { ArrayIntInt }
+//                     , FST1 { Int }
+//                     , LST1 { Int } 
+//                     , FP2 { ArrayIntInt }
+//                     , FST2 { Int }
+//                     , LST2 { Int } )
+//               , \or( \and( \equals( FST1 { Int } , LST1 { Int } )
+//                          , \equals( FST2 { Int } , LST2 { Int } )
+//                          )
+//                    , \exists { LST1' { Int } , FST2' { Int } }
+//                      \and( \equals( plus( LST1' { Int } , 1 ) , LST1 { Int } )
+//                          , \equals( FST2' { Int } , plus( FST2 { Int } , 1 ))
+//                          , \equals( select( FP1 { ArrayIntInt } , LST1 { Int } )
+//                                   , select( FP2 { ArrayIntInt } , FST1 { Int } )
+//                                   )
+//                          , rev2( FP1 { ArrayIntInt }
+//                                , FST1 { Int }
+//                                , LST1' { Int } 
+//                                , FP2 { ArrayIntInt }
+//                                , FST2' { Int }
+//                                , LST2 { Int } )
+//                          )
+//                    )
+//                )
+
+// axiom \forall { FP1 { ArrayIntInt }
+//               , LEN1 { Int } 
+//               , FP2 { ArrayIntInt }
+//               , LEN2 { Int }
+//               }
+//       \iff-lfp( rev( FP1 { ArrayIntInt }
+//                    , LEN1 { Int } 
+//                    , FP2 { ArrayIntInt }
+//                    , LEN2 { Int }
+//                    )
+//               , \exists { Z1 { Int } , Z2 { Int } }
+//                 \and( \equals( Z1 { Int } , 0 )
+//                     , \equals( Z2 { Int } , 0 )
+//                     , rev2( FP1 { ArrayIntInt }
+//                           , LEN1 { Int } 
+//                           , FP2 { ArrayIntInt }
+//                           , LEN2 { Int }
+//                           )
+//                     )
+//                )

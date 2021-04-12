@@ -213,7 +213,11 @@ rule addPattern(P, .List) => .List
 rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
 ```
 
+
 ```k
+  syntax KItem ::= #debug(KItem)
+                 | #debug(KItem, KItem)
+
   // TODO: -Patterns does not work here. We need to substitute RRP with BODY
   rule <claim> \implies(LHS, \exists { E1 } \and(RHS))
             => \implies(LHS, \exists { E1 ++Patterns E2 }
@@ -226,6 +230,7 @@ rule addPattern(P, ListItem(Ps:Patterns) L) => ListItem(P, Ps) addPattern(P, L)
                ...
        </trace>
     requires notBool hasImplicationContext(LHS)
+     
 
   syntax Pattern ::= #moveHoleToFront(Pattern) [function]
   rule #moveHoleToFront(\and(sep(#hole { Heap }, REST_SEP), REST_AND)) => \and(sep(#hole { Heap }, REST_SEP), REST_AND)
