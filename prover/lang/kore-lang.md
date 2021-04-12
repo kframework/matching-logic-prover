@@ -24,6 +24,7 @@ module TOKENS
 
   syntax LowerName ::= "emptysetx"  [token]
                      | "unionx"     [token]
+                     | "setminusx"  [token]
                      | "singleton"  [token]
                      | "intersectx" [token]
                      | "in"         [token]
@@ -95,6 +96,7 @@ module TOKENS
   syntax LowerName ::= "emptyset"     [token]
                      | "singleton"    [token]
                      | "union"        [token]
+                     | "setminus"      [token]
                      | "intersection" [token]
                      | "member"       [token]
 
@@ -274,7 +276,7 @@ module KORE-HELPERS
 ```k
   syntax Bool ::= isFunctional(GoalId, Pattern) [function]
 
-  rule isFunctional(_, plus #Or minus #Or select #Or union
+  rule isFunctional(_, plus #Or minus #Or select #Or union #Or setminus
          #Or singleton #Or emptyset) => true
 
   rule [[ isFunctional(_, S) => true ]]
@@ -310,6 +312,7 @@ module KORE-HELPERS
   rule getReturnSort( minus ( ARGS ) ) => Int
   rule getReturnSort( select ( ARGS ) ) => Int
   rule getReturnSort( union ( ARGS ) ) => SetInt
+  rule getReturnSort( setminus( ARGS ) ) => SetInt
   rule getReturnSort( singleton ( ARGS ) ) => SetInt
   rule getReturnSort( emptyset ) => SetInt
   rule getReturnSort( disjoint ( ARGS ) ) => Bool
