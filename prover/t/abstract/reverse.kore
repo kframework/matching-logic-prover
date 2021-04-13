@@ -195,25 +195,43 @@ claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )  // N_INI
 
 strategy normalize . or-split-rhs . lift-constraints 
        . instantiate-existentials . merge-variable-aliases 
-       . kt-wrap(index: 1) . kt-forall-intro  
+       . kt-wrap(head: reachableInNSteps) . kt-forall-intro
+       . kt-unfold . wait . remove-lhs-existential . kt-unwrap 
+       . normalize . or-split-rhs . lift-constraints 
+       . instantiate-existentials . merge-variable-aliases
+       . wait
+       . with-each-implication-context( normalize-implication-context 
+                                      . kt-collapse 
+                                      . wait
+                                      )
+       . instantiate-context ( F34 { Int } , select( STATE_INIT { ArrayIntInt } , 3 ) )
+       . wait
+       . instantiate-context ( F35 { ArrayIntInt } 
+                             , store( FP_P_INIT { ArrayIntInt } , LEN_P_INIT { Int } , select( STATE_INIT { ArrayIntInt } , 3 ) ) )
+       . instantiate-context ( F36 { ArrayIntInt } , FP_C_INIT { ArrayIntInt } )
+       . instantiate-context ( F37 { Int } , plus( LEN_P_INIT { Int } , 1 ) )
+       . instantiate-context ( F38 { Int } , minus( LEN_C_INIT { Int } , 1 ) )
+       . instantiate-context ( F39 { SetInt } , union( FSET_P_INIT { SetInt } , singleton( select( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
+       . instantiate-context ( F40 { SetInt } 
+                             , setminus( FSET_C_INIT { SetInt } , singleton( select( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
+       . kt-wrap(index: 6)
+       . wait
+       . kt-forall-intro  
        . kt-unfold . remove-lhs-existential . kt-unwrap 
        . normalize . or-split-rhs . lift-constraints 
        . instantiate-existentials . merge-variable-aliases
-       . ( ( left-unfold-Nth(1) . check-lhs-constraint-unsat . right-unfold-Nth(1, 0) . smt-cvc4 )
-         | ( wait . wait ) 
-         ) 
        . wait
-       . with-each-implication-context( normalize-implication-context . wait
-                                      . instantiate-context( F24 { Int } , P_INIT { Int } )
-                                      . instantiate-context( F25 { ArrayIntInt } , FP_P_INIT { ArrayIntInt } )
-                                      . instantiate-context( F26 { ArrayIntInt } , FP_C_INIT { ArrayIntInt } )
-                                      . instantiate-context( F27 { Int } , LEN_P_INIT { Int } )
-                                      . instantiate-context( F28 { Int } , LEN_C_INIT { Int } )
-                                      . instantiate-context( F29 { SetInt } , FSET_P_INIT { SetInt } )
-                                      . instantiate-context( F30 { SetInt } , FSET_C_INIT { SetInt } )
-                                      . kt-collapse )
-       . ( wait | wait )
 
+       // . kt-wrap(index: 1) . kt-forall-intro  
+       // . kt-unfold . remove-lhs-existential . kt-unwrap 
+       // . normalize . or-split-rhs . lift-constraints 
+       // . instantiate-existentials . merge-variable-aliases
+       // . with-each-implication-context( normalize-implication-context 
+       //                                . kt-collapse )
+       // . ( ( left-unfold-Nth(1) . check-lhs-constraint-unsat 
+       //     . right-unfold-Nth(1, 0) . smt-cvc4 )
+       //   | ( instantiate-context ( ... ) ) 
+       //   ) 
 
 
 
