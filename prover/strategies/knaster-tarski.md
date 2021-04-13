@@ -997,20 +997,22 @@ Instantiate universally quantified clauses in the LHS's first spatial part.
 
 ```k
     rule <claim> \implies(\and(\forall{ Vs => Vs -Patterns X } (P => subst(P, X, Val)), _), _) </claim>
-         <k> instantiate-context(X, Val) => noop ... </k>
+         <k> instantiate-context(X, Val:Variable) => noop ... </k>
       requires X in Vs
-    rule <claim> \implies(\and(\forall{ Vs } _, _), _) </claim>
-         <k> instantiate-context(X, Val) => fail ... </k>
-      requires notBool(X in Vs)
+
+    rule <claim> \implies( \and( \forall{ Vs } P, LHS:Patterns)
+                        => \and( \forall{ Vs } P, \equals(!V { Sort }, Val), LHS)
+                         , _
+                         )
+         </claim>
+         <k> instantiate-context(_ { Sort }, Val => !V { Sort }) ... </k>
+      requires notBool isVariable(Val)
 ```
 
 ```k
     rule <claim> \implies(\and(sep(\forall{ Vs => Vs -Patterns X } (P => subst(P, X, Val)), _), _), _) </claim>
          <k> instantiate-context(X, Val) => noop ... </k>
       requires X in Vs
-    rule <claim> \implies(\and(sep(\forall{ Vs } _, _), _), _) </claim>
-         <k> instantiate-context(X, Val) => fail ... </k>
-      requires notBool(X in Vs)
 ```
 
 ## `instantiate-rhs`
