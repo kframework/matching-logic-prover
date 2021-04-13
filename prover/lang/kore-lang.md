@@ -604,14 +604,19 @@ where the term being unfolded has been replace by `#hole`.
     => \member(subst(LHS, X, V), subst(RHS, X, V))
   rule subst(\subseteq(LHS, RHS):Pattern, X, V)
     => \subseteq(subst(LHS, X, V), subst(RHS, X, V))
+
+  rule subst(\forall { E } C, X, V)              => \forall { E } subst(C, X, V) requires notBool(isVariable(X) orBool isVariableName(X))
   rule subst(\forall { E } C, X:Variable, V)     => \forall { E } C requires X in E
   rule subst(\forall { E } C, X:Variable, V)     => \forall { E } subst(C, X, V) requires notBool( X in E )
   rule subst(\forall { E } C, X:VariableName, V) => \forall { E } C requires X in PatternsToVariableNameSet(E)
   rule subst(\forall { E } C, X:VariableName, V) => \forall { E } subst(C, X, V) requires notBool( X in PatternsToVariableNameSet(E) )
+
+  rule subst(\exists { E } C, X, V)              => \exists { E } subst(C, X, V) requires notBool(isVariable(X) orBool isVariableName(X))
   rule subst(\exists { E } C, X:Variable, V)     => \exists { E } C requires X in E
   rule subst(\exists { E } C, X:Variable, V)     => \exists { E } subst(C, X, V) requires notBool( X in E )
   rule subst(\exists { E } C, X:VariableName, V) => \exists { E } C requires X in PatternsToVariableNameSet(E)
   rule subst(\exists { E } C, X:VariableName, V) => \exists { E } subst(C, X, V) requires notBool( X in PatternsToVariableNameSet(E) )
+
   rule subst(S:Symbol, X, V) => S
     requires S =/=K X
   rule subst(S:Symbol(ARGS:Patterns) #as T:Pattern, X, V)
