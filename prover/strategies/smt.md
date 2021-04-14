@@ -141,6 +141,12 @@ module ML-TO-SMTLIB2
          ( define-fun max ( (x Int) (y Int) ) Int ( ite (< x y) y x ) )
        )
 
+// HACK: CVC4 doesn't handle the relation between setminus and disjoint/union very well.
+  rule \equals(V, setminus(S, E))
+    => \and( \equals(S, union(V, E))
+           , disjoint(V, E)
+           ) [anywhere]
+
   syntax SMTLIB2Script ::= "CVC4Prelude" [function]
   rule CVC4Prelude
     => ( ( define-sort SetInt (.SMTLIB2SortList) ( Set Int ) )
