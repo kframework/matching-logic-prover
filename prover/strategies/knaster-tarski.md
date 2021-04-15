@@ -239,6 +239,13 @@ for guessing an instantiation of the inductive hypothesis.
     requires getFreeVariables(LHS) -Patterns Vs ==K getFreeVariables(LHS)
 ```
 
+```k
+  rule <claim> \implies(\and(LHS), RHS)
+            => \implies(\and((((LHS -Patterns S) -Patterns P) ++Patterns R) ++Patterns Q), RHS)
+       </claim>
+       <k> kt-fold(S, P, R, Q) => noop ... </k>
+```
+
 // unfold+lfp
 
 ```k
