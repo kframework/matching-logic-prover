@@ -217,19 +217,29 @@ strategy normalize . or-split-rhs . lift-constraints
        . normalize . or-split-rhs . lift-constraints 
        . instantiate-existentials . merge-variable-aliases 
        . with-each-implication-context( normalize-implication-context . kt-collapse ) 
-       . ( smt-cvc4 | wait )
-       . wait
-
-       // . kt-wrap(index: 1) . kt-forall-intro  
-       // . kt-unfold . remove-lhs-existential . kt-unwrap 
-       // . normalize . or-split-rhs . lift-constraints 
-       // . instantiate-existentials . merge-variable-aliases
-       // . with-each-implication-context( normalize-implication-context 
-       //                                . kt-collapse )
-       // . ( ( left-unfold-Nth(1) . check-lhs-constraint-unsat 
-       //     . right-unfold-Nth(1, 0) . smt-cvc4 )
-       //   | ( instantiate-context ( ... ) ) 
-       //   ) 
+       . ( smt-cvc4
+         | ( // reverse-tmp
+             instantiate-context ( F172 { SetInt } , setminus ( F101 { SetInt } , singleton ( select ( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
+           . instantiate-context ( F173 { SetInt } , union ( FSET_P_INIT { SetInt } , singleton ( select ( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
+           . instantiate-context ( F174 { Int } , minus ( minus ( LEN_C_INIT { Int } , 1 ) , 1 ) )
+           . instantiate-context ( F175 { Int } , plus ( LEN_P_INIT { Int } , 1 ) )
+           . instantiate-context ( F176 { ArrayIntInt } , store ( F181 { ArrayIntInt } , LEN_P_INIT { Int } , select ( STATE_INIT { ArrayIntInt } , 3 ) ) )
+           . instantiate-context ( F177 { Int } , select ( STATE_INIT { ArrayIntInt } , 3 ) )
+           . instantiate-context ( F178 { Int } , N { Int } )
+           . instantiate-context ( F179 { ArrayIntInt } , store ( HEAP_INIT { ArrayIntInt } , select ( STATE_INIT { ArrayIntInt } , 3 ) , select ( STATE_INIT { ArrayIntInt } , 2 ) ) )
+           . instantiate-context ( F180 { ArrayIntInt } , F27 { ArrayIntInt } )
+           . instantiate-context ( F181 { ArrayIntInt } , FP_P_INIT { ArrayIntInt } )
+           . instantiate-context ( F182 { Int } , select ( STATE_INIT { ArrayIntInt } , 3 ) )
+           . instantiate-context ( F185 { SetInt } , FSET_P_INIT { SetInt } )
+           . instantiate-context ( F187 { Int } , LEN_P_INIT { Int } )
+           . ( ( // reverse-tmp2
+                 wait 
+               ) 
+             | ( wait . wait )
+             )
+           )
+         )
+       . wait . wait . wait
 
 
 
