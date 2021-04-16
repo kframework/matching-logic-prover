@@ -1,8 +1,8 @@
-symbol reachableInNSteps(ArrayIntInt, ArrayIntInt, ArrayIntInt, ArrayIntInt, Int) : Bool
+symbol reachableInNSteps(ArrayIntInt, ArrayIntInt, ArrayIntInt, ArrayIntInt, ArrayIntInt, Int, ArrayIntInt, Int, Int) : Bool
 axiom functional(reachableInNSteps)
 
 symbol lst(ArrayIntInt, Int, ArrayIntInt, Int, SetInt) : Bool
-symbol rev(ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int, ArrayIntInt, Int, Int) : Bool
+symbol rev(ArrayIntInt, Int, ArrayIntInt, Int, Int) : Bool
 axiom functional(lst)
 axiom functional(rev)
 
@@ -10,26 +10,39 @@ axiom functional(rev)
 // addr_P = 2
 // addr_C = 3
 
-
-// F[LEN] = X
-// F[LEN-1] = H[X]
-// ...
-// F[1] = the last element of the list
+// axiom \forall { H { ArrayIntInt }, X { Int }, Y { Int }, F { ArrayIntInt } , START { Int } , END { Int } }
+//       \iff-lfp( lseg( H { ArrayIntInt }, X { Int }, Y { Int }, F { ArrayIntInt } , START { Int } , END { Int } )
+//               , \or( \exists { }
+//                      \and( \equals(X { Int }, Y { Int })
+//                          , \equals(START { Int }, END { Int })
+//                          )
+//                    , \exists { Z { Int } , FZ { ArrayIntInt } , SZ { Int } }
+//                      \and( gt(X { Int }, 0)
+//                          , gt(START { Int } , 0)
+//                          , lseg( H { ArrayIntInt }
+//                                , Z { Int }
+//                                , Y { Int }
+//                                , FZ { ArrayIntInt }
+//                                , SZ { Int }
+//                                , END { Int }
+//                                )
+//                          , \equals(select(H { ArrayIntInt }, X { Int }), Z { Int })
+//                          , \equals(select(F { ArrayIntInt }, START { Int }), SZ { Int })
+//                          )
+//                    )
+//               )
 
 axiom \forall { H { ArrayIntInt }, X { Int }, F { ArrayIntInt } , LEN { Int } , FSET { SetInt } }
       \iff-lfp( lst( H { ArrayIntInt }, X { Int }, F { ArrayIntInt } , LEN { Int } , FSET { SetInt } )
               , \or( \exists { }
-                     \and( \equals( X { Int } , 0 )
-                         , \equals( LEN { Int } , 0 )
+                     \and( \equals( X { Int }, 0 )
+                         , \equals( LEN { Int }, 0 )
                          , \equals( FSET { SetInt } , emptyset )
-                         , \equals( select( F { ArrayIntInt } , 0 ) , 0 )
                          )
                    , \exists { Z { Int } , FSET_Z { SetInt } }
                      \and( gt(X { Int }, 0)
                          , gt(LEN { Int } , 0)
-                         , \equals( select( F { ArrayIntInt } , LEN { Int } ) 
-                                  , X { Int }
-                                  )
+                         , \equals( select( F { ArrayIntInt }, LEN {Int}) , X {Int} )
                          , lst( H { ArrayIntInt }
                               , Z { Int }
                               , F { ArrayIntInt }
@@ -43,34 +56,27 @@ axiom \forall { H { ArrayIntInt }, X { Int }, F { ArrayIntInt } , LEN { Int } , 
                    )
               )
 
-axiom \forall { H_X { ArrayIntInt } , X { Int } , FP_X { ArrayIntInt } , LEN_X { Int } 
-              , H_Y { ArrayIntInt } , Y { Int } , FP_Y { ArrayIntInt } , LEN_Y { Int } , END_Y { Int } }
- \iff-lfp( rev( H_X { ArrayIntInt } , X { Int } , FP_X { ArrayIntInt } , LEN_X { Int } 
-              , H_Y { ArrayIntInt } , Y { Int } , FP_Y { ArrayIntInt } , LEN_Y { Int } , END_Y { Int } )
+axiom \forall { FP_X { ArrayIntInt } 
+              , LEN_X { Int } 
+              , FP_Y { ArrayIntInt } 
+              , LEN_Y { Int }    
+              , END_Y { Int } }
+      \iff-lfp( rev( FP_X { ArrayIntInt } 
+              , LEN_X { Int } 
+              , FP_Y { ArrayIntInt } 
+              , LEN_Y { Int }    
+              , END_Y { Int } )
               , \or( \exists { }
                      \and( \equals( LEN_X { Int } , 0 )
                          , \equals( LEN_Y { Int } , END_Y { Int } )
                          )
-                   , \exists { Z { Int } }
+                   , \exists { }
                      \and( gt( LEN_X { Int } , 0 )
-                         , \equals( select( FP_X { ArrayIntInt } , LEN_X { Int } ) 
-                                  , select( FP_Y { ArrayIntInt } , END_Y { Int } )
+                         , \equals( select(FP_X { ArrayIntInt } , LEN_X { Int } ) 
+                                  , select(FP_Y { ArrayIntInt } , END_Y { Int } )
                                   )
-                         , \equals( select( FP_X { ArrayIntInt } , LEN_X { Int } )
-                                  , X { Int }
-                                  ) 
-                         , \equals( select( FP_Y { ArrayIntInt } , END_Y { Int } )
-                                  , Z { Int }
-                                  )
-                         , \equals( select( H_Y { ArrayIntInt } , Z { Int } )
-                                  , Y { Int }
-                                  )
-                         , rev( H_X { ArrayIntInt }
-                              , select( H_X { ArrayIntInt } , X { Int } )
-                              , FP_X { ArrayIntInt } 
+                         , rev( FP_X { ArrayIntInt } 
                               , minus( LEN_X { Int } , 1 ) 
-                              , H_Y { ArrayIntInt }
-                              , Z { Int }
                               , FP_Y { ArrayIntInt } 
                               , LEN_Y { Int } 
                               , plus( END_Y { Int } , 1 )
@@ -91,15 +97,25 @@ axiom \forall { STATE_INIT { ArrayIntInt }
               , HEAP_INIT { ArrayIntInt }
               , STATE_FINAL { ArrayIntInt }
               , HEAP_FINAL { ArrayIntInt }
+              , FP1 {ArrayIntInt}
+              , POS1 {Int}
+              , FP2 {ArrayIntInt}
+              , POS2 {Int}
               , N { Int } }
       \iff-lfp( reachableInNSteps( STATE_INIT {ArrayIntInt}
                                  , HEAP_INIT { ArrayIntInt }
                                  , STATE_FINAL {ArrayIntInt}
                                  , HEAP_FINAL { ArrayIntInt }
+                                 , FP1 {ArrayIntInt}
+                                 , POS1 {Int}
+                                 , FP2 {ArrayIntInt}
+                                 , POS2 {Int}
                                  , N { Int }
                                  )
               , \or( \exists { STATE_NEXT { ArrayIntInt }
                              , HEAP_NEXT { ArrayIntInt }
+                             , POS1_NEXT {Int}
+                             , POS2_NEXT {Int}
                              }
                      \and( gt( select( STATE_INIT { ArrayIntInt } , 3 )         // C
                              , 0
@@ -118,11 +134,25 @@ axiom \forall { STATE_INIT { ArrayIntInt }
                                           , select( STATE_INIT { ArrayIntInt } , 3 )   // C
                                           , select( STATE_INIT { ArrayIntInt } , 2 ) ) // P
                                   )
+                         , \equals(select (FP1 {ArrayIntInt}, POS1 {Int}), select( STATE_INIT { ArrayIntInt } , 3 ))
+                         , \equals(select (FP2 {ArrayIntInt}, POS2 {Int}), select( STATE_INIT { ArrayIntInt } , 3 ))
+                         , gt(POS1 {Int}, 0)
+                         , gte(POS2 {Int}, 0)
+                         , \equals(POS1_NEXT {Int}, minus(POS1 {Int}, 1))
+                         , \equals(POS2_NEXT {Int}, plus(POS2 {Int}, 1))
+                         , \forall { FP {ArrayIntInt}, POS{Int}, FPS {SetInt} }
+                           \implies(lst(HEAP_INIT {ArrayIntInt}, select( STATE_INIT { ArrayIntInt } , 2 ), FP {ArrayIntInt}, POS {Int}, FPS {SetInt}), 
+                                    lst(HEAP_NEXT {ArrayIntInt}, select( STATE_NEXT { ArrayIntInt } , 2 ), FP {ArrayIntInt}, POS {Int}, FPS {SetInt}) 
+                                   )
                          , gt( N { Int } , 0 )
                          , reachableInNSteps( STATE_NEXT { ArrayIntInt }
                                             , HEAP_NEXT { ArrayIntInt }
                                             , STATE_FINAL { ArrayIntInt }
                                             , HEAP_FINAL { ArrayIntInt }
+                                            , FP1 {ArrayIntInt}
+                                            , POS1_NEXT {Int}
+                                            , FP2 {ArrayIntInt}
+                                            , POS2_NEXT {Int}
                                             , minus( N { Int } , 1 )
                                             )
                          )
@@ -143,8 +173,9 @@ claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )  // N_INI
                    , \equals( select( STATE_INIT { ArrayIntInt } , 2 )  // P_INIT
                             , 0
                             )
-                   , \equals( LEN_P_INIT { Int }, 0 )
+                   , \equals( LEN_P_INIT { Int }, 0)
                    , \equals( FSET_P_INIT { SetInt }, emptyset)
+                   , \equals( FP_P_INIT { ArrayIntInt }, FP_P_INIT { ArrayIntInt })
                    , lst( HEAP_INIT { ArrayIntInt }
                         , select( STATE_INIT { ArrayIntInt } , 3 )   // C_INIT
                         , FP_C_INIT { ArrayIntInt }
@@ -156,6 +187,10 @@ claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )  // N_INI
                                       , HEAP_INIT { ArrayIntInt }
                                       , STATE_FINAL {ArrayIntInt}
                                       , HEAP_FINAL { ArrayIntInt }
+                                      , FP_C_INIT { ArrayIntInt }
+                                      , LEN_C_INIT { Int }
+                                      , FP_P_FINAL {ArrayIntInt}
+                                      , LEN_P_INIT { Int }
                                       , N { Int }
                                       )
                    )
@@ -169,18 +204,12 @@ claim \implies(\and( \equals( select( STATE_INIT { ArrayIntInt } , 1 )  // N_INI
                          , plus( LEN_P_INIT { Int } , LEN_C_INIT { Int } )
                          , union( FSET_P_INIT { SetInt } , FSET_C_INIT { SetInt } )
                          )
-                    , \equals( select( STATE_FINAL { ArrayIntInt } , 3 ) , 0 )   // C_FINAL = 0
-                    , rev( HEAP_INIT { ArrayIntInt }
-                         , select( STATE_INIT { ArrayIntInt } , 3 ) // C_INIT
-                         , FP_C_INIT { ArrayIntInt }
+                    , rev( FP_C_INIT { ArrayIntInt }
                          , LEN_C_INIT { Int }
-                         , HEAP_FINAL { ArrayIntInt }
-                         , select( STATE_INIT { ArrayIntInt } , 2 ) // P_INIT
                          , FP_P_FINAL { ArrayIntInt }
                          , plus( LEN_P_INIT { Int } , LEN_C_INIT { Int } ) // LEN_P_FINAL
-                         , plus( LEN_P_INIT { Int } , 1 )
+                         , LEN_P_INIT { Int }
                          )
-                    , gte( LEN_C_INIT { Int }, 0 )
                     )
               )
 
@@ -191,17 +220,31 @@ strategy normalize . or-split-rhs . lift-constraints
        . normalize . or-split-rhs . lift-constraints 
        . instantiate-existentials . merge-variable-aliases
        . with-each-implication-context( normalize-implication-context
-          . instantiate-context ( F56 { ArrayIntInt } , FP_C_INIT { ArrayIntInt } )
-          . instantiate-context ( F57 { ArrayIntInt } , FP_P_FINAL { ArrayIntInt } )
-          . instantiate-context ( F58 { Int } , plus( LEN_P_INIT { Int } , 1 ) )
-          . instantiate-context ( F59 { Int } , minus( LEN_C_INIT { Int } , 1 ) )
-          . instantiate-context ( F60 { SetInt } , union( FSET_P_INIT { SetInt } , singleton( select( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
-          . instantiate-context ( F61 { SetInt } , setminus( FSET_C_INIT { SetInt } , singleton( select( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
+          . instantiate-context ( F54 { SetInt } , union( FSET_P_INIT { SetInt } , singleton( select( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
+          . instantiate-context ( F55 { SetInt } , setminus( FSET_C_INIT { SetInt } , singleton( select( STATE_INIT { ArrayIntInt } , 3 ) ) ) )
           . kt-abstract-refine 
        )
-       . (  ( right-unfold-Nth(1,1) . canonicalize 
-              // tmp-1
-            . wait )
+       . (  ( right-unfold-Nth(1,1) . smt-cvc4 )
+          | ( kt-abstract-finalize(Rpred)
+            . kt-wrap(head: Rpred) . kt-forall-intro
+            . kt-unfold . remove-lhs-existential . kt-unwrap 
+            . normalize . or-split-rhs . lift-constraints 
+            . instantiate-existentials . merge-variable-aliases
+            . with-each-implication-context( normalize-implication-context
+               . instantiate-context ( F188 { ArrayIntInt } , FP_P_FINAL { ArrayIntInt }) . kt-collapse )
+            . ( ( kt-solve-implications( smt-cvc4 )
+               . instantiate-lhs( F181 { ArrayIntInt } , FP_P_FINAL {ArrayIntInt} )
+               . instantiate-lhs( F182 { Int } , plus ( F169 { Int } , F166 { Int } ) )
+               . instantiate-lhs( F183 { SetInt }, union ( F168 { SetInt }, F167 { SetInt } ) )
+               . left-unfold-Nth(3) 
+               . ( ( check-lhs-constraint-unsat . smt-cvc4 ) 
+                    | ( right-unfold-Nth(0,0) . right-unfold-Nth(0,0) . smt-cvc4 ) 
+                    )
+               ) 
+               | ( add-constraint(\equals(select ( STATE_FINAL { ArrayIntInt } , 3), 0))
+                 . left-unfold-Nth(0) . ( ( right-unfold-Nth(0,0) . right-unfold-Nth(0,0) . smt-cvc4 ) 
+                    | ( check-lhs-constraint-unsat . smt-cvc4 ) ) ) )
+          )
           | ( wait )
        )
 

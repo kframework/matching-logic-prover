@@ -998,6 +998,11 @@ FOL Version:
     requires P =/=K META-VARIABLE
 ```
 
+```k
+    rule <claim> \implies((P => subst(P, X, Val)), RHS) </claim>
+         <k> instantiate-lhs(X, Val) => noop ... </k>
+```
+
 ## `instantiate-context`
 
 Instantiate universally quantified clauses in the LHS's first spatial part.

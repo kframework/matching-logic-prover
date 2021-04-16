@@ -65,7 +65,7 @@ module STRATEGIES-EXPORTED-SYNTAX
                     | "match" | "match-debug" | "match-pto"
                     | "frame" | "frame-one"
                     | "footprint-analysis" | "nullity-analysis" "(" Strategy ")"
-                    | "remove-constraints" | "keep-head"
+                    | "remove-constraints" | "keep-head" | "add-constraint" "(" Pattern ")"
                     | "unfold-mut-recs"
                     | "apply-equation"
                         RewriteDirection AxiomOrClaimName
@@ -107,6 +107,7 @@ module STRATEGIES-EXPORTED-SYNTAX
 
                     | "instantiate-rhs" "(" Variable "," Pattern ")"
                     | "instantiate-context" "(" Variable "," Pattern ")"
+                    | "instantiate-lhs" "(" Variable "," Pattern ")"
                     
                     | "context-destructure" "(" "head:" Symbol ")"
                     | "context-case-analysis"

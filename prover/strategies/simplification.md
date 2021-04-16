@@ -694,6 +694,13 @@ Gamma |- C[\exists X. Pi /\ Psi]
 ```
 
 ```k
+  rule <claim> \implies(\and(LHS), RHS)
+            => \implies(\and(LHS ++Patterns P), RHS)
+       </claim>
+       <k> add-constraint(P) => noop ... </k>
+```
+
+```k
   rule <claim> \implies(\and(S, Ss), RHS)
             => \implies(\and(S), RHS)
        </claim>
