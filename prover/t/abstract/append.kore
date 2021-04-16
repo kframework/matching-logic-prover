@@ -55,7 +55,8 @@ axiom \forall { STATE_INIT { ArrayIntInt }, STATE_FINAL { ArrayIntInt }
                                          , select (STATE_INIT { ArrayIntInt }, 2)
                                          )
                                 )
-                         , list(HEAP_INIT { ArrayIntInt }, select(STATE_INIT { ArrayIntInt }, 2))
+                         , \equals(select(HEAP_INIT { ArrayIntInt }, select(STATE_INIT { ArrayIntInt }, 2)), 0)
+                         , gt(select(STATE_INIT { ArrayIntInt }, 2), 0)
                          , \equals(N { Int }, 0)
                          )
                 )
@@ -86,7 +87,7 @@ strategy  normalize . or-split-rhs . lift-constraints . instantiate-existentials
         . ( ( smt-cvc4 )
           | ( kt-abstract-finalize(Rpred)
             . kt-fold(
-                list ( H_INIT { ArrayIntInt } , select ( S_INIT { ArrayIntInt } , 2 ) ), 
+                \equals ( select ( H_INIT { ArrayIntInt } , select ( S_INIT { ArrayIntInt } , 2 ) ) , 0 ), 
                 \equals ( H_FINAL { ArrayIntInt } , 
                   store ( H_INIT { ArrayIntInt } , select ( S_INIT { ArrayIntInt } , 3 ) , 
                     select ( S_INIT { ArrayIntInt } , 2 ) ) ),
